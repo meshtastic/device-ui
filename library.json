@@ -1,0 +1,38 @@
+{
+  "name": "meshtastic-device-ui",
+  "version": "1.0.0",
+  "description": "LVGL GUI for meshtastic devices",
+  "keywords": "meshtastic, tbeam, tdeck, twatch, lvgl, tft, lovyangfx, embedded",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/mverch67/device-ui.git"
+  },
+  "authors":
+  [
+    {
+      "name": "mverch67",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://meshtastic.org/",
+  "frameworks": "Arduino, FreeRTOS",
+  "platforms": "Expressif 32, Nordic nRF52, Raspberry Pi RP2040, Native, Linux x86_64, Linux ARM",
+  "headers": ["DeviceScreen.h", "SharedQueue.h"],
+  "dependencies": {
+    "lovyan03/LovyanGFX": "1.1.12",
+    "lvgl/lvgl": "8.3.9",
+    "SPI": "2.0.0"
+  },
+  "build": {
+    "libArchive": true,
+    "flags": [
+      "-Ilib/device-ui/include",
+      "-Ilib/device-ui/generated",
+      "-DLV_LVGL_H_INCLUDE_SIMPLE",
+      "-DLV_CONF_INCLUDE_SIMPLE",
+      "-DLV_COMP_CONF_INCLUDE_SIMPLE"
+    ]
+  }
+}

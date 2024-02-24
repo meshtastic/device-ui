@@ -1,0 +1,1 @@
+// This directory contains the exported ui files. Use Squareline Studio to design the UI and generate the C code.
