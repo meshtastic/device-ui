@@ -9,9 +9,9 @@
 
 #ifdef USE_X11
 #include "X11Driver.h"
-#elif defined (T_DECK)
+#elif defined (LGFX_DRIVER_INC)
 #include "LGFXDriver.h"
-#include "LGFX_T_DECK.h"
+#include LGFX_DRIVER_INC
 #else
 #error "Unknown device for view 320x240"
 #endif
@@ -29,7 +29,7 @@ TFTView_320x240* TFTView_320x240::instance(void) {
 TFTView_320x240::TFTView_320x240() : DeviceGUI(&X11Driver::create()) {
 }
 #else
-TFTView_320x240::TFTView_320x240() : DeviceGUI(new LGFXDriver<LGFX_TDECK>(screenWidth, screenHeight)) {
+TFTView_320x240::TFTView_320x240() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight)) {
 }
 #endif
 

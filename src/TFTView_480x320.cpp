@@ -9,18 +9,27 @@
 
 #ifdef USE_X11
 #include "X11Driver.h"
-#elif defined (WT32_SC01)
+#elif defined (LGFX_DRIVER_INC)
 #include "LGFXDriver.h"
-#include "LGFX_WT_SC01PLUS.h"
+#include LGFX_DRIVER_INC
 #else
 #error "Unknown device for view 480x320"
 #endif
 
+
+TFTView_480x320* TFTView_480x320::gui = nullptr;
+
+TFTView_480x320* TFTView_480x320::instance(void) {
+    if (!gui) gui = new TFTView_480x320;
+    return gui;
+}
+
+
 #ifdef USE_X11
-TFTView_480x320::TFTView_320x240() : DeviceGUI(&X11Driver::create()) {
+TFTView_480x320::TFTView_480x320() : DeviceGUI(&X11Driver::create()) {
 }
 #else
-TFTView_480x320::TFTView_320x240() : DeviceGUI(new LGFXDriver<LGFX_WT_SC01PLUS>(screenWidth, screenHeight)) {
+TFTView_480x320::TFTView_480x320() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight)) {
 }
 #endif
 

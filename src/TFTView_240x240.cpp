@@ -1,4 +1,5 @@
 #ifdef VIEW_240x240
+
 #include "TFTView_240x240.h"
 #include <cstdio>
 #include <ctime>
@@ -8,9 +9,9 @@
 
 #ifdef USE_X11
 #include "X11Driver.h"
-#elif defined(T_WATCH_S3)
+#elif defined (LGFX_DRIVER_INC)
 #include "LGFXDriver.h"
-#include "LGFX_T_WATCH_S3.h"
+#include LGFX_DRIVER_INC
 #else
 #error "Unknown device for view 240x240"
 #endif

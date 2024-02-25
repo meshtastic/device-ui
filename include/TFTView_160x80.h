@@ -27,4 +27,5 @@ protected:
 private:
     TFTView_160x80();
 
+    static TFTView_160x80* gui;
 };

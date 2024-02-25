@@ -21,15 +21,13 @@
   "platforms": "Expressif 32, Nordic nRF52, Raspberry Pi RP2040, Native, Linux x86_64, Linux ARM",
   "headers": ["DeviceScreen.h", "SharedQueue.h"],
   "dependencies": {
-    "lovyan03/LovyanGFX": "1.1.12",
-    "lvgl/lvgl": "8.3.9",
-    "SPI": "2.0.0"
+    "lvgl/lvgl": "8.3.11"
   },
   "build": {
     "libArchive": true,
     "flags": [
-      "-Ilib/device-ui/include",
-      "-Ilib/device-ui/generated",
+      "-Iinclude",
+      "-Igenerated",
       "-DLV_LVGL_H_INCLUDE_SIMPLE",
       "-DLV_CONF_INCLUDE_SIMPLE",
       "-DLV_COMP_CONF_INCLUDE_SIMPLE"

@@ -1,4 +1,5 @@
 #ifdef VIEW_128x64
+
 #include "OLEDView_128x64.h"
 #include <cstdio>
 #include <ctime>
@@ -8,8 +9,8 @@
 
 #ifdef USE_X11
 #include "X11Driver.h"
-#elif defined(PICO)
-#include "OLEDDriver.h"
+#elif defined(OLED_DRIVER)
+#include OLED_DRIVER_INC
 #else
 #error "Unknown device for view 128x64"
 #endif
@@ -34,18 +35,7 @@ void OLEDView_128x64::init(void) {
     Serial.println("OLEDView init...");
     displaydriver->init();
     DeviceGUI::init();
-    //ui_set_active(ui_HomeButton, ui_HomePanel, ui_TopPanel);
     //ui_events_init();
-
-    // keyboard init
-    //lv_keyboard_set_textarea(ui_Keyboard, ui_MessageInputArea);
-}
-
-
-
-void OLEDView_128x64::task_handler(void) {
-    lv_timer_handler();
-    displaydriver->task_handler();
 }
 
 #endif

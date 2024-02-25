@@ -40,7 +40,7 @@ const uint32_t screenHeight = 240;
 #define I2C_SCL1 40
 
 
-class LGFX_TWATCH : public lgfx::LGFX_Device
+class LGFX_TWATCH_S3 : public lgfx::LGFX_Device
 {
     lgfx::Panel_ST7789 _panel_instance;
     lgfx::Bus_SPI _bus_instance;
@@ -49,7 +49,7 @@ class LGFX_TWATCH : public lgfx::LGFX_Device
 
 
 public:
-    LGFX_TWATCH(void)
+    LGFX_TWATCH_S3(void)
     {
         {
             auto cfg = _bus_instance.config();

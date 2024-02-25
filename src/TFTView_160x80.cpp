@@ -9,18 +9,26 @@
 
 #ifdef USE_X11
 #include "X11Driver.h"
-#elif defined (HELTEC_TRACKER)
+#elif defined (LGFX_DRIVER_INC)
 #include "LGFXDriver.h"
-#include "LGFX_HELTEC_TRACKER.h"
+#include LGFX_DRIVER_INC
 #else
 #error "Unknown device for view 160x80"
 #endif
 
+
+TFTView_160x80* TFTView_160x80::gui = nullptr;
+
+TFTView_160x80* TFTView_160x80::instance(void) {
+    if (!gui) gui = new TFTView_160x80;
+    return gui;
+}
+
 #ifdef USE_X11
-TFTView_160x80::TFTView_320x240() : DeviceGUI(&X11Driver::create()) {
+TFTView_160x80::TFTView_160x80() : DeviceGUI(&X11Driver::create()) {
 }
 #else
-TFTView_160x80::TFTView_320x240() : DeviceGUI(new LGFXDriver<LGFX_HELTEC_TRACKER>(screenWidth, screenHeight)) {
+TFTView_160x80::TFTView_160x80() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight)) {
 }
 #endif
 

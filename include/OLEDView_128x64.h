@@ -13,7 +13,6 @@ class OLEDView_128x64 : public DeviceGUI {
 public:
     static OLEDView_128x64* instance(void);
     virtual void init(void);
-    virtual void task_handler(void);
 
     virtual void addNode(void) {};
     virtual void removeNode(void) {};
