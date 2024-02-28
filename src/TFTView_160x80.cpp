@@ -25,12 +25,18 @@ TFTView_160x80* TFTView_160x80::instance(void) {
 }
 
 #ifdef USE_X11
-TFTView_160x80::TFTView_160x80() : DeviceGUI(&X11Driver::create()) {
+TFTView_160x80::TFTView_160x80() : DeviceGUI(&X11Driver::create(), new ViewController) {
 }
 #else
-TFTView_160x80::TFTView_160x80() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight)) {
+TFTView_160x80::TFTView_160x80() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight), 
+                                             new ViewController) {
 }
 #endif
 
+void TFTView_160x80::init(IClientBase* client) {
+    Serial.println("TFTView init...");
+    displaydriver->init();
+    DeviceGUI::init(client);
+}
 
 #endif

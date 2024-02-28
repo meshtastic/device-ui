@@ -12,7 +12,7 @@
 class TFTView_480x320 : public DeviceGUI {
 public:
     static TFTView_480x320* instance(void);
-    virtual void init(void);
+    virtual void init(IClientBase* client);
     virtual void task_handler(void);
     void populate_nodes(void);
 

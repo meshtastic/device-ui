@@ -26,12 +26,18 @@ TFTView_480x320* TFTView_480x320::instance(void) {
 
 
 #ifdef USE_X11
-TFTView_480x320::TFTView_480x320() : DeviceGUI(&X11Driver::create()) {
+TFTView_480x320::TFTView_480x320() : DeviceGUI(&X11Driver::create(), new ViewController) {
 }
 #else
-TFTView_480x320::TFTView_480x320() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight)) {
+TFTView_480x320::TFTView_480x320() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight), 
+                                               new ViewController) {
 }
 #endif
 
+void TFTView_480x320::init(IClientBase* client) {
+    Serial.println("TFTView init...");
+    displaydriver->init();
+    DeviceGUI::init(client);
+}
 
 #endif

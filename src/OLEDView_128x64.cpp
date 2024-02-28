@@ -24,17 +24,18 @@ OLEDView_128x64* OLEDView_128x64::instance(void) {
 }
 
 #ifdef USE_X11
-OLEDView_128x64::OLEDView_128x64() : DeviceGUI(&X11Driver::create()) {
+OLEDView_128x64::OLEDView_128x64() : DeviceGUI(&X11Driver::create(), new ViewController) {
 }
 #else
-OLEDView_128x64::OLEDView_128x64() : DeviceGUI(new OLEDDriver<OLED_DRIVER>(screenWidth, screenHeight)) {
+OLEDView_128x64::OLEDView_128x64() : DeviceGUI(new OLEDDriver<OLED_DRIVER>(screenWidth, screenHeight),
+                                               new OLEDViewController) {
 }
 #endif
 
-void OLEDView_128x64::init(void) {
+void OLEDView_128x64::init(IClientBase* client) {
     Serial.println("OLEDView init...");
     displaydriver->init();
-    DeviceGUI::init();
+    DeviceGUI::init(client);
     //ui_events_init();
 }
 

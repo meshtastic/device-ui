@@ -26,17 +26,19 @@ TFTView_320x240* TFTView_320x240::instance(void) {
 }
 
 #ifdef USE_X11
-TFTView_320x240::TFTView_320x240() : DeviceGUI(&X11Driver::create()) {
+TFTView_320x240::TFTView_320x240() : DeviceGUI(&X11Driver::create(), new ViewController) {
 }
 #else
-TFTView_320x240::TFTView_320x240() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight)) {
+TFTView_320x240::TFTView_320x240() : DeviceGUI(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight),
+                                               new ViewController) {
 }
 #endif
 
-void TFTView_320x240::init(void) {
+void TFTView_320x240::init(IClientBase* client) {
     Serial.println("TFTView init...");
     displaydriver->init();
-    DeviceGUI::init();
+    DeviceGUI::init(client);
+    
     ui_set_active(ui_HomeButton, ui_HomePanel, ui_TopPanel);
     ui_events_init();
 

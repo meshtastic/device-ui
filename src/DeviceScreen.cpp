@@ -21,9 +21,9 @@ DeviceScreen::DeviceScreen() {
 }
 
 
-void DeviceScreen::init(void) {
+void DeviceScreen::init(IClientBase* client) {
     Serial.println("DeviceScreen::init()...");
-    gui->init();
+    gui->init(client);
 
 #ifdef TFT_BL
     digitalWrite(TFT_BL, HIGH);
