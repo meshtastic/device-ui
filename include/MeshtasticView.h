@@ -1,18 +1,37 @@
 #pragma once
 
-#include "MeshtasticView.h"
+#include "DeviceGUI.h"
+#include <stdint.h>
+#include <time.h>
+#include <unordered_map>
+#include "lvgl.h"
+#include "mesh-pb-constants.h"
 
-/**
- * @brief GUI view for e.g. T-Deck
- * Handles creation of display driver and controller.
- * Note: due to static callbacks in lvgl this class is modelled as
- *       a singleton with static callback members
- */
-class TFTView_320x240 : public MeshtasticView {
+
+#define LV_OBJ_IDX(x) spec_attr->children[x]
+
+
+class ViewController;
+
+class MeshtasticView : public DeviceGUI {
 public:
-    static TFTView_320x240* instance(void);
+    MeshtasticView(DisplayDriver* driver, ViewController* _controller);
     virtual void init(IClientBase* client);
     virtual void task_handler(void);
+
+    enum eRole {
+        client, 
+        client_mute, 
+        router,
+        router_client,
+        repeater,
+        tracker,
+        sensor,
+        tak,
+        client_hidden, 
+        lost_and_found,
+        tak_tracker
+    };
 
     // methods to update view
     virtual void setMyInfo(uint32_t nodeNum);
@@ -23,10 +42,10 @@ public:
     virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t precision);
     virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil, uint32_t lastHeard);
     virtual void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr);
-    virtual void packetReceived(uint32_t from, uint32_t to, uint32_t portnum, const uint8_t* bytes, uint32_t size);
+    virtual void updateChannelConfig(uint32_t index, const char* name, const uint8_t* psk, uint32_t psk_size, uint8_t role) {}
+    virtual void configCompleted(void) { configComplete = true; }
 
     // methods to update device config
-    virtual void updateChannelConfig(uint32_t index, const char* name, const uint8_t* psk, uint32_t psk_size, uint8_t role);
     virtual void updateDeviceConfig(const meshtastic_Config_DeviceConfig& cfg) {}
     virtual void updatePositionConfig(const meshtastic_Config_PositionConfig& cfg) {}
     virtual void updatePowerConfig(const meshtastic_Config_PowerConfig& cfg) {}
@@ -50,41 +69,21 @@ public:
     virtual void updateDetectionSensorModule(const meshtastic_ModuleConfig_DetectionSensorConfig& cfg) {}
     virtual void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig& cfg) {}
 
+    // 
+    virtual void packetReceived(uint32_t from, uint32_t to, uint32_t portnum, const uint8_t* bytes, uint32_t size);
+    virtual void updateNodesOnline(const char* str);
+    virtual void updateLastHeard(uint32_t nodeNum);
+
     virtual void removeNode(uint32_t nodeNum);
-    virtual void newMessage(const char* msg) {};
 
 protected:
-    // add own message to current chat
-    virtual void addMessage(char* msg);
-    // set node image based on role
-    virtual void setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t* img);
-    // set last heard to now, update nodes online
-    virtual void updateLastHeard(uint32_t nodeNum);
-    // update last heard value on all node panels
-    virtual void updateAllLastHeard(void);
+    // helpers
+    uint32_t nodeColor(uint32_t nodeNum);
+    bool lastHeartToString(uint32_t lastHeard, char* buf);
 
-private:
-    TFTView_320x240();
-
-    void ui_events_init(void);
-    void ui_set_active(lv_obj_t* b, lv_obj_t* p, lv_obj_t* tp);
-
-    // lvgl event callbacks
-    //static void ui_event_HomeButton(lv_event_t * e);
-    static void ui_event_NodesButton( lv_event_t * e);
-    static void ui_event_GroupsButton( lv_event_t * e);
-    static void ui_event_MessagesButton( lv_event_t * e);
-    static void ui_event_MapButton( lv_event_t * e);
-    static void ui_event_SettingsButton( lv_event_t * e);
-
-    static void ui_event_NodeButtonClicked(lv_event_t * e);
-    static void ui_event_ChannelButtonClicked(lv_event_t * e);
-    static void ui_event_Keyboard(lv_event_t * e);
-
-    lv_obj_t *activeButton = nullptr;
-    lv_obj_t *activePanel = nullptr;
-    lv_obj_t *activeTopPanel = nullptr;
-
-    static TFTView_320x240* gui;
+    ViewController* controller;
+    std::unordered_map<uint32_t, lv_obj_t*> nodes;    // node panels
+    uint32_t nodeCount=1, nodesOnline=1, ownNode;     // node info
+    bool configComplete = false;                      // config request finishe
+    time_t lastrun;                                   // 60s task
 };
-

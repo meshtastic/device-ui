@@ -1,7 +1,6 @@
 #pragma once
 
-#include "DeviceGUI.h"
-#include "lvgl.h"
+#include "MeshtasticView.h"
 
 /**
  * @brief GUI view for T-Watch-S3
@@ -9,7 +8,7 @@
  * Note: due to static callbacks in lvgl this class is modelled as
  *       a singleton with static callback members
  */
-class TFTView_480x320 : public DeviceGUI {
+class TFTView_480x320 : public MeshtasticView {
 public:
     static TFTView_480x320* instance(void);
     virtual void init(IClientBase* client);

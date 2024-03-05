@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DeviceGUI.h"
+#include "MeshtasticView.h"
 #include "lvgl.h"
 
 /**
@@ -9,7 +9,7 @@
  * Note: due to static callbacks in lvgl this class is modelled as
  *       a singleton with static callback members
  */
-class TFTView_240x240 : public DeviceGUI {
+class TFTView_240x240 : public MeshtasticView {
 public:
     static TFTView_240x240* instance(void);
     virtual void init(IClientBase* client);
