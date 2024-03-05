@@ -42,8 +42,7 @@ void ViewController::handleFromRadio(const meshtastic_FromRadio& from) {
     }
     case meshtastic_FromRadio_packet_tag: {
         const meshtastic_MeshPacket& p = from.packet;
-        view->updateSignalStrength(p.from, p.rx_rssi, p.rx_snr);
-        view->packetReceived(p.from, p.to, p.decoded.portnum, p.decoded.payload.bytes, p.decoded.payload.size);
+        view->packetReceived(p.from, p);
         break;
     }
     case meshtastic_FromRadio_node_info_tag: {

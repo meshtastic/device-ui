@@ -55,26 +55,30 @@ void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float 
 {
 }
 
-void MeshtasticView::updateNodesOnline(const char* str) {
+void MeshtasticView::updateNodesOnline(const char *str)
+{
     char buf[30];
     sprintf(buf, str, nodesOnline, nodeCount);
     lv_label_set_text(ui_TopNodesOnlineLabel, buf);
     lv_label_set_text(ui_HomeNodesLabel, buf);
 }
 
-void MeshtasticView::updateLastHeard(uint32_t nodeNum) {
-
+void MeshtasticView::updateLastHeard(uint32_t nodeNum)
+{
 }
 
-
-void MeshtasticView::packetReceived(uint32_t from, uint32_t to, uint32_t portnum, const uint8_t* bytes, uint32_t size) {
+void MeshtasticView::packetReceived(uint32_t from, const meshtastic_MeshPacket &p)
+{
+    if (p.hop_limit - p.hop_start == 0)
+    {
+        updateSignalStrength(p.from, p.rx_rssi, p.rx_snr);
+    }
     updateLastHeard(from);
 }
 
 void MeshtasticView::removeNode(uint32_t nodeNum)
 {
 }
-
 
 // -------- helpers --------
 
@@ -93,9 +97,9 @@ uint32_t MeshtasticView::nodeColor(uint32_t nodeNum)
 }
 
 /**
- * @brief 
- * 
- * @param lastHeard 
+ * @brief
+ *
+ * @param lastHeard
  * @param buf - result string
  * @return true, if heard within 15min
  */
@@ -112,9 +116,8 @@ bool MeshtasticView::lastHeartToString(uint32_t lastHeard, char *buf)
         sprintf(buf, "%d h", timediff / 3600);
     else if (timediff < 3600 * 24 * 60)
         sprintf(buf, "%d d", timediff / 86400);
-    else  // after 60 days
+    else // after 60 days
         buf[0] = '\0';
-    
+
     return timediff <= 910; // 15min + some tolerance
 }
-

@@ -70,7 +70,7 @@ public:
     virtual void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig& cfg) {}
 
     // 
-    virtual void packetReceived(uint32_t from, uint32_t to, uint32_t portnum, const uint8_t* bytes, uint32_t size);
+    virtual void packetReceived(uint32_t from, const meshtastic_MeshPacket& p);
     virtual void updateNodesOnline(const char* str);
     virtual void updateLastHeard(uint32_t nodeNum);
 

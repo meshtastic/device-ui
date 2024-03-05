@@ -476,8 +476,8 @@ void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float
     }
 }
 
-void TFTView_320x240::packetReceived(uint32_t from, uint32_t to, uint32_t portnum, const uint8_t* bytes, uint32_t size) {
-    MeshtasticView::packetReceived(from, to, portnum, bytes, size);
+void TFTView_320x240::packetReceived(uint32_t from, const meshtastic_MeshPacket& p) {
+    MeshtasticView::packetReceived(from, p);
 }
 
 void TFTView_320x240::updateChannelConfig(uint32_t index, const char* name, const uint8_t* psk, uint32_t psk_size, uint8_t role) {
@@ -535,16 +535,21 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t* img) 
  * @param nodeNum 
  */
 void TFTView_320x240::updateLastHeard(uint32_t nodeNum) {
+    time_t curtime;
+    time(&curtime);
     auto it = nodes.find(nodeNum); 
     if (it != nodes.end()) {
-        time_t curtime;
-        time(&curtime);
         time_t lastHeard = (time_t)it->second->LV_OBJ_IDX(node_lh_idx)->user_data;
-        it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void*)curtime;
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), "now");
-        if (curtime - lastHeard >= 900) {
-            nodesOnline++;    
-            updateNodesOnline("%d of %d nodes online");
+        if (lastHeard) {
+            it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void*)curtime;
+            lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), "now");
+            if (curtime - lastHeard >= 900) {
+                nodesOnline++;    
+                updateNodesOnline("%d of %d nodes online");
+            }
+            // move to top position
+            if (it->first != ownNode)
+                lv_obj_move_to_index(it->second, 1); 
         }
     }
 }
@@ -568,9 +573,11 @@ void TFTView_320x240::updateAllLastHeard(void) {
         else {
             lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
         }
-        bool isOnline = lastHeartToString(lastHeard, buf);
-        lv_label_set_text(it.second->LV_OBJ_IDX(node_lh_idx), buf);
-        if (isOnline) online++;
+        if (lastHeard) {
+            bool isOnline = lastHeartToString(lastHeard, buf);
+            lv_label_set_text(it.second->LV_OBJ_IDX(node_lh_idx), buf);
+            if (isOnline) online++;
+        }
     }
     nodesOnline = online;
     updateNodesOnline("%d of %d nodes online");
