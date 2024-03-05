@@ -19,7 +19,7 @@ void ui_BootScreen_screen_init(void)
     lv_obj_set_x(ui_FirmwareLabel, 0);
     lv_obj_set_y(ui_FirmwareLabel, 80);
     lv_obj_set_align(ui_FirmwareLabel, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_FirmwareLabel, "2.3.1");
+    lv_label_set_text(ui_FirmwareLabel, "");
 
     lv_obj_add_event_cb(ui_BootScreen, ui_event_BootScreen, LV_EVENT_ALL, NULL);
 

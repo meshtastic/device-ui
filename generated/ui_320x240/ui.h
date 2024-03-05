@@ -42,23 +42,14 @@ extern lv_obj_t * ui_HomeWLANLabel;
 extern lv_obj_t * ui_HomeBluetoothButton;
 extern lv_obj_t * ui_HomeBluetoothLabel;
 extern lv_obj_t * ui_NodesPanel;
-extern lv_obj_t * ui_NodePanel2;
-extern lv_obj_t * ui_NodeButton2;
-extern lv_obj_t * ui_NodeImage2;
-extern lv_obj_t * ui_UserNameLabel2;
-extern lv_obj_t * ui_UserNameShortLabel2;
-extern lv_obj_t * ui_BatteryLabel2;
-extern lv_obj_t * ui_lastHeardLabel2;
-extern lv_obj_t * ui_SignalLabel2;
-extern lv_obj_t * ui_NodePanel3;
-extern lv_obj_t * ui_NodeButton3;
-extern lv_obj_t * ui_NodeImage3;
-extern lv_obj_t * ui_UserNameLabel3;
-extern lv_obj_t * ui_UserNameShortLabel3;
-extern lv_obj_t * ui_NodePanel1;
-extern lv_obj_t * ui_NodeButton1;
-extern lv_obj_t * ui_NodeImage1;
-extern lv_obj_t * ui_NodeLabel1;
+extern lv_obj_t * ui_NodePanel;
+extern lv_obj_t * ui_NodeImage;
+extern lv_obj_t * ui_NodeButton;
+extern lv_obj_t * ui_UserNameLabel;
+extern lv_obj_t * ui_UserNameShortLabel;
+extern lv_obj_t * ui_BatteryLabel;
+extern lv_obj_t * ui_lastHeardLabel;
+extern lv_obj_t * ui_SignalLabel;
 extern lv_obj_t * ui_GroupsPanel;
 extern lv_obj_t * ui_ChannelButton0;
 extern lv_obj_t * ui_OpenLockImage;
@@ -142,7 +133,7 @@ extern lv_obj_t * ui_DetectionSensorLabel;
 extern lv_obj_t * ui_ModuleRemoteHardwareButton;
 extern lv_obj_t * ui_RemoteHardwareLabel;
 extern lv_obj_t * ui_BatteryPanel;
-extern lv_obj_t * ui_BatteryImage;
+extern lv_obj_t * ui_imageBatteryMed;
 extern lv_obj_t * ui_BatPercentageLabel;
 extern lv_obj_t * ui_TopPanel;
 extern lv_obj_t * ui_FrequencyLabel;
@@ -166,6 +157,18 @@ extern lv_obj_t * ui_TopMapPanel;
 extern lv_obj_t * ui_MapLabel;
 extern lv_obj_t * ui_MapImage;
 extern lv_obj_t * ui_Keyboard;
+extern lv_obj_t * ui_ResourcePanel;
+extern lv_obj_t * ui_imageBatteryEmpty;
+extern lv_obj_t * ui_imageRouter;
+extern lv_obj_t * ui_imageSignal;
+extern lv_obj_t * ui_imageMailUnread;
+extern lv_obj_t * ui_imageBatteryCharge;
+extern lv_obj_t * ui_imageBatteryFull;
+extern lv_obj_t * ui_imageBatteryLow;
+extern lv_obj_t * ui_imageRadioTower;
+extern lv_obj_t * ui_imageWifiOff;
+extern lv_obj_t * ui_imageBluetoothOn;
+extern lv_obj_t * ui_imageModem;
 extern lv_obj_t * ui____initial_actions0;
 
 LV_IMG_DECLARE(ui_img_964411511);    // assets/meshtastic-logo-long.png
@@ -178,68 +181,39 @@ LV_IMG_DECLARE(ui_img_501694945);    // assets/dazzle/gear-svgrepo-com32-white.p
 LV_IMG_DECLARE(ui_img_1442270332);    // assets/dazzle/mail-open-36.png
 LV_IMG_DECLARE(ui_img_57207796);    // assets/dazzle/modem-36.png
 LV_IMG_DECLARE(ui_img_949915354);    // assets/dazzle/map-pin-36.png
-LV_IMG_DECLARE(ui_img_1682375573);    // assets/dazzle/wifi-36.png
+LV_IMG_DECLARE(ui_img_325160819);    // assets/dazzle/wifi-off-36-white.png
 LV_IMG_DECLARE(ui_img_1681326260);    // assets/dazzle/bluetooth-slash-36.png
 LV_IMG_DECLARE(ui_img_2104440450);    // assets/router24-white.png
-LV_IMG_DECLARE(ui_img_656245776);    // assets/radio-tower24-white.png
+LV_IMG_DECLARE(ui_img_2095618903);    // assets/dazzle/modem-svgrepo-com24-white.png
 LV_IMG_DECLARE(ui_img_558997549);    // assets/key-round24-white.png
 LV_IMG_DECLARE(ui_img_230282600);    // assets/lock-keyhole24-white.png
 LV_IMG_DECLARE(ui_img_dazzle_keyboard20_png);    // assets/dazzle/keyboard20.png
 LV_IMG_DECLARE(ui_img_worldmap_png);    // assets/Worldmap.png
-LV_IMG_DECLARE(ui_img_1964124651);    // assets/dazzle/battery-low-20.png
-LV_IMG_DECLARE(ui_img_1542354197);    // assets/radio-tower-20.png
-LV_IMG_DECLARE(ui_img_2095618903);    // assets/dazzle/modem-svgrepo-com24-white.png
-LV_IMG_DECLARE(ui_img_726964589);    // assets/dazzle/users-svgrepo-com24-white.png
-LV_IMG_DECLARE(ui_img_691055502);    // assets/settings20-white.png
-LV_IMG_DECLARE(ui_img_625281583);    // assets/dazzle/map-pin-alt-svgrepo-com24-white.png
-LV_IMG_DECLARE(ui_img_356530738);    // assets/dazzle/battery-bolt-20.png
-LV_IMG_DECLARE(ui_img_1002737466);    // assets/dazzle/battery-empty-20.png
 LV_IMG_DECLARE(ui_img_15776284);    // assets/dazzle/battery-full-20.png
-LV_IMG_DECLARE(ui_img_904314631);    // assets/dazzle/battery-mid-20.png
+LV_IMG_DECLARE(ui_img_1410158184);    // assets/dazzle/radio-tower-20-white.png
+LV_IMG_DECLARE(ui_img_726964589);    // assets/dazzle/users-svgrepo-com24-white.png
+LV_IMG_DECLARE(ui_img_838118410);    // assets/settings24-white.png
+LV_IMG_DECLARE(ui_img_625281583);    // assets/dazzle/map-pin-alt-svgrepo-com24-white.png
+LV_IMG_DECLARE(ui_img_1002737466);    // assets/dazzle/battery-empty-20.png
+LV_IMG_DECLARE(ui_img_519712240);    // assets/dazzle/signal-steam-24-white.png
 LV_IMG_DECLARE(ui_img_2090176585);    // assets/dazzle/mail-alt-36.png
+LV_IMG_DECLARE(ui_img_356530738);    // assets/dazzle/battery-bolt-20.png
+LV_IMG_DECLARE(ui_img_1964124651);    // assets/dazzle/battery-low-20.png
+LV_IMG_DECLARE(ui_img_1003866492);    // assets/dazzle/radio-tower-24-white.png
+LV_IMG_DECLARE(ui_img_294304076);    // assets/dazzle/bluetooth-on-36-white.png
+LV_IMG_DECLARE(ui_img_904314631);    // assets/dazzle/battery-mid-20.png
 LV_IMG_DECLARE(ui_img_80620004);    // assets/dazzle/map-location-pin-36.png
-LV_IMG_DECLARE(ui_img_830190229);    // assets/battery-fullx14.png
-LV_IMG_DECLARE(ui_img_476543179);    // assets/battery-fullx16.png
-LV_IMG_DECLARE(ui_img_408184321);    // assets/battery-fullx18.png
-LV_IMG_DECLARE(ui_img_979619928);    // assets/battery-fullx20.png
+LV_IMG_DECLARE(ui_img_1682375573);    // assets/dazzle/wifi-36.png
 LV_IMG_DECLARE(ui_img_1583074341);    // assets/bluetooth-18.png
 LV_IMG_DECLARE(ui_img_1388253438);    // assets/bluetooth-20.png
 LV_IMG_DECLARE(ui_img_113284535);    // assets/bluetooth-connected-18.png
 LV_IMG_DECLARE(ui_img_1969094876);    // assets/bluetooth-connected-20.png
 LV_IMG_DECLARE(ui_img_1889904893);    // assets/bluetooth-off-18.png
 LV_IMG_DECLARE(ui_img_1049473466);    // assets/bluetooth-off-20.png
-LV_IMG_DECLARE(ui_img_1390039103);    // assets/cast-24.png
 LV_IMG_DECLARE(ui_img_1184294011);    // assets/wifi-20.png
 LV_IMG_DECLARE(ui_img_279030151);    // assets/wifi-off-20.png
 
-LV_FONT_DECLARE(ui_font_Basic);
-LV_FONT_DECLARE(ui_font_Coolvetica);
-LV_FONT_DECLARE(ui_font_Epyval);
-LV_FONT_DECLARE(ui_font_Fira13);
-LV_FONT_DECLARE(ui_font_Fira14);
-LV_FONT_DECLARE(ui_font_Inconsolata);
-LV_FONT_DECLARE(ui_font_InconsolataB);
-LV_FONT_DECLARE(ui_font_November);
-LV_FONT_DECLARE(ui_font_Roboto13);
-LV_FONT_DECLARE(ui_font_Roboto14);
-LV_FONT_DECLARE(ui_font_SourceCode);
 LV_FONT_DECLARE(ui_font_Square14);
-LV_FONT_DECLARE(ui_font_UbuntuBL13);
-LV_FONT_DECLARE(ui_font_UbuntuL12);
-LV_FONT_DECLARE(ui_font_UbuntuR12);
-LV_FONT_DECLARE(ui_font_UbuntuR14);
-LV_FONT_DECLARE(ui_font_UbuntuR16);
-LV_FONT_DECLARE(ui_font_Basic);
-LV_FONT_DECLARE(ui_font_Coolvetica);
-LV_FONT_DECLARE(ui_font_Fira14);
-LV_FONT_DECLARE(ui_font_November);
-LV_FONT_DECLARE(ui_font_SourceCode);
-LV_FONT_DECLARE(ui_font_UbuntuR12);
-LV_FONT_DECLARE(ui_font_Unifont11);
-LV_FONT_DECLARE(ui_font_Unifont12);
-LV_FONT_DECLARE(ui_font_Unifont13);
-LV_FONT_DECLARE(ui_font_Unifont14);
-LV_FONT_DECLARE(ui_font_Unifont15);
 
 void ui_init(void);
 
