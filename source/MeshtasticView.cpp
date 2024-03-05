@@ -3,10 +3,7 @@
 #include "ViewController.h"
 #include "ui.h"
 
-/// Convert a preprocessor name into a quoted string
-#define xstr(s) ystr(s)
-#define ystr(s) #s
-#define optstr(s) (xstr(s)[0] ? xstr(s) : "<demo version>")
+extern const char *firmware_version;
 
 MeshtasticView::MeshtasticView(DisplayDriver *driver, ViewController *_controller) : DeviceGUI(driver), controller(_controller)
 {
@@ -15,7 +12,7 @@ MeshtasticView::MeshtasticView(DisplayDriver *driver, ViewController *_controlle
 void MeshtasticView::init(IClientBase *client)
 {
     DeviceGUI::init(client);
-    lv_label_set_text(ui_FirmwareLabel, optstr(APP_VERSION_SHORT));
+    lv_label_set_text(ui_FirmwareLabel, firmware_version);
     controller->init(this, client);
     time(&lastrun);
 }
