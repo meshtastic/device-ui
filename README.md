@@ -11,6 +11,9 @@
 
 [Meshtastic](https://meshtastic.org) device-ui library for TFT screens (experimental)
 
+  <img src="docs/class-diagram.png">
+
+
 ## Stats
 
 ![Alt](https://repobeats.axiom.co/api/embed/2d7384f6fd2724a3b3b9d320fcd77717d7f92d7e.svg "Repobeats analytics image")
