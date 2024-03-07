@@ -31,15 +31,15 @@ void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool h
 {
 }
 
-void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, eRole role)
+void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role)
 {
 }
 
-void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, eRole role)
+void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role)
 {
 }
 
-void MeshtasticView::updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, eRole role)
+void MeshtasticView::updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role)
 {
 }
 
@@ -47,7 +47,7 @@ void MeshtasticView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, 
 {
 }
 
-void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil, uint32_t lastHeard)
+void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil)
 {
 }
 
@@ -69,8 +69,8 @@ void MeshtasticView::updateLastHeard(uint32_t nodeNum)
 
 void MeshtasticView::packetReceived(uint32_t from, const meshtastic_MeshPacket &p)
 {
-    if (p.hop_limit - p.hop_start == 0)
-    {
+    //TODO only for direct neighbors print rssi/snr
+    if (1 /* p.hop_limit - p.hop_start == 0 */) {
         updateSignalStrength(p.from, p.rx_rssi, p.rx_snr);
     }
     updateLastHeard(from);

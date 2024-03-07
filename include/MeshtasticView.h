@@ -36,11 +36,11 @@ public:
     // methods to update view
     virtual void setMyInfo(uint32_t nodeNum);
     virtual void setDeviceMetaData(int hw_model, const char* version, bool has_bluetooth, bool has_wifi, bool has_eth, bool can_shutdown);
-    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, eRole role);
-    virtual void addNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, eRole role);
-    virtual void updateNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, eRole role);
+    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, uint32_t lastHeard, eRole role);
+    virtual void addNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, uint32_t lastHeard, eRole role);
+    virtual void updateNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, uint32_t lastHeard, eRole role);
     virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t precision);
-    virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil, uint32_t lastHeard);
+    virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
     virtual void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr);
     virtual void updateChannelConfig(uint32_t index, const char* name, const uint8_t* psk, uint32_t psk_size, uint8_t role) {}
     virtual void configCompleted(void) { configComplete = true; }

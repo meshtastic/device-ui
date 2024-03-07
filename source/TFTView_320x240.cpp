@@ -10,14 +10,14 @@
 
 #ifdef USE_X11
 #include "X11Driver.h"
-#elif defined (LGFX_DRIVER_INC)
+#elif defined(LGFX_DRIVER_INC)
 #include "LGFXDriver.h"
 #include LGFX_DRIVER_INC
 #else
 #error "Unknown device for view 320x240"
 #endif
 
-#define CR_REPLACEMENT 0x0C  // dummy to record several lines in a one line textarea
+#define CR_REPLACEMENT 0x0C // dummy to record several lines in a one line textarea
 
 // children index of nodepanel lv objects (see addNode)
 enum NodePanelIdx {
@@ -50,7 +50,7 @@ void TFTView_320x240::init(IClientBase* client) {
     Serial.println("TFTView init...");
     displaydriver->init();
     MeshtasticView::init(client);
-    
+
     ui_set_active(ui_HomeButton, ui_HomePanel, ui_TopPanel);
     ui_events_init();
 
@@ -60,7 +60,7 @@ void TFTView_320x240::init(IClientBase* client) {
 
 /**
  * @brief set active button, panel and top panel
- * 
+ *
  * @param b button to set active
  * @param p main panel to set active
  * @param tp top panel to set active
@@ -285,8 +285,7 @@ void TFTView_320x240::addMessage(char* msg) {
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
 }
 
-void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, eRole role)
-{
+void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, uint32_t lastHeard, eRole role) {
     // lv_obj nodePanel children
     // [0]: img
     // [1]: btn
@@ -299,7 +298,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t channel, const char *use
     lv_obj_t *p = lv_obj_create(ui_NodesPanel);
     nodes[nodeNum] = p;
     nodeCount++;
-    updateNodesOnline("%d of %d nodes online");
 
     lv_obj_set_height(p, 50);
     lv_obj_set_width(p, lv_pct(100));
@@ -345,6 +343,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t channel, const char *use
     lv_obj_set_y(ln_lbl, 12);
     lv_obj_set_align(ln_lbl, LV_ALIGN_BOTTOM_LEFT);
     lv_label_set_text(ln_lbl, userLong);
+    ln_lbl->user_data = (void *)strlen(userLong);
     lv_obj_set_style_text_color(ln_lbl, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ln_lbl, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ln_lbl, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -377,12 +376,29 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t channel, const char *use
     lv_obj_set_align(ui_lastHeardLabel, LV_ALIGN_RIGHT_MID);
     lv_obj_set_x(ui_lastHeardLabel, 8);
     lv_obj_set_y(ui_lastHeardLabel, 0);
-    lv_label_set_text(ui_lastHeardLabel, "");
+    
+    //TODO: devices without actual time will report all nodes as lastseen = now
+    if (lastHeard) {
+        time_t curtime;
+        time(&curtime);
+        lastHeard = min(curtime, (time_t)lastHeard); // adapt values too large
+
+        char buf[12];
+        bool isOnline = lastHeartToString(lastHeard, buf);
+        lv_label_set_text(ui_lastHeardLabel, buf);
+        if (isOnline) {
+            nodesOnline++;
+        }
+    }
+    else {
+        lv_label_set_text(ui_lastHeardLabel, "");
+    }
+
     lv_obj_set_style_text_color(ui_lastHeardLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lastHeardLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lastHeardLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_lastHeardLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
-    ui_lastHeardLabel->user_data = 0;
+    ui_lastHeardLabel->user_data = (void *)lastHeard;
 
     lv_obj_t *ui_SignalLabel = lv_label_create(p);
     lv_obj_set_width(ui_SignalLabel, LV_SIZE_CONTENT);
@@ -396,6 +412,22 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t channel, const char *use
     lv_obj_set_style_text_font(ui_SignalLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_add_event_cb(ui_NodeButton, ui_event_NodeButtonClicked, LV_EVENT_ALL, ln_lbl);
+
+    // move node into new position within nodePanal
+    if (lastHeard) {
+        lv_obj_t **children = ui_NodesPanel->spec_attr->children;
+        int i = ui_NodesPanel->spec_attr->child_cnt - 1;
+        while (i > 1) {
+            if (lastHeard <= (time_t)(children[i - 1]->LV_OBJ_IDX(node_lh_idx)->user_data))
+                break;
+            i--;
+        }
+        if (i >= 1 && i < ui_NodesPanel->spec_attr->child_cnt - 1) {
+            lv_obj_move_to_index(p, i);
+        }
+    }
+
+    updateNodesOnline("%d of %d nodes online");
 }
 
 void TFTView_320x240::setMyInfo(uint32_t nodeNum) {
@@ -403,43 +435,42 @@ void TFTView_320x240::setMyInfo(uint32_t nodeNum) {
     nodes[ownNode] = ui_NodePanel;
 }
 
-void TFTView_320x240::setDeviceMetaData(int hw_model, const char* version, bool has_bluetooth, bool has_wifi, bool has_eth, bool can_shutdown) {
-
+void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth, bool can_shutdown) {
 }
 
-void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, eRole role) {
+void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role) {
     if (nodes.find(nodeNum) == nodes.end()) {
-        addNode(nodeNum, 0, userShort, userLong, role);
+        addNode(nodeNum, 0, userShort, userLong, lastHeard, role);
     }
-    else {
-        updateNode(nodeNum, channel, userShort, userLong, role);
+    else     {
+        updateNode(nodeNum, channel, userShort, userLong, lastHeard, role);
     }
 }
 
-void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, eRole role) {
-    auto it = nodes.find(nodeNum); 
+void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t channel, const char* userShort, const char* userLong, uint32_t lastHeard, eRole role) {
+    auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), userLong);
-        it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void*)strlen(userLong);
+        it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)strlen(userLong);
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
         setNodeImage(nodeNum, role, it->second->LV_OBJ_IDX(node_img_idx));
     }
 }
 
 void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t precision) {
-    auto it = nodes.find(nodeNum); 
+    auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
-        //TODO
+        // TODO
     }
 }
 
-void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil, uint32_t lastHeard) {
-    auto it = nodes.find(nodeNum); 
+void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) {
+    auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
         char buf[32];
         if (it->first == ownNode) {
-           sprintf(buf, "Util %0.1f%% %0.1f%%", chUtil, airUtil);
-           lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
+            sprintf(buf, "Util %0.1f%% %0.1f%%", chUtil, airUtil);
+            lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
         }
 
         if (bat_level != 0 || voltage != 0) {
@@ -447,32 +478,28 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
             sprintf(buf, "%d%% %0.2fV", bat_level, voltage);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_bat_idx), buf);
         }
-        time_t curtime;
-        time(&curtime);
-        lastHeard = min(curtime, (time_t)lastHeard); // correct future values
-        bool isOnline = lastHeartToString(lastHeard, buf);
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), buf);
-        it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void*)lastHeard;
-        if (isOnline) {
-            nodesOnline++;
-            updateNodesOnline("%d of %d nodes online");
-        }
     }
 }
 
 void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {
-    if (rssi == 0 && snr == 0) return;
-    auto it = nodes.find(nodeNum); 
-    if (it != nodes.end()) {
-        // if userNameLong is too long, skip printing rssi/snr
-        char buf[30];
-        if ((size_t)it->second->LV_OBJ_IDX(node_lbl_idx)->user_data <= 20) {
-            sprintf(buf, "rssi: %d snr: %.1f", rssi, snr);
+    if (nodeNum != ownNode) {
+        auto it = nodes.find(nodeNum);
+        if (it != nodes.end()) {
+            char buf[30];
+            if (rssi == 0.0 && snr == 0.0) {
+                buf[0] = '\0';
+            }
+            else {
+                // if userNameLong is too long, skip printing rssi/snr
+                if ((size_t)it->second->LV_OBJ_IDX(node_lbl_idx)->user_data <= 20) {
+                    sprintf(buf, "rssi: %d snr: %.1f", rssi, snr);
+                }
+                else {
+                    sprintf(buf, "snr: %.1f", snr);
+                }
+            }
+            lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
         }
-        else {
-            sprintf(buf, "snr: %.1f", snr);
-        }
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
     }
 }
 
@@ -481,25 +508,22 @@ void TFTView_320x240::packetReceived(uint32_t from, const meshtastic_MeshPacket&
 }
 
 void TFTView_320x240::updateChannelConfig(uint32_t index, const char* name, const uint8_t* psk, uint32_t psk_size, uint8_t role) {
-
 }
-
 
 // -------- helpers --------
 
 void TFTView_320x240::removeNode(uint32_t nodeNum) {
-    auto it = nodes.find(nodeNum); 
+    auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
-
     }
 }
 
-void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t* img) {
+void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img) {
     uint32_t color = nodeColor(nodeNum);
     switch (role) {
     case client:
     case client_mute:
-    case client_hidden: 
+    case client_hidden:
     case tak: {
         lv_img_set_src(img, &ui_img_2104440450);
         break;
@@ -531,44 +555,42 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t* img) 
 
 /**
  * @brief Update last heard display/user_data/counter to current time
- * 
- * @param nodeNum 
+ *
+ * @param nodeNum
  */
 void TFTView_320x240::updateLastHeard(uint32_t nodeNum) {
     time_t curtime;
     time(&curtime);
-    auto it = nodes.find(nodeNum); 
+    auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
         time_t lastHeard = (time_t)it->second->LV_OBJ_IDX(node_lh_idx)->user_data;
-        if (lastHeard) {
-            it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void*)curtime;
-            lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), "now");
-            if (curtime - lastHeard >= 900) {
-                nodesOnline++;    
-                updateNodesOnline("%d of %d nodes online");
-            }
-            // move to top position
-            if (it->first != ownNode)
-                lv_obj_move_to_index(it->second, 1); 
+        it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)curtime;
+        lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), "now");
+        if (curtime - lastHeard >= 900) {
+            nodesOnline++;
+            updateNodesOnline("%d of %d nodes online");
+        }
+        // move to top position
+        if (it->first != ownNode) {
+            lv_obj_move_to_index(it->second, 1);
         }
     }
 }
 
-
 /**
  * @brief update last heard display for all nodes; also update nodes online
- * 
+ *
  */
 void TFTView_320x240::updateAllLastHeard(void) {
     uint16_t online = 0;
     time_t lastHeard;
-    for (auto& it: nodes) {
+    for (auto& it : nodes) {
         char buf[20];
-        if (it.first == ownNode) { // own node is always now, so do update 
+        if (it.first == ownNode) { // own node is always now, so do update
             time_t curtime;
             time(&curtime);
             lastHeard = curtime;
-            it.second->LV_OBJ_IDX(node_lh_idx)->user_data = (void*)lastHeard;
+            it.second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)lastHeard;
         }
         else {
             lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
@@ -576,7 +598,8 @@ void TFTView_320x240::updateAllLastHeard(void) {
         if (lastHeard) {
             bool isOnline = lastHeartToString(lastHeard, buf);
             lv_label_set_text(it.second->LV_OBJ_IDX(node_lh_idx), buf);
-            if (isOnline) online++;
+            if (isOnline)
+                online++;
         }
     }
     nodesOnline = online;

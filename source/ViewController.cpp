@@ -48,13 +48,19 @@ void ViewController::handleFromRadio(const meshtastic_FromRadio& from) {
     case meshtastic_FromRadio_node_info_tag: {
         const meshtastic_NodeInfo& node = from.node_info;
         if (node.has_user) {
-            view->addOrUpdateNode(node.num, node.channel, node.user.short_name, node.user.long_name, (MeshtasticView::eRole)node.user.role);
+            view->addOrUpdateNode(node.num, node.channel, node.user.short_name, node.user.long_name, node.last_heard, (MeshtasticView::eRole)node.user.role);
+        }
+        else { // show node with default user name (will be replaced on next nodeinfo update)
+            char userShort[5], userLong[32];
+            sprintf(userShort, "%04x", node.num & 0xffff);
+            strcpy(userLong, "Meshtastic "); strcat(userLong, userShort);
+            view->addOrUpdateNode(node.num, node.channel, userShort, userLong, node.last_heard, (MeshtasticView::eRole)node.user.role);
         }
         if (node.has_position) {
             view->updatePosition(node.num, node.position.latitude_i, node.position.longitude_i, node.position.altitude, node.position.precision_bits);
         }
         if (node.has_device_metrics) {
-            view->updateMetrics(node.num, node.device_metrics.battery_level, node.device_metrics.voltage, node.device_metrics.channel_utilization, node.device_metrics.air_util_tx, node.last_heard);
+            view->updateMetrics(node.num, node.device_metrics.battery_level, node.device_metrics.voltage, node.device_metrics.channel_utilization, node.device_metrics.air_util_tx);
         }
         break;
     }
