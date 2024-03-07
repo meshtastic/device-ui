@@ -1,39 +1,34 @@
 #ifdef USE_X11
 #include "X11Driver.h"
 #include "lvgl.h"
-//#include "lv_drv_conf.h"
-#include "x11/x11.h"  // lvgl/lv_drivers repository
-#include <unistd.h>
+// #include "lv_drv_conf.h"
+#include "x11/x11.h" // lvgl/lv_drivers repository
 #include <pthread.h>
-
+#include <unistd.h>
 
 const uint32_t screenWidth = DISP_HOR_RES;
 const uint32_t screenHeight = DISP_VER_RES;
 
-static pthread_t thr_tick;     /* thread */
-static bool end_tick = false;  /* flag to terminate thread */
+static pthread_t thr_tick;    /* thread */
+static bool end_tick = false; /* flag to terminate thread */
 
-X11Driver* X11Driver::x11driver = nullptr;
+X11Driver *X11Driver::x11driver = nullptr;
 
-X11Driver& X11Driver::create(void) {
-    if (!x11driver)
-        x11driver = new X11Driver;
-    return *x11driver;
+X11Driver &X11Driver::create(void) {
+  if (!x11driver)
+    x11driver = new X11Driver;
+  return *x11driver;
 }
 
-X11Driver::X11Driver() : DisplayDriver (screenWidth, screenHeight) {
-
-}
+X11Driver::X11Driver() : DisplayDriver(screenWidth, screenHeight) {}
 
 void X11Driver::init(void) {
-  // Initialize LVGL 
+  // Initialize LVGL
   lv_init();
 
   // Initialize the HAL (display, input devices, tick) for LVGL
   init_hal();
-  
 }
-
 
 void X11Driver::init_hal(void) {
   /* mouse input device */
@@ -55,7 +50,6 @@ void X11Driver::init_hal(void) {
   lv_group_set_default(g);
 
   lv_disp_t *disp = NULL;
-
 
   lv_x11_init("Meshtastic", DISP_HOR_RES, DISP_VER_RES);
 
@@ -82,7 +76,9 @@ void X11Driver::init_hal(void) {
   indev_drv_3.read_cb = lv_x11_get_mousewheel;
 
   /* Set diplay theme */
-  lv_theme_t * th = lv_theme_default_init(disp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), LV_THEME_DEFAULT_DARK, LV_FONT_DEFAULT);
+  lv_theme_t *th = lv_theme_default_init(
+      disp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED),
+      LV_THEME_DEFAULT_DARK, LV_FONT_DEFAULT);
   lv_disp_set_theme(disp, th);
 
   /* Tick init */
@@ -97,12 +93,13 @@ void X11Driver::init_hal(void) {
   lv_indev_set_group(enc_indev, g);
 
   /* Set a cursor for the mouse */
-  LV_IMG_DECLARE(mouse_cursor_icon);                   /*Declare the image file.*/
-  lv_obj_t * cursor_obj = lv_img_create(lv_scr_act()); /*Create an image object for the cursor*/
-  lv_img_set_src(cursor_obj, &mouse_cursor_icon);      /*Set the image source*/
-  lv_indev_set_cursor(mouse_indev, cursor_obj);        /*Connect the image  object to the driver*/
+  LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
+  lv_obj_t *cursor_obj =
+      lv_img_create(lv_scr_act()); /*Create an image object for the cursor*/
+  lv_img_set_src(cursor_obj, &mouse_cursor_icon); /*Set the image source*/
+  lv_indev_set_cursor(mouse_indev,
+                      cursor_obj); /*Connect the image  object to the driver*/
 }
-
 
 void X11Driver::hal_deinit(void) {
   end_tick = true;
@@ -110,11 +107,7 @@ void X11Driver::hal_deinit(void) {
   lv_x11_deinit();
 }
 
-
-X11Driver::~X11Driver() {
-  hal_deinit();
-}
-
+X11Driver::~X11Driver() { hal_deinit(); }
 
 /**
  * A task to measure the elapsed time for LVGL
@@ -122,19 +115,18 @@ X11Driver::~X11Driver() {
  * @param data unused
  * @return never return
  */
-void* X11Driver::tick_thread(void *data) {
+void *X11Driver::tick_thread(void *data) {
   (void)data;
 
-  while(!end_tick) {
+  while (!end_tick) {
     usleep(5000);
 #if !LV_TICK_CUSTOM
     lv_tick_inc(5); // tell LittelvGL that 5 milliseconds were elapsed
 #else
-  // TODO
+    // TODO
 #endif
   }
   return NULL;
 }
-
 
 #endif

@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "description": "LVGL GUI for meshtastic devices",
   "keywords": "meshtastic, tbeam, tdeck, twatch, lvgl, tft, lovyangfx, embedded",
-  "repository":
-  {
+  "repository": {
     "type": "git",
     "url": "https://github.com/mverch67/device-ui.git"
   },
-  "authors":
-  [
+  "authors": [
     {
       "name": "mverch67",
       "maintainer": true
@@ -22,7 +20,7 @@
   "headers": ["DeviceScreen.h", "SharedQueue.h"],
   "dependencies": {
     "lvgl/lvgl": "8.3.11",
-    "nanopb/Nanopb" : "0.4.7"
+    "nanopb/Nanopb": "0.4.7"
   },
   "build": {
     "libArchive": true,
