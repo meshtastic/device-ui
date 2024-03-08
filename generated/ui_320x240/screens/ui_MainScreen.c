@@ -809,75 +809,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_pad_row(ui_MessagesContainer, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(ui_MessagesContainer, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_msgHiddenPanel = lv_obj_create(ui_MessagesContainer);
-    lv_obj_set_width(ui_msgHiddenPanel, lv_pct(100));
-    lv_obj_set_height(ui_msgHiddenPanel, LV_SIZE_CONTENT);    /// 50
-    lv_obj_set_align(ui_msgHiddenPanel, LV_ALIGN_CENTER);
-    lv_obj_clear_flag(ui_msgHiddenPanel, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_radius(ui_msgHiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_msgHiddenPanel, lv_color_hex(0x303030), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_msgHiddenPanel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(ui_msgHiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui_msgHiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_msgHiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui_msgHiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui_msgHiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_TextMsgLabel = lv_label_create(ui_msgHiddenPanel);
-    lv_obj_set_width(ui_TextMsgLabel, lv_pct(60));
-    lv_obj_set_height(ui_TextMsgLabel, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_TextMsgLabel, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_TextMsgLabel, "Hi,\nglad to see ya.");
-    lv_obj_set_style_text_color(ui_TextMsgLabel, lv_color_hex(0xD0D0D0), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_TextMsgLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_TextMsgLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui_TextMsgLabel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_TextMsgLabel, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_TextMsgLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_TextMsgLabel, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui_TextMsgLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(ui_TextMsgLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui_TextMsgLabel, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_TextMsgLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui_TextMsgLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui_TextMsgLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_ownMsgHiddenPanel2 = lv_obj_create(ui_MessagesContainer);
-    lv_obj_set_width(ui_ownMsgHiddenPanel2, lv_pct(100));
-    lv_obj_set_height(ui_ownMsgHiddenPanel2, LV_SIZE_CONTENT);    /// 50
-    lv_obj_set_align(ui_ownMsgHiddenPanel2, LV_ALIGN_CENTER);
-    lv_obj_clear_flag(ui_ownMsgHiddenPanel2, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_radius(ui_ownMsgHiddenPanel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_ownMsgHiddenPanel2, lv_color_hex(0x303030), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_ownMsgHiddenPanel2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(ui_ownMsgHiddenPanel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui_ownMsgHiddenPanel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_ownMsgHiddenPanel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui_ownMsgHiddenPanel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui_ownMsgHiddenPanel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_ownMessageTextLabel2 = lv_label_create(ui_ownMsgHiddenPanel2);
-    lv_obj_set_width(ui_ownMessageTextLabel2, lv_pct(60));
-    lv_obj_set_height(ui_ownMessageTextLabel2, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_y(ui_ownMessageTextLabel2, 0);
-    lv_obj_set_x(ui_ownMessageTextLabel2, lv_pct(40));
-    lv_obj_set_align(ui_ownMessageTextLabel2, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_ownMessageTextLabel2, "What's up?");
-    lv_obj_set_style_text_color(ui_ownMessageTextLabel2, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_ownMessageTextLabel2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui_ownMessageTextLabel2, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ownMessageTextLabel2, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui_ownMessageTextLabel2, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_ownMessageTextLabel2, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_ownMessageTextLabel2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_ownMessageTextLabel2, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui_ownMessageTextLabel2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(ui_ownMessageTextLabel2, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui_ownMessageTextLabel2, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_ownMessageTextLabel2, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui_ownMessageTextLabel2, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui_ownMessageTextLabel2, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-
     ui_MessageInputArea = lv_textarea_create(ui_MessagesPanel);
     lv_obj_set_width(ui_MessageInputArea, lv_pct(90));
     lv_obj_set_height(ui_MessageInputArea, LV_SIZE_CONTENT);    /// 24
@@ -1686,6 +1617,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_width(ui_TopNodesPanel, lv_pct(70));
     lv_obj_set_x(ui_TopNodesPanel, 36);
     lv_obj_set_y(ui_TopNodesPanel, 0);
+    lv_obj_add_flag(ui_TopNodesPanel, LV_OBJ_FLAG_HIDDEN);     /// Flags
     lv_obj_clear_flag(ui_TopNodesPanel, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE |
                       LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC |
                       LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN);     /// Flags
