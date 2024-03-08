@@ -18,26 +18,28 @@
 
 OLEDView_128x64 *OLEDView_128x64::gui = nullptr;
 
-OLEDView_128x64 *OLEDView_128x64::instance(void) {
-  if (!gui)
-    gui = new OLEDView_128x64;
-  return gui;
+OLEDView_128x64 *OLEDView_128x64::instance(void)
+{
+    if (!gui)
+        gui = new OLEDView_128x64;
+    return gui;
 }
 
 #ifdef USE_X11
-OLEDView_128x64::OLEDView_128x64()
-    : MeshtasticView(&X11Driver::create(), new ViewController) {}
+OLEDView_128x64::OLEDView_128x64() : MeshtasticView(&X11Driver::create(), new ViewController) {}
 #else
 OLEDView_128x64::OLEDView_128x64()
-    : MeshtasticView(new OLEDDriver<OLED_DRIVER>(screenWidth, screenHeight),
-                     new OLEDViewController) {}
+    : MeshtasticView(new OLEDDriver<OLED_DRIVER>(screenWidth, screenHeight), new OLEDViewController)
+{
+}
 #endif
 
-void OLEDView_128x64::init(IClientBase *client) {
-  Serial.println("OLEDView init...");
-  displaydriver->init();
-  MeshtasticView::init(client);
-  // ui_events_init();
+void OLEDView_128x64::init(IClientBase *client)
+{
+    Serial.println("OLEDView init...");
+    displaydriver->init();
+    MeshtasticView::init(client);
+    // ui_events_init();
 }
 
 #endif

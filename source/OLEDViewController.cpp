@@ -2,6 +2,7 @@
 
 OLEDViewController::OLEDViewController() {}
 
-void OLEDViewController::init(MeshtasticView *gui, IClientBase *_client) {
-  ViewController::init(gui, _client);
+void OLEDViewController::init(MeshtasticView *gui, IClientBase *_client)
+{
+    ViewController::init(gui, _client);
 }

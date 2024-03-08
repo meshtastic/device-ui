@@ -84,6 +84,7 @@ void MeshtasticView::packetReceived(uint32_t from, const meshtastic_MeshPacket &
     case meshtastic_PortNum_SIMULATOR_APP:
         break;
     default:
+        break;
     }
 }
 

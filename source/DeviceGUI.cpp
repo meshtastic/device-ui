@@ -6,9 +6,13 @@
 
 DeviceGUI::DeviceGUI(DisplayDriver *driver) : displaydriver(driver) {}
 
-void DeviceGUI::init(IClientBase *client) {
-  Serial.println("UI init...");
-  ui_init();
+void DeviceGUI::init(IClientBase *client)
+{
+    Serial.println("UI init...");
+    ui_init();
 }
 
-void DeviceGUI::task_handler(void) { displaydriver->task_handler(); };
+void DeviceGUI::task_handler(void)
+{
+    displaydriver->task_handler();
+};

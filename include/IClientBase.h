@@ -9,16 +9,17 @@
  * @tparam T
  */
 
-class IClientBase {
-public:
-  virtual void init(void) = 0;
-  virtual bool connect(void) = 0;
-  virtual bool disconnect(void) = 0;
-  virtual bool isConnected(void) = 0;
-  virtual bool send(meshtastic_ToRadio &&to) = 0;
-  virtual meshtastic_FromRadio receive(void) = 0;
-  virtual ~IClientBase(){};
+class IClientBase
+{
+  public:
+    virtual void init(void) = 0;
+    virtual bool connect(void) = 0;
+    virtual bool disconnect(void) = 0;
+    virtual bool isConnected(void) = 0;
+    virtual bool send(meshtastic_ToRadio &&to) = 0;
+    virtual meshtastic_FromRadio receive(void) = 0;
+    virtual ~IClientBase(){};
 
-protected:
-  IClientBase() = default;
+  protected:
+    IClientBase() = default;
 };
