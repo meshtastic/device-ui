@@ -11,6 +11,7 @@ class DeviceGUI
 {
   public:
     DeviceGUI(DisplayDriver *driver);
+    virtual ~DeviceGUI();
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
     virtual void addNode(void){};

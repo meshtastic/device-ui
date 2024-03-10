@@ -16,3 +16,5 @@ void DeviceGUI::task_handler(void)
 {
     displaydriver->task_handler();
 };
+
+DeviceGUI::~DeviceGUI() {}
