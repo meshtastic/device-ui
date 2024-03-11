@@ -55,14 +55,8 @@ void ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         if (node.has_user) {
             view->addOrUpdateNode(node.num, node.channel, node.user.short_name, node.user.long_name, node.last_heard,
                                   (MeshtasticView::eRole)node.user.role);
-        } else { // show node with default user name (will be replaced on next
-                 // nodeinfo update)
-            char userShort[5], userLong[32];
-            sprintf(userShort, "%04x", node.num & 0xffff);
-            strcpy(userLong, "Meshtastic ");
-            strcat(userLong, userShort);
-            view->addOrUpdateNode(node.num, node.channel, userShort, userLong, node.last_heard,
-                                  (MeshtasticView::eRole)node.user.role);
+        } else {
+            view->addOrUpdateNode(node.num, node.channel, node.last_heard, (MeshtasticView::eRole)node.user.role);
         }
         if (node.has_position) {
             view->updatePosition(node.num, node.position.latitude_i, node.position.longitude_i, node.position.altitude,
@@ -228,7 +222,7 @@ void ViewController::processEvent(void) {}
 
 #define MSG(i) pb_byte_t(textmsg[i])
 
-void ViewController::sendText(uint32_t to, uint8_t channel, const char *textmsg)
+void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
 {
     assert(strlen(textmsg) <= (size_t)meshtastic_Constants_DATA_PAYLOAD_LEN);
     // send requires movable lvalue, i.e. a temporary object
@@ -237,7 +231,7 @@ void ViewController::sendText(uint32_t to, uint8_t channel, const char *textmsg)
         .packet{
             .from = 0,
             .to = to,
-            .channel = channel,
+            .channel = ch,
             .which_payload_variant = meshtastic_MeshPacket_decoded_tag,
             .decoded{
                 .portnum = meshtastic_PortNum_TEXT_MESSAGE_APP,

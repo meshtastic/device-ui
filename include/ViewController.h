@@ -11,7 +11,7 @@ class ViewController
     virtual void init(MeshtasticView *gui, IClientBase *_client);
     virtual void runOnce(void);
     virtual void processEvent(void);
-    virtual void sendText(uint32_t to, uint8_t channel, const char *textmsg);
+    virtual void sendText(uint32_t to, uint8_t ch, const char *textmsg);
     virtual ~ViewController();
 
   protected:

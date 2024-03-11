@@ -80,8 +80,17 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev
         data->state = LV_INDEV_STATE_REL;
     } else {
         data->state = LV_INDEV_STATE_PR;
-        data->point.x = touchX;
-        data->point.y = touchY;
+        data->point.x = (int16_t)touchX;
+        data->point.y = (int16_t)touchY;
+
+        if (data->point.x < 0)
+            data->point.x = 0;
+        if (data->point.y < 0)
+            data->point.y = 0;
+        if (data->point.x >= LV_HOR_RES)
+            data->point.x = LV_HOR_RES - 1;
+        if (data->point.y >= LV_VER_RES)
+            data->point.y = LV_VER_RES - 1;
     }
 }
 
@@ -92,7 +101,6 @@ template <class LGFX> void LGFXDriver<LGFX>::init(void)
     TFTDriver<LGFX>::init();
 
     // LVGL: setup display device driver
-    // using namespace std::placeholders;  // for _1, _2, _3...
     Serial.println("LVGL display driver init...");
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);

@@ -33,6 +33,19 @@ void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *user
 {
 }
 
+/**
+ * @brief add or update node with unknown user
+ *
+ */
+void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role)
+{
+    char userShort[5], userLong[32];
+    sprintf(userShort, "%04x", nodeNum & 0xffff);
+    strcpy(userLong, "Meshtastic ");
+    strcat(userLong, userShort);
+    addOrUpdateNode(nodeNum, channel, (const char *)&userShort[0], (const char *)&userLong[0], lastHeard, role);
+}
+
 void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
                                      uint32_t lastHeard, eRole role)
 {
@@ -49,13 +62,9 @@ void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float v
 
 void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {}
 
-void MeshtasticView::updateNodesOnline(const char *str)
-{
-    char buf[30];
-    sprintf(buf, str, nodesOnline, nodeCount);
-    lv_label_set_text(ui_TopNodesOnlineLabel, buf);
-    lv_label_set_text(ui_HomeNodesLabel, buf);
-}
+void MeshtasticView::showMessagePopup(const char *from) {}
+
+void MeshtasticView::updateNodesOnline(const char *str) {}
 
 void MeshtasticView::updateLastHeard(uint32_t nodeNum) {}
 
@@ -69,7 +78,7 @@ void MeshtasticView::packetReceived(uint32_t from, const meshtastic_MeshPacket &
 
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
-        newMessage(p.from, p.channel, (const char *)p.decoded.payload.bytes);
+        newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes);
         break;
     }
     case meshtastic_PortNum_POSITION_APP: {
@@ -88,7 +97,7 @@ void MeshtasticView::packetReceived(uint32_t from, const meshtastic_MeshPacket &
     }
 }
 
-void MeshtasticView::newMessage(uint32_t nodeNum, uint8_t channel, const char *msg) {}
+void MeshtasticView::newMessage(uint32_t from, uint32_t to, uint8_t channel, const char *msg) {}
 
 void MeshtasticView::removeNode(uint32_t nodeNum) {}
 

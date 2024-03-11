@@ -12,57 +12,70 @@ class TFTView_320x240 : public MeshtasticView
 {
   public:
     static TFTView_320x240 *instance(void);
-    virtual void init(IClientBase *client);
-    virtual void task_handler(void);
+    void init(IClientBase *client) override;
+    void task_handler(void) override;
 
     // methods to update view
-    virtual void setMyInfo(uint32_t nodeNum);
-    virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
-                                   bool can_shutdown);
-    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                 uint32_t lastHeard, eRole role);
-    virtual void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role);
-    virtual void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                            eRole role);
-    virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t precision);
-    virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
-    virtual void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr);
-    virtual void packetReceived(uint32_t from, const meshtastic_MeshPacket &p);
+    void setMyInfo(uint32_t nodeNum) override;
+    void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
+                           bool can_shutdown) override;
+    void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                         eRole role) override;
+    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                 eRole role) override;
+    void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                    eRole role) override;
+    void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t precision) override;
+    void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) override;
+    void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) override;
 
     // methods to update device config
-    virtual void updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role);
-    virtual void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) {}
-    virtual void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) {}
-    virtual void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) {}
-    virtual void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg) {}
-    virtual void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) {}
-    virtual void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) {}
-    virtual void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) {}
+    void updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role) override;
+    void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) override {}
+    void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) override {}
+    void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) override {}
+    void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg) override {}
+    void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) override {}
+    void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) override {}
+    void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) override {}
 
     // methods to update module config
-    virtual void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) {}
-    virtual void updateSerialModule(const meshtastic_ModuleConfig_SerialConfig &cfg) {}
-    virtual void updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg) {}
-    virtual void updateStoreForwardModule(const meshtastic_ModuleConfig_StoreForwardConfig &cfg) {}
-    virtual void updateRangeTestModule(const meshtastic_ModuleConfig_RangeTestConfig &cfg) {}
-    virtual void updateTelemetryModule(const meshtastic_ModuleConfig_TelemetryConfig &cfg) {}
-    virtual void updateCannedMessageModule(const meshtastic_ModuleConfig_CannedMessageConfig &) {}
-    virtual void updateAudioModule(const meshtastic_ModuleConfig_AudioConfig &cfg) {}
-    virtual void updateRemoteHardwareModule(const meshtastic_ModuleConfig_RemoteHardwareConfig &cfg) {}
-    virtual void updateNeighborInfoModule(const meshtastic_ModuleConfig_NeighborInfoConfig &cfg) {}
-    virtual void updateAmbientLightingModule(const meshtastic_ModuleConfig_AmbientLightingConfig &cfg) {}
-    virtual void updateDetectionSensorModule(const meshtastic_ModuleConfig_DetectionSensorConfig &cfg) {}
-    virtual void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) {}
+    void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) override {}
+    void updateSerialModule(const meshtastic_ModuleConfig_SerialConfig &cfg) override {}
+    void updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg) override {}
+    void updateStoreForwardModule(const meshtastic_ModuleConfig_StoreForwardConfig &cfg) override {}
+    void updateRangeTestModule(const meshtastic_ModuleConfig_RangeTestConfig &cfg) override {}
+    void updateTelemetryModule(const meshtastic_ModuleConfig_TelemetryConfig &cfg) override {}
+    void updateCannedMessageModule(const meshtastic_ModuleConfig_CannedMessageConfig &) override {}
+    void updateAudioModule(const meshtastic_ModuleConfig_AudioConfig &cfg) override {}
+    void updateRemoteHardwareModule(const meshtastic_ModuleConfig_RemoteHardwareConfig &cfg) override {}
+    void updateNeighborInfoModule(const meshtastic_ModuleConfig_NeighborInfoConfig &cfg) override {}
+    void updateAmbientLightingModule(const meshtastic_ModuleConfig_AmbientLightingConfig &cfg) override {}
+    void updateDetectionSensorModule(const meshtastic_ModuleConfig_DetectionSensorConfig &cfg) override {}
+    void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) override {}
 
-    virtual void removeNode(uint32_t nodeNum);
-    virtual void newMessage(uint32_t nodeNum, uint8_t channel, const char *msg);
+    void packetReceived(uint32_t from, const meshtastic_MeshPacket &p) override;
+    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
+    void updateNodesOnline(const char *str) override;
+    void removeNode(uint32_t nodeNum) override;
 
   protected:
+    // display new message popup
+    virtual void showMessagePopup(uint32_t from, uint32_t to, uint8_t ch, const char *name);
+    // hide new message popup
+    virtual void hideMessagePopup(void);
+    // display messages of a group channel
+    virtual void showMessages(uint8_t channel);
+    // display messages of a node
+    virtual void showMessages(uint32_t nodeNum);
     // own chat message
     virtual void handleAddMessage(char *msg);
     // add own message to current chat
     virtual void addMessage(char *msg);
+    // add new message to container
+    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
+    // create empty message container for node or group channel
+    virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img);
     // set last heard to now, update nodes online
@@ -88,11 +101,13 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_NodeButtonClicked(lv_event_t *e);
     static void ui_event_ChannelButtonClicked(lv_event_t *e);
+    static void ui_event_MsgPopupButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
 
     lv_obj_t *activeButton = nullptr;
     lv_obj_t *activePanel = nullptr;
     lv_obj_t *activeTopPanel = nullptr;
+    lv_obj_t *activeMsgContainer = nullptr;
 
     static TFTView_320x240 *gui;
 };
