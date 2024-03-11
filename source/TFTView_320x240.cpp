@@ -357,7 +357,6 @@ void TFTView_320x240::addMessage(char *msg)
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
 }
 
-#include "DebugConfiguration.h"
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
                               eRole role)
 {
@@ -373,7 +372,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     lv_obj_t *p = lv_obj_create(ui_NodesPanel);
     p->user_data = (void *)(uint32_t)ch;
-    LOG_DEBUG("##################addNode nodes[%u] = 0x%08x\n", nodeNum, p);
     nodes[nodeNum] = p;
     nodeCount++;
 
@@ -512,7 +510,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
 void TFTView_320x240::setMyInfo(uint32_t nodeNum)
 {
-    LOG_DEBUG("##################setMyInfo nodes[%u] = 0x%08x\n", nodeNum, ui_NodePanel);
     ownNode = nodeNum;
     nodes[ownNode] = ui_NodePanel;
 }
