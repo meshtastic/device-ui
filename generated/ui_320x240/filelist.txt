@@ -18,8 +18,6 @@ images/ui_img_325160819.c
 images/ui_img_1681326260.c
 images/ui_img_2104440450.c
 images/ui_img_2095618903.c
-images/ui_img_558997549.c
-images/ui_img_230282600.c
 images/ui_img_dazzle_keyboard20_png.c
 images/ui_img_worldmap_png.c
 images/ui_img_15776284.c

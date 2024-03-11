@@ -53,10 +53,8 @@ extern lv_obj_t * ui_lastHeardLabel;
 extern lv_obj_t * ui_SignalLabel;
 extern lv_obj_t * ui_GroupsPanel;
 extern lv_obj_t * ui_ChannelButton0;
-extern lv_obj_t * ui_OpenLockImage;
 extern lv_obj_t * ui_ChannelLabel0;
 extern lv_obj_t * ui_ChannelButton1;
-extern lv_obj_t * ui_OpenLockImage1;
 extern lv_obj_t * ui_ChannelLabel1;
 extern lv_obj_t * ui_ChannelButton2;
 extern lv_obj_t * ui_ChannelLabel2;
@@ -185,8 +183,6 @@ LV_IMG_DECLARE(ui_img_325160819);    // assets/dazzle/wifi-off-36-white.png
 LV_IMG_DECLARE(ui_img_1681326260);    // assets/dazzle/bluetooth-slash-36.png
 LV_IMG_DECLARE(ui_img_2104440450);    // assets/router24-white.png
 LV_IMG_DECLARE(ui_img_2095618903);    // assets/dazzle/modem-svgrepo-com24-white.png
-LV_IMG_DECLARE(ui_img_558997549);    // assets/key-round24-white.png
-LV_IMG_DECLARE(ui_img_230282600);    // assets/lock-keyhole24-white.png
 LV_IMG_DECLARE(ui_img_dazzle_keyboard20_png);    // assets/dazzle/keyboard20.png
 LV_IMG_DECLARE(ui_img_worldmap_png);    // assets/Worldmap.png
 LV_IMG_DECLARE(ui_img_15776284);    // assets/dazzle/battery-full-20.png

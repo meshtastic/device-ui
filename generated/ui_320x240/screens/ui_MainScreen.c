@@ -482,7 +482,7 @@ void ui_MainScreen_screen_init(void)
 
     ui_ChannelButton0 = lv_btn_create(ui_GroupsPanel);
     lv_obj_set_height(ui_ChannelButton0, 24);
-    lv_obj_set_width(ui_ChannelButton0, lv_pct(70));
+    lv_obj_set_width(ui_ChannelButton0, lv_pct(30));
     lv_obj_set_align(ui_ChannelButton0, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_ChannelButton0, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_ChannelButton0,
@@ -494,29 +494,15 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_border_color(ui_ChannelButton0, lv_color_hex(0xA0A0A0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(ui_ChannelButton0, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(ui_ChannelButton0, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui_ChannelButton0, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_ChannelButton0, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui_ChannelButton0, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui_ChannelButton0, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(ui_ChannelButton0, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(ui_ChannelButton0, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_OpenLockImage = lv_img_create(ui_ChannelButton0);
-    lv_img_set_src(ui_OpenLockImage, &ui_img_558997549);
-    lv_obj_set_width(ui_OpenLockImage, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_OpenLockImage, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_OpenLockImage, LV_ALIGN_LEFT_MID);
-    lv_obj_add_flag(ui_OpenLockImage, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
-    lv_obj_clear_flag(ui_OpenLockImage, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_img_recolor(ui_OpenLockImage, lv_color_hex(0xF2E459), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_img_recolor_opa(ui_OpenLockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_ChannelLabel0 = lv_label_create(ui_ChannelButton0);
     lv_obj_set_width(ui_ChannelLabel0, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_ChannelLabel0, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_ChannelLabel0, LV_ALIGN_CENTER);
     lv_label_set_long_mode(ui_ChannelLabel0, LV_LABEL_LONG_DOT);
-    lv_label_set_text(ui_ChannelLabel0, "LongFast-F");
+    lv_label_set_text(ui_ChannelLabel0, "0");
     lv_obj_set_style_text_color(ui_ChannelLabel0, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel0, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel0, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -530,7 +516,7 @@ void ui_MainScreen_screen_init(void)
 
     ui_ChannelButton1 = lv_btn_create(ui_GroupsPanel);
     lv_obj_set_height(ui_ChannelButton1, 24);
-    lv_obj_set_width(ui_ChannelButton1, lv_pct(70));
+    lv_obj_set_width(ui_ChannelButton1, lv_pct(30));
     lv_obj_set_align(ui_ChannelButton1, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_ChannelButton1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_ChannelButton1,
@@ -542,29 +528,15 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_border_color(ui_ChannelButton1, lv_color_hex(0xA0A0A0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(ui_ChannelButton1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(ui_ChannelButton1, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui_ChannelButton1, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_ChannelButton1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui_ChannelButton1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui_ChannelButton1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(ui_ChannelButton1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(ui_ChannelButton1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_OpenLockImage1 = lv_img_create(ui_ChannelButton1);
-    lv_img_set_src(ui_OpenLockImage1, &ui_img_230282600);
-    lv_obj_set_width(ui_OpenLockImage1, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_OpenLockImage1, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_OpenLockImage1, LV_ALIGN_LEFT_MID);
-    lv_obj_add_flag(ui_OpenLockImage1, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
-    lv_obj_clear_flag(ui_OpenLockImage1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_img_recolor(ui_OpenLockImage1, lv_color_hex(0x1EC174), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_img_recolor_opa(ui_OpenLockImage1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_ChannelLabel1 = lv_label_create(ui_ChannelButton1);
     lv_obj_set_width(ui_ChannelLabel1, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_ChannelLabel1, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_ChannelLabel1, LV_ALIGN_CENTER);
     lv_label_set_long_mode(ui_ChannelLabel1, LV_LABEL_LONG_DOT);
-    lv_label_set_text(ui_ChannelLabel1, "Secure-I");
+    lv_label_set_text(ui_ChannelLabel1, "1");
     lv_obj_set_style_text_color(ui_ChannelLabel1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel1, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);

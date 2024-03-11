@@ -17,6 +17,9 @@
 #error "Unknown device for view 320x240"
 #endif
 
+LV_IMG_DECLARE(ui_img_230282600); // assets/lock-keyhole24-white.png
+LV_IMG_DECLARE(ui_img_558997549); // assets/key-round24-white.png
+
 #define CR_REPLACEMENT 0x0C // dummy to record several lines in a one line textarea
 
 // children index of nodepanel lv objects (see addNode)
@@ -605,9 +608,31 @@ void TFTView_320x240::packetReceived(uint32_t from, const meshtastic_MeshPacket 
 
 void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role)
 {
+    static lv_obj_t *btn[c_max_channels] = {ui_ChannelButton0, ui_ChannelButton1, ui_ChannelButton2, ui_ChannelButton3,
+                                            ui_ChannelButton4, ui_ChannelButton5, ui_ChannelButton6, ui_ChannelButton7};
+
     if (strlen(name)) {
         lv_label_set_text(channel[index], name);
         newMessageContainer(0, UINT32_MAX, index);
+
+        lv_obj_set_width(btn[index], lv_pct(70));
+        lv_obj_set_style_pad_left(btn[index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_t *lockImage = lv_img_create(btn[index]);
+        if (memcmp(psk, "\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
+            lv_img_set_src(lockImage, &ui_img_558997549);
+            lv_obj_set_style_img_recolor(lockImage, lv_color_hex(0xF2E459), LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else {
+            lv_img_set_src(lockImage, &ui_img_230282600);
+            lv_obj_set_style_img_recolor(lockImage, lv_color_hex(0x1EC174), LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        lv_obj_set_width(lockImage, LV_SIZE_CONTENT);  /// 1
+        lv_obj_set_height(lockImage, LV_SIZE_CONTENT); /// 1
+        lv_obj_set_align(lockImage, LV_ALIGN_LEFT_MID);
+        lv_obj_add_flag(lockImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
+        lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+        lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    } else {
+        lv_obj_set_width(btn[index], lv_pct(30));
     }
 }
 
