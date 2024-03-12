@@ -160,7 +160,7 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 void TFTView_320x240::ui_event_NodeButtonClicked(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_LONG_PRESSED) {
         //  set color and text of clicked node
         uint32_t nodeNum = (unsigned long)e->user_data;
         TFTView_320x240::instance()->showMessages(nodeNum);
