@@ -384,7 +384,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_height(ui_NodeImage, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_NodeImage, -5);
     lv_obj_set_y(ui_NodeImage, -10);
-    lv_obj_add_flag(ui_NodeImage, LV_OBJ_FLAG_HIDDEN | LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_obj_add_flag(ui_NodeImage, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
     lv_obj_clear_flag(ui_NodeImage, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_bg_img_src(ui_NodeImage, &ui_img_2104440450, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor(ui_NodeImage, lv_color_hex(0x4040FF), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -393,19 +393,16 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_img_recolor_opa(ui_NodeImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_NodeButton = lv_btn_create(ui_NodePanel);
-    lv_obj_set_width(ui_NodeButton, 28);
-    lv_obj_set_height(ui_NodeButton, 28);
-    lv_obj_set_x(ui_NodeButton, -8);
-    lv_obj_set_y(ui_NodeButton, -7);
+    lv_obj_set_height(ui_NodeButton, 50);
+    lv_obj_set_width(ui_NodeButton, lv_pct(50));
+    lv_obj_set_x(ui_NodeButton, -13);
+    lv_obj_set_y(ui_NodeButton, 0);
     lv_obj_set_align(ui_NodeButton, LV_ALIGN_LEFT_MID);
     lv_obj_add_flag(ui_NodeButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_NodeButton, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_radius(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(ui_NodeButton, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_src(ui_NodeButton, &ui_img_2095618903, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor(ui_NodeButton, lv_color_hex(0x00F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(ui_NodeButton, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_spread(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
