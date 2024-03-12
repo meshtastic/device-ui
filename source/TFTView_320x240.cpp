@@ -396,6 +396,12 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // lv_obj_set_align( img, LV_ALIGN_LEFT_MID );
     lv_obj_add_flag(img, LV_OBJ_FLAG_ADV_HITTEST);
     lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_radius(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_img_recolor(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *ui_NodeButton = lv_btn_create(p);
     lv_obj_set_height(ui_NodeButton, 50);
@@ -428,7 +434,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *sn_lbl = lv_label_create(p);
     lv_obj_set_width(sn_lbl, LV_SIZE_CONTENT);
     lv_obj_set_height(sn_lbl, LV_SIZE_CONTENT);
-    lv_obj_set_x(sn_lbl, 25);
+    lv_obj_set_x(sn_lbl, 28);
     lv_obj_set_y(sn_lbl, -3);
     lv_obj_set_align(sn_lbl, LV_ALIGN_LEFT_MID);
     lv_label_set_text(sn_lbl, userShort);
@@ -879,7 +885,8 @@ void TFTView_320x240::removeNode(uint32_t nodeNum)
 
 void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img)
 {
-    uint32_t color = nodeColor(nodeNum);
+    uint32_t bgColor, fgColor;
+    std::tie(bgColor, fgColor) = nodeColor(nodeNum);
     switch (role) {
     case client:
     case client_mute:
@@ -909,8 +916,9 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img)
         break;
     }
 
-    lv_obj_set_style_img_recolor(img, lv_color_hex(color), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_img_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_img_recolor_opa(img, fgColor ? 0 : 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
 void TFTView_320x240::updateNodesOnline(const char *str)

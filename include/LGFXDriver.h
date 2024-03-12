@@ -131,7 +131,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
     // Initialize LovyanGFX
     Serial.println("LGFX init...");
     TFTDriver<LGFX>::tft->init();
-    TFTDriver<LGFX>::tft->setBrightness(80);
+    TFTDriver<LGFX>::tft->setBrightness(128);
     TFTDriver<LGFX>::tft->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
 
 #ifdef CALIBRATE_TOUCH

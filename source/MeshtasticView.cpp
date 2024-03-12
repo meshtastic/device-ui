@@ -120,8 +120,13 @@ void MeshtasticView::newMessage(uint32_t from, uint32_t to, uint8_t channel, con
 void MeshtasticView::removeNode(uint32_t nodeNum) {}
 
 // -------- helpers --------
-
-uint32_t MeshtasticView::nodeColor(uint32_t nodeNum)
+/**
+ * @brief Returns background and foregroud color for a node
+ *
+ * @param nodeNum
+ * @return std::tuple<uint32_t, uint32_t>
+ */
+std::tuple<uint32_t, uint32_t> MeshtasticView::nodeColor(uint32_t nodeNum)
 {
     uint32_t red = (nodeNum & 0xff0000) >> 16;
     uint32_t green = (nodeNum & 0xff00) >> 8;
@@ -131,7 +136,8 @@ uint32_t MeshtasticView::nodeColor(uint32_t nodeNum)
         green += green / 3 + 10;
         blue += blue / 3 + 10;
     }
-    return ((red << 16) | (green << 8) | blue);
+
+    return std::make_tuple((red << 16) | (green << 8) | blue, (2 * red + 2 * green + blue) > 600 ? 0x000000 : 0xFFFFFF);
 }
 
 /**

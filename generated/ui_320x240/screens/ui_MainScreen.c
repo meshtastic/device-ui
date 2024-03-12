@@ -386,10 +386,16 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_y(ui_NodeImage, -10);
     lv_obj_add_flag(ui_NodeImage, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
     lv_obj_clear_flag(ui_NodeImage, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_radius(ui_NodeImage, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_NodeImage, lv_color_hex(0x00F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_NodeImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_NodeImage, &ui_img_2104440450, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor(ui_NodeImage, lv_color_hex(0x4040FF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(ui_NodeImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_img_recolor(ui_NodeImage, lv_color_hex(0x00F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_NodeImage, lv_color_hex(0x00F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_NodeImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_NodeImage, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_img_recolor(ui_NodeImage, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor_opa(ui_NodeImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_NodeButton = lv_btn_create(ui_NodePanel);
@@ -420,7 +426,7 @@ void ui_MainScreen_screen_init(void)
     ui_UserNameShortLabel = lv_label_create(ui_NodePanel);
     lv_obj_set_width(ui_UserNameShortLabel, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_UserNameShortLabel, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_UserNameShortLabel, 25);
+    lv_obj_set_x(ui_UserNameShortLabel, 28);
     lv_obj_set_y(ui_UserNameShortLabel, -3);
     lv_obj_set_align(ui_UserNameShortLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(ui_UserNameShortLabel, "");

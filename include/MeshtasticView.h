@@ -88,7 +88,7 @@ class MeshtasticView : public DeviceGUI
 
   protected:
     // helpers
-    uint32_t nodeColor(uint32_t nodeNum);
+    std::tuple<uint32_t, uint32_t> nodeColor(uint32_t nodeNum);
     bool lastHeartToString(uint32_t lastHeard, char *buf);
 
     ViewController *controller;
