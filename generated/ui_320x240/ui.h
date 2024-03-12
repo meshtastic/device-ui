@@ -128,7 +128,7 @@ extern lv_obj_t * ui_DetectionSensorLabel;
 extern lv_obj_t * ui_ModuleRemoteHardwareButton;
 extern lv_obj_t * ui_RemoteHardwareLabel;
 extern lv_obj_t * ui_BatteryPanel;
-extern lv_obj_t * ui_imageBatteryMed;
+extern lv_obj_t * ui_imageBattery;
 extern lv_obj_t * ui_BatPercentageLabel;
 extern lv_obj_t * ui_TopPanel;
 extern lv_obj_t * ui_FrequencyLabel;
@@ -164,9 +164,11 @@ extern lv_obj_t * ui_imageRadioTower;
 extern lv_obj_t * ui_imageWifiOff;
 extern lv_obj_t * ui_imageBluetoothOn;
 extern lv_obj_t * ui_imageModem;
+extern lv_obj_t * ui_unlockKeyholeImage;
 extern lv_obj_t * ui_MsgPopupPanel;
 extern lv_obj_t * ui_MsgPopupButton;
 extern lv_obj_t * ui_MsgPopupLabel;
+extern lv_obj_t * ui_Image1;
 extern lv_obj_t * ui____initial_actions0;
 
 LV_IMG_DECLARE(ui_img_964411511);    // assets/meshtastic-logo-long.png
@@ -197,6 +199,7 @@ LV_IMG_DECLARE(ui_img_356530738);    // assets/dazzle/battery-bolt-20.png
 LV_IMG_DECLARE(ui_img_1964124651);    // assets/dazzle/battery-low-20.png
 LV_IMG_DECLARE(ui_img_1003866492);    // assets/dazzle/radio-tower-24-white.png
 LV_IMG_DECLARE(ui_img_294304076);    // assets/dazzle/bluetooth-on-36-white.png
+LV_IMG_DECLARE(ui_img_1683846353);    // assets/unlock-keyhole24-white.png
 LV_IMG_DECLARE(ui_img_904314631);    // assets/dazzle/battery-mid-20.png
 LV_IMG_DECLARE(ui_img_80620004);    // assets/dazzle/map-location-pin-36.png
 LV_IMG_DECLARE(ui_img_1682375573);    // assets/dazzle/wifi-36.png
@@ -208,6 +211,7 @@ LV_IMG_DECLARE(ui_img_1889904893);    // assets/bluetooth-off-18.png
 LV_IMG_DECLARE(ui_img_1049473466);    // assets/bluetooth-off-20.png
 LV_IMG_DECLARE(ui_img_1184294011);    // assets/wifi-20.png
 LV_IMG_DECLARE(ui_img_279030151);    // assets/wifi-off-20.png
+LV_IMG_DECLARE(ui_img_150370554);    // assets/dazzle/battery-slash-20.png
 
 
 LV_FONT_DECLARE(ui_font_Square14);

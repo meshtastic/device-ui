@@ -77,7 +77,7 @@ class MeshtasticView : public DeviceGUI
 
     virtual void configCompleted(void) { configComplete = true; }
 
-    virtual void packetReceived(uint32_t from, const meshtastic_MeshPacket &p);
+    virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
 
     virtual void showMessagePopup(const char *from);

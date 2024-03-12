@@ -194,16 +194,11 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
         // determine if last chat panel was node or group message panel
-        // TODO: there is no easy way so far, so search through channelGroup
-        uint8_t i;
-        for (i = 0; i < c_max_channels; i++) {
-            if (TFTView_320x240::instance()->channelGroup[i] == TFTView_320x240::instance()->activeMsgContainer)
-                break;
-        }
-        if (i == c_max_channels)
-            TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopMessagePanel);
-        else
+        uint32_t channelOrNode = (unsigned long)TFTView_320x240::instance()->activeMsgContainer->user_data;
+        if (channelOrNode < c_max_channels)
             TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopGroupChatPanel);
+        else
+            TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopMessagePanel);
     }
 }
 
@@ -494,7 +489,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     lv_obj_add_event_cb(ui_NodeButton, ui_event_NodeButtonClicked, LV_EVENT_ALL, (void *)nodeNum);
 
-    // move node into new position within nodePanal
+    // move node into new position within nodePanel
     if (lastHeard) {
         lv_obj_t **children = ui_NodesPanel->spec_attr->children;
         int i = ui_NodesPanel->spec_attr->child_cnt - 1;
@@ -562,6 +557,15 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
     }
 }
 
+/**
+ * @brief Update battery level and air utilisation
+ *
+ * @param nodeNum
+ * @param bat_level
+ * @param voltage
+ * @param chUtil
+ * @param airUtil
+ */
 void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil)
 {
     auto it = nodes.find(nodeNum);
@@ -570,6 +574,34 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
         if (it->first == ownNode) {
             sprintf(buf, "Util %0.1f%% %0.1f%%", chUtil, airUtil);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
+
+            // update battery percentage and symbol
+            if (bat_level != 0 || voltage != 0) {
+                uint32_t shown_level = min(bat_level, (uint32_t)100);
+                sprintf(buf, "%d%%", shown_level);
+                lv_label_set_text(ui_BatPercentageLabel, buf);
+                lv_opa_t recolor = 0;
+                uint32_t txtColor = 0xE0E0E0;
+                if (bat_level > 100)
+                    lv_img_set_src(ui_imageBattery, &ui_img_356530738);
+                else if (bat_level > 80)
+                    lv_img_set_src(ui_imageBattery, &ui_img_15776284);
+                else if (bat_level > 30)
+                    lv_img_set_src(ui_imageBattery, &ui_img_904314631);
+                else if (bat_level > 5)
+                    lv_img_set_src(ui_imageBattery, &ui_img_1964124651);
+                else if (bat_level > 1) {
+                    lv_img_set_src(ui_imageBattery, &ui_img_1002737466);
+                    recolor = 255;
+                    txtColor = 0xF72b2b;
+                } else {
+                    lv_img_set_src(ui_imageBattery, &ui_img_150370554);
+                    recolor = 255;
+                    txtColor = 0xF72b2b;
+                }
+                lv_obj_set_style_img_recolor_opa(ui_imageBattery, recolor, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_text_color(ui_BatPercentageLabel, lv_color_hex(txtColor), LV_PART_MAIN | LV_STATE_DEFAULT);
+            }
         }
 
         if (bat_level != 0 || voltage != 0) {
@@ -601,9 +633,9 @@ void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float
     }
 }
 
-void TFTView_320x240::packetReceived(uint32_t from, const meshtastic_MeshPacket &p)
+void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
 {
-    MeshtasticView::packetReceived(from, p);
+    MeshtasticView::packetReceived(p);
 }
 
 void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role)
@@ -618,18 +650,24 @@ void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, cons
         lv_obj_set_width(btn[index], lv_pct(70));
         lv_obj_set_style_pad_left(btn[index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_t *lockImage = lv_img_create(btn[index]);
+        uint32_t recolor = 0;
+
         if (memcmp(psk, "\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
             lv_img_set_src(lockImage, &ui_img_558997549);
-            lv_obj_set_style_img_recolor(lockImage, lv_color_hex(0xF2E459), LV_PART_MAIN | LV_STATE_DEFAULT);
+            recolor = 0xF2E459; // yellow
+        } else if (memcmp(psk, "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
+            lv_img_set_src(lockImage, &ui_img_1683846353);
+            recolor = 0xF72B2B; // reddish
         } else {
             lv_img_set_src(lockImage, &ui_img_230282600);
-            lv_obj_set_style_img_recolor(lockImage, lv_color_hex(0x1EC174), LV_PART_MAIN | LV_STATE_DEFAULT);
+            recolor = 0x1EC174; // green
         }
         lv_obj_set_width(lockImage, LV_SIZE_CONTENT);  /// 1
         lv_obj_set_height(lockImage, LV_SIZE_CONTENT); /// 1
         lv_obj_set_align(lockImage, LV_ALIGN_LEFT_MID);
         lv_obj_add_flag(lockImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+        lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     } else {
         lv_obj_set_width(btn[index], lv_pct(30));
@@ -897,12 +935,12 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
         time_t lastHeard = (time_t)it->second->LV_OBJ_IDX(node_lh_idx)->user_data;
         it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)curtime;
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), "now");
-        if (curtime - lastHeard >= 900) {
-            nodesOnline++;
-            updateNodesOnline("%d of %d nodes online");
-        }
-        // move to top position
         if (it->first != ownNode) {
+            if (curtime - lastHeard >= 900) {
+                nodesOnline++;
+                updateNodesOnline("%d of %d nodes online");
+            }
+            // move to top position
             lv_obj_move_to_index(it->second, 1);
         }
     }

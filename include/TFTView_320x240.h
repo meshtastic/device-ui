@@ -54,7 +54,7 @@ class TFTView_320x240 : public MeshtasticView
     void updateDetectionSensorModule(const meshtastic_ModuleConfig_DetectionSensorConfig &cfg) override {}
     void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) override {}
 
-    void packetReceived(uint32_t from, const meshtastic_MeshPacket &p) override;
+    void packetReceived(const meshtastic_MeshPacket &p) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
     void updateNodesOnline(const char *str) override;
     void removeNode(uint32_t nodeNum) override;

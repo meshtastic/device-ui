@@ -1533,15 +1533,17 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_bg_opa(ui_BatteryPanel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(ui_BatteryPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_imageBatteryMed = lv_img_create(ui_BatteryPanel);
-    lv_img_set_src(ui_imageBatteryMed, &ui_img_15776284);
-    lv_obj_set_width(ui_imageBatteryMed, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_imageBatteryMed, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_imageBatteryMed, 10);
-    lv_obj_set_y(ui_imageBatteryMed, 0);
-    lv_obj_set_align(ui_imageBatteryMed, LV_ALIGN_RIGHT_MID);
-    lv_obj_add_flag(ui_imageBatteryMed, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
-    lv_obj_clear_flag(ui_imageBatteryMed, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    ui_imageBattery = lv_img_create(ui_BatteryPanel);
+    lv_img_set_src(ui_imageBattery, &ui_img_15776284);
+    lv_obj_set_width(ui_imageBattery, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_imageBattery, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_imageBattery, 10);
+    lv_obj_set_y(ui_imageBattery, 0);
+    lv_obj_set_align(ui_imageBattery, LV_ALIGN_RIGHT_MID);
+    lv_obj_add_flag(ui_imageBattery, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_obj_clear_flag(ui_imageBattery, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_img_recolor(ui_imageBattery, lv_color_hex(0xF72B2B), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_img_recolor_opa(ui_imageBattery, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_BatPercentageLabel = lv_label_create(ui_BatteryPanel);
     lv_obj_set_width(ui_BatPercentageLabel, LV_SIZE_CONTENT);   /// 1
@@ -1686,7 +1688,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_x(ui_TopGroupChatLabel, 20);
     lv_obj_set_y(ui_TopGroupChatLabel, 0);
     lv_obj_set_align(ui_TopGroupChatLabel, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_TopGroupChatLabel, "LongFast-I");
+    lv_label_set_text(ui_TopGroupChatLabel, "no messages");
     lv_obj_set_style_text_color(ui_TopGroupChatLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_TopGroupChatLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_TopGroupChatLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1949,6 +1951,16 @@ void ui_MainScreen_screen_init(void)
     lv_obj_add_flag(ui_imageModem, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
     lv_obj_clear_flag(ui_imageModem, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
+    ui_unlockKeyholeImage = lv_img_create(ui_ResourcePanel);
+    lv_img_set_src(ui_unlockKeyholeImage, &ui_img_1683846353);
+    lv_obj_set_width(ui_unlockKeyholeImage, LV_SIZE_CONTENT);   /// 18
+    lv_obj_set_height(ui_unlockKeyholeImage, LV_SIZE_CONTENT);    /// 18
+    lv_obj_set_x(ui_unlockKeyholeImage, -14);
+    lv_obj_set_y(ui_unlockKeyholeImage, -42);
+    lv_obj_set_align(ui_unlockKeyholeImage, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_unlockKeyholeImage, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_obj_clear_flag(ui_unlockKeyholeImage, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
     ui_MsgPopupPanel = lv_obj_create(ui_MainScreen);
     lv_obj_set_height(ui_MsgPopupPanel, 55);
     lv_obj_set_width(ui_MsgPopupPanel, lv_pct(85));
@@ -1991,6 +2003,13 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_MsgPopupLabel, "New message from \n");
     lv_obj_set_style_text_color(ui_MsgPopupLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_MsgPopupLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Image1 = lv_img_create(ui_MsgPopupPanel);
+    lv_obj_set_width(ui_Image1, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Image1, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Image1, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Image1, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_obj_clear_flag(ui_Image1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     lv_obj_add_event_cb(ui_KeyboardButton, ui_event_KeyboardButton, LV_EVENT_ALL, NULL);
 

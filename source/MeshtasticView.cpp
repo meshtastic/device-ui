@@ -68,13 +68,13 @@ void MeshtasticView::updateNodesOnline(const char *str) {}
 
 void MeshtasticView::updateLastHeard(uint32_t nodeNum) {}
 
-void MeshtasticView::packetReceived(uint32_t from, const meshtastic_MeshPacket &p)
+void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
 {
-    // TODO only for direct neighbors print rssi/snr
-    if (1 /* p.hop_limit - p.hop_start == 0 */) {
+    // only for direct neighbors print rssi/snr
+    if (p.hop_limit == p.hop_start) {
         updateSignalStrength(p.from, p.rx_rssi, p.rx_snr);
     }
-    updateLastHeard(from);
+    updateLastHeard(p.from);
 
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
@@ -88,6 +88,24 @@ void MeshtasticView::packetReceived(uint32_t from, const meshtastic_MeshPacket &
         break;
     }
     case meshtastic_PortNum_TELEMETRY_APP: {
+        meshtastic_Telemetry decoded;
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Telemetry_msg, &decoded)) {
+            switch (decoded.which_variant) {
+            case meshtastic_Telemetry_device_metrics_tag: {
+                updateMetrics(p.from, decoded.variant.device_metrics.battery_level, decoded.variant.device_metrics.voltage,
+                              decoded.variant.device_metrics.channel_utilization, decoded.variant.device_metrics.air_util_tx);
+                break;
+            }
+            case meshtastic_Telemetry_environment_metrics_tag: {
+                break;
+            }
+            case meshtastic_Telemetry_power_metrics_tag: {
+                break;
+            }
+            default:
+                break;
+            }
+        }
         break;
     }
     case meshtastic_PortNum_SIMULATOR_APP:

@@ -124,7 +124,7 @@ lv_obj_t * ui_DetectionSensorLabel;
 lv_obj_t * ui_ModuleRemoteHardwareButton;
 lv_obj_t * ui_RemoteHardwareLabel;
 lv_obj_t * ui_BatteryPanel;
-lv_obj_t * ui_imageBatteryMed;
+lv_obj_t * ui_imageBattery;
 lv_obj_t * ui_BatPercentageLabel;
 lv_obj_t * ui_TopPanel;
 lv_obj_t * ui_FrequencyLabel;
@@ -160,9 +160,11 @@ lv_obj_t * ui_imageRadioTower;
 lv_obj_t * ui_imageWifiOff;
 lv_obj_t * ui_imageBluetoothOn;
 lv_obj_t * ui_imageModem;
+lv_obj_t * ui_unlockKeyholeImage;
 lv_obj_t * ui_MsgPopupPanel;
 lv_obj_t * ui_MsgPopupButton;
 lv_obj_t * ui_MsgPopupLabel;
+lv_obj_t * ui_Image1;
 lv_obj_t * ui____initial_actions0;
 const lv_img_dsc_t * ui_imgset_1222801488[1] = {&ui_img_356530738};
 const lv_img_dsc_t * ui_imgset_2051279978[1] = {&ui_img_1002737466};
@@ -181,6 +183,7 @@ const lv_img_dsc_t * ui_imgset_1025971555[2] = {&ui_img_1583074341, &ui_img_1388
 const lv_img_dsc_t * ui_imgset_318823223[2] = {&ui_img_113284535, &ui_img_1969094876};
 const lv_img_dsc_t * ui_imgset_1264820803[2] = {&ui_img_1889904893, &ui_img_1049473466};
 const lv_img_dsc_t * ui_imgset_1203064690[1] = {&ui_img_279030151};
+const lv_img_dsc_t * ui_imgset_819259258[1] = {&ui_img_150370554};
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
 #if LV_COLOR_DEPTH != 16

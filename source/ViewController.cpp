@@ -44,7 +44,7 @@ void ViewController::handleFromRadio(const meshtastic_FromRadio &from)
     case meshtastic_FromRadio_packet_tag: {
         const meshtastic_MeshPacket &p = from.packet;
         if (p.which_payload_variant == meshtastic_MeshPacket_decoded_tag) {
-            view->packetReceived(p.from, p);
+            view->packetReceived(p);
         } else {
             Serial.println("ERROR  | ??:??:?? encoded packet from radio!");
         }
