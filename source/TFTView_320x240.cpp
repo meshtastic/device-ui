@@ -635,7 +635,7 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                 lv_label_set_text(ui_BatPercentageLabel, buf);
                 lv_opa_t recolor = 0;
                 uint32_t txtColor = 0xE0E0E0;
-                if (bat_level > 100)
+                if (bat_level > 100 && voltage > 4.3)
                     lv_img_set_src(ui_imageBattery, &ui_img_356530738);
                 else if (bat_level > 80)
                     lv_img_set_src(ui_imageBattery, &ui_img_15776284);
