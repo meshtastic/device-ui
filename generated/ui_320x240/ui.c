@@ -149,28 +149,26 @@ lv_obj_t * ui_MapLabel;
 lv_obj_t * ui_MapImage;
 lv_obj_t * ui_Keyboard;
 lv_obj_t * ui_ResourcePanel;
-lv_obj_t * ui_imageBatteryEmpty;
-lv_obj_t * ui_imageRouter;
-lv_obj_t * ui_imageSignal;
-lv_obj_t * ui_imageMailUnread;
-lv_obj_t * ui_imageBatteryCharge;
-lv_obj_t * ui_imageBatteryFull;
-lv_obj_t * ui_imageBatteryLow;
-lv_obj_t * ui_imageRadioTower;
 lv_obj_t * ui_imageWifiOff;
 lv_obj_t * ui_imageBluetoothOn;
-lv_obj_t * ui_imageModem;
-lv_obj_t * ui_unlockKeyholeImage;
 lv_obj_t * ui_MsgPopupPanel;
 lv_obj_t * ui_MsgPopupButton;
 lv_obj_t * ui_MsgPopupLabel;
-lv_obj_t * ui_Image1;
+lv_obj_t * ui_ChatsPanel;
+lv_obj_t * ui_ChatsButton;
+lv_obj_t * ui_ChatsButtonLabel;
+lv_obj_t * ui_ChatDelButton;
+lv_obj_t * ui_DelLabel;
+lv_obj_t * ui_TopChatsPanel;
+lv_obj_t * ui_TopChatsLabel;
+lv_obj_t * ui_TopChatsImage;
 lv_obj_t * ui____initial_actions0;
 const lv_img_dsc_t * ui_imgset_1222801488[1] = {&ui_img_356530738};
 const lv_img_dsc_t * ui_imgset_2051279978[1] = {&ui_img_1002737466};
 const lv_img_dsc_t * ui_imgset_262027734[1] = {&ui_img_15776284};
 const lv_img_dsc_t * ui_imgset_978285355[1] = {&ui_img_1964124651};
 const lv_img_dsc_t * ui_imgset_224919773[1] = {&ui_img_904314631};
+const lv_img_dsc_t * ui_imgset_819259258[1] = {&ui_img_150370554};
 const lv_img_dsc_t * ui_imgset_1012109507[1] = {&ui_img_1681326260};
 const lv_img_dsc_t * ui_imgset_keyboard[1] = {&ui_img_dazzle_keyboard20_png};
 const lv_img_dsc_t * ui_imgset_664930658[1] = {&ui_img_2090176585};
@@ -183,7 +181,7 @@ const lv_img_dsc_t * ui_imgset_1025971555[2] = {&ui_img_1583074341, &ui_img_1388
 const lv_img_dsc_t * ui_imgset_318823223[2] = {&ui_img_113284535, &ui_img_1969094876};
 const lv_img_dsc_t * ui_imgset_1264820803[2] = {&ui_img_1889904893, &ui_img_1049473466};
 const lv_img_dsc_t * ui_imgset_1203064690[1] = {&ui_img_279030151};
-const lv_img_dsc_t * ui_imgset_819259258[1] = {&ui_img_150370554};
+const lv_img_dsc_t * ui_imgset_1360842336[1] = {&ui_img_1267600560};
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
 #if LV_COLOR_DEPTH != 16

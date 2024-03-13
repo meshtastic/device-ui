@@ -60,11 +60,16 @@ class TFTView_320x240 : public MeshtasticView
     void removeNode(uint32_t nodeNum) override;
 
   protected:
-    // display new message popup
     virtual void showMessagePopup(uint32_t from, uint32_t to, uint8_t ch, const char *name);
     // hide new message popup
     virtual void hideMessagePopup(void);
     // display messages of a group channel
+    virtual void addChat(uint32_t from, uint32_t to, uint8_t ch);
+    // mark chat border to indicate a new message
+    virtual void highlightChat(uint32_t from, uint32_t to, uint8_t ch);
+    // display number of active chats
+    virtual void updateActiveChats(void);
+    // display new message popup
     virtual void showMessages(uint8_t channel);
     // display messages of a node
     virtual void showMessages(uint32_t nodeNum);
@@ -101,6 +106,8 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_NodeButtonClicked(lv_event_t *e);
     static void ui_event_ChannelButtonClicked(lv_event_t *e);
+    static void ui_event_ChatButtonClicked(lv_event_t *e);
+    static void ui_event_ChatDelButtonClicked(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
 

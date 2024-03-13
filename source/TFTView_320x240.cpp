@@ -17,8 +17,11 @@
 #error "Unknown device for view 320x240"
 #endif
 
-LV_IMG_DECLARE(ui_img_230282600); // assets/lock-keyhole24-white.png
-LV_IMG_DECLARE(ui_img_558997549); // assets/key-round24-white.png
+LV_IMG_DECLARE(ui_img_230282600);  // assets/lock-keyhole24-white.png
+LV_IMG_DECLARE(ui_img_558997549);  // assets/key-round24-white.png
+LV_IMG_DECLARE(ui_img_1683846353); // assets/unlock-keyhole24-white.png
+LV_IMG_DECLARE(ui_img_1003866492); // assets/dazzle/radio-tower-24-white.png
+LV_IMG_DECLARE(ui_img_519712240);  // assets/dazzle/signal-steam-24-white.png
 
 #define CR_REPLACEMENT 0x0C // dummy to record several lines in a one line textarea
 
@@ -77,8 +80,8 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 
     if (activePanel) {
         _ui_flag_modify(activePanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
-        if (activePanel == ui_MessagesPanel) {
-            unreadMessages = 0; // TODO: not all messages are actually read
+        if (activePanel == ui_ChatsPanel) {
+            unreadMessages = 0; // TODO: not all messages may be actually read
             updateUnreadMessages();
         }
     }
@@ -163,7 +166,8 @@ void TFTView_320x240::ui_event_NodeButtonClicked(lv_event_t *e)
     if (event_code == LV_EVENT_LONG_PRESSED) {
         //  set color and text of clicked node
         uint32_t nodeNum = (unsigned long)e->user_data;
-        TFTView_320x240::instance()->showMessages(nodeNum);
+        if (nodeNum != TFTView_320x240::instance()->ownNode)
+            TFTView_320x240::instance()->showMessages(nodeNum);
     }
 }
 
@@ -193,12 +197,7 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        // determine if last chat panel was node or group message panel
-        uint32_t channelOrNode = (unsigned long)TFTView_320x240::instance()->activeMsgContainer->user_data;
-        if (channelOrNode < c_max_channels)
-            TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopGroupChatPanel);
-        else
-            TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopMessagePanel);
+        TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_ChatsPanel, ui_TopChatsPanel);
     }
 }
 
@@ -215,6 +214,60 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
         TFTView_320x240::instance()->ui_set_active(ui_SettingsButton, ui_SettingsPanel, ui_TopSettingsPanel);
+    }
+}
+
+void TFTView_320x240::ui_event_ChatButtonClicked(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t *target = lv_event_get_target(e);
+    if (event_code == LV_EVENT_LONG_PRESSED) {
+        lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
+        _ui_flag_modify(delBtn, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+    } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_RELEASED || event_code == LV_EVENT_PRESS_LOST) {
+        lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
+        _ui_flag_modify(delBtn, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+    } else if (event_code == LV_EVENT_CLICKED) {
+        lv_obj_set_style_border_color(target, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+        uint32_t channelOrNode = (unsigned long)e->user_data;
+        if (channelOrNode < c_max_channels) {
+            uint8_t ch = (uint8_t)channelOrNode;
+            TFTView_320x240::instance()->showMessages(ch);
+            TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopGroupChatPanel);
+        } else {
+            uint32_t nodeNum = channelOrNode;
+            TFTView_320x240::instance()->showMessages(nodeNum);
+            TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopMessagePanel);
+        }
+    }
+}
+
+/**
+ * @brief Del button pressed, handle deletion or clearance of chat and messages panel
+ *
+ * @param e
+ */
+void TFTView_320x240::ui_event_ChatDelButtonClicked(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        lv_obj_t *target = lv_event_get_target(e);
+        _ui_flag_modify(target, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+
+        uint32_t channelOrNode = (unsigned long)e->user_data;
+        if (channelOrNode < c_max_channels) {
+            uint8_t ch = (uint8_t)channelOrNode;
+            lv_obj_clean(TFTView_320x240::instance()->channelGroup[ch]);
+        } else {
+            uint32_t nodeNum = channelOrNode;
+            lv_obj_del_delayed(TFTView_320x240::instance()->chats[nodeNum], 500);
+            lv_obj_del(TFTView_320x240::instance()->messages[nodeNum]);
+            TFTView_320x240::instance()->chats.erase(nodeNum);
+            TFTView_320x240::instance()->messages.erase(nodeNum);
+            TFTView_320x240::instance()->activeMsgContainer = ui_MessagesContainer;
+            TFTView_320x240::instance()->updateActiveChats();
+        }
     }
 }
 
@@ -274,19 +327,13 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             char *txt = (char *)lv_textarea_get_text(ta);
             lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
             if (ta == ui_MessageInputArea) {
-                Serial.println(txt);
                 TFTView_320x240::instance()->handleAddMessage(txt);
             }
             lv_textarea_set_text(ta, "");
             break;
         }
-        default: {
+        default:
             const char *txt = lv_keyboard_get_btn_text(kb, btn_id);
-            Serial.print("btn id: ");
-            Serial.print(btn_id);
-            Serial.print(", btn: ");
-            Serial.println(txt);
-        }
         }
     }
 }
@@ -396,33 +443,33 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // lv_obj_set_align( img, LV_ALIGN_LEFT_MID );
     lv_obj_add_flag(img, LV_OBJ_FLAG_ADV_HITTEST);
     lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_radius(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(img, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_obj_t *ui_NodeButton = lv_btn_create(p);
-    lv_obj_set_height(ui_NodeButton, 50);
-    lv_obj_set_width(ui_NodeButton, lv_pct(50));
-    lv_obj_set_x(ui_NodeButton, -13);
-    lv_obj_set_y(ui_NodeButton, 0);
-    lv_obj_set_align(ui_NodeButton, LV_ALIGN_LEFT_MID);
-    lv_obj_add_flag(ui_NodeButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
-    lv_obj_set_style_bg_color(ui_NodeButton, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_NodeButton, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_spread(ui_NodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_t *nodeButton = lv_btn_create(p);
+    lv_obj_set_height(nodeButton, 50);
+    lv_obj_set_width(nodeButton, lv_pct(50));
+    lv_obj_set_x(nodeButton, -13);
+    lv_obj_set_y(nodeButton, 0);
+    lv_obj_set_align(nodeButton, LV_ALIGN_LEFT_MID);
+    lv_obj_add_flag(nodeButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+    lv_obj_set_style_bg_color(nodeButton, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(nodeButton, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_spread(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *ln_lbl = lv_label_create(p);
     lv_obj_set_width(ln_lbl, LV_SIZE_CONTENT);
     lv_obj_set_height(ln_lbl, LV_SIZE_CONTENT);
-    lv_obj_set_x(ln_lbl, -6);
-    lv_obj_set_y(ln_lbl, 12);
+    lv_obj_set_x(ln_lbl, -5);
+    lv_obj_set_y(ln_lbl, 15);
     lv_obj_set_align(ln_lbl, LV_ALIGN_BOTTOM_LEFT);
     lv_label_set_text(ln_lbl, userLong);
     lv_label_set_long_mode(ln_lbl, LV_LABEL_LONG_DOT);
@@ -434,8 +481,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *sn_lbl = lv_label_create(p);
     lv_obj_set_width(sn_lbl, LV_SIZE_CONTENT);
     lv_obj_set_height(sn_lbl, LV_SIZE_CONTENT);
-    lv_obj_set_x(sn_lbl, 28);
-    lv_obj_set_y(sn_lbl, -3);
+    lv_obj_set_x(sn_lbl, 30);
+    lv_obj_set_y(sn_lbl, -5);
     lv_obj_set_align(sn_lbl, LV_ALIGN_LEFT_MID);
     lv_label_set_text(sn_lbl, userShort);
     lv_obj_set_style_text_color(sn_lbl, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -444,8 +491,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_BatteryLabel = lv_label_create(p);
     lv_obj_set_width(ui_BatteryLabel, LV_SIZE_CONTENT);
     lv_obj_set_height(ui_BatteryLabel, LV_SIZE_CONTENT);
-    lv_obj_set_y(ui_BatteryLabel, -15);
     lv_obj_set_x(ui_BatteryLabel, 8);
+    lv_obj_set_y(ui_BatteryLabel, -15);
     lv_obj_set_align(ui_BatteryLabel, LV_ALIGN_RIGHT_MID);
     lv_label_set_text(ui_BatteryLabel, "");
     lv_obj_set_style_text_color(ui_BatteryLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -493,7 +540,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_text_opa(ui_SignalLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_SignalLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_obj_add_event_cb(ui_NodeButton, ui_event_NodeButtonClicked, LV_EVENT_ALL, (void *)nodeNum);
+    lv_obj_add_event_cb(nodeButton, ui_event_NodeButtonClicked, LV_EVENT_ALL, (void *)nodeNum);
 
     // move node into new position within nodePanel
     if (lastHeard) {
@@ -702,7 +749,13 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
     lv_obj_clear_flag(container,
                       LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SNAPPABLE |
                           LV_OBJ_FLAG_SCROLL_ELASTIC); /// Flags
-    lv_obj_set_style_pad_row(container, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
+    lv_obj_set_scroll_dir(container, LV_DIR_VER);
+    lv_obj_set_style_pad_left(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     // store new message container
@@ -711,6 +764,9 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
     } else {
         messages[from] = container;
     }
+
+    // optionally add chat to chatPanel to access the container
+    addChat(from, to, ch);
 
     return container;
 }
@@ -731,7 +787,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         updateLastHeard(from);
     }
 
-    char buf[280];
+    char buf[284]; // 237 + 4 + 40 + 2 + 1
     char *message = (char *)msg;
     lv_obj_t *container = nullptr;
     if (to == UINT32_MAX) { // message for group, prepend short name to msg
@@ -759,6 +815,8 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         }
         _ui_flag_modify(container, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
     }
+
+    highlightChat(from, to, ch);
 }
 
 /**
@@ -807,6 +865,105 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_set_style_pad_bottom(msgLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
+}
+
+/**
+ * @brief Add a new chat to the chat panel to access the message container
+ *
+ * @param from
+ * @param to
+ * @param ch
+ */
+void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
+{
+    uint32_t index = ((to == UINT32_MAX || from == 0) ? ch : from);
+    auto it = chats.find(index);
+    if (it != chats.end())
+        return;
+
+    lv_obj_t *chatBtn = lv_btn_create(ui_ChatsPanel);
+    lv_obj_set_height(chatBtn, 30);
+    lv_obj_set_width(chatBtn, lv_pct(100));
+    lv_obj_set_align(chatBtn, LV_ALIGN_CENTER);
+    lv_obj_add_flag(chatBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);                                               /// Flags
+    lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE); /// Flags
+    lv_obj_set_style_radius(chatBtn, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(chatBtn, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(chatBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor(chatBtn, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor_opa(chatBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(chatBtn, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(chatBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(chatBtn, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_spread(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_ofs_x(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_ofs_y(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(chatBtn, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    char buf[64];
+    if (to == UINT32_MAX || from == 0) {
+        sprintf(buf, "%d: %s", (int)ch, lv_label_get_text(channel[ch]));
+    } else {
+        sprintf(buf, "%s: %s", lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbs_idx)),
+                lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
+    }
+
+    lv_obj_t *chatBtnLabel = lv_label_create(chatBtn);
+    lv_obj_set_width(chatBtnLabel, 230);
+    lv_obj_set_height(chatBtnLabel, LV_SIZE_CONTENT); /// 1
+    lv_obj_set_align(chatBtnLabel, LV_ALIGN_LEFT_MID);
+    lv_label_set_long_mode(chatBtnLabel, LV_LABEL_LONG_DOT);
+    lv_label_set_text(chatBtnLabel, buf);
+    lv_obj_set_style_text_color(chatBtnLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(chatBtnLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(chatBtnLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(chatBtnLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *chatDelBtn = lv_btn_create(chatBtn);
+    lv_obj_set_width(chatDelBtn, 40);
+    lv_obj_set_height(chatDelBtn, 22);
+    lv_obj_set_x(chatDelBtn, -3);
+    lv_obj_set_y(chatDelBtn, -1);
+    lv_obj_set_align(chatDelBtn, LV_ALIGN_RIGHT_MID);
+    lv_obj_add_flag(chatDelBtn, LV_OBJ_FLAG_HIDDEN);       /// Flags
+    lv_obj_clear_flag(chatDelBtn, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+    lv_obj_set_style_bg_color(chatDelBtn, lv_color_hex(0xA70A0A), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(chatDelBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_DelLabel = lv_label_create(chatDelBtn);
+    lv_obj_set_width(ui_DelLabel, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_height(ui_DelLabel, LV_SIZE_CONTENT); /// 1
+    lv_obj_set_align(ui_DelLabel, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_DelLabel, "DEL");
+
+    chats[index] = chatBtn;
+    updateActiveChats();
+
+    lv_obj_add_event_cb(chatBtn, ui_event_ChatButtonClicked, LV_EVENT_ALL, (void *)index);
+    lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButtonClicked, LV_EVENT_ALL, (void *)index);
+}
+
+void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
+{
+    uint32_t index = ((to == UINT32_MAX || from == 0) ? ch : from);
+    auto it = chats.find(index);
+    if (it != chats.end()) {
+        // mark chat in color
+        lv_obj_set_style_border_color(it->second, lv_color_hex(0xFF8C04), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+}
+
+void TFTView_320x240::updateActiveChats(void)
+{
+    char buf[20];
+    sprintf(buf, "%d active chat(s)", chats.size());
+    lv_label_set_text(ui_TopChatsLabel, buf);
 }
 
 /**

@@ -94,6 +94,7 @@ class MeshtasticView : public DeviceGUI
     ViewController *controller;
     std::unordered_map<uint32_t, lv_obj_t *> nodes;      // node panels
     std::unordered_map<uint32_t, lv_obj_t *> messages;   // message containers (within ui_MessagesPanel)
+    std::unordered_map<uint32_t, lv_obj_t *> chats;      // active chats (within ui_ChatPanel)
     std::array<lv_obj_t *, c_max_channels> channel;      // TODO channel name and info
     std::array<lv_obj_t *, c_max_channels> channelGroup; // message containers for channel group
     uint32_t nodeCount = 1, nodesOnline = 1, ownNode;    // node info

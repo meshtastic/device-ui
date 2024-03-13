@@ -153,22 +153,19 @@ extern lv_obj_t * ui_MapLabel;
 extern lv_obj_t * ui_MapImage;
 extern lv_obj_t * ui_Keyboard;
 extern lv_obj_t * ui_ResourcePanel;
-extern lv_obj_t * ui_imageBatteryEmpty;
-extern lv_obj_t * ui_imageRouter;
-extern lv_obj_t * ui_imageSignal;
-extern lv_obj_t * ui_imageMailUnread;
-extern lv_obj_t * ui_imageBatteryCharge;
-extern lv_obj_t * ui_imageBatteryFull;
-extern lv_obj_t * ui_imageBatteryLow;
-extern lv_obj_t * ui_imageRadioTower;
 extern lv_obj_t * ui_imageWifiOff;
 extern lv_obj_t * ui_imageBluetoothOn;
-extern lv_obj_t * ui_imageModem;
-extern lv_obj_t * ui_unlockKeyholeImage;
 extern lv_obj_t * ui_MsgPopupPanel;
 extern lv_obj_t * ui_MsgPopupButton;
 extern lv_obj_t * ui_MsgPopupLabel;
-extern lv_obj_t * ui_Image1;
+extern lv_obj_t * ui_ChatsPanel;
+extern lv_obj_t * ui_ChatsButton;
+extern lv_obj_t * ui_ChatsButtonLabel;
+extern lv_obj_t * ui_ChatDelButton;
+extern lv_obj_t * ui_DelLabel;
+extern lv_obj_t * ui_TopChatsPanel;
+extern lv_obj_t * ui_TopChatsLabel;
+extern lv_obj_t * ui_TopChatsImage;
 extern lv_obj_t * ui____initial_actions0;
 
 LV_IMG_DECLARE(ui_img_964411511);    // assets/meshtastic-logo-long.png
@@ -184,23 +181,22 @@ LV_IMG_DECLARE(ui_img_949915354);    // assets/dazzle/map-pin-36.png
 LV_IMG_DECLARE(ui_img_325160819);    // assets/dazzle/wifi-off-36-white.png
 LV_IMG_DECLARE(ui_img_1681326260);    // assets/dazzle/bluetooth-slash-36.png
 LV_IMG_DECLARE(ui_img_2104440450);    // assets/router24-white.png
-LV_IMG_DECLARE(ui_img_2095618903);    // assets/dazzle/modem-svgrepo-com24-white.png
 LV_IMG_DECLARE(ui_img_dazzle_keyboard20_png);    // assets/dazzle/keyboard20.png
 LV_IMG_DECLARE(ui_img_worldmap_png);    // assets/Worldmap.png
 LV_IMG_DECLARE(ui_img_15776284);    // assets/dazzle/battery-full-20.png
-LV_IMG_DECLARE(ui_img_1410158184);    // assets/dazzle/radio-tower-20-white.png
+LV_IMG_DECLARE(ui_img_1267600560);    // assets/Mesh_Logo_White-30.png
+LV_IMG_DECLARE(ui_img_2095618903);    // assets/dazzle/modem-svgrepo-com24-white.png
 LV_IMG_DECLARE(ui_img_726964589);    // assets/dazzle/users-svgrepo-com24-white.png
 LV_IMG_DECLARE(ui_img_838118410);    // assets/settings24-white.png
 LV_IMG_DECLARE(ui_img_625281583);    // assets/dazzle/map-pin-alt-svgrepo-com24-white.png
-LV_IMG_DECLARE(ui_img_1002737466);    // assets/dazzle/battery-empty-20.png
-LV_IMG_DECLARE(ui_img_519712240);    // assets/dazzle/signal-steam-24-white.png
-LV_IMG_DECLARE(ui_img_2090176585);    // assets/dazzle/mail-alt-36.png
-LV_IMG_DECLARE(ui_img_356530738);    // assets/dazzle/battery-bolt-20.png
-LV_IMG_DECLARE(ui_img_1964124651);    // assets/dazzle/battery-low-20.png
-LV_IMG_DECLARE(ui_img_1003866492);    // assets/dazzle/radio-tower-24-white.png
 LV_IMG_DECLARE(ui_img_294304076);    // assets/dazzle/bluetooth-on-36-white.png
-LV_IMG_DECLARE(ui_img_1683846353);    // assets/unlock-keyhole24-white.png
+LV_IMG_DECLARE(ui_img_2090176585);    // assets/dazzle/mail-alt-36.png
+LV_IMG_DECLARE(ui_img_2109075632);    // assets/dazzle/message-circle-chat-svgrepo-com24-white.png
+LV_IMG_DECLARE(ui_img_356530738);    // assets/dazzle/battery-bolt-20.png
+LV_IMG_DECLARE(ui_img_1002737466);    // assets/dazzle/battery-empty-20.png
+LV_IMG_DECLARE(ui_img_1964124651);    // assets/dazzle/battery-low-20.png
 LV_IMG_DECLARE(ui_img_904314631);    // assets/dazzle/battery-mid-20.png
+LV_IMG_DECLARE(ui_img_150370554);    // assets/dazzle/battery-slash-20.png
 LV_IMG_DECLARE(ui_img_80620004);    // assets/dazzle/map-location-pin-36.png
 LV_IMG_DECLARE(ui_img_1682375573);    // assets/dazzle/wifi-36.png
 LV_IMG_DECLARE(ui_img_1583074341);    // assets/bluetooth-18.png
@@ -211,7 +207,6 @@ LV_IMG_DECLARE(ui_img_1889904893);    // assets/bluetooth-off-18.png
 LV_IMG_DECLARE(ui_img_1049473466);    // assets/bluetooth-off-20.png
 LV_IMG_DECLARE(ui_img_1184294011);    // assets/wifi-20.png
 LV_IMG_DECLARE(ui_img_279030151);    // assets/wifi-off-20.png
-LV_IMG_DECLARE(ui_img_150370554);    // assets/dazzle/battery-slash-20.png
 
 
 LV_FONT_DECLARE(ui_font_Square14);
