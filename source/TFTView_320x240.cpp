@@ -373,7 +373,7 @@ void TFTView_320x240::addMessage(char *msg)
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &lv_font_montserrat_12, 0, LV_TEXT_FLAG_NONE);
+    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &montserrat_12, 0, LV_TEXT_FLAG_NONE);
     lv_obj_set_width(textLabel, max(min(width + 20, 200), 40));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
@@ -387,7 +387,7 @@ void TFTView_320x240::addMessage(char *msg)
     lv_obj_set_style_text_color(textLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     // lv_obj_set_style_text_opa(textLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(textLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(textLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(textLabel, &montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_radius(textLabel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(textLabel, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
     // lv_obj_set_style_bg_opa(textLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -476,7 +476,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     ln_lbl->user_data = (void *)strlen(userLong);
     lv_obj_set_style_text_color(ln_lbl, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ln_lbl, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ln_lbl, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ln_lbl, &montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *sn_lbl = lv_label_create(p);
     lv_obj_set_width(sn_lbl, LV_SIZE_CONTENT);
@@ -498,7 +498,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_text_color(ui_BatteryLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_BatteryLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_BatteryLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_BatteryLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_BatteryLabel, &montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *ui_lastHeardLabel = lv_label_create(p);
     lv_obj_set_width(ui_lastHeardLabel, LV_SIZE_CONTENT);
@@ -526,7 +526,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_text_color(ui_lastHeardLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lastHeardLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lastHeardLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_lastHeardLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_lastHeardLabel, &montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     ui_lastHeardLabel->user_data = (void *)lastHeard;
 
     lv_obj_t *ui_SignalLabel = lv_label_create(p);
@@ -538,7 +538,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_label_set_text(ui_SignalLabel, "");
     lv_obj_set_style_text_color(ui_SignalLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_SignalLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_SignalLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_SignalLabel, &montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_add_event_cb(nodeButton, ui_event_NodeButtonClicked, LV_EVENT_ALL, (void *)nodeNum);
 
@@ -845,14 +845,14 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &lv_font_montserrat_12, 0, LV_TEXT_FLAG_NONE);
+    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &montserrat_12, 0, LV_TEXT_FLAG_NONE);
     lv_obj_set_width(msgLabel, max(min(width + 20, 200), 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT); /// 1
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
     lv_obj_set_style_text_color(msgLabel, lv_color_hex(0xD0D0D0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(msgLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(msgLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(msgLabel, &montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_radius(msgLabel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(msgLabel, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(msgLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -923,7 +923,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_set_style_text_color(chatBtnLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(chatBtnLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(chatBtnLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(chatBtnLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(chatBtnLabel, &montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *chatDelBtn = lv_btn_create(chatBtn);
     lv_obj_set_width(chatDelBtn, 40);

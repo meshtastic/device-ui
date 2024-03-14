@@ -1558,7 +1558,17 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_BatPercentageLabel, "");
     lv_obj_set_style_text_color(ui_BatPercentageLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_BatPercentageLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_BatPercentageLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_NotificationLabel = lv_label_create(ui_BatteryPanel);
+    lv_obj_set_width(ui_NotificationLabel, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_NotificationLabel, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_NotificationLabel, 10);
+    lv_obj_set_y(ui_NotificationLabel, 0);
+    lv_obj_set_align(ui_NotificationLabel, LV_ALIGN_RIGHT_MID);
+    lv_label_set_long_mode(ui_NotificationLabel, LV_LABEL_LONG_CLIP);
+    lv_label_set_text(ui_NotificationLabel, "");
+    lv_obj_set_style_text_color(ui_NotificationLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_NotificationLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_TopPanel = lv_obj_create(ui_MainScreen);
     lv_obj_set_height(ui_TopPanel, 24);
@@ -1573,26 +1583,26 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_bg_opa(ui_TopPanel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(ui_TopPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_FrequencyLabel = lv_label_create(ui_TopPanel);
-    lv_obj_set_width(ui_FrequencyLabel, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_FrequencyLabel, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_FrequencyLabel, 32);
-    lv_obj_set_y(ui_FrequencyLabel, 0);
-    lv_obj_set_align(ui_FrequencyLabel, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_FrequencyLabel, "Meshtastic");
-    lv_obj_set_style_text_color(ui_FrequencyLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_FrequencyLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_FrequencyLabel, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_MeshtasticLabel = lv_label_create(ui_TopPanel);
+    lv_obj_set_width(ui_MeshtasticLabel, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_MeshtasticLabel, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_MeshtasticLabel, 32);
+    lv_obj_set_y(ui_MeshtasticLabel, 0);
+    lv_obj_set_align(ui_MeshtasticLabel, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_MeshtasticLabel, "Meshtastic");
+    lv_obj_set_style_text_color(ui_MeshtasticLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_MeshtasticLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_MeshtasticLabel, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_RadioTowerImage = lv_img_create(ui_TopPanel);
-    lv_img_set_src(ui_RadioTowerImage, &ui_img_1267600560);
-    lv_obj_set_width(ui_RadioTowerImage, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_RadioTowerImage, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_RadioTowerImage, 40);
-    lv_obj_set_y(ui_RadioTowerImage, 0);
-    lv_obj_set_align(ui_RadioTowerImage, LV_ALIGN_LEFT_MID);
-    lv_obj_add_flag(ui_RadioTowerImage, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
-    lv_obj_clear_flag(ui_RadioTowerImage, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    ui_MeshtasticImage = lv_img_create(ui_TopPanel);
+    lv_img_set_src(ui_MeshtasticImage, &ui_img_1267600560);
+    lv_obj_set_width(ui_MeshtasticImage, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_MeshtasticImage, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_MeshtasticImage, 40);
+    lv_obj_set_y(ui_MeshtasticImage, 0);
+    lv_obj_set_align(ui_MeshtasticImage, LV_ALIGN_LEFT_MID);
+    lv_obj_add_flag(ui_MeshtasticImage, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_obj_clear_flag(ui_MeshtasticImage, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_TopNodesPanel = lv_obj_create(ui_MainScreen);
     lv_obj_set_height(ui_TopNodesPanel, 24);

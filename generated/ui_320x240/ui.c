@@ -126,9 +126,10 @@ lv_obj_t * ui_RemoteHardwareLabel;
 lv_obj_t * ui_BatteryPanel;
 lv_obj_t * ui_imageBattery;
 lv_obj_t * ui_BatPercentageLabel;
+lv_obj_t * ui_NotificationLabel;
 lv_obj_t * ui_TopPanel;
-lv_obj_t * ui_FrequencyLabel;
-lv_obj_t * ui_RadioTowerImage;
+lv_obj_t * ui_MeshtasticLabel;
+lv_obj_t * ui_MeshtasticImage;
 lv_obj_t * ui_TopNodesPanel;
 lv_obj_t * ui_TopNodesOnlineLabel;
 lv_obj_t * ui_TopNodesImage;
@@ -177,11 +178,11 @@ const lv_img_dsc_t * ui_imgset_2021965211[1] = {&ui_img_80620004};
 const lv_img_dsc_t * ui_imgset_1499648391[1] = {&ui_img_949915354};
 const lv_img_dsc_t * ui_imgset_883731989[1] = {&ui_img_57207796};
 const lv_img_dsc_t * ui_imgset_1675718514[2] = {&ui_img_1682375573, &ui_img_1184294011};
+const lv_img_dsc_t * ui_imgset_1360842336[1] = {&ui_img_1267600560};
 const lv_img_dsc_t * ui_imgset_1025971555[2] = {&ui_img_1583074341, &ui_img_1388253438};
 const lv_img_dsc_t * ui_imgset_318823223[2] = {&ui_img_113284535, &ui_img_1969094876};
 const lv_img_dsc_t * ui_imgset_1264820803[2] = {&ui_img_1889904893, &ui_img_1049473466};
 const lv_img_dsc_t * ui_imgset_1203064690[1] = {&ui_img_279030151};
-const lv_img_dsc_t * ui_imgset_1360842336[1] = {&ui_img_1267600560};
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
 #if LV_COLOR_DEPTH != 16
