@@ -211,6 +211,8 @@ LV_IMG_DECLARE(ui_img_279030151);    // assets/wifi-off-20.png
 
 
 LV_FONT_DECLARE(ui_font_Square14);
+LV_FONT_DECLARE(ui_font_MontserratRegular12);
+LV_FONT_DECLARE(ui_font_MontserratRegular14);
 
 
 void ui_init(void);

@@ -43,6 +43,8 @@ SET(SOURCES screens/ui_BootScreen.c
     images/ui_img_1049473466.c
     images/ui_img_1184294011.c
     images/ui_img_279030151.c
-    fonts/ui_font_Square14.c)
+    fonts/ui_font_Square14.c
+    fonts/ui_font_MontserratRegular12.c
+    fonts/ui_font_MontserratRegular14.c)
 
 add_library(ui ${SOURCES})

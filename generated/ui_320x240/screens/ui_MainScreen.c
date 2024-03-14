@@ -11,6 +11,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_clear_flag(ui_MainScreen, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_bg_color(ui_MainScreen, lv_color_hex(0x436C70), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_MainScreen, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_MainScreen, &ui_font_MontserratRegular14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_ButtonPanel = lv_obj_create(ui_MainScreen);
     lv_obj_set_width(ui_ButtonPanel, 36);
@@ -421,7 +422,7 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_UserNameLabel, "");
     lv_obj_set_style_text_color(ui_UserNameLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_UserNameLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_UserNameLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_UserNameLabel, &ui_font_MontserratRegular12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_UserNameShortLabel = lv_label_create(ui_NodePanel);
     lv_obj_set_width(ui_UserNameShortLabel, LV_SIZE_CONTENT);   /// 1
@@ -432,6 +433,7 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_UserNameShortLabel, "");
     lv_obj_set_style_text_color(ui_UserNameShortLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_UserNameShortLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_UserNameShortLabel, &ui_font_MontserratRegular14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_BatteryLabel = lv_label_create(ui_NodePanel);
     lv_obj_set_width(ui_BatteryLabel, LV_SIZE_CONTENT);   /// 1
@@ -443,7 +445,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_BatteryLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_BatteryLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_BatteryLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_BatteryLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_BatteryLabel, &ui_font_MontserratRegular12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_lastHeardLabel = lv_label_create(ui_NodePanel);
     lv_obj_set_width(ui_lastHeardLabel, LV_SIZE_CONTENT);   /// 1
@@ -455,7 +457,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_lastHeardLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lastHeardLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lastHeardLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_lastHeardLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_lastHeardLabel, &ui_font_MontserratRegular12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_SignalLabel = lv_label_create(ui_NodePanel);
     lv_obj_set_width(ui_SignalLabel, LV_SIZE_CONTENT);   /// 1
@@ -466,7 +468,7 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_SignalLabel, "");
     lv_obj_set_style_text_color(ui_SignalLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_SignalLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_SignalLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_SignalLabel, &ui_font_MontserratRegular12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_GroupsPanel = lv_obj_create(ui_MainScreen);
     lv_obj_set_width(ui_GroupsPanel, 284);
@@ -482,6 +484,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_bg_color(ui_GroupsPanel, lv_color_hex(0x303030), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_GroupsPanel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(ui_GroupsPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_GroupsPanel, &ui_font_MontserratRegular12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_ChannelButton0 = lv_btn_create(ui_GroupsPanel);
     lv_obj_set_height(ui_ChannelButton0, 24);
@@ -509,7 +512,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChannelLabel0, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel0, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel0, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChannelLabel0, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_ChannelLabel0, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_ChannelLabel0, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_ChannelLabel0, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -543,7 +545,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChannelLabel1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel1, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChannelLabel1, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_ChannelLabel1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_ChannelLabel1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_ChannelLabel1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -577,7 +578,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChannelLabel2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel2, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChannelLabel2, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_ChannelLabel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_ChannelLabel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_ChannelLabel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -611,7 +611,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChannelLabel3, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel3, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel3, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChannelLabel3, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_ChannelLabel3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_ChannelLabel3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_ChannelLabel3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -645,7 +644,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChannelLabel4, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel4, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel4, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChannelLabel4, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_ChannelLabel4, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_ChannelLabel4, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_ChannelLabel4, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -679,7 +677,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChannelLabel5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel5, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel5, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChannelLabel5, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_ChannelLabel5, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_ChannelLabel5, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_ChannelLabel5, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -711,7 +708,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChannelLabel6, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel6, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel6, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChannelLabel6, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_ChannelLabel6, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_ChannelLabel6, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_ChannelLabel6, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -745,7 +741,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChannelLabel7, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChannelLabel7, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChannelLabel7, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChannelLabel7, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_ChannelLabel7, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_ChannelLabel7, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_ChannelLabel7, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -788,6 +783,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_pad_bottom(ui_MessagesContainer, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(ui_MessagesContainer, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(ui_MessagesContainer, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_MessagesContainer, &ui_font_MontserratRegular12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_MessageInputArea = lv_textarea_create(ui_MessagesPanel);
     lv_obj_set_width(ui_MessageInputArea, lv_pct(90));
@@ -801,7 +797,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_add_state(ui_MessageInputArea, LV_STATE_FOCUSED);       /// States
     lv_obj_add_flag(ui_MessageInputArea, LV_OBJ_FLAG_SCROLL_ONE);     /// Flags
     lv_obj_set_scrollbar_mode(ui_MessageInputArea, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_style_text_font(ui_MessageInputArea, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_MessageInputArea, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_MessageInputArea, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_MessageInputArea, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -811,7 +806,7 @@ void ui_MainScreen_screen_init(void)
 
     ui_KeyboardButton = lv_btn_create(ui_MessagesPanel);
     lv_obj_set_width(ui_KeyboardButton, 25);
-    lv_obj_set_height(ui_KeyboardButton, 20);
+    lv_obj_set_height(ui_KeyboardButton, 24);
     lv_obj_set_x(ui_KeyboardButton, 5);
     lv_obj_set_y(ui_KeyboardButton, 12);
     lv_obj_set_align(ui_KeyboardButton, LV_ALIGN_BOTTOM_RIGHT);
@@ -1035,7 +1030,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_scroll_dir(ui_TabPageRadio, LV_DIR_VER);
     lv_obj_set_style_pad_row(ui_TabPageRadio, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(ui_TabPageRadio, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_TabPageRadio, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_RadioBluetoothButton = lv_btn_create(ui_TabPageRadio);
     lv_obj_set_height(ui_RadioBluetoothButton, 30);
@@ -1222,7 +1216,6 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_scroll_dir(ui_TabPageModules, LV_DIR_VER);
     lv_obj_set_style_pad_row(ui_TabPageModules, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(ui_TabPageModules, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_TabPageModules, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_ModuleCannedMsgButton = lv_btn_create(ui_TabPageModules);
     lv_obj_set_height(ui_ModuleCannedMsgButton, 30);
@@ -1627,7 +1620,6 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_TopNodesOnlineLabel, "1 of 1 nodes online");
     lv_obj_set_style_text_color(ui_TopNodesOnlineLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_TopNodesOnlineLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_TopNodesOnlineLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_TopNodesOnlineLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_TopNodesOnlineLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_TopNodesOnlineLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1667,7 +1659,6 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_TopUserGroupLabel, "Group Channels");
     lv_obj_set_style_text_color(ui_TopUserGroupLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_TopUserGroupLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_TopUserGroupLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_TopGroupImage = lv_img_create(ui_TopGroupsPanel);
     lv_img_set_src(ui_TopGroupImage, &ui_img_726964589);
@@ -1705,7 +1696,6 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_TopGroupChatLabel, "no messages");
     lv_obj_set_style_text_color(ui_TopGroupChatLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_TopGroupChatLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_TopGroupChatLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_TopGroupChatImage = lv_img_create(ui_TopGroupChatPanel);
     lv_img_set_src(ui_TopGroupChatImage, &ui_img_726964589);
@@ -1741,7 +1731,6 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_TopNodeLabel, "no messages");
     lv_obj_set_style_text_color(ui_TopNodeLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_TopNodeLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_TopNodeLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_TopMessageNodeImage = lv_img_create(ui_TopMessagePanel);
     lv_img_set_src(ui_TopMessageNodeImage, &ui_img_2104440450);
@@ -1779,7 +1768,6 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_SettingsLabel, "Settings");
     lv_obj_set_style_text_color(ui_SettingsLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_SettingsLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_SettingsLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_SettingsImage = lv_img_create(ui_TopSettingsPanel);
     lv_img_set_src(ui_SettingsImage, &ui_img_838118410);
@@ -1814,7 +1802,6 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_MapLabel, "Locations Map");
     lv_obj_set_style_text_color(ui_MapLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_MapLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_MapLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_MapImage = lv_img_create(ui_TopMapPanel);
     lv_img_set_src(ui_MapImage, &ui_img_625281583);
@@ -1973,7 +1960,7 @@ void ui_MainScreen_screen_init(void)
     lv_obj_set_style_text_color(ui_ChatsButtonLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChatsButtonLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_ChatsButtonLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ChatsButtonLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_ChatsButtonLabel, &ui_font_MontserratRegular12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_ChatDelButton = lv_btn_create(ui_ChatsButton);
     lv_obj_set_width(ui_ChatDelButton, 40);
@@ -2015,7 +2002,6 @@ void ui_MainScreen_screen_init(void)
     lv_label_set_text(ui_TopChatsLabel, "no chats");
     lv_obj_set_style_text_color(ui_TopChatsLabel, lv_color_hex(0xE0E0E0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_TopChatsLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_TopChatsLabel, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_TopChatsImage = lv_img_create(ui_TopChatsPanel);
     lv_img_set_src(ui_TopChatsImage, &ui_img_2109075632);
