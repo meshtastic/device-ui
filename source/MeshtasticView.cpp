@@ -1,4 +1,5 @@
 #include "MeshtasticView.h"
+#include "ILog.h"
 #include "ViewController.h"
 #include "ui.h"
 #include <cstdio>
@@ -38,6 +39,7 @@ void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *user
  */
 void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role)
 {
+    // has_user == false, generate default user name
     char userShort[5], userLong[32];
     sprintf(userShort, "%04x", nodeNum & 0xffff);
     strcpy(userLong, "Meshtastic ");
@@ -71,7 +73,7 @@ void MeshtasticView::updateLastHeard(uint32_t nodeNum) {}
 
 void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
 {
-    Serial.print("*** got packet portnum="); Serial.println(p.decoded.portnum);
+    ILOG_DEBUG("received packet from 0x%08x(%u), portnum=%u\n", p.from, p.from, p.decoded.portnum);
     // only for direct neighbors print rssi/snr
     if (p.hop_limit == p.hop_start) {
         updateSignalStrength(p.from, p.rx_rssi, p.rx_snr);
@@ -80,19 +82,18 @@ void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
 
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
+        ILOG_INFO("received text message from 0x%08x(%u): '%s'\n", p.from, p.from, (const char *)p.decoded.payload.bytes);
         newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes);
         break;
     }
     case meshtastic_PortNum_POSITION_APP: {
-        Serial.print("*** packet position update for "); Serial.println(p.from);
         meshtastic_Position position;
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Position_msg, &position)) {
-            updatePosition(p.from, position.latitude_i, position.longitude_i, position.altitude, 
-                           position.sats_in_view, position.precision_bits);
-            //updateTime(position.time);
-        }
-        else {
-            Serial.print("Error decoding protobuf for position message!\n");
+            updatePosition(p.from, position.latitude_i, position.longitude_i, position.altitude, position.sats_in_view,
+                           position.precision_bits);
+            // TODO: updateTime(position.time);
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_Position!\n");
         }
         break;
     }
@@ -100,9 +101,8 @@ void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
         meshtastic_User user;
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_User_msg, &user)) {
             updateNode(p.from, -1, user.short_name, user.long_name, 0, (eRole)user.role);
-        }
-        else {
-            Serial.print("Error decoding protobuf for nodeinfo message!\n");
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_User (nodeinfo)!\n");
         }
         break;
     }
@@ -116,51 +116,52 @@ void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
                 break;
             }
             case meshtastic_Telemetry_environment_metrics_tag: {
+                ILOG_WARN("meshtastic_Telemetry_environment_metrics_tag not implemented\n");
                 break;
             }
             case meshtastic_Telemetry_power_metrics_tag: {
+                ILOG_WARN("meshtastic_Telemetry_power_metrics_tag not implemented\n");
                 break;
             }
             default:
+                ILOG_ERROR("unhandled telemetry variant: %u\n", telemetry.which_variant);
                 break;
             }
-        }
-        else {
-            Serial.print("Error decoding protobuf for telemetry message!\n");
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_Telemetry!\n");
         }
 
         break;
     }
     case meshtastic_PortNum_ROUTING_APP:
-        Serial.print("########## meshtastic_PortNum_ROUTING_APP\n");
+        ILOG_WARN("meshtastic_PortNum_ROUTING_APP not implemented\n");
         break;
     case meshtastic_PortNum_ADMIN_APP: {
         meshtastic_AdminMessage admin;
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_AdminMessage_msg, &admin)) {
             switch (admin.which_payload_variant) {
             case meshtastic_AdminMessage_get_device_connection_status_response_tag: {
-                meshtastic_DeviceConnectionStatus& status = admin.get_device_connection_status_response;
+                meshtastic_DeviceConnectionStatus &status = admin.get_device_connection_status_response;
                 updateConnectionStatus(status);
                 break;
             }
             case meshtastic_AdminMessage_set_config_tag: {
+                ILOG_WARN("meshtastic_AdminMessage_set_config_tag not implemented\n");
                 break;
             }
             default:
-                Serial.print("*** ERROR admin.which_payload_variant not handled: "); Serial.println(admin.which_payload_variant);
+                ILOG_ERROR("unhandled AdminMessage variant: %u\n", admin.which_payload_variant);
                 break;
             }
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_AdminMessage!\n");
         }
-        else {
-            Serial.print("Error decoding protobuf for admin message!\n");
-        }
-
         break;
     }
     case meshtastic_PortNum_SIMULATOR_APP:
         break;
     default:
-        Serial.print("*** ERROR portnum not handled: "); Serial.println(p.decoded.portnum);
+        ILOG_ERROR("unhandled meshpacket portnum: %u\n", p.decoded.portnum);
         break;
     }
 }

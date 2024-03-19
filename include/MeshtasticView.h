@@ -50,7 +50,7 @@ class MeshtasticView : public DeviceGUI
     virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision);
     virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
     virtual void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr);
-    virtual void updateConnectionStatus(const meshtastic_DeviceConnectionStatus& status) {}
+    virtual void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) {}
 
     // methods to update device config
     virtual void updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role) {}

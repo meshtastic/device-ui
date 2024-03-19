@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ILog.h"
 #include "LovyanGFX.h"
 #include "TFTDriver.h"
 #include <functional>
@@ -96,12 +97,12 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev
 
 template <class LGFX> void LGFXDriver<LGFX>::init(void)
 {
-    Serial.println("LGFXDriver<LGFX>::init...");
+    ILOG_DEBUG("LGFXDriver<LGFX>::init...\n");
     init_lgfx();
     TFTDriver<LGFX>::init();
 
     // LVGL: setup display device driver
-    Serial.println("LVGL display driver init...");
+    ILOG_DEBUG("LVGL display driver init...\n");
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = this->screenWidth;
@@ -116,8 +117,8 @@ template <class LGFX> void LGFXDriver<LGFX>::init(void)
     lv_disp_drv_register(&disp_drv);
 
     if (hasTouch()) {
-        // LVGL: setup input device driver ***/
-        Serial.println("LVGL input driver init...");
+        // LVGL: setup input device driver
+        ILOG_DEBUG("LVGL input driver init...\n");
         static lv_indev_drv_t indev_drv;
         lv_indev_drv_init(&indev_drv);
         indev_drv.type = LV_INDEV_TYPE_POINTER;
@@ -129,15 +130,15 @@ template <class LGFX> void LGFXDriver<LGFX>::init(void)
 template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 {
     // Initialize LovyanGFX
-    Serial.println("LGFX init...");
+    ILOG_DEBUG("LGFX init...\n");
     TFTDriver<LGFX>::tft->init();
     TFTDriver<LGFX>::tft->setBrightness(128);
     TFTDriver<LGFX>::tft->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
 
 #ifdef CALIBRATE_TOUCH
-    Serial.print("Calibrating touch... ");
-    uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311}; // my T-Deck
-#if 1                                                            // TODO: save calibration data in littlefs
+    ILOG_INFO("Calibrating touch...\n");
+    uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311}; // FIXME: read from store using lfs_file_read
+#if 1
     TFTDriver<LGFX>::tft->setTouchCalibrate(parameters);
 #else
     TFTDriver<LGFX>::tft->setTextSize(2);
@@ -150,11 +151,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         std::swap(fg, bg);
     TFTDriver<LGFX>::tft->calibrateTouch(parameters, fg, bg, std::max(tft->width(), tft->height()) >> 3);
 
-    for (int i = 0; i < 8; i++) {
-        Serial.print(parameters[i]);
-        Serial.print(" ");
-    }
+    // FIXME: store parameters[] using lfs_file_write
+    ILOG_DEBUG("Touchscreen calibration parameters: %d, %d, %d, %d, %d, %d, %d, %d\n", parameters[0], parameters[1],
+               parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
 #endif
-    Serial.println("  done.");
 #endif
 }
