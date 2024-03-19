@@ -27,6 +27,8 @@ class ViewController
     virtual void requestDeviceConnectionStatus(void);
     // handle received packet and update view
     bool handleFromRadio(const meshtastic_FromRadio &from);
+    // handle meshPacket
+    bool packetReceived(const meshtastic_MeshPacket &p);
 
     MeshtasticView *view;
     IClientBase *client;

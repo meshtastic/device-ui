@@ -81,13 +81,14 @@ class MeshtasticView : public DeviceGUI
 
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
-
     virtual void notifyReboot(void);
     virtual void showMessagePopup(const char *from);
-    virtual void updateNodesOnline(const char *str);
-    virtual void updateLastHeard(uint32_t nodeNum);
 
     virtual void removeNode(uint32_t nodeNum);
+
+    // local update methods
+    virtual void updateNodesOnline(const char *str);
+    virtual void updateLastHeard(uint32_t nodeNum);
 
   protected:
     // helpers

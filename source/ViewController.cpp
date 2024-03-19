@@ -102,11 +102,16 @@ bool ViewController::send(uint32_t to, uint8_t ch, meshtastic_PortNum portnum, c
 
 bool ViewController::receive(void)
 {
+    bool gotPacket = false;
     if (client->isConnected()) {
-        meshtastic_FromRadio from = client->receive();
-        if (from.id) {
-            return handleFromRadio(from);
-        }
+        do {
+            meshtastic_FromRadio from = client->receive();
+            if (from.id) {
+                handleFromRadio(from);
+            }
+            gotPacket = from.id != 0;
+        } while (gotPacket);
+        return true;
     }
     return false;
 }
@@ -144,7 +149,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
     case meshtastic_FromRadio_packet_tag: {
         const meshtastic_MeshPacket &p = from.packet;
         if (p.which_payload_variant == meshtastic_MeshPacket_decoded_tag) {
-            view->packetReceived(p);
+            packetReceived(p);
         } else {
             // FIXME: needs implementation when not using PacketClient interface
             ILOG_ERROR("dropping encoded meshpacket id=%u from radio!\n", from.id);
@@ -319,6 +324,113 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         ILOG_ERROR("unhandled fromRadio packet variant: %u\n", from.which_payload_variant);
         return false;
     }
+    }
+    return true;
+}
+
+bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
+{
+    ILOG_DEBUG("received packet from 0x%08x(%u), portnum=%u\n", p.from, p.from, p.decoded.portnum);
+    view->packetReceived(p);
+
+    // only for direct neighbors print rssi/snr
+    if (p.hop_limit == p.hop_start) {
+        view->updateSignalStrength(p.from, p.rx_rssi, p.rx_snr);
+    }
+    view->updateLastHeard(p.from);
+
+    switch (p.decoded.portnum) {
+    case meshtastic_PortNum_TEXT_MESSAGE_APP: {
+        ILOG_INFO("received text message from 0x%08x(%u): '%s'\n", p.from, p.from, (const char *)p.decoded.payload.bytes);
+        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes);
+        break;
+    }
+    case meshtastic_PortNum_POSITION_APP: {
+        meshtastic_Position position;
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Position_msg, &position)) {
+            view->updatePosition(p.from, position.latitude_i, position.longitude_i, position.altitude, position.sats_in_view,
+                                 position.precision_bits);
+            // TODO: updateTime(position.time);
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_Position!\n");
+            return false;
+        }
+        break;
+    }
+    case meshtastic_PortNum_NODEINFO_APP: {
+        meshtastic_User user;
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_User_msg, &user)) {
+            view->updateNode(p.from, -1, user.short_name, user.long_name, 0, (MeshtasticView::eRole)user.role);
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_User (nodeinfo)!\n");
+            return false;
+        }
+        break;
+    }
+    case meshtastic_PortNum_TELEMETRY_APP: {
+        meshtastic_Telemetry telemetry;
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Telemetry_msg, &telemetry)) {
+            switch (telemetry.which_variant) {
+            case meshtastic_Telemetry_device_metrics_tag: {
+                view->updateMetrics(
+                    p.from, telemetry.variant.device_metrics.battery_level, telemetry.variant.device_metrics.voltage,
+                    telemetry.variant.device_metrics.channel_utilization, telemetry.variant.device_metrics.air_util_tx);
+                break;
+            }
+            case meshtastic_Telemetry_environment_metrics_tag: {
+                ILOG_WARN("meshtastic_Telemetry_environment_metrics_tag not implemented\n");
+                return false;
+                break;
+            }
+            case meshtastic_Telemetry_power_metrics_tag: {
+                ILOG_WARN("meshtastic_Telemetry_power_metrics_tag not implemented\n");
+                return false;
+                break;
+            }
+            default:
+                ILOG_ERROR("unhandled telemetry variant: %u\n", telemetry.which_variant);
+                return false;
+                break;
+            }
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_Telemetry!\n");
+            return false;
+        }
+        break;
+    }
+    case meshtastic_PortNum_ROUTING_APP:
+        ILOG_WARN("meshtastic_PortNum_ROUTING_APP not implemented\n");
+        break;
+    case meshtastic_PortNum_ADMIN_APP: {
+        meshtastic_AdminMessage admin;
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_AdminMessage_msg, &admin)) {
+            switch (admin.which_payload_variant) {
+            case meshtastic_AdminMessage_get_device_connection_status_response_tag: {
+                meshtastic_DeviceConnectionStatus &status = admin.get_device_connection_status_response;
+                view->updateConnectionStatus(status);
+                break;
+            }
+            case meshtastic_AdminMessage_set_config_tag: {
+                ILOG_WARN("meshtastic_AdminMessage_set_config_tag not implemented\n");
+                return false;
+                break;
+            }
+            default:
+                ILOG_ERROR("unhandled AdminMessage variant: %u\n", admin.which_payload_variant);
+                return false;
+                break;
+            }
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_AdminMessage!\n");
+            return false;
+        }
+        break;
+    }
+    case meshtastic_PortNum_SIMULATOR_APP:
+        break;
+    default:
+        ILOG_ERROR("unhandled meshpacket portnum: %u\n", p.decoded.portnum);
+        return false;
     }
     return true;
 }
