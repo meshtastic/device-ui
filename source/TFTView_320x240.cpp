@@ -26,7 +26,16 @@ LV_IMG_DECLARE(ui_img_519712240);  // assets/dazzle/signal-steam-24-white.png
 #define CR_REPLACEMENT 0x0C // dummy to record several lines in a one line textarea
 
 // children index of nodepanel lv objects (see addNode)
-enum NodePanelIdx { node_img_idx, node_btn_idx, node_lbl_idx, node_lbs_idx, node_bat_idx, node_lh_idx, node_sig_idx };
+enum NodePanelIdx
+{
+    node_img_idx,
+    node_btn_idx,
+    node_lbl_idx,
+    node_lbs_idx,
+    node_bat_idx,
+    node_lh_idx,
+    node_sig_idx
+};
 
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
 
@@ -48,6 +57,8 @@ void TFTView_320x240::init(IClientBase *client)
     Serial.println("TFTView init...");
     displaydriver->init();
     MeshtasticView::init(client);
+    time(&lastrun60);
+    time(&lastrun5);
 
     activeMsgContainer = ui_MessagesContainer;
     channel = {// TODO: channel is intended to store all channel data, not just the name(label)
@@ -70,7 +81,8 @@ void TFTView_320x240::init(IClientBase *client)
  */
 void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 {
-    if (activeButton) {
+    if (activeButton)
+    {
         lv_obj_set_style_border_width(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_bg_img_recolor_opa(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
@@ -78,9 +90,11 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     // lv_obj_set_style_bg_img_recolor(b, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(b, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    if (activePanel) {
+    if (activePanel)
+    {
         _ui_flag_modify(activePanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
-        if (activePanel == ui_ChatsPanel) {
+        if (activePanel == ui_ChatsPanel)
+        {
             unreadMessages = 0; // TODO: not all messages may be actually read
             updateUnreadMessages();
         }
@@ -88,8 +102,10 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 
     _ui_flag_modify(p, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
 
-    if (tp) {
-        if (activeTopPanel) {
+    if (tp)
+    {
+        if (activeTopPanel)
+        {
             _ui_flag_modify(activeTopPanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
         }
         _ui_flag_modify(tp, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
@@ -106,9 +122,11 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 void TFTView_320x240::ui_events_init(void)
 {
     // just a test to implement callback via non-static lambda function
-    auto ui_event_HomeButton = [](lv_event_t *e) {
+    auto ui_event_HomeButton = [](lv_event_t *e)
+    {
         lv_event_code_t event_code = lv_event_get_code(e);
-        if (event_code == LV_EVENT_CLICKED) {
+        if (event_code == LV_EVENT_CLICKED)
+        {
             TFTView_320x240 &view = *static_cast<TFTView_320x240 *>(e->user_data);
             view.ui_set_active(ui_HomeButton, ui_HomePanel, ui_TopPanel);
         }
@@ -155,7 +173,8 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
 void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED)
+    {
         TFTView_320x240::instance()->ui_set_active(ui_NodesButton, ui_NodesPanel, ui_TopNodesPanel);
     }
 }
@@ -163,7 +182,8 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 void TFTView_320x240::ui_event_NodeButtonClicked(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_LONG_PRESSED) {
+    if (event_code == LV_EVENT_LONG_PRESSED)
+    {
         //  set color and text of clicked node
         uint32_t nodeNum = (unsigned long)e->user_data;
         if (nodeNum != TFTView_320x240::instance()->ownNode)
@@ -174,7 +194,8 @@ void TFTView_320x240::ui_event_NodeButtonClicked(lv_event_t *e)
 void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED)
+    {
         TFTView_320x240::instance()->ui_set_active(ui_GroupsButton, ui_GroupsPanel, ui_TopGroupsPanel);
     }
 }
@@ -182,12 +203,16 @@ void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
 void TFTView_320x240::ui_event_ChannelButtonClicked(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED)
+    {
         // set color and text of clicked group channel
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        if (TFTView_320x240::instance()->channelGroup[ch]) {
+        if (TFTView_320x240::instance()->channelGroup[ch])
+        {
             TFTView_320x240::instance()->showMessages(ch);
-        } else {
+        }
+        else
+        {
             // TODO: click on unset channel should popup config screen
         }
     }
@@ -196,7 +221,8 @@ void TFTView_320x240::ui_event_ChannelButtonClicked(lv_event_t *e)
 void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED)
+    {
         TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_ChatsPanel, ui_TopChatsPanel);
     }
 }
@@ -204,7 +230,8 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED)
+    {
         TFTView_320x240::instance()->ui_set_active(ui_MapButton, ui_MapPanel, ui_TopMapPanel);
     }
 }
@@ -212,7 +239,8 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED)
+    {
         TFTView_320x240::instance()->ui_set_active(ui_SettingsButton, ui_SettingsPanel, ui_TopSettingsPanel);
     }
 }
@@ -221,21 +249,29 @@ void TFTView_320x240::ui_event_ChatButtonClicked(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target(e);
-    if (event_code == LV_EVENT_LONG_PRESSED) {
+    if (event_code == LV_EVENT_LONG_PRESSED)
+    {
         lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
         _ui_flag_modify(delBtn, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
-    } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_RELEASED || event_code == LV_EVENT_PRESS_LOST) {
+    }
+    else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_RELEASED || event_code == LV_EVENT_PRESS_LOST)
+    {
         lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
         _ui_flag_modify(delBtn, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
-    } else if (event_code == LV_EVENT_CLICKED) {
+    }
+    else if (event_code == LV_EVENT_CLICKED)
+    {
         lv_obj_set_style_border_color(target, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
 
         uint32_t channelOrNode = (unsigned long)e->user_data;
-        if (channelOrNode < c_max_channels) {
+        if (channelOrNode < c_max_channels)
+        {
             uint8_t ch = (uint8_t)channelOrNode;
             TFTView_320x240::instance()->showMessages(ch);
             TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopGroupChatPanel);
-        } else {
+        }
+        else
+        {
             uint32_t nodeNum = channelOrNode;
             TFTView_320x240::instance()->showMessages(nodeNum);
             TFTView_320x240::instance()->ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopMessagePanel);
@@ -251,15 +287,19 @@ void TFTView_320x240::ui_event_ChatButtonClicked(lv_event_t *e)
 void TFTView_320x240::ui_event_ChatDelButtonClicked(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED)
+    {
         lv_obj_t *target = lv_event_get_target(e);
         _ui_flag_modify(target, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 
         uint32_t channelOrNode = (unsigned long)e->user_data;
-        if (channelOrNode < c_max_channels) {
+        if (channelOrNode < c_max_channels)
+        {
             uint8_t ch = (uint8_t)channelOrNode;
             lv_obj_clean(TFTView_320x240::instance()->channelGroup[ch]);
-        } else {
+        }
+        else
+        {
             uint32_t nodeNum = channelOrNode;
             lv_obj_del_delayed(TFTView_320x240::instance()->chats[nodeNum], 500);
             lv_obj_del(TFTView_320x240::instance()->messages[nodeNum]);
@@ -279,17 +319,25 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
 {
     lv_obj_t *target = lv_event_get_target(e);
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (target == ui_MsgPopupPanel) {
-        if (event_code == LV_EVENT_PRESSED) {
+    if (target == ui_MsgPopupPanel)
+    {
+        if (event_code == LV_EVENT_PRESSED)
+        {
             TFTView_320x240::instance()->hideMessagePopup();
         }
-    } else { // msg button was clicked
-        if (event_code == LV_EVENT_CLICKED) {
+    }
+    else
+    { // msg button was clicked
+        if (event_code == LV_EVENT_CLICKED)
+        {
             uint32_t channelOrNode = (unsigned long)ui_MsgPopupButton->user_data;
-            if (channelOrNode < c_max_channels) {
+            if (channelOrNode < c_max_channels)
+            {
                 uint8_t ch = (uint8_t)channelOrNode;
                 TFTView_320x240::instance()->showMessages(ch);
-            } else {
+            }
+            else
+            {
                 uint32_t nodeNum = channelOrNode;
                 TFTView_320x240::instance()->showMessages(nodeNum);
             }
@@ -300,32 +348,40 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
 void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED)
+    {
         lv_obj_t *kb = lv_event_get_target(e);
         uint32_t btn_id = lv_keyboard_get_selected_btn(kb);
 
-        switch (btn_id) {
-        case 22: { // enter (filtered out by one-liner text input area, so we replace it)
+        switch (btn_id)
+        {
+        case 22:
+        { // enter (filtered out by one-liner text input area, so we replace it)
             lv_obj_t *ta = lv_keyboard_get_textarea(kb);
             lv_textarea_add_char(ta, ' ');
             lv_textarea_add_char(ta, CR_REPLACEMENT);
             break;
         }
-        case 35: { // keyboard
+        case 35:
+        { // keyboard
             lv_keyboard_set_popovers(ui_Keyboard, !lv_btnmatrix_get_popovers(kb));
             break;
         }
-        case 36: { // left
+        case 36:
+        { // left
             break;
         }
-        case 38: { // right
+        case 38:
+        { // right
             break;
         }
-        case 39: { // checkmark
+        case 39:
+        { // checkmark
             lv_obj_t *ta = lv_keyboard_get_textarea(kb);
             char *txt = (char *)lv_textarea_get_text(ta);
             lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
-            if (ta == ui_MessageInputArea) {
+            if (ta == ui_MessageInputArea)
+            {
                 TFTView_320x240::instance()->handleAddMessage(txt);
             }
             lv_textarea_set_text(ta, "");
@@ -343,9 +399,12 @@ void TFTView_320x240::handleAddMessage(char *msg)
     uint8_t ch;
     uint32_t to = UINT32_MAX;
     uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
-    if (channelOrNode < c_max_channels) {
+    if (channelOrNode < c_max_channels)
+    {
         ch = (uint8_t)channelOrNode;
-    } else {
+    }
+    else
+    {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
     }
@@ -439,15 +498,16 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_height(img, LV_SIZE_CONTENT);
     lv_obj_set_x(img, -5);
     lv_obj_set_y(img, -10);
-    // lv_obj_set_align( img, LV_ALIGN_LEFT_MID );
     lv_obj_add_flag(img, LV_OBJ_FLAG_ADV_HITTEST);
     lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_radius(img, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    //    lv_obj_set_style_bg_img_recolor(ui_NodeImage, lv_color_hex(0x4040FF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //    lv_obj_set_style_img_recolor_opa(ui_NodeImage, 250, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *nodeButton = lv_btn_create(p);
     lv_obj_set_height(nodeButton, 50);
@@ -507,7 +567,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_y(ui_lastHeardLabel, 0);
 
     // TODO: devices without actual time will report all nodes as lastseen = now
-    if (lastHeard) {
+    if (lastHeard)
+    {
         time_t curtime;
         time(&curtime);
         lastHeard = min(curtime, (time_t)lastHeard); // adapt values too large
@@ -515,10 +576,13 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
         char buf[12];
         bool isOnline = lastHeartToString(lastHeard, buf);
         lv_label_set_text(ui_lastHeardLabel, buf);
-        if (isOnline) {
+        if (isOnline)
+        {
             nodesOnline++;
         }
-    } else {
+    }
+    else
+    {
         lv_label_set_text(ui_lastHeardLabel, "");
     }
 
@@ -542,15 +606,18 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_add_event_cb(nodeButton, ui_event_NodeButtonClicked, LV_EVENT_ALL, (void *)nodeNum);
 
     // move node into new position within nodePanel
-    if (lastHeard) {
+    if (lastHeard)
+    {
         lv_obj_t **children = ui_NodesPanel->spec_attr->children;
         int i = ui_NodesPanel->spec_attr->child_cnt - 1;
-        while (i > 1) {
+        while (i > 1)
+        {
             if (lastHeard <= (time_t)(children[i - 1]->LV_OBJ_IDX(node_lh_idx)->user_data))
                 break;
             i--;
         }
-        if (i >= 1 && i < ui_NodesPanel->spec_attr->child_cnt - 1) {
+        if (i >= 1 && i < ui_NodesPanel->spec_attr->child_cnt - 1)
+        {
             lv_obj_move_to_index(p, i);
         }
     }
@@ -572,9 +639,12 @@ void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool 
 void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong,
                                       uint32_t lastHeard, eRole role)
 {
-    if (nodes.find(nodeNum) == nodes.end()) {
+    if (nodes.find(nodeNum) == nodes.end())
+    {
         addNode(nodeNum, ch, userShort, userLong, lastHeard, role);
-    } else {
+    }
+    else
+    {
         updateNode(nodeNum, ch, userShort, userLong, lastHeard, role);
     }
 }
@@ -593,7 +663,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
                                  eRole role)
 {
     auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
+    if (it != nodes.end())
+    {
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), userLong);
         it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)strlen(userLong);
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
@@ -601,10 +672,39 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
     }
 }
 
-void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t precision)
+void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision)
 {
+    if (nodeNum == ownNode)
+    {
+        char buf[64];
+        int latSeconds = (int)round(lat * 1e-7 * 3600);
+        int latDegrees = latSeconds / 3600;
+        latSeconds = abs(latSeconds % 3600);
+        int latMinutes = latSeconds / 60;
+        latSeconds %= 60;
+        char latLetter = (lat > 0) ? 'N' : 'S';
+
+        int lonSeconds = (int)round(lon * 1e-7 * 3600);
+        int lonDegrees = lonSeconds / 3600;
+        lonSeconds = abs(lonSeconds % 3600);
+        int lonMinutes = lonSeconds / 60;
+        lonSeconds %= 60;
+        char lonLetter = (lon > 0) ? 'E' : 'W';
+
+        if (sats)
+            sprintf(buf, "%c%02i° %2i'%02i\"   %d sats\n%c%02i° %2i'%02i\"   %dm", latLetter, abs(latDegrees), latMinutes, latSeconds, sats,
+                    lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, abs(alt) < 10000 ? alt : 0);
+        else
+            sprintf(buf, "%c%02i° %2i'%02i\"\n%c%02i° %2i'%02i\"   %dm", latLetter, abs(latDegrees), latMinutes, latSeconds,
+                    lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, abs(alt) < 10000 ? alt : 0);
+
+        //        sprintf(buf, "%f\n%f", lat * 1e-7, lon * 1e-7);
+        lv_label_set_text(ui_HomeLocationLabel, buf);
+    }
+
     auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
+    if (it != nodes.end())
+    {
         // TODO
     }
 }
@@ -621,14 +721,17 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
 void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil)
 {
     auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
+    if (it != nodes.end())
+    {
         char buf[32];
-        if (it->first == ownNode) {
+        if (it->first == ownNode)
+        {
             sprintf(buf, "Util %0.1f%% %0.1f%%", chUtil, airUtil);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
 
             // update battery percentage and symbol
-            if (bat_level != 0 || voltage != 0) {
+            if (bat_level != 0 || voltage != 0)
+            {
                 uint32_t shown_level = min(bat_level, (uint32_t)100);
                 sprintf(buf, "%d%%", shown_level);
                 lv_label_set_text(ui_BatPercentageLabel, buf);
@@ -642,11 +745,14 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                     lv_img_set_src(ui_imageBattery, &ui_img_904314631);
                 else if (bat_level > 5)
                     lv_img_set_src(ui_imageBattery, &ui_img_1964124651);
-                else if (bat_level > 1) {
+                else if (bat_level > 1)
+                {
                     lv_img_set_src(ui_imageBattery, &ui_img_1002737466);
                     recolor = 255;
                     txtColor = 0xF72b2b;
-                } else {
+                }
+                else
+                {
                     lv_img_set_src(ui_imageBattery, &ui_img_150370554);
                     recolor = 255;
                     txtColor = 0xF72b2b;
@@ -656,7 +762,8 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
             }
         }
 
-        if (bat_level != 0 || voltage != 0) {
+        if (bat_level != 0 || voltage != 0)
+        {
             bat_level = min(bat_level, (uint32_t)100);
             sprintf(buf, "%d%% %0.2fV", bat_level, voltage);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_bat_idx), buf);
@@ -666,21 +773,55 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
 
 void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr)
 {
-    if (nodeNum != ownNode) {
+    if (nodeNum != ownNode)
+    {
         auto it = nodes.find(nodeNum);
-        if (it != nodes.end()) {
+        if (it != nodes.end())
+        {
             char buf[30];
-            if (rssi == 0.0 && snr == 0.0) {
+            if (rssi == 0.0 && snr == 0.0)
+            {
                 buf[0] = '\0';
-            } else {
+            }
+            else
+            {
                 // if userNameLong is too long, skip printing rssi/snr
-                if ((size_t)it->second->LV_OBJ_IDX(node_lbl_idx)->user_data <= 20) {
+                if ((size_t)it->second->LV_OBJ_IDX(node_lbl_idx)->user_data <= 20)
+                {
                     sprintf(buf, "rssi: %d snr: %.1f", rssi, snr);
-                } else {
+                }
+                else
+                {
                     sprintf(buf, "snr: %.1f", snr);
                 }
             }
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
+        }
+    }
+}
+
+void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
+{
+    if (status.has_wifi)
+    {
+        if (status.wifi.has_status)
+        {
+            char buf[16];
+            uint32_t ip = status.wifi.status.ip_address;
+            sprintf(buf, "%d.%d.%d.%d", ip & 0xff000000, ip & 0xff0000, ip & 0xff00, ip & 0xff);
+            lv_label_set_text(ui_HomeWLANLabel, buf);
+            lv_obj_set_style_bg_opa(ui_HomeWLANButton, status.wifi.status.is_connected ? 0 : 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+    }
+    if (status.has_bluetooth)
+    {
+        if (status.bluetooth.is_connected)
+        {
+            char buf[16];
+            uint32_t mac = ownNode;
+            sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
+            lv_label_set_text(ui_HomeBluetoothLabel, buf);
+            lv_obj_set_style_bg_opa(ui_HomeBluetoothButton, status.bluetooth.is_connected ? 0 : 255, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     }
 }
@@ -690,12 +831,18 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     MeshtasticView::packetReceived(p);
 }
 
+void TFTView_320x240::notifyReboot(void)
+{
+    _ui_flag_modify(ui_AlertPanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+
 void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role)
 {
     static lv_obj_t *btn[c_max_channels] = {ui_ChannelButton0, ui_ChannelButton1, ui_ChannelButton2, ui_ChannelButton3,
                                             ui_ChannelButton4, ui_ChannelButton5, ui_ChannelButton6, ui_ChannelButton7};
 
-    if (strlen(name)) {
+    if (strlen(name))
+    {
         lv_label_set_text(channel[index], name);
         newMessageContainer(0, UINT32_MAX, index);
 
@@ -704,13 +851,18 @@ void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, cons
         lv_obj_t *lockImage = lv_img_create(btn[index]);
         uint32_t recolor = 0;
 
-        if (memcmp(psk, "\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
+        if (memcmp(psk, "\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0)
+        {
             lv_img_set_src(lockImage, &ui_img_558997549);
             recolor = 0xF2E459; // yellow
-        } else if (memcmp(psk, "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
+        }
+        else if (memcmp(psk, "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0)
+        {
             lv_img_set_src(lockImage, &ui_img_1683846353);
             recolor = 0xF72B2B; // reddish
-        } else {
+        }
+        else
+        {
             lv_img_set_src(lockImage, &ui_img_230282600);
             recolor = 0x1EC174; // green
         }
@@ -721,7 +873,9 @@ void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, cons
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
         lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    } else {
+    }
+    else
+    {
         lv_obj_set_width(btn[index], lv_pct(30));
     }
 }
@@ -758,9 +912,12 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
     lv_obj_set_style_pad_column(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     // store new message container
-    if (to == UINT32_MAX || from == 0) {
+    if (to == UINT32_MAX || from == 0)
+    {
         channelGroup[ch] = container;
-    } else {
+    }
+    else
+    {
         messages[from] = container;
     }
 
@@ -781,7 +938,8 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
 {
     // if there's a message from a node we don't know (yet), create it with defaults
     auto it = nodes.find(from);
-    if (it == nodes.end()) {
+    if (it == nodes.end())
+    {
         MeshtasticView::addOrUpdateNode(from, ch, 0, eRole::client);
         updateLastHeard(from);
     }
@@ -789,16 +947,20 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     char buf[284]; // 237 + 4 + 40 + 2 + 1
     char *message = (char *)msg;
     lv_obj_t *container = nullptr;
-    if (to == UINT32_MAX) { // message for group, prepend short name to msg
+    if (to == UINT32_MAX)
+    { // message for group, prepend short name to msg
         sprintf(buf, "%s:\n%s", lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbs_idx)), msg);
         message = buf;
         container = channelGroup[ch];
-    } else { // message for us
+    }
+    else
+    { // message for us
         container = messages[from];
     }
 
     // if it's the first message we need a container
-    if (!container) {
+    if (!container)
+    {
         container = newMessageContainer(from, to, ch);
     }
 
@@ -806,10 +968,12 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     newMessage(from, container, ch, message);
 
     // display msg popup if not already viewing the messages
-    if (container != activeMsgContainer || activePanel != ui_MessagesPanel) {
+    if (container != activeMsgContainer || activePanel != ui_MessagesPanel)
+    {
         unreadMessages++;
         updateUnreadMessages();
-        if (activePanel != ui_MessagesPanel) {
+        if (activePanel != ui_MessagesPanel)
+        {
             showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
         }
         _ui_flag_modify(container, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
@@ -906,9 +1070,12 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_set_style_pad_column(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     char buf[64];
-    if (to == UINT32_MAX || from == 0) {
+    if (to == UINT32_MAX || from == 0)
+    {
         sprintf(buf, "%d: %s", (int)ch, lv_label_get_text(channel[ch]));
-    } else {
+    }
+    else
+    {
         sprintf(buf, "%s: %s", lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbs_idx)),
                 lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
     }
@@ -952,7 +1119,8 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
 {
     uint32_t index = ((to == UINT32_MAX || from == 0) ? ch : from);
     auto it = chats.find(index);
-    if (it != chats.end()) {
+    if (it != chats.end())
+    {
         // mark chat in color
         lv_obj_set_style_border_color(it->second, lv_color_hex(0xFF8C04), LV_PART_MAIN | LV_STATE_DEFAULT);
     }
@@ -974,7 +1142,8 @@ void TFTView_320x240::updateActiveChats(void)
  */
 void TFTView_320x240::showMessagePopup(uint32_t from, uint32_t to, uint8_t ch, const char *name)
 {
-    if (name) {
+    if (name)
+    {
         static char buf[64];
         sprintf(buf, "New message from \n%s", name);
         buf[38] = '\0'; // cut too long userName
@@ -1016,16 +1185,20 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
 {
     _ui_flag_modify(activeMsgContainer, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
     activeMsgContainer = messages[nodeNum];
-    if (!activeMsgContainer) {
+    if (!activeMsgContainer)
+    {
         activeMsgContainer = newMessageContainer(nodeNum, 0, 0);
     }
     activeMsgContainer->user_data = (void *)(uint32_t)nodeNum;
     _ui_flag_modify(activeMsgContainer, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
     lv_obj_t *p = nodes[nodeNum];
-    if (p) {
+    if (p)
+    {
         lv_label_set_text(ui_TopNodeLabel, lv_label_get_text(p->LV_OBJ_IDX(node_lbl_idx)));
         ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopMessagePanel);
-    } else {
+    }
+    else
+    {
         // TODO: log error
     }
 }
@@ -1035,7 +1208,8 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
 void TFTView_320x240::removeNode(uint32_t nodeNum)
 {
     auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
+    if (it != nodes.end())
+    {
     }
 }
 
@@ -1043,27 +1217,32 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img)
 {
     uint32_t bgColor, fgColor;
     std::tie(bgColor, fgColor) = nodeColor(nodeNum);
-    switch (role) {
+    switch (role)
+    {
     case client:
     case client_mute:
     case client_hidden:
-    case tak: {
+    case tak:
+    {
         lv_img_set_src(img, &ui_img_2104440450);
         break;
     }
-    case router_client: {
+    case router_client:
+    {
         lv_img_set_src(img, &ui_img_2095618903);
         break;
     }
     case repeater:
-    case router: {
+    case router:
+    {
         lv_img_set_src(img, &ui_img_1003866492);
         break;
     }
     case tracker:
     case sensor:
     case lost_and_found:
-    case tak_tracker: {
+    case tak_tracker:
+    {
         lv_img_set_src(img, &ui_img_519712240);
         break;
     }
@@ -1095,12 +1274,15 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
     time_t curtime;
     time(&curtime);
     auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
+    if (it != nodes.end())
+    {
         time_t lastHeard = (time_t)it->second->LV_OBJ_IDX(node_lh_idx)->user_data;
         it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)curtime;
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), "now");
-        if (it->first != ownNode) {
-            if (curtime - lastHeard >= 900) {
+        if (it->first != ownNode)
+        {
+            if (curtime - lastHeard >= 900)
+            {
                 nodesOnline++;
                 updateNodesOnline("%d of %d nodes online");
             }
@@ -1118,17 +1300,22 @@ void TFTView_320x240::updateAllLastHeard(void)
 {
     uint16_t online = 0;
     time_t lastHeard;
-    for (auto &it : nodes) {
+    for (auto &it : nodes)
+    {
         char buf[20];
-        if (it.first == ownNode) { // own node is always now, so do update
+        if (it.first == ownNode)
+        { // own node is always now, so do update
             time_t curtime;
             time(&curtime);
             lastHeard = curtime;
             it.second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)lastHeard;
-        } else {
+        }
+        else
+        {
             lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
         }
-        if (lastHeard) {
+        if (lastHeard)
+        {
             bool isOnline = lastHeartToString(lastHeard, buf);
             lv_label_set_text(it.second->LV_OBJ_IDX(node_lh_idx), buf);
             if (isOnline)
@@ -1142,25 +1329,49 @@ void TFTView_320x240::updateAllLastHeard(void)
 void TFTView_320x240::updateUnreadMessages(void)
 {
     char buf[20];
-    if (unreadMessages > 0) {
+    if (unreadMessages > 0)
+    {
         sprintf(buf, unreadMessages == 1 ? "%d new message" : "%d new messages", unreadMessages);
         lv_obj_set_style_bg_img_src(ui_HomeMailButton, &ui_img_2090176585, LV_PART_MAIN | LV_STATE_DEFAULT);
-    } else {
+    }
+    else
+    {
         strcpy(buf, "no new messages");
         lv_obj_set_style_bg_img_src(ui_HomeMailButton, &ui_img_1442270332, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
     lv_label_set_text(ui_HomeMailLabel, buf);
 }
 
+void TFTView_320x240::updateFreeMem(void)
+{
+    char buf[64];
+    uint32_t freeHeap = 0;
+    uint32_t freeHeap_pct = 100;
+#ifdef ARDUINO_ARCH_ESP32
+    freeHeap = ESP.getFreeHeap();
+    freeHeap_pct = 100 * ESP.getFreeHeap() / ESP.getHeapSize();
+#endif
+
+    lv_mem_monitor_t mon;
+    lv_mem_monitor(&mon);
+    sprintf(buf, "Heap: %d (%d%%)\nLVGL: %d (%d%%)", freeHeap, freeHeap_pct, mon.free_size, 100 - mon.used_pct);
+    lv_label_set_text(ui_HomeMemoryLabel, buf);
+}
+
 void TFTView_320x240::task_handler(void)
 {
     MeshtasticView::task_handler();
 
-    // call every 60s
     time_t curtime;
     time(&curtime);
-    if (curtime - lastrun >= 60) {
-        lastrun = curtime;
+    if (curtime - lastrun5 >= 5)
+    { // call every 5s
+        lastrun5 = curtime;
+        updateFreeMem();
+    }
+    if (curtime - lastrun >= 60)
+    { // call every 60s
+        lastrun60 = curtime;
         updateAllLastHeard();
     }
 }

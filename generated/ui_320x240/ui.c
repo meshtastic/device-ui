@@ -38,6 +38,8 @@ lv_obj_t * ui_HomeWLANButton;
 lv_obj_t * ui_HomeWLANLabel;
 lv_obj_t * ui_HomeBluetoothButton;
 lv_obj_t * ui_HomeBluetoothLabel;
+lv_obj_t * ui_HomeMemoryButton;
+lv_obj_t * ui_HomeMemoryLabel;
 lv_obj_t * ui_NodesPanel;
 lv_obj_t * ui_NodePanel;
 lv_obj_t * ui_NodeImage;
@@ -163,6 +165,8 @@ lv_obj_t * ui_DelLabel;
 lv_obj_t * ui_TopChatsPanel;
 lv_obj_t * ui_TopChatsLabel;
 lv_obj_t * ui_TopChatsImage;
+lv_obj_t * ui_AlertPanel;
+lv_obj_t * ui_AlertLabel;
 lv_obj_t * ui____initial_actions0;
 const lv_img_dsc_t * ui_imgset_1222801488[1] = {&ui_img_356530738};
 const lv_img_dsc_t * ui_imgset_2051279978[1] = {&ui_img_1002737466};
@@ -183,6 +187,7 @@ const lv_img_dsc_t * ui_imgset_1025971555[2] = {&ui_img_1583074341, &ui_img_1388
 const lv_img_dsc_t * ui_imgset_318823223[2] = {&ui_img_113284535, &ui_img_1969094876};
 const lv_img_dsc_t * ui_imgset_1264820803[2] = {&ui_img_1889904893, &ui_img_1049473466};
 const lv_img_dsc_t * ui_imgset_1203064690[1] = {&ui_img_279030151};
+const lv_img_dsc_t * ui_imgset_1936947097[1] = {&ui_img_1169715333};
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
 #if LV_COLOR_DEPTH != 16

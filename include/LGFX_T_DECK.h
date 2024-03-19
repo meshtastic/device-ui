@@ -17,7 +17,7 @@ const uint32_t screenHeight = 240;
 #define ST7789_BL 42
 #define ST7789_SPI_HOST SPI2_HOST
 #define ST7789_BACKLIGHT_EN 42
-#define SPI_FREQUENCY 40000000
+#define SPI_FREQUENCY 80000000
 #define SPI_READ_FREQUENCY 16000000
 
 #define TFT_BL ST7789_BL
@@ -125,7 +125,6 @@ class LGFX_TDECK : public lgfx::LGFX_Device
             cfg.y_min = 0;
             cfg.y_max = screenHeight - 1;
             cfg.pin_int = SCREEN_TOUCH_INT;
-            cfg.bus_shared = true;
             cfg.offset_rotation = 0;
 
             // I2C
@@ -133,6 +132,7 @@ class LGFX_TDECK : public lgfx::LGFX_Device
             cfg.i2c_addr = TOUCH_SLAVE_ADDRESS;
             cfg.pin_sda = I2C_SDA;
             cfg.pin_scl = I2C_SCL;
+            cfg.bus_shared = true;
             cfg.freq = 400000;
 
             _touch_instance.config(cfg);

@@ -20,6 +20,7 @@ class MeshtasticView : public DeviceGUI
     MeshtasticView(DisplayDriver *driver, ViewController *_controller);
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
+    uint32_t getMyNodeNum(void) { return ownNode; }
 
     enum eRole {
         client,
@@ -46,9 +47,10 @@ class MeshtasticView : public DeviceGUI
                          eRole role);
     virtual void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
                             eRole role);
-    virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t precision);
+    virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision);
     virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
     virtual void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr);
+    virtual void updateConnectionStatus(const meshtastic_DeviceConnectionStatus& status) {}
 
     // methods to update device config
     virtual void updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role) {}
@@ -80,6 +82,7 @@ class MeshtasticView : public DeviceGUI
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
 
+    virtual void notifyReboot(void);
     virtual void showMessagePopup(const char *from);
     virtual void updateNodesOnline(const char *str);
     virtual void updateLastHeard(uint32_t nodeNum);

@@ -16,6 +16,7 @@ SET(SOURCES screens/ui_BootScreen.c
     images/ui_img_949915354.c
     images/ui_img_325160819.c
     images/ui_img_1681326260.c
+    images/ui_img_1169715333.c
     images/ui_img_2104440450.c
     images/ui_img_dazzle_keyboard20_png.c
     images/ui_img_worldmap_png.c
@@ -43,8 +44,8 @@ SET(SOURCES screens/ui_BootScreen.c
     images/ui_img_1049473466.c
     images/ui_img_1184294011.c
     images/ui_img_279030151.c
-    fonts/ui_font_Square14.c
     fonts/ui_font_MontserratRegular12.c
-    fonts/ui_font_MontserratRegular14.c)
+    fonts/ui_font_MontserratRegular14.c
+    fonts/ui_font_Square14.c)
 
 add_library(ui ${SOURCES})

@@ -42,6 +42,8 @@ extern lv_obj_t * ui_HomeWLANButton;
 extern lv_obj_t * ui_HomeWLANLabel;
 extern lv_obj_t * ui_HomeBluetoothButton;
 extern lv_obj_t * ui_HomeBluetoothLabel;
+extern lv_obj_t * ui_HomeMemoryButton;
+extern lv_obj_t * ui_HomeMemoryLabel;
 extern lv_obj_t * ui_NodesPanel;
 extern lv_obj_t * ui_NodePanel;
 extern lv_obj_t * ui_NodeImage;
@@ -167,6 +169,8 @@ extern lv_obj_t * ui_DelLabel;
 extern lv_obj_t * ui_TopChatsPanel;
 extern lv_obj_t * ui_TopChatsLabel;
 extern lv_obj_t * ui_TopChatsImage;
+extern lv_obj_t * ui_AlertPanel;
+extern lv_obj_t * ui_AlertLabel;
 extern lv_obj_t * ui____initial_actions0;
 
 LV_IMG_DECLARE(ui_img_964411511);    // assets/meshtastic-logo-long.png
@@ -181,6 +185,7 @@ LV_IMG_DECLARE(ui_img_57207796);    // assets/dazzle/modem-36.png
 LV_IMG_DECLARE(ui_img_949915354);    // assets/dazzle/map-pin-36.png
 LV_IMG_DECLARE(ui_img_325160819);    // assets/dazzle/wifi-off-36-white.png
 LV_IMG_DECLARE(ui_img_1681326260);    // assets/dazzle/bluetooth-slash-36.png
+LV_IMG_DECLARE(ui_img_1169715333);    // assets/ram-memory-36.png
 LV_IMG_DECLARE(ui_img_2104440450);    // assets/router24-white.png
 LV_IMG_DECLARE(ui_img_dazzle_keyboard20_png);    // assets/dazzle/keyboard20.png
 LV_IMG_DECLARE(ui_img_worldmap_png);    // assets/Worldmap.png
@@ -210,9 +215,9 @@ LV_IMG_DECLARE(ui_img_1184294011);    // assets/wifi-20.png
 LV_IMG_DECLARE(ui_img_279030151);    // assets/wifi-off-20.png
 
 
-LV_FONT_DECLARE(ui_font_Square14);
 LV_FONT_DECLARE(ui_font_MontserratRegular12);
 LV_FONT_DECLARE(ui_font_MontserratRegular14);
+LV_FONT_DECLARE(ui_font_Square14);
 
 
 void ui_init(void);
