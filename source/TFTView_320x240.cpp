@@ -724,9 +724,17 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
             uint32_t ip = status.wifi.status.ip_address;
             sprintf(buf, "%d.%d.%d.%d", ip & 0xff000000, ip & 0xff0000, ip & 0xff00, ip & 0xff);
             lv_label_set_text(ui_HomeWLANLabel, buf);
-            lv_obj_set_style_bg_opa(ui_HomeWLANButton, status.wifi.status.is_connected ? 0 : 255,
-                                    LV_PART_MAIN | LV_STATE_DEFAULT);
+            if (status.wifi.status.is_connected) {
+                lv_obj_set_style_bg_img_recolor_opa(ui_HomeWLANButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_img_src(ui_HomeWLANButton, &ui_img_1682375573, LV_PART_MAIN | LV_STATE_DEFAULT);
+            } else {
+                lv_obj_set_style_bg_img_recolor_opa(ui_HomeWLANButton, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_img_src(ui_HomeWLANButton, &ui_img_1682375573, LV_PART_MAIN | LV_STATE_DEFAULT);
+            }
         }
+    } else {
+        lv_obj_set_style_bg_img_recolor_opa(ui_HomeWLANButton, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_img_src(ui_HomeWLANButton, &ui_img_325160819, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
     if (status.has_bluetooth) {
         if (status.bluetooth.is_connected) {
@@ -734,9 +742,15 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
             uint32_t mac = ownNode;
             sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
             lv_label_set_text(ui_HomeBluetoothLabel, buf);
-            lv_obj_set_style_bg_opa(ui_HomeBluetoothButton, status.bluetooth.is_connected ? 0 : 255,
-                                    LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(ui_HomeBluetoothButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_img_src(ui_HomeBluetoothButton, &ui_img_294304076, LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else {
+            lv_obj_set_style_bg_img_src(ui_HomeBluetoothButton, &ui_img_294304076, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_img_recolor_opa(ui_HomeBluetoothButton, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
+    } else {
+        lv_obj_set_style_bg_img_src(ui_HomeBluetoothButton, &ui_img_1681326260, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_img_recolor_opa(ui_HomeBluetoothButton, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
 }
 
