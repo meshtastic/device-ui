@@ -83,7 +83,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev
         data->state = LV_INDEV_STATE_PR;
         data->point.x = (int16_t)touchX;
         data->point.y = (int16_t)touchY;
-
+#if 0
         if (data->point.x < 0)
             data->point.x = 0;
         if (data->point.y < 0)
@@ -92,6 +92,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev
             data->point.x = LV_HOR_RES - 1;
         if (data->point.y >= LV_VER_RES)
             data->point.y = LV_VER_RES - 1;
+#endif
     }
 }
 
@@ -137,19 +138,28 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 
 #ifdef CALIBRATE_TOUCH
     ILOG_INFO("Calibrating touch...\n");
-    uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311}; // FIXME: read from store using lfs_file_read
-#if 1
+#ifdef T_DECK
+    // FIXME: read from store using lfs_file_read
+    //uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311}; 
+    uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313}; 
+#elif defined(ESP32_2432S028R)
+    uint16_t parameters[8] = {255, 3691, 203, 198, 3836, 3659, 3795, 162};
+#else
+    uint16_t parameters[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+#endif
+
+#if !CALIBRATE_TOUCH
     TFTDriver<LGFX>::tft->setTouchCalibrate(parameters);
 #else
     TFTDriver<LGFX>::tft->setTextSize(2);
     TFTDriver<LGFX>::tft->setTextDatum(textdatum_t::middle_center);
-    TFTDriver<LGFX>::tft->drawString("touch the arrow marker.", tft->width() >> 1, tft->height() >> 1);
+    TFTDriver<LGFX>::tft->drawString("touch the arrow marker.", TFTDriver<LGFX>::tft->width() >> 1, TFTDriver<LGFX>::tft->height() >> 1);
     TFTDriver<LGFX>::tft->setTextDatum(textdatum_t::top_left);
     std::uint16_t fg = TFT_BLUE;
     std::uint16_t bg = LGFX::color565(0x40, 0xFF, 0x72);
     if (TFTDriver<LGFX>::tft->isEPD())
         std::swap(fg, bg);
-    TFTDriver<LGFX>::tft->calibrateTouch(parameters, fg, bg, std::max(tft->width(), tft->height()) >> 3);
+    TFTDriver<LGFX>::tft->calibrateTouch(parameters, fg, bg, std::max(TFTDriver<LGFX>::tft->width(), TFTDriver<LGFX>::tft->height()) >> 3);
 
     // FIXME: store parameters[] using lfs_file_write
     ILOG_DEBUG("Touchscreen calibration parameters: %d, %d, %d, %d, %d, %d, %d, %d\n", parameters[0], parameters[1],
