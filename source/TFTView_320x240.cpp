@@ -759,9 +759,12 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     MeshtasticView::packetReceived(p);
 }
 
-void TFTView_320x240::notifyReboot(void)
+void TFTView_320x240::notifyReboot(bool show)
 {
-    _ui_flag_modify(ui_AlertPanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+    if (show)
+        _ui_flag_modify(ui_AlertPanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+    else
+        _ui_flag_modify(ui_AlertPanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
 
 void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role)
@@ -1228,18 +1231,21 @@ void TFTView_320x240::updateUnreadMessages(void)
 
 void TFTView_320x240::updateFreeMem(void)
 {
-    char buf[64];
-    uint32_t freeHeap = 0;
-    uint32_t freeHeap_pct = 100;
+    // only update if HomePanel is active (since this is some critical code that did crash once)
+    if (activePanel == ui_HomePanel) {
+        char buf[64];
+        uint32_t freeHeap = 0;
+        uint32_t freeHeap_pct = 100;
 #ifdef ARDUINO_ARCH_ESP32
-    freeHeap = ESP.getFreeHeap();
-    freeHeap_pct = 100 * ESP.getFreeHeap() / ESP.getHeapSize();
+        freeHeap = ESP.getFreeHeap();
+        freeHeap_pct = 100 * ESP.getFreeHeap() / ESP.getHeapSize();
 #endif
 
-    lv_mem_monitor_t mon;
-    lv_mem_monitor(&mon);
-    sprintf(buf, "Heap: %d (%d%%)\nLVGL: %d (%d%%)", freeHeap, freeHeap_pct, mon.free_size, 100 - mon.used_pct);
-    lv_label_set_text(ui_HomeMemoryLabel, buf);
+        lv_mem_monitor_t mon;
+        lv_mem_monitor(&mon);
+        sprintf(buf, "Heap: %d (%d%%)\nLVGL: %d (%d%%)", freeHeap, freeHeap_pct, mon.free_size, 100 - mon.used_pct);
+        lv_label_set_text(ui_HomeMemoryLabel, buf);
+    }
 }
 
 void TFTView_320x240::task_handler(void)

@@ -16,6 +16,8 @@ class ViewController
     virtual void sendConfig(void); // TODO
     virtual ~ViewController();
 
+    void setConfigRequested(bool required);
+
   protected:
     // generic send method to send a decoded byte string in a meshpacket to radio
     virtual bool send(uint32_t to, uint8_t ch, meshtastic_PortNum portnum, const uint8_t *decoded, size_t len);
@@ -34,4 +36,5 @@ class ViewController
     IClientBase *client;
     uint32_t sendId;
     time_t lastrun10;
+    bool requestConfigRequired;
 };

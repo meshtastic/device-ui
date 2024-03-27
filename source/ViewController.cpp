@@ -8,18 +8,16 @@
  * @brief mediate between GUI view and client interface
  *
  */
-ViewController::ViewController() : view(nullptr), client(nullptr), sendId(1) {}
+ViewController::ViewController() : view(nullptr), client(nullptr), sendId(1), requestConfigRequired(true) {}
 
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
     time(&lastrun10);
+    lastrun10 += 10;
     view = gui;
     client = _client;
     client->init();
-
-    // talk to radio
-    requestConfig();
-    requestDeviceConnectionStatus();
+    client->connect();
 }
 
 /**
@@ -28,6 +26,7 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
  */
 void ViewController::runOnce(void)
 {
+    requestConfig();
     receive();
 
     // executed every 10s:
@@ -37,6 +36,8 @@ void ViewController::runOnce(void)
     if (curtime - lastrun10 >= 10) {
         lastrun10 = curtime;
         requestDeviceConnectionStatus();
+        if (!client->isConnected())
+            client->connect();
     }
 }
 
@@ -49,6 +50,11 @@ void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
 }
 
 void ViewController::sendConfig(void) {}
+
+void ViewController::setConfigRequested(bool required) {
+    requestConfigRequired = required;
+}
+
 
 /**
  * generic send method for sending meshpackets with encoded payload
@@ -106,10 +112,10 @@ bool ViewController::receive(void)
     if (client->isConnected()) {
         do {
             meshtastic_FromRadio from = client->receive();
-            if (from.id) {
+            if (from.which_payload_variant) {
                 handleFromRadio(from);
             }
-            gotPacket = from.id != 0;
+            gotPacket = from.which_payload_variant != 0;
         } while (gotPacket);
         return true;
     }
@@ -121,7 +127,10 @@ bool ViewController::receive(void)
  */
 void ViewController::requestConfig(void)
 {
-    client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_want_config_id_tag, .want_config_id = 1});
+    if (client->isConnected() && requestConfigRequired) {
+        client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_want_config_id_tag, .want_config_id = 1});
+        requestConfigRequired = false;
+    }
 }
 
 /**
@@ -307,6 +316,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
     }
     case meshtastic_FromRadio_config_complete_id_tag: {
         view->configCompleted();
+        view->notifyReboot(false);
         break;
     }
     case meshtastic_FromRadio_queueStatus_tag: {
@@ -317,7 +327,8 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         break;
     }
     case meshtastic_FromRadio_rebooted_tag: {
-        view->notifyReboot();
+        view->notifyReboot(true);
+        setConfigRequested(true);
         break;
     }
     default: {
