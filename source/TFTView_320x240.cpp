@@ -17,7 +17,7 @@
 #else
 #error "Unknown device for view 320x240"
 #endif
- 
+
 LV_IMG_DECLARE(ui_img_230282600);  // assets/lock-keyhole24-white.png
 LV_IMG_DECLARE(ui_img_558997549);  // assets/key-round24-white.png
 LV_IMG_DECLARE(ui_img_1683846353); // assets/unlock-keyhole24-white.png
@@ -25,25 +25,25 @@ LV_IMG_DECLARE(ui_img_1003866492); // assets/dazzle/radio-tower-24-white.png
 LV_IMG_DECLARE(ui_img_519712240);  // assets/dazzle/signal-steam-24-white.png
 
 #define CR_REPLACEMENT 0x0C // dummy to record several lines in a one line textarea
- 
+
 // children index of nodepanel lv objects (see addNode)
 enum NodePanelIdx { node_img_idx, node_btn_idx, node_lbl_idx, node_lbs_idx, node_bat_idx, node_lh_idx, node_sig_idx };
 
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
- 
+
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
     if (!gui)
         gui = new TFTView_320x240;
     return gui;
 }
-   
+
 #ifdef USE_X11
 TFTView_320x240::TFTView_320x240() : MeshtasticView(&X11Driver::create(), new ViewController) {}
 #else
 TFTView_320x240::TFTView_320x240() : MeshtasticView(new LGFXDriver<LGFX_DRIVER>(screenWidth, screenHeight), new ViewController) {}
 #endif
-  
+
 void TFTView_320x240::init(IClientBase *client)
 {
     ILOG_DEBUG("TFTView_320x240 init...\n");
@@ -1238,7 +1238,7 @@ void TFTView_320x240::updateFreeMem(void)
         uint32_t freeHeap_pct = 100;
 #ifdef ARDUINO_ARCH_ESP32
         freeHeap = ESP.getFreeHeap();
-        freeHeap_pct = 100 * ESP.getFreeHeap() / ESP.getHeapSize();
+        freeHeap_pct = 100 * freeHeap / ESP.getHeapSize();
 #endif
 
         lv_mem_monitor_t mon;
