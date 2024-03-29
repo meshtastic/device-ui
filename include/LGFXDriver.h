@@ -5,7 +5,7 @@
 #include "TFTDriver.h"
 #include <functional>
 
-const uint32_t powerSaveTimeout = 120 * 1000;
+const uint32_t displayTimeout = 120 * 1000;
 const uint32_t defaultBrightness = 128;
 
 template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
@@ -43,17 +43,19 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
 
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
-    if (lastTouch + powerSaveTimeout < millis()) {
-        if (!powerSaving) {
-            powerSaving = true;
-            lgfx->setBrightness(0);
-            lgfx->powerSave(powerSaving);
-        }
-    } else {
-        if (powerSaving) {
-            powerSaving = false;
-            lgfx->powerSave(powerSaving);
-            lgfx->setBrightness(defaultBrightness);
+    if (hasTouch() /* || hasButton() */) {
+        if (lastTouch + displayTimeout < millis()) {
+            if (!powerSaving) {
+                powerSaving = true;
+                lgfx->setBrightness(0);
+                lgfx->powerSave(powerSaving);
+            }
+        } else {
+            if (powerSaving) {
+                powerSaving = false;
+                lgfx->powerSave(powerSaving);
+                lgfx->setBrightness(defaultBrightness);
+            }
         }
     }
     DisplayDriver::task_handler();
