@@ -46,9 +46,15 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
     if (hasTouch() /* || hasButton() */) {
         if (lastTouch + displayTimeout < millis()) {
             if (!powerSaving) {
-                powerSaving = true;
-                lgfx->setBrightness(0);
-                lgfx->powerSave(powerSaving);
+                uint32_t brightness = lgfx->getBrightness();
+                if (brightness > 1) {
+                    brightness -= 1;
+                    lgfx->setBrightness(brightness);
+                } else {
+                    powerSaving = true;
+                    lgfx->setBrightness(0);
+                    lgfx->powerSave(powerSaving);
+                }
             }
         } else {
             if (powerSaving) {
