@@ -84,9 +84,10 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
             cfg.pin_sclk = 1;
             cfg.pin_miso = 4;
             cfg.pin_mosi = 3;
+            cfg.spi_host = SPI3_HOST;
             cfg.bus_shared = true;
             cfg.offset_rotation = 0;
-            cfg.freq = 400000;
+            cfg.freq = 2500000;
 
             _touch_instance.config(cfg);
             _panel_instance.setTouch(&_touch_instance);
