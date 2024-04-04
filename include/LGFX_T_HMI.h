@@ -3,8 +3,8 @@
 
 #include <LovyanGFX.hpp>
 
-const uint16_t screenWidth = 480;
-const uint16_t screenHeight = 320;
+const uint16_t screenWidth = 320;
+const uint16_t screenHeight = 240;
 
 class LGFX_T_HMI : public lgfx::LGFX_Device
 {
