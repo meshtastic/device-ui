@@ -16,8 +16,10 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
     lastrun10 += 10;
     view = gui;
     client = _client;
-    client->init();
-    client->connect();
+    if (client) {
+        client->init();
+        client->connect();
+    }
 }
 
 /**
@@ -26,18 +28,20 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
  */
 void ViewController::runOnce(void)
 {
-    requestConfig();
-    receive();
+    if (client) {
+        requestConfig();
+        receive();
 
-    // executed every 10s:
-    time_t curtime;
-    time(&curtime);
+        // executed every 10s:
+        time_t curtime;
+        time(&curtime);
 
-    if (curtime - lastrun10 >= 10) {
-        lastrun10 = curtime;
-        requestDeviceConnectionStatus();
-        if (!client->isConnected())
-            client->connect();
+        if (curtime - lastrun10 >= 10) {
+            lastrun10 = curtime;
+            requestDeviceConnectionStatus();
+            if (!client->isConnected())
+                client->connect();
+        }
     }
 }
 
@@ -51,10 +55,10 @@ void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
 
 void ViewController::sendConfig(void) {}
 
-void ViewController::setConfigRequested(bool required) {
+void ViewController::setConfigRequested(bool required)
+{
     requestConfigRequired = required;
 }
-
 
 /**
  * generic send method for sending meshpackets with encoded payload
