@@ -5,14 +5,14 @@
 #include "TFTDriver.h"
 #include <functional>
 
-const uint32_t displayTimeout = 120 * 1000;
+const uint32_t displayTimeout = 60 * 1000;
 const uint32_t defaultBrightness = 128;
 
 template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 {
   public:
     LGFXDriver(uint16_t width, uint16_t height);
-    virtual void init(void);
+    virtual void init(DeviceGUI *gui);
     virtual bool hasTouch() { return TFTDriver<LGFX>::tft->touch(); }
     virtual void task_handler(void);
 
@@ -46,21 +46,28 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
     if (hasTouch() /* || hasButton() */) {
         if (lastTouch + displayTimeout < millis()) {
             if (!powerSaving) {
+                // dim display brightness slowly down
                 uint32_t brightness = lgfx->getBrightness();
                 if (brightness > 1) {
-                    brightness -= 1;
-                    lgfx->setBrightness(brightness);
+                    lgfx->setBrightness(brightness - 1);
                 } else {
+                    lgfx->sleep();
+                    lgfx->powerSaveOn();
                     powerSaving = true;
-                    lgfx->setBrightness(0);
-                    lgfx->powerSave(powerSaving);
                 }
             }
-        } else {
             if (powerSaving) {
-                powerSaving = false;
-                lgfx->powerSave(powerSaving);
-                lgfx->setBrightness(defaultBrightness);
+                if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int)) {
+                    // woke up by touch
+                    powerSaving = false;
+                    lastTouch = millis();
+                    lgfx->powerSaveOff();
+                    lgfx->wakeup();
+                    lgfx->setBrightness(defaultBrightness);
+                } else {
+                    // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
+                    // continue with processing loop and enter sleep() again next round
+                }
             }
         }
     }
@@ -130,14 +137,15 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev
         if (data->point.y >= LV_VER_RES)
             data->point.y = LV_VER_RES - 1;
 #endif
+        //        ILOG_DEBUG("touch %d/%d\n", data->point.x, data->point.y);
     }
 }
 
-template <class LGFX> void LGFXDriver<LGFX>::init(void)
+template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 {
     ILOG_DEBUG("LGFXDriver<LGFX>::init...\n");
     init_lgfx();
-    TFTDriver<LGFX>::init();
+    TFTDriver<LGFX>::init(gui);
 
     // LVGL: setup display device driver
     ILOG_DEBUG("LVGL display driver init...\n");
@@ -179,7 +187,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
     // FIXME: read from store using lfs_file_read
     // uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311};
     uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
-#elif defined(ESP32_2432S028R)
+#elif defined(ESP32_2432S028R) || defined(NODEMCU_32S)
     uint16_t parameters[8] = {255, 3691, 203, 198, 3836, 3659, 3795, 162};
 #else
     uint16_t parameters[8] = {0, 0, 0, 0, 0, 0, 0, 0};

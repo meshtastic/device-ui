@@ -47,7 +47,7 @@ TFTView_320x240::TFTView_320x240() : MeshtasticView(new LGFXDriver<LGFX_DRIVER>(
 void TFTView_320x240::init(IClientBase *client)
 {
     ILOG_DEBUG("TFTView_320x240 init...\n");
-    displaydriver->init();
+    displaydriver->init(this);
     MeshtasticView::init(client);
     time(&lastrun60);
     time(&lastrun5);
@@ -759,7 +759,7 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     MeshtasticView::packetReceived(p);
 }
 
-void TFTView_320x240::notifyReboot(bool show)
+void TFTView_320x240::notifyResync(bool show)
 {
     if (show)
         _ui_flag_modify(ui_AlertPanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
@@ -1102,6 +1102,8 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     if (p) {
         lv_label_set_text(ui_TopNodeLabel, lv_label_get_text(p->LV_OBJ_IDX(node_lbl_idx)));
         ui_set_active(ui_MessagesButton, ui_MessagesPanel, ui_TopMessagePanel);
+        unreadMessages = 0; // TODO: not all messages may be actually read
+        updateUnreadMessages();
     } else {
         // TODO: log error
     }

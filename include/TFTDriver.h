@@ -6,7 +6,7 @@ template <class TFT> class TFTDriver : public DisplayDriver
 {
   public:
     TFTDriver(TFT *tft, uint16_t width, uint16_t height);
-    virtual void init(void);
+    virtual void init(DeviceGUI *gui);
 
   protected:
     TFT *tft;
@@ -16,7 +16,7 @@ template <class TFT> TFTDriver<TFT>::TFTDriver(TFT *tft, uint16_t width, uint16_
 {
 }
 
-template <class TFT> void TFTDriver<TFT>::init(void)
+template <class TFT> void TFTDriver<TFT>::init(DeviceGUI *gui)
 {
-    DisplayDriver::init();
+    DisplayDriver::init(gui);
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 class DisplayDriver;
 class IClientBase;
 
@@ -14,7 +16,8 @@ class DeviceGUI
     virtual ~DeviceGUI();
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
-    virtual void addNode(void){};
+    virtual bool sleep(int16_t pin) { return false; }
+    virtual void addNode(void) {}
 
   protected:
     DisplayDriver *displaydriver;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DeviceGUI.h"
 #include "LVGLGraphics.h"
 #include <cstdint>
 
@@ -10,7 +11,7 @@ class DisplayDriver
 {
   public:
     DisplayDriver(uint16_t width, uint16_t height);
-    virtual void init(void);
+    virtual void init(DeviceGUI *gui);
     virtual bool hasTouch(void) { return false; }
     virtual void task_handler(void) { lv_timer_handler(); };
     virtual ~DisplayDriver(){};
@@ -20,6 +21,7 @@ class DisplayDriver
 
   protected:
     LVGLGraphics lvgl;
+    DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;
 

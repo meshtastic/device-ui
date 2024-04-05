@@ -16,6 +16,8 @@ class IClientBase
     virtual bool connect(void) = 0;
     virtual bool disconnect(void) = 0;
     virtual bool isConnected(void) = 0;
+    virtual bool sleep(int16_t pin) { return false; }
+
     virtual bool send(meshtastic_ToRadio &&to) = 0;
     virtual meshtastic_FromRadio receive(void) = 0;
     virtual ~IClientBase(){};

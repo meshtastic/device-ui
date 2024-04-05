@@ -11,6 +11,7 @@ class ViewController
     ViewController();
     virtual void init(MeshtasticView *gui, IClientBase *_client);
     virtual void runOnce(void);
+    virtual bool sleep(int16_t pin);
     virtual void processEvent(void);
     virtual void sendText(uint32_t to, uint8_t ch, const char *textmsg);
     virtual void sendConfig(void); // TODO

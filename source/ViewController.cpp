@@ -45,6 +45,14 @@ void ViewController::runOnce(void)
     }
 }
 
+bool ViewController::sleep(int16_t pin)
+{
+    if (client)
+        return client->sleep(pin);
+    else
+        return false;
+}
+
 void ViewController::processEvent(void) {}
 
 void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
@@ -320,7 +328,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
     }
     case meshtastic_FromRadio_config_complete_id_tag: {
         view->configCompleted();
-        view->notifyReboot(false);
+        view->notifyResync(false);
         break;
     }
     case meshtastic_FromRadio_queueStatus_tag: {
@@ -331,7 +339,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         break;
     }
     case meshtastic_FromRadio_rebooted_tag: {
-        view->notifyReboot(true);
+        view->notifyResync(true);
         setConfigRequested(true);
         break;
     }

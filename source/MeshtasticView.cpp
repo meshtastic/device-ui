@@ -21,6 +21,11 @@ void MeshtasticView::task_handler(void)
     controller->runOnce();
 };
 
+bool MeshtasticView::sleep(int16_t pin)
+{
+    return controller->sleep(pin);
+}
+
 void MeshtasticView::setMyInfo(uint32_t nodeNum) {}
 
 void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
@@ -63,7 +68,7 @@ void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float v
 
 void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {}
 
-void MeshtasticView::notifyReboot(bool show) {}
+void MeshtasticView::notifyResync(bool show) {}
 
 void MeshtasticView::showMessagePopup(const char *from) {}
 

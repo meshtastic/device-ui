@@ -20,6 +20,8 @@ class MeshtasticView : public DeviceGUI
     MeshtasticView(DisplayDriver *driver, ViewController *_controller);
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
+    virtual bool sleep(int16_t pin);
+
     uint32_t getMyNodeNum(void) { return ownNode; }
 
     enum eRole {
@@ -81,7 +83,7 @@ class MeshtasticView : public DeviceGUI
 
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
-    virtual void notifyReboot(bool show);
+    virtual void notifyResync(bool show);
     virtual void showMessagePopup(const char *from);
 
     virtual void removeNode(uint32_t nodeNum);

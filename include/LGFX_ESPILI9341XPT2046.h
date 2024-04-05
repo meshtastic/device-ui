@@ -25,11 +25,11 @@ const uint32_t screenHeight = 240;
 #define TFT_ROTATION 4
 
 // #define HAS_TOUCHSCREEN 1
-#define XPT2046_IRQ -1 // 27
+#define XPT2046_IRQ 27
 #define XPT2046_MOSI 23
 #define XPT2046_MISO 19
 #define XPT2046_CLK 18
-#define XPT2046_CS 4
+#define XPT2046_CS 26
 #define XPT2046_SPI_HOST VSPI_HOST
 
 class LGFX_ESPILI9341XPT2046 : public lgfx::LGFX_Device
