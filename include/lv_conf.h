@@ -48,6 +48,9 @@
 /*1: use custom malloc/free, 0: use the built-in `lv_mem_alloc()` and `lv_mem_free()`*/
 #define LV_MEM_CUSTOM 0
 #if LV_MEM_CUSTOM == 0
+#ifndef RAM_SIZE
+#define RAM_SIZE 96
+#endif
     /*Size of the memory available for `lv_mem_alloc()` in bytes (>= 2kB)*/
     #define LV_MEM_SIZE (RAM_SIZE * 1024U)          /*[bytes]*/
 
