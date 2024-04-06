@@ -11,7 +11,7 @@ class X11Driver : public DisplayDriver
 {
   public:
     static X11Driver &create(void);
-    virtual void init(void);
+    void init(DeviceGUI *gui) override;
     virtual ~X11Driver();
 
   private:

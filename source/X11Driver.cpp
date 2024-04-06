@@ -23,10 +23,10 @@ X11Driver &X11Driver::create(void)
 
 X11Driver::X11Driver() : DisplayDriver(screenWidth, screenHeight) {}
 
-void X11Driver::init(void)
+void X11Driver::init(DeviceGUI *gui)
 {
     // Initialize LVGL
-    lv_init();
+    DisplayDriver::init(gui);
 
     // Initialize the HAL (display, input devices, tick) for LVGL
     init_hal();
