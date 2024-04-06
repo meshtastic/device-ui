@@ -49,7 +49,7 @@
 #define LV_MEM_CUSTOM 0
 #if LV_MEM_CUSTOM == 0
 #ifndef RAM_SIZE
-#define RAM_SIZE (96 * 1024U)
+#define RAM_SIZE 96
 #endif
     /*Size of the memory available for `lv_mem_alloc()` in bytes (>= 2kB)*/
     #define LV_MEM_SIZE (RAM_SIZE * 1024U)          /*[bytes]*/
