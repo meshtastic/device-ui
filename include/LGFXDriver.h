@@ -56,18 +56,18 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     powerSaving = true;
                 }
             }
-            if (powerSaving) {
-                if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int)) {
-                    // woke up by touch
-                    powerSaving = false;
-                    lastTouch = millis();
-                    lgfx->powerSaveOff();
-                    lgfx->wakeup();
-                    lgfx->setBrightness(defaultBrightness);
-                } else {
-                    // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
-                    // continue with processing loop and enter sleep() again next round
-                }
+        }
+        if (powerSaving) {
+            if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int) || lastTouch + displayTimeout > millis()) {
+                // woke up by touch or button
+                powerSaving = false;
+                lastTouch = millis();
+                lgfx->powerSaveOff();
+                lgfx->wakeup();
+                lgfx->setBrightness(defaultBrightness);
+            } else {
+                // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
+                // continue with processing loop and enter sleep() again next round
             }
         }
     }
