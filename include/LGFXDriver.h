@@ -72,8 +72,9 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
         }
     }
     DisplayDriver::task_handler();
-};
+}
 
+// Display flushing not using DMA */
 template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     uint32_t w = (area->x2 - area->x1 + 1);
@@ -86,20 +87,19 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_disp_drv_t *disp, 
 }
 
 #if 0
-/* Display flushing not using DMA */
+/* Display flushing using DMA */
 template <class LGFX>
 void LGFXDriver<LGFX>::display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
     lgfx->startWrite();
     lgfx->setAddrWindow(area->x1, area->y1, w, h);
-    lgfx->writePixels((lgfx::rgb565_t *)&color_p->full, w * h);
+    lgfx->writePixelsDMA((lgfx::rgb565_t *)&color_p->full, w * h);
     lgfx->endWrite();
-    lv_disp_flush_ready(disp); //TODO put into LGFX callback for DMA
+    lv_disp_flush_ready( disp ); //FIXME must put into some LGFX callback for DMA double-buffering
 }
 
-
-/* Display flushing using DMA */
+// Display flushing using DMA
 void my_disp_flush( lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p )
 {
     if (gfx.getStartCount() == 0)
@@ -111,9 +111,8 @@ void my_disp_flush( lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *colo
                     , area->x2 - area->x1 + 1
                     , area->y2 - area->y1 + 1
                     , ( lgfx::swap565_t* )&color_p->full);
-    lv_disp_flush_ready( disp );
+    lv_disp_flush_ready( disp ); //TODO must put into LGFX callback for DMA double-buffering
 }
-
 #endif
 
 template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
@@ -132,12 +131,12 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev
             data->point.x = 0;
         if (data->point.y < 0)
             data->point.y = 0;
-        if (data->point.x >= LV_HOR_RES)
-            data->point.x = LV_HOR_RES - 1;
-        if (data->point.y >= LV_VER_RES)
-            data->point.y = LV_VER_RES - 1;
+        if (data->point.x >= lgfx->touch()->config()->x_max)
+            data->point.x = lgfx->touch()->config()->x_max;
+        if (data->point.y >= lgfx->touch()->config()->y_max)
+            data->point.y = lgfx->touch()->config()->y_max;
 #endif
-        //        ILOG_DEBUG("touch %d/%d\n", data->point.x, data->point.y);
+        // ILOG_DEBUG("touch %d/%d\n", data->point.x, data->point.y);
     }
 }
 
