@@ -1,4 +1,3 @@
-#ifndef USE_X11
 #include "DisplayDriverConfig.h"
 #include "LGFXDriver.h"
 #include "LGXFConfig.h"
@@ -54,4 +53,3 @@ DisplayDriverConfig &DisplayDriverConfig::light(light_config_t &&cfg)
     _light = cfg;
     return *this;
 }
-#endif
