@@ -1,14 +1,13 @@
-#ifndef LGFX_WT_SC01PLUS_H
-#define LGFX_WT_SC01PLUS_H
-
+#pragma once
 #define LGFX_USE_V1
 
 #include <LovyanGFX.hpp>
 
-const uint16_t screenWidth = 480;
-const uint16_t screenHeight = 320;
+#ifndef SPI_FREQUENCY
+#define SPI_FREQUENCY 80000000
+#endif
 
-class LGFX_WT_SC01PLUS : public lgfx::LGFX_Device
+class LGFX_WT_SC01_PLUS : public lgfx::LGFX_Device
 {
 
     lgfx::Panel_ST7796 _panel_instance;
@@ -17,11 +16,14 @@ class LGFX_WT_SC01PLUS : public lgfx::LGFX_Device
     lgfx::Touch_FT5x06 _touch_instance; // FT5206, FT5306, FT5406, FT6206, FT6236, FT6336, FT6436
 
   public:
-    LGFX_WT_SC01PLUS(void)
+    const uint16_t screenWidth = 480;
+    const uint16_t screenHeight = 320;
+
+    LGFX_WT_SC01_PLUS(void)
     {
         {
             auto cfg = _bus_instance.config();
-            cfg.freq_write = 40000000;
+            cfg.freq_write = SPI_FREQUENCY;
             cfg.freq_read = 16000000;
             cfg.pin_wr = 47;
             cfg.pin_rd = -1;
@@ -97,5 +99,3 @@ class LGFX_WT_SC01PLUS : public lgfx::LGFX_Device
         setPanel(&_panel_instance);
     }
 };
-
-#endif

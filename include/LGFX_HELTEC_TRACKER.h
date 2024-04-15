@@ -1,20 +1,14 @@
-#ifndef HELTEC_TRACKER_H
-#define HELTEC_TRACKER_H
+#pragma once
 
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 
 #if defined(V05) // Heltec Tracker v1.1
-#define ST7735_BL 21
+#define HELTEC_ST7735_BL 21
 #else
-#define ST7735_BL 45
-#define VTFT_CTRL 46
+#define HELTEC_ST7735_BL 45
+#define HELTEC_VTFT_CTRL 46
 #endif
-
-#define LED_PIN 18
-
-const uint16_t screenWidth = 160;
-const uint16_t screenHeight = 80;
 
 class LGFX_HELTEC_TRACKER : public lgfx::LGFX_Device
 {
@@ -23,6 +17,9 @@ class LGFX_HELTEC_TRACKER : public lgfx::LGFX_Device
     lgfx::Light_PWM _light_instance;
 
   public:
+    const uint16_t screenWidth = 160;
+    const uint16_t screenHeight = 80;
+
     LGFX_HELTEC_TRACKER(void)
     {
         {
@@ -84,10 +81,10 @@ class LGFX_HELTEC_TRACKER : public lgfx::LGFX_Device
         {
             auto cfg = _light_instance.config(); // Gets a structure for backlight settings.
 
-            cfg.pin_bl = ST7735_BL; // Pin number to which the backlight is connected
-            cfg.invert = true;      // true to invert the brightness of the backlight
-            cfg.freq = 44100;       // PWM frequency of backlight
-            cfg.pwm_channel = 7;    // PWM channel number to use
+            cfg.pin_bl = HELTEC_ST7735_BL; // Pin number to which the backlight is connected
+            cfg.invert = true;             // true to invert the brightness of the backlight
+            cfg.freq = 44100;              // PWM frequency of backlight
+            cfg.pwm_channel = 7;           // PWM channel number to use
 
             _light_instance.config(cfg);
             _panel_instance.setLight(&_light_instance); // Set the backlight on the panel.
@@ -96,5 +93,3 @@ class LGFX_HELTEC_TRACKER : public lgfx::LGFX_Device
         setPanel(&_panel_instance); // Sets the panel to use.
     }
 };
-
-#endif

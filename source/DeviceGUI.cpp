@@ -8,6 +8,7 @@ DeviceGUI::DeviceGUI(DisplayDriver *driver) : displaydriver(driver) {}
 
 void DeviceGUI::init(IClientBase *client)
 {
+    displaydriver->init(this);
     ILOG_DEBUG("ui_init...\n");
     ui_init();
 }

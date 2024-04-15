@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DeviceGUI.h"
+#include "DisplayDriverConfig.h"
 #include "IClientBase.h"
 
 /**
@@ -11,11 +12,12 @@ class DeviceScreen
 {
   public:
     static DeviceScreen &create(void);
+    static DeviceScreen &create(const DisplayDriverConfig *cfg);
 
     void init(IClientBase *client);
     void task_handler(void);
 
   private:
-    DeviceScreen();
+    DeviceScreen(const DisplayDriverConfig *cfg);
     DeviceGUI *gui;
 };

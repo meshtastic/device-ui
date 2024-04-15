@@ -6,7 +6,7 @@ template <class OLED> class OLEDDriver : public DisplayDriver
 {
   public:
     OLEDDriver(OLED *oled, uint16_t width, uint16_t height);
-    virtual void init(void);
+    virtual void init(DeviceGUI *gui);
 
   protected:
     OLED *oled;
@@ -17,7 +17,7 @@ OLEDDriver<OLED>::OLEDDriver(OLED *oled, uint16_t width, uint16_t height) : Disp
 {
 }
 
-template <class OLED> void OLEDDriver<OLED>::init(void)
+template <class OLED> void OLEDDriver<OLED>::init(DeviceGUI *gui)
 {
-    DisplayDriver::init();
+    DisplayDriver::init(gui);
 }

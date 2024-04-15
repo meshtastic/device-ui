@@ -3,8 +3,9 @@
 
 #include <LovyanGFX.hpp>
 
-const uint16_t screenWidth = 320;
-const uint16_t screenHeight = 240;
+#ifndef SPI_FREQUENCY
+#define SPI_FREQUENCY 80000000
+#endif
 
 class LGFX_T_HMI : public lgfx::LGFX_Device
 {
@@ -15,15 +16,15 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
     lgfx::Touch_XPT2046 _touch_instance;
 
   public:
+    const uint16_t screenWidth = 320;
+    const uint16_t screenHeight = 240;
+
     LGFX_T_HMI(void)
     {
         {
             auto cfg = _bus_instance.config();
-            cfg.freq_write = 40000000;
+            cfg.freq_write = SPI_FREQUENCY;
             cfg.freq_read = 16000000;
-            cfg.pin_ctrl = 8; // ?
-            cfg.pin_wr = -1;  // ?
-            cfg.pin_rd = -1;  // ?
             cfg.pin_rs = 7;
             cfg.pin_d0 = 48;
             cfg.pin_d1 = 47;
@@ -96,5 +97,3 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
         setPanel(&_panel_instance);
     }
 };
-
-#endif

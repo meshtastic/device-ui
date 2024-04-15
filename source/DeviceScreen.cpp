@@ -1,26 +1,25 @@
 #include "DeviceScreen.h"
 #include "Arduino.h"
 #include "ILog.h"
-
-// device-ui library requires defining VIEW_CLASS_INC and VIEW_CLASS
-// e.g. -DVIEW_CLASS_INC=\"TFTView_320x240.h\" -DVIEW_CLASS=TFTView_320x240
-
-#if defined(VIEW_CLASS_INC)
-#include VIEW_CLASS_INC
-#elif defined(USE_X11)
-#include "X11Driver.h"
-#else
-#error "Undefined device view!"
-#endif
+#include "ViewFactory.h"
 
 DeviceScreen &DeviceScreen::create(void)
 {
-    return *new DeviceScreen;
+    return *new DeviceScreen(nullptr);
 }
 
-DeviceScreen::DeviceScreen()
+DeviceScreen &DeviceScreen::create(const DisplayDriverConfig *cfg)
 {
-    gui = VIEW_CLASS::instance();
+    return *new DeviceScreen(cfg);
+}
+
+DeviceScreen::DeviceScreen(const DisplayDriverConfig *cfg)
+{
+    if (cfg) {
+        gui = ViewFactory::create(*cfg);
+    } else {
+        gui = ViewFactory::create();
+    }
 }
 
 void DeviceScreen::init(IClientBase *client)

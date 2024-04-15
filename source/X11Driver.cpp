@@ -2,6 +2,7 @@
 #include "X11Driver.h"
 #include "lvgl.h"
 // #include "lv_drv_conf.h"
+#include "ILog.h"
 #include "x11/x11.h" // lvgl/lv_drivers repository
 #include <pthread.h>
 #include <unistd.h>
@@ -14,21 +15,23 @@ static bool end_tick = false; /* flag to terminate thread */
 
 X11Driver *X11Driver::x11driver = nullptr;
 
-X11Driver &X11Driver::create(void)
+X11Driver &X11Driver::create(uint16_t width, uint16_t height)
 {
     if (!x11driver)
-        x11driver = new X11Driver;
+        x11driver = new X11Driver(width, height);
     return *x11driver;
 }
 
-X11Driver::X11Driver() : DisplayDriver(screenWidth, screenHeight) {}
+X11Driver::X11Driver(uint16_t width, uint16_t height) : DisplayDriver(width, height) {}
 
 void X11Driver::init(DeviceGUI *gui)
 {
+    ILOG_DEBUG("X11Driver::init...\n");
     // Initialize LVGL
     DisplayDriver::init(gui);
 
     // Initialize the HAL (display, input devices, tick) for LVGL
+    ILOG_DEBUG("init_hal...\n");
     init_hal();
 }
 

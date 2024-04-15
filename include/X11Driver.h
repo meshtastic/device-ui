@@ -10,12 +10,12 @@
 class X11Driver : public DisplayDriver
 {
   public:
-    static X11Driver &create(void);
+    static X11Driver &create(uint16_t width, uint16_t height);
     void init(DeviceGUI *gui) override;
     virtual ~X11Driver();
 
   private:
-    X11Driver();
+    X11Driver(uint16_t width, uint16_t height);
 
     static void *tick_thread(void *data);
 

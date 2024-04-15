@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DisplayDriverConfig.h"
 #include "MeshtasticView.h"
 
 /**
@@ -11,19 +12,33 @@
 class OLEDView_128x64 : public MeshtasticView
 {
   public:
-    static OLEDView_128x64 *instance(void);
-    virtual void init(void);
+    void init(IClientBase *client) override;
+    void task_handler(void) override;
 
-    virtual void addNode(void){};
-    virtual void removeNode(void){};
-    virtual void newMessage(const char *msg){};
+    void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                         eRole role) override
+    {
+    }
+    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                 eRole role) override
+    {
+    }
+    void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                    eRole role) override
+    {
+    }
 
   protected:
-    // add own message to current chat
-    virtual void addMessage(char *msg){};
+    virtual void addMessage(char *msg) {}
+    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg) {}
 
   private:
+    // view creation only via ViewFactory
+    friend class ViewFactory;
+    static OLEDView_128x64 *instance(void);
+    static OLEDView_128x64 *instance(const DisplayDriverConfig &cfg);
     OLEDView_128x64();
+    OLEDView_128x64(DisplayDriver *driver);
 
     static OLEDView_128x64 *gui;
 };

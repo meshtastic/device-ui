@@ -3,38 +3,9 @@
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 
-const uint32_t screenWidth = 320;
-const uint32_t screenHeight = 240;
-
-// ST7789 TFT LCD
-#define ST7789_CS 12
-#define ST7789_RS 11  // DC
-#define ST7789_SDA 41 // MOSI
-#define ST7789_SCK 40
-#define ST7789_RESET -1
-#define ST7789_MISO 38
-#define ST7789_BUSY -1
-#define ST7789_BL 42
-#define ST7789_SPI_HOST SPI2_HOST
-#define ST7789_BACKLIGHT_EN 42
+#ifndef SPI_FREQUENCY
 #define SPI_FREQUENCY 80000000
-#define SPI_READ_FREQUENCY 16000000
-
-#define TFT_BL ST7789_BL
-#define TFT_OFFSET_X 0
-#define TFT_OFFSET_Y 0
-#define TFT_OFFSET_ROTATION 1
-
-#define HAS_TOUCHSCREEN 1
-#define SCREEN_TOUCH_INT 16
-#define TOUCH_I2C_PORT 0
-#define TOUCH_SLAVE_ADDRESS 0x5D // I2C Touch controller
-
-#define I2C_SDA 18 // I2C pins for this board
-#define I2C_SCL 8
-#define KB_POWERON 10 // must be set to HIGH
-#define KB_SLAVE_ADDRESS 0x55
-#define KB_BL_PIN 46 // not used for now
+#endif
 
 class LGFX_TDECK : public lgfx::LGFX_Device
 {
@@ -44,26 +15,29 @@ class LGFX_TDECK : public lgfx::LGFX_Device
     lgfx::Touch_GT911 _touch_instance;
 
   public:
+    const uint32_t screenWidth = 320;
+    const uint32_t screenHeight = 240;
+
     LGFX_TDECK(void)
     {
         {
             auto cfg = _bus_instance.config();
 
             // SPI
-            cfg.spi_host = ST7789_SPI_HOST;
+            cfg.spi_host = SPI2_HOST;
             cfg.spi_mode = 0;
-            cfg.freq_write = SPI_FREQUENCY;     // SPI clock for transmission (up to 80MHz, rounded to
-                                                // the value obtained by dividing 80MHz by an integer)
-            cfg.freq_read = SPI_READ_FREQUENCY; // SPI clock when receiving
+            cfg.freq_write = SPI_FREQUENCY; // SPI clock for transmission (up to 80MHz, rounded to
+                                            // the value obtained by dividing 80MHz by an integer)
+            cfg.freq_read = 16000000;       // SPI clock when receiving
             cfg.spi_3wire = false;
             cfg.use_lock = true;               // Set to true to use transaction locking
             cfg.dma_channel = SPI_DMA_CH_AUTO; // SPI_DMA_CH_AUTO; // Set DMA channel
                                                // to use (0=not use DMA / 1=1ch / 2=ch
                                                // / SPI_DMA_CH_AUTO=auto setting)
-            cfg.pin_sclk = ST7789_SCK;         // Set SPI SCLK pin number
-            cfg.pin_mosi = ST7789_SDA;         // Set SPI MOSI pin number
-            cfg.pin_miso = ST7789_MISO;        // Set SPI MISO pin number (-1 = disable)
-            cfg.pin_dc = ST7789_RS;            // Set SPI DC pin number (-1 = disable)
+            cfg.pin_sclk = 40;                 // Set SPI SCLK pin number
+            cfg.pin_mosi = 41;                 // Set SPI MOSI pin number
+            cfg.pin_miso = 38;                 // Set SPI MISO pin number (-1 = disable)
+            cfg.pin_dc = 11;                   // Set SPI DC pin number (-1 = disable)
 
             _bus_instance.config(cfg);              // applies the set value to the bus.
             _panel_instance.setBus(&_bus_instance); // set the bus on the panel.
@@ -72,17 +46,17 @@ class LGFX_TDECK : public lgfx::LGFX_Device
         {                                        // Set the display panel control.
             auto cfg = _panel_instance.config(); // Gets a structure for display panel settings.
 
-            cfg.pin_cs = ST7789_CS; // Pin number where CS is connected (-1 = disable)
-            cfg.pin_rst = -1;       // Pin number where RST is connected  (-1 = disable)
-            cfg.pin_busy = -1;      // Pin number where BUSY is connected (-1 = disable)
+            cfg.pin_cs = 12;   // Pin number where CS is connected (-1 = disable)
+            cfg.pin_rst = -1;  // Pin number where RST is connected  (-1 = disable)
+            cfg.pin_busy = -1; // Pin number where BUSY is connected (-1 = disable)
 
             // The following setting values ​​are general initial values ​​for
             // each panel, so please comment out any unknown items and try them.
 
             cfg.panel_width = screenHeight; // actual displayable width
             cfg.panel_height = screenWidth; // actual displayable height
-            cfg.offset_x = TFT_OFFSET_X;    // Panel offset amount in X direction
-            cfg.offset_y = TFT_OFFSET_Y;    // Panel offset amount in Y direction
+            cfg.offset_x = 0;               // Panel offset amount in X direction
+            cfg.offset_y = 0;               // Panel offset amount in Y direction
             cfg.offset_rotation = 1;        // Rotation direction value offset 0~7 (4~7 is upside down)
             cfg.dummy_read_pixel = 8;       // Number of bits for dummy read before pixel readout
             cfg.dummy_read_bits = 1;        // Number of bits for dummy read before non-pixel data read
@@ -106,8 +80,8 @@ class LGFX_TDECK : public lgfx::LGFX_Device
         {
             auto cfg = _light_instance.config(); // Gets a structure for backlight settings.
 
-            cfg.pin_bl = ST7789_BL; // Pin number to which the backlight is connected
-            cfg.invert = false;     // true to invert the brightness of the backlight
+            cfg.pin_bl = 42;    // Pin number to which the backlight is connected
+            cfg.invert = false; // true to invert the brightness of the backlight
             cfg.freq = 44100;
             cfg.pwm_channel = 7;
 
@@ -124,14 +98,14 @@ class LGFX_TDECK : public lgfx::LGFX_Device
             cfg.x_max = screenWidth - 1;
             cfg.y_min = 0;
             cfg.y_max = screenHeight - 1;
-            cfg.pin_int = SCREEN_TOUCH_INT;
+            cfg.pin_int = 16;
             cfg.offset_rotation = 0;
 
             // I2C
-            cfg.i2c_port = TOUCH_I2C_PORT;
-            cfg.i2c_addr = TOUCH_SLAVE_ADDRESS;
-            cfg.pin_sda = I2C_SDA;
-            cfg.pin_scl = I2C_SCL;
+            cfg.i2c_port = 0;
+            cfg.i2c_addr = 0x5D;
+            cfg.pin_sda = 18;
+            cfg.pin_scl = 8;
             cfg.bus_shared = true;
             cfg.freq = 400000;
 

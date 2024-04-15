@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DisplayDriverConfig.h"
 #include "MeshtasticView.h"
 
 /**
@@ -11,7 +12,6 @@
 class TFTView_320x240 : public MeshtasticView
 {
   public:
-    static TFTView_320x240 *instance(void);
     void init(IClientBase *client) override;
     void task_handler(void) override;
 
@@ -95,7 +95,12 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateFreeMem(void);
 
   private:
+    // view creation only via ViewFactory
+    friend class ViewFactory;
+    static TFTView_320x240 *instance(void);
+    static TFTView_320x240 *instance(const DisplayDriverConfig &cfg);
     TFTView_320x240();
+    TFTView_320x240(DisplayDriver *driver);
 
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);

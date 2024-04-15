@@ -1,10 +1,10 @@
 #pragma once
 
+#include "DisplayDriverConfig.h"
 #include "MeshtasticView.h"
-#include "lvgl.h"
 
 /**
- * @brief GUI view for T-Watch-S3
+ * @brief GUI view for e.g. T-Watch-S3
  * Handles creation of display driver and controller.
  * Note: due to static callbacks in lvgl this class is modelled as
  *       a singleton with static callback members
@@ -12,21 +12,33 @@
 class TFTView_240x240 : public MeshtasticView
 {
   public:
-    static TFTView_240x240 *instance(void);
-    virtual void init(IClientBase *client);
-    virtual void task_handler(void);
-    void populate_nodes(void);
+    void init(IClientBase *client) override;
+    void task_handler(void) override;
 
-    virtual void addNode(void){};
-    virtual void removeNode(void){};
-    virtual void newMessage(const char *msg){};
+    void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                         eRole role) override
+    {
+    }
+    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                 eRole role) override
+    {
+    }
+    void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
+                    eRole role) override
+    {
+    }
 
   protected:
-    // add own message to current chat
-    virtual void addMessage(char *msg){};
+    virtual void addMessage(char *msg) {}
+    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg) {}
 
   private:
+    // view creation only via ViewFactory
+    friend class ViewFactory;
+    static TFTView_240x240 *instance(void);
+    static TFTView_240x240 *instance(const DisplayDriverConfig &cfg);
     TFTView_240x240();
+    TFTView_240x240(DisplayDriver *driver);
 
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);

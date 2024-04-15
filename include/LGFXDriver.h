@@ -12,9 +12,9 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 {
   public:
     LGFXDriver(uint16_t width, uint16_t height);
-    virtual void init(DeviceGUI *gui);
-    virtual bool hasTouch() { return TFTDriver<LGFX>::tft->touch(); }
-    virtual void task_handler(void);
+    void init(DeviceGUI *gui) override;
+    bool hasTouch() override { return TFTDriver<LGFX>::tft->touch(); }
+    void task_handler(void) override;
 
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++
