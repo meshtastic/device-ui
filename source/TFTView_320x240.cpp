@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <functional>
 #include <math.h>
+#include "Arduino.h"
 
 LV_IMG_DECLARE(ui_img_230282600);  // assets/lock-keyhole24-white.png
 LV_IMG_DECLARE(ui_img_558997549);  // assets/key-round24-white.png

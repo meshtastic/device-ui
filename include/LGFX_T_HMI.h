@@ -24,7 +24,11 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
         {
             auto cfg = _bus_instance.config();
             cfg.freq_write = SPI_FREQUENCY;
+#if CONFIG_IDF_TARGET_ESP32S3 
             cfg.freq_read = 16000000;
+#endif
+            cfg.pin_rd = -1;
+            cfg.pin_wr = 8;
             cfg.pin_rs = 7;
             cfg.pin_d0 = 48;
             cfg.pin_d1 = 47;
@@ -53,7 +57,7 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
             cfg.dummy_read_pixel = 8;
             cfg.dummy_read_bits = 1;
             cfg.readable = true;
-            cfg.invert = true;
+            cfg.invert = false;
             cfg.rgb_order = false;
             cfg.dlen_16bit = false;
             cfg.bus_shared = true;

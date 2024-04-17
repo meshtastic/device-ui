@@ -24,7 +24,9 @@ class LGFX_WT_SC01_PLUS : public lgfx::LGFX_Device
         {
             auto cfg = _bus_instance.config();
             cfg.freq_write = SPI_FREQUENCY;
+#if CONFIG_IDF_TARGET_ESP32S3 
             cfg.freq_read = 16000000;
+#endif
             cfg.pin_wr = 47;
             cfg.pin_rd = -1;
             cfg.pin_rs = 0;
