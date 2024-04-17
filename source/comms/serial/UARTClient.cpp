@@ -1,6 +1,6 @@
 #include "UARTClient.h"
 #include "Arduino.h"
-#include "Log.h"
+#include "ILog.h"
 
 #ifndef SERIAL_BAUD
 #define SERIAL_BAUD 38400

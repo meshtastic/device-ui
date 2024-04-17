@@ -1,5 +1,5 @@
 #include "MeshEnvelope.h"
-#include "Log.h"
+#include "ILog.h"
 #include "mesh-pb-constants.h"
 #include <pb_decode.h>
 #include <pb_encode.h>

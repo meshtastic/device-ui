@@ -1,5 +1,5 @@
 #include "SerialClient.h"
-#include "Log.h"
+#include "ILog.h"
 #include "MeshEnvelope.h"
 #include <time.h>
 #ifdef ARCH_ESP32
