@@ -12,9 +12,12 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 {
   public:
     LGFXDriver(uint16_t width, uint16_t height);
+    LGFXDriver(const DisplayDriverConfig &cfg);
     void init(DeviceGUI *gui) override;
-    bool hasTouch() override { return TFTDriver<LGFX>::tft->touch(); }
+    bool hasTouch() override { return lgfx->touch(); }
     void task_handler(void) override;
+
+    virtual bool hasLight(void) { return lgfx->light(); }
 
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++
@@ -41,9 +44,17 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
     lastTouch = millis();
 }
 
+template <class LGFX>
+LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
+    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), powerSaving(false)
+{
+    lgfx = this->tft;
+    lastTouch = millis();
+}
+
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
-    if (hasTouch() /* || hasButton() */) {
+    if ((hasTouch() /* || hasButton() */) && hasLight()) {
         if (lastTouch + displayTimeout < millis()) {
             if (!powerSaving) {
                 // dim display brightness slowly down
@@ -126,6 +137,8 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev
         data->state = LV_INDEV_STATE_PR;
         data->point.x = (int16_t)touchX;
         data->point.y = (int16_t)touchY;
+
+        ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
 #if 0
         if (data->point.x < 0)
             data->point.x = 0;
@@ -186,7 +199,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
     // FIXME: read from store using lfs_file_read
     // uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311};
     uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
-#elif defined(ESP32_2432S028R) || defined(NODEMCU_32S)
+#elif defined(ESP32_2432S028R) || defined(NODEMCU_32S) || defined(PORTDUINO)
     uint16_t parameters[8] = {255, 3691, 203, 198, 3836, 3659, 3795, 162};
 #else
     uint16_t parameters[8] = {0, 0, 0, 0, 0, 0, 0, 0};

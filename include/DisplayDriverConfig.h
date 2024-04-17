@@ -68,7 +68,7 @@ class DisplayDriverConfig
                 bool use_lock;
                 uint8_t dma_channel;
                 uint16_t spi_host;
-            };
+            } spi;
             struct { // parallel8 bus
                 union {
                     struct {
@@ -90,7 +90,7 @@ class DisplayDriverConfig
                         int8_t pin_d7;
                     };
                 };
-            };
+            } parallel;
         };
     };
 
@@ -111,13 +111,13 @@ class DisplayDriverConfig
                 int16_t pin_sclk;
                 int16_t pin_mosi;
                 int16_t pin_miso;
-            };
+            } spi;
             struct {
+                int16_t i2c_addr;
                 int8_t i2c_port;
                 int16_t pin_scl;
                 int16_t pin_sda;
-                int16_t i2c_addr;
-            };
+            } i2c;
         };
         int16_t pin_cs = -1;
     };
@@ -125,7 +125,7 @@ class DisplayDriverConfig
     struct light_config_t {
         uint32_t freq = 1200;
         int16_t pin_bl = -1;
-        uint8_t pwm_channel = 0;
+        int8_t pwm_channel = -1;
         bool invert = false;
     };
 
@@ -134,7 +134,7 @@ class DisplayDriverConfig
     DisplayDriverConfig(struct panel_config_t &&panel, struct bus_config_t &&bus, struct light_config_t &&light,
                         struct touch_config_t &&touch);
 
-    // class builder if using ctor(void)
+    // class builder when using ctor(void)
     DisplayDriverConfig &device(enum device_t device);
     DisplayDriverConfig &panel(panel_config_t &&cfg);
     DisplayDriverConfig &bus(bus_config_t &&cfg);

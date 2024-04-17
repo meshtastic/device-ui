@@ -57,23 +57,23 @@ DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 
 DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 {
-#if defined(LGFXConfig)
+#if defined(LGFXConfig) || defined(PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_TFT) {
         // for now assume LGFX driver, but could be also TFT_eSPI if implemented
-        return new LGFXDriver<LGFXConfig>(cfg.width(), cfg.height());
+        return new LGFXDriver<LGFXConfig>(cfg);
     }
 #endif
-#if defined(OLEDConfig)
+#if defined(OLEDConfig) || defined(PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_OLED) {
-        // TODO return new OLEDDriver<OLEDConfig>(cfg.width(), cfg.height());
+        // TODO return new OLEDDriver<OLEDConfig>(cfg);
     }
 #endif
-#if defined(EINKConfig)
+#if defined(EINKConfig) || defined(PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_EINK) {
-        // TODO return new EINKDriver<EINKConfig>(cfg.width(), cfg.height());
+        // TODO return new EINKDriver<EINKConfig>(cfg);
     }
 #endif
-#ifdef USE_X11
+#if defined(USE_X11)
     if (cfg._device == DisplayDriverConfig::device_t::X11) {
         return &X11Driver::create(cfg.width(), cfg.height());
     }
