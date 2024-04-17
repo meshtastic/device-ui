@@ -80,7 +80,10 @@ class LGFXConfig : public lgfx::LGFX_Device
             if (config._bus.parallel.pin_d0 > 0) {
                 lgfx::Bus_Parallel8 *bus = new lgfx::Bus_Parallel8;
                 auto cfg = bus->config();
-
+                cfg.freq_write = config._bus.freq_write;
+#if CONFIG_IDF_TARGET_ESP32S3 
+                cfg.freq_read = config._bus.freq_read;
+#endif
                 for (int i = 0; i < 8; i++)
                     cfg.pin_data[i] = config._bus.parallel.pin_data[i];
                 cfg.pin_rd = config._bus.parallel.pin_rd;

@@ -27,10 +27,10 @@
 #ifdef UNPHONE
 #include "LGFX_UNPHONE.h"
 #endif
-#ifdef ESP2432S028RV1
+#ifdef ESP32_2432S028RV1
 #include "LGFX_ESP2432S028RV1.h"
 #endif
-#ifdef ESP2432S028RV2
+#ifdef ESP32_2432S028RV2
 #include "LGFX_ESP2432S028RV2.h"
 #endif
 #ifdef WT32_SC01
@@ -38,6 +38,9 @@
 #endif
 #ifdef HELTEC_TRACKER
 #include "LGFX_HELTEC_TRACKER.h"
+#endif
+#ifdef NODEMCU_32S
+#include "LGFX_ESPILI9341XPT2046.h"
 #endif
 #endif
 
