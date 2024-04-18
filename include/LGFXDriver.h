@@ -200,6 +200,8 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         // FIXME: read calibration data from persistent storage using lfs_file_read
         // uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311};
         uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
+#elif defined(T_HMI)
+        uint16_t parameters[8] = {399, 293, 309, 3701, 3649, 266, 3678, 3689};
 #elif defined(ESP32_2432S028RV1)
         uint16_t parameters[8] = {278, 3651, 228, 173, 3819, 3648, 3815, 179};
 #elif defined(NODEMCU_32S) || defined(PORTDUINO)

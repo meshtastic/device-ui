@@ -3,10 +3,6 @@
 
 #include <LovyanGFX.hpp>
 
-#ifndef SPI_FREQUENCY
-#define SPI_FREQUENCY 80000000
-#endif
-
 class LGFX_T_HMI : public lgfx::LGFX_Device
 {
 
@@ -23,7 +19,7 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
     {
         {
             auto cfg = _bus_instance.config();
-            cfg.freq_write = SPI_FREQUENCY;
+            cfg.freq_write = 20000000;
 #if CONFIG_IDF_TARGET_ESP32S3 
             cfg.freq_read = 16000000;
 #endif
@@ -60,7 +56,7 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
             cfg.invert = false;
             cfg.rgb_order = false;
             cfg.dlen_16bit = false;
-            cfg.bus_shared = true;
+            cfg.bus_shared = false;
 
             _panel_instance.config(cfg);
         }
@@ -80,17 +76,17 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
         {
             auto cfg = _touch_instance.config();
 
-            cfg.x_min = 0;
-            cfg.x_max = 4095;
-            cfg.y_min = 0;
-            cfg.y_max = 4095;
+            cfg.x_min = 300;
+            cfg.x_max = 3900;
+            cfg.y_min = 400;
+            cfg.y_max = 3900;
             cfg.pin_int = 9;
             cfg.pin_cs = 2;
             cfg.pin_sclk = 1;
             cfg.pin_miso = 4;
             cfg.pin_mosi = 3;
             cfg.spi_host = SPI3_HOST;
-            cfg.bus_shared = true;
+            cfg.bus_shared = false;
             cfg.offset_rotation = 0;
             cfg.freq = 2500000;
 
