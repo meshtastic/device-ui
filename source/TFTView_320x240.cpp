@@ -112,6 +112,10 @@ void TFTView_320x240::ui_events_init(void)
             TFTView_320x240 &view = *static_cast<TFTView_320x240 *>(e->user_data);
             view.ui_set_active(ui_HomeButton, ui_HomePanel, ui_TopPanel);
         }
+        else if (event_code == LV_EVENT_LONG_PRESSED) {
+            // force re-sync with node
+            TFTView_320x240::instance()->controller->setConfigRequested(true);
+        }
     };
 
     // main button events
