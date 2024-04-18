@@ -53,7 +53,11 @@ bool SerialClient::sleep(int16_t pin)
     // TODO: check: - can only work if using the refclock, which is limited to about 9600 bps
     assert(uart_set_wakeup_threshold(UART_NUM_0, 3) == ESP_OK);
     assert(esp_sleep_enable_uart_wakeup(UART_NUM_0) == ESP_OK);
-#else // serial1 and serial2 is unsupported for wakeup
+#elif defined(WAKE_ON_SERIAL) && defined(USE_SERIAL1)
+    assert(uart_set_wakeup_threshold(UART_NUM_1, 3) == ESP_OK);
+    assert(esp_sleep_enable_uart_wakeup(UART_NUM_1) == ESP_OK);
+ #else
+    // serial2 is unsupported for wakeup
     // TODO: set flag for possible re-syncronisation with device
 #endif
 
@@ -73,6 +77,8 @@ bool SerialClient::sleep(int16_t pin)
         ILOG_ERROR("esp_sleep_enable_gpio_wakeup result %d\n", res);
     }
 
+    ILOG_INFO("going to sleep, wake up on GPIO%02d\n", pin);
+    delay(1);
     res = esp_light_sleep_start();
     if (res != ESP_OK) {
         ILOG_ERROR("esp_light_sleep_start result %d\n", res);
