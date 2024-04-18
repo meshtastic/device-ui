@@ -30,14 +30,18 @@ class LGFXConfig : public lgfx::LGFX_Device
         { // configure panel settings
             if (strcasecmp(config._panel.type, "ST7789") == 0)
                 _panel_instance = new lgfx::Panel_ST7789;
+            else if (strcasecmp(config._panel.type, "ST7796") == 0)
+                _panel_instance = new lgfx::Panel_ST7796;
             else if (strcasecmp(config._panel.type, "ST7735") == 0)
                 _panel_instance = new lgfx::Panel_ST7735;
             else if (strcasecmp(config._panel.type, "ST7735S") == 0)
                 _panel_instance = new lgfx::Panel_ST7735S;
             else if (strcasecmp(config._panel.type, "ILI9341") == 0)
                 _panel_instance = new lgfx::Panel_ILI9341;
-            //            else if (strcasecmp(config._panel.type, "ILI9341_2") == 0)
-            //                _panel_instance = new lgfx::Panel_ILI9341_2;
+            // else if (strcasecmp(config._panel.type, "ILI9341_2") == 0)
+            //     _panel_instance = new lgfx::Panel_ILI9341_2;
+            else if (strcasecmp(config._panel.type, "ILI9488") == 0)
+                _panel_instance = new lgfx::Panel_ILI9488;
             else if (strcasecmp(config._panel.type, "HX8357D") == 0)
                 _panel_instance = new lgfx::Panel_HX8357D;
             else {
@@ -81,7 +85,7 @@ class LGFXConfig : public lgfx::LGFX_Device
                 lgfx::Bus_Parallel8 *bus = new lgfx::Bus_Parallel8;
                 auto cfg = bus->config();
                 cfg.freq_write = config._bus.freq_write;
-#if CONFIG_IDF_TARGET_ESP32S3 
+#if CONFIG_IDF_TARGET_ESP32S3
                 cfg.freq_read = config._bus.freq_read;
 #endif
                 for (int i = 0; i < 8; i++)
