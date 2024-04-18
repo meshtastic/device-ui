@@ -196,13 +196,16 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 #ifdef CALIBRATE_TOUCH
     ILOG_INFO("Calibrating touch...\n");
 #ifdef T_DECK
-    // FIXME: read from store using lfs_file_read
+    // FIXME: read calibration data from persistent storage using lfs_file_read
     // uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311};
     uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
-#elif defined(ESP32_2432S028R) || defined(NODEMCU_32S) || defined(PORTDUINO)
+#elif defined(ESP32_2432S028RV1)
+    uint16_t parameters[8] = {278, 3651, 228, 173, 3819, 3648, 3815, 179};
+#elif defined(NODEMCU_32S) || defined(PORTDUINO)
     uint16_t parameters[8] = {255, 3691, 203, 198, 3836, 3659, 3795, 162};
 #else
     uint16_t parameters[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    ILOG_WARN("Touch screen has no calibration data!!!\n");
 #endif
 
 #if !CALIBRATE_TOUCH
@@ -221,7 +224,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
                                          std::max(TFTDriver<LGFX>::tft->width(), TFTDriver<LGFX>::tft->height()) >> 3);
 
     // FIXME: store parameters[] using lfs_file_write
-    ILOG_DEBUG("Touchscreen calibration parameters: %d, %d, %d, %d, %d, %d, %d, %d\n", parameters[0], parameters[1],
+    ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", parameters[0], parameters[1],
                parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
 #endif
 #endif
