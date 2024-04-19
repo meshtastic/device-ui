@@ -21,10 +21,6 @@
 </p>
 <div style="text-align: center;">
 
-[![CLA assistant](https://cla-assistant.io/readme/badge/mverch67/device-ui)](https://cla-assistant.io/mverch67/device-ui)
-[![Fiscal Contributors](https://opencollective.com/meshtastic/tiers/badge.svg?label=Fiscal%20Contributors&color=deeppink)](https://opencollective.com/meshtastic)
-[![Vercel](https://img.shields.io/static/v1?label=Powered%20by&message=Vercel&style=flat&logo=vercel&color=000000)](https://vercel.com?utm_source=meshtastic&utm_campaign=oss)
-
 </div>
 
 ## :wave: Introduction
@@ -38,14 +34,14 @@ This C++ library is intended to support the following scenarios with enhanced sc
 - Linux based devices with LoRa shield, e.g Raspberry Pi / Milk-V Duo/Mars with TFT display (hat or diy)
 - Native Linux X11 application with SimRadio e.g. for tests, GUI simulation & debugging (MQTT only application)
 
-<img src="docs/T-Deck.jpg" alt="scenario 1" width="260" height="200">
-<img src="docs/CYD.png" alt="scenario 2" width="280" height="200">
-<img src="docs/Pi400-TFT.jpg" alt="scenario 3" width="220" height="200">
-<img src="docs/X11.png" alt="scenario 4" width="280" height="200">
+<img src="docs/T-Deck.jpg" alt="scenario 1" width="205" height="150">
+<img src="docs/CYD.png" alt="scenario 2" width="220" height="150">
+<img src="docs/Pi400-TFT.jpg" alt="scenario 3" width="170" height="150">
+<img src="docs/X11.png" alt="scenario 4" width="230" height="150">
 
 ## :pencil: TODOs
 
-### :japanese_castle: General Architecture
+### General Architecture
 
     - [ ] Overall design (MVC approach)
       - [x] DisplayDriver inheritance hierarchy
@@ -98,10 +94,10 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [x] Messages info
       - [x] Nodes info
       - [x] GPS info
-      - [ ] WiFi
-      - [ ] Bluetooth
-      - [ ] MQTT
-      - [x] Free memory
+      - [ ] WiFi info
+      - [ ] Bluetooth info
+      - [ ] MQTT info
+      - [x] Free memory info
     - [ ] Nodes panel
       - [x] Scroll display and sorting
       - [ ] Node details
@@ -146,7 +142,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [ ] Trackball support (e.g. fast scrolling list views)
     - [ ] SD card support, mainly for offline maps or import/export (config & chat history)
     - [ ] (Optional): allow bluetooth connection (-> PhoneAPI queue re-design)
-    - [ ] I2S Audio support?
+    - [ ] I2S Audio support
 
 ### :watch: T-Watch
 
