@@ -34,10 +34,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
 - Linux based devices with LoRa shield, e.g Raspberry Pi / Milk-V Duo/Mars with TFT display (hat or diy)
 - Native Linux X11 application with SimRadio e.g. for tests, GUI simulation & debugging (MQTT only application)
 
-<img src="docs/T-Deck.jpg" alt="scenario 1" width="205" height="150">
-<img src="docs/CYD.png" alt="scenario 2" width="220" height="150">
-<img src="docs/Pi400-TFT.jpg" alt="scenario 3" width="170" height="150">
-<img src="docs/X11.png" alt="scenario 4" width="230" height="150">
+<img src="docs/T-Deck.jpg" alt="scenario 1" width="205" height="150"><img src="docs/CYD.png" alt="scenario 2" width="220" height="150"><img src="docs/Pi400-TFT.jpg" alt="scenario 3" width="170" height="150"><img src="docs/X11.png" alt="scenario 4" width="230" height="150">
 
 ## :pencil: TODOs
 
