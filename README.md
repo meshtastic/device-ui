@@ -12,9 +12,9 @@
 
 <p align="center">
 <a href="">
-    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/mverch67/device-ui"></a>
-    <a href="https://github.com/mverch67/device-ui/issues">
-    <img alt="GitHub issues" src="https://img.shields.io/github/issues/mverch67/device-ui"></a>
+    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/meshtastic/device-ui"></a>
+    <a href="https://github.com/meshtastic/device-ui/issues">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/meshtastic/device-ui"></a>
   <a href="https://opencollective.com/meshtastic">
     <img alt="Open Collective backers" src="https://img.shields.io/opencollective/backers/meshtastic?label=support%20meshtastic">
   </a>
@@ -71,7 +71,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] Portuguese translation
       - [ ] French translation
       - [ ] Italian translation
-      - [ ] (other languages with latin characters)
+      - [ ] Optional: other languages with latin characters)
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [ ] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
     - [ ] Allow co-existence of generated files/views by different SquareLine Studio projects
@@ -147,7 +147,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] 240x240 View
       - [ ] Clock screen
     - [ ] Firmware project integration
-    - [ ] Continue work on SquareLine Studio UI screens :tada:
+    - [ ] Continue work on SquareLine Studio UI screens
     - [ ] Refactoring of common code with 320x240 view into base class
 
 ### OLED
