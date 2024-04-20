@@ -1260,7 +1260,7 @@ void TFTView_320x240::task_handler(void)
         lastrun5 = curtime;
         updateFreeMem();
     }
-    if (curtime - lastrun >= 60) { // call every 60s
+    if (curtime - lastrun60 >= 60) { // call every 60s
         lastrun60 = curtime;
         updateAllLastHeard();
     }

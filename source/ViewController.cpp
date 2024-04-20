@@ -63,6 +63,13 @@ void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
 
 void ViewController::sendConfig(void) {}
 
+void ViewController::sendHeartbeat(void)
+{
+    if (client->isConnected()) {
+        client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_heartbeat_tag});
+    }
+}
+
 void ViewController::setConfigRequested(bool required)
 {
     requestConfigRequired = required;

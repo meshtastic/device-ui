@@ -1,4 +1,5 @@
 #include "MeshtasticView.h"
+#include "DisplayDriver.h"
 #include "ILog.h"
 #include "ViewController.h"
 #include "ui.h"
@@ -19,6 +20,16 @@ void MeshtasticView::task_handler(void)
 {
     DeviceGUI::task_handler();
     controller->runOnce();
+
+    time_t curtime;
+    time(&curtime);
+    if (curtime - lastrun30 >= 30) {
+        lastrun30 = curtime;
+        // send heartbeat to server every 30s
+        if (!displaydriver->isPowersaving()) {
+            controller->sendHeartbeat();
+        }
+    }
 };
 
 bool MeshtasticView::sleep(int16_t pin)

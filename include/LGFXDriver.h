@@ -15,6 +15,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     LGFXDriver(const DisplayDriverConfig &cfg);
     void init(DeviceGUI *gui) override;
     bool hasTouch() override { return lgfx->touch(); }
+    bool isPowersaving() override { return powerSaving; }
     void task_handler(void) override;
 
     virtual bool hasLight(void) { return lgfx->light(); }
