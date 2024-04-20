@@ -63,7 +63,7 @@ class LGFX_ESP2432S028RV2 : public lgfx::LGFX_Device
             cfg.panel_width = screenHeight; // actual displayable width
             cfg.panel_height = screenWidth; // actual displayable height
             cfg.offset_x = 0;               // Panel offset amount in X direction
-            cfg.offset_y = 0;              // Panel offset amount in Y direction
+            cfg.offset_y = 0;               // Panel offset amount in Y direction
             cfg.offset_rotation = 6;        // Rotation direction value offset 0~7 (4~7 is upside down)
             cfg.dummy_read_pixel = 8;       // Number of bits for dummy read before pixel readout
             cfg.dummy_read_bits = 1;        // Number of bits for dummy read before non-pixel data read

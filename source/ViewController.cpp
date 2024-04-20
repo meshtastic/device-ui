@@ -114,8 +114,9 @@ bool ViewController::send(uint32_t to, uint8_t ch, meshtastic_PortNum portnum, c
                                    bytes[216], bytes[217], bytes[218], bytes[219], bytes[220], bytes[221], bytes[222], bytes[223],
                                    bytes[224], bytes[225], bytes[226], bytes[227], bytes[228], bytes[229], bytes[230], bytes[231],
                                    bytes[232], bytes[233], bytes[234], bytes[235], bytes[236]}},
-                .want_response = true},
-            .want_ack = (to != 0 && to != UINT32_MAX)}});
+                .want_response = false}, // FIXME: traceRoute, requestPosition, remote config: true
+            .hop_limit = 3,              // FIXME: use value from setting
+            .want_ack = (to != 0)}});
 }
 
 bool ViewController::receive(void)

@@ -10,7 +10,7 @@ PacketServer *packetServer = nullptr;
 
 PacketServer::PacketServer() : queue(nullptr) {}
 
-PacketServer* PacketServer::init(void)
+PacketServer *PacketServer::init(void)
 {
     packetServer = new PacketServer;
     sharedQueue = new SharedQueue;

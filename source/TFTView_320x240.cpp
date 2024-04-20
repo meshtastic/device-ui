@@ -1,6 +1,7 @@
 #if HAS_TFT // VIEW_320x240
 
 #include "TFTView_320x240.h"
+#include "Arduino.h"
 #include "DisplayDriverFactory.h"
 #include "ILog.h"
 #include "ViewController.h"
@@ -9,7 +10,6 @@
 #include <cstdio>
 #include <functional>
 #include <math.h>
-#include "Arduino.h"
 
 LV_IMG_DECLARE(ui_img_230282600);  // assets/lock-keyhole24-white.png
 LV_IMG_DECLARE(ui_img_558997549);  // assets/key-round24-white.png
@@ -111,8 +111,7 @@ void TFTView_320x240::ui_events_init(void)
         if (event_code == LV_EVENT_CLICKED) {
             TFTView_320x240 &view = *static_cast<TFTView_320x240 *>(e->user_data);
             view.ui_set_active(ui_HomeButton, ui_HomePanel, ui_TopPanel);
-        }
-        else if (event_code == LV_EVENT_LONG_PRESSED) {
+        } else if (event_code == LV_EVENT_LONG_PRESSED) {
             // force re-sync with node
             TFTView_320x240::instance()->controller->setConfigRequested(true);
         }

@@ -3,7 +3,8 @@
 #include "SerialClient.h"
 #include <time.h>
 
-class WLANClient : public SerialClient {
+class WLANClient : public SerialClient
+{
   public:
     WLANClient(void);
     void init(void) override;
@@ -16,10 +17,10 @@ class WLANClient : public SerialClient {
 
   protected:
     // low-level send method to write the encoded buffer to WLAN
-    bool send(const uint8_t* buf, size_t len);
+    bool send(const uint8_t *buf, size_t len);
 
     // low-level receive method, periodically being called via thread
-    size_t receive(uint8_t* buf, size_t space_left);
+    size_t receive(uint8_t *buf, size_t space_left);
 
     time_t lastReceived;
 };
