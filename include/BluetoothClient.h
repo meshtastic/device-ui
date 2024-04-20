@@ -3,8 +3,8 @@
 #include "SerialClient.h"
 #include <time.h>
 
-
-class BluetoothClient : public SerialClient {
+class BluetoothClient : public SerialClient
+{
   public:
     BluetoothClient(void);
     void init(void) override;
@@ -17,10 +17,10 @@ class BluetoothClient : public SerialClient {
 
   protected:
     // low-level send method to write the buffer to serial
-    bool send(const uint8_t* buf, size_t len);
+    bool send(const uint8_t *buf, size_t len);
 
     // low-level receive method, periodically being called via thread
-    size_t receive(uint8_t* buf, size_t space_left);
+    size_t receive(uint8_t *buf, size_t space_left);
 
     time_t lastReceived;
 };

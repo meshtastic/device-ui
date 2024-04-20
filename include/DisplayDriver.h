@@ -14,6 +14,7 @@ class DisplayDriver
     virtual void init(DeviceGUI *gui);
     virtual bool hasTouch(void) { return false; }
     virtual void task_handler(void) { lv_timer_handler(); };
+    virtual bool isPowersaving() { return false; }
     virtual ~DisplayDriver(){};
 
     uint16_t getScreenWidth(void) { return screenWidth; }

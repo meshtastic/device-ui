@@ -106,5 +106,5 @@ class MeshtasticView : public DeviceGUI
     uint32_t nodeCount = 1, nodesOnline = 1, ownNode;    // node info
     uint32_t unreadMessages = 0;                         // messages
     bool configComplete = false;                         // config request finishe
-    time_t lastrun;                                      // 60s task
+    time_t lastrun30 = 0;                                // 30s task
 };

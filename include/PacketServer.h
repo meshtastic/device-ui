@@ -13,7 +13,7 @@ class PacketServer
 {
   public:
     PacketServer();
-    static PacketServer* init(void);
+    static PacketServer *init(void);
     virtual void begin(SharedQueue *_queue);
     virtual bool sendPacket(Packet &&p);
     virtual Packet::PacketPtr receivePacket(void);

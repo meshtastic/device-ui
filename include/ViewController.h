@@ -15,6 +15,7 @@ class ViewController
     virtual void processEvent(void);
     virtual void sendText(uint32_t to, uint8_t ch, const char *textmsg);
     virtual void sendConfig(void); // TODO
+    virtual void sendHeartbeat(void);
     virtual ~ViewController();
 
     void setConfigRequested(bool required);

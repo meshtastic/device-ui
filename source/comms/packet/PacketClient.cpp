@@ -1,7 +1,7 @@
 #include "PacketClient.h"
+#include "ILog.h"
 #include "Packet.h"
 #include "SharedQueue.h"
-#include "ILog.h"
 #include <assert.h>
 
 const uint32_t max_packet_queue_size = 10;

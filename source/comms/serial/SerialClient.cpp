@@ -56,7 +56,7 @@ bool SerialClient::sleep(int16_t pin)
 #elif defined(WAKE_ON_SERIAL) && defined(USE_SERIAL1)
     assert(uart_set_wakeup_threshold(UART_NUM_1, 3) == ESP_OK);
     assert(esp_sleep_enable_uart_wakeup(UART_NUM_1) == ESP_OK);
- #else
+#else
     // serial2 is unsupported for wakeup
     // TODO: set flag for possible re-syncronisation with device
 #endif
