@@ -113,16 +113,18 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [ ] WLAN
       - [ ] Pan & Zoom
       - [ ] Node locations
-    - [ ] General Settings
-      - [ ] Language
-      - [ ] Timezone
-      - [ ] Screen
-      - [ ] Maps
-      - [ ] Audio
-    - [ ] Radio Settings
-      - [ ] Frequency region configuration
-      - [ ] Channel configuration & QR code display
-    - [ ] Module Settings
+    - [ ] Settings
+      - [ ] General Settings
+        - [ ] Language
+        - [ ] Timezone
+        - [ ] Screen
+        - [ ] Maps
+        - [ ] Audio
+      - [ ] Radio Settings
+        - [ ] Frequency region configuration
+        - [ ] Channel configuration & QR code display
+        - [ ] Device Role
+      - [ ] Module Settings
     - [x] Status bar with battery symbol
     - [ ] UI Keyboard navigation & control
 
@@ -159,7 +161,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
 
     - [x] Project integration into firmware
     - [x] Display driver run-time configuration interface
-    - [ ] Add missing settingsMap entries for DisplayDriverConfig
+    - [x] Add missing settingsMap entries for DisplayDriverConfig
     - [ ] Integrate lvgl keyboard input driver
     - [ ] Add support for several SPI devices
     - [ ] Add pwm brightness control
