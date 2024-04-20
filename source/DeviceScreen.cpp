@@ -13,6 +13,11 @@ DeviceScreen &DeviceScreen::create(const DisplayDriverConfig *cfg)
     return *new DeviceScreen(cfg);
 }
 
+DeviceScreen &DeviceScreen::create(DisplayDriverConfig &&cfg)
+{
+    return *new DeviceScreen(std::move(cfg));
+}
+
 DeviceScreen::DeviceScreen(const DisplayDriverConfig *cfg)
 {
     if (cfg) {
@@ -20,6 +25,11 @@ DeviceScreen::DeviceScreen(const DisplayDriverConfig *cfg)
     } else {
         gui = ViewFactory::create();
     }
+}
+
+DeviceScreen::DeviceScreen(DisplayDriverConfig &&cfg)
+{
+    gui = ViewFactory::create(cfg);
 }
 
 void DeviceScreen::init(IClientBase *client)
