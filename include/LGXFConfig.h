@@ -108,6 +108,7 @@ class LGFXConfig : public lgfx::LGFX_Device
                 cfg.pin_mosi = config._bus.spi.pin_mosi;
                 cfg.pin_dc = config._bus.spi.pin_dc;
                 cfg.spi_mode = config._bus.spi.spi_mode;
+                // TODO cfg.spi_host = config._bus.spi.spi_host;
                 bus->config(cfg);
                 _bus_instance = bus;
                 _panel_instance->setBus(_bus_instance);
