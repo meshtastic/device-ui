@@ -108,7 +108,11 @@ class LGFXConfig : public lgfx::LGFX_Device
                 cfg.pin_mosi = config._bus.spi.pin_mosi;
                 cfg.pin_dc = config._bus.spi.pin_dc;
                 cfg.spi_mode = config._bus.spi.spi_mode;
+#ifdef ARDUINO_ARCH_ESP32                
+                cfg.spi_host = (spi_host_device_t)config._bus.spi.spi_host;
+#else
                 cfg.spi_host = config._bus.spi.spi_host;
+#endif
                 bus->config(cfg);
                 _bus_instance = bus;
                 _panel_instance->setBus(_bus_instance);
