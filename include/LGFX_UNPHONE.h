@@ -36,8 +36,8 @@ class LGFX_UNPHONE_V9 : public lgfx::LGFX_Device
     lgfx::Touch_XPT2046 _touch_instance;
 
   public:
-    const uint32_t screenWidth = 480;
-    const uint32_t screenHeight = 320;
+    const uint32_t screenWidth = 480;  // 640
+    const uint32_t screenHeight = 320; // 480
 
     LGFX_UNPHONE_V9(void)
     {
@@ -74,7 +74,7 @@ class LGFX_UNPHONE_V9 : public lgfx::LGFX_Device
             cfg.panel_height = screenWidth; // actual displayable height
             cfg.offset_x = 0;               // Panel offset amount in X direction
             cfg.offset_y = 0;               // Panel offset amount in Y direction
-            cfg.offset_rotation = 0;        // Rotation direction value offset 0~7 (4~7 is upside down)
+            cfg.offset_rotation = 4;        // Rotation direction value offset 0~7 (4~7 is upside down)
             cfg.dummy_read_pixel = 8;       // Number of bits for dummy read before pixel readout
             cfg.dummy_read_bits = 1;        // Number of bits for dummy read before non-pixel data read
             cfg.readable = true;            // Set to true if data can be read
@@ -88,18 +88,24 @@ class LGFX_UNPHONE_V9 : public lgfx::LGFX_Device
 
         {
             // Configure settings for touch control.
-            auto touch_cfg = _touch_instance.config();
+            auto cfg = _touch_instance.config();
 
-            touch_cfg.pin_cs = 38;
-            touch_cfg.x_min = 300;
-            touch_cfg.x_max = 3800;
-            touch_cfg.y_min = 500;
-            touch_cfg.y_max = 3750;
-            touch_cfg.pin_int = -1;
-            touch_cfg.bus_shared = true;
-            touch_cfg.offset_rotation = 1;
+            cfg.freq = 1000000;
+            cfg.x_min = 300;
+            cfg.x_max = 3800;
+            cfg.y_min = 500;
+            cfg.y_max = 3750;
+            cfg.pin_int = -1;
+            cfg.bus_shared = true;
+            cfg.offset_rotation = 6;
 
-            _touch_instance.config(touch_cfg);
+            cfg.spi_host = SPI2_HOST;
+            cfg.pin_sclk = 39;
+            cfg.pin_mosi = 40;
+            cfg.pin_miso = 41;
+            cfg.pin_cs = 38;
+
+            _touch_instance.config(cfg);
             _panel_instance.setTouch(&_touch_instance);
         }
 
