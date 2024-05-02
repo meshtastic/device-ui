@@ -60,19 +60,19 @@ class LGFX_ESP2432S028RV2 : public lgfx::LGFX_Device
             // The following setting values ​​are general initial values ​​for
             // each panel, so please comment out any unknown items and try them.
 
-            cfg.panel_width = screenHeight; // actual displayable width
-            cfg.panel_height = screenWidth; // actual displayable height
+            cfg.panel_width = screenWidth; // actual displayable width
+            cfg.panel_height = screenHeight; // actual displayable height
             cfg.offset_x = 0;               // Panel offset amount in X direction
-            cfg.offset_y = 0;               // Panel offset amount in Y direction
-            cfg.offset_rotation = 6;        // Rotation direction value offset 0~7 (4~7 is upside down)
+            cfg.offset_y = 80;              // Panel offset amount in Y direction
+            cfg.offset_rotation = 4;        // Rotation direction value offset 0~7 (4~7 is upside down)
             cfg.dummy_read_pixel = 8;       // Number of bits for dummy read before pixel readout
             cfg.dummy_read_bits = 1;        // Number of bits for dummy read before non-pixel data read
             cfg.readable = true;            // Set to true if data can be read
             cfg.invert = false;             // Set to true if the light/darkness of the panel is reversed
-            cfg.rgb_order = false;          // Set to true if the panel's red and blue are swapped
+            cfg.rgb_order = true;           // Set to true if the panel's red and blue are swapped
             cfg.dlen_16bit = false;         // Set to true for panels that transmit data length in 16-bit
                                             // units with 16-bit parallel or SPI
-            cfg.bus_shared = true;          // If the bus is shared with the SD card, set to
+            cfg.bus_shared = false;         // If the bus is shared with the SD card, set to
                                             // true (bus control with drawJpgFile etc.)
 
             // Set the following only when the display is shifted with a driver with a
@@ -101,17 +101,18 @@ class LGFX_ESP2432S028RV2 : public lgfx::LGFX_Device
             auto cfg = _touch_instance.config();
 
             cfg.freq = 1000000;
-            cfg.x_min = 0;
-            cfg.x_max = 4095;
-            cfg.y_min = 0;
-            cfg.y_max = 4095;
+            cfg.x_min = 300;
+            cfg.x_max = 3900;
+            cfg.y_min = 200;
+            cfg.y_max = 3700;
             cfg.pin_int = 36;
             cfg.pin_rst = -1;
-            cfg.offset_rotation = 5;
-            cfg.bus_shared = true;
+            cfg.offset_rotation = 1;
+            cfg.bus_shared = false;
 
             // SPI
             cfg.spi_host = VSPI_HOST;
+            cfg.freq = 1000000;
             cfg.pin_sclk = 25;
             cfg.pin_miso = 39;
             cfg.pin_mosi = 32;
