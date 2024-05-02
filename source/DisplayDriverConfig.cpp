@@ -1,16 +1,4 @@
 #include "DisplayDriverConfig.h"
-#include "LGFXConfig.h"
-#include "LGFXDriver.h"
-#ifndef PORTDUINO
-#include "LGFX_ESP2432S028RV1.h"
-#include "LGFX_ESP2432S028RV2.h"
-#include "LGFX_HELTEC_TRACKER.h"
-#include "LGFX_T_DECK.h"
-#include "LGFX_T_HMI.h"
-#include "LGFX_T_WATCH_S3.h"
-#include "LGFX_UNPHONE.h"
-#include "LGFX_WT_SC01PLUS.h"
-#endif
 
 DisplayDriverConfig::DisplayDriverConfig(void) : _device(device_t::NONE) {}
 
