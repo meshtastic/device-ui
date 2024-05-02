@@ -1,5 +1,5 @@
 #include "DisplayDriverFactory.h"
-#include "LGXFConfig.h"
+#include "LGFXConfig.h"
 #include <assert.h>
 #if defined(LGFX_DRIVER) || defined(PORTDUINO)
 #include "LGFXDriver.h"

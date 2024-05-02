@@ -1,6 +1,6 @@
 #include "DisplayDriverConfig.h"
+#include "LGFXConfig.h"
 #include "LGFXDriver.h"
-#include "LGXFConfig.h"
 #ifndef PORTDUINO
 #include "LGFX_T_DECK.h"
 #include "LGFX_T_HMI.h"
