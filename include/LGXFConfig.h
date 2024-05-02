@@ -108,7 +108,7 @@ class LGFXConfig : public lgfx::LGFX_Device
                 cfg.pin_mosi = config._bus.spi.pin_mosi;
                 cfg.pin_dc = config._bus.spi.pin_dc;
                 cfg.spi_mode = config._bus.spi.spi_mode;
-#ifdef ARDUINO_ARCH_ESP32                
+#ifdef ARDUINO_ARCH_ESP32
                 cfg.spi_host = (spi_host_device_t)config._bus.spi.spi_host;
 #else
                 cfg.spi_host = config._bus.spi.spi_host;
@@ -140,10 +140,14 @@ class LGFXConfig : public lgfx::LGFX_Device
                 auto cfg = _touch_instance->config();
 
                 cfg.freq = config._touch.freq;
-                if (config._touch.x_min >= 0) cfg.x_min = config._touch.x_min;
-                if (config._touch.x_max >= 0) cfg.x_max = config._touch.x_max; 
-                if (config._touch.y_min >= 0) cfg.y_min = config._touch.y_min;
-                if (config._touch.y_max >= 0) cfg.y_max = config._touch.y_max;
+                if (config._touch.x_min >= 0)
+                    cfg.x_min = config._touch.x_min;
+                if (config._touch.x_max >= 0)
+                    cfg.x_max = config._touch.x_max;
+                if (config._touch.y_min >= 0)
+                    cfg.y_min = config._touch.y_min;
+                if (config._touch.y_max >= 0)
+                    cfg.y_max = config._touch.y_max;
                 cfg.pin_int = config._touch.pin_int;
                 cfg.pin_rst = config._touch.pin_rst;
                 cfg.bus_shared = config._touch.bus_shared;
@@ -178,7 +182,8 @@ class LGFXConfig : public lgfx::LGFX_Device
 
                 cfg.freq = config._light.freq;
                 cfg.pin_bl = config._light.pin_bl;
-                cfg.pwm_channel = config._light.pwm_channel;
+                if (config._light.pwm_channel >= 0)
+                    cfg.pwm_channel = config._light.pwm_channel;
                 cfg.invert = config._light.invert;
 
                 light->config(cfg);
