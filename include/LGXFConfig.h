@@ -140,17 +140,17 @@ class LGFXConfig : public lgfx::LGFX_Device
                 auto cfg = _touch_instance->config();
 
                 cfg.freq = config._touch.freq;
-                cfg.x_min = config._touch.x_min;
-                cfg.x_max = config._touch.x_max ? config._touch.x_max : config._width - 1;
-                cfg.y_min = config._touch.y_min;
-                cfg.y_max = config._touch.y_max ? config._touch.y_max : config._height - 1;
+                if (config._touch.x_min >= 0) cfg.x_min = config._touch.x_min;
+                if (config._touch.x_max >= 0) cfg.x_max = config._touch.x_max; 
+                if (config._touch.y_min >= 0) cfg.y_min = config._touch.y_min;
+                if (config._touch.y_max >= 0) cfg.y_max = config._touch.y_max;
                 cfg.pin_int = config._touch.pin_int;
                 cfg.pin_rst = config._touch.pin_rst;
                 cfg.bus_shared = config._touch.bus_shared;
                 cfg.offset_rotation = config._touch.offset_rotation;
                 cfg.pin_cs = config._touch.pin_cs;
 
-                if (config._touch.i2c.i2c_addr > 0) {
+                if (config._touch.i2c.i2c_addr > 0 && cfg.pin_cs == -1) {
                     cfg.i2c_port = config._touch.i2c.i2c_port;
                     cfg.pin_scl = config._touch.i2c.pin_scl;
                     cfg.pin_sda = config._touch.i2c.pin_sda;

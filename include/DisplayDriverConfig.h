@@ -97,10 +97,10 @@ class DisplayDriverConfig
     struct touch_config_t {
         char *type = nullptr;
         uint32_t freq = 1000000;
-        uint16_t x_min = 0;
-        uint16_t x_max = 3600;
-        uint16_t y_min = 0;
-        uint16_t y_max = 3600;
+        int16_t x_min = -1;
+        int16_t x_max = -1;
+        int16_t y_min = -1;
+        int16_t y_max = -1;
         int16_t pin_int = -1;
         int16_t pin_rst = -1;
         uint8_t offset_rotation = 0;
@@ -113,8 +113,8 @@ class DisplayDriverConfig
                 int16_t pin_miso;
             } spi;
             struct {
-                int16_t i2c_addr;
                 int8_t i2c_port;
+                int16_t i2c_addr;
                 int16_t pin_scl;
                 int16_t pin_sda;
             } i2c;
