@@ -20,7 +20,7 @@ class DisplayDriverConfig
         THMI,
         TDECK,
         TWATCH_S3,
-        UNPHONE,
+        UNPHONE_V9,
         HELTEC_TRACKER,
         WT32_SC01_PLUS,
         ESP2432S028RV1,

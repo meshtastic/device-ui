@@ -57,7 +57,7 @@ DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
     return new LGFXDriver<LGFX_DRIVER>(width, height);
 #endif
     ILOG_CRIT("DisplayDriverFactory: missing or wrong configuration\n");
-    assert(true);
+    assert(false);
     return nullptr;
 }
 
@@ -102,8 +102,8 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         return new LGFXDriver<LGFX_TWATCH_S3>(cfg.width(), cfg.height());
         break;
 #elif defined(UNPHONE)
-    case DisplayDriverConfig::device_t::UNPHONE:
-        // return new LGFXDriver<LGFX_UNPHONE>(cfg.width(), cfg.height());
+    case DisplayDriverConfig::device_t::UNPHONE_V9:
+        return new LGFXDriver<LGFX_UNPHONE_V9>(cfg.width(), cfg.height());
         break;
 #elif defined(HELTEC_TRACKER)
     case DisplayDriverConfig::device_t::HELTEC_TRACKER:
@@ -129,7 +129,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #endif
     default:
         ILOG_CRIT("LGFX device_t config not implemented: %d\n", cfg._device);
-        assert(true);
+        assert(false);
         break;
     }
     return nullptr;
