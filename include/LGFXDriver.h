@@ -203,6 +203,8 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
 #elif defined(T_HMI)
         uint16_t parameters[8] = {399, 293, 309, 3701, 3649, 266, 3678, 3689};
+#elif defined(ESP32_2432S022)
+        uint16_t parameters[8] = {1, 2, 69, 313, 187, 5, 239, 314};
 #elif defined(ESP32_2432S028RV1)
         uint16_t parameters[8] = {278, 3651, 228, 173, 3819, 3648, 3815, 179};
 #elif defined(NODEMCU_32S) || defined(PORTDUINO)
@@ -227,10 +229,10 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         TFTDriver<LGFX>::tft->calibrateTouch(parameters, fg, bg,
                                              std::max(TFTDriver<LGFX>::tft->width(), TFTDriver<LGFX>::tft->height()) >> 3);
 
+#endif
         // FIXME: store parameters[] using lfs_file_write
         ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", parameters[0], parameters[1],
                    parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
-#endif
 #endif
     }
 }

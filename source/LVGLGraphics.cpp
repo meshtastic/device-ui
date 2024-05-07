@@ -2,6 +2,10 @@
 #include "ILog.h"
 #include "assert.h"
 
+#ifndef BUFFER_LINES 
+#define BUFFER_LINES 10
+#endif
+
 LVGLGraphics::LVGLGraphics(uint16_t width, uint16_t height) : screenWidth(width), screenHeight(height)
 {
 
@@ -36,7 +40,7 @@ LVGLGraphics::LVGLGraphics(uint16_t width, uint16_t height) : screenWidth(width)
     draw_buf = (lv_disp_draw_buf_t *)heap_caps_aligned_alloc(16, sizeof(lv_disp_draw_buf_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     assert(buf1 != 0);
 #else
-    bufsize = width * 10;
+    bufsize = width * BUFFER_LINES;
     ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer\n", bufsize);
     draw_buf = new lv_disp_draw_buf_t;
     buf1 = new lv_color_t[bufsize]; // OK
