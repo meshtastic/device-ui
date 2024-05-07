@@ -4,7 +4,7 @@
 #include <LovyanGFX.hpp>
 
 #ifndef SPI_FREQUENCY
-#define SPI_FREQUENCY 80000000
+#define SPI_FREQUENCY 25000000
 #endif
 
 class LGFX_WT_SC01_PLUS : public lgfx::LGFX_Device
