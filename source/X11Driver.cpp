@@ -1,6 +1,7 @@
 #ifdef USE_X11
 #include "X11Driver.h"
 #include "ILog.h"
+#include <stdio.h>
 
 LV_IMG_DECLARE(mouse_cursor_icon);
 

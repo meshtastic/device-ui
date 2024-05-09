@@ -102,6 +102,7 @@ class TFTView_320x240 : public MeshtasticView
     TFTView_320x240();
     TFTView_320x240(DisplayDriver *driver);
 
+    void apply_hotfix(void);
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
 

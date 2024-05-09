@@ -41,6 +41,8 @@ void TFTView_320x240::init(IClientBase *client)
 {
     ILOG_DEBUG("TFTView_320x240 init...\n");
     MeshtasticView::init(client);
+    apply_hotfix();
+
     time(&lastrun60);
     time(&lastrun5);
 
@@ -94,9 +96,19 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     activeButton = b;
     activePanel = p;
 
-    lv_obj_clear_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
 }
+
+
+/**
+ * @brief fix quirks in the generated ui
+ * 
+ */
+void TFTView_320x240::apply_hotfix(void) {
+    lv_obj_set_scrollbar_mode(objects.home_container, LV_SCROLLBAR_MODE_OFF);
+}
+
 
 void TFTView_320x240::ui_events_init(void)
 {
@@ -203,7 +215,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        TFTView_320x240::instance()->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_label);
+        TFTView_320x240::instance()->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
     }
 }
 
