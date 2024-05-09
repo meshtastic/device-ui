@@ -7,6 +7,8 @@
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
 #define V_NORM_PX(v_scr_percent) ((int16_t)((screenHeight / 100.0) * (v_scr_percent)))
 
+typedef lv_display_t LVGLDisplay;
+
 class DisplayDriver
 {
   public:
@@ -22,9 +24,8 @@ class DisplayDriver
 
   protected:
     LVGLGraphics lvgl;
+    LVGLDisplay *display;
     DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;
-
-  private:
 };

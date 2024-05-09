@@ -12,7 +12,7 @@ MeshtasticView::MeshtasticView(DisplayDriver *driver, ViewController *_controlle
 void MeshtasticView::init(IClientBase *client)
 {
     DeviceGUI::init(client);
-    lv_label_set_text(ui_FirmwareLabel, firmware_version);
+    lv_label_set_text(objects.firmware_label, firmware_version);
     controller->init(this, client);
 }
 

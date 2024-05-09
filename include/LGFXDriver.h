@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DisplayDriverConfig.h"
 #include "ILog.h"
 #include "LovyanGFX.h"
 #include "TFTDriver.h"
@@ -22,8 +23,8 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++
-    static void display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);
-    static void touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data);
+    static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
+    static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
 
     static uint32_t lastTouch;
     bool powerSaving;
@@ -32,6 +33,9 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     void init_lgfx(void);
 
     static LGFX *lgfx;
+    size_t bufsize;
+    lv_color_t *buf1;
+    lv_color_t *buf2;
 };
 
 template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
@@ -39,7 +43,7 @@ template <class LGFX> uint32_t LGFXDriver<LGFX>::lastTouch = 0;
 
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
-    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), powerSaving(false)
+    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr)
 {
     lgfx = this->tft;
     lastTouch = millis();
@@ -87,6 +91,16 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 }
 
 // Display flushing not using DMA */
+
+template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
+{
+    uint32_t w = lv_area_get_width(area);
+    uint32_t h = lv_area_get_height(area);
+    lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
+    lv_display_flush_ready(disp);
+}
+
+#if 0
 template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     uint32_t w = (area->x2 - area->x1 + 1);
@@ -98,7 +112,6 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_disp_drv_t *disp, 
     lv_disp_flush_ready(disp); // TODO put into LGFX callback for DMA
 }
 
-#if 0
 /* Display flushing using DMA */
 template <class LGFX>
 void LGFXDriver<LGFX>::display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
@@ -127,7 +140,7 @@ void my_disp_flush( lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *colo
 }
 #endif
 
-template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
+template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
     uint16_t touchX, touchY;
     bool touched = lgfx->getTouch(&touchX, &touchY);
@@ -136,8 +149,8 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_drv_t *indev
     } else {
         lastTouch = millis();
         data->state = LV_INDEV_STATE_PR;
-        data->point.x = (int16_t)touchX;
-        data->point.y = (int16_t)touchY;
+        data->point.x = touchX;
+        data->point.y = touchY;
 
         ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
 #if 0
@@ -162,6 +175,68 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 
     // LVGL: setup display device driver
     ILOG_DEBUG("LVGL display driver init...\n");
+
+    DisplayDriver::display = lv_display_create(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
+
+#if defined(USE_DOUBLE_BUFFER) // speedup drawing by using double-buffered DMA mode
+    bufsize = screenWidth * screenHeight / 8 * sizeof(lv_color_t);
+#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
+    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for double buffering\n"), bufsize;
+    assert(ESP.getFreePsram());
+    // buf1 = (lv_color_t*)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL |
+    // MALLOC_CAP_DMA);  //assert failed: block_trim_free heap_tlsf.c:371 buf2 =
+    // (lv_color_t*)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL |
+    // MALLOC_CAP_DMA); buf1 = (lv_color_t*)heap_caps_malloc((bufsize + 3) & ~3,
+    // MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT); // crash buf1 =
+    // (lv_color_t*)heap_caps_malloc(bufsize, MALLOC_CAP_SPIRAM); // crash buf1 =
+    // (lv_color_t*)ps_malloc(bufsize); // crash
+    buf1 = (lv_color_t *)heap_caps_aligned_alloc(32, (bufsize + 3) & ~3, MALLOC_CAP_SPIRAM);
+    // buf2 = (lv_color_t*)heap_caps_aligned_alloc(16, (bufsize + 3) & ~3,
+    // MALLOC_CAP_SPIRAM);
+    draw_buf = (lv_disp_draw_buf_t *)heap_caps_aligned_alloc(32, sizeof(lv_disp_draw_buf_t), MALLOC_CAP_SPIRAM);
+#else
+    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for double buffering\n"), bufsize;
+    buf1 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA); // heap_alloc_dma
+    buf2 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA); // heap_alloc_dma
+#endif
+    assert(buf1 != 0 /* && buf2 != 0 */);
+    lv_display_set_buffers(disp, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_DIRECT);
+#elif 0 // defined BOARD_HAS_PSRAM
+    assert(ESP.getFreePsram());
+    bufsize = screenWidth * height / 8 * sizeof(lv_color_t);
+    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for draw buffer\n"), bufsize;
+    buf1 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT); // heap_alloc_psram
+    assert(buf1 != 0);
+    lv_display_set_buffers(display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
+#else
+    bufsize = this->screenWidth * 10;
+    buf1 = new lv_color_t[bufsize];
+    assert(buf1 != 0);
+    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer\n", sizeof(buf1));
+    lv_display_set_buffers(this->display, buf1, buf2, sizeof(buf1), LV_DISPLAY_RENDER_MODE_PARTIAL);
+#endif
+
+    lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
+
+    // TODO lv_display_set_resolution(display, screenWidth, screenHeight);
+
+#if 0
+   /* Example 2
+     * Two buffers for partial rendering
+     * In flush_cb DMA or similar hardware should be used to update the display in the background.*/
+    static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10];
+    static lv_color_t buf_2_2[MY_DISP_HOR_RES * 10];
+    lv_display_set_buffers(disp, buf_2_1, buf_2_2, sizeof(buf_2_1), LV_DISPLAY_RENDER_MODE_PARTIAL);
+
+    /* Example 3
+     * Two buffers screen sized buffer for double buffering.
+     * Both LV_DISPLAY_RENDER_MODE_DIRECT and LV_DISPLAY_RENDER_MODE_FULL works, see their comments*/
+    static lv_color_t buf_3_1[MY_DISP_HOR_RES * MY_DISP_VER_RES];
+    static lv_color_t buf_3_2[MY_DISP_HOR_RES * MY_DISP_VER_RES];
+    lv_display_set_buffers(disp, buf_3_1, buf_3_2, sizeof(buf_3_1), LV_DISPLAY_RENDER_MODE_DIRECT);
+#endif
+
+#if 0    
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = this->screenWidth;
@@ -184,6 +259,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         indev_drv.read_cb = &touchpad_read;
         lv_indev_drv_register(&indev_drv);
     }
+#endif
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
