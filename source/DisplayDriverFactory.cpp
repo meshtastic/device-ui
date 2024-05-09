@@ -27,6 +27,9 @@
 #ifdef UNPHONE
 #include "LGFX_UNPHONE.h"
 #endif
+#ifdef ESP32_2432S022
+#include "LGFX_ESP2432S022.h"
+#endif
 #ifdef ESP32_2432S028RV1
 #include "LGFX_ESP2432S028RV1.h"
 #endif
