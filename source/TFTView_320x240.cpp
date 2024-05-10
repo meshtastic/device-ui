@@ -37,9 +37,13 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(DisplayDriver *driver) : MeshtasticView(driver, new ViewController) {}
 
+// TODO
+extern const uint8_t img_meshtastic_logo_image_map[];
+
 void TFTView_320x240::init(IClientBase *client)
 {
     ILOG_DEBUG("TFTView_320x240 init...\n");
+    ILOG_DEBUG("sizeof(meshtastic_logo) = %d\n", img_meshtastic_logo_200.data_size + sizeof(img_meshtastic_logo_200));
     MeshtasticView::init(client);
     apply_hotfix();
 
@@ -100,15 +104,14 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
-
 /**
  * @brief fix quirks in the generated ui
- * 
+ *
  */
-void TFTView_320x240::apply_hotfix(void) {
+void TFTView_320x240::apply_hotfix(void)
+{
     lv_obj_set_scrollbar_mode(objects.home_container, LV_SCROLLBAR_MODE_OFF);
 }
-
 
 void TFTView_320x240::ui_events_init(void)
 {
@@ -453,14 +456,11 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_y(img, -10);
     lv_obj_add_flag(img, LV_OBJ_FLAG_ADV_HITTEST);
     lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_radius(img, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(img, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    //    lv_obj_set_style_bg_img_recolor(ui_NodeImage, lv_color_hex(0x4040FF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
-    //    lv_obj_set_style_img_recolor_opa(ui_NodeImage, 250, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *nodeButton = lv_btn_create(p);
     lv_obj_set_height(nodeButton, 50);
@@ -478,16 +478,13 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_shadow_spread(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *ln_lbl = lv_label_create(p);
-    lv_obj_set_width(ln_lbl, LV_SIZE_CONTENT);
-    lv_obj_set_height(ln_lbl, LV_SIZE_CONTENT);
-    lv_obj_set_x(ln_lbl, -5);
-    lv_obj_set_y(ln_lbl, 15);
-    lv_obj_set_align(ln_lbl, LV_ALIGN_BOTTOM_LEFT);
+    lv_obj_set_pos(ln_lbl, -5, 15);
+    lv_obj_set_size(ln_lbl, LV_PCT(80), LV_SIZE_CONTENT);
+    lv_label_set_long_mode(ln_lbl, LV_LABEL_LONG_SCROLL);
     lv_label_set_text(ln_lbl, userLong);
-    lv_label_set_long_mode(ln_lbl, LV_LABEL_LONG_DOT);
     ln_lbl->user_data = (void *)strlen(userLong);
+    lv_obj_set_style_align(ln_lbl, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_color(ln_lbl, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ln_lbl, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ln_lbl, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *sn_lbl = lv_label_create(p);
@@ -504,7 +501,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_width(ui_BatteryLabel, LV_SIZE_CONTENT);
     lv_obj_set_height(ui_BatteryLabel, LV_SIZE_CONTENT);
     lv_obj_set_x(ui_BatteryLabel, 8);
-    lv_obj_set_y(ui_BatteryLabel, -15);
+    lv_obj_set_y(ui_BatteryLabel, 0);
     lv_obj_set_align(ui_BatteryLabel, LV_ALIGN_RIGHT_MID);
     lv_label_set_text(ui_BatteryLabel, "");
     lv_obj_set_style_text_color(ui_BatteryLabel, lv_color_hex(0xF0F0F0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -517,7 +514,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_height(ui_lastHeardLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(ui_lastHeardLabel, LV_ALIGN_RIGHT_MID);
     lv_obj_set_x(ui_lastHeardLabel, 8);
-    lv_obj_set_y(ui_lastHeardLabel, 0);
+    lv_obj_set_y(ui_lastHeardLabel, 16);
 
     // TODO: devices without actual time will report all nodes as lastseen = now
     if (lastHeard) {
@@ -545,7 +542,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_width(ui_SignalLabel, LV_SIZE_CONTENT);
     lv_obj_set_height(ui_SignalLabel, LV_SIZE_CONTENT);
     lv_obj_set_x(ui_SignalLabel, 8);
-    lv_obj_set_y(ui_SignalLabel, 12);
+    lv_obj_set_y(ui_SignalLabel, -18);
     lv_obj_set_align(ui_SignalLabel, LV_ALIGN_BOTTOM_RIGHT);
     lv_label_set_text(ui_SignalLabel, "");
     lv_obj_set_style_text_color(ui_SignalLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -714,13 +711,20 @@ void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float
             if (rssi == 0.0 && snr == 0.0) {
                 buf[0] = '\0';
             } else {
-                // if userNameLong is too long, skip printing rssi/snr
-                if ((size_t)it->second->LV_OBJ_IDX(node_lbl_idx)->user_data <= 20) {
-                    sprintf(buf, "rssi: %d snr: %.1f", rssi, snr);
-                } else {
-                    sprintf(buf, "snr: %.1f", snr);
-                }
+                sprintf(buf, "rssi: %d snr: %.1f", rssi, snr);
             }
+            lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
+        }
+    }
+}
+
+void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
+{
+    if (nodeNum != ownNode) {
+        auto it = nodes.find(nodeNum);
+        if (it != nodes.end()) {
+            char buf[16];
+            sprintf(buf, "hops: %d", (int)hopsAway);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
         }
     }

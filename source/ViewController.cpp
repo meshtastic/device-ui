@@ -367,6 +367,8 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
     // only for direct neighbors print rssi/snr
     if (p.hop_limit == p.hop_start) {
         view->updateSignalStrength(p.from, p.rx_rssi, p.rx_snr);
+    } else if (p.hop_start > 0) {
+        view->updateHopsAway(p.from, p.hop_start);
     }
     view->updateLastHeard(p.from);
 

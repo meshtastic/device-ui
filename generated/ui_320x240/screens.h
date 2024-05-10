@@ -64,6 +64,8 @@ typedef struct _objects_t {
     lv_obj_t *map_panel;
     lv_obj_t *meshtastic_image;
     lv_obj_t *meshtastic_label;
+    lv_obj_t *meshtastic_logo;
+    lv_obj_t *meshtastic_url;
     lv_obj_t *message_input_area;
     lv_obj_t *messages_button;
     lv_obj_t *messages_container;

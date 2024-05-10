@@ -13,7 +13,6 @@ const ext_img_desc_t images[38] = {
     { "home_location_button_image", &img_home_location_button_image },
     { "home_wlan_button_image", &img_home_wlan_button_image },
     { "home_bluetooth_on_button_image", &img_home_bluetooth_on_button_image },
-    { "meshtastic_banner_image", &img_meshtastic_banner_image },
     { "home_memory_button", &img_home_memory_button },
     { "node_client_image", &img_node_client_image },
     { "keyboard_image", &img_keyboard_image },
@@ -39,4 +38,5 @@ const ext_img_desc_t images[38] = {
     { "groups_key_image", &img_groups_key_image },
     { "groups_lock_image", &img_groups_lock_image },
     { "groups_unlock_image", &img_groups_unlock_image },
+    { "meshtastic_logo_200", &img_meshtastic_logo_200 },
 };

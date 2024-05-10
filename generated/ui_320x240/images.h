@@ -19,7 +19,6 @@ extern const lv_img_dsc_t img_home_nodes_button_image;
 extern const lv_img_dsc_t img_home_location_button_image;
 extern const lv_img_dsc_t img_home_wlan_button_image;
 extern const lv_img_dsc_t img_home_bluetooth_on_button_image;
-extern const lv_img_dsc_t img_meshtastic_banner_image;
 extern const lv_img_dsc_t img_home_memory_button;
 extern const lv_img_dsc_t img_node_client_image;
 extern const lv_img_dsc_t img_keyboard_image;
@@ -45,6 +44,7 @@ extern const lv_img_dsc_t img_home_mail_unread_button_image;
 extern const lv_img_dsc_t img_groups_key_image;
 extern const lv_img_dsc_t img_groups_lock_image;
 extern const lv_img_dsc_t img_groups_unlock_image;
+extern const lv_img_dsc_t img_meshtastic_logo_200;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
