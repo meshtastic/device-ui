@@ -43,7 +43,15 @@ extern const uint8_t img_meshtastic_logo_image_map[];
 void TFTView_320x240::init(IClientBase *client)
 {
     ILOG_DEBUG("TFTView_320x240 init...\n");
-    ILOG_DEBUG("sizeof(meshtastic_logo) = %d\n", img_meshtastic_logo_200.data_size + sizeof(img_meshtastic_logo_200));
+    ILOG_DEBUG("### Images size in flash ###\n");
+    uint32_t total_size = 0;
+    for (int i = 0; i < sizeof(images) / sizeof(ext_img_desc_t); i++) {
+        total_size += images[i].img_dsc->data_size;
+        ILOG_DEBUG("    %s: %d\n", images[i].name, images[i].img_dsc->data_size);
+    }
+    ILOG_DEBUG("============================\n");
+    ILOG_DEBUG("### Total size: %d bytes ###\n", total_size);
+
     MeshtasticView::init(client);
     apply_hotfix();
 
