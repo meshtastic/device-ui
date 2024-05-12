@@ -120,6 +120,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ChatButtonClicked(lv_event_t *e);
     static void ui_event_ChatDelButtonClicked(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
+    static void ui_event_KeyboardButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
 
     lv_obj_t *activeButton = nullptr;

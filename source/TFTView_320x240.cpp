@@ -161,6 +161,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.msg_popup_panel, this->ui_event_MsgPopupButton, LV_EVENT_ALL, NULL);
 
     // keyboard
+    lv_obj_add_event_cb(objects.keyboard_button, ui_event_KeyboardButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_ALL, this);
 }
 
@@ -317,6 +318,15 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
                 TFTView_320x240::instance()->showMessages(nodeNum);
             }
         }
+    }
+}
+
+void TFTView_320x240::ui_event_KeyboardButton(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if(event_code == LV_EVENT_CLICKED) {
+        lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN) ? 
+            lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN) : lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
