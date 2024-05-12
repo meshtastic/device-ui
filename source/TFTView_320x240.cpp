@@ -68,6 +68,9 @@ void TFTView_320x240::init(IClientBase *client)
 
     // keyboard init
     lv_keyboard_set_textarea(objects.keyboard, objects.message_input_area);
+
+    // load main screen
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, true);
 }
 
 /**
