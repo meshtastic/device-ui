@@ -34,8 +34,8 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 
     static LGFX *lgfx;
     size_t bufsize;
-    lv_color16_t *buf1;
-    lv_color16_t *buf2;
+    lv_color_t *buf1;
+    lv_color_t *buf2;
 };
 
 template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
@@ -87,6 +87,10 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             }
         }
     }
+#ifdef HAS_FREE_RTOS
+    lv_tick_set_cb(xTaskGetTickCount);
+#endif
+
     DisplayDriver::task_handler();
 }
 
@@ -208,10 +212,10 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     lv_display_set_buffers(display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #else
     bufsize = this->screenWidth * 10;
-    buf1 = new lv_color16_t[bufsize];
+    buf1 = new lv_color_t[bufsize];
     assert(buf1 != 0);
-    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer\n", sizeof(lv_color16_t) * bufsize);
-    lv_display_set_buffers(this->display, buf1, buf2, sizeof(lv_color16_t) * bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer\n", sizeof(lv_color_t) * bufsize);
+    lv_display_set_buffers(this->display, buf1, buf2, sizeof(lv_color_t) * bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #endif
 
     lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
