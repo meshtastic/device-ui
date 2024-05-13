@@ -25,6 +25,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     // lvgl callbacks have to be static cause it's a C library, not C++
     static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
+    static uint32_t my_tick_get_cb(void) { return millis(); }
 
     static uint32_t lastTouch;
     bool powerSaving;
@@ -51,7 +52,8 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
 
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
-    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), powerSaving(false)
+    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), powerSaving(false), bufsize(0), buf1(nullptr),
+      buf2(nullptr)
 {
     lgfx = this->tft;
     lastTouch = millis();
@@ -89,6 +91,8 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
     }
 #ifdef HAS_FREE_RTOS
     lv_tick_set_cb(xTaskGetTickCount);
+#else
+    lv_tick_set_cb(my_tick_get_cb);
 #endif
 
     DisplayDriver::task_handler();
