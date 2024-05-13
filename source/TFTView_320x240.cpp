@@ -222,7 +222,7 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        TFTView_320x240::instance()->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_chats_panel);
+        TFTView_320x240::instance()->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
     }
 }
 
@@ -324,12 +324,12 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
     }
 }
 
-void TFTView_320x240::ui_event_KeyboardButton(lv_event_t * e)
+void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if(event_code == LV_EVENT_CLICKED) {
-        lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN) ? 
-            lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN) : lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+    if (event_code == LV_EVENT_CLICKED) {
+        lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN) ? lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)
+                                                              : lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -998,24 +998,22 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     if (it != chats.end())
         return;
 
-    lv_obj_t *chatBtn = lv_btn_create(objects.messages_panel);
-    lv_obj_set_height(chatBtn, 30);
-    lv_obj_set_width(chatBtn, lv_pct(100));
-    lv_obj_set_align(chatBtn, LV_ALIGN_CENTER);
-    lv_obj_add_flag(chatBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);                                               /// Flags
-    lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE); /// Flags
-    lv_obj_set_style_radius(chatBtn, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(chatBtn, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(chatBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor(chatBtn, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(chatBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_t *chatDelBtn = nullptr;
+    lv_obj_t *parent_obj = objects.chats_panel;
+
+    // ChatsButton
+    lv_obj_t *chatBtn = lv_btn_create(parent_obj);
+    lv_obj_set_pos(chatBtn, 0, 0);
+    lv_obj_set_size(chatBtn, LV_PCT(100), 36);
+    lv_obj_add_flag(chatBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+    lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_align(chatBtn, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(chatBtn, lv_color_hex(0xff404040), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(chatBtn, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(chatBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(chatBtn, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_spread(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_ofs_x(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_ofs_y(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_ofs_y(chatBtn, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(chatBtn, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(chatBtn, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1031,33 +1029,46 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
                 lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
     }
 
-    lv_obj_t *chatBtnLabel = lv_label_create(chatBtn);
-    lv_obj_set_width(chatBtnLabel, 230);
-    lv_obj_set_height(chatBtnLabel, LV_SIZE_CONTENT); /// 1
-    lv_obj_set_align(chatBtnLabel, LV_ALIGN_LEFT_MID);
-    lv_label_set_long_mode(chatBtnLabel, LV_LABEL_LONG_DOT);
-    lv_label_set_text(chatBtnLabel, buf);
-    lv_obj_set_style_text_color(chatBtnLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(chatBtnLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(chatBtnLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(chatBtnLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    lv_obj_t *chatDelBtn = lv_btn_create(chatBtn);
-    lv_obj_set_width(chatDelBtn, 40);
-    lv_obj_set_height(chatDelBtn, 22);
-    lv_obj_set_x(chatDelBtn, -3);
-    lv_obj_set_y(chatDelBtn, -1);
-    lv_obj_set_align(chatDelBtn, LV_ALIGN_RIGHT_MID);
-    lv_obj_add_flag(chatDelBtn, LV_OBJ_FLAG_HIDDEN);       /// Flags
-    lv_obj_clear_flag(chatDelBtn, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-    lv_obj_set_style_bg_color(chatDelBtn, lv_color_hex(0xA70A0A), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(chatDelBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    lv_obj_t *del_label = lv_label_create(chatDelBtn);
-    lv_obj_set_width(del_label, LV_SIZE_CONTENT);  /// 1
-    lv_obj_set_height(del_label, LV_SIZE_CONTENT); /// 1
-    lv_obj_set_align(del_label, LV_ALIGN_CENTER);
-    lv_label_set_text(del_label, "DEL");
+    {
+        lv_obj_t *parent_obj = chatBtn;
+        {
+            // ChatsButtonLabel
+            lv_obj_t *obj = lv_label_create(parent_obj);
+            objects.chats_button_label = obj;
+            lv_obj_set_pos(obj, 0, 0);
+            lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
+            lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
+            lv_label_set_text(obj, buf);
+            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        {
+            // ChatDelButton
+            lv_obj_t *obj = lv_btn_create(parent_obj);
+            chatDelBtn = obj;
+            lv_obj_set_pos(obj, -3, -1);
+            lv_obj_set_size(obj, 40, 23);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0xffa70a0a), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_add_flag(chatDelBtn, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(chatDelBtn, LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_set_style_bg_opa(chatDelBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    // DelLabel
+                    lv_obj_t *chatDelBtn = lv_label_create(parent_obj);
+                    lv_obj_set_pos(chatDelBtn, 0, 0);
+                    lv_obj_set_size(chatDelBtn, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_label_set_text(chatDelBtn, "DEL");
+                    lv_obj_set_style_align(chatDelBtn, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                }
+            }
+        }
+    }
 
     chats[index] = chatBtn;
     updateActiveChats();

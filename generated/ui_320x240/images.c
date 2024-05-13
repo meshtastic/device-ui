@@ -38,5 +38,5 @@ const ext_img_desc_t images[38] = {
     { "groups_key_image", &img_groups_key_image },
     { "groups_lock_image", &img_groups_lock_image },
     { "groups_unlock_image", &img_groups_unlock_image },
-    { "meshtastic_logo_200", &img_meshtastic_logo_200 },
+    { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
 };
