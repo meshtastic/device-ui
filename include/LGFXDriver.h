@@ -242,30 +242,12 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     lv_display_set_buffers(disp, buf_3_1, buf_3_2, sizeof(buf_3_1), LV_DISPLAY_RENDER_MODE_DIRECT);
 #endif
 
-#if 0    
-    static lv_disp_drv_t disp_drv;
-    lv_disp_drv_init(&disp_drv);
-    disp_drv.hor_res = this->screenWidth;
-    disp_drv.ver_res = this->screenHeight;
-    disp_drv.flush_cb = &LGFXDriver::display_flush;
-    disp_drv.draw_buf = DisplayDriver::lvgl.get_draw_buf();
-#ifdef BOARD_HAS_PSRAM
-    // disp_drv.full_refresh = 1; //needs allocate entire draw_buf width*height in
-    // PSRAM
-#endif
-
-    lv_disp_drv_register(&disp_drv);
-
     if (hasTouch()) {
-        // LVGL: setup input device driver
-        ILOG_DEBUG("LVGL input driver init...\n");
-        static lv_indev_drv_t indev_drv;
-        lv_indev_drv_init(&indev_drv);
-        indev_drv.type = LV_INDEV_TYPE_POINTER;
-        indev_drv.read_cb = &touchpad_read;
-        lv_indev_drv_register(&indev_drv);
+        lv_indev_t *indev = lv_indev_create();
+        lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+        lv_indev_set_read_cb(indev, touchpad_read);
+        lv_indev_set_display(indev, this->display);
     }
-#endif
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
