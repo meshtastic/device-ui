@@ -4,7 +4,7 @@
 #include <LovyanGFX.hpp>
 
 #ifndef SPI_FREQUENCY
-#define SPI_FREQUENCY 80000000
+#define SPI_FREQUENCY 40000000
 #endif
 #ifndef HSPI_HOST
 #define HSPI_HOST 0
