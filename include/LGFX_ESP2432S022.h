@@ -1,8 +1,8 @@
 #pragma once
 
 #define LGFX_USE_V1
-#include <LovyanGFX.hpp>
 #include "Touch_CST820.h"
+#include <LovyanGFX.hpp>
 
 #ifndef SPI_FREQUENCY
 #define SPI_FREQUENCY 25000000
@@ -54,15 +54,15 @@ class LGFX_ESP2432S022 : public lgfx::LGFX_Device
             cfg.offset_x = 0;               // Panel offset amount in X direction
             cfg.offset_y = 0;               // Panel offset amount in Y direction
             cfg.offset_rotation = 1;        // Rotation direction value offset 0~7 (4~7 is upside down)
-            //cfg.dummy_read_pixel = 8;     // Number of bits for dummy read before pixel readout
-            //cfg.dummy_read_bits = 1;      // Number of bits for dummy read before non-pixel data read
-            cfg.readable = false;           // Set to true if data can be read
-            cfg.invert = false;             // Set to true if the light/darkness of the panel is reversed
-            cfg.rgb_order = false;          // Set to true if the panel's red and blue are swapped
-            cfg.dlen_16bit = false;         // Set to true for panels that transmit data length in 16-bit
-                                            // units with 16-bit parallel or SPI
-            cfg.bus_shared = false;         // If the bus is shared with the SD card, set to
-                                            // true (bus control with drawJpgFile etc.)
+            // cfg.dummy_read_pixel = 8;     // Number of bits for dummy read before pixel readout
+            // cfg.dummy_read_bits = 1;      // Number of bits for dummy read before non-pixel data read
+            cfg.readable = false;   // Set to true if data can be read
+            cfg.invert = false;     // Set to true if the light/darkness of the panel is reversed
+            cfg.rgb_order = false;  // Set to true if the panel's red and blue are swapped
+            cfg.dlen_16bit = false; // Set to true for panels that transmit data length in 16-bit
+                                    // units with 16-bit parallel or SPI
+            cfg.bus_shared = false; // If the bus is shared with the SD card, set to
+                                    // true (bus control with drawJpgFile etc.)
 
             _panel_instance.config(cfg);
         }
@@ -86,9 +86,9 @@ class LGFX_ESP2432S022 : public lgfx::LGFX_Device
 
             cfg.pin_cs = -1;
             cfg.x_min = 0;
-            //cfg.x_max = screenWidth - 1;
+            // cfg.x_max = screenWidth - 1;
             cfg.y_min = 0;
-            //cfg.y_max = screenHeight - 1;
+            // cfg.y_max = screenHeight - 1;
             cfg.pin_int = -1;
             cfg.bus_shared = false;
             cfg.offset_rotation = 0;

@@ -1,1 +1,1 @@
-// This directory contains the exported ui files. Use Squareline Studio to design the UI and generate the C code.
+// This directory contains the exported ui files. Use eez-studio to design the UI and generate the C code.

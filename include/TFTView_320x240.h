@@ -28,6 +28,7 @@ class TFTView_320x240 : public MeshtasticView
     void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision) override;
     void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) override;
     void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) override;
+    void updateHopsAway(uint32_t nodeNum, uint8_t hopsAway) override;
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) override;
 
     // methods to update device config
@@ -102,6 +103,7 @@ class TFTView_320x240 : public MeshtasticView
     TFTView_320x240();
     TFTView_320x240(DisplayDriver *driver);
 
+    void apply_hotfix(void);
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
 
@@ -118,6 +120,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ChatButtonClicked(lv_event_t *e);
     static void ui_event_ChatDelButtonClicked(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
+    static void ui_event_KeyboardButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
 
     lv_obj_t *activeButton = nullptr;
