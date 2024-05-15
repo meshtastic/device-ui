@@ -98,51 +98,28 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
     DisplayDriver::task_handler();
 }
 
+#if 1
 // Display flushing not using DMA */
-
 template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
-    lgfx->pushImage(area->x1, area->y1, area->x2 - area->x1 + 1, area->y2 - area->y1 + 1, (uint16_t *)px_map);
+    uint32_t w = lv_area_get_width(area);
+    uint32_t h = lv_area_get_height(area);
+    lv_draw_sw_rgb565_swap(px_map, w * h);
+    lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
     lv_display_flush_ready(disp);
 }
-
-#if 0
-template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
-{
-    uint32_t w = (area->x2 - area->x1 + 1);
-    uint32_t h = (area->y2 - area->y1 + 1);
-    lgfx->startWrite();
-    lgfx->setAddrWindow(area->x1, area->y1, w, h);
-    lgfx->writePixels((lgfx::rgb565_t *)&color_p->full, w * h);
-    lgfx->endWrite();
-    lv_disp_flush_ready(disp); // TODO put into LGFX callback for DMA
-}
-
-/* Display flushing using DMA */
-template <class LGFX>
-void LGFXDriver<LGFX>::display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
-    uint32_t w = (area->x2 - area->x1 + 1);
-    uint32_t h = (area->y2 - area->y1 + 1);
-    lgfx->startWrite();
-    lgfx->setAddrWindow(area->x1, area->y1, w, h);
-    lgfx->writePixelsDMA((lgfx::rgb565_t *)&color_p->full, w * h);
-    lgfx->endWrite();
-    lv_disp_flush_ready( disp ); //FIXME must put into some LGFX callback for DMA double-buffering
-}
-
+#else
 // Display flushing using DMA
-void my_disp_flush( lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p )
+template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
-    if (lgfx->getStartCount() == 0)
-    {   // Processing if not yet started
+    uint32_t w = lv_area_get_width(area);
+    uint32_t h = lv_area_get_height(area);
+    lv_draw_sw_rgb565_swap(px_map, w * h);
+    if (lgfx->getStartCount() == 0) { // Processing if not yet started
         lgfx->startWrite();
     }
-    lgfx->pushImageDMA( area->x1
-                    , area->y1
-                    , area->x2 - area->x1 + 1
-                    , area->y2 - area->y1 + 1
-                    , ( lgfx::swap565_t* )&color_p->full);
-    lv_disp_flush_ready( disp ); //TODO must put into LGFX callback for DMA double-buffering
+    lgfx->pushImageDMA(area->x1, area->y1, w, h, (uint16_t *)px_map);
+    lv_disp_flush_ready(disp); // TODO must put into LGFX callback for DMA double-buffering
 }
 #endif
 
@@ -159,17 +136,6 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         data->point.y = touchY;
 
         ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
-#if 0
-        if (data->point.x < 0)
-            data->point.x = 0;
-        if (data->point.y < 0)
-            data->point.y = 0;
-        if (data->point.x >= lgfx->touch()->config()->x_max)
-            data->point.x = lgfx->touch()->config()->x_max;
-        if (data->point.y >= lgfx->touch()->config()->y_max)
-            data->point.y = lgfx->touch()->config()->y_max;
-#endif
-        // ILOG_DEBUG("touch %d/%d\n", data->point.x, data->point.y);
     }
 }
 
@@ -183,6 +149,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     ILOG_DEBUG("LVGL display driver init...\n");
 
     DisplayDriver::display = lv_display_create(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
+    lv_display_set_color_format(this->display, LV_COLOR_FORMAT_RGB565);
 
 #if defined(USE_DOUBLE_BUFFER) // speedup drawing by using double-buffered DMA mode
     bufsize = screenWidth * screenHeight / 8 * sizeof(lv_color_t);
@@ -215,7 +182,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     assert(buf1 != 0);
     lv_display_set_buffers(display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #else
-    bufsize = this->screenWidth * 10;
+    bufsize = this->screenWidth * 20;
     buf1 = new lv_color_t[bufsize];
     assert(buf1 != 0);
     ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer\n", sizeof(lv_color_t) * bufsize);
@@ -224,7 +191,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 
     lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
 
-    // TODO lv_display_set_resolution(display, screenWidth, screenHeight);
+    // TODO lv_display_set_resolution(this->display, this->screenWidth, this->screenHeight);
 
 #if 0
    /* Example 2
