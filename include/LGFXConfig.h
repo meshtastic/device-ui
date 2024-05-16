@@ -40,6 +40,8 @@ class LGFXConfig : public lgfx::LGFX_Device
                 _panel_instance = new lgfx::Panel_ILI9341;
             // else if (strcasecmp(config._panel.type, "ILI9341_2") == 0)
             //     _panel_instance = new lgfx::Panel_ILI9341_2;
+            else if (strcasecmp(config._panel.type, "ILI9486") == 0)
+                _panel_instance = new lgfx::Panel_ILI9486;
             else if (strcasecmp(config._panel.type, "ILI9488") == 0)
                 _panel_instance = new lgfx::Panel_ILI9488;
             else if (strcasecmp(config._panel.type, "HX8357D") == 0)
