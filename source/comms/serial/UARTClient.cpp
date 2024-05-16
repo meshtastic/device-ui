@@ -32,7 +32,7 @@ void UARTClient::init(void)
     _serial = &Serial1;
 #elif defined(ARDUINO_USB_CDC_ON_BOOT) && ARDUINO_USB_CDC_ON_BOOT
     _serial = &Serial0;
-#elif !defined(PORTDUINO)
+#elif !defined(ARCH_PORTDUINO)
     ILOG_INFO("UARTClient::init SERIAL1 baud=%dn", SERIAL_BAUD);
     _serial = &Serial;
 #else

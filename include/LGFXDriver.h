@@ -238,7 +238,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         uint16_t parameters[8] = {1, 2, 69, 313, 187, 5, 239, 314};
 #elif defined(ESP32_2432S028RV1)
         uint16_t parameters[8] = {278, 3651, 228, 173, 3819, 3648, 3815, 179};
-#elif defined(NODEMCU_32S) || defined(PORTDUINO)
+#elif defined(NODEMCU_32S) || defined(ARCH_PORTDUINO)
         uint16_t parameters[8] = {255, 3691, 203, 198, 3836, 3659, 3795, 162};
 #else
         uint16_t parameters[8] = {0, 0, 0, 0, 0, 0, 0, 0};

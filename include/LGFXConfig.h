@@ -5,7 +5,7 @@
 #include "strings.h"
 #include <LovyanGFX.hpp>
 
-#ifdef PORTDUINO
+#ifdef ARCH_PORTDUINO
 #include "Light_PWM.h"
 #endif
 
@@ -80,7 +80,7 @@ class LGFXConfig : public lgfx::LGFX_Device
         }
 
         { // configure bus settings
-#ifndef PORTDUINO
+#ifndef ARCH_PORTDUINO
             if (config._bus.parallel.pin_d0 > 0) {
                 lgfx::Bus_Parallel8 *bus = new lgfx::Bus_Parallel8;
                 auto cfg = bus->config();
@@ -173,7 +173,7 @@ class LGFXConfig : public lgfx::LGFX_Device
 
         { // configure TFT backlight
             if (config._light.pin_bl != -1) {
-#ifdef PORTDUINO
+#ifdef ARCH_PORTDUINO
                 auto light = new portduino::Light_PWM;
 #else
                 auto light = new lgfx::Light_PWM;

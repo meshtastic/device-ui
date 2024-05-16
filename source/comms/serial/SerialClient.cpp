@@ -30,7 +30,7 @@ void SerialClient::init(void)
     ILOG_TRACE("SerialClient::init() creating serial task\n");
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
     xTaskCreateUniversal(task_loop, "serial", 8192, NULL, 2, NULL, 0);
-#elif defined(PORTDUINO)
+#elif defined(ARCH_PORTDUINO)
     std::thread *tft_task = new std::thread([] { instance->task_loop(nullptr); });
 #else
 #error "unsupported architecture"

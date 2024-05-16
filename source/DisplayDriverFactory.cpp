@@ -1,20 +1,20 @@
 #include "DisplayDriverFactory.h"
 #include "LGFXConfig.h"
 #include <assert.h>
-#if defined(LGFX_DRIVER) || defined(PORTDUINO)
+#if defined(LGFX_DRIVER) || defined(ARCH_PORTDUINO)
 #include "LGFXDriver.h"
 #endif
-#if defined(OLED_DRIVER) || defined(PORTDUINO)
+#if defined(OLED_DRIVER) || defined(ARCH_PORTDUINO)
 #include "OLEDDriver.h"
 #endif
-#if defined(EINK_DRIVER) || defined(PORTDUINO)
+#if defined(EINK_DRIVER) || defined(ARCH_PORTDUINO)
 // TODO #include "EINKDriver.h"
 #endif
 #if defined(USE_X11)
 #include "X11Driver.h"
 #endif
 
-#ifndef PORTDUINO
+#ifndef ARCH_PORTDUINO
 #ifdef T_HMI
 #include "LGFX_T_HMI.h"
 #endif
@@ -63,18 +63,18 @@ DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 
 DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 {
-#if defined(LGFXConfig) || defined(PORTDUINO)
+#if defined(LGFXConfig) || defined(ARCH_PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_TFT) {
         // for now assume LGFX driver, but could be also TFT_eSPI if implemented
         return new LGFXDriver<LGFXConfig>(cfg);
     }
 #endif
-#if defined(OLEDConfig) || defined(PORTDUINO)
+#if defined(OLEDConfig) || defined(ARCH_PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_OLED) {
         // TODO return new OLEDDriver<OLEDConfig>(cfg);
     }
 #endif
-#if defined(EINKConfig) || defined(PORTDUINO)
+#if defined(EINKConfig) || defined(ARCH_PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_EINK) {
         // TODO return new EINKDriver<EINKConfig>(cfg);
     }
@@ -85,7 +85,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     }
 #endif
     switch (cfg._device) {
-#ifndef PORTDUINO
+#ifndef ARCH_PORTDUINO
 #if !defined(LGFX_DRIVER)
 #error "LGFX_DRIVER must be defined!"
 #endif
