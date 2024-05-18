@@ -50,8 +50,8 @@ class TFTView_240x240 : public MeshtasticView
     static void ui_event_MessagesButton(lv_event_t *e);
     static void ui_event_SettingsButton(lv_event_t *e);
 
-    static void ui_event_NodeButtonClicked(lv_event_t *e);
-    static void ui_event_ChannelButtonClicked(lv_event_t *e);
+    static void ui_event_NodeButton(lv_event_t *e);
+    static void ui_event_ChannelButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
 
     lv_obj_t *activeButton = nullptr;
