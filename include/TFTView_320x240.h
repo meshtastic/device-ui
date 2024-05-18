@@ -62,10 +62,26 @@ class TFTView_320x240 : public MeshtasticView
     void updateNodesOnline(const char *str) override;
     void removeNode(uint32_t nodeNum) override;
 
+    enum Settings {
+        eNone,
+        eUsername,
+        eDeviceRole,
+        eRegion,
+        eChannel,
+        eLanguage,
+        eScreenTimeout,
+        eScreenBrightness,
+        eAlertBuzzer
+    };
+
   protected:
+    typedef void (*UserWidgetFunc)(lv_obj_t *, void *, int);
+
     virtual void showMessagePopup(uint32_t from, uint32_t to, uint8_t ch, const char *name);
     // hide new message popup
     virtual void hideMessagePopup(void);
+    // display user widget (dynamically created)
+    void showUserWidget(UserWidgetFunc createWidget);
     // display messages of a group channel
     virtual void addChat(uint32_t from, uint32_t to, uint8_t ch);
     // mark chat border to indicate a new message
@@ -115,19 +131,36 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_MapButton(lv_event_t *e);
     static void ui_event_SettingsButton(lv_event_t *e);
 
-    static void ui_event_NodeButtonClicked(lv_event_t *e);
-    static void ui_event_ChannelButtonClicked(lv_event_t *e);
-    static void ui_event_ChatButtonClicked(lv_event_t *e);
-    static void ui_event_ChatDelButtonClicked(lv_event_t *e);
+    static void ui_event_NodeButton(lv_event_t *e);
+    static void ui_event_ChannelButton(lv_event_t *e);
+    static void ui_event_ChatButton(lv_event_t *e);
+    static void ui_event_ChatDelButton(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
     static void ui_event_KeyboardButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
+
+    static void ui_event_user_button(lv_event_t *e);
+    static void ui_event_timeout_button(lv_event_t *e);
+    static void ui_event_role_button(lv_event_t *e);
+    static void ui_event_region_button(lv_event_t *e);
+    static void ui_event_language_button(lv_event_t *e);
+    static void ui_event_channel_button(lv_event_t *e);
+    static void ui_event_brightness_button(lv_event_t *e);
+    static void ui_event_alert_button(lv_event_t *e);
+
+    static void ui_event_screen_timeout_slider(lv_event_t *e);
+    static void ui_event_brightness_slider(lv_event_t *e);
+    static void ui_event_ok(lv_event_t *e);
+    static void ui_event_cancel(lv_event_t *e);
 
     lv_obj_t *activeButton = nullptr;
     lv_obj_t *activePanel = nullptr;
     lv_obj_t *activeTopPanel = nullptr;
     lv_obj_t *activeMsgContainer = nullptr;
+    lv_obj_t *activeWidget = nullptr;
+    enum Settings activeSettings = eNone;
 
     static TFTView_320x240 *gui;
     time_t lastrun60, lastrun5;
+    static bool advanced_mode;
 };

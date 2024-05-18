@@ -2,6 +2,7 @@
 
 #include "TFTView_320x240.h"
 #include "Arduino.h"
+#include "DisplayDriver.h"
 #include "DisplayDriverFactory.h"
 #include "ILog.h"
 #include "ViewController.h"
@@ -18,6 +19,7 @@
 enum NodePanelIdx { node_img_idx, node_btn_idx, node_lbl_idx, node_lbs_idx, node_bat_idx, node_lh_idx, node_sig_idx };
 
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
+bool TFTView_320x240::advanced_mode = false;
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -147,17 +149,17 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
 
     // node and channel buttons
-    lv_obj_add_event_cb(objects.node_button, ui_event_NodeButtonClicked, LV_EVENT_ALL, (void *)ownNode);
+    lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
 
     // 8 channel buttons
-    lv_obj_add_event_cb(objects.channel_button0, ui_event_ChannelButtonClicked, LV_EVENT_ALL, (void *)0);
-    lv_obj_add_event_cb(objects.channel_button1, ui_event_ChannelButtonClicked, LV_EVENT_ALL, (void *)1);
-    lv_obj_add_event_cb(objects.channel_button2, ui_event_ChannelButtonClicked, LV_EVENT_ALL, (void *)2);
-    lv_obj_add_event_cb(objects.channel_button3, ui_event_ChannelButtonClicked, LV_EVENT_ALL, (void *)3);
-    lv_obj_add_event_cb(objects.channel_button4, ui_event_ChannelButtonClicked, LV_EVENT_ALL, (void *)4);
-    lv_obj_add_event_cb(objects.channel_button5, ui_event_ChannelButtonClicked, LV_EVENT_ALL, (void *)5);
-    lv_obj_add_event_cb(objects.channel_button6, ui_event_ChannelButtonClicked, LV_EVENT_ALL, (void *)6);
-    lv_obj_add_event_cb(objects.channel_button7, ui_event_ChannelButtonClicked, LV_EVENT_ALL, (void *)7);
+    lv_obj_add_event_cb(objects.channel_button0, ui_event_ChannelButton, LV_EVENT_ALL, (void *)0);
+    lv_obj_add_event_cb(objects.channel_button1, ui_event_ChannelButton, LV_EVENT_ALL, (void *)1);
+    lv_obj_add_event_cb(objects.channel_button2, ui_event_ChannelButton, LV_EVENT_ALL, (void *)2);
+    lv_obj_add_event_cb(objects.channel_button3, ui_event_ChannelButton, LV_EVENT_ALL, (void *)3);
+    lv_obj_add_event_cb(objects.channel_button4, ui_event_ChannelButton, LV_EVENT_ALL, (void *)4);
+    lv_obj_add_event_cb(objects.channel_button5, ui_event_ChannelButton, LV_EVENT_ALL, (void *)5);
+    lv_obj_add_event_cb(objects.channel_button6, ui_event_ChannelButton, LV_EVENT_ALL, (void *)6);
+    lv_obj_add_event_cb(objects.channel_button7, ui_event_ChannelButton, LV_EVENT_ALL, (void *)7);
 
     // new message popup
     lv_obj_add_event_cb(objects.msg_popup_button, this->ui_event_MsgPopupButton, LV_EVENT_ALL, NULL);
@@ -166,6 +168,34 @@ void TFTView_320x240::ui_events_init(void)
     // keyboard
     lv_obj_add_event_cb(objects.keyboard_button, ui_event_KeyboardButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_ALL, this);
+
+    // basic settings buttons
+    lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_timeout_button, ui_event_timeout_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_role_button, ui_event_role_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_region_button, ui_event_region_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_language_button, ui_event_language_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_channel_button, ui_event_channel_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_brightness_button, ui_event_brightness_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_alert_button, ui_event_alert_button, LV_EVENT_ALL, NULL);
+
+    // sliders
+    lv_obj_add_event_cb(objects.screen_timeout_slider, ui_event_screen_timeout_slider, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.brightness_slider, ui_event_brightness_slider, LV_EVENT_VALUE_CHANGED, NULL);
+
+    // OK / Cancel widget
+    lv_obj_add_event_cb(objects.obj0__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj0__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj1__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj1__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj2__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj2__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj3__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj3__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj4__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj4__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj5__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj5__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
 }
 
 #if 0 // defined above as lambda function for tests
@@ -185,7 +215,7 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
     }
 }
 
-void TFTView_320x240::ui_event_NodeButtonClicked(lv_event_t *e)
+void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_LONG_PRESSED) {
@@ -204,7 +234,7 @@ void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
     }
 }
 
-void TFTView_320x240::ui_event_ChannelButtonClicked(lv_event_t *e)
+void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
@@ -238,11 +268,12 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        TFTView_320x240::instance()->ui_set_active(objects.settings_button, objects.settings_panel, objects.top_settings_panel);
+        lv_obj_t *top_panel = advanced_mode ? objects.top_advanced_settings_panel : objects.top_settings_panel;
+        TFTView_320x240::instance()->ui_set_active(objects.settings_button, objects.basic_settings_panel, top_panel);
     }
 }
 
-void TFTView_320x240::ui_event_ChatButtonClicked(lv_event_t *e)
+void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target_obj(e);
@@ -275,7 +306,7 @@ void TFTView_320x240::ui_event_ChatButtonClicked(lv_event_t *e)
  *
  * @param e
  */
-void TFTView_320x240::ui_event_ChatDelButtonClicked(lv_event_t *e)
+void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
@@ -371,6 +402,261 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             const char *txt = lv_keyboard_get_button_text(kb, btn_id);
         }
     }
+}
+
+// basic settings buttons
+
+void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        int32_t timeout = TFTView_320x240::instance()->displaydriver->getScreenTimeout();
+        lv_obj_clear_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_slider_set_value(objects.screen_timeout_slider, timeout, LV_ANIM_OFF);
+        TFTView_320x240::instance()->activeSettings = eScreenTimeout;
+    }
+}
+
+void TFTView_320x240::ui_event_user_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        TFTView_320x240::instance()->activeSettings = eUsername;
+    }
+}
+
+void TFTView_320x240::ui_event_role_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        // TODO: receive actual value from node and set actual value for dropdown
+        lv_obj_clear_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
+        TFTView_320x240::instance()->activeSettings = eDeviceRole;
+    }
+}
+
+void TFTView_320x240::ui_event_region_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        // TODO: receive actual value from node and set actual value for dropdown
+        lv_obj_clear_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
+        TFTView_320x240::instance()->activeSettings = eRegion;
+    }
+}
+
+void TFTView_320x240::ui_event_language_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        // TODO: set actual value for dropdown
+        lv_obj_clear_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
+        TFTView_320x240::instance()->activeSettings = eLanguage;
+    }
+}
+
+void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        TFTView_320x240::instance()->activeSettings = eChannel;
+    }
+}
+
+void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        int32_t brightness = TFTView_320x240::instance()->displaydriver->getBrightness() * 100 / 255;
+        lv_slider_set_value(objects.brightness_slider, brightness, LV_ANIM_OFF);
+        objects.brightness_slider->user_data = (void *)brightness;
+        lv_obj_clear_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
+        TFTView_320x240::instance()->activeSettings = eScreenBrightness;
+    }
+}
+
+void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        // TODO: retrieve actual value from node and set switch
+        lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
+        TFTView_320x240::instance()->activeSettings = eAlertBuzzer;
+    }
+}
+
+/**
+ * @brief OK button user widget handling
+ *
+ * @param e
+ */
+void TFTView_320x240::ui_event_ok(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        switch (TFTView_320x240::instance()->activeSettings) {
+        case TFTView_320x240::eUsername: {
+            break;
+        }
+        case TFTView_320x240::eDeviceRole: {
+            char buf1[10], buf2[30];
+            lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
+            lv_snprintf(buf2, sizeof(buf2), "Device Role: %s", buf1);
+            lv_label_set_text(objects.basic_settings_role_label, buf2);
+            // TODO: send packet to node
+            lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eRegion: {
+            char buf1[10], buf2[30];
+            lv_dropdown_get_selected_str(objects.settings_region_dropdown, buf1, sizeof(buf1));
+            lv_snprintf(buf2, sizeof(buf2), "Region: %s", buf1);
+            lv_label_set_text(objects.basic_settings_region_label, buf2);
+            // TODO: send packet to node
+            lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eChannel: {
+            break;
+        }
+        case TFTView_320x240::eLanguage: {
+            char buf1[10], buf2[30];
+            lv_dropdown_get_selected_str(objects.settings_language_dropdown, buf1, sizeof(buf1));
+            lv_snprintf(buf2, sizeof(buf2), "Language: %s", buf1);
+            lv_label_set_text(objects.basic_settings_language_label, buf2);
+            // TODO: change language acc. lvgl localization
+            lv_obj_add_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eScreenTimeout: {
+            char buf[32];
+            uint32_t value = lv_slider_get_value(objects.screen_timeout_slider);
+            TFTView_320x240::instance()->displaydriver->setScreenTimeout(value);
+            if (value == 0)
+                lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
+            else
+                lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", value);
+            lv_label_set_text(objects.basic_settings_timeout_label, buf);
+            lv_obj_add_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eScreenBrightness: {
+            char buf[32];
+            lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", (int)lv_slider_get_value(objects.brightness_slider));
+            lv_label_set_text(objects.basic_settings_brightness_label, buf);
+            lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eAlertBuzzer: {
+            char buf[32];
+            lv_snprintf(buf, sizeof(buf), "Message Alert Buzzer: %s",
+                        lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED) ? "on" : "off");
+            lv_label_set_text(objects.basic_settings_alert_label, buf);
+            // TODO: send packet to node
+            lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        default:
+            ILOG_ERROR("Unhandled ok event\n");
+        }
+    }
+}
+
+/**
+ * @brief Cancel button user widget handling
+ *
+ * @param e
+ */
+void TFTView_320x240::ui_event_cancel(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        switch (TFTView_320x240::instance()->activeSettings) {
+        case TFTView_320x240::eUsername: {
+            break;
+        }
+        case TFTView_320x240::eDeviceRole: {
+            lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eRegion: {
+            lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eChannel: {
+            break;
+        }
+        case TFTView_320x240::eLanguage: {
+            lv_obj_add_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eScreenTimeout: {
+            lv_obj_add_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eScreenBrightness: {
+            lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
+            // revert to old brightness value
+            uint32_t old_brightness = (unsigned long)objects.brightness_slider->user_data;
+            TFTView_320x240::instance()->displaydriver->setBrightness((int8_t)(old_brightness * 255 / 100));
+            break;
+        }
+        case TFTView_320x240::eAlertBuzzer: {
+            lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        default:
+            ILOG_ERROR("Unhandled ok event\n");
+        }
+    }
+}
+
+// end button event handlers
+
+void TFTView_320x240::ui_event_screen_timeout_slider(lv_event_t *e)
+{
+    lv_obj_t *slider = lv_event_get_target_obj(e);
+    char buf[20];
+    uint32_t value = lv_slider_get_value(slider);
+    if (value > 5)
+        value -= value % 5;
+    if (value == 0)
+        lv_snprintf(buf, sizeof(buf), "Timeout: off");
+    else
+        lv_snprintf(buf, sizeof(buf), "Timeout: %ds", value);
+    lv_label_set_text(objects.settings_screen_timeout_label, buf);
+}
+
+void TFTView_320x240::ui_event_brightness_slider(lv_event_t *e)
+{
+    lv_obj_t *slider = lv_event_get_target_obj(e);
+    char buf[20];
+    lv_snprintf(buf, sizeof(buf), "Brightness: %d%%", (int)lv_slider_get_value(slider));
+    lv_label_set_text(objects.settings_brightness_label, buf);
+    TFTView_320x240::instance()->displaydriver->setBrightness((int8_t)(lv_slider_get_value(slider) * 255 / 100));
+}
+
+/**
+ * @brief Dynamically show user widget
+ *        First a panel is created where the widget is located in, then the widget is drawn.
+ *        "active_widget" contains the surrounding panel which must be destroyed
+ *        to remove the widget from the screen (e.g. by pressing OK/Cancel).
+ *
+ * @param func
+ */
+void TFTView_320x240::showUserWidget(UserWidgetFunc createWidget)
+{
+    lv_obj_t *obj = lv_obj_create(objects.main_screen);
+    lv_obj_set_pos(obj, 39, 25);
+    lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    activeWidget = obj;
+
+    createWidget(activeWidget, NULL, 0);
 }
 
 void TFTView_320x240::handleAddMessage(char *msg)
@@ -570,7 +856,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_text_opa(ui_SignalLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_SignalLabel, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_obj_add_event_cb(nodeButton, ui_event_NodeButtonClicked, LV_EVENT_ALL, (void *)nodeNum);
+    lv_obj_add_event_cb(nodeButton, ui_event_NodeButton, LV_EVENT_ALL, (void *)nodeNum);
 
     // move node into new position within nodePanel
     if (lastHeard) {
@@ -1073,8 +1359,8 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     chats[index] = chatBtn;
     updateActiveChats();
 
-    lv_obj_add_event_cb(chatBtn, ui_event_ChatButtonClicked, LV_EVENT_ALL, (void *)index);
-    lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButtonClicked, LV_EVENT_ALL, (void *)index);
+    lv_obj_add_event_cb(chatBtn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
+    lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_ALL, (void *)index);
 }
 
 void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)

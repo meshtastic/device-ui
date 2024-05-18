@@ -6,7 +6,7 @@
 #include "TFTDriver.h"
 #include <functional>
 
-const uint32_t displayTimeout = 60 * 1000;
+const uint32_t defaultScreenTimeout = 60 * 1000;
 const uint32_t defaultBrightness = 128;
 
 template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
@@ -19,6 +19,12 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     bool isPowersaving() override { return powerSaving; }
     void task_handler(void) override;
 
+    uint8_t getBrightness(void) override { return lgfx->getBrightness(); }
+    void setBrightness(uint8_t brightness) override;
+
+    uint8_t getScreenTimeout() override { return screenTimeout; }
+    void setScreenTimeout(uint8_t timeout) override { screenTimeout = timeout; };
+
     virtual bool hasLight(void) { return lgfx->light(); }
 
   protected:
@@ -28,6 +34,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     static uint32_t my_tick_get_cb(void) { return millis(); }
 
     static uint32_t lastTouch;
+    uint32_t screenTimeout;
     bool powerSaving;
 
   private:
@@ -44,7 +51,8 @@ template <class LGFX> uint32_t LGFXDriver<LGFX>::lastTouch = 0;
 
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
-    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr)
+    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), screenTimeout(defaultScreenTimeout), powerSaving(false), bufsize(0),
+      buf1(nullptr), buf2(nullptr)
 {
     lgfx = this->tft;
     lastTouch = millis();
@@ -62,7 +70,7 @@ LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
     if ((hasTouch() /* || hasButton() */) && hasLight()) {
-        if (lastTouch + displayTimeout < millis()) {
+        if (screenTimeout > 0 && lastTouch + screenTimeout < millis()) { // TODO: use lvgl indev inactivity
             if (!powerSaving) {
                 // dim display brightness slowly down
                 uint32_t brightness = lgfx->getBrightness();
@@ -76,7 +84,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             }
         }
         if (powerSaving) {
-            if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int) || lastTouch + displayTimeout > millis()) {
+            if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int) || lastTouch + screenTimeout > millis()) {
                 // woke up by touch or button
                 powerSaving = false;
                 lastTouch = millis();
@@ -266,4 +274,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
                    parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
 #endif
     }
+}
+
+template <class LGFX> void LGFXDriver<LGFX>::setBrightness(uint8_t brightness)
+{
+    lgfx->setBrightness(brightness);
 }

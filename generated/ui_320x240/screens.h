@@ -10,12 +10,31 @@ extern "C" {
 typedef struct _objects_t {
     lv_obj_t *boot_screen;
     lv_obj_t *main_screen;
+    lv_obj_t *blank_screen;
     lv_obj_t *alert_label;
     lv_obj_t *alert_panel;
+    lv_obj_t *basic_settings_alert_button;
+    lv_obj_t *basic_settings_alert_label;
+    lv_obj_t *basic_settings_brightness_button;
+    lv_obj_t *basic_settings_brightness_label;
+    lv_obj_t *basic_settings_channel_button;
+    lv_obj_t *basic_settings_channel_label;
+    lv_obj_t *basic_settings_language_button;
+    lv_obj_t *basic_settings_language_label;
+    lv_obj_t *basic_settings_panel;
+    lv_obj_t *basic_settings_region_button;
+    lv_obj_t *basic_settings_region_label;
+    lv_obj_t *basic_settings_role_button;
+    lv_obj_t *basic_settings_role_label;
+    lv_obj_t *basic_settings_timeout_button;
+    lv_obj_t *basic_settings_timeout_label;
+    lv_obj_t *basic_settings_user_button;
+    lv_obj_t *basic_settings_user_label;
     lv_obj_t *battery_image;
     lv_obj_t *battery_label;
     lv_obj_t *battery_panel;
     lv_obj_t *battery_percentage_label;
+    lv_obj_t *brightness_slider;
     lv_obj_t *button_panel;
     lv_obj_t *channel_button0;
     lv_obj_t *channel_button1;
@@ -78,9 +97,51 @@ typedef struct _objects_t {
     lv_obj_t *node_panel;
     lv_obj_t *nodes_button;
     lv_obj_t *nodes_panel;
+    lv_obj_t *obj0;
+    lv_obj_t *obj0__cancel_button_w;
+    lv_obj_t *obj0__ok_button_w;
+    lv_obj_t *obj0__ok_cancel_panel_w;
+    lv_obj_t *obj1;
+    lv_obj_t *obj1__cancel_button_w;
+    lv_obj_t *obj1__ok_button_w;
+    lv_obj_t *obj1__ok_cancel_panel_w;
+    lv_obj_t *obj2;
+    lv_obj_t *obj2__cancel_button_w;
+    lv_obj_t *obj2__ok_button_w;
+    lv_obj_t *obj2__ok_cancel_panel_w;
+    lv_obj_t *obj3;
+    lv_obj_t *obj3__cancel_button_w;
+    lv_obj_t *obj3__ok_button_w;
+    lv_obj_t *obj3__ok_cancel_panel_w;
+    lv_obj_t *obj4;
+    lv_obj_t *obj4__cancel_button_w;
+    lv_obj_t *obj4__ok_button_w;
+    lv_obj_t *obj4__ok_cancel_panel_w;
+    lv_obj_t *obj5;
+    lv_obj_t *obj5__cancel_button_w;
+    lv_obj_t *obj5__ok_button_w;
+    lv_obj_t *obj5__ok_cancel_panel_w;
+    lv_obj_t *screen_timeout_slider;
+    lv_obj_t *settings_alert_buzzer_panel;
+    lv_obj_t *settings_alert_buzzer_switch;
+    lv_obj_t *settings_brightness_label;
+    lv_obj_t *settings_brightness_panel;
     lv_obj_t *settings_button;
+    lv_obj_t *settings_device_role_dropdown;
+    lv_obj_t *settings_device_role_panel;
+    lv_obj_t *settings_language_dropdown;
+    lv_obj_t *settings_language_panel;
     lv_obj_t *settings_panel;
+    lv_obj_t *settings_region_dropdown;
+    lv_obj_t *settings_region_panel;
+    lv_obj_t *settings_screen_timeout_label;
+    lv_obj_t *settings_screen_timeout_panel;
     lv_obj_t *signal_label;
+    lv_obj_t *top_advanced_settings_image;
+    lv_obj_t *top_advanced_settings_label;
+    lv_obj_t *top_advanced_settings_panel;
+    lv_obj_t *top_basic_settings_image;
+    lv_obj_t *top_basic_settings_label;
     lv_obj_t *top_chats_image;
     lv_obj_t *top_chats_label;
     lv_obj_t *top_chats_panel;
@@ -99,8 +160,6 @@ typedef struct _objects_t {
     lv_obj_t *top_nodes_online_label;
     lv_obj_t *top_nodes_panel;
     lv_obj_t *top_panel;
-    lv_obj_t *top_settings_image;
-    lv_obj_t *top_settings_label;
     lv_obj_t *top_settings_panel;
     lv_obj_t *top_user_group_label;
     lv_obj_t *user_name_label;
@@ -112,6 +171,9 @@ extern objects_t objects;
 enum ScreensEnum {
     SCREEN_ID_BOOT_SCREEN = 1,
     SCREEN_ID_MAIN_SCREEN = 2,
+    SCREEN_ID_BLANK_SCREEN = 3,
+    SCREEN_ID_BRIGHTNESS_WIDGET = 4,
+    SCREEN_ID_OK_CANCEL_WIDGET = 5,
 };
 
 void create_screen_boot_screen();
@@ -119,6 +181,15 @@ void tick_screen_boot_screen();
 
 void create_screen_main_screen();
 void tick_screen_main_screen();
+
+void create_screen_blank_screen();
+void tick_screen_blank_screen();
+
+void create_user_widget_brightness_widget(lv_obj_t *parent_obj, void *flowState, int startWidgetIndex);
+void tick_user_widget_brightness_widget(void *flowState, int startWidgetIndex);
+
+void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, void *flowState, int startWidgetIndex);
+void tick_user_widget_ok_cancel_widget(void *flowState, int startWidgetIndex);
 
 void create_screens();
 void tick_screen(int screen_index);
