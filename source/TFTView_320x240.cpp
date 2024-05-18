@@ -73,6 +73,10 @@ void TFTView_320x240::init(IClientBase *client)
 
     // load main screen
     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, true);
+
+    // re-configuration based on capabilities
+    if (!displaydriver->hasLight())
+        lv_obj_add_state(objects.basic_settings_brightness_button, LV_STATE_DISABLED);
 }
 
 /**
@@ -196,6 +200,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj4__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
     lv_obj_add_event_cb(objects.obj5__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
     lv_obj_add_event_cb(objects.obj5__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj6__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj6__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
 }
 
 #if 0 // defined above as lambda function for tests
@@ -421,6 +427,11 @@ void TFTView_320x240::ui_event_user_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
+        char *userShort = lv_label_get_text(objects.user_name_short_label);
+        char *userLong = lv_label_get_text(objects.user_name_label);
+        lv_textarea_set_text(objects.settings_user_short_textarea, userShort);
+        lv_textarea_set_text(objects.settings_user_long_textarea, userLong);
+        lv_obj_clear_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eUsername;
     }
 }
@@ -496,6 +507,15 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         switch (TFTView_320x240::instance()->activeSettings) {
         case TFTView_320x240::eUsername: {
+            char buf[30];
+            const char *userShort = lv_textarea_get_text(objects.settings_user_short_textarea);
+            const char *userLong = lv_textarea_get_text(objects.settings_user_long_textarea);
+            lv_label_set_text(objects.user_name_short_label, userShort);
+            lv_label_set_text(objects.user_name_label, userLong);
+            lv_snprintf(buf, sizeof(buf), "Username: %s", userShort);
+            lv_label_set_text(objects.basic_settings_user_label, buf);
+            // TODO: send packet to node
+            lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case TFTView_320x240::eDeviceRole: {
@@ -573,6 +593,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         switch (TFTView_320x240::instance()->activeSettings) {
         case TFTView_320x240::eUsername: {
+            lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case TFTView_320x240::eDeviceRole: {

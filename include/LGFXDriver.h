@@ -16,6 +16,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     LGFXDriver(const DisplayDriverConfig &cfg);
     void init(DeviceGUI *gui) override;
     bool hasTouch() override { return lgfx->touch(); }
+    bool hasLight(void) override { return lgfx->light(); }
     bool isPowersaving() override { return powerSaving; }
     void task_handler(void) override;
 
@@ -24,8 +25,6 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 
     uint8_t getScreenTimeout() override { return screenTimeout; }
     void setScreenTimeout(uint8_t timeout) override { screenTimeout = timeout; };
-
-    virtual bool hasLight(void) { return lgfx->light(); }
 
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++

@@ -121,6 +121,10 @@ typedef struct _objects_t {
     lv_obj_t *obj5__cancel_button_w;
     lv_obj_t *obj5__ok_button_w;
     lv_obj_t *obj5__ok_cancel_panel_w;
+    lv_obj_t *obj6;
+    lv_obj_t *obj6__cancel_button_w;
+    lv_obj_t *obj6__ok_button_w;
+    lv_obj_t *obj6__ok_cancel_panel_w;
     lv_obj_t *screen_timeout_slider;
     lv_obj_t *settings_alert_buzzer_panel;
     lv_obj_t *settings_alert_buzzer_switch;
@@ -136,6 +140,9 @@ typedef struct _objects_t {
     lv_obj_t *settings_region_panel;
     lv_obj_t *settings_screen_timeout_label;
     lv_obj_t *settings_screen_timeout_panel;
+    lv_obj_t *settings_user_long_textarea;
+    lv_obj_t *settings_user_short_textarea;
+    lv_obj_t *settings_username_panel;
     lv_obj_t *signal_label;
     lv_obj_t *top_advanced_settings_image;
     lv_obj_t *top_advanced_settings_label;

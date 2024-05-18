@@ -15,6 +15,7 @@ class DisplayDriver
     DisplayDriver(uint16_t width, uint16_t height);
     virtual void init(DeviceGUI *gui);
     virtual bool hasTouch(void) { return false; }
+    virtual bool hasLight(void) { return false; }
     virtual void task_handler(void) { lv_timer_handler(); };
     virtual bool isPowersaving() { return false; }
     virtual ~DisplayDriver() {}
