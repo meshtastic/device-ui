@@ -189,7 +189,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     assert(buf1 != 0);
     lv_display_set_buffers(display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #else
-    bufsize = this->screenWidth * 20;
+    bufsize = lgfx->screenWidth * 20;
     buf1 = new lv_color_t[bufsize];
     assert(buf1 != 0);
     ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer\n", sizeof(lv_color_t) * bufsize);
@@ -198,7 +198,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 
     lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
 
-    // TODO lv_display_set_resolution(this->display, this->screenWidth, this->screenHeight);
+    ILOG_DEBUG("Set display resolution: %dx%d\n", lgfx->screenWidth, lgfx->screenHeight);
+    lv_display_set_resolution(this->display, lgfx->screenWidth, lgfx->screenHeight);
+    // lv_display_set_physical_resolution(this->display, this->screenWidth, this->screenHeight);
 
 #if 0
    /* Example 2
