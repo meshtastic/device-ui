@@ -23,8 +23,8 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     uint8_t getBrightness(void) override { return lgfx->getBrightness(); }
     void setBrightness(uint8_t brightness) override;
 
-    uint8_t getScreenTimeout() override { return screenTimeout; }
-    void setScreenTimeout(uint8_t timeout) override { screenTimeout = timeout; };
+    uint8_t getScreenTimeout() override { return screenTimeout / 1000; }
+    void setScreenTimeout(uint8_t timeout) override { screenTimeout = timeout * 1000; };
 
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++

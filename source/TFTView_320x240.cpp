@@ -551,6 +551,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         case TFTView_320x240::eScreenTimeout: {
             char buf[32];
             uint32_t value = lv_slider_get_value(objects.screen_timeout_slider);
+            if (value > 5)
+                value -= value % 5;
             TFTView_320x240::instance()->displaydriver->setScreenTimeout(value);
             if (value == 0)
                 lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
