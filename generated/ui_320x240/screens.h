@@ -11,6 +11,7 @@ typedef struct _objects_t {
     lv_obj_t *boot_screen;
     lv_obj_t *main_screen;
     lv_obj_t *blank_screen;
+    lv_obj_t *advanced_settings_panel;
     lv_obj_t *alert_label;
     lv_obj_t *alert_panel;
     lv_obj_t *basic_settings_alert_button;
@@ -77,7 +78,6 @@ typedef struct _objects_t {
     lv_obj_t *home_wlan_label;
     lv_obj_t *keyboard;
     lv_obj_t *keyboard_button;
-    lv_obj_t *language_settings_panel;
     lv_obj_t *last_heard_label;
     lv_obj_t *map_button;
     lv_obj_t *map_panel;
@@ -135,7 +135,6 @@ typedef struct _objects_t {
     lv_obj_t *settings_device_role_panel;
     lv_obj_t *settings_language_dropdown;
     lv_obj_t *settings_language_panel;
-    lv_obj_t *settings_panel;
     lv_obj_t *settings_region_dropdown;
     lv_obj_t *settings_region_panel;
     lv_obj_t *settings_screen_timeout_label;
