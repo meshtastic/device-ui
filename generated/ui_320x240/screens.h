@@ -191,11 +191,11 @@ void tick_screen_main_screen();
 void create_screen_blank_screen();
 void tick_screen_blank_screen();
 
-void create_user_widget_brightness_widget(lv_obj_t *parent_obj, void *flowState, int startWidgetIndex);
-void tick_user_widget_brightness_widget(void *flowState, int startWidgetIndex);
+void create_user_widget_brightness_widget(lv_obj_t *parent_obj, int startWidgetIndex);
+void tick_user_widget_brightness_widget(int startWidgetIndex);
 
-void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, void *flowState, int startWidgetIndex);
-void tick_user_widget_ok_cancel_widget(void *flowState, int startWidgetIndex);
+void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIndex);
+void tick_user_widget_ok_cancel_widget(int startWidgetIndex);
 
 void create_screens();
 void tick_screen(int screen_index);

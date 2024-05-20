@@ -71,12 +71,15 @@ void TFTView_320x240::init(IClientBase *client)
     // keyboard init
     lv_keyboard_set_textarea(objects.keyboard, objects.message_input_area);
 
+    // load boot screen
+    lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
+
     // load main screen
     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, true);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
-        lv_obj_add_state(objects.basic_settings_brightness_button, LV_STATE_DISABLED);
+        lv_obj_add_flag(objects.basic_settings_brightness_button, LV_OBJ_FLAG_HIDDEN);
 }
 
 /**
@@ -440,7 +443,11 @@ void TFTView_320x240::ui_event_role_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        // TODO: receive actual value from node and set actual value for dropdown
+        uint32_t role = (unsigned long)TFTView_320x240::instance()
+                            ->nodes[TFTView_320x240::instance()->ownNode]
+                            ->LV_OBJ_IDX(node_img_idx)
+                            ->user_data;
+        lv_dropdown_set_selected(objects.settings_device_role_dropdown, role);
         lv_obj_clear_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eDeviceRole;
     }
@@ -779,7 +786,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     lv_obj_t *img = lv_img_create(p);
     setNodeImage(nodeNum, role, img);
-
     lv_obj_set_width(img, LV_SIZE_CONTENT);
     lv_obj_set_height(img, LV_SIZE_CONTENT);
     lv_obj_set_x(img, -5);
@@ -934,6 +940,15 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
 {
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
+        if (it->first == ownNode) {
+            // update related settings buttons and store role in image user data
+            char buf[30];
+            lv_snprintf(buf, sizeof(buf), "Username: %s", userShort);
+            lv_label_set_text(objects.basic_settings_user_label, buf);
+            lv_snprintf(buf, sizeof(buf), "Device Role: %s", deviceRoleToString(role));
+            lv_label_set_text(objects.basic_settings_role_label, buf);
+            it->second->LV_OBJ_IDX(node_img_idx)->user_data = (void *)role;
+        }
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), userLong);
         it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)strlen(userLong);
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
@@ -1209,7 +1224,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     // if there's a message from a node we don't know (yet), create it with defaults
     auto it = nodes.find(from);
     if (it == nodes.end()) {
-        MeshtasticView::addOrUpdateNode(from, ch, 0, eRole::client);
+        MeshtasticView::addOrUpdateNode(from, ch, 0, eRole::unknown);
         updateLastHeard(from);
     }
 
@@ -1505,6 +1520,10 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img)
     case lost_and_found:
     case tak_tracker: {
         lv_img_set_src(img, &img_node_sensor_image);
+        break;
+    }
+    case unknown: {
+        lv_img_set_src(img, &img_circle_question_image);
         break;
     }
     default:

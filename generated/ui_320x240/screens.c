@@ -25,7 +25,7 @@ void create_screen_boot_screen() {
             // MeshtasticLogo
             lv_obj_t *obj = lv_img_create(parent_obj);
             objects.meshtastic_logo = obj;
-            lv_obj_set_pos(obj, 0, -45);
+            lv_obj_set_pos(obj, 0, LV_PCT(-10));
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_img_set_src(obj, &img_meshtastic_boot_logo_image);
             lv_img_set_zoom(obj, 255);
@@ -39,7 +39,7 @@ void create_screen_boot_screen() {
             // MeshtasticUrl
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.meshtastic_url = obj;
-            lv_obj_set_pos(obj, 0, -80);
+            lv_obj_set_pos(obj, 0, LV_PCT(-15));
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_label_set_text(obj, " www.meshtastic.org");
             lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -51,9 +51,9 @@ void create_screen_boot_screen() {
             objects.firmware_label = obj;
             lv_obj_set_pos(obj, 0, -15);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_label_set_text(obj, " ");
+            lv_label_set_text(obj, "");
             lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_font(obj, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     }
 }
@@ -1188,7 +1188,7 @@ void create_screen_main_screen() {
                     // MeshtasticImage
                     lv_obj_t *obj = lv_img_create(parent_obj);
                     objects.meshtastic_image = obj;
-                    lv_obj_set_pos(obj, 36, -9);
+                    lv_obj_set_pos(obj, 37, -9);
                     lv_obj_set_size(obj, 36, 17);
                     lv_img_set_src(obj, &img_meshtastic_logo_image);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_ADV_HITTEST);
@@ -1323,6 +1323,7 @@ void create_screen_main_screen() {
             objects.top_settings_panel = obj;
             lv_obj_set_pos(obj, 38, 0);
             lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff436c70), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1709,7 +1710,7 @@ void create_screen_main_screen() {
                     lv_obj_set_local_style_prop(obj, LV_STYLE_PAD_BOTTOM, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BG_OPA, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BORDER_WIDTH, value, LV_PART_MAIN);
-                    create_user_widget_ok_cancel_widget(obj, getFlowState(flowState, 0), 90);
+                    create_user_widget_ok_cancel_widget(obj, 90);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -1760,7 +1761,7 @@ void create_screen_main_screen() {
                     lv_obj_set_local_style_prop(obj, LV_STYLE_PAD_BOTTOM, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BG_OPA, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BORDER_WIDTH, value, LV_PART_MAIN);
-                    create_user_widget_ok_cancel_widget(obj, getFlowState(flowState, 1), 94);
+                    create_user_widget_ok_cancel_widget(obj, 94);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -1791,7 +1792,7 @@ void create_screen_main_screen() {
                     objects.settings_device_role_dropdown = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 150, 30);
-                    lv_dropdown_set_options(obj, "Client\nClient Mute\nClient Hidden\nTracker\nSensor\nTak\nTak Tracker\nLost & Found\nRouter Client\nRouter\nRepeater");
+                    lv_dropdown_set_options(obj, "Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker");
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xff404040), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1811,7 +1812,7 @@ void create_screen_main_screen() {
                     lv_obj_set_local_style_prop(obj, LV_STYLE_PAD_BOTTOM, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BG_OPA, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BORDER_WIDTH, value, LV_PART_MAIN);
-                    create_user_widget_ok_cancel_widget(obj, getFlowState(flowState, 2), 98);
+                    create_user_widget_ok_cancel_widget(obj, 98);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -1880,7 +1881,7 @@ void create_screen_main_screen() {
                     lv_obj_set_local_style_prop(obj, LV_STYLE_PAD_BOTTOM, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BG_OPA, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BORDER_WIDTH, value, LV_PART_MAIN);
-                    create_user_widget_ok_cancel_widget(obj, getFlowState(flowState, 3), 102);
+                    create_user_widget_ok_cancel_widget(obj, 102);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -1949,7 +1950,7 @@ void create_screen_main_screen() {
                     lv_obj_set_local_style_prop(obj, LV_STYLE_PAD_BOTTOM, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BG_OPA, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BORDER_WIDTH, value, LV_PART_MAIN);
-                    create_user_widget_ok_cancel_widget(obj, getFlowState(flowState, 4), 106);
+                    create_user_widget_ok_cancel_widget(obj, 106);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -2009,7 +2010,7 @@ void create_screen_main_screen() {
                     lv_obj_set_local_style_prop(obj, LV_STYLE_PAD_BOTTOM, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BG_OPA, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BORDER_WIDTH, value, LV_PART_MAIN);
-                    create_user_widget_ok_cancel_widget(obj, getFlowState(flowState, 5), 110);
+                    create_user_widget_ok_cancel_widget(obj, 110);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -2060,7 +2061,7 @@ void create_screen_main_screen() {
                     lv_obj_set_local_style_prop(obj, LV_STYLE_PAD_BOTTOM, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BG_OPA, value, LV_PART_MAIN);
                     lv_obj_set_local_style_prop(obj, LV_STYLE_BORDER_WIDTH, value, LV_PART_MAIN);
-                    create_user_widget_ok_cancel_widget(obj, getFlowState(flowState, 6), 114);
+                    create_user_widget_ok_cancel_widget(obj, 114);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -2083,13 +2084,13 @@ void create_screen_main_screen() {
 }
 
 void tick_screen_main_screen() {
-    tick_user_widget_ok_cancel_widget(getFlowState(flowState, 0), 90);
-    tick_user_widget_ok_cancel_widget(getFlowState(flowState, 1), 94);
-    tick_user_widget_ok_cancel_widget(getFlowState(flowState, 2), 98);
-    tick_user_widget_ok_cancel_widget(getFlowState(flowState, 3), 102);
-    tick_user_widget_ok_cancel_widget(getFlowState(flowState, 4), 106);
-    tick_user_widget_ok_cancel_widget(getFlowState(flowState, 5), 110);
-    tick_user_widget_ok_cancel_widget(getFlowState(flowState, 6), 114);
+    tick_user_widget_ok_cancel_widget(90);
+    tick_user_widget_ok_cancel_widget(94);
+    tick_user_widget_ok_cancel_widget(98);
+    tick_user_widget_ok_cancel_widget(102);
+    tick_user_widget_ok_cancel_widget(106);
+    tick_user_widget_ok_cancel_widget(110);
+    tick_user_widget_ok_cancel_widget(114);
 }
 
 void create_screen_blank_screen() {
@@ -2107,7 +2108,7 @@ void create_screen_blank_screen() {
 void tick_screen_blank_screen() {
 }
 
-void create_user_widget_brightness_widget(lv_obj_t *parent_obj, void *flowState, int startWidgetIndex) {
+void create_user_widget_brightness_widget(lv_obj_t *parent_obj, int startWidgetIndex) {
     lv_obj_t *obj = parent_obj;
     {
         lv_obj_t *parent_obj = obj;
@@ -2226,10 +2227,10 @@ void create_user_widget_brightness_widget(lv_obj_t *parent_obj, void *flowState,
     }
 }
 
-void tick_user_widget_brightness_widget(void *flowState, int startWidgetIndex) {
+void tick_user_widget_brightness_widget(int startWidgetIndex) {
 }
 
-void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, void *flowState, int startWidgetIndex) {
+void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIndex) {
     lv_obj_t *obj = parent_obj;
     {
         lv_obj_t *parent_obj = obj;
@@ -2296,7 +2297,7 @@ void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, void *flowState, 
     }
 }
 
-void tick_user_widget_ok_cancel_widget(void *flowState, int startWidgetIndex) {
+void tick_user_widget_ok_cancel_widget(int startWidgetIndex) {
 }
 
 

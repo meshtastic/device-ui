@@ -35,7 +35,8 @@ class MeshtasticView : public DeviceGUI
         tak,
         client_hidden,
         lost_and_found,
-        tak_tracker
+        tak_tracker,
+        unknown
     };
 
     // methods to update view
@@ -97,6 +98,7 @@ class MeshtasticView : public DeviceGUI
     // helpers
     std::tuple<uint32_t, uint32_t> nodeColor(uint32_t nodeNum);
     bool lastHeartToString(uint32_t lastHeard, char *buf);
+    const char *deviceRoleToString(enum eRole role);
 
     ViewController *controller;
     std::unordered_map<uint32_t, lv_obj_t *> nodes;      // node panels

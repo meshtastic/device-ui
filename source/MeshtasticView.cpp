@@ -139,3 +139,34 @@ bool MeshtasticView::lastHeartToString(uint32_t lastHeard, char *buf)
 
     return timediff <= 910; // 15min + some tolerance
 }
+
+const char *MeshtasticView::deviceRoleToString(enum eRole role)
+{
+    switch (role) {
+    case client:
+        return "Client";
+    case client_mute:
+        return "Client Mute";
+    case router:
+        return "Router";
+    case router_client:
+        return "Router Client";
+    case repeater:
+        return "Repeater";
+    case tracker:
+        return "Tracker";
+    case sensor:
+        return "Sensor";
+    case tak:
+        return "TAK";
+    case client_hidden:
+        return "Client Hidden";
+    case lost_and_found:
+        return "Lost & Found";
+    case tak_tracker:
+        return "TAK Tracker";
+    default:
+        ILOG_ERROR("Unknow device role\n");
+        return "<unknown>";
+    };
+}
