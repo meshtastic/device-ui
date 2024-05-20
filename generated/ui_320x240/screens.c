@@ -6,9 +6,6 @@
 #include "styles.h"
 #include "ui.h"
 
-void* getFlowState(void* flow, int val) { return NULL; }
-void *flowState = NULL;
-
 objects_t objects;
 lv_obj_t *tick_value_change_obj;
 
@@ -1197,6 +1194,9 @@ void create_screen_main_screen() {
                     lv_obj_set_style_bg_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_image_opa(obj, 255, LV_PART_MAIN | LV_STATE_DISABLED);
+                    lv_obj_set_style_image_recolor(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DISABLED);
+                    lv_obj_set_style_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DISABLED);
                 }
             }
         }

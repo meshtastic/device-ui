@@ -7,7 +7,6 @@
 extern "C" {
 #endif
 
-extern const lv_img_dsc_t img_meshtastic_logo_image;
 extern const lv_img_dsc_t img_meshtastic_boot_logo_image;
 extern const lv_img_dsc_t img_settings_button_image;
 extern const lv_img_dsc_t img_map_button_image;
@@ -47,6 +46,7 @@ extern const lv_img_dsc_t img_groups_lock_image;
 extern const lv_img_dsc_t img_groups_unlock_image;
 extern const lv_img_dsc_t img_knob_logo_image;
 extern const lv_img_dsc_t img_circle_question_image;
+extern const lv_img_dsc_t img_meshtastic_logo_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T

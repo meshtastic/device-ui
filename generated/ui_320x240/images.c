@@ -1,7 +1,6 @@
 #include "images.h"
 
 const ext_img_desc_t images[40] = {
-    { "meshtastic_logo_image", &img_meshtastic_logo_image },
     { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
     { "settings_button_image", &img_settings_button_image },
     { "map_button_image", &img_map_button_image },
@@ -41,4 +40,5 @@ const ext_img_desc_t images[40] = {
     { "groups_unlock_image", &img_groups_unlock_image },
     { "knob_logo_image", &img_knob_logo_image },
     { "circle_question_image", &img_circle_question_image },
+    { "meshtastic_logo_image", &img_meshtastic_logo_image },
 };
