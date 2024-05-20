@@ -73,8 +73,8 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] Italian translation
       - [ ] Optional: other languages with latin characters)
     - [ ] Support dynamic OLED / Color(TFT) selection
-    - [ ] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
-    - [ ] Allow co-existence of generated files/views by different SquareLine Studio projects
+    - [X] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
+    - [ ] Allow co-existence of generated files/views by different eez-studio projects
     - [ ] Fix PSRAM draw buffer issue and do buffer size optimization
     - [ ] Test native lvgl driver support
       - [ ] TFT drivers
@@ -114,10 +114,11 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] Pan & Zoom
       - [ ] Node locations
     - [ ] Settings
+      - [ ] Basic Settings
       - [ ] General Settings
         - [ ] Language
         - [ ] Timezone
-        - [ ] Screen
+        - [X] Screen
         - [ ] Maps
         - [ ] Audio
       - [ ] Radio Settings
@@ -128,11 +129,11 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [x] Status bar with battery symbol
     - [ ] UI Keyboard navigation & control
 
-### :pager: T-Deck
+### :pager: T-Deck (also covered: unPhone)
 
     - [x] Firmware project integration
     - [ ] T-Deck UI
-      - [x] 320x240 View
+      - [x] 320x240 scalable view
       - [x] GPS position
       - [ ] Node location and precision
       - [ ] Radio frequency display
@@ -149,7 +150,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] 240x240 View
       - [ ] Clock screen
     - [ ] Firmware project integration
-    - [ ] Continue work on SquareLine Studio UI screens
+    - [ ] Continue work on eez-studio UI screens
     - [ ] Refactoring of common code with 320x240 view into base class
 
 ### OLED
@@ -163,18 +164,18 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [x] Display driver run-time configuration interface
     - [x] Add missing settingsMap entries for DisplayDriverConfig
     - [ ] Integrate lvgl keyboard input driver
-    - [ ] Add support for several SPI devices
+    - [X] Add support for several SPI devices
     - [ ] Add pwm brightness control
     - [ ] Target environment cleanup
 
 ### :iphone: Stand-alone Device
 
     - [x] Dedicated device-ui project
-    - [x] Sunton CYD support (320x240)
+    - [x] Sunton/EstarDyn CYD support (320x240)
     - [x] LilyGo T-HMI support (320x240)
-    - [ ] WT32-SC01 (Plus) support (480x320)
+    - [X] WT32-SC01 (Plus) support (480x320)
       - [x] Display driver
-      - [ ] 480x320 view
+      - [X] 480x320 view -> scaled 320x240
     - [ ] Fix/Workaround serial light sleep UART reading issue (-> firmware)
     - [ ] Heartbeat timer
     - [x] Serial data send/receive
