@@ -201,6 +201,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     ILOG_DEBUG("Set display resolution: %dx%d\n", lgfx->screenWidth, lgfx->screenHeight);
     lv_display_set_resolution(this->display, lgfx->screenWidth, lgfx->screenHeight);
     // lv_display_set_physical_resolution(this->display, this->screenWidth, this->screenHeight);
+    // lv_display_set_rotation(this->display, LV_DISPLAY_ROTATION_90);
 
 #if 0
    /* Example 2
@@ -241,6 +242,8 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         // FIXME: read calibration data from persistent storage using lfs_file_read
         // uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311};
         uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
+#elif defined(WT32_SC01)
+        uint16_t parameters[8] = {0, 2, 0, 479, 319, 0, 319, 479};
 #elif defined(T_HMI)
         uint16_t parameters[8] = {399, 293, 309, 3701, 3649, 266, 3678, 3689};
 #elif defined(ESP32_2432S022)

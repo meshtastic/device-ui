@@ -16,8 +16,15 @@ class LGFX_WT_SC01_PLUS : public lgfx::LGFX_Device
     lgfx::Touch_FT5x06 _touch_instance; // FT5206, FT5306, FT5406, FT6206, FT6236, FT6336, FT6436
 
   public:
+#ifdef USE_LANDSCAPE
     const uint16_t screenWidth = 480;
     const uint16_t screenHeight = 320;
+    const uint8_t offsetRotation = 1;
+#else
+    const uint16_t screenWidth = 320;
+    const uint16_t screenHeight = 480;
+    const uint8_t offsetRotation = 0;
+#endif
 
     LGFX_WT_SC01_PLUS(void)
     {
@@ -49,11 +56,16 @@ class LGFX_WT_SC01_PLUS : public lgfx::LGFX_Device
             cfg.pin_rst = 4;
             cfg.pin_busy = -1;
 
+#ifdef USE_LANDSCAPE
             cfg.panel_width = screenHeight;
             cfg.panel_height = screenWidth;
+#else
+            cfg.panel_width = screenWidth;
+            cfg.panel_height = screenHeight;
+#endif
             cfg.offset_x = 0;
             cfg.offset_y = 0;
-            cfg.offset_rotation = 1;
+            cfg.offset_rotation = offsetRotation;
             cfg.dummy_read_pixel = 8;
             cfg.dummy_read_bits = 1;
             cfg.readable = true;
@@ -81,9 +93,9 @@ class LGFX_WT_SC01_PLUS : public lgfx::LGFX_Device
             auto cfg = _touch_instance.config();
 
             cfg.x_min = 0;
-            cfg.x_max = screenHeight - 1;
+            cfg.x_max = screenWidth - 1;
             cfg.y_min = 0;
-            cfg.y_max = screenWidth - 1;
+            cfg.y_max = screenHeight - 1;
             cfg.pin_int = 7;
             cfg.bus_shared = true;
             cfg.offset_rotation = 0;
