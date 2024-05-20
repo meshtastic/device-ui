@@ -443,11 +443,13 @@ void TFTView_320x240::ui_event_role_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        uint32_t role = (unsigned long)TFTView_320x240::instance()
-                            ->nodes[TFTView_320x240::instance()->ownNode]
-                            ->LV_OBJ_IDX(node_img_idx)
-                            ->user_data;
-        lv_dropdown_set_selected(objects.settings_device_role_dropdown, role);
+        if (TFTView_320x240::instance()->ownNode != 0) {
+            uint32_t role = (unsigned long)TFTView_320x240::instance()
+                                ->nodes[TFTView_320x240::instance()->ownNode]
+                                ->LV_OBJ_IDX(node_img_idx)
+                                ->user_data;
+            lv_dropdown_set_selected(objects.settings_device_role_dropdown, role);
+        }
         lv_obj_clear_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eDeviceRole;
     }
