@@ -2059,19 +2059,6 @@ void create_screen_main_screen() {
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
-                {
-                    // SettingsSecondary1Textarea
-                    lv_obj_t *obj = lv_textarea_create(parent_obj);
-                    objects.settings_secondary1_textarea = obj;
-                    lv_obj_set_pos(obj, 0, 70);
-                    lv_obj_set_size(obj, LV_PCT(100), 25);
-                    lv_textarea_set_max_length(obj, 12);
-                    lv_textarea_set_one_line(obj, true);
-                    lv_textarea_set_password_mode(obj, false);
-                    lv_obj_set_style_pad_top(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_pad_bottom(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-                }
             }
         }
         {
