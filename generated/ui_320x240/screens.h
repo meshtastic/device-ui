@@ -125,20 +125,49 @@ typedef struct _objects_t {
     lv_obj_t *obj6__cancel_button_w;
     lv_obj_t *obj6__ok_button_w;
     lv_obj_t *obj6__ok_cancel_panel_w;
+    lv_obj_t *obj7;
+    lv_obj_t *obj7__cancel_button_w;
+    lv_obj_t *obj7__ok_button_w;
+    lv_obj_t *obj7__ok_cancel_panel_w;
+    lv_obj_t *obj8;
+    lv_obj_t *obj8__cancel_button_w;
+    lv_obj_t *obj8__ok_button_w;
+    lv_obj_t *obj8__ok_cancel_panel_w;
     lv_obj_t *screen_timeout_slider;
     lv_obj_t *settings_alert_buzzer_panel;
     lv_obj_t *settings_alert_buzzer_switch;
     lv_obj_t *settings_brightness_label;
     lv_obj_t *settings_brightness_panel;
     lv_obj_t *settings_button;
+    lv_obj_t *settings_channel_panel;
+    lv_obj_t *settings_channel0_button;
+    lv_obj_t *settings_channel0_label;
+    lv_obj_t *settings_channel1_button;
+    lv_obj_t *settings_channel1_label;
+    lv_obj_t *settings_channel2_button;
+    lv_obj_t *settings_channel2_label;
+    lv_obj_t *settings_channel3_button;
+    lv_obj_t *settings_channel3_label;
+    lv_obj_t *settings_channel4_button;
+    lv_obj_t *settings_channel4_label;
+    lv_obj_t *settings_channel5_button;
+    lv_obj_t *settings_channel5_label;
+    lv_obj_t *settings_channel6_button;
+    lv_obj_t *settings_channel6_label;
+    lv_obj_t *settings_channel7_button;
+    lv_obj_t *settings_channel7_label;
     lv_obj_t *settings_device_role_dropdown;
     lv_obj_t *settings_device_role_panel;
     lv_obj_t *settings_language_dropdown;
     lv_obj_t *settings_language_panel;
+    lv_obj_t *settings_modify_channel_name_textarea;
+    lv_obj_t *settings_modify_channel_panel;
+    lv_obj_t *settings_modify_channel_psk_textarea;
     lv_obj_t *settings_region_dropdown;
     lv_obj_t *settings_region_panel;
     lv_obj_t *settings_screen_timeout_label;
     lv_obj_t *settings_screen_timeout_panel;
+    lv_obj_t *settings_secondary1_textarea;
     lv_obj_t *settings_user_long_textarea;
     lv_obj_t *settings_user_short_textarea;
     lv_obj_t *settings_username_panel;
@@ -178,8 +207,7 @@ enum ScreensEnum {
     SCREEN_ID_BOOT_SCREEN = 1,
     SCREEN_ID_MAIN_SCREEN = 2,
     SCREEN_ID_BLANK_SCREEN = 3,
-    SCREEN_ID_BRIGHTNESS_WIDGET = 4,
-    SCREEN_ID_OK_CANCEL_WIDGET = 5,
+    SCREEN_ID_OK_CANCEL_WIDGET = 4,
 };
 
 void create_screen_boot_screen();
@@ -190,9 +218,6 @@ void tick_screen_main_screen();
 
 void create_screen_blank_screen();
 void tick_screen_blank_screen();
-
-void create_user_widget_brightness_widget(lv_obj_t *parent_obj, int startWidgetIndex);
-void tick_user_widget_brightness_widget(int startWidgetIndex);
 
 void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIndex);
 void tick_user_widget_ok_cancel_widget(int startWidgetIndex);
