@@ -99,6 +99,7 @@ class MeshtasticView : public DeviceGUI
     std::tuple<uint32_t, uint32_t> nodeColor(uint32_t nodeNum);
     bool lastHeartToString(uint32_t lastHeard, char *buf);
     const char *deviceRoleToString(enum eRole role);
+    const char *loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region);
 
     ViewController *controller;
     std::unordered_map<uint32_t, lv_obj_t *> nodes;       // node panels

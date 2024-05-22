@@ -4,6 +4,8 @@
 #include "assert.h"
 #include <algorithm>
 
+const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
+
 /**
  * @brief mediate between GUI view and client interface
  *
@@ -55,13 +57,138 @@ bool ViewController::sleep(int16_t pin)
 
 void ViewController::processEvent(void) {}
 
-void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
+uint32_t ViewController::requestDeviceConfig(uint32_t nodeId)
 {
-    assert(strlen(textmsg) <= (size_t)meshtastic_Constants_DATA_PAYLOAD_LEN);
-    send(to, ch, meshtastic_PortNum_TEXT_MESSAGE_APP, (const uint8_t *)textmsg, strlen(textmsg));
+    return requestConfig(meshtastic_AdminMessage_ConfigType_DEVICE_CONFIG, nodeId);
 }
 
-void ViewController::sendConfig(void) {}
+uint32_t ViewController::requestPositionConfig(uint32_t nodeId)
+{
+    return requestConfig(meshtastic_AdminMessage_ConfigType_POSITION_CONFIG), nodeId;
+}
+
+uint32_t ViewController::requestPowerConfig(uint32_t nodeId)
+{
+    return requestConfig(meshtastic_AdminMessage_ConfigType_POWER_CONFIG, nodeId);
+}
+
+uint32_t ViewController::requestNetworkConfig(uint32_t nodeId)
+{
+    return requestConfig(meshtastic_AdminMessage_ConfigType_NETWORK_CONFIG, nodeId);
+}
+
+uint32_t ViewController::requestDisplayConfig(uint32_t nodeId)
+{
+    return requestConfig(meshtastic_AdminMessage_ConfigType_DISPLAY_CONFIG, nodeId);
+}
+
+uint32_t ViewController::requestLoRaConfig(uint32_t nodeId)
+{
+    return requestConfig(meshtastic_AdminMessage_ConfigType_LORA_CONFIG, nodeId);
+}
+
+uint32_t ViewController::requestBluetoothConfig(uint32_t nodeId)
+{
+    return requestConfig(meshtastic_AdminMessage_ConfigType_BLUETOOTH_CONFIG, nodeId);
+}
+
+/**
+ * Request specific device config block
+ */
+uint32_t ViewController::requestConfig(meshtastic_AdminMessage_ConfigType type, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{.which_payload_variant = meshtastic_AdminMessage_get_config_request_tag,
+                                    .get_config_request = type};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
+
+bool ViewController::sendConfig(const meshtastic_User &user, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{.which_payload_variant = meshtastic_AdminMessage_set_owner_tag, .set_owner{user}};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
+
+bool ViewController::sendConfig(meshtastic_Config_DeviceConfig &&device, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{
+        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+        .set_config{.which_payload_variant = meshtastic_Config_device_tag, .payload_variant{.device = device}}};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
+
+bool ViewController::sendConfig(meshtastic_Config_PositionConfig &&position, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{
+        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+        .set_config{.which_payload_variant = meshtastic_Config_position_tag, .payload_variant{.position = position}}};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
+
+bool ViewController::sendConfig(meshtastic_Config_PowerConfig &&power, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{
+        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+        .set_config{.which_payload_variant = meshtastic_Config_power_tag, .payload_variant{.power = power}}};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
+
+bool ViewController::sendConfig(meshtastic_Config_NetworkConfig &&network, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{
+        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+        .set_config{.which_payload_variant = meshtastic_Config_network_tag, .payload_variant{.network = network}}};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
+
+bool ViewController::sendConfig(meshtastic_Config_DisplayConfig &&display, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{
+        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+        .set_config{.which_payload_variant = meshtastic_Config_display_tag, .payload_variant{.display = display}}};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
+
+bool ViewController::sendConfig(meshtastic_Config_LoRaConfig &&lora, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{
+        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+        .set_config{.which_payload_variant = meshtastic_Config_lora_tag, .payload_variant{.lora = lora}}};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
+
+bool ViewController::sendConfig(meshtastic_Config_BluetoothConfig &&bluetooth, uint32_t nodeId)
+{
+    meshtastic_AdminMessage request{
+        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+        .set_config{.which_payload_variant = meshtastic_Config_bluetooth_tag, .payload_variant{.bluetooth = bluetooth}}};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+}
 
 void ViewController::sendHeartbeat(void)
 {
@@ -73,6 +200,31 @@ void ViewController::sendHeartbeat(void)
 void ViewController::setConfigRequested(bool required)
 {
     requestConfigRequired = required;
+}
+
+void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
+{
+    assert(strlen(textmsg) <= (size_t)DATA_PAYLOAD_LEN);
+    send(to, ch, meshtastic_PortNum_TEXT_MESSAGE_APP, (const uint8_t *)textmsg, strlen(textmsg));
+}
+
+/**
+ * @brief generic send message to configure or request config data
+ *
+ * @param to destination
+ * @param portnum app
+ * @param payload
+ * @return true
+ * @return false
+ */
+bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload)
+{
+    ILOG_DEBUG("sending meshpacket to radio portnum=%u\n", portnum);
+    return client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_packet_tag,
+                                           .packet{.to = to,
+                                                   .which_payload_variant = meshtastic_MeshPacket_decoded_tag,
+                                                   .decoded{.portnum = portnum, .payload{payload}, .want_response = true},
+                                                   .want_ack = (to != 0)}});
 }
 
 /**
@@ -161,7 +313,7 @@ void ViewController::requestDeviceConnectionStatus(void)
     return; // FIXME this encoding leads to crash
     meshtastic_AdminMessage msg{.which_payload_variant = meshtastic_AdminMessage_get_device_connection_status_request_tag,
                                 .get_device_connection_status_request = true};
-    uint8_t encoded[meshtastic_Constants_DATA_PAYLOAD_LEN];
+    uint8_t encoded[DATA_PAYLOAD_LEN];
     size_t len = pb_encode_to_bytes(encoded, sizeof(encoded), &meshtastic_AdminMessage_msg, &msg);
     this->send(view->getMyNodeNum(), 0, meshtastic_PortNum_ADMIN_APP, encoded, len);
 }
@@ -443,9 +595,47 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 view->updateConnectionStatus(status);
                 break;
             }
-            case meshtastic_AdminMessage_set_config_tag: {
-                ILOG_WARN("meshtastic_AdminMessage_set_config_tag not implemented\n");
-                return false;
+            case meshtastic_AdminMessage_get_config_response_tag: {
+                meshtastic_Config &config = admin.get_config_response;
+                switch (config.which_payload_variant) {
+                case meshtastic_Config_device_tag: {
+                    const meshtastic_Config_DeviceConfig &cfg = config.payload_variant.device;
+                    view->updateDeviceConfig(cfg);
+                    break;
+                }
+                case meshtastic_Config_position_tag: {
+                    const meshtastic_Config_PositionConfig &cfg = config.payload_variant.position;
+                    view->updatePositionConfig(cfg);
+                    break;
+                }
+                case meshtastic_Config_power_tag: {
+                    const meshtastic_Config_PowerConfig &cfg = config.payload_variant.power;
+                    view->updatePowerConfig(cfg);
+                    break;
+                }
+                case meshtastic_Config_network_tag: {
+                    const meshtastic_Config_NetworkConfig &cfg = config.payload_variant.network;
+                    view->updateNetworkConfig(cfg);
+                    break;
+                }
+                case meshtastic_Config_display_tag: {
+                    const meshtastic_Config_DisplayConfig &cfg = config.payload_variant.display;
+                    view->updateDisplayConfig(cfg);
+                    break;
+                }
+                case meshtastic_Config_lora_tag: {
+                    const meshtastic_Config_LoRaConfig &cfg = config.payload_variant.lora;
+                    view->updateLoRaConfig(cfg);
+                    break;
+                }
+                case meshtastic_Config_bluetooth_tag: {
+                    const meshtastic_Config_BluetoothConfig &cfg = config.payload_variant.bluetooth;
+                    view->updateBluetoothConfig(cfg);
+                    break;
+                }
+                default:
+                    ILOG_ERROR("unhandled meshtastic_Config variant: %u\n", config.which_payload_variant);
+                }
                 break;
             }
             default:

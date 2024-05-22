@@ -2,6 +2,7 @@
 
 #include "DisplayDriverConfig.h"
 #include "MeshtasticView.h"
+#include "meshtastic/clientonly.pb.h"
 
 /**
  * @brief GUI view for e.g. T-Deck
@@ -33,13 +34,13 @@ class TFTView_320x240 : public MeshtasticView
 
     // methods to update device config
     void updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role) override;
-    void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) override {}
-    void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) override {}
-    void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) override {}
-    void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg) override {}
-    void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) override {}
-    void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) override {}
-    void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) override {}
+    void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) override;
+    void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) override;
+    void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) override;
+    void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg) override;
+    void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) override;
+    void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) override;
+    void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) override;
 
     // methods to update module config
     void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) override {}
@@ -62,7 +63,7 @@ class TFTView_320x240 : public MeshtasticView
     void updateNodesOnline(const char *str) override;
     void removeNode(uint32_t nodeNum) override;
 
-    enum Settings {
+    enum BasicSettings {
         eNone,
         eUsername,
         eDeviceRole,
@@ -71,7 +72,8 @@ class TFTView_320x240 : public MeshtasticView
         eLanguage,
         eScreenTimeout,
         eScreenBrightness,
-        eAlertBuzzer
+        eAlertBuzzer,
+        eModifyChannel
     };
 
   protected:
@@ -140,13 +142,14 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_Keyboard(lv_event_t *e);
 
     static void ui_event_user_button(lv_event_t *e);
-    static void ui_event_timeout_button(lv_event_t *e);
     static void ui_event_role_button(lv_event_t *e);
     static void ui_event_region_button(lv_event_t *e);
     static void ui_event_language_button(lv_event_t *e);
     static void ui_event_channel_button(lv_event_t *e);
     static void ui_event_brightness_button(lv_event_t *e);
+    static void ui_event_timeout_button(lv_event_t *e);
     static void ui_event_alert_button(lv_event_t *e);
+    static void ui_event_modify_channel(lv_event_t *e);
 
     static void ui_event_screen_timeout_slider(lv_event_t *e);
     static void ui_event_brightness_slider(lv_event_t *e);
@@ -158,9 +161,11 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *activeTopPanel = nullptr;
     lv_obj_t *activeMsgContainer = nullptr;
     lv_obj_t *activeWidget = nullptr;
-    enum Settings activeSettings = eNone;
+    enum BasicSettings activeSettings = eNone;
 
     static TFTView_320x240 *gui;
     time_t lastrun60, lastrun5;
     static bool advanced_mode;
+
+    meshtastic_DeviceProfile db;
 };

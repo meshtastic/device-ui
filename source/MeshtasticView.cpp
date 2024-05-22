@@ -166,7 +166,23 @@ const char *MeshtasticView::deviceRoleToString(enum eRole role)
     case tak_tracker:
         return "TAK Tracker";
     default:
-        ILOG_ERROR("Unknow device role\n");
+        ILOG_ERROR("Invalid device role\n");
         return "<unknown>";
     };
+}
+
+const char *MeshtasticView::loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region)
+{
+    static std::unordered_map<meshtastic_Config_LoRaConfig_RegionCode, std::string> regionString{
+        {meshtastic_Config_LoRaConfig_RegionCode_UNSET, "<unset>"}, {meshtastic_Config_LoRaConfig_RegionCode_US, "US"},
+        {meshtastic_Config_LoRaConfig_RegionCode_EU_433, "EU_433"}, {meshtastic_Config_LoRaConfig_RegionCode_EU_868, "EU_868"},
+        {meshtastic_Config_LoRaConfig_RegionCode_CN, "CN"},         {meshtastic_Config_LoRaConfig_RegionCode_JP, "JP"},
+        {meshtastic_Config_LoRaConfig_RegionCode_ANZ, "ANZ"},       {meshtastic_Config_LoRaConfig_RegionCode_KR, "KR"},
+        {meshtastic_Config_LoRaConfig_RegionCode_TW, "TW"},         {meshtastic_Config_LoRaConfig_RegionCode_RU, "RU"},
+        {meshtastic_Config_LoRaConfig_RegionCode_IN, "TN"},         {meshtastic_Config_LoRaConfig_RegionCode_NZ_865, "NZ_865"},
+        {meshtastic_Config_LoRaConfig_RegionCode_TH, "TH"},         {meshtastic_Config_LoRaConfig_RegionCode_LORA_24, "LORA_24"},
+        {meshtastic_Config_LoRaConfig_RegionCode_UA_433, "UA_433"}, {meshtastic_Config_LoRaConfig_RegionCode_UA_868, "UA_868"},
+        {meshtastic_Config_LoRaConfig_RegionCode_MY_433, "MY_433"}, {meshtastic_Config_LoRaConfig_RegionCode_MY_919, "MY_919"},
+        {meshtastic_Config_LoRaConfig_RegionCode_SG_923, "SG_923"}};
+    return regionString[region].c_str();
 }
