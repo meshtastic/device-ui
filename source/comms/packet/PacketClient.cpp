@@ -36,7 +36,7 @@ int PacketClient::connect(SharedQueue *_queue)
     if (!queue) {
         queue = _queue;
     } else if (_queue != queue) {
-        ILOG_WARN("Client already connected.");
+        ILOG_WARN("Client already connected.\n");
     }
     is_connected = true;
     return queue->serverQueueSize();
@@ -48,6 +48,7 @@ bool PacketClient::send(meshtastic_ToRadio &&to)
         static uint32_t id = 0;
         return queue->clientSend(DataPacket<meshtastic_ToRadio>(++id, to));
     } else {
+        ILOG_WARN("Cannot send DataPacket\n");
         return false;
     }
 }
