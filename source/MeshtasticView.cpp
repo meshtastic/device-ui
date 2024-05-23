@@ -186,3 +186,23 @@ const char *MeshtasticView::loRaRegionToString(meshtastic_Config_LoRaConfig_Regi
         {meshtastic_Config_LoRaConfig_RegionCode_SG_923, "SG_923"}};
     return regionString[region].c_str();
 }
+
+#include "Base64.h"
+std::string MeshtasticView::pskToBase64(const meshtastic_ChannelSettings_psk_t &psk)
+{
+    return macaron::Base64::Encode(std::string((const char*)&psk.bytes[0]));
+}
+
+bool MeshtasticView::base64ToPsk(const std::string& base64, meshtastic_ChannelSettings_psk_t &psk)
+{
+    std::string out;
+    auto error = macaron::Base64::Decode(base64, out);
+    if (!error.empty()) {
+        ILOG_ERROR("Cannot decode '%s'\n", base64);
+        return false;
+    }
+    else {
+        strcpy((char *)&psk.bytes[0], out.data());
+    }
+    return true;
+}

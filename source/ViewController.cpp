@@ -476,7 +476,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
     case meshtastic_FromRadio_channel_tag: {
         const meshtastic_Channel &ch = from.channel;
         if (ch.has_settings) {
-            view->updateChannelConfig(ch.index, ch.settings.name, ch.settings.psk.bytes, ch.settings.psk.size, ch.role);
+            view->updateChannelConfig(ch);
         }
         break;
     }

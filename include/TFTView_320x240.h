@@ -33,7 +33,7 @@ class TFTView_320x240 : public MeshtasticView
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) override;
 
     // methods to update device config
-    void updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role) override;
+    void updateChannelConfig(const meshtastic_Channel& ch) override;
     void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) override;
     void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) override;
     void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) override;
@@ -167,5 +167,9 @@ class TFTView_320x240 : public MeshtasticView
     time_t lastrun60, lastrun5;
     static bool advanced_mode;
 
-    meshtastic_DeviceProfile db;
+    struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
+      meshtastic_Channel channel[8];
+    };
+
+    meshtastic_DeviceProfile_ext db;
 };

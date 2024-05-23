@@ -62,15 +62,12 @@ void TFTView_320x240::init(IClientBase *client)
     time(&lastrun5);
 
     activeMsgContainer = objects.messages_container;
-    channel = {// TODO: channel is intended to store all channel data, not just the name(label)
+    channel = {
                objects.channel_label0, objects.channel_label1, objects.channel_label2, objects.channel_label3,
                objects.channel_label4, objects.channel_label5, objects.channel_label6, objects.channel_label7};
     channelGroup = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
     ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
     ui_events_init();
-
-    // keyboard init
-    lv_keyboard_set_textarea(objects.keyboard, objects.message_input_area);
 
     // load boot screen
     lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
@@ -170,11 +167,13 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.channel_button7, ui_event_ChannelButton, LV_EVENT_ALL, (void *)7);
 
     // new message popup
-    lv_obj_add_event_cb(objects.msg_popup_button, this->ui_event_MsgPopupButton, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(objects.msg_popup_panel, this->ui_event_MsgPopupButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.msg_popup_button, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.msg_popup_panel, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
 
     // keyboard
-    lv_obj_add_event_cb(objects.keyboard_button, ui_event_KeyboardButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.keyboard_button_0, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)0);
+    lv_obj_add_event_cb(objects.keyboard_button_1, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)1);
+    lv_obj_add_event_cb(objects.keyboard_button_2, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)2);
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_ALL, this);
 
     // basic settings buttons
@@ -192,25 +191,25 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.brightness_slider, ui_event_brightness_slider, LV_EVENT_VALUE_CHANGED, NULL);
 
     // OK / Cancel widget for basic settings dialog
-    lv_obj_add_event_cb(objects.obj0__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj0__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj1__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj1__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj2__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj2__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj3__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj3__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj4__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj4__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj5__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj5__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj6__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj6__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj0__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj0__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj1__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj1__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj2__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj2__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj3__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj3__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj4__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj4__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj5__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj5__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj6__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj6__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     // OK / cancel for channel selection / modification
-    lv_obj_add_event_cb(objects.obj7__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj7__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj8__ok_button_w, ui_event_ok, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.obj8__cancel_button_w, ui_event_cancel, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.obj7__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj7__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj8__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj8__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)0);
@@ -394,6 +393,7 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
         lv_obj_t *kb = lv_event_get_target_obj(e);
+        uint32_t dialog = (uint32_t)(unsigned long)e->user_data;
         uint32_t btn_id = lv_keyboard_get_selected_button(kb);
 
         switch (btn_id) {
@@ -478,6 +478,15 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+        lv_label_set_text(objects.settings_channel0_label, TFTView_320x240::instance()->db.channel[0].settings.name);
+        lv_label_set_text(objects.settings_channel1_label, TFTView_320x240::instance()->db.channel[1].settings.name);
+        lv_label_set_text(objects.settings_channel2_label, TFTView_320x240::instance()->db.channel[2].settings.name);
+        lv_label_set_text(objects.settings_channel3_label, TFTView_320x240::instance()->db.channel[3].settings.name);
+        lv_label_set_text(objects.settings_channel4_label, TFTView_320x240::instance()->db.channel[4].settings.name);
+        lv_label_set_text(objects.settings_channel5_label, TFTView_320x240::instance()->db.channel[5].settings.name);
+        lv_label_set_text(objects.settings_channel6_label, TFTView_320x240::instance()->db.channel[6].settings.name);
+        lv_label_set_text(objects.settings_channel7_label, TFTView_320x240::instance()->db.channel[7].settings.name);
+
         lv_obj_clear_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eChannel;
     }
@@ -520,7 +529,12 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eChannel) {
-        // TODO: retrieve actual value from node and set switch
+        uint8_t ch = (uint8_t)(unsigned long)e->user_data;
+        meshtastic_ChannelSettings_psk_t psk = TFTView_320x240::instance()->db.channel[0].settings.psk;
+        std::string base64 = TFTView_320x240::instance()->pskToBase64(psk);
+        lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
+        lv_textarea_set_text(objects.settings_modify_channel_name_textarea, TFTView_320x240::instance()->db.channel[0].settings.name);
+        lv_obj_add_state(objects.settings_channel_panel, LV_STATE_DISABLED);
         lv_obj_clear_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eModifyChannel;
     }
@@ -625,9 +639,14 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eModifyChannel: {
-            // TODO: read textareas, fill temp storage
-            lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
-            TFTView_320x240::instance()->activeSettings = eChannel;
+            meshtastic_ChannelSettings_psk_t psk;
+            if (TFTView_320x240::instance()->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk)) {
+                const char* name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
+                // TODO: fill temp storage -> user data
+                lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
+                TFTView_320x240::instance()->activeSettings = eChannel;
+            }
             return;
         }
         default:
@@ -684,6 +703,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eModifyChannel: {
             lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
             TFTView_320x240::instance()->activeSettings = eChannel;
             return;
         }
@@ -1190,25 +1210,26 @@ void TFTView_320x240::notifyResync(bool show)
         lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
-void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, const uint8_t *psk, uint32_t psk_size, uint8_t role)
+void TFTView_320x240::updateChannelConfig(const meshtastic_Channel& ch)
 {
     static lv_obj_t *btn[c_max_channels] = {objects.channel_button0, objects.channel_button1, objects.channel_button2,
                                             objects.channel_button3, objects.channel_button4, objects.channel_button5,
                                             objects.channel_button6, objects.channel_button7};
+    db.channel[ch.index] = ch;
 
-    if (strlen(name)) {
-        lv_label_set_text(channel[index], name);
-        newMessageContainer(0, UINT32_MAX, index);
+    if (strlen(ch.settings.name)) {
+        lv_label_set_text(channel[ch.index], ch.settings.name);
+        newMessageContainer(0, UINT32_MAX, ch.index);
 
-        lv_obj_set_width(btn[index], lv_pct(70));
-        lv_obj_set_style_pad_left(btn[index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_t *lockImage = lv_img_create(btn[index]);
+        lv_obj_set_width(btn[ch.index], lv_pct(70));
+        lv_obj_set_style_pad_left(btn[ch.index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_t *lockImage = lv_img_create(btn[ch.index]);
         uint32_t recolor = 0;
 
-        if (memcmp(psk, "\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
+        if (memcmp(ch.settings.psk.bytes, "\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
             lv_img_set_src(lockImage, &img_groups_key_image);
             recolor = 0xF2E459; // yellow
-        } else if (memcmp(psk, "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
+        } else if (memcmp(ch.settings.psk.bytes, "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
             lv_img_set_src(lockImage, &img_groups_unlock_image);
             recolor = 0xF72B2B; // reddish
         } else {
@@ -1223,7 +1244,7 @@ void TFTView_320x240::updateChannelConfig(uint32_t index, const char *name, cons
         lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     } else {
-        lv_obj_set_width(btn[index], lv_pct(30));
+        lv_obj_set_width(btn[ch.index], lv_pct(30));
     }
 }
 
@@ -1590,6 +1611,8 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     } else {
         // TODO: log error
     }
+
+    lv_keyboard_set_textarea(objects.keyboard, objects.message_input_area);
 }
 
 // -------- helpers --------
