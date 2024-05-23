@@ -62,8 +62,7 @@ void TFTView_320x240::init(IClientBase *client)
     time(&lastrun5);
 
     activeMsgContainer = objects.messages_container;
-    channel = {
-               objects.channel_label0, objects.channel_label1, objects.channel_label2, objects.channel_label3,
+    channel = {objects.channel_label0, objects.channel_label1, objects.channel_label2, objects.channel_label3,
                objects.channel_label4, objects.channel_label5, objects.channel_label6, objects.channel_label7};
     channelGroup = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
     ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
@@ -136,7 +135,7 @@ void TFTView_320x240::ui_events_init(void)
     // just a test to implement callback via non-static lambda function
     auto ui_event_HomeButton = [](lv_event_t *e) {
         lv_event_code_t event_code = lv_event_get_code(e);
-        if (event_code == LV_EVENT_CLICKED) {
+        if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
             TFTView_320x240 &view = *static_cast<TFTView_320x240 *>(e->user_data);
             view.ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
         } else if (event_code == LV_EVENT_LONG_PRESSED) {
@@ -234,7 +233,7 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
 void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
         TFTView_320x240::instance()->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
     }
 }
@@ -253,7 +252,7 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
 void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
         TFTView_320x240::instance()->ui_set_active(objects.groups_button, objects.groups_panel, objects.top_groups_panel);
     }
 }
@@ -261,7 +260,7 @@ void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
 void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
         // set color and text of clicked group channel
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
         if (TFTView_320x240::instance()->channelGroup[ch]) {
@@ -275,7 +274,7 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
         TFTView_320x240::instance()->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
     }
 }
@@ -283,7 +282,7 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
         TFTView_320x240::instance()->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
     }
 }
@@ -291,7 +290,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
         lv_obj_t *top_panel = advanced_mode ? objects.top_advanced_settings_panel : objects.top_settings_panel;
         TFTView_320x240::instance()->ui_set_active(objects.settings_button, objects.basic_settings_panel, top_panel);
     }
@@ -478,6 +477,8 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+        // TODO: primary channel is not necessarily 0...
+        //  maybe use for-loop here; then also store channel number within the label
         lv_label_set_text(objects.settings_channel0_label, TFTView_320x240::instance()->db.channel[0].settings.name);
         lv_label_set_text(objects.settings_channel1_label, TFTView_320x240::instance()->db.channel[1].settings.name);
         lv_label_set_text(objects.settings_channel2_label, TFTView_320x240::instance()->db.channel[2].settings.name);
@@ -530,11 +531,12 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eChannel) {
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        meshtastic_ChannelSettings_psk_t psk = TFTView_320x240::instance()->db.channel[0].settings.psk;
+        meshtastic_ChannelSettings_psk_t psk = TFTView_320x240::instance()->db.channel[ch].settings.psk;
         std::string base64 = TFTView_320x240::instance()->pskToBase64(psk);
         lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
-        lv_textarea_set_text(objects.settings_modify_channel_name_textarea, TFTView_320x240::instance()->db.channel[0].settings.name);
-        lv_obj_add_state(objects.settings_channel_panel, LV_STATE_DISABLED);
+        lv_textarea_set_text(objects.settings_modify_channel_name_textarea,
+                             TFTView_320x240::instance()->db.channel[ch].settings.name);
+        lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eModifyChannel;
     }
@@ -640,11 +642,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eModifyChannel: {
             meshtastic_ChannelSettings_psk_t psk;
-            if (TFTView_320x240::instance()->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk)) {
-                const char* name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
+            if (TFTView_320x240::instance()->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea),
+                                                         psk)) {
+                const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
                 // TODO: fill temp storage -> user data
                 lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
+                lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
                 TFTView_320x240::instance()->activeSettings = eChannel;
             }
             return;
@@ -703,7 +706,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eModifyChannel: {
             lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
+            lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
             TFTView_320x240::instance()->activeSettings = eChannel;
             return;
         }
@@ -1210,7 +1213,7 @@ void TFTView_320x240::notifyResync(bool show)
         lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
-void TFTView_320x240::updateChannelConfig(const meshtastic_Channel& ch)
+void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
 {
     static lv_obj_t *btn[c_max_channels] = {objects.channel_button0, objects.channel_button1, objects.channel_button2,
                                             objects.channel_button3, objects.channel_button4, objects.channel_button5,

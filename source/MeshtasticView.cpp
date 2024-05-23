@@ -190,18 +190,24 @@ const char *MeshtasticView::loRaRegionToString(meshtastic_Config_LoRaConfig_Regi
 #include "Base64.h"
 std::string MeshtasticView::pskToBase64(const meshtastic_ChannelSettings_psk_t &psk)
 {
-    return macaron::Base64::Encode(std::string((const char*)&psk.bytes[0]));
+    if (psk.size > 0) {
+        char psk_string[sizeof(psk.bytes) + 1];
+        memcpy(psk_string, psk.bytes, psk.size);
+        psk_string[psk.size] = '\0';
+        return macaron::Base64::Encode(psk_string);
+    } else {
+        return "";
+    }
 }
 
-bool MeshtasticView::base64ToPsk(const std::string& base64, meshtastic_ChannelSettings_psk_t &psk)
+bool MeshtasticView::base64ToPsk(const std::string &base64, meshtastic_ChannelSettings_psk_t &psk)
 {
     std::string out;
     auto error = macaron::Base64::Decode(base64, out);
     if (!error.empty()) {
         ILOG_ERROR("Cannot decode '%s'\n", base64);
         return false;
-    }
-    else {
+    } else {
         strcpy((char *)&psk.bytes[0], out.data());
     }
     return true;
