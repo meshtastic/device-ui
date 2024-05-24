@@ -2448,6 +2448,7 @@ void create_screen_main_screen() {
                     objects.settings_modify_channel_psk_textarea = obj;
                     lv_obj_set_pos(obj, 0, 80);
                     lv_obj_set_size(obj, LV_PCT(90), 25);
+                    lv_textarea_set_accepted_chars(obj, "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+=/");
                     lv_textarea_set_max_length(obj, 44);
                     lv_textarea_set_placeholder_text(obj, "AQ==");
                     lv_textarea_set_one_line(obj, true);
