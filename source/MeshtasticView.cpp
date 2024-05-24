@@ -87,7 +87,15 @@ void MeshtasticView::updateNodesOnline(const char *str) {}
 
 void MeshtasticView::updateLastHeard(uint32_t nodeNum) {}
 
-void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p) {}
+void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
+{
+    // if there's a message from a node we don't know (yet), create it with defaults
+    auto it = nodes.find(p.from);
+    if (it == nodes.end()) {
+        MeshtasticView::addOrUpdateNode(p.from, p.channel, 0, eRole::unknown);
+        updateLastHeard(p.from);
+    }
+}
 
 void MeshtasticView::newMessage(uint32_t from, uint32_t to, uint8_t channel, const char *msg) {}
 

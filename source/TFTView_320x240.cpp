@@ -1352,13 +1352,6 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
  */
 void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg)
 {
-    // if there's a message from a node we don't know (yet), create it with defaults
-    auto it = nodes.find(from);
-    if (it == nodes.end()) {
-        MeshtasticView::addOrUpdateNode(from, ch, 0, eRole::unknown);
-        updateLastHeard(from);
-    }
-
     char buf[284]; // 237 + 4 + 40 + 2 + 1
     char *message = (char *)msg;
     lv_obj_t *container = nullptr;
