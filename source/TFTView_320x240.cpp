@@ -128,6 +128,8 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 void TFTView_320x240::apply_hotfix(void)
 {
     lv_obj_set_scrollbar_mode(objects.home_container, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_scrollbar_mode(objects.settings_user_long_textarea, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_scrollbar_mode(objects.settings_modify_channel_psk_textarea, LV_SCROLLBAR_MODE_OFF);
 }
 
 void TFTView_320x240::ui_events_init(void)
@@ -293,8 +295,14 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        lv_obj_t *top_panel = advanced_mode ? objects.top_advanced_settings_panel : objects.top_settings_panel;
-        TFTView_320x240::instance()->ui_set_active(objects.settings_button, objects.basic_settings_panel, top_panel);
+        TFTView_320x240::instance()->ui_set_active(objects.settings_button, objects.basic_settings_panel,
+                                                   objects.top_settings_panel);
+    } else if (event_code == LV_EVENT_LONG_PRESSED && !advanced_mode && TFTView_320x240::instance()->activeSettings == eNone) {
+        advanced_mode = !advanced_mode;
+    } else if (event_code == LV_EVENT_LONG_PRESSED && advanced_mode && TFTView_320x240::instance()->activeSettings == eNone) {
+        advanced_mode = !advanced_mode;
+        TFTView_320x240::instance()->ui_set_active(objects.settings_button, ui_AdvancedSettingsPanel,
+                                                   objects.top_advanced_settings_panel);
     }
 }
 
