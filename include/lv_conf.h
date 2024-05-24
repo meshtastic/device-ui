@@ -923,16 +923,18 @@
 #define LV_USE_EVDEV    0
 
 /*Driver for libinput input devices*/
+#ifndef LV_USE_LIBINPUT
 #define LV_USE_LIBINPUT    0
+#endif
 
 #if LV_USE_LIBINPUT
     #define LV_LIBINPUT_BSD    0
 
     /*Full keyboard support*/
-    #define LV_LIBINPUT_XKB             0
+    #define LV_LIBINPUT_XKB    1
     #if LV_LIBINPUT_XKB
         /*"setxkbmap -query" can help find the right values for your keyboard*/
-        #define LV_LIBINPUT_XKB_KEY_MAP { .rules = NULL, .model = "pc101", .layout = "us", .variant = NULL, .options = NULL }
+        #define LV_LIBINPUT_XKB_KEY_MAP { .rules = "evdev", .model = "pc105", .layout = "us", .variant = NULL, .options = NULL }
     #endif
 #endif
 

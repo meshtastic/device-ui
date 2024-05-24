@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 class DisplayDriver;
+class InputDriver;
 class IClientBase;
 
 /**
@@ -21,4 +22,5 @@ class DeviceGUI
 
   protected:
     DisplayDriver *displaydriver;
+    InputDriver* inputdriver;
 };

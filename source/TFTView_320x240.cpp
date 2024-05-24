@@ -3,6 +3,7 @@
 #include "TFTView_320x240.h"
 #include "Arduino.h"
 #include "DisplayDriver.h"
+#include "InputDriver.h"
 #include "DisplayDriverFactory.h"
 #include "ILog.h"
 #include "ViewController.h"
@@ -77,6 +78,20 @@ void TFTView_320x240::init(IClientBase *client)
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
         lv_obj_add_flag(objects.basic_settings_brightness_button, LV_OBJ_FLAG_HIDDEN);
+
+#if LV_USE_LIBINPUT
+    // add keyboard to message text area
+    input_group = lv_group_create();
+    lv_group_set_default(input_group);
+    lv_indev_set_group(inputdriver->getKeyboard(), input_group);
+    lv_indev_set_group(inputdriver->getPointer(), input_group);
+    lv_group_add_obj(input_group, objects.message_input_area);
+    lv_group_add_obj(input_group, objects.settings_user_short_textarea);
+    lv_group_add_obj(input_group, objects.settings_user_long_textarea);
+    lv_group_add_obj(input_group, objects.settings_modify_channel_name_textarea);
+    lv_group_add_obj(input_group, objects.settings_modify_channel_psk_textarea);
+    lv_group_add_obj(input_group, objects.nodes_panel);
+#endif
 }
 
 /**
@@ -1658,10 +1673,10 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     lv_obj_get_coords(textArea, &text_coords);
     lv_obj_get_coords(objects.keyboard, &kb_coords);
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
-    uint32_t v = lv_display_get_vertical_resolution(TFTView_320x240::instance()->displaydriver->getDisplay());
+    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (text_coords.y1 > kb_h + 30) {
-        // if enough place above put under top panel
+        // if enough space above put under top panel
         lv_obj_set_pos(objects.keyboard, 18, 28);
     } else if ((text_coords.y1 + 10) > v / 2) {
         // if text area is at lower half then place above text area
@@ -1673,6 +1688,7 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
 
     lv_keyboard_set_textarea(objects.keyboard, textArea);
 }
+
 // -------- helpers --------
 
 void TFTView_320x240::removeNode(uint32_t nodeNum)
