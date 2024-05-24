@@ -173,7 +173,9 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_0, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)0);
     lv_obj_add_event_cb(objects.keyboard_button_1, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)1);
     lv_obj_add_event_cb(objects.keyboard_button_2, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)2);
-    lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_ALL, this);
+    lv_obj_add_event_cb(objects.keyboard_button_3, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)3);
+    lv_obj_add_event_cb(objects.keyboard_button_4, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)4);
+    lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_ALL, NULL);
@@ -382,6 +384,26 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
+        uint32_t keyBtnIdx = (unsigned long)e->user_data;
+        switch (keyBtnIdx) {
+        case 0:
+            TFTView_320x240::instance()->showKeyboard(objects.message_input_area);
+            break;
+        case 1:
+            TFTView_320x240::instance()->showKeyboard(objects.settings_user_short_textarea);
+            break;
+        case 2:
+            TFTView_320x240::instance()->showKeyboard(objects.settings_user_long_textarea);
+            break;
+        case 3:
+            TFTView_320x240::instance()->showKeyboard(objects.settings_modify_channel_name_textarea);
+            break;
+        case 4:
+            TFTView_320x240::instance()->showKeyboard(objects.settings_modify_channel_psk_textarea);
+            break;
+        default:
+            ILOG_ERROR("missing keyboard <-> textarea assignment\n");
+        }
         lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN) ? lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)
                                                               : lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
     }
@@ -418,8 +440,8 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
             if (ta == objects.message_input_area) {
                 TFTView_320x240::instance()->handleAddMessage(txt);
+                lv_textarea_set_text(ta, "");
             }
-            lv_textarea_set_text(ta, "");
             break;
         }
         default:
@@ -479,14 +501,22 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
         // TODO: primary channel is not necessarily 0...
         //  maybe use for-loop here; then also store channel number within the label
-        lv_label_set_text(objects.settings_channel0_label, TFTView_320x240::instance()->db.channel[0].settings.name);
-        lv_label_set_text(objects.settings_channel1_label, TFTView_320x240::instance()->db.channel[1].settings.name);
-        lv_label_set_text(objects.settings_channel2_label, TFTView_320x240::instance()->db.channel[2].settings.name);
-        lv_label_set_text(objects.settings_channel3_label, TFTView_320x240::instance()->db.channel[3].settings.name);
-        lv_label_set_text(objects.settings_channel4_label, TFTView_320x240::instance()->db.channel[4].settings.name);
-        lv_label_set_text(objects.settings_channel5_label, TFTView_320x240::instance()->db.channel[5].settings.name);
-        lv_label_set_text(objects.settings_channel6_label, TFTView_320x240::instance()->db.channel[6].settings.name);
-        lv_label_set_text(objects.settings_channel7_label, TFTView_320x240::instance()->db.channel[7].settings.name);
+        if (TFTView_320x240::instance()->db.channel[0].has_settings)
+            lv_label_set_text(objects.settings_channel0_label, TFTView_320x240::instance()->db.channel[0].settings.name);
+        if (TFTView_320x240::instance()->db.channel[1].has_settings)
+            lv_label_set_text(objects.settings_channel1_label, TFTView_320x240::instance()->db.channel[1].settings.name);
+        if (TFTView_320x240::instance()->db.channel[2].has_settings)
+            lv_label_set_text(objects.settings_channel2_label, TFTView_320x240::instance()->db.channel[2].settings.name);
+        if (TFTView_320x240::instance()->db.channel[3].has_settings)
+            lv_label_set_text(objects.settings_channel3_label, TFTView_320x240::instance()->db.channel[3].settings.name);
+        if (TFTView_320x240::instance()->db.channel[4].has_settings)
+            lv_label_set_text(objects.settings_channel4_label, TFTView_320x240::instance()->db.channel[4].settings.name);
+        if (TFTView_320x240::instance()->db.channel[5].has_settings)
+            lv_label_set_text(objects.settings_channel5_label, TFTView_320x240::instance()->db.channel[5].settings.name);
+        if (TFTView_320x240::instance()->db.channel[6].has_settings)
+            lv_label_set_text(objects.settings_channel6_label, TFTView_320x240::instance()->db.channel[6].settings.name);
+        if (TFTView_320x240::instance()->db.channel[7].has_settings)
+            lv_label_set_text(objects.settings_channel7_label, TFTView_320x240::instance()->db.channel[7].settings.name);
 
         lv_obj_clear_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eChannel;
@@ -1607,10 +1637,34 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     } else {
         // TODO: log error
     }
-
-    lv_keyboard_set_textarea(objects.keyboard, objects.message_input_area);
 }
 
+/**
+ * @brief Place keyboard at a suitable space above or below the text input area
+ *
+ * @param textArea
+ */
+void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
+{
+    lv_area_t text_coords, kb_coords;
+    lv_obj_get_coords(textArea, &text_coords);
+    lv_obj_get_coords(objects.keyboard, &kb_coords);
+    uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
+    uint32_t v = lv_display_get_vertical_resolution(TFTView_320x240::instance()->displaydriver->getDisplay());
+
+    if (text_coords.y1 > kb_h + 30) {
+        // if enough place above put under top panel
+        lv_obj_set_pos(objects.keyboard, 18, 28);
+    } else if ((text_coords.y1 + 10) > v / 2) {
+        // if text area is at lower half then place above text area
+        lv_obj_set_pos(objects.keyboard, 18, text_coords.y1 - kb_h - 2);
+    } else {
+        // place below text area
+        lv_obj_set_pos(objects.keyboard, 18, text_coords.y2 + 3);
+    }
+
+    lv_keyboard_set_textarea(objects.keyboard, textArea);
+}
 // -------- helpers --------
 
 void TFTView_320x240::removeNode(uint32_t nodeNum)

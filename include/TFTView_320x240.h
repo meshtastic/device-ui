@@ -33,7 +33,7 @@ class TFTView_320x240 : public MeshtasticView
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) override;
 
     // methods to update device config
-    void updateChannelConfig(const meshtastic_Channel& ch) override;
+    void updateChannelConfig(const meshtastic_Channel &ch) override;
     void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) override;
     void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) override;
     void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) override;
@@ -124,6 +124,7 @@ class TFTView_320x240 : public MeshtasticView
     void apply_hotfix(void);
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
+    void showKeyboard(lv_obj_t *textArea);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
@@ -161,6 +162,7 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *activeTopPanel = nullptr;
     lv_obj_t *activeMsgContainer = nullptr;
     lv_obj_t *activeWidget = nullptr;
+    lv_obj_t *activeTextInput = nullptr;
     enum BasicSettings activeSettings = eNone;
 
     static TFTView_320x240 *gui;
@@ -168,7 +170,7 @@ class TFTView_320x240 : public MeshtasticView
     static bool advanced_mode;
 
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
-      meshtastic_Channel channel[8];
+        meshtastic_Channel channel[8];
     };
 
     meshtastic_DeviceProfile_ext db;

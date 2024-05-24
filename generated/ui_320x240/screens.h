@@ -80,6 +80,8 @@ typedef struct _objects_t {
     lv_obj_t *keyboard_button_0;
     lv_obj_t *keyboard_button_1;
     lv_obj_t *keyboard_button_2;
+    lv_obj_t *keyboard_button_3;
+    lv_obj_t *keyboard_button_4;
     lv_obj_t *last_heard_label;
     lv_obj_t *map_button;
     lv_obj_t *map_panel;

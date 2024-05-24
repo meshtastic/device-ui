@@ -22,11 +22,14 @@ class DisplayDriver
 
     virtual uint8_t getBrightness() { return 255; }
     virtual void setBrightness(uint8_t timeout) {}
+
     virtual uint8_t getScreenTimeout() { return 0; }
     virtual void setScreenTimeout(uint8_t timeout) {}
 
     uint16_t getScreenWidth(void) { return screenWidth; }
     uint16_t getScreenHeight(void) { return screenHeight; }
+
+    lv_display_t *getDisplay(void) { return display; }
 
   protected:
     LVGLGraphics lvgl;
