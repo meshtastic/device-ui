@@ -10,6 +10,7 @@ class InputDriver
     InputDriver(void);
     virtual void init(void);
     virtual void task_handler(void);
+    virtual ~InputDriver(void);
 
     std::vector<std::string> getKeyboardDevices(void);
     std::vector<std::string> getPointerDevices(void);
@@ -31,6 +32,5 @@ class InputDriver
 
     lv_indev_t *keyboard = nullptr;
     lv_indev_t *pointer = nullptr;
-    char *mouse_path = nullptr;
-    char *keyboard_path = nullptr;
+    lv_obj_t *mouse_cursor = nullptr;
 };

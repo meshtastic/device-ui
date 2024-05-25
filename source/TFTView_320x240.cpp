@@ -70,28 +70,16 @@ void TFTView_320x240::init(IClientBase *client)
     ui_events_init();
 
     // load boot screen
-    lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
+    //lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
 
     // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, true);
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 3000, true);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
         lv_obj_add_flag(objects.basic_settings_brightness_button, LV_OBJ_FLAG_HIDDEN);
 
-#if LV_USE_LIBINPUT && !USE_X11
-    // add input keyboard and pointer to message text areas
-    input_group = lv_group_create();
-    lv_group_set_default(input_group);
-    lv_indev_set_group(inputdriver->getKeyboard(), input_group);
-    lv_indev_set_group(inputdriver->getPointer(), input_group);
-    lv_group_add_obj(input_group, objects.message_input_area);
-    lv_group_add_obj(input_group, objects.settings_user_short_textarea);
-    lv_group_add_obj(input_group, objects.settings_user_long_textarea);
-    lv_group_add_obj(input_group, objects.settings_modify_channel_name_textarea);
-    lv_group_add_obj(input_group, objects.settings_modify_channel_psk_textarea);
-    lv_group_add_obj(input_group, objects.nodes_panel);
-
+#if LV_USE_LIBINPUT
     lv_obj_clear_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN);
 #endif
 }
@@ -595,6 +583,11 @@ void TFTView_320x240::ui_event_input_button(lv_event_t *e)
         lv_dropdown_set_options(objects.settings_keyboard_input_dropdown, kbd_dropdown.c_str());
         lv_dropdown_set_selected(objects.settings_keyboard_input_dropdown, selected);
 
+        lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, 
+                                     TFTView_320x240::instance()->old_val1_scratch, sizeof(old_val1_scratch));
+        lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, 
+                                     TFTView_320x240::instance()->old_val2_scratch, sizeof(old_val2_scratch));
+
         lv_obj_clear_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eInputControl;
     }
@@ -716,37 +709,41 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eInputControl: {
-            char old_val_kbd[10], old_val_ptr[10];
-            lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, old_val_kbd, sizeof(old_val_kbd));
-            lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, old_val_ptr, sizeof(old_val_ptr));
-
             char new_val_kbd[10], new_val_ptr[10], label[30];
             lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, new_val_kbd, sizeof(new_val_kbd));
             lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, new_val_ptr, sizeof(new_val_ptr));
-            lv_snprintf(label, sizeof(label), "Input Control: %s/%s", new_val_kbd, new_val_ptr);
-            lv_label_set_text(objects.basic_settings_language_label, label);
 
             bool error = false;
-            if (strcmp(old_val_kbd, new_val_kbd) != 0) {
-                if (strcmp(old_val_kbd, "none") != 0) {
+            if (strcmp(TFTView_320x240::instance()->old_val1_scratch, new_val_kbd) != 0) {
+                if (strcmp(TFTView_320x240::instance()->old_val1_scratch, "none") != 0) {
                     TFTView_320x240::instance()->inputdriver->releaseKeyboardDevice();
                 }
                 if (strcmp(new_val_kbd, "none") != 0) {
-                    error |= TFTView_320x240::instance()->inputdriver->useKeyboardDevice(new_val_kbd);
+                    error &= TFTView_320x240::instance()->inputdriver->useKeyboardDevice(new_val_kbd);
                 }
             }
-            if (strcmp(old_val_ptr, new_val_ptr) != 0) {
-                if (strcmp(old_val_ptr, "none") != 0) {
+            if (strcmp(TFTView_320x240::instance()->old_val2_scratch, new_val_ptr) != 0) {
+                if (strcmp(TFTView_320x240::instance()->old_val2_scratch, "none") != 0) {
                     TFTView_320x240::instance()->inputdriver->releasePointerDevice();
                 }
                 if (strcmp(new_val_ptr, "none") != 0) {
-                    error |= TFTView_320x240::instance()->inputdriver->usePointerDevice(new_val_ptr);
+                    error &= TFTView_320x240::instance()->inputdriver->usePointerDevice(new_val_ptr);
                 }
             }
             if (error) {
                 LOG_WARN("failed to use %s/%s\n", new_val_kbd, new_val_ptr);
                 return;
             }
+            if (strcmp(new_val_kbd, "none") == 0 && strcmp(new_val_ptr, "none") == 0 && TFTView_320x240::instance()->input_group) {
+                lv_group_delete(TFTView_320x240::instance()->input_group);
+                TFTView_320x240::instance()->input_group = nullptr;
+            } else if (strcmp(TFTView_320x240::instance()->old_val1_scratch, new_val_kbd) != 0 || 
+                       strcmp(TFTView_320x240::instance()->old_val2_scratch, new_val_ptr) != 0) {
+                  TFTView_320x240::instance()->setInputGroup();
+            }
+
+            lv_snprintf(label, sizeof(label), "Input Control: %s/%s", new_val_ptr, new_val_kbd);
+            lv_label_set_text(objects.basic_settings_input_label, label);
             lv_obj_add_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -1757,6 +1754,29 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     }
 
     lv_keyboard_set_textarea(objects.keyboard, textArea);
+}
+
+/**
+ * input group for all widgets to be used by keyboard
+*/
+void TFTView_320x240::setInputGroup(void)
+{
+#if LV_USE_LIBINPUT
+    // add input keyboard and pointer to message text areas
+    if (input_group)
+        lv_group_delete(input_group);
+
+    input_group = lv_group_create();
+    lv_group_set_default(input_group);
+    lv_indev_set_group(inputdriver->getKeyboard(), input_group);
+    lv_indev_set_group(inputdriver->getPointer(), input_group);
+    lv_group_add_obj(input_group, objects.message_input_area);
+    lv_group_add_obj(input_group, objects.settings_user_short_textarea);
+    lv_group_add_obj(input_group, objects.settings_user_long_textarea);
+    lv_group_add_obj(input_group, objects.settings_modify_channel_name_textarea);
+    lv_group_add_obj(input_group, objects.settings_modify_channel_psk_textarea);
+    lv_group_add_obj(input_group, objects.nodes_panel);
+#endif
 }
 // -------- helpers --------
 

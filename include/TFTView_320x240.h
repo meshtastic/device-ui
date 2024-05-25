@@ -126,6 +126,7 @@ class TFTView_320x240 : public MeshtasticView
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
+    void setInputGroup(void);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
@@ -172,6 +173,7 @@ class TFTView_320x240 : public MeshtasticView
     static TFTView_320x240 *gui;
     time_t lastrun60, lastrun5;
     static bool advanced_mode;
+    char old_val1_scratch[64], old_val2_scratch[64];
 
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
         meshtastic_Channel channel[8];

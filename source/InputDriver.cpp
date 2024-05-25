@@ -80,7 +80,7 @@ std::vector<std::string> InputDriver::globVector(const std::string &pattern)
 bool InputDriver::useKeyboardDevice(const std::string &event)
 {
     std::string kb_path = "/dev/input/" + event;
-    ILOG_DEBUG("Using keyboard device %s\n", kb_path);
+    ILOG_INFO("Using keyboard device %s\n", kb_path.c_str());
     keyboard = lv_libinput_create(LV_INDEV_TYPE_KEYPAD, kb_path.c_str());
     return keyboard != nullptr;
 }
@@ -88,7 +88,7 @@ bool InputDriver::useKeyboardDevice(const std::string &event)
 bool InputDriver::usePointerDevice(const std::string &event)
 {
     std::string ptr_path = "/dev/input/" + event;
-    ILOG_INFO("Using pointer device %s\n", ptr_path);
+    ILOG_INFO("Using pointer device %s\n", ptr_path.c_str());
     pointer = lv_libinput_create(LV_INDEV_TYPE_POINTER, ptr_path.c_str());
     if (pointer) {
         lv_obj_t *mouse_cursor = lv_image_create(lv_screen_active());
@@ -113,12 +113,24 @@ bool InputDriver::releaseKeyboardDevice(void)
 {
     lv_indev_delete(keyboard);
     keyboard = nullptr;
+    return true;
 }
 
 bool InputDriver::releasePointerDevice(void)
 {
+    if (mouse_cursor) {
+        lv_obj_add_flag(mouse_cursor, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_delete(mouse_cursor);
+        mouse_cursor = nullptr;
+    }
     lv_indev_delete(pointer);
     pointer = nullptr;
+    return true;
+}
+
+InputDriver::~InputDriver(void) {
+    if (keyboard) releaseKeyboardDevice();
+    if (pointer) releasePointerDevice();
 }
 
 #endif
