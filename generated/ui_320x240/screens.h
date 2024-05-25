@@ -76,6 +76,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_brightness_label;
     lv_obj_t *basic_settings_channel_button;
     lv_obj_t *basic_settings_channel_label;
+    lv_obj_t *basic_settings_input_button;
+    lv_obj_t *basic_settings_input_label;
     lv_obj_t *basic_settings_language_button;
     lv_obj_t *basic_settings_language_label;
     lv_obj_t *basic_settings_panel;
@@ -193,6 +195,10 @@ typedef struct _objects_t {
     lv_obj_t *obj8__cancel_button_w;
     lv_obj_t *obj8__ok_button_w;
     lv_obj_t *obj8__ok_cancel_panel_w;
+    lv_obj_t *obj9;
+    lv_obj_t *obj9__cancel_button_w;
+    lv_obj_t *obj9__ok_button_w;
+    lv_obj_t *obj9__ok_cancel_panel_w;
     lv_obj_t *screen_timeout_slider;
     lv_obj_t *settings_alert_buzzer_panel;
     lv_obj_t *settings_alert_buzzer_switch;
@@ -218,11 +224,14 @@ typedef struct _objects_t {
     lv_obj_t *settings_channel7_label;
     lv_obj_t *settings_device_role_dropdown;
     lv_obj_t *settings_device_role_panel;
+    lv_obj_t *settings_input_control_panel;
+    lv_obj_t *settings_keyboard_input_dropdown;
     lv_obj_t *settings_language_dropdown;
     lv_obj_t *settings_language_panel;
     lv_obj_t *settings_modify_channel_name_textarea;
     lv_obj_t *settings_modify_channel_panel;
     lv_obj_t *settings_modify_channel_psk_textarea;
+    lv_obj_t *settings_mouse_input_dropdown;
     lv_obj_t *settings_region_dropdown;
     lv_obj_t *settings_region_panel;
     lv_obj_t *settings_screen_timeout_label;

@@ -72,6 +72,7 @@ class TFTView_320x240 : public MeshtasticView
         eLanguage,
         eScreenTimeout,
         eScreenBrightness,
+        eInputControl,
         eAlertBuzzer,
         eModifyChannel
     };
@@ -149,6 +150,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_channel_button(lv_event_t *e);
     static void ui_event_brightness_button(lv_event_t *e);
     static void ui_event_timeout_button(lv_event_t *e);
+    static void ui_event_input_button(lv_event_t *e);
     static void ui_event_alert_button(lv_event_t *e);
     static void ui_event_modify_channel(lv_event_t *e);
 
