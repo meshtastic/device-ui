@@ -758,7 +758,10 @@
 #define LV_USE_SNAPSHOT 0
 
 /*1: Enable system monitor component*/
+#ifndef LV_USE_SYSMON
 #define LV_USE_SYSMON   1
+#endif
+
 #if LV_USE_SYSMON
     /*Get the idle percentage. E.g. uint32_t my_get_idle(void);*/
     #define LV_SYSMON_GET_IDLE lv_timer_get_idle
@@ -788,7 +791,9 @@
 #endif /*LV_USE_SYSMON*/
 
 /*1: Enable the runtime performance profiler*/
+#ifndef LV_USE_PROFILER
 #define LV_USE_PROFILER 1
+#endif
 #if LV_USE_PROFILER
     /*1: Enable the built-in profiler*/
     #define LV_USE_PROFILER_BUILTIN 1
