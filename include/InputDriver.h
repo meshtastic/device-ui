@@ -7,30 +7,27 @@
 class InputDriver
 {
   public:
-    InputDriver(void);
-    virtual void init(void);
-    virtual void task_handler(void);
+    InputDriver(void) {}
+    virtual void init(void) {}
+    virtual void task_handler(void) {}
     virtual ~InputDriver(void);
 
-    std::vector<std::string> getKeyboardDevices(void);
-    std::vector<std::string> getPointerDevices(void);
+    virtual std::vector<std::string> getKeyboardDevices(void) { return std::vector<std::string>(); }
+    virtual std::vector<std::string> getPointerDevices(void) { return std::vector<std::string>(); }
 
-    bool useKeyboardDevice(const std::string &event);
-    bool usePointerDevice(const std::string &event);
+    virtual bool useKeyboardDevice(const std::string &name) { return false; }
+    virtual bool usePointerDevice(const std::string &name) { return false; }
 
-    bool hasKeyboardDevice(void);
-    bool hasPointerDevice(void);
+    virtual bool hasKeyboardDevice(void) { return keyboard != nullptr; }
+    virtual bool hasPointerDevice(void) { return pointer != nullptr; }
 
-    bool releaseKeyboardDevice(void);
-    bool releasePointerDevice(void);
+    virtual bool releaseKeyboardDevice(void) { return keyboard == nullptr; }
+    virtual bool releasePointerDevice(void) { return pointer == nullptr; }
 
-    lv_indev_t *getKeyboard(void) { return keyboard; }
-    lv_indev_t *getPointer(void) { return pointer; }
+    virtual lv_indev_t *getKeyboard(void) { return keyboard; }
+    virtual lv_indev_t *getPointer(void) { return pointer; }
 
-  private:
-    std::vector<std::string> globVector(const std::string &pattern);
-
+  protected:
     lv_indev_t *keyboard = nullptr;
     lv_indev_t *pointer = nullptr;
-    lv_obj_t *mouse_cursor = nullptr;
 };
