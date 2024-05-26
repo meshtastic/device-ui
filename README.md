@@ -54,7 +54,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [x] serial communication interface
         - [x] protobuf encoding/decoding
       - [x] Logging interface
-      - [ ] Add lvgl compatible input driver interface
+      - [x] Add lvgl compatible input driver interface
       - [ ] Add interface for persistency via lvgl littlefs callbacks
         - [ ] Screen calibration data
         - [ ] Device settings (General)
@@ -73,7 +73,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] Italian translation
       - [ ] Optional: other languages with latin characters)
     - [ ] Support dynamic OLED / Color(TFT) selection
-    - [X] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
+    - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
     - [ ] Allow co-existence of generated files/views by different eez-studio projects
     - [ ] Fix PSRAM draw buffer issue and do buffer size optimization
     - [ ] Test native lvgl driver support
@@ -118,7 +118,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] General Settings
         - [ ] Language
         - [ ] Timezone
-        - [X] Screen
+        - [x] Screen
         - [ ] Maps
         - [ ] Audio
       - [ ] Radio Settings
@@ -138,7 +138,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] Node location and precision
       - [ ] Radio frequency display
       - [ ] Offline map display
-    - [ ] I2C keyboard input handling
+    - [x] I2C keyboard input handling
     - [ ] Trackball support (e.g. fast scrolling list views)
     - [ ] SD card support, mainly for offline maps or import/export (config & chat history)
     - [ ] (Optional): allow bluetooth connection (-> PhoneAPI queue re-design)
@@ -163,10 +163,10 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [x] Project integration into firmware
     - [x] Display driver run-time configuration interface
     - [x] Add missing settingsMap entries for DisplayDriverConfig
-    - [ ] Integrate lvgl keyboard input driver
-    - [X] Add support for several SPI devices
+    - [x] Integrate lvgl keyboard input driver
+    - [x] Add support for several SPI devices
     - [ ] Add pwm brightness control
-    - [ ] Target environment cleanup
+    - [x] Target environment cleanup
 
 ### :iphone: Stand-alone Device
 
