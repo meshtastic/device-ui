@@ -199,6 +199,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_brightness_button, ui_event_brightness_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_input_button, ui_event_input_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_alert_button, ui_event_alert_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_ALL, NULL);
 
     // sliders
     lv_obj_add_event_cb(objects.screen_timeout_slider, ui_event_screen_timeout_slider, LV_EVENT_VALUE_CHANGED, NULL);
@@ -225,6 +227,10 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj8__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj9__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj9__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj10__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj10__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj11__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj11__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)0);
@@ -618,6 +624,24 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_reset_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+        lv_obj_clear_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
+        TFTView_320x240::instance()->activeSettings = eReset;
+    }
+}
+
+void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+        lv_obj_clear_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        TFTView_320x240::instance()->activeSettings = eReboot;
+    }
+}
+
 void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -772,6 +796,18 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
+        case eReset: {
+            uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
+            // TODO: send to radio
+            lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case eReboot: {
+            uint32_t option = lv_dropdown_get_selected(objects.settings_reboot_dropdown);
+            // TODO: send to radio
+            lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
         case eModifyChannel: {
             meshtastic_ChannelSettings_psk_t psk;
             if (TFTView_320x240::instance()->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea),
@@ -838,6 +874,14 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eAlertBuzzer: {
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eReset: {
+            lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eReboot: {
+            lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case TFTView_320x240::eModifyChannel: {
