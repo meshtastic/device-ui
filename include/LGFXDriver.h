@@ -7,7 +7,7 @@
 #include <functional>
 
 const uint32_t defaultScreenTimeout = 60 * 1000;
-const uint32_t defaultBrightness = 128;
+const uint32_t defaultBrightness = 153;
 
 template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 {
@@ -33,6 +33,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     static uint32_t my_tick_get_cb(void) { return millis(); }
 
     uint32_t screenTimeout;
+    uint32_t lastBrightness;
     bool powerSaving;
 
   private:
@@ -48,8 +49,8 @@ template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
 
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
-    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), screenTimeout(defaultScreenTimeout), powerSaving(false), bufsize(0),
-      buf1(nullptr), buf2(nullptr)
+    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), screenTimeout(defaultScreenTimeout),
+      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr)
 {
     lgfx = this->tft;
 }
@@ -85,7 +86,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                 powerSaving = false;
                 lgfx->powerSaveOff();
                 lgfx->wakeup();
-                lgfx->setBrightness(defaultBrightness);
+                lgfx->setBrightness(lastBrightness);
             } else {
                 // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
                 // continue with processing loop and enter sleep() again next round
@@ -278,4 +279,5 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 template <class LGFX> void LGFXDriver<LGFX>::setBrightness(uint8_t brightness)
 {
     lgfx->setBrightness(brightness);
+    lastBrightness = brightness;
 }
