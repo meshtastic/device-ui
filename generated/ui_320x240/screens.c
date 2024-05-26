@@ -523,7 +523,6 @@ void create_screen_main_screen() {
             lv_obj_set_pos(obj, 39, 25);
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -768,7 +767,6 @@ void create_screen_main_screen() {
             lv_obj_set_pos(obj, 39, 25);
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -826,7 +824,6 @@ void create_screen_main_screen() {
             lv_obj_set_pos(obj, 39, 25);
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
