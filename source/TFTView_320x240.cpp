@@ -731,7 +731,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 }
             }
             if (error) {
-                LOG_WARN("failed to use %s/%s\n", new_val_kbd, new_val_ptr);
+                ILOG_WARN("failed to use %s/%s\n", new_val_kbd, new_val_ptr);
                 return;
             }
             if (strcmp(new_val_kbd, "none") == 0 && strcmp(new_val_ptr, "none") == 0 && TFTView_320x240::instance()->input_group) {
