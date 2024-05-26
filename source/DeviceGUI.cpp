@@ -14,11 +14,12 @@
 DeviceGUI::DeviceGUI(DisplayDriver *driver) : displaydriver(driver), inputdriver(nullptr)
 {
 #if LV_USE_LIBINPUT
-inputdriver = new LinuxInputDriver;
+    inputdriver = new LinuxInputDriver;
 #elif defined(T_DECK)
-inputdriver = new TDeckInputDriver;
+    inputdriver = new TDeckInputDriver;
+#else
+    inputdriver = new InputDriver;
 #endif
-
 }
 
 void DeviceGUI::init(IClientBase *client)
@@ -35,6 +36,7 @@ void DeviceGUI::task_handler(void)
     displaydriver->task_handler();
 };
 
-DeviceGUI::~DeviceGUI() {
+DeviceGUI::~DeviceGUI()
+{
     delete inputdriver;
 }

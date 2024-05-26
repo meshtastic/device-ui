@@ -32,7 +32,6 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
     static uint32_t my_tick_get_cb(void) { return millis(); }
 
-    static uint32_t lastTouch;
     uint32_t screenTimeout;
     bool powerSaving;
 
@@ -46,7 +45,6 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 };
 
 template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
-template <class LGFX> uint32_t LGFXDriver<LGFX>::lastTouch = 0;
 
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
@@ -54,7 +52,6 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
       buf1(nullptr), buf2(nullptr)
 {
     lgfx = this->tft;
-    lastTouch = millis();
 }
 
 template <class LGFX>
@@ -63,13 +60,12 @@ LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
       buf2(nullptr)
 {
     lgfx = this->tft;
-    lastTouch = millis();
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
     if ((hasTouch() /* || hasButton() */) && hasLight()) {
-        if (screenTimeout > 0 && lastTouch + screenTimeout < millis()) { // TODO: use lvgl indev inactivity
+        if (screenTimeout > 0 && screenTimeout < lv_display_get_inactive_time(NULL)) {
             if (!powerSaving) {
                 // dim display brightness slowly down
                 uint32_t brightness = lgfx->getBrightness();
@@ -83,10 +79,10 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             }
         }
         if (powerSaving) {
-            if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int) || lastTouch + screenTimeout > millis()) {
+            if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int) ||
+                screenTimeout > lv_display_get_inactive_time(NULL)) {
                 // woke up by touch or button
                 powerSaving = false;
-                lastTouch = millis();
                 lgfx->powerSaveOff();
                 lgfx->wakeup();
                 lgfx->setBrightness(defaultBrightness);
@@ -137,7 +133,6 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
     if (!touched) {
         data->state = LV_INDEV_STATE_REL;
     } else {
-        lastTouch = millis();
         data->state = LV_INDEV_STATE_PR;
         data->point.x = touchX;
         data->point.y = touchY;
