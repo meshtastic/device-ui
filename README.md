@@ -191,4 +191,4 @@ This C++ library is intended to support the following scenarios with enhanced sc
 
 ## Stats
 
-![Alt](https://repobeats.axiom.co/api/embed/2d7384f6fd2724a3b3b9d320fcd77717d7f92d7e.svg "Repobeats analytics image")
+![Alt](https://repobeats.axiom.co/api/embed/13969b386b951b28cd1eb19ec1bbcf364318ddf7.svg "Repobeats analytics image")
