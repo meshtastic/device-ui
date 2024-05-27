@@ -140,6 +140,8 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_set_scrollbar_mode(objects.home_container, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_scrollbar_mode(objects.settings_user_long_textarea, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_scrollbar_mode(objects.settings_modify_channel_psk_textarea, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_scrollbar_mode(objects.message_input_area, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_scroll_dir(objects.message_input_area, LV_DIR_HOR);
 }
 
 void TFTView_320x240::ui_events_init(void)
@@ -464,13 +466,7 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             break;
         }
         case 39: { // checkmark
-            lv_obj_t *ta = lv_keyboard_get_textarea(kb);
-            char *txt = (char *)lv_textarea_get_text(ta);
             lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
-            if (ta == objects.message_input_area) {
-                TFTView_320x240::instance()->handleAddMessage(txt);
-                lv_textarea_set_text(ta, "");
-            }
             break;
         }
         default:
