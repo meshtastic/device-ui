@@ -123,6 +123,9 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 
     activeButton = b;
     activePanel = p;
+    if (activePanel == objects.messages_panel) {
+        lv_obj_add_state(objects.message_input_area, LV_STATE_FOCUSED);
+    }
 
     lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
