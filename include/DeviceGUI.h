@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+class DisplayDriverConfig;
 class DisplayDriver;
 class InputDriver;
 class IClientBase;
@@ -13,7 +14,7 @@ class IClientBase;
 class DeviceGUI
 {
   public:
-    DeviceGUI(DisplayDriver *driver);
+    DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver);
     virtual ~DeviceGUI();
     virtual void init(IClientBase *client);
     virtual void task_handler(void);

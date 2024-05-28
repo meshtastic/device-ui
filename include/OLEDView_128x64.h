@@ -38,7 +38,7 @@ class OLEDView_128x64 : public MeshtasticView
     static OLEDView_128x64 *instance(void);
     static OLEDView_128x64 *instance(const DisplayDriverConfig &cfg);
     OLEDView_128x64();
-    OLEDView_128x64(DisplayDriver *driver);
+    OLEDView_128x64(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
     static OLEDView_128x64 *gui;
 };

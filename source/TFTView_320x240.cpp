@@ -25,7 +25,7 @@ bool TFTView_320x240::advanced_mode = false;
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
     if (!gui) {
-        gui = new TFTView_320x240(DisplayDriverFactory::create(320, 240));
+        gui = new TFTView_320x240(nullptr, DisplayDriverFactory::create(320, 240));
     }
     return gui;
 }
@@ -33,12 +33,12 @@ TFTView_320x240 *TFTView_320x240::instance(void)
 TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 {
     if (!gui) {
-        gui = new TFTView_320x240(DisplayDriverFactory::create(cfg));
+        gui = new TFTView_320x240(&cfg, DisplayDriverFactory::create(cfg));
     }
     return gui;
 }
 
-TFTView_320x240::TFTView_320x240(DisplayDriver *driver) : MeshtasticView(driver, new ViewController) {}
+TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver) : MeshtasticView(cfg, driver, new ViewController) {}
 
 // TODO
 extern const uint8_t img_meshtastic_logo_image_map[];
@@ -53,7 +53,7 @@ void TFTView_320x240::init(IClientBase *client)
         total_size += images[i].img_dsc->data_size;
         ILOG_DEBUG("    %s: %d\n", images[i].name, images[i].img_dsc->data_size);
     }
-    ILOG_DEBUG("============================\n");
+    ILOG_DEBUG("================================\n");
     ILOG_DEBUG("### Total size: %d bytes ###\n", total_size);
 
     MeshtasticView::init(client);
@@ -1816,7 +1816,7 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
 }
 
 /**
- * input group for all widgets to be used by keyboard
+ * input group for all widgets to be used by keyboard and/or pointer
  */
 void TFTView_320x240::setInputGroup(void)
 {

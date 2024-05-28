@@ -38,7 +38,7 @@ class TFTView_480x320 : public MeshtasticView
     static TFTView_480x320 *instance(void);
     static TFTView_480x320 *instance(const DisplayDriverConfig &cfg);
     TFTView_480x320();
-    TFTView_480x320(DisplayDriver *driver);
+    TFTView_480x320(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
     static TFTView_480x320 *gui;
 };

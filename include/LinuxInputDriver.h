@@ -5,9 +5,9 @@
 class LinuxInputDriver : public InputDriver
 {
   public:
-    LinuxInputDriver(void);
-    virtual void init(void) override;
-    virtual void task_handler(void) override;
+    LinuxInputDriver(const std::string& kbdDevice, const std::string& ptrDevice);
+    void init(void) override;
+    void task_handler(void) override;
     virtual ~LinuxInputDriver(void);
 
     std::vector<std::string> getKeyboardDevices(void) override;
@@ -22,4 +22,7 @@ class LinuxInputDriver : public InputDriver
   private:
     std::vector<std::string> globVector(const std::string &pattern);
     lv_obj_t *mouse_cursor = nullptr;
+    std::string keyboardDevice;
+    std::string pointerDevice;
+
 };

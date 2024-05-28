@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DeviceGUI.h"
+#include "DisplayDriverConfig.h"
 #include "lvgl.h"
 #include "mesh-pb-constants.h"
 #include <array>
@@ -18,7 +19,7 @@ class ViewController;
 class MeshtasticView : public DeviceGUI
 {
   public:
-    MeshtasticView(DisplayDriver *driver, ViewController *_controller);
+    MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller);
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
     virtual bool sleep(int16_t pin);

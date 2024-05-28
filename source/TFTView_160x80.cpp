@@ -14,18 +14,18 @@ TFTView_160x80 *TFTView_160x80::gui = nullptr;
 TFTView_160x80 *TFTView_160x80::instance(void)
 {
     if (!gui)
-        gui = new TFTView_160x80(DisplayDriverFactory::create(160, 80));
+        gui = new TFTView_160x80(nullptr, DisplayDriverFactory::create(160, 80));
     return gui;
 }
 
 TFTView_160x80 *TFTView_160x80::instance(const DisplayDriverConfig &cfg)
 {
     if (!gui)
-        gui = new TFTView_160x80(DisplayDriverFactory::create(cfg));
+        gui = new TFTView_160x80(&cfg, DisplayDriverFactory::create(cfg));
     return gui;
 }
 
-TFTView_160x80::TFTView_160x80(DisplayDriver *driver) : MeshtasticView(driver, new ViewController) {}
+TFTView_160x80::TFTView_160x80(const DisplayDriverConfig *cfg, DisplayDriver *driver) : MeshtasticView(cfg, driver, new ViewController) {}
 
 void TFTView_160x80::init(IClientBase *client)
 {

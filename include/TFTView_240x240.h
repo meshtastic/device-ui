@@ -38,7 +38,7 @@ class TFTView_240x240 : public MeshtasticView
     static TFTView_240x240 *instance(void);
     static TFTView_240x240 *instance(const DisplayDriverConfig &cfg);
     TFTView_240x240();
-    TFTView_240x240(DisplayDriver *driver);
+    TFTView_240x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);

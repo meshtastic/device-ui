@@ -8,9 +8,20 @@
 
 LV_IMG_DECLARE(mouse_cursor_icon);
 
-LinuxInputDriver::LinuxInputDriver(void) {}
+LinuxInputDriver::LinuxInputDriver(const std::string& kbdDevice, const std::string& ptrDevice) : 
+    keyboardDevice(kbdDevice), pointerDevice(ptrDevice)
+{
+}
 
-void LinuxInputDriver::init(void) {}
+void LinuxInputDriver::init(void) {
+    ILOG_DEBUG("LinuxInputDriver::init ...\n");
+    if (!keyboardDevice.empty()) {
+        useKeyboardDevice(keyboardDevice);
+    }
+    if (!pointerDevice.empty()) {
+        usePointerDevice(pointerDevice);
+    }
+}
 
 void LinuxInputDriver::task_handler(void) {}
 
@@ -77,17 +88,33 @@ std::vector<std::string> LinuxInputDriver::globVector(const std::string &pattern
     return files;
 }
 
-bool LinuxInputDriver::useKeyboardDevice(const std::string &event)
+/**
+ * create input device for keyboard
+ * name is either eventX or the full path to the input event
+*/
+bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
 {
-    std::string kb_path = "/dev/input/" + event;
+    std::string kb_path;
+    if (name.at(0) != '/')
+        kb_path += "/dev/input/" + name;
+    else kb_path = name;
+
     ILOG_INFO("Using keyboard device %s\n", kb_path.c_str());
     keyboard = lv_libinput_create(LV_INDEV_TYPE_KEYPAD, kb_path.c_str());
     return keyboard != nullptr;
 }
 
-bool LinuxInputDriver::usePointerDevice(const std::string &event)
+/**
+ * create input device for keyboard
+ * name is either eventX or the full path to the input event
+*/
+bool LinuxInputDriver::usePointerDevice(const std::string &name)
 {
-    std::string ptr_path = "/dev/input/" + event;
+    std::string ptr_path;
+    if (name.at(0) != '/')
+        ptr_path += "/dev/input/" + name;
+    else ptr_path = name;
+
     ILOG_INFO("Using pointer device %s\n", ptr_path.c_str());
     pointer = lv_libinput_create(LV_INDEV_TYPE_POINTER, ptr_path.c_str());
     if (pointer) {

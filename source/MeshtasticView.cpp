@@ -7,7 +7,8 @@
 
 extern const char *firmware_version;
 
-MeshtasticView::MeshtasticView(DisplayDriver *driver, ViewController *_controller) : DeviceGUI(driver), controller(_controller) {}
+MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller) : 
+    DeviceGUI(cfg, driver), controller(_controller) {}
 
 void MeshtasticView::init(IClientBase *client)
 {

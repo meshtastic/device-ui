@@ -1,6 +1,5 @@
 #pragma once
 
-#include "DisplayDriverConfig.h"
 #include "MeshtasticView.h"
 #include "meshtastic/clientonly.pb.h"
 
@@ -122,7 +121,7 @@ class TFTView_320x240 : public MeshtasticView
     static TFTView_320x240 *instance(void);
     static TFTView_320x240 *instance(const DisplayDriverConfig &cfg);
     TFTView_320x240();
-    TFTView_320x240(DisplayDriver *driver);
+    TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
     void apply_hotfix(void);
     void ui_events_init(void);
