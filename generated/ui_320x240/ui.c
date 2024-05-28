@@ -19,16 +19,20 @@ static const void *getLvglImageByName(const char *name) {
     return 0;
 }
 
-void loadScreen(enum ScreensEnum screenId) {
+void loadScreen(enum ScreensEnum screenId, uint32_t delay) {
     currentScreen = screenId - 1;
     lv_obj_t *screen = getLvglObjectFromIndex(currentScreen);
-    lv_screen_load_anim(screen, LV_SCR_LOAD_ANIM_FADE_IN, 200, 0, false);
+    lv_screen_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 200, delay, true);
 }
 
 void ui_init() {
     create_screens();
     create_tabview_settings();
-    loadScreen(SCREEN_ID_BOOT_SCREEN);
+#ifdef OPEN_SAUCE
+    loadScreen(SCREEN_ID_OPEN_SAUCE_SCREEN, 0);
+#else
+    loadScreen(SCREEN_ID_BOOT_SCREEN, 0);
+#endif
 }
 
 void ui_tick() {

@@ -69,11 +69,7 @@ void TFTView_320x240::init(IClientBase *client)
     ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
     ui_events_init();
 
-    // load boot screen
-    // lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
-
-    // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 3000, true);
+    loadScreen(SCREEN_ID_MAIN_SCREEN, 9000);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
