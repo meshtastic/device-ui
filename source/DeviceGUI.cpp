@@ -17,6 +17,8 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 #if LV_USE_LIBINPUT
     if (cfg)
         inputdriver = new LinuxInputDriver(cfg->keyboard(), cfg->pointer());
+    else
+        inputdriver = new InputDriver;
 #elif defined(T_DECK)
     inputdriver = new TDeckInputDriver;
 #else
