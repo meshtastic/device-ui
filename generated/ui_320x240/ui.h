@@ -11,7 +11,7 @@ extern "C" {
 void ui_init();
 void ui_tick();
 
-void loadScreen(enum ScreensEnum screenId);
+void loadScreen(enum ScreensEnum screenId, uint32_t delay);
 
 #ifdef __cplusplus
 }

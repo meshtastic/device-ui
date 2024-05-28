@@ -69,11 +69,7 @@ void TFTView_320x240::init(IClientBase *client)
     ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
     ui_events_init();
 
-    // load boot screen
-    // lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
-
-    // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 3000, true);
+    loadScreen(SCREEN_ID_MAIN_SCREEN, 9000);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
@@ -106,6 +102,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     if (activePanel) {
         lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
         if (activePanel == objects.messages_panel) {
+            lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
             unreadMessages = 0; // TODO: not all messages may be actually read
             updateUnreadMessages();
         }
@@ -124,7 +121,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     activeButton = b;
     activePanel = p;
     if (activePanel == objects.messages_panel) {
-        lv_obj_add_state(objects.message_input_area, LV_STATE_FOCUSED);
+        lv_group_focus_obj(objects.message_input_area);
     }
 
     lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
