@@ -8,9 +8,10 @@
 
 LV_IMG_DECLARE(mouse_cursor_icon);
 
-LinuxInputDriver::LinuxInputDriver(const std::string& kbdDevice, const std::string& ptrDevice) : 
-    keyboardDevice(kbdDevice), pointerDevice(ptrDevice)
+LinuxInputDriver::LinuxInputDriver(const std::string& kbdDevice, const std::string& ptrDevice)
 {
+    keyboardDevice = kbdDevice;
+    pointerDevice = ptrDevice;
 }
 
 void LinuxInputDriver::init(void) {
@@ -18,9 +19,14 @@ void LinuxInputDriver::init(void) {
     if (!keyboardDevice.empty()) {
         useKeyboardDevice(keyboardDevice);
     }
+    else
+        keyboardDevice = "none";
+
     if (!pointerDevice.empty()) {
         usePointerDevice(pointerDevice);
     }
+    else
+        pointerDevice = "none";
 }
 
 void LinuxInputDriver::task_handler(void) {}
@@ -62,7 +68,7 @@ std::vector<std::string> LinuxInputDriver::getPointerDevices(void)
         uint16_t nbytes;
         if ((nbytes = readlink(s.c_str(), buf, 16)) != -1) {
             buf[nbytes] = '\0';
-            ptr_events.push_back(&buf[3]);
+            ptr_events.push_back(&buf[3]); // strip off "../"
             // LOG_DEBUG("%s -> %s\n", s.c_str(), &buf[3]);
         }
     }
@@ -95,12 +101,32 @@ std::vector<std::string> LinuxInputDriver::globVector(const std::string &pattern
 bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
 {
     std::string kb_path;
-    if (name.at(0) != '/')
-        kb_path += "/dev/input/" + name;
-    else kb_path = name;
+    std::string event;
 
-    ILOG_INFO("Using keyboard device %s\n", kb_path.c_str());
+    if (name.at(0) != '/') {
+        kb_path += "/dev/input/" + name;
+        event = name;
+    }
+    else {
+        char buf[16];
+        uint16_t nbytes;
+        if ((nbytes = readlink(name.c_str(), buf, 16)) != -1) {
+            buf[nbytes] = '\0';
+            event = &buf[3];
+        }
+        kb_path = name;
+    }
+
     keyboard = lv_libinput_create(LV_INDEV_TYPE_KEYPAD, kb_path.c_str());
+    if (keyboard) {
+        ILOG_INFO("Using keyboard device %s\n", kb_path.c_str());
+        keyboardDevice = event;
+    }
+    else {
+        ILOG_ERROR("Failed to use keyboard device %s\n", kb_path.c_str());
+        keyboardDevice = "none";
+    }
+
     return keyboard != nullptr;
 }
 
@@ -111,30 +137,50 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
 bool LinuxInputDriver::usePointerDevice(const std::string &name)
 {
     std::string ptr_path;
-    if (name.at(0) != '/')
-        ptr_path += "/dev/input/" + name;
-    else ptr_path = name;
+    std::string event;
 
-    ILOG_INFO("Using pointer device %s\n", ptr_path.c_str());
+    if (name.at(0) != '/') {
+        event = name;
+        ptr_path += "/dev/input/" + name;
+    }
+    else {
+        char buf[16];
+        uint16_t nbytes;
+        if ((nbytes = readlink(name.c_str(), buf, 16)) != -1) {
+            buf[nbytes] = '\0';
+            event = &buf[3];
+        }
+        ptr_path = name;
+    }
+
     pointer = lv_libinput_create(LV_INDEV_TYPE_POINTER, ptr_path.c_str());
     if (pointer) {
+        ILOG_INFO("Using pointer device %s\n", ptr_path.c_str());
         lv_obj_t *mouse_cursor = lv_image_create(lv_screen_active());
         lv_image_set_src(mouse_cursor, &mouse_cursor_icon);
         lv_indev_set_cursor(pointer, mouse_cursor);
+        pointerDevice = event;
         return true;
+    }
+    else {
+        ILOG_ERROR("Failed to use pointer device %s\n", ptr_path.c_str());
+        pointerDevice = "none";
     }
     return false;
 }
 
 bool LinuxInputDriver::releaseKeyboardDevice(void)
 {
+    ILOG_INFO("Releasing keyboard device %s\n", keyboardDevice.c_str());
     lv_indev_delete(keyboard);
     keyboard = nullptr;
+    keyboardDevice = "none";
     return true;
 }
 
 bool LinuxInputDriver::releasePointerDevice(void)
 {
+    ILOG_INFO("Releasing pointer device %s\n", pointerDevice.c_str());
     if (mouse_cursor) {
         lv_obj_add_flag(mouse_cursor, LV_OBJ_FLAG_HIDDEN);
         lv_obj_delete(mouse_cursor);
@@ -142,6 +188,7 @@ bool LinuxInputDriver::releasePointerDevice(void)
     }
     lv_indev_delete(pointer);
     pointer = nullptr;
+    pointerDevice = "none";
     return true;
 }
 

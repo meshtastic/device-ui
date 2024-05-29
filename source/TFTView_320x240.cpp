@@ -80,6 +80,7 @@ void TFTView_320x240::init(IClientBase *client)
         lv_obj_add_flag(objects.basic_settings_brightness_button, LV_OBJ_FLAG_HIDDEN);
 
     setInputGroup();
+    setInputButtonLabel();
 
 #if LV_USE_LIBINPUT
     lv_obj_clear_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN);
@@ -106,6 +107,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     if (activePanel) {
         lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
         if (activePanel == objects.messages_panel) {
+            lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
             unreadMessages = 0; // TODO: not all messages may be actually read
             updateUnreadMessages();
         }
@@ -124,7 +126,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     activeButton = b;
     activePanel = p;
     if (activePanel == objects.messages_panel) {
-        lv_obj_add_state(objects.message_input_area, LV_STATE_FOCUSED);
+        lv_group_focus_obj(objects.message_input_area);
     }
 
     lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
@@ -192,7 +194,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
 
     // message text area
-    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_READY, NULL);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_ALL, NULL);
@@ -590,18 +592,20 @@ void TFTView_320x240::ui_event_input_button(lv_event_t *e)
         for (std::string &s : ptr_events) {
             ptr_dropdown += '\n' + s;
         }
-        uint32_t selected = lv_dropdown_get_selected(objects.settings_mouse_input_dropdown);
         lv_dropdown_set_options(objects.settings_mouse_input_dropdown, ptr_dropdown.c_str());
-        lv_dropdown_set_selected(objects.settings_mouse_input_dropdown, selected);
+        std::string current_ptr = TFTView_320x240::instance()->inputdriver->getCurrentPointerDevice();
+        uint32_t ptrOption = lv_dropdown_get_option_index(objects.settings_mouse_input_dropdown, current_ptr.c_str());
+        lv_dropdown_set_selected(objects.settings_mouse_input_dropdown, ptrOption);
 
         std::vector<std::string> kbd_events = TFTView_320x240::instance()->inputdriver->getKeyboardDevices();
         std::string kbd_dropdown = "none";
         for (std::string &s : kbd_events) {
             kbd_dropdown += '\n' + s;
         }
-        selected = lv_dropdown_get_selected(objects.settings_keyboard_input_dropdown);
         lv_dropdown_set_options(objects.settings_keyboard_input_dropdown, kbd_dropdown.c_str());
-        lv_dropdown_set_selected(objects.settings_keyboard_input_dropdown, selected);
+        std::string current_kbd = TFTView_320x240::instance()->inputdriver->getCurrentKeyboardDevice();
+        uint32_t kbdOption = lv_dropdown_get_option_index(objects.settings_keyboard_input_dropdown, current_kbd.c_str());
+        lv_dropdown_set_selected(objects.settings_keyboard_input_dropdown, kbdOption);
 
         lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, TFTView_320x240::instance()->old_val1_scratch,
                                      sizeof(old_val1_scratch));
@@ -768,21 +772,25 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     error &= TFTView_320x240::instance()->inputdriver->usePointerDevice(new_val_ptr);
                 }
             }
+
+            TFTView_320x240::instance()->setInputButtonLabel();
+
             if (error) {
                 ILOG_WARN("failed to use %s/%s\n", new_val_kbd, new_val_ptr);
                 return;
             }
-            if (strcmp(new_val_kbd, "none") == 0 && strcmp(new_val_ptr, "none") == 0 &&
+
+            std::string current_kbd = TFTView_320x240::instance()->inputdriver->getCurrentKeyboardDevice();
+            std::string current_ptr = TFTView_320x240::instance()->inputdriver->getCurrentPointerDevice();
+            if (strcmp(current_kbd.c_str(), "none") == 0 && strcmp(current_ptr.c_str(), "none") == 0 &&
                 TFTView_320x240::instance()->input_group) {
                 lv_group_delete(TFTView_320x240::instance()->input_group);
                 TFTView_320x240::instance()->input_group = nullptr;
-            } else if (strcmp(TFTView_320x240::instance()->old_val1_scratch, new_val_kbd) != 0 ||
-                       strcmp(TFTView_320x240::instance()->old_val2_scratch, new_val_ptr) != 0) {
+            } else if (strcmp(TFTView_320x240::instance()->old_val1_scratch, current_kbd.c_str()) != 0 ||
+                       strcmp(TFTView_320x240::instance()->old_val2_scratch, current_ptr.c_str()) != 0) {
                 TFTView_320x240::instance()->setInputGroup();
             }
 
-            lv_snprintf(label, sizeof(label), "Input Control: %s/%s", new_val_ptr, new_val_kbd);
-            lv_label_set_text(objects.basic_settings_input_label, label);
             lv_obj_add_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -962,6 +970,9 @@ void TFTView_320x240::handleAddMessage(char *msg)
     addMessage(msg);
 }
 
+/**
+ * display message that has just been written and sent out
+*/
 void TFTView_320x240::addMessage(char *msg)
 {
     lv_obj_t *hiddenPanel = lv_obj_create(activeMsgContainer);
@@ -1775,7 +1786,7 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     if (!activeMsgContainer) {
         activeMsgContainer = newMessageContainer(nodeNum, 0, 0);
     }
-    activeMsgContainer->user_data = (void *)(uint32_t)nodeNum;
+    activeMsgContainer->user_data = (void *)nodeNum;
     lv_obj_clear_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     lv_obj_t *p = nodes[nodeNum];
     if (p) {
@@ -1841,6 +1852,15 @@ void TFTView_320x240::setInputGroup(void)
     lv_group_add_obj(input_group, objects.nodes_panel);
 }
 
+void TFTView_320x240::setInputButtonLabel(void) {
+    // update input button label
+    std::string current_kbd = inputdriver->getCurrentKeyboardDevice();
+    std::string current_ptr = inputdriver->getCurrentPointerDevice();
+
+    char label[40];
+    lv_snprintf(label, sizeof(label), "Input Control: %s/%s", current_ptr.c_str(), current_kbd.c_str());
+    lv_label_set_text(objects.basic_settings_input_label, label);
+}
 // -------- helpers --------
 
 void TFTView_320x240::removeNode(uint32_t nodeNum)
