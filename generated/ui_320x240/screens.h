@@ -80,6 +80,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_input_label;
     lv_obj_t *basic_settings_language_button;
     lv_obj_t *basic_settings_language_label;
+    lv_obj_t *basic_settings_modem_preset_button;
+    lv_obj_t *basic_settings_modem_preset_label;
     lv_obj_t *basic_settings_panel;
     lv_obj_t *basic_settings_reboot_button;
     lv_obj_t *basic_settings_reboot_label;
@@ -179,6 +181,10 @@ typedef struct _objects_t {
     lv_obj_t *obj11__cancel_button_w;
     lv_obj_t *obj11__ok_button_w;
     lv_obj_t *obj11__ok_cancel_panel_w;
+    lv_obj_t *obj12;
+    lv_obj_t *obj12__cancel_button_w;
+    lv_obj_t *obj12__ok_button_w;
+    lv_obj_t *obj12__ok_cancel_panel_w;
     lv_obj_t *obj2;
     lv_obj_t *obj2__cancel_button_w;
     lv_obj_t *obj2__ok_button_w;
@@ -240,6 +246,8 @@ typedef struct _objects_t {
     lv_obj_t *settings_keyboard_input_dropdown;
     lv_obj_t *settings_language_dropdown;
     lv_obj_t *settings_language_panel;
+    lv_obj_t *settings_modem_preset_dropdown;
+    lv_obj_t *settings_modem_preset_panel;
     lv_obj_t *settings_modify_channel_name_textarea;
     lv_obj_t *settings_modify_channel_panel;
     lv_obj_t *settings_modify_channel_psk_textarea;

@@ -201,6 +201,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_timeout_button, ui_event_timeout_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_role_button, ui_event_role_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_region_button, ui_event_region_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_modem_preset_button, ui_event_preset_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_language_button, ui_event_language_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_channel_button, ui_event_channel_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_brightness_button, ui_event_brightness_button, LV_EVENT_ALL, NULL);
@@ -238,6 +239,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj10__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj11__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj11__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj12__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj12__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)0);
@@ -522,6 +525,17 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone &&
+        TFTView_320x240::instance()->db.config.has_lora) {
+        TFTView_320x240::instance()->activeSettings = eModemPreset;
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, TFTView_320x240::instance()->db.config.lora.modem_preset);
+        lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
 void TFTView_320x240::ui_event_language_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -715,6 +729,20 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
+        case eModemPreset: {
+            char buf1[16], buf2[32];
+            lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
+            lv_snprintf(buf2, sizeof(buf2), "Modem Preset: %s", buf1);
+            lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
+
+            TFTView_320x240::instance()->db.config.lora.use_preset = true;
+            TFTView_320x240::instance()->db.config.lora.modem_preset =
+                (_meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
+            TFTView_320x240::instance()->controller->sendConfig(
+                meshtastic_Config_LoRaConfig{TFTView_320x240::instance()->db.config.lora}, TFTView_320x240::instance()->ownNode);
+            lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
         case eChannel: {
             // TODO: check what channels have changed and sendConfig()
             lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
@@ -829,6 +857,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         default:
             ILOG_ERROR("Unhandled ok event\n");
+            break;
         }
         TFTView_320x240::instance()->activeSettings = eNone;
     }
@@ -854,6 +883,10 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eRegion: {
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+        case TFTView_320x240::eModemPreset: {
+            lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case TFTView_320x240::eChannel: {
@@ -899,6 +932,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         default:
             ILOG_ERROR("Unhandled cancel event\n");
+            break;
         }
 
         TFTView_320x240::instance()->activeSettings = eNone;
@@ -1481,6 +1515,10 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     char region[30];
     lv_snprintf(region, sizeof(region), "Region: %s", loRaRegionToString(cfg.region));
     lv_label_set_text(objects.basic_settings_region_label, region);
+
+    char preset[30];
+    lv_snprintf(preset, sizeof(preset), "Modem Preset: %s", modemPresetToString(cfg.modem_preset));
+    lv_label_set_text(objects.basic_settings_modem_preset_label, preset);
 }
 
 void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg)

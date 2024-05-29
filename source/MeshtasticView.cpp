@@ -196,6 +196,18 @@ const char *MeshtasticView::loRaRegionToString(meshtastic_Config_LoRaConfig_Regi
     return regionString[region].c_str();
 }
 
+const char *MeshtasticView::modemPresetToString(meshtastic_Config_LoRaConfig_ModemPreset preset)
+{
+    static std::unordered_map<meshtastic_Config_LoRaConfig_ModemPreset, std::string> presetString{
+        {meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST, "LONG FAST"},
+        {meshtastic_Config_LoRaConfig_ModemPreset_LONG_SLOW, "LONG SLOW"},
+        {meshtastic_Config_LoRaConfig_ModemPreset_VERY_LONG_SLOW, "VERY LONG SLOW"},
+        {meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_SLOW, "MEDIUM SLOW"},
+        {meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_FAST, "MEDIUM FAST"},
+        {meshtastic_Config_LoRaConfig_ModemPreset_SHORT_SLOW, "SHORT SLOW"},
+        {meshtastic_Config_LoRaConfig_ModemPreset_LONG_MODERATE, "LONG MODERATE"}};
+    return presetString[preset].c_str();
+}
 #include "Base64.h"
 std::string MeshtasticView::pskToBase64(const meshtastic_ChannelSettings_psk_t &psk)
 {
