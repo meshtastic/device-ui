@@ -109,7 +109,7 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
     }
     else {
         char buf[16];
-        uint16_t nbytes;
+        int16_t nbytes;
         if ((nbytes = readlink(name.c_str(), buf, 16)) != -1) {
             buf[nbytes] = '\0';
             event = &buf[3];
@@ -145,7 +145,7 @@ bool LinuxInputDriver::usePointerDevice(const std::string &name)
     }
     else {
         char buf[16];
-        uint16_t nbytes;
+        int16_t nbytes;
         if ((nbytes = readlink(name.c_str(), buf, 16)) != -1) {
             buf[nbytes] = '\0';
             event = &buf[3];
