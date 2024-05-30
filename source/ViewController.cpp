@@ -202,10 +202,10 @@ void ViewController::setConfigRequested(bool required)
     requestConfigRequired = required;
 }
 
-void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
+void ViewController::sendText(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg)
 {
     assert(strlen(textmsg) <= (size_t)DATA_PAYLOAD_LEN);
-    send(to, ch, meshtastic_PortNum_TEXT_MESSAGE_APP, (const uint8_t *)textmsg, strlen(textmsg));
+    send(to, ch, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, (const uint8_t *)textmsg, strlen(textmsg));
 }
 
 /**
@@ -230,7 +230,8 @@ bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtas
 /**
  * generic send method for sending meshpackets with encoded payload
  */
-bool ViewController::send(uint32_t to, uint8_t ch, meshtastic_PortNum portnum, const unsigned char *bytes, size_t len)
+bool ViewController::send(uint32_t to, uint8_t ch, uint32_t requestId, meshtastic_PortNum portnum, const unsigned char *bytes,
+                          size_t len)
 {
     ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, portnum=%u, len=%u\n", to, to, (unsigned int)ch, portnum, len);
     // send requires movable lvalue, i.e. a temporary object
@@ -274,7 +275,8 @@ bool ViewController::send(uint32_t to, uint8_t ch, meshtastic_PortNum portnum, c
                                    bytes[224], bytes[225], bytes[226], bytes[227], bytes[228], bytes[229], bytes[230], bytes[231],
                                    bytes[232], bytes[233], bytes[234], bytes[235], bytes[236]}},
                 .want_response = false}, // FIXME: traceRoute, requestPosition, remote config: true
-            .hop_limit = 3,              // FIXME: use value from setting
+            .id = requestId,
+            .hop_limit = 3, // FIXME: use value from setting
             .want_ack = (to != 0)}});
 }
 
@@ -311,11 +313,12 @@ void ViewController::requestConfig(void)
 void ViewController::requestDeviceConnectionStatus(void)
 {
     return; // FIXME this encoding leads to crash
+    uint32_t requestId = 42;
     meshtastic_AdminMessage msg{.which_payload_variant = meshtastic_AdminMessage_get_device_connection_status_request_tag,
                                 .get_device_connection_status_request = true};
     uint8_t encoded[DATA_PAYLOAD_LEN];
     size_t len = pb_encode_to_bytes(encoded, sizeof(encoded), &meshtastic_AdminMessage_msg, &msg);
-    this->send(view->getMyNodeNum(), 0, meshtastic_PortNum_ADMIN_APP, encoded, len);
+    this->send(view->getMyNodeNum(), 0, requestId, meshtastic_PortNum_ADMIN_APP, encoded, len);
 }
 
 bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
@@ -584,7 +587,15 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
         break;
     }
     case meshtastic_PortNum_ROUTING_APP:
-        ILOG_WARN("meshtastic_PortNum_ROUTING_APP not implemented\n");
+        meshtastic_Routing routing;
+        ILOG_DEBUG("PortNum_ROUTING_APP: id:%08x, from:%08x, to:%08x, dest:%08x, source:%08x, requestId:%08x, replyId:%08x\n",
+                   p.id, p.from, p.to, p.decoded.dest, p.decoded.source, p.decoded.request_id, p.decoded.reply_id);
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Routing_msg, &routing)) {
+            view->handleResponse(p.decoded.request_id, routing);
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_Routing!\n");
+            return false;
+        }
         break;
     case meshtastic_PortNum_ADMIN_APP: {
         meshtastic_AdminMessage admin;

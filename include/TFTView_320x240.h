@@ -57,6 +57,7 @@ class TFTView_320x240 : public MeshtasticView
     void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) override {}
 
     void packetReceived(const meshtastic_MeshPacket &p) override;
+    void handleResponse(const uint32_t id, const meshtastic_Routing &route) override;
     void notifyResync(bool show) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
     void updateNodesOnline(const char *str) override;

@@ -38,7 +38,10 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
     return gui;
 }
 
-TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver) : MeshtasticView(cfg, driver, new ViewController) {}
+TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
+    : MeshtasticView(cfg, driver, new ViewController)
+{
+}
 
 // TODO
 extern const uint8_t img_meshtastic_logo_image_map[];
@@ -531,7 +534,8 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone &&
         TFTView_320x240::instance()->db.config.has_lora) {
         TFTView_320x240::instance()->activeSettings = eModemPreset;
-        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, TFTView_320x240::instance()->db.config.lora.modem_preset);
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown,
+                                 TFTView_320x240::instance()->db.config.lora.modem_preset);
         lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
     }
 }
@@ -1000,13 +1004,14 @@ void TFTView_320x240::handleAddMessage(char *msg)
         to = channelOrNode;
     }
 
-    controller->sendText(to, ch, msg);
+    uint32_t requestId = 999;
+    controller->sendText(to, ch, requestId, msg);
     addMessage(msg);
 }
 
 /**
  * display message that has just been written and sent out
-*/
+ */
 void TFTView_320x240::addMessage(char *msg)
 {
     lv_obj_t *hiddenPanel = lv_obj_create(activeMsgContainer);
@@ -1423,6 +1428,8 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
         lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
 }
+
+void TFTView_320x240::handleResponse(const uint32_t id, const meshtastic_Routing &route) {}
 
 void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
 {
@@ -1890,7 +1897,8 @@ void TFTView_320x240::setInputGroup(void)
     lv_group_add_obj(input_group, objects.nodes_panel);
 }
 
-void TFTView_320x240::setInputButtonLabel(void) {
+void TFTView_320x240::setInputButtonLabel(void)
+{
     // update input button label
     std::string current_kbd = inputdriver->getCurrentKeyboardDevice();
     std::string current_ptr = inputdriver->getCurrentPointerDevice();

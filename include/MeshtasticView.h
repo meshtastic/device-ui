@@ -6,8 +6,8 @@
 #include "mesh-pb-constants.h"
 #include <array>
 #include <stdint.h>
-#include <time.h>
 #include <string>
+#include <time.h>
 #include <unordered_map>
 
 #define LV_OBJ_IDX(x) spec_attr->children[x]
@@ -59,7 +59,7 @@ class MeshtasticView : public DeviceGUI
     virtual void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) {}
 
     // methods to update device config
-    virtual void updateChannelConfig(const meshtastic_Channel& ch) {}
+    virtual void updateChannelConfig(const meshtastic_Channel &ch) {}
     virtual void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) {}
     virtual void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) {}
     virtual void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) {}
@@ -85,6 +85,7 @@ class MeshtasticView : public DeviceGUI
 
     virtual void configCompleted(void) { configComplete = true; }
 
+    virtual void handleResponse(const uint32_t id, const meshtastic_Routing &route) {}
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
     virtual void notifyResync(bool show);
