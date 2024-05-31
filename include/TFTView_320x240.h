@@ -57,7 +57,7 @@ class TFTView_320x240 : public MeshtasticView
     void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) override {}
 
     void packetReceived(const meshtastic_MeshPacket &p) override;
-    void handleResponse(const uint32_t id, const meshtastic_Routing &route) override;
+    void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) override;
     void notifyResync(bool show) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
     void updateNodesOnline(const char *str) override;
@@ -101,11 +101,13 @@ class TFTView_320x240 : public MeshtasticView
     // own chat message
     virtual void handleAddMessage(char *msg);
     // add own message to current chat
-    virtual void addMessage(char *msg);
+    virtual void addMessage(uint32_t requestId, char *msg);
     // add new message to container
     virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
     // create empty message container for node or group channel
     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
+    // mark sent message as received
+    virtual void responseReceived(uint32_t channelOrNode, uint32_t id, bool ack);
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img);
     // set last heard to now, update nodes online

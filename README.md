@@ -98,14 +98,16 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [ ] Nodes panel
       - [x] Scroll display and sorting
       - [ ] Node details
+      - [ ] Telemetry data display
       - [ ] Repeater support (manual insertion)
       - [ ] LastHeard & time source handling improvements
       - [ ] Remote Node configuration
+      - [ ] Filter (mqtt, offline, unknown, by name)
     - [x] Group channel panel
-    - [ ] Chat panel
+    - [x] Chat panel
       - [x] Scroll container and messages display
       - [x] Virtual keyboard
-      - [ ] Message acknowledgement
+      - [x] Message acknowledgement
       - [x] Delete chat
     - [ ] Map
       - [ ] Tiles dynamic loading
@@ -115,19 +117,26 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [ ] Node locations
     - [ ] Settings
       - [ ] Basic Settings
-      - [ ] General Settings
+        - [x] User name
+        - [x] Region
+        - [x] Modem Preset
+        - [ ] Channel
+        - [x] Device Role
+        - [x] Screen Timeout
+        - [x] Brightness
+        - [x] Input Control
+        - [ ] Message Alert
         - [ ] Language
         - [ ] Timezone
-        - [x] Screen
         - [ ] Maps
         - [ ] Audio
-      - [ ] Radio Settings
-        - [ ] Frequency region configuration
-        - [ ] Channel configuration & QR code display
-        - [ ] Device Role
-      - [ ] Module Settings
+      - [ ] Advanced Settings
+        - [ ] General Settings
+        - [ ] Radio Settings
+        - [ ] Module Settings
     - [x] Status bar with battery symbol
-    - [ ] UI Keyboard navigation & control
+    - [x] UI Keyboard navigation & control
+    - [ ] Latin supplemental fonts
 
 ### :pager: T-Deck (also covered: unPhone)
 
@@ -176,6 +185,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [X] WT32-SC01 (Plus) support (480x320)
       - [x] Display driver
       - [X] 480x320 view -> scaled 320x240
+    - [ ] image size reduction
     - [ ] Fix/Workaround serial light sleep UART reading issue (-> firmware)
     - [ ] Heartbeat timer
     - [x] Serial data send/receive

@@ -995,24 +995,26 @@ void TFTView_320x240::handleAddMessage(char *msg)
 {
     // retrieve nodeNum + channel from activeMsgContainer
     uint8_t ch;
+    uint32_t requestId;
     uint32_t to = UINT32_MAX;
     uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
+        requestId = requests.addRequest(ch);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
+        requestId = requests.addRequest(to);
     }
 
-    uint32_t requestId = 999;
     controller->sendText(to, ch, requestId, msg);
-    addMessage(msg);
+    addMessage(requestId, msg);
 }
 
 /**
  * display message that has just been written and sent out
  */
-void TFTView_320x240::addMessage(char *msg)
+void TFTView_320x240::addMessage(uint32_t requestId, char *msg)
 {
     lv_obj_t *hiddenPanel = lv_obj_create(activeMsgContainer);
     lv_obj_set_width(hiddenPanel, lv_pct(100));
@@ -1027,6 +1029,7 @@ void TFTView_320x240::addMessage(char *msg)
     lv_obj_set_style_pad_right(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    hiddenPanel->user_data = (void *)requestId;
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
@@ -1048,7 +1051,7 @@ void TFTView_320x240::addMessage(char *msg)
     lv_obj_set_style_radius(textLabel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(textLabel, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
     // lv_obj_set_style_bg_opa(textLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(textLabel, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(textLabel, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(textLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(textLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(textLabel, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1429,7 +1432,86 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
     }
 }
 
-void TFTView_320x240::handleResponse(const uint32_t id, const meshtastic_Routing &route) {}
+void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const meshtastic_Routing &routing)
+{
+    uint32_t nodeNum;
+    bool ack = false;
+    if (from == ownNode) {
+        nodeNum = requests.findRequest(id);
+    }
+    else {
+        nodeNum = requests.removeRequest(id);
+        ack = true;
+    }
+
+    if (nodeNum == UINT32_MAX) {
+        ILOG_WARN("request id 0x%08x not valid (anymore)\n", id);
+        return;
+    }
+    switch (routing.which_variant) {
+    case meshtastic_Routing_error_reason_tag: {
+        if (routing.error_reason == meshtastic_Routing_Error_NONE) {
+            responseReceived(nodeNum, id, ack);
+        }
+        else if (routing.error_reason == meshtastic_Routing_Error_MAX_RETRANSMIT) {
+            requests.removeRequest(id);
+        }
+        else {
+            ILOG_DEBUG("got Routing_Error %d\n", routing.error_reason);
+        }
+        break;
+    }
+    case meshtastic_Routing_route_request_tag: {
+        ILOG_DEBUG("got meshtastic_Routing_route_request_tag\n");
+
+        break;
+    }
+    case meshtastic_Routing_route_reply_tag: {
+        ILOG_DEBUG("got meshtastic_Routing_route_reply_tag\n");
+
+        break;
+    }
+    default:
+        ILOG_ERROR("unhandled meshtastic_Routing tag\n");
+        break;
+    }
+
+}
+
+/**
+ * @brief mark the sent message as either heard or acknowledged
+ * 
+ * @param channelOrNode 
+ * @param id 
+ * @param ack 
+ */
+void TFTView_320x240::responseReceived(uint32_t channelOrNode, const uint32_t id, bool ack)
+{
+    lv_obj_t *msgContainer;
+    if (channelOrNode < c_max_channels) {
+        msgContainer = channelGroup[(uint8_t)channelOrNode];
+        ack = true; // treat messages sent to group channel same as ack
+    } else {
+        msgContainer = messages[channelOrNode];
+    }
+    if (!msgContainer) {
+        ILOG_WARN("received unexpected response nodeNum/channel 0x%08x for request id 0x%08x\n", channelOrNode, id);
+        return;
+    }
+    // go through all hiddenPanels and search for requestId
+    uint16_t i=msgContainer->spec_attr->child_cnt;
+    while (i-->0) {
+        lv_obj_t *panel = msgContainer->spec_attr->children[i];
+        uint32_t requestId = (unsigned long)panel->user_data;
+        if (requestId == id) {
+            // now give the textlabel border another color
+            lv_obj_t * textLabel = panel->spec_attr->children[0];
+            lv_obj_set_style_border_color(textLabel, ack ? lv_color_hex(0x67EA94) : lv_color_hex(0xDBD251), 
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        }
+    }
+}
 
 void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
 {

@@ -8,7 +8,7 @@
 extern const char *firmware_version;
 
 MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller) : 
-    DeviceGUI(cfg, driver), controller(_controller) {}
+    DeviceGUI(cfg, driver), controller(_controller), requests(c_request_timeout) {}
 
 void MeshtasticView::init(IClientBase *client)
 {
@@ -30,6 +30,9 @@ void MeshtasticView::task_handler(void)
         if (!displaydriver->isPowersaving()) {
             controller->sendHeartbeat();
         }
+
+        // cleanup queued requests
+        requests.task_handler();
     }
 };
 

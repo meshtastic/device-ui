@@ -2,6 +2,7 @@
 
 #include "DeviceGUI.h"
 #include "DisplayDriverConfig.h"
+#include "ResponseHandler.h"
 #include "lvgl.h"
 #include "mesh-pb-constants.h"
 #include <array>
@@ -13,6 +14,7 @@
 #define LV_OBJ_IDX(x) spec_attr->children[x]
 
 constexpr uint8_t c_max_channels = 8;
+constexpr uint32_t c_request_timeout = 60 * 1000;
 
 class ViewController;
 
@@ -85,7 +87,7 @@ class MeshtasticView : public DeviceGUI
 
     virtual void configCompleted(void) { configComplete = true; }
 
-    virtual void handleResponse(const uint32_t id, const meshtastic_Routing &route) {}
+    virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &route) {}
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
     virtual void notifyResync(bool show);
@@ -108,6 +110,7 @@ class MeshtasticView : public DeviceGUI
     bool base64ToPsk(const std::string &base64, meshtastic_ChannelSettings_psk_t &psk);
 
     ViewController *controller;
+    ResponseHandler requests;
     std::unordered_map<uint32_t, lv_obj_t *> nodes;       // node panels
     std::unordered_map<uint32_t, lv_obj_t *> messages;    // message containers (within ui_MessagesPanel)
     std::unordered_map<uint32_t, lv_obj_t *> chats;       // active chats (within ui_ChatPanel)

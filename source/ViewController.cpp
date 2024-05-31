@@ -591,7 +591,20 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
         ILOG_DEBUG("PortNum_ROUTING_APP: id:%08x, from:%08x, to:%08x, dest:%08x, source:%08x, requestId:%08x, replyId:%08x\n",
                    p.id, p.from, p.to, p.decoded.dest, p.decoded.source, p.decoded.request_id, p.decoded.reply_id);
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Routing_msg, &routing)) {
-            view->handleResponse(p.decoded.request_id, routing);
+            if (routing.which_variant == meshtastic_Routing_error_reason_tag) {
+                switch (routing.error_reason) {
+                    case meshtastic_Routing_Error_NONE:
+                    case meshtastic_Routing_Error_MAX_RETRANSMIT:
+                        view->handleResponse(p.from, p.decoded.request_id, routing);
+                        break;
+                default:
+                    ILOG_WARN("got unhandled Routing_Error: %d\n", routing.error_reason);
+                    break;
+                }
+            }
+            else {
+                view->handleResponse(p.from, p.decoded.request_id, routing);
+            }
         } else {
             ILOG_ERROR("Error decoding protobuf meshtastic_Routing!\n");
             return false;
