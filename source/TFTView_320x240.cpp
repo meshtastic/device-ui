@@ -583,8 +583,11 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
         int32_t brightness = TFTView_320x240::instance()->displaydriver->getBrightness() * 100 / 255;
+        char buf[32];
+        lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", brightness);
+        lv_label_set_text(objects.basic_settings_brightness_label, buf);
         lv_slider_set_value(objects.brightness_slider, brightness, LV_ANIM_OFF);
-        objects.brightness_slider->user_data = (void *)brightness;
+        objects.brightness_slider->user_data = (void *)brightness; // store old value
         lv_obj_clear_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eScreenBrightness;
     }
