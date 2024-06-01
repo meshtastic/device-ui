@@ -104,8 +104,6 @@ class MeshtasticView : public DeviceGUI
     std::tuple<uint32_t, uint32_t> nodeColor(uint32_t nodeNum);
     bool lastHeartToString(uint32_t lastHeard, char *buf);
     const char *deviceRoleToString(enum eRole role);
-    const char *loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region);
-    const char *modemPresetToString(meshtastic_Config_LoRaConfig_ModemPreset preset);
     std::string pskToBase64(const meshtastic_ChannelSettings_psk_t &psk);
     bool base64ToPsk(const std::string &base64, meshtastic_ChannelSettings_psk_t &psk);
 
