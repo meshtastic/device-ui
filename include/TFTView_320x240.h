@@ -168,6 +168,9 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_screen_timeout_slider(lv_event_t *e);
     static void ui_event_brightness_slider(lv_event_t *e);
+    static void ui_event_frequency_slot_slider(lv_event_t *e);
+    static void ui_event_modem_preset_dropdown(lv_event_t *e);
+
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);
 

@@ -217,6 +217,10 @@ void TFTView_320x240::ui_events_init(void)
     // sliders
     lv_obj_add_event_cb(objects.screen_timeout_slider, ui_event_screen_timeout_slider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.brightness_slider, ui_event_brightness_slider, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.frequency_slot_slider, ui_event_frequency_slot_slider, LV_EVENT_VALUE_CHANGED, NULL);
+
+    // dropdown
+    lv_obj_add_event_cb(objects.settings_modem_preset_dropdown, ui_event_modem_preset_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // OK / Cancel widget for basic settings dialog
     lv_obj_add_event_cb(objects.obj0__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
@@ -537,6 +541,19 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
         TFTView_320x240::instance()->activeSettings = eModemPreset;
         lv_dropdown_set_selected(objects.settings_modem_preset_dropdown,
                                  TFTView_320x240::instance()->db.config.lora.modem_preset);
+
+        char buf[40];
+        sprintf(buf, "FrequencySlot: %d (%.2f MHz)", TFTView_320x240::instance()->db.config.lora.channel_num, 
+            LoRaPresets::getRadioFreq(TFTView_320x240::instance()->db.config.lora.region,
+                                      TFTView_320x240::instance()->db.config.lora.modem_preset,
+                                      TFTView_320x240::instance()->db.config.lora.channel_num));
+        lv_label_set_text(objects.frequency_slot_label, buf);
+
+        uint32_t numChannels = LoRaPresets::getNumChannels(TFTView_320x240::instance()->db.config.lora.region, 
+                                                           TFTView_320x240::instance()->db.config.lora.modem_preset);
+        lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
+        lv_slider_set_value(objects.frequency_slot_slider, TFTView_320x240::instance()->db.config.lora.channel_num, LV_ANIM_OFF);
+
         lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
     }
 }
@@ -732,6 +749,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 
             TFTView_320x240::instance()->db.config.lora.region =
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
+            TFTView_320x240::instance()->db.config.lora.channel_num = 1;
             TFTView_320x240::instance()->controller->sendConfig(
                 meshtastic_Config_LoRaConfig{TFTView_320x240::instance()->db.config.lora}, TFTView_320x240::instance()->ownNode);
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
@@ -745,9 +763,13 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 
             TFTView_320x240::instance()->db.config.lora.use_preset = true;
             TFTView_320x240::instance()->db.config.lora.modem_preset =
-                (_meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
+                (meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
+            TFTView_320x240::instance()->db.config.lora.channel_num = 
+                (uint16_t)lv_slider_get_value(objects.frequency_slot_slider);
+
             TFTView_320x240::instance()->controller->sendConfig(
                 meshtastic_Config_LoRaConfig{TFTView_320x240::instance()->db.config.lora}, TFTView_320x240::instance()->ownNode);
+
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -971,6 +993,36 @@ void TFTView_320x240::ui_event_brightness_slider(lv_event_t *e)
     lv_label_set_text(objects.settings_brightness_label, buf);
     TFTView_320x240::instance()->displaydriver->setBrightness((int8_t)(lv_slider_get_value(slider) * 255 / 100));
 }
+
+void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
+{
+    lv_obj_t *slider = lv_event_get_target_obj(e);
+    char buf[40];
+    uint32_t channel = (uint32_t)lv_slider_get_value(slider);
+    sprintf(buf, "FrequencySlot: %d (%.2f MHz)", channel, 
+        LoRaPresets::getRadioFreq(TFTView_320x240::instance()->db.config.lora.region,
+                                  (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(objects.settings_modem_preset_dropdown),
+                                  channel));
+    lv_label_set_text(objects.frequency_slot_label, buf);
+}
+
+void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
+{
+    lv_obj_t *dropdown = lv_event_get_target_obj(e);
+    meshtastic_Config_LoRaConfig_ModemPreset preset = (meshtastic_Config_LoRaConfig_ModemPreset)
+        lv_dropdown_get_selected(dropdown);
+    uint32_t numChannels = LoRaPresets::getNumChannels(TFTView_320x240::instance()->db.config.lora.region, preset);
+
+    uint32_t channel = 1;
+    lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
+    lv_slider_set_value(objects.frequency_slot_slider, channel, LV_ANIM_ON);
+
+    char buf[40];
+    sprintf(buf, "FrequencySlot: %d (%.2f MHz)", channel, 
+        LoRaPresets::getRadioFreq(TFTView_320x240::instance()->db.config.lora.region, preset, channel));
+    lv_label_set_text(objects.frequency_slot_label, buf);
+}
+
 
 /**
  * @brief Dynamically show user widget
@@ -1612,6 +1664,10 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     char preset[30];
     lv_snprintf(preset, sizeof(preset), "Modem Preset: %s", LoRaPresets::modemPresetToString(cfg.modem_preset));
     lv_label_set_text(objects.basic_settings_modem_preset_label, preset);
+
+    uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
+    lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
+    lv_slider_set_value(objects.frequency_slot_slider, cfg.channel_num, LV_ANIM_OFF);
 }
 
 void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg)

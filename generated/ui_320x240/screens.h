@@ -123,6 +123,8 @@ typedef struct _objects_t {
     lv_obj_t *chats_panel;
     lv_obj_t *del_label;
     lv_obj_t *firmware_label;
+    lv_obj_t *frequency_slot_label;
+    lv_obj_t *frequency_slot_slider;
     lv_obj_t *groups_button;
     lv_obj_t *groups_panel;
     lv_obj_t *home_bluetooth_button;
