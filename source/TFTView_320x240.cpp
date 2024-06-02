@@ -15,6 +15,7 @@
 #include <functional>
 #include <math.h>
 
+
 #define CR_REPLACEMENT 0x0C // dummy to record several lines in a one line textarea
 
 // children index of nodepanel lv objects (see addNode)
@@ -77,18 +78,24 @@ void TFTView_320x240::init(IClientBase *client)
     // lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
 
     // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 3000, true);
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 5000, true);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
         lv_obj_add_flag(objects.basic_settings_brightness_button, LV_OBJ_FLAG_HIDDEN);
 
-    setInputGroup();
-    setInputButtonLabel();
-
 #if LV_USE_LIBINPUT
     lv_obj_clear_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN);
 #endif
+
+#if defined(USE_I2S_BUZZER)
+    lv_obj_clear_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
+#else
+    lv_obj_add_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
+#endif
+
+    setInputGroup();
+    setInputButtonLabel();
 }
 
 /**
@@ -864,6 +871,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             config.alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
             if (config.alert_message) {
                 config.enabled = true;
+                config.use_i2s_as_buzzer = true;
                 config.nag_timeout = 5; //TODO: make configurable
             }
 
@@ -1975,6 +1983,9 @@ void TFTView_320x240::showMessagePopup(uint32_t from, uint32_t to, uint8_t ch, c
         else
             objects.msg_popup_button->user_data = (void *)from; // store the node in the button's data
         lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+
+        if (db.module_config.external_notification.alert_message)
+            lv_disp_trig_activity(NULL);
     }
 }
 
