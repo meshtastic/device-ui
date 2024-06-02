@@ -809,7 +809,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eInputControl: {
-            char new_val_kbd[10], new_val_ptr[10], label[30];
+            char new_val_kbd[10], new_val_ptr[10];
             lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, new_val_kbd, sizeof(new_val_kbd));
             lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, new_val_ptr, sizeof(new_val_ptr));
 
@@ -863,13 +863,21 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eReset: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
-            // TODO: send to radio
+            TFTView_320x240::instance()->controller->requestReset(option, TFTView_320x240::instance()->ownNode);
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case eReboot: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reboot_dropdown);
-            // TODO: send to radio
+            if (option == 0) {
+                TFTView_320x240::instance()->controller->requestReboot(7, TFTView_320x240::instance()->ownNode);
+            }
+            else if (option == 1) {
+                TFTView_320x240::instance()->controller->requestShutdown(7, TFTView_320x240::instance()->ownNode);
+            }
+            else if (option == 2) {
+                TFTView_320x240::instance()->controller->requestRebootOTA(7, TFTView_320x240::instance()->ownNode);
+            }
             lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -1063,7 +1071,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
         requestId = requests.addRequest(to);
     }
 
-    controller->sendText(to, ch, requestId, msg);
+    controller->sendTextMessage(to, ch, requestId, msg);
     addMessage(requestId, msg);
 }
 

@@ -22,7 +22,13 @@ class ViewController
     virtual uint32_t requestDisplayConfig(uint32_t nodeId = 0);
     virtual uint32_t requestLoRaConfig(uint32_t nodeId = 0);
     virtual uint32_t requestBluetoothConfig(uint32_t nodeId = 0);
-    virtual bool sendConfig(const meshtastic_User &user, uint32_t nodeId);
+
+    virtual bool requestReboot(int32_t seconds, uint32_t nodeId = 0);
+    virtual bool requestRebootOTA(int32_t seconds, uint32_t nodeId = 0);
+    virtual bool requestShutdown(int32_t seconds, uint32_t nodeId = 0);
+    virtual bool requestReset(bool factoryReset, uint32_t nodeId = 0);
+
+    virtual bool sendConfig(const meshtastic_User &user, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_DeviceConfig &&device, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_PositionConfig &&position, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_PowerConfig &&power, uint32_t nodeId = 0);
@@ -31,9 +37,10 @@ class ViewController
     virtual bool sendConfig(meshtastic_Config_LoRaConfig &&lora, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_BluetoothConfig &&bluetooth, uint32_t nodeId = 0);
 
-    // module config
+    // TODO: module config
 
-    virtual void sendText(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg);
+    virtual void sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg);
+    virtual bool sendAdminMessage(meshtastic_AdminMessage &&config, uint32_t nodeId);
     virtual void sendHeartbeat(void);
 
     virtual ~ViewController();

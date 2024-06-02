@@ -123,6 +123,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [ ] Channel
         - [x] Device Role
         - [x] Screen Timeout
+        - [ ] Screen Calibration
         - [x] Brightness
         - [x] Input Control
         - [ ] Message Alert
@@ -130,6 +131,8 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [ ] Timezone
         - [ ] Maps
         - [ ] Audio
+        - [x] NodeDB / Factory Reset
+        - [x] Reboot / Shutdown
       - [ ] Advanced Settings
         - [ ] General Settings
         - [ ] Radio Settings
