@@ -44,7 +44,7 @@ class TFTView_320x240 : public MeshtasticView
     // methods to update module config
     void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) override {}
     void updateSerialModule(const meshtastic_ModuleConfig_SerialConfig &cfg) override {}
-    void updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg) override {}
+    void updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg) override;
     void updateStoreForwardModule(const meshtastic_ModuleConfig_StoreForwardConfig &cfg) override {}
     void updateRangeTestModule(const meshtastic_ModuleConfig_RangeTestConfig &cfg) override {}
     void updateTelemetryModule(const meshtastic_ModuleConfig_TelemetryConfig &cfg) override {}

@@ -659,8 +659,15 @@ void TFTView_320x240::ui_event_input_button(lv_event_t *e)
 void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        // TODO: retrieve actual value from node and set switch
+    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone &&
+        TFTView_320x240::instance()->db.module_config.has_external_notification) {
+        bool alert_enabled = TFTView_320x240::instance()->db.module_config.external_notification.alert_message;
+        if (alert_enabled) {
+            lv_obj_add_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
+        }
+        else {
+            lv_obj_remove_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
+        }
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eAlertBuzzer;
     }
@@ -733,11 +740,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf2, sizeof(buf2), "Device Role: %s", buf1);
             lv_label_set_text(objects.basic_settings_role_label, buf2);
 
-            TFTView_320x240::instance()->db.config.device.role =
-                (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(objects.settings_device_role_dropdown);
-            TFTView_320x240::instance()->controller->sendConfig(
-                meshtastic_Config_DeviceConfig{TFTView_320x240::instance()->db.config.device},
-                TFTView_320x240::instance()->ownNode);
+            meshtastic_Config_DeviceConfig& device = TFTView_320x240::instance()->db.config.device;
+            device.role = (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(objects.settings_device_role_dropdown);
+            TFTView_320x240::instance()->controller->sendConfig(meshtastic_Config_DeviceConfig{device},
+                                                                TFTView_320x240::instance()->ownNode);
+
             lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -747,11 +754,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf2, sizeof(buf2), "Region: %s", buf1);
             lv_label_set_text(objects.basic_settings_region_label, buf2);
 
-            TFTView_320x240::instance()->db.config.lora.region =
-                (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
-            TFTView_320x240::instance()->db.config.lora.channel_num = 1;
-            TFTView_320x240::instance()->controller->sendConfig(
-                meshtastic_Config_LoRaConfig{TFTView_320x240::instance()->db.config.lora}, TFTView_320x240::instance()->ownNode);
+            meshtastic_Config_LoRaConfig& lora = TFTView_320x240::instance()->db.config.lora;
+            lora.region = (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
+            lora.channel_num = 1;
+            TFTView_320x240::instance()->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, TFTView_320x240::instance()->ownNode);
+
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -761,14 +768,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf2, sizeof(buf2), "Modem Preset: %s", buf1);
             lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
-            TFTView_320x240::instance()->db.config.lora.use_preset = true;
-            TFTView_320x240::instance()->db.config.lora.modem_preset =
-                (meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
-            TFTView_320x240::instance()->db.config.lora.channel_num = 
-                (uint16_t)lv_slider_get_value(objects.frequency_slot_slider);
-
-            TFTView_320x240::instance()->controller->sendConfig(
-                meshtastic_Config_LoRaConfig{TFTView_320x240::instance()->db.config.lora}, TFTView_320x240::instance()->ownNode);
+            meshtastic_Config_LoRaConfig& lora = TFTView_320x240::instance()->db.config.lora;
+            lora.use_preset = true;
+            lora.modem_preset = (meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
+            lora.channel_num = (uint16_t)lv_slider_get_value(objects.frequency_slot_slider);
+            TFTView_320x240::instance()->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, TFTView_320x240::instance()->ownNode);
 
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -854,10 +858,20 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eAlertBuzzer: {
             char buf[32];
-            lv_snprintf(buf, sizeof(buf), "Message Alert Buzzer: %s",
-                        lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED) ? "on" : "off");
+            meshtastic_ModuleConfig_ExternalNotificationConfig& config = TFTView_320x240::instance()->
+                db.module_config.external_notification;
+            
+            config.alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
+            if (config.alert_message) {
+                config.enabled = true;
+                config.nag_timeout = 5; //TODO: make configurable
+            }
+
+            lv_snprintf(buf, sizeof(buf), "Message Alert: %s", config.alert_message ? "on" : "off");
             lv_label_set_text(objects.basic_settings_alert_label, buf);
-            // TODO: send packet to node
+
+            TFTView_320x240::instance()->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config},
+                                                                TFTView_320x240::instance()->ownNode);
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -870,13 +884,13 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         case eReboot: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reboot_dropdown);
             if (option == 0) {
-                TFTView_320x240::instance()->controller->requestReboot(7, TFTView_320x240::instance()->ownNode);
+                TFTView_320x240::instance()->controller->requestReboot(5, TFTView_320x240::instance()->ownNode);
             }
             else if (option == 1) {
-                TFTView_320x240::instance()->controller->requestShutdown(7, TFTView_320x240::instance()->ownNode);
+                TFTView_320x240::instance()->controller->requestShutdown(5, TFTView_320x240::instance()->ownNode);
             }
             else if (option == 2) {
-                TFTView_320x240::instance()->controller->requestRebootOTA(7, TFTView_320x240::instance()->ownNode);
+                TFTView_320x240::instance()->controller->requestRebootOTA(5, TFTView_320x240::instance()->ownNode);
             }
             lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -1683,6 +1697,21 @@ void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothCon
     db.config.bluetooth = cfg;
     db.config.has_bluetooth = true;
 }
+
+
+/// ---- module updates ----
+
+void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg)
+{
+    db.module_config.external_notification = cfg;
+    db.module_config.has_external_notification = true;
+
+    char buf[32];
+    lv_snprintf(buf, sizeof(buf), "Message Alert: %s",
+                db.module_config.external_notification.alert_message ? "on" : "off");
+    lv_label_set_text(objects.basic_settings_alert_label, buf);
+}
+
 
 /**
  * @brief Create a new container for a node or group channel

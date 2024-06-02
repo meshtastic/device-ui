@@ -2546,7 +2546,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     lv_obj_set_pos(obj, 0, 10);
                     lv_obj_set_size(obj, 125, LV_SIZE_CONTENT);
-                    lv_label_set_text(obj, "Buzzer Alert");
+                    lv_label_set_text(obj, "Message Alert");
                     lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);

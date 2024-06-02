@@ -37,7 +37,20 @@ class ViewController
     virtual bool sendConfig(meshtastic_Config_LoRaConfig &&lora, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_BluetoothConfig &&bluetooth, uint32_t nodeId = 0);
 
-    // TODO: module config
+    // module config
+    virtual bool sendConfig(meshtastic_ModuleConfig_MQTTConfig &&mqtt, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_SerialConfig &&serial, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig &&extNotif, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_StoreForwardConfig &&storeForward, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_RangeTestConfig &&rangeTest, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_TelemetryConfig &&telemetry, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_CannedMessageConfig &&cannedMessage, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_AudioConfig &&audio, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_RemoteHardwareConfig &&remoteHW, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_NeighborInfoConfig &&neighborInfo, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_AmbientLightingConfig &&ambientLighting, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_DetectionSensorConfig &&detectionSensor, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCounter, uint32_t nodeId = 0);
 
     virtual void sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg);
     virtual bool sendAdminMessage(meshtastic_AdminMessage &&config, uint32_t nodeId);
