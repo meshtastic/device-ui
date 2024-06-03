@@ -44,6 +44,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     size_t bufsize;
     lv_color_t *buf1;
     lv_color_t *buf2;
+    bool calibrating;
 };
 
 template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
@@ -51,7 +52,7 @@ template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
     : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), screenTimeout(defaultScreenTimeout),
-      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr)
+      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
 {
     lgfx = this->tft;
 }
@@ -59,7 +60,7 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
     : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), powerSaving(false), bufsize(0), buf1(nullptr),
-      buf2(nullptr)
+      buf2(nullptr), calibrating(false)
 {
     lgfx = this->tft;
 }
@@ -94,13 +95,15 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             }
         }
     }
-#ifdef HAS_FREE_RTOS
-    lv_tick_set_cb(xTaskGetTickCount);
-#else
-    lv_tick_set_cb(my_tick_get_cb);
-#endif
 
-    DisplayDriver::task_handler();
+    if (!calibrating) {
+#ifdef HAS_FREE_RTOS
+        lv_tick_set_cb(xTaskGetTickCount);
+#else
+        lv_tick_set_cb(my_tick_get_cb);
+#endif
+        DisplayDriver::task_handler();
+    }
 }
 
 #if 1
@@ -259,15 +262,13 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 #else
         lgfx->setTextSize(2);
         lgfx->setTextDatum(textdatum_t::middle_center);
-        lgfx->drawString("touch the arrow marker.", lgfx->width() >> 1,
-                                         lgfx->height() >> 1);
+        lgfx->drawString("touch the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
         lgfx->setTextDatum(textdatum_t::top_left);
         std::uint16_t fg = TFT_BLUE;
         std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
         if (lgfx->isEPD())
             std::swap(fg, bg);
-        lgfx->calibrateTouch(parameters, fg, bg,
-                                             std::max(lgfx->width(), lgfx->height()) >> 3);
+        lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
 
 #endif
         // FIXME: store parameters[] using lfs_file_write
@@ -279,19 +280,22 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 
 template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
 {
-    lgfx->setTextSize(2);
+    calibrating = true;
+    lgfx->clearDisplay();
+    lgfx->setTextSize(1);
     lgfx->setTextDatum(textdatum_t::middle_center);
     lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
     lgfx->setTextDatum(textdatum_t::top_left);
     std::uint16_t fg = TFT_BLUE;
     std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
-    if (lgfx->isEPD()) std::swap(fg, bg);
+    if (lgfx->isEPD())
+        std::swap(fg, bg);
     uint16_t parameters[8];
     lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
-    ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", 
-               parameters[0], parameters[1], parameters[2], parameters[3], 
-               parameters[4], parameters[5], parameters[6], parameters[7]);
+    ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", parameters[0], parameters[1],
+               parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
 
+    calibrating = false;
     return true;
 }
 

@@ -631,10 +631,11 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
     }
 }
 
-void TFTView_320x240::ui_event_calibration_button(lv_event_t *e) {
+void TFTView_320x240::ui_event_calibration_button(lv_event_t *e)
+{
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        lv_screen_load_anim(objects.calibration_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
+        lv_screen_load_anim(objects.calibration_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
     }
 }
 
