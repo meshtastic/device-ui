@@ -737,7 +737,7 @@ void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
 {
     bool done = TFTView_320x240::instance()->displaydriver->calibrate();
     char buf[20];
-    lv_snprintf(buf, sizeof(buf), "Calibration: %s", done ? "done" : "default");
+    lv_snprintf(buf, sizeof(buf), "Screen Calibration: %s", done ? "done" : "default");
     lv_label_set_text(objects.basic_settings_calibration_label, buf);
     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }
