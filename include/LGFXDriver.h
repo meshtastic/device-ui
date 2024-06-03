@@ -15,6 +15,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     LGFXDriver(uint16_t width, uint16_t height);
     LGFXDriver(const DisplayDriverConfig &cfg);
     void init(DeviceGUI *gui) override;
+    bool calibrate(void) override;
     bool hasTouch() override { return lgfx->touch(); }
     bool hasLight(void) override { return lgfx->light(); }
     bool isPowersaving() override { return powerSaving; }
@@ -227,9 +228,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 {
     // Initialize LovyanGFX
     ILOG_DEBUG("LGFX init...\n");
-    TFTDriver<LGFX>::tft->init();
-    TFTDriver<LGFX>::tft->setBrightness(defaultBrightness);
-    TFTDriver<LGFX>::tft->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
+    lgfx->init();
+    lgfx->setBrightness(defaultBrightness);
+    lgfx->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
 
     if (hasTouch()) {
 #ifdef CALIBRATE_TOUCH
@@ -254,19 +255,19 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 #endif
 
 #if !CALIBRATE_TOUCH
-        TFTDriver<LGFX>::tft->setTouchCalibrate(parameters);
+        lgfx->setTouchCalibrate(parameters);
 #else
-        TFTDriver<LGFX>::tft->setTextSize(2);
-        TFTDriver<LGFX>::tft->setTextDatum(textdatum_t::middle_center);
-        TFTDriver<LGFX>::tft->drawString("touch the arrow marker.", TFTDriver<LGFX>::tft->width() >> 1,
-                                         TFTDriver<LGFX>::tft->height() >> 1);
-        TFTDriver<LGFX>::tft->setTextDatum(textdatum_t::top_left);
+        lgfx->setTextSize(2);
+        lgfx->setTextDatum(textdatum_t::middle_center);
+        lgfx->drawString("touch the arrow marker.", lgfx->width() >> 1,
+                                         lgfx->height() >> 1);
+        lgfx->setTextDatum(textdatum_t::top_left);
         std::uint16_t fg = TFT_BLUE;
-        std::uint16_t bg = LGFX::color565(0x40, 0xFF, 0x72);
-        if (TFTDriver<LGFX>::tft->isEPD())
+        std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
+        if (lgfx->isEPD())
             std::swap(fg, bg);
-        TFTDriver<LGFX>::tft->calibrateTouch(parameters, fg, bg,
-                                             std::max(TFTDriver<LGFX>::tft->width(), TFTDriver<LGFX>::tft->height()) >> 3);
+        lgfx->calibrateTouch(parameters, fg, bg,
+                                             std::max(lgfx->width(), lgfx->height()) >> 3);
 
 #endif
         // FIXME: store parameters[] using lfs_file_write
@@ -274,6 +275,24 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
                    parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
 #endif
     }
+}
+
+template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
+{
+    lgfx->setTextSize(2);
+    lgfx->setTextDatum(textdatum_t::middle_center);
+    lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
+    lgfx->setTextDatum(textdatum_t::top_left);
+    std::uint16_t fg = TFT_BLUE;
+    std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
+    if (lgfx->isEPD()) std::swap(fg, bg);
+    uint16_t parameters[8];
+    lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
+    ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", 
+               parameters[0], parameters[1], parameters[2], parameters[3], 
+               parameters[4], parameters[5], parameters[6], parameters[7]);
+
+    return true;
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::setBrightness(uint8_t brightness)

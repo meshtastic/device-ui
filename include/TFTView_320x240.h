@@ -159,6 +159,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_language_button(lv_event_t *e);
     static void ui_event_channel_button(lv_event_t *e);
     static void ui_event_brightness_button(lv_event_t *e);
+    static void ui_event_calibration_button(lv_event_t *e);
     static void ui_event_timeout_button(lv_event_t *e);
     static void ui_event_input_button(lv_event_t *e);
     static void ui_event_alert_button(lv_event_t *e);
@@ -170,6 +171,8 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_brightness_slider(lv_event_t *e);
     static void ui_event_frequency_slot_slider(lv_event_t *e);
     static void ui_event_modem_preset_dropdown(lv_event_t *e);
+
+    static void ui_event_calibration_screen_loaded(lv_event_t *e);
 
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);

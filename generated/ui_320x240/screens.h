@@ -67,6 +67,7 @@ typedef struct _objects_t {
     lv_obj_t *boot_screen;
     lv_obj_t *main_screen;
     lv_obj_t *blank_screen;
+    lv_obj_t *calibration_screen;
     lv_obj_t *advanced_settings_panel;
     lv_obj_t *alert_label;
     lv_obj_t *alert_panel;
@@ -74,6 +75,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_alert_label;
     lv_obj_t *basic_settings_brightness_button;
     lv_obj_t *basic_settings_brightness_label;
+    lv_obj_t *basic_settings_calibration_button;
+    lv_obj_t *basic_settings_calibration_label;
     lv_obj_t *basic_settings_channel_button;
     lv_obj_t *basic_settings_channel_label;
     lv_obj_t *basic_settings_input_button;
@@ -301,7 +304,8 @@ enum ScreensEnum {
     SCREEN_ID_BOOT_SCREEN = 1,
     SCREEN_ID_MAIN_SCREEN = 2,
     SCREEN_ID_BLANK_SCREEN = 3,
-    SCREEN_ID_OK_CANCEL_WIDGET = 4,
+    SCREEN_ID_CALIBRATION_SCREEN = 4,
+    SCREEN_ID_OK_CANCEL_WIDGET = 5,
 };
 
 void create_screen_boot_screen();
@@ -312,6 +316,9 @@ void tick_screen_main_screen();
 
 void create_screen_blank_screen();
 void tick_screen_blank_screen();
+
+void create_screen_calibration_screen();
+void tick_screen_calibration_screen();
 
 void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIndex);
 void tick_user_widget_ok_cancel_widget(int startWidgetIndex);

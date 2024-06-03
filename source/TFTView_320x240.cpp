@@ -83,6 +83,9 @@ void TFTView_320x240::init(IClientBase *client)
     if (!displaydriver->hasLight())
         lv_obj_add_flag(objects.basic_settings_brightness_button, LV_OBJ_FLAG_HIDDEN);
 
+    if (!displaydriver->hasTouch())
+        lv_obj_add_flag(objects.basic_settings_calibration_button, LV_OBJ_FLAG_HIDDEN);
+
 #if LV_USE_LIBINPUT
     lv_obj_clear_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN);
 #endif
@@ -215,6 +218,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_language_button, ui_event_language_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_channel_button, ui_event_channel_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_brightness_button, ui_event_brightness_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_calibration_button, ui_event_calibration_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_input_button, ui_event_input_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_alert_button, ui_event_alert_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_ALL, NULL);
@@ -265,6 +269,9 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_channel5_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)5);
     lv_obj_add_event_cb(objects.settings_channel6_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)6);
     lv_obj_add_event_cb(objects.settings_channel7_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)7);
+
+    // screen
+    lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
 }
 
 #if 0 // defined above as lambda function for tests
@@ -624,6 +631,13 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_calibration_button(lv_event_t *e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        lv_screen_load_anim(objects.calibration_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
+    }
+}
+
 void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -717,6 +731,15 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
         lv_obj_clear_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
         TFTView_320x240::instance()->activeSettings = eModifyChannel;
     }
+}
+
+void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
+{
+    bool done = TFTView_320x240::instance()->displaydriver->calibrate();
+    char buf[20];
+    lv_snprintf(buf, sizeof(buf), "Calibration: %s", done ? "done" : "default");
+    lv_label_set_text(objects.basic_settings_calibration_label, buf);
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }
 
 /**
