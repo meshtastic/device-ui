@@ -59,6 +59,7 @@ class TFTView_320x240 : public MeshtasticView
     void packetReceived(const meshtastic_MeshPacket &p) override;
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) override;
     void notifyResync(bool show) override;
+    void blankScreen(bool enable) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
     void updateNodesOnline(const char *str) override;
     void removeNode(uint32_t nodeNum) override;

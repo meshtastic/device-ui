@@ -1639,6 +1639,14 @@ void TFTView_320x240::notifyResync(bool show)
         lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
+void TFTView_320x240::blankScreen(bool enable)
+{
+    if (enable)
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
+    else
+        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+}
+
 void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
 {
     static lv_obj_t *btn[c_max_channels] = {objects.channel_button0, objects.channel_button1, objects.channel_button2,
