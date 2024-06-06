@@ -159,7 +159,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         data->point.x = touchX;
         data->point.y = touchY;
 
-        ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
+        // ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
     }
 }
 
