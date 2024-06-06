@@ -153,8 +153,8 @@ class DisplayDriverConfig
 
     uint16_t width(void) const { return _width; }
     uint16_t height(void) const { return _height; }
-    const std::string& keyboard(void) const { return _input.keyboardDevice; }
-    const std::string& pointer(void) const { return _input.pointerDevice; }
+    const std::string &keyboard(void) const { return _input.keyboardDevice; }
+    const std::string &pointer(void) const { return _input.pointerDevice; }
 
   private:
     friend class DisplayDriverFactory;

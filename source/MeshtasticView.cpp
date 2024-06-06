@@ -7,8 +7,10 @@
 
 extern const char *firmware_version;
 
-MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller) : 
-    DeviceGUI(cfg, driver), controller(_controller), requests(c_request_timeout) {}
+MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller)
+    : DeviceGUI(cfg, driver), controller(_controller), requests(c_request_timeout)
+{
+}
 
 void MeshtasticView::init(IClientBase *client)
 {
@@ -182,7 +184,6 @@ const char *MeshtasticView::deviceRoleToString(enum eRole role)
         return "<unknown>";
     };
 }
-
 
 #include "Base64.h"
 std::string MeshtasticView::pskToBase64(const meshtastic_ChannelSettings_psk_t &psk)

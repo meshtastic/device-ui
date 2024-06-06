@@ -15,7 +15,8 @@
 #include <functional>
 #include <math.h>
 
-#define CR_REPLACEMENT 0x0C // dummy to record several lines in a one line textarea
+#define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
+#define THIS TFTView_320x240::instance() // need to use this in all static methods
 
 // children index of nodepanel lv objects (see addNode)
 enum NodePanelIdx { node_img_idx, node_btn_idx, node_lbl_idx, node_lbs_idx, node_bat_idx, node_lh_idx, node_sig_idx };
@@ -44,9 +45,6 @@ TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *
 {
 }
 
-// TODO
-extern const uint8_t img_meshtastic_logo_image_map[];
-
 void TFTView_320x240::init(IClientBase *client)
 {
     ILOG_DEBUG("TFTView_320x240 init...\n");
@@ -67,8 +65,13 @@ void TFTView_320x240::init(IClientBase *client)
     time(&lastrun5);
 
     activeMsgContainer = objects.messages_container;
+    // setup the two channel label panels with arrays that allow indexing
     channel = {objects.channel_label0, objects.channel_label1, objects.channel_label2, objects.channel_label3,
                objects.channel_label4, objects.channel_label5, objects.channel_label6, objects.channel_label7};
+    ch_label = {objects.settings_channel0_label, objects.settings_channel1_label, objects.settings_channel2_label,
+                objects.settings_channel3_label, objects.settings_channel4_label, objects.settings_channel5_label,
+                objects.settings_channel6_label, objects.settings_channel7_label};
+
     channelGroup = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
     ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
     ui_events_init();
@@ -164,12 +167,12 @@ void TFTView_320x240::ui_events_init(void)
     // just a test to implement callback via non-static lambda function
     auto ui_event_HomeButton = [](lv_event_t *e) {
         lv_event_code_t event_code = lv_event_get_code(e);
-        if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+        if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
             TFTView_320x240 &view = *static_cast<TFTView_320x240 *>(e->user_data);
             view.ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
         } else if (event_code == LV_EVENT_LONG_PRESSED) {
             // force re-sync with node
-            TFTView_320x240::instance()->controller->setConfigRequested(true);
+            THIS->controller->setConfigRequested(true);
         }
     };
 
@@ -261,14 +264,14 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj12__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
-    lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)0);
-    lv_obj_add_event_cb(objects.settings_channel1_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)1);
-    lv_obj_add_event_cb(objects.settings_channel2_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)2);
-    lv_obj_add_event_cb(objects.settings_channel3_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)3);
-    lv_obj_add_event_cb(objects.settings_channel4_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)4);
-    lv_obj_add_event_cb(objects.settings_channel5_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)5);
-    lv_obj_add_event_cb(objects.settings_channel6_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)6);
-    lv_obj_add_event_cb(objects.settings_channel7_button, ui_event_modify_channel, LV_EVENT_CLICKED, (void *)7);
+    lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
+    lv_obj_add_event_cb(objects.settings_channel1_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)1);
+    lv_obj_add_event_cb(objects.settings_channel2_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)2);
+    lv_obj_add_event_cb(objects.settings_channel3_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)3);
+    lv_obj_add_event_cb(objects.settings_channel4_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)4);
+    lv_obj_add_event_cb(objects.settings_channel5_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)5);
+    lv_obj_add_event_cb(objects.settings_channel6_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)6);
+    lv_obj_add_event_cb(objects.settings_channel7_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)7);
 
     // screen
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
@@ -286,8 +289,8 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
 void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        TFTView_320x240::instance()->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
     }
 }
 
@@ -297,27 +300,27 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
     if (event_code == LV_EVENT_LONG_PRESSED) {
         //  set color and text of clicked node
         uint32_t nodeNum = (unsigned long)e->user_data;
-        if (nodeNum != TFTView_320x240::instance()->ownNode)
-            TFTView_320x240::instance()->showMessages(nodeNum);
+        if (nodeNum != THIS->ownNode)
+            THIS->showMessages(nodeNum);
     }
 }
 
 void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        TFTView_320x240::instance()->ui_set_active(objects.groups_button, objects.groups_panel, objects.top_groups_panel);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->ui_set_active(objects.groups_button, objects.groups_panel, objects.top_groups_panel);
     }
 }
 
 void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         // set color and text of clicked group channel
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        if (TFTView_320x240::instance()->channelGroup[ch]) {
-            TFTView_320x240::instance()->showMessages(ch);
+        if (THIS->channelGroup[ch]) {
+            THIS->showMessages(ch);
         } else {
             // TODO: click on unset channel should popup config screen
         }
@@ -327,31 +330,29 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        TFTView_320x240::instance()->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
     }
 }
 
 void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        TFTView_320x240::instance()->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
     }
 }
 
 void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        TFTView_320x240::instance()->ui_set_active(objects.settings_button, objects.basic_settings_panel,
-                                                   objects.top_settings_panel);
-    } else if (event_code == LV_EVENT_LONG_PRESSED && !advanced_mode && TFTView_320x240::instance()->activeSettings == eNone) {
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->ui_set_active(objects.settings_button, objects.basic_settings_panel, objects.top_settings_panel);
+    } else if (event_code == LV_EVENT_LONG_PRESSED && !advanced_mode && THIS->activeSettings == eNone) {
         advanced_mode = !advanced_mode;
-    } else if (event_code == LV_EVENT_LONG_PRESSED && advanced_mode && TFTView_320x240::instance()->activeSettings == eNone) {
+    } else if (event_code == LV_EVENT_LONG_PRESSED && advanced_mode && THIS->activeSettings == eNone) {
         advanced_mode = !advanced_mode;
-        TFTView_320x240::instance()->ui_set_active(objects.settings_button, ui_AdvancedSettingsPanel,
-                                                   objects.top_advanced_settings_panel);
+        THIS->ui_set_active(objects.settings_button, ui_AdvancedSettingsPanel, objects.top_advanced_settings_panel);
     }
 }
 
@@ -371,14 +372,12 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
         uint32_t channelOrNode = (unsigned long)e->user_data;
         if (channelOrNode < c_max_channels) {
             uint8_t ch = (uint8_t)channelOrNode;
-            TFTView_320x240::instance()->showMessages(ch);
-            TFTView_320x240::instance()->ui_set_active(objects.messages_button, objects.messages_panel,
-                                                       objects.top_group_chat_panel);
+            THIS->showMessages(ch);
+            THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_group_chat_panel);
         } else {
             uint32_t nodeNum = channelOrNode;
-            TFTView_320x240::instance()->showMessages(nodeNum);
-            TFTView_320x240::instance()->ui_set_active(objects.messages_button, objects.messages_panel,
-                                                       objects.top_messages_panel);
+            THIS->showMessages(nodeNum);
+            THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
         }
     }
 }
@@ -398,15 +397,15 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
         uint32_t channelOrNode = (unsigned long)e->user_data;
         if (channelOrNode < c_max_channels) {
             uint8_t ch = (uint8_t)channelOrNode;
-            lv_obj_clean(TFTView_320x240::instance()->channelGroup[ch]);
+            lv_obj_clean(THIS->channelGroup[ch]);
         } else {
             uint32_t nodeNum = channelOrNode;
-            lv_obj_delete_delayed(TFTView_320x240::instance()->chats[nodeNum], 500);
-            lv_obj_del(TFTView_320x240::instance()->messages[nodeNum]);
-            TFTView_320x240::instance()->chats.erase(nodeNum);
-            TFTView_320x240::instance()->messages.erase(nodeNum);
-            TFTView_320x240::instance()->activeMsgContainer = objects.messages_container;
-            TFTView_320x240::instance()->updateActiveChats();
+            lv_obj_delete_delayed(THIS->chats[nodeNum], 500);
+            lv_obj_del(THIS->messages[nodeNum]);
+            THIS->chats.erase(nodeNum);
+            THIS->messages.erase(nodeNum);
+            THIS->activeMsgContainer = objects.messages_container;
+            THIS->updateActiveChats();
         }
     }
 }
@@ -421,17 +420,17 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (target == objects.msg_popup_panel) {
         if (event_code == LV_EVENT_PRESSED) {
-            TFTView_320x240::instance()->hideMessagePopup();
+            THIS->hideMessagePopup();
         }
     } else { // msg button was clicked
         if (event_code == LV_EVENT_CLICKED) {
             uint32_t channelOrNode = (unsigned long)objects.msg_popup_button->user_data;
             if (channelOrNode < c_max_channels) {
                 uint8_t ch = (uint8_t)channelOrNode;
-                TFTView_320x240::instance()->showMessages(ch);
+                THIS->showMessages(ch);
             } else {
                 uint32_t nodeNum = channelOrNode;
-                TFTView_320x240::instance()->showMessages(nodeNum);
+                THIS->showMessages(nodeNum);
             }
         }
     }
@@ -444,19 +443,19 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         uint32_t keyBtnIdx = (unsigned long)e->user_data;
         switch (keyBtnIdx) {
         case 0:
-            TFTView_320x240::instance()->showKeyboard(objects.message_input_area);
+            THIS->showKeyboard(objects.message_input_area);
             break;
         case 1:
-            TFTView_320x240::instance()->showKeyboard(objects.settings_user_short_textarea);
+            THIS->showKeyboard(objects.settings_user_short_textarea);
             break;
         case 2:
-            TFTView_320x240::instance()->showKeyboard(objects.settings_user_long_textarea);
+            THIS->showKeyboard(objects.settings_user_long_textarea);
             break;
         case 3:
-            TFTView_320x240::instance()->showKeyboard(objects.settings_modify_channel_name_textarea);
+            THIS->showKeyboard(objects.settings_modify_channel_name_textarea);
             break;
         case 4:
-            TFTView_320x240::instance()->showKeyboard(objects.settings_modify_channel_psk_textarea);
+            THIS->showKeyboard(objects.settings_modify_channel_psk_textarea);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment\n");
@@ -511,7 +510,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
             if (txt[len - 1] == ' ') { // use space+return combo to start new line in same message
                 lv_textarea_add_char(objects.message_input_area, CR_REPLACEMENT);
             } else {
-                TFTView_320x240::instance()->handleAddMessage(txt);
+                THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
             }
         }
@@ -523,32 +522,30 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 void TFTView_320x240::ui_event_user_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        lv_textarea_set_text(objects.settings_user_short_textarea, TFTView_320x240::instance()->db.short_name);
-        lv_textarea_set_text(objects.settings_user_long_textarea, TFTView_320x240::instance()->db.long_name);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        lv_textarea_set_text(objects.settings_user_short_textarea, THIS->db.short_name);
+        lv_textarea_set_text(objects.settings_user_long_textarea, THIS->db.long_name);
         lv_obj_clear_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eUsername;
+        THIS->activeSettings = eUsername;
     }
 }
 
 void TFTView_320x240::ui_event_role_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone &&
-        TFTView_320x240::instance()->db.config.has_device) {
-        lv_dropdown_set_selected(objects.settings_device_role_dropdown, TFTView_320x240::instance()->db.config.device.role);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_device) {
+        lv_dropdown_set_selected(objects.settings_device_role_dropdown, THIS->db.config.device.role);
         lv_obj_clear_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eDeviceRole;
+        THIS->activeSettings = eDeviceRole;
     }
 }
 
 void TFTView_320x240::ui_event_region_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone &&
-        TFTView_320x240::instance()->db.config.has_lora) {
-        TFTView_320x240::instance()->activeSettings = eRegion;
-        lv_dropdown_set_selected(objects.settings_region_dropdown, TFTView_320x240::instance()->db.config.lora.region - 1);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_lora) {
+        THIS->activeSettings = eRegion;
+        lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
         lv_obj_clear_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
     }
 }
@@ -556,23 +553,19 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
 void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone &&
-        TFTView_320x240::instance()->db.config.has_lora) {
-        TFTView_320x240::instance()->activeSettings = eModemPreset;
-        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown,
-                                 TFTView_320x240::instance()->db.config.lora.modem_preset);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_lora) {
+        THIS->activeSettings = eModemPreset;
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->db.config.lora.modem_preset);
 
         char buf[40];
-        sprintf(buf, "FrequencySlot: %d (%.2f MHz)", TFTView_320x240::instance()->db.config.lora.channel_num,
-                LoRaPresets::getRadioFreq(TFTView_320x240::instance()->db.config.lora.region,
-                                          TFTView_320x240::instance()->db.config.lora.modem_preset,
-                                          TFTView_320x240::instance()->db.config.lora.channel_num));
+        sprintf(buf, "FrequencySlot: %d (%.2f MHz)", THIS->db.config.lora.channel_num,
+                LoRaPresets::getRadioFreq(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset,
+                                          THIS->db.config.lora.channel_num));
         lv_label_set_text(objects.frequency_slot_label, buf);
 
-        uint32_t numChannels = LoRaPresets::getNumChannels(TFTView_320x240::instance()->db.config.lora.region,
-                                                           TFTView_320x240::instance()->db.config.lora.modem_preset);
+        uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset);
         lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-        lv_slider_set_value(objects.frequency_slot_slider, TFTView_320x240::instance()->db.config.lora.channel_num, LV_ANIM_OFF);
+        lv_slider_set_value(objects.frequency_slot_slider, THIS->db.config.lora.channel_num, LV_ANIM_OFF);
 
         lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
     }
@@ -581,53 +574,58 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
 void TFTView_320x240::ui_event_language_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         // TODO: set actual value for dropdown
         lv_obj_clear_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eLanguage;
+        THIS->activeSettings = eLanguage;
     }
 }
 
 void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        // TODO: primary channel is not necessarily 0...
-        //  maybe use for-loop here; then also store channel number within the label
-        if (TFTView_320x240::instance()->db.channel[0].has_settings)
-            lv_label_set_text(objects.settings_channel0_label, TFTView_320x240::instance()->db.channel[0].settings.name);
-        if (TFTView_320x240::instance()->db.channel[1].has_settings)
-            lv_label_set_text(objects.settings_channel1_label, TFTView_320x240::instance()->db.channel[1].settings.name);
-        if (TFTView_320x240::instance()->db.channel[2].has_settings)
-            lv_label_set_text(objects.settings_channel2_label, TFTView_320x240::instance()->db.channel[2].settings.name);
-        if (TFTView_320x240::instance()->db.channel[3].has_settings)
-            lv_label_set_text(objects.settings_channel3_label, TFTView_320x240::instance()->db.channel[3].settings.name);
-        if (TFTView_320x240::instance()->db.channel[4].has_settings)
-            lv_label_set_text(objects.settings_channel4_label, TFTView_320x240::instance()->db.channel[4].settings.name);
-        if (TFTView_320x240::instance()->db.channel[5].has_settings)
-            lv_label_set_text(objects.settings_channel5_label, TFTView_320x240::instance()->db.channel[5].settings.name);
-        if (TFTView_320x240::instance()->db.channel[6].has_settings)
-            lv_label_set_text(objects.settings_channel6_label, TFTView_320x240::instance()->db.channel[6].settings.name);
-        if (TFTView_320x240::instance()->db.channel[7].has_settings)
-            lv_label_set_text(objects.settings_channel7_label, TFTView_320x240::instance()->db.channel[7].settings.name);
-
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        // primary channel is not necessarily channel[0], setup ui with primary on top
+        int pos = 1;
+        for (int i = 0; i < c_max_channels; i++) {
+            if (THIS->db.channel[i].has_settings && THIS->db.channel[i].role != meshtastic_Channel_Role_DISABLED) {
+                uint32_t index = THIS->db.channel[i].index;
+                if (THIS->db.channel[i].role == meshtastic_Channel_Role_PRIMARY) {
+                    THIS->ch_label[0]->user_data = (void *)i;
+                    lv_label_set_text(THIS->ch_label[0], THIS->db.channel[i].settings.name);
+                } else {
+                    THIS->ch_label[pos]->user_data = (void *)i;
+                    lv_label_set_text(THIS->ch_label[pos++], THIS->db.channel[i].settings.name);
+                }
+            }
+        }
+        for (int i = pos; i < c_max_channels; i++) {
+            THIS->ch_label[i]->user_data = (void *)-1;
+            lv_label_set_text(THIS->ch_label[i], "<unset>");
+        }
         lv_obj_clear_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eChannel;
+        THIS->activeSettings = eChannel;
+
+        // create scratch channels to store temporary changes until cancelled or applied
+        THIS->channel_scratch = new meshtastic_Channel[c_max_channels];
+        for (int i = 0; i < c_max_channels; i++) {
+            THIS->channel_scratch[i] = THIS->db.channel[i];
+        }
     }
 }
 
 void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        int32_t brightness = TFTView_320x240::instance()->displaydriver->getBrightness() * 100 / 255;
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        int32_t brightness = THIS->displaydriver->getBrightness() * 100 / 255;
         char buf[32];
         lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", brightness);
         lv_label_set_text(objects.basic_settings_brightness_label, buf);
         lv_slider_set_value(objects.brightness_slider, brightness, LV_ANIM_OFF);
         objects.brightness_slider->user_data = (void *)brightness; // store old value
         lv_obj_clear_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eScreenBrightness;
+        THIS->activeSettings = eScreenBrightness;
     }
 }
 
@@ -642,101 +640,151 @@ void TFTView_320x240::ui_event_calibration_button(lv_event_t *e)
 void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        int32_t timeout = TFTView_320x240::instance()->displaydriver->getScreenTimeout();
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        int32_t timeout = THIS->displaydriver->getScreenTimeout();
         lv_obj_clear_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
         lv_slider_set_value(objects.screen_timeout_slider, timeout, LV_ANIM_OFF);
-        TFTView_320x240::instance()->activeSettings = eScreenTimeout;
+        THIS->activeSettings = eScreenTimeout;
     }
 }
 
 void TFTView_320x240::ui_event_input_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
-        std::vector<std::string> ptr_events = TFTView_320x240::instance()->inputdriver->getPointerDevices();
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        std::vector<std::string> ptr_events = THIS->inputdriver->getPointerDevices();
         std::string ptr_dropdown = "none";
         for (std::string &s : ptr_events) {
             ptr_dropdown += '\n' + s;
         }
         lv_dropdown_set_options(objects.settings_mouse_input_dropdown, ptr_dropdown.c_str());
-        std::string current_ptr = TFTView_320x240::instance()->inputdriver->getCurrentPointerDevice();
+        std::string current_ptr = THIS->inputdriver->getCurrentPointerDevice();
         uint32_t ptrOption = lv_dropdown_get_option_index(objects.settings_mouse_input_dropdown, current_ptr.c_str());
         lv_dropdown_set_selected(objects.settings_mouse_input_dropdown, ptrOption);
 
-        std::vector<std::string> kbd_events = TFTView_320x240::instance()->inputdriver->getKeyboardDevices();
+        std::vector<std::string> kbd_events = THIS->inputdriver->getKeyboardDevices();
         std::string kbd_dropdown = "none";
         for (std::string &s : kbd_events) {
             kbd_dropdown += '\n' + s;
         }
         lv_dropdown_set_options(objects.settings_keyboard_input_dropdown, kbd_dropdown.c_str());
-        std::string current_kbd = TFTView_320x240::instance()->inputdriver->getCurrentKeyboardDevice();
+        std::string current_kbd = THIS->inputdriver->getCurrentKeyboardDevice();
         uint32_t kbdOption = lv_dropdown_get_option_index(objects.settings_keyboard_input_dropdown, current_kbd.c_str());
         lv_dropdown_set_selected(objects.settings_keyboard_input_dropdown, kbdOption);
 
-        lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, TFTView_320x240::instance()->old_val1_scratch,
-                                     sizeof(old_val1_scratch));
-        lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, TFTView_320x240::instance()->old_val2_scratch,
-                                     sizeof(old_val2_scratch));
+        lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, THIS->old_val1_scratch, sizeof(old_val1_scratch));
+        lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, THIS->old_val2_scratch, sizeof(old_val2_scratch));
 
         lv_obj_clear_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eInputControl;
+        THIS->activeSettings = eInputControl;
     }
 }
 
 void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone &&
-        TFTView_320x240::instance()->db.module_config.has_external_notification) {
-        bool alert_enabled = TFTView_320x240::instance()->db.module_config.external_notification.alert_message;
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.module_config.has_external_notification) {
+        bool alert_enabled = THIS->db.module_config.external_notification.alert_message;
         if (alert_enabled) {
             lv_obj_add_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
         } else {
             lv_obj_remove_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
         }
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eAlertBuzzer;
+        THIS->activeSettings = eAlertBuzzer;
     }
 }
 
 void TFTView_320x240::ui_event_reset_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         lv_obj_clear_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eReset;
+        THIS->activeSettings = eReset;
     }
 }
 
 void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eNone) {
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         lv_obj_clear_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eReboot;
+        THIS->activeSettings = eReboot;
     }
 }
 
 void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
 {
+    static bool ignore_clicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && TFTView_320x240::instance()->activeSettings == eChannel) {
-        uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        meshtastic_ChannelSettings_psk_t psk = TFTView_320x240::instance()->db.channel[ch].settings.psk;
-        std::string base64 = TFTView_320x240::instance()->pskToBase64(psk);
-        lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
-        lv_textarea_set_text(objects.settings_modify_channel_name_textarea,
-                             TFTView_320x240::instance()->db.channel[ch].settings.name);
-        lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eChannel) {
+        if (ignore_clicked) { // prevent long press to enter this setting
+            ignore_clicked = false;
+            return;
+        }
+        uint8_t btn_id = (uint8_t)(unsigned long)e->user_data;
+        int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
+        if (ch != -1) {
+            meshtastic_ChannelSettings_psk_t &psk = THIS->channel_scratch[ch].settings.psk;
+            std::string base64 = THIS->pskToBase64(psk);
+            lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
+            lv_textarea_set_text(objects.settings_modify_channel_name_textarea, THIS->channel_scratch[ch].settings.name);
+            objects.settings_modify_channel_name_textarea->user_data = (void *)btn_id;
+        } else {
+            for (int i = 0; i < c_max_channels; i++) {
+                if (THIS->channel_scratch[i].role == meshtastic_Channel_Role_DISABLED) {
+                    // the first created channel is PRIMARY
+                    bool found = false;
+                    for (int j = 0; j < c_max_channels; j++) {
+                        if (THIS->channel_scratch[j].role == meshtastic_Channel_Role_PRIMARY) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        THIS->channel_scratch[i].role = meshtastic_Channel_Role_PRIMARY;
+                        if (i == 0) {
+                            btn_id = 0; // place on top
+                        } else {
+                            // FIXME: swap ids as in long press
+                            ILOG_ERROR("node does not have primary channel!\n");
+                        }
+                    } else
+                        THIS->channel_scratch[i].role = meshtastic_Channel_Role_SECONDARY;
+
+                    lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, "");
+                    lv_textarea_set_text(objects.settings_modify_channel_name_textarea, "");
+                    THIS->ch_label[btn_id]->user_data = (void *)i;
+                    objects.settings_modify_channel_name_textarea->user_data = (void *)btn_id;
+                    break;
+                }
+            }
+        }
+        lv_obj_add_state(objects.settings_channel_panel, LV_STATE_DISABLED);
         lv_obj_clear_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
-        TFTView_320x240::instance()->activeSettings = eModifyChannel;
+        THIS->activeSettings = eModifyChannel;
+    } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eChannel) {
+        ignore_clicked = true;
+        // make channel primary on long press; swap with current primary (role, id and name)
+        uint8_t btn_id = (uint8_t)(unsigned long)e->user_data;
+        int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
+        if (btn_id != 0 && ch != -1) {
+            uint8_t index = THIS->channel_scratch[ch].index;
+            ILOG_DEBUG("press %d, ch=%d, index=%d\n", (int)btn_id, (int)ch, (int)index);
+            int8_t primary_id = (signed long)THIS->ch_label[0]->user_data;
+            THIS->channel_scratch[primary_id].role = meshtastic_Channel_Role_SECONDARY;
+            THIS->channel_scratch[ch].role = meshtastic_Channel_Role_PRIMARY;
+            THIS->ch_label[0]->user_data = (void *)ch;
+            THIS->ch_label[btn_id]->user_data = (void *)primary_id;
+            lv_label_set_text(THIS->ch_label[0], THIS->channel_scratch[ch].settings.name);
+            lv_label_set_text(THIS->ch_label[btn_id], THIS->channel_scratch[primary_id].settings.name);
+        }
     }
 }
 
 void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
 {
-    bool done = TFTView_320x240::instance()->displaydriver->calibrate();
+    bool done = THIS->displaydriver->calibrate();
     char buf[32];
     lv_snprintf(buf, sizeof(buf), "Screen Calibration: %s", done ? "done" : "default");
     lv_label_set_text(objects.basic_settings_calibration_label, buf);
@@ -752,7 +800,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        switch (TFTView_320x240::instance()->activeSettings) {
+        switch (THIS->activeSettings) {
         case eUsername: {
             char buf[30];
             const char *userShort = lv_textarea_get_text(objects.settings_user_short_textarea);
@@ -761,12 +809,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_label_set_text(objects.basic_settings_user_label, buf);
             lv_label_set_text(objects.user_name_short_label, userShort);
             lv_label_set_text(objects.user_name_label, userLong);
-            strcpy(TFTView_320x240::instance()->db.short_name, userShort);
-            strcpy(TFTView_320x240::instance()->db.long_name, userLong);
+            strcpy(THIS->db.short_name, userShort);
+            strcpy(THIS->db.long_name, userLong);
             meshtastic_User user; // TODO: don't overwrite is_licensed
             strcpy(user.short_name, userShort);
             strcpy(user.long_name, userLong);
-            TFTView_320x240::instance()->controller->sendConfig(user, TFTView_320x240::instance()->ownNode);
+            THIS->controller->sendConfig(user, THIS->ownNode);
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -776,10 +824,9 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf2, sizeof(buf2), "Device Role: %s", buf1);
             lv_label_set_text(objects.basic_settings_role_label, buf2);
 
-            meshtastic_Config_DeviceConfig &device = TFTView_320x240::instance()->db.config.device;
+            meshtastic_Config_DeviceConfig &device = THIS->db.config.device;
             device.role = (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(objects.settings_device_role_dropdown);
-            TFTView_320x240::instance()->controller->sendConfig(meshtastic_Config_DeviceConfig{device},
-                                                                TFTView_320x240::instance()->ownNode);
+            THIS->controller->sendConfig(meshtastic_Config_DeviceConfig{device}, THIS->ownNode);
 
             lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -790,12 +837,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf2, sizeof(buf2), "Region: %s", buf1);
             lv_label_set_text(objects.basic_settings_region_label, buf2);
 
-            meshtastic_Config_LoRaConfig &lora = TFTView_320x240::instance()->db.config.lora;
+            meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
             lora.region =
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
             lora.channel_num = 1;
-            TFTView_320x240::instance()->controller->sendConfig(meshtastic_Config_LoRaConfig{lora},
-                                                                TFTView_320x240::instance()->ownNode);
+            THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
 
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -806,20 +852,34 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf2, sizeof(buf2), "Modem Preset: %s", buf1);
             lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
-            meshtastic_Config_LoRaConfig &lora = TFTView_320x240::instance()->db.config.lora;
+            meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
             lora.use_preset = true;
             lora.modem_preset =
                 (meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
             lora.channel_num = (uint16_t)lv_slider_get_value(objects.frequency_slot_slider);
-            TFTView_320x240::instance()->controller->sendConfig(meshtastic_Config_LoRaConfig{lora},
-                                                                TFTView_320x240::instance()->ownNode);
+            THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
 
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case eChannel: {
-            // TODO: check what channels have changed and sendConfig()
+            for (int i = 0; i < c_max_channels; i++) {
+                // check if channel changed, then update and send to radio
+                if (memcmp(&THIS->db.channel[i], &THIS->channel_scratch[i], sizeof(THIS->channel_scratch[i])) != 0) {
+                    THIS->channel_scratch[i].has_settings = true;
+                    THIS->updateChannelConfig(THIS->channel_scratch[i]);
+                    THIS->controller->sendConfig(THIS->channel_scratch[i], THIS->ownNode);
+                }
+            }
+
+            int8_t ch = (signed long)THIS->ch_label[0]->user_data;
+            char buf[32];
+            lv_snprintf(buf, sizeof(buf), "Channel: %s", THIS->db.channel[ch].settings.name);
+            lv_label_set_text(objects.basic_settings_channel_label, buf);
+
+            lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
             lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+            delete[] THIS->channel_scratch;
             break;
         }
         case eLanguage: {
@@ -836,7 +896,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             uint32_t value = lv_slider_get_value(objects.screen_timeout_slider);
             if (value > 5)
                 value -= value % 5;
-            TFTView_320x240::instance()->displaydriver->setScreenTimeout(value);
+            THIS->displaydriver->setScreenTimeout(value);
             if (value == 0)
                 lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
             else
@@ -858,39 +918,38 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, new_val_ptr, sizeof(new_val_ptr));
 
             bool error = false;
-            if (strcmp(TFTView_320x240::instance()->old_val1_scratch, new_val_kbd) != 0) {
-                if (strcmp(TFTView_320x240::instance()->old_val1_scratch, "none") != 0) {
-                    TFTView_320x240::instance()->inputdriver->releaseKeyboardDevice();
+            if (strcmp(THIS->old_val1_scratch, new_val_kbd) != 0) {
+                if (strcmp(THIS->old_val1_scratch, "none") != 0) {
+                    THIS->inputdriver->releaseKeyboardDevice();
                 }
                 if (strcmp(new_val_kbd, "none") != 0) {
-                    error &= TFTView_320x240::instance()->inputdriver->useKeyboardDevice(new_val_kbd);
+                    error &= THIS->inputdriver->useKeyboardDevice(new_val_kbd);
                 }
             }
-            if (strcmp(TFTView_320x240::instance()->old_val2_scratch, new_val_ptr) != 0) {
-                if (strcmp(TFTView_320x240::instance()->old_val2_scratch, "none") != 0) {
-                    TFTView_320x240::instance()->inputdriver->releasePointerDevice();
+            if (strcmp(THIS->old_val2_scratch, new_val_ptr) != 0) {
+                if (strcmp(THIS->old_val2_scratch, "none") != 0) {
+                    THIS->inputdriver->releasePointerDevice();
                 }
                 if (strcmp(new_val_ptr, "none") != 0) {
-                    error &= TFTView_320x240::instance()->inputdriver->usePointerDevice(new_val_ptr);
+                    error &= THIS->inputdriver->usePointerDevice(new_val_ptr);
                 }
             }
 
-            TFTView_320x240::instance()->setInputButtonLabel();
+            THIS->setInputButtonLabel();
 
             if (error) {
                 ILOG_WARN("failed to use %s/%s\n", new_val_kbd, new_val_ptr);
                 return;
             }
 
-            std::string current_kbd = TFTView_320x240::instance()->inputdriver->getCurrentKeyboardDevice();
-            std::string current_ptr = TFTView_320x240::instance()->inputdriver->getCurrentPointerDevice();
-            if (strcmp(current_kbd.c_str(), "none") == 0 && strcmp(current_ptr.c_str(), "none") == 0 &&
-                TFTView_320x240::instance()->input_group) {
-                lv_group_delete(TFTView_320x240::instance()->input_group);
-                TFTView_320x240::instance()->input_group = nullptr;
-            } else if (strcmp(TFTView_320x240::instance()->old_val1_scratch, current_kbd.c_str()) != 0 ||
-                       strcmp(TFTView_320x240::instance()->old_val2_scratch, current_ptr.c_str()) != 0) {
-                TFTView_320x240::instance()->setInputGroup();
+            std::string current_kbd = THIS->inputdriver->getCurrentKeyboardDevice();
+            std::string current_ptr = THIS->inputdriver->getCurrentPointerDevice();
+            if (strcmp(current_kbd.c_str(), "none") == 0 && strcmp(current_ptr.c_str(), "none") == 0 && THIS->input_group) {
+                lv_group_delete(THIS->input_group);
+                THIS->input_group = nullptr;
+            } else if (strcmp(THIS->old_val1_scratch, current_kbd.c_str()) != 0 ||
+                       strcmp(THIS->old_val2_scratch, current_ptr.c_str()) != 0) {
+                THIS->setInputGroup();
             }
 
             lv_obj_add_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
@@ -898,8 +957,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eAlertBuzzer: {
             char buf[32];
-            meshtastic_ModuleConfig_ExternalNotificationConfig &config =
-                TFTView_320x240::instance()->db.module_config.external_notification;
+            meshtastic_ModuleConfig_ExternalNotificationConfig &config = THIS->db.module_config.external_notification;
 
             config.alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
             if (config.alert_message) {
@@ -911,38 +969,45 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf, sizeof(buf), "Message Alert: %s", config.alert_message ? "on" : "off");
             lv_label_set_text(objects.basic_settings_alert_label, buf);
 
-            TFTView_320x240::instance()->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config},
-                                                                TFTView_320x240::instance()->ownNode);
+            THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case eReset: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
-            TFTView_320x240::instance()->controller->requestReset(option, TFTView_320x240::instance()->ownNode);
+            THIS->controller->requestReset(option, THIS->ownNode);
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case eReboot: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reboot_dropdown);
             if (option == 0) {
-                TFTView_320x240::instance()->controller->requestReboot(5, TFTView_320x240::instance()->ownNode);
+                THIS->controller->requestReboot(5, THIS->ownNode);
             } else if (option == 1) {
-                TFTView_320x240::instance()->controller->requestShutdown(5, TFTView_320x240::instance()->ownNode);
+                THIS->controller->requestShutdown(5, THIS->ownNode);
             } else if (option == 2) {
-                TFTView_320x240::instance()->controller->requestRebootOTA(5, TFTView_320x240::instance()->ownNode);
+                THIS->controller->requestRebootOTA(5, THIS->ownNode);
             }
             lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case eModifyChannel: {
             meshtastic_ChannelSettings_psk_t psk;
-            if (TFTView_320x240::instance()->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea),
-                                                         psk)) {
+            if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk)) {
                 const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
-                // TODO: fill temp storage -> user data
-                lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
-                TFTView_320x240::instance()->activeSettings = eChannel;
+                if (strlen(name) != 0) {
+                    // TODO: fill temp storage -> user data
+                    uint8_t btn_id = (unsigned long)objects.settings_modify_channel_name_textarea->user_data;
+                    int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
+                    lv_label_set_text(THIS->ch_label[btn_id], name);
+                    strcpy(THIS->channel_scratch[ch].settings.name, name);
+                    memcpy(THIS->channel_scratch[ch].settings.psk.bytes, psk.bytes, 32);
+                    THIS->channel_scratch[ch].settings.psk.size = 32;
+                    lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
+                    lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+                    THIS->activeSettings = eChannel;
+                }
             }
             return;
         }
@@ -950,7 +1015,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             ILOG_ERROR("Unhandled ok event\n");
             break;
         }
-        TFTView_320x240::instance()->activeSettings = eNone;
+        THIS->activeSettings = eNone;
     }
 }
 
@@ -963,7 +1028,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        switch (TFTView_320x240::instance()->activeSettings) {
+        switch (THIS->activeSettings) {
         case TFTView_320x240::eUsername: {
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -981,6 +1046,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             break;
         }
         case TFTView_320x240::eChannel: {
+            delete[] THIS->channel_scratch;
             lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -996,7 +1062,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
             // revert to old brightness value
             uint32_t old_brightness = (unsigned long)objects.brightness_slider->user_data;
-            TFTView_320x240::instance()->displaydriver->setBrightness((int8_t)(old_brightness * 255 / 100));
+            THIS->displaydriver->setBrightness((int8_t)(old_brightness * 255 / 100));
             break;
         }
         case TFTView_320x240::eInputControl: {
@@ -1017,8 +1083,9 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eModifyChannel: {
             lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
             lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
-            TFTView_320x240::instance()->activeSettings = eChannel;
+            THIS->activeSettings = eChannel;
             return;
         }
         default:
@@ -1026,7 +1093,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             break;
         }
 
-        TFTView_320x240::instance()->activeSettings = eNone;
+        THIS->activeSettings = eNone;
     }
 }
 
@@ -1052,7 +1119,7 @@ void TFTView_320x240::ui_event_brightness_slider(lv_event_t *e)
     char buf[20];
     lv_snprintf(buf, sizeof(buf), "Brightness: %d%%", (int)lv_slider_get_value(slider));
     lv_label_set_text(objects.settings_brightness_label, buf);
-    TFTView_320x240::instance()->displaydriver->setBrightness((int8_t)(lv_slider_get_value(slider) * 255 / 100));
+    THIS->displaydriver->setBrightness((int8_t)(lv_slider_get_value(slider) * 255 / 100));
 }
 
 void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
@@ -1062,7 +1129,7 @@ void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
     uint32_t channel = (uint32_t)lv_slider_get_value(slider);
     sprintf(buf, "FrequencySlot: %d (%.2f MHz)", channel,
             LoRaPresets::getRadioFreq(
-                TFTView_320x240::instance()->db.config.lora.region,
+                THIS->db.config.lora.region,
                 (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(objects.settings_modem_preset_dropdown),
                 channel));
     lv_label_set_text(objects.frequency_slot_label, buf);
@@ -1073,7 +1140,7 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
     lv_obj_t *dropdown = lv_event_get_target_obj(e);
     meshtastic_Config_LoRaConfig_ModemPreset preset =
         (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown);
-    uint32_t numChannels = LoRaPresets::getNumChannels(TFTView_320x240::instance()->db.config.lora.region, preset);
+    uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
 
     uint32_t channel = 1;
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
@@ -1081,7 +1148,7 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
 
     char buf[40];
     sprintf(buf, "FrequencySlot: %d (%.2f MHz)", channel,
-            LoRaPresets::getRadioFreq(TFTView_320x240::instance()->db.config.lora.region, preset, channel));
+            LoRaPresets::getRadioFreq(THIS->db.config.lora.region, preset, channel));
     lv_label_set_text(objects.frequency_slot_label, buf);
 }
 
@@ -1654,8 +1721,17 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
                                             objects.channel_button6, objects.channel_button7};
     db.channel[ch.index] = ch;
 
-    if (strlen(ch.settings.name)) {
-        lv_label_set_text(channel[ch.index], ch.settings.name);
+    if (ch.role != meshtastic_Channel_Role_DISABLED) {
+        if (ch.role == meshtastic_Channel_Role_PRIMARY) {
+            char buf[32];
+            lv_snprintf(buf, sizeof(buf), "Channel: %s", strlen(ch.settings.name) ? ch.settings.name : "<no name>");
+            lv_label_set_text(objects.basic_settings_channel_label, buf);
+            lv_snprintf(buf, sizeof(buf), "*%s", strlen(ch.settings.name) ? ch.settings.name : "<no name>");
+            lv_label_set_text(channel[ch.index], buf);
+        } else {
+            lv_label_set_text(channel[ch.index], ch.settings.name);
+        }
+
         newMessageContainer(0, UINT32_MAX, ch.index);
 
         lv_obj_set_width(btn[ch.index], lv_pct(70));
@@ -1681,6 +1757,9 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     } else {
+        char buf[10];
+        lv_snprintf(buf, sizeof(buf), "%d", ch.index);
+        lv_label_set_text(channel[ch.index], buf);
         lv_obj_set_width(btn[ch.index], lv_pct(30));
     }
 }
@@ -1754,7 +1833,7 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
 }
 
 /**
- * @brief Create a new container for a node or group channel
+ * @brief Create a new container for a node or group channel if it does not exist
  *
  * @param from
  * @param to: UINT32_MAX for broadcast, ownNode (= us) otherwise
@@ -1762,6 +1841,14 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
  */
 lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8_t ch)
 {
+    if (to == UINT32_MAX || from == 0) {
+        if (channelGroup[ch] != nullptr)
+            return channelGroup[ch];
+    } else {
+        if (messages[from] != nullptr)
+            return messages[from];
+    }
+
     // create container for new messages
     lv_obj_t *container = lv_obj_create(objects.messages_panel);
     lv_obj_remove_style_all(container);

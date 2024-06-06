@@ -2,9 +2,9 @@
 
 #include "DisplayDriverConfig.h"
 #include "ILog.h"
+#include "InputDriver.h"
 #include "LovyanGFX.h"
 #include "TFTDriver.h"
-#include "InputDriver.h"
 #include <functional>
 
 const uint32_t defaultScreenTimeout = 60 * 1000;
@@ -94,8 +94,8 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         lgfx->wakeup();
                         lgfx->setBrightness(lastBrightness);
                     } else {
-                         // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
-                         // continue with processing loop and enter sleep() again next round
+                        // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
+                        // continue with processing loop and enter sleep() again next round
                     }
                 }
             }

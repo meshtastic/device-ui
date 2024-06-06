@@ -1,16 +1,13 @@
-#include "Arduino.h"
 #include "ResponseHandler.h"
+#include "Arduino.h"
 #include "ILog.h"
 
 /**
  * @brief Construct a new Response Handler:: Response Handler object
- * 
- * @param timeout 
+ *
+ * @param timeout
  */
-ResponseHandler::ResponseHandler(uint32_t timeout) : requestIdCounter(0), maxTime(timeout)
-{
-
-}
+ResponseHandler::ResponseHandler(uint32_t timeout) : requestIdCounter(0), maxTime(timeout) {}
 
 uint32_t ResponseHandler::addRequest(uint32_t id)
 {
@@ -43,7 +40,7 @@ uint32_t ResponseHandler::removeRequest(uint32_t requestId)
 /**
  * @brief  Garbage collection that is periodically called.
  *         removes all pending requests that timed out
- * 
+ *
  */
 void ResponseHandler::task_handler(void)
 {
@@ -52,11 +49,10 @@ void ResponseHandler::task_handler(void)
     std::map<uint32_t, Request>::iterator it = pendingRequest.begin();
     while (it != pendingRequest.end()) {
         if (it->second.timestamp + maxTime < millis()) {
-           ILOG_DEBUG("removing timed out request %08x\n", it->first);
-           it = pendingRequest.erase(it);
-        } 
-        else {
-           it++;
+            ILOG_DEBUG("removing timed out request %08x\n", it->first);
+            it = pendingRequest.erase(it);
+        } else {
+            it++;
         }
     }
 }

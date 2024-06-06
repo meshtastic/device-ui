@@ -186,16 +186,18 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *input_group = nullptr;
 
-    enum BasicSettings activeSettings = eNone;
+    enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
-    static TFTView_320x240 *gui;
-    time_t lastrun60, lastrun5;
-    static bool advanced_mode;
-    char old_val1_scratch[64], old_val2_scratch[64];
+    static TFTView_320x240 *gui;                     // singleton pattern
+    time_t lastrun60, lastrun5;                      // timers for task loop
+    static bool advanced_mode;                       // advanced settings
+    char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
+    std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
+    meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db
 
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
-        meshtastic_Channel channel[8];
+        meshtastic_Channel channel[c_max_channels];
     };
 
-    meshtastic_DeviceProfile_ext db;
+    meshtastic_DeviceProfile_ext db; // full copy of the node's configuration db (except nodeinfos)
 };

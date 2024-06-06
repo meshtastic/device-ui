@@ -27,7 +27,7 @@ class LGFXConfig : public lgfx::LGFX_Device
 
     LGFXConfig(const DisplayDriverConfig &config)
     {
-        ILOG_DEBUG("LGFXConfig ...\n"); 
+        ILOG_DEBUG("LGFXConfig ...\n");
         { // configure panel settings
             if (strcasecmp(config._panel.type, "ST7789") == 0)
                 _panel_instance = new lgfx::Panel_ST7789;
@@ -79,8 +79,8 @@ class LGFXConfig : public lgfx::LGFX_Device
             cfg.dlen_16bit = config._panel.dlen_16bit;
             cfg.bus_shared = config._panel.bus_shared;
 
-            ILOG_DEBUG("Panel_Device(%s): %dx%d, cs=%d, rst=%d, busy=%d\n", 
-                config._panel.type, screenWidth, screenHeight, cfg.pin_cs, cfg.pin_rst, cfg.pin_busy);
+            ILOG_DEBUG("Panel_Device(%s): %dx%d, cs=%d, rst=%d, busy=%d\n", config._panel.type, screenWidth, screenHeight,
+                       cfg.pin_cs, cfg.pin_rst, cfg.pin_busy);
             _panel_instance->config(cfg);
         }
 
@@ -165,15 +165,15 @@ class LGFXConfig : public lgfx::LGFX_Device
                     cfg.pin_scl = config._touch.i2c.pin_scl;
                     cfg.pin_sda = config._touch.i2c.pin_sda;
                     cfg.i2c_addr = config._touch.i2c.i2c_addr;
-                    ILOG_DEBUG("Touch_I2C: freq=%d, port=%02x, addr=%d, cs=%d, int=%d, rst=%d\n", 
-                        cfg.freq, cfg.i2c_port, cfg.i2c_addr, cfg.pin_cs, cfg.pin_int, cfg.pin_rst);
+                    ILOG_DEBUG("Touch_I2C: freq=%d, port=%02x, addr=%d, cs=%d, int=%d, rst=%d\n", cfg.freq, cfg.i2c_port,
+                               cfg.i2c_addr, cfg.pin_cs, cfg.pin_int, cfg.pin_rst);
                 } else {
                     cfg.spi_host = config._touch.spi.spi_host;
                     cfg.pin_sclk = config._touch.spi.pin_sclk;
                     cfg.pin_mosi = config._touch.spi.pin_mosi;
                     cfg.pin_miso = config._touch.spi.pin_miso;
-                    ILOG_DEBUG("Touch_SPI: freq=%d, host=%02x, cs=%d, int=%d, rst=%d\n", 
-                        cfg.freq, cfg.spi_host, cfg.pin_cs, cfg.pin_int, cfg.pin_rst);
+                    ILOG_DEBUG("Touch_SPI: freq=%d, host=%02x, cs=%d, int=%d, rst=%d\n", cfg.freq, cfg.spi_host, cfg.pin_cs,
+                               cfg.pin_int, cfg.pin_rst);
                 }
 
                 _touch_instance->config(cfg);

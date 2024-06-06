@@ -1,10 +1,10 @@
 #pragma once
 
-#include <stdint.h>
 #include <map>
+#include <stdint.h>
 
 /**
- * @brief Generic class that stores an id together with a timestamp 
+ * @brief Generic class that stores an id together with a timestamp
  *        and returns a requestId(cookie).
  */
 class ResponseHandler

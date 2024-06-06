@@ -21,10 +21,10 @@ class DeviceGUI
     virtual bool sleep(int16_t pin) { return false; }
     virtual void blankScreen(bool enable) {}
 
-    DisplayDriver* getDisplayDriver(void) const { return displaydriver; }
-    InputDriver* getInputDriver(void) const { return inputdriver; }
+    DisplayDriver *getDisplayDriver(void) const { return displaydriver; }
+    InputDriver *getInputDriver(void) const { return inputdriver; }
 
   protected:
     DisplayDriver *displaydriver;
-    InputDriver* inputdriver;
+    InputDriver *inputdriver;
 };
