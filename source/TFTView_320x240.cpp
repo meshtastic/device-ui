@@ -1001,8 +1001,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
                     lv_label_set_text(THIS->ch_label[btn_id], name);
                     strcpy(THIS->channel_scratch[ch].settings.name, name);
-                    memcpy(THIS->channel_scratch[ch].settings.psk.bytes, psk.bytes, 32);
-                    THIS->channel_scratch[ch].settings.psk.size = 32;
+                    memcpy(THIS->channel_scratch[ch].settings.psk.bytes, psk.bytes, psk.size);
                     lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
                     lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
                     lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
