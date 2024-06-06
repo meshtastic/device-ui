@@ -59,6 +59,7 @@ class TFTView_320x240 : public MeshtasticView
     void packetReceived(const meshtastic_MeshPacket &p) override;
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) override;
     void notifyResync(bool show) override;
+    void notifyReboot(bool show) override;
     void blankScreen(bool enable) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
     void updateNodesOnline(const char *str) override;
@@ -107,6 +108,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
     // create empty message container for node or group channel
     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
+    // display message alert popup
+    virtual void messageAlert(const char *alert, bool show);
     // mark sent message as received
     virtual void responseReceived(uint32_t channelOrNode, uint32_t id, bool ack);
     // set node image based on role

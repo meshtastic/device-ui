@@ -470,7 +470,6 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
         lv_obj_t *kb = lv_event_get_target_obj(e);
-        uint32_t dialog = (uint32_t)(unsigned long)e->user_data;
         uint32_t btn_id = lv_keyboard_get_selected_button(kb);
 
         switch (btn_id) {
@@ -495,7 +494,8 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             break;
         }
         default:
-            const char *txt = lv_keyboard_get_button_text(kb, btn_id);
+            break;
+            // const char *txt = lv_keyboard_get_button_text(kb, btn_id);
         }
     }
 }
@@ -589,7 +589,6 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
         int pos = 1;
         for (int i = 0; i < c_max_channels; i++) {
             if (THIS->db.channel[i].has_settings && THIS->db.channel[i].role != meshtastic_Channel_Role_DISABLED) {
-                uint32_t index = THIS->db.channel[i].index;
                 if (THIS->db.channel[i].role == meshtastic_Channel_Role_PRIMARY) {
                     THIS->ch_label[0]->user_data = (void *)i;
                     lv_label_set_text(THIS->ch_label[0], THIS->db.channel[i].settings.name);
@@ -722,7 +721,7 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
             ignore_clicked = false;
             return;
         }
-        uint8_t btn_id = (uint8_t)(unsigned long)e->user_data;
+        uint32_t btn_id = (unsigned long)e->user_data;
         int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
         if (ch != -1) {
             meshtastic_ChannelSettings_psk_t &psk = THIS->channel_scratch[ch].settings.psk;
@@ -771,10 +770,10 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
         if (btn_id != 0 && ch != -1) {
             uint8_t index = THIS->channel_scratch[ch].index;
             ILOG_DEBUG("press %d, ch=%d, index=%d\n", (int)btn_id, (int)ch, (int)index);
-            int8_t primary_id = (signed long)THIS->ch_label[0]->user_data;
+            int32_t primary_id = (signed long)THIS->ch_label[0]->user_data;
             THIS->channel_scratch[primary_id].role = meshtastic_Channel_Role_SECONDARY;
             THIS->channel_scratch[ch].role = meshtastic_Channel_Role_PRIMARY;
-            THIS->ch_label[0]->user_data = (void *)ch;
+            THIS->ch_label[0]->user_data = (void *)(uint32_t)ch;
             THIS->ch_label[btn_id]->user_data = (void *)primary_id;
             lv_label_set_text(THIS->ch_label[0], THIS->channel_scratch[ch].settings.name);
             lv_label_set_text(THIS->ch_label[btn_id], THIS->channel_scratch[primary_id].settings.name);
@@ -815,6 +814,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             strcpy(user.short_name, userShort);
             strcpy(user.long_name, userLong);
             THIS->controller->sendConfig(user, THIS->ownNode);
+            THIS->notifyReboot(true);
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -827,6 +827,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             meshtastic_Config_DeviceConfig &device = THIS->db.config.device;
             device.role = (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(objects.settings_device_role_dropdown);
             THIS->controller->sendConfig(meshtastic_Config_DeviceConfig{device}, THIS->ownNode);
+            THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -842,6 +843,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
             lora.channel_num = 1;
             THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
+            THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -858,6 +860,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 (meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
             lora.channel_num = (uint16_t)lv_slider_get_value(objects.frequency_slot_slider);
             THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
+            THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -969,6 +972,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf, sizeof(buf), "Message Alert: %s", config.alert_message ? "on" : "off");
             lv_label_set_text(objects.basic_settings_alert_label, buf);
 
+            THIS->notifyReboot(true);
             THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
             break;
@@ -982,10 +986,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         case eReboot: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reboot_dropdown);
             if (option == 0) {
+                THIS->notifyReboot(true);
                 THIS->controller->requestReboot(5, THIS->ownNode);
             } else if (option == 1) {
                 THIS->controller->requestShutdown(5, THIS->ownNode);
             } else if (option == 2) {
+                THIS->notifyReboot(true);
                 THIS->controller->requestRebootOTA(5, THIS->ownNode);
             }
             lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
@@ -1657,6 +1663,15 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
     }
 }
 
+void TFTView_320x240::messageAlert(const char *alert, bool show)
+{
+    lv_label_set_text(objects.alert_label, alert);
+    if (show)
+        lv_obj_clear_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
+    else
+        lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
+}
+
 /**
  * @brief mark the sent message as either heard or acknowledged
  *
@@ -1699,10 +1714,12 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
 
 void TFTView_320x240::notifyResync(bool show)
 {
-    if (show)
-        lv_obj_clear_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
-    else
-        lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
+    messageAlert("Resynch ...", show);
+}
+
+void TFTView_320x240::notifyReboot(bool show)
+{
+    messageAlert("Rebooting ...", show);
 }
 
 void TFTView_320x240::blankScreen(bool enable)

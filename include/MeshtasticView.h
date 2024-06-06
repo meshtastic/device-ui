@@ -91,6 +91,7 @@ class MeshtasticView : public DeviceGUI
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
     virtual void notifyResync(bool show);
+    virtual void notifyReboot(bool show);
     virtual void showMessagePopup(const char *from);
 
     virtual void removeNode(uint32_t nodeNum);
@@ -117,5 +118,5 @@ class MeshtasticView : public DeviceGUI
     uint32_t nodeCount = 1, nodesOnline = 1, ownNode = 0; // node info
     uint32_t unreadMessages = 0;                          // messages
     bool configComplete = false;                          // config request finishe
-    time_t lastrun30 = 0;                                 // 30s task
+    time_t lastrun20 = 0;                                 // 20s task
 };

@@ -26,8 +26,8 @@ void MeshtasticView::task_handler(void)
 
     time_t curtime;
     time(&curtime);
-    if (curtime - lastrun30 >= 30) {
-        lastrun30 = curtime;
+    if (curtime - lastrun20 >= 20) {
+        lastrun20 = curtime;
         // send heartbeat to server every 30s
         if (!displaydriver->isPowersaving()) {
             controller->sendHeartbeat();
@@ -86,6 +86,8 @@ void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float v
 void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {}
 
 void MeshtasticView::notifyResync(bool show) {}
+
+void MeshtasticView::notifyReboot(bool show) {}
 
 void MeshtasticView::showMessagePopup(const char *from) {}
 
