@@ -319,11 +319,9 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         // set color and text of clicked group channel
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        if (THIS->channelGroup[ch]) {
-            THIS->showMessages(ch);
-        } else {
-            // TODO: click on unset channel should popup config screen
-        }
+        THIS->showMessages(ch);
+    } else {
+        // TODO: click on unset channel should popup config screen
     }
 }
 
@@ -1748,8 +1746,6 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
             lv_label_set_text(channel[ch.index], ch.settings.name);
         }
 
-        newMessageContainer(0, UINT32_MAX, ch.index);
-
         lv_obj_set_width(btn[ch.index], lv_pct(70));
         lv_obj_set_style_pad_left(btn[ch.index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_t *lockImage = lv_img_create(btn[ch.index]);
@@ -2138,6 +2134,10 @@ void TFTView_320x240::showMessages(uint8_t ch)
 {
     lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     activeMsgContainer = channelGroup[ch];
+    if (!activeMsgContainer) {
+        activeMsgContainer = newMessageContainer(0, UINT32_MAX, ch);
+    }
+
     activeMsgContainer->user_data = (void *)(uint32_t)ch;
     lv_obj_clear_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(objects.top_group_chat_label, lv_label_get_text(channel[ch]));
