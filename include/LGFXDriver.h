@@ -299,6 +299,7 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
 {
     calibrating = true;
     lgfx->clearDisplay();
+    lgfx->fillScreen(LGFX::color565(0x67, 0xEA, 0x94));
     lgfx->setTextSize(1);
     lgfx->setTextDatum(textdatum_t::middle_center);
     lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
