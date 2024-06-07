@@ -127,7 +127,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [x] Screen Calibration
         - [x] Brightness
         - [x] Input Control
-        - [ ] Message Alert
+        - [x] Message Alert
         - [ ] Language
         - [ ] Timezone
         - [ ] Maps
@@ -140,7 +140,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [ ] Module Settings
     - [x] Status bar with battery symbol
     - [x] UI Keyboard navigation & control
-    - [ ] Latin supplemental fonts
+    - [x] Latin supplemental fonts
 
 ### :pager: T-Deck (also covered: unPhone)
 
