@@ -1078,7 +1078,7 @@ void create_screen_main_screen() {
                             lv_obj_set_pos(obj, 0, 0);
                             lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
-                            lv_label_set_text(obj, "Screen Timeout: 60");
+                            lv_label_set_text(obj, "Screen Timeout: 60s");
                         }
                     }
                 }
