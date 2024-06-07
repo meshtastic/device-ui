@@ -317,9 +317,9 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        // set color and text of clicked group channel
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        THIS->showMessages(ch);
+        if (THIS->db.channel[ch].role != meshtastic_Channel_Role_DISABLED)
+            THIS->showMessages(ch);
     } else {
         // TODO: click on unset channel should popup config screen
     }
