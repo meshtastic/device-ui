@@ -791,8 +791,6 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
         uint8_t btn_id = (uint8_t)(unsigned long)e->user_data;
         int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
         if (btn_id != 0 && ch != -1) {
-            uint8_t index = THIS->channel_scratch[ch].index;
-            ILOG_DEBUG("press %d, ch=%d, index=%d\n", (int)btn_id, (int)ch, (int)index);
             int32_t primary_id = (signed long)THIS->ch_label[0]->user_data;
             THIS->channel_scratch[primary_id].role = meshtastic_Channel_Role_SECONDARY;
             THIS->channel_scratch[ch].role = meshtastic_Channel_Role_PRIMARY;
