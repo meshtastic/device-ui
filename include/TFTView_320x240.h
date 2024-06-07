@@ -44,7 +44,7 @@ class TFTView_320x240 : public MeshtasticView
     // methods to update module config
     void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) override {}
     void updateSerialModule(const meshtastic_ModuleConfig_SerialConfig &cfg) override {}
-    void updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg) override {}
+    void updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg) override;
     void updateStoreForwardModule(const meshtastic_ModuleConfig_StoreForwardConfig &cfg) override {}
     void updateRangeTestModule(const meshtastic_ModuleConfig_RangeTestConfig &cfg) override {}
     void updateTelemetryModule(const meshtastic_ModuleConfig_TelemetryConfig &cfg) override {}
@@ -57,7 +57,10 @@ class TFTView_320x240 : public MeshtasticView
     void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) override {}
 
     void packetReceived(const meshtastic_MeshPacket &p) override;
+    void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) override;
     void notifyResync(bool show) override;
+    void notifyReboot(bool show) override;
+    void blankScreen(bool enable) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
     void updateNodesOnline(const char *str) override;
     void removeNode(uint32_t nodeNum) override;
@@ -67,6 +70,7 @@ class TFTView_320x240 : public MeshtasticView
         eUsername,
         eDeviceRole,
         eRegion,
+        eModemPreset,
         eChannel,
         eLanguage,
         eScreenTimeout,
@@ -99,11 +103,15 @@ class TFTView_320x240 : public MeshtasticView
     // own chat message
     virtual void handleAddMessage(char *msg);
     // add own message to current chat
-    virtual void addMessage(char *msg);
+    virtual void addMessage(uint32_t requestId, char *msg);
     // add new message to container
     virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
     // create empty message container for node or group channel
     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
+    // display message alert popup
+    virtual void messageAlert(const char *alert, bool show);
+    // mark sent message as received
+    virtual void responseReceived(uint32_t channelOrNode, uint32_t id, bool ack);
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img);
     // set last heard to now, update nodes online
@@ -143,6 +151,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ChatButton(lv_event_t *e);
     static void ui_event_ChatDelButton(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
+    static void ui_event_MemoryButton(lv_event_t *e);
     static void ui_event_KeyboardButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
 
@@ -151,9 +160,11 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_user_button(lv_event_t *e);
     static void ui_event_role_button(lv_event_t *e);
     static void ui_event_region_button(lv_event_t *e);
+    static void ui_event_preset_button(lv_event_t *e);
     static void ui_event_language_button(lv_event_t *e);
     static void ui_event_channel_button(lv_event_t *e);
     static void ui_event_brightness_button(lv_event_t *e);
+    static void ui_event_calibration_button(lv_event_t *e);
     static void ui_event_timeout_button(lv_event_t *e);
     static void ui_event_input_button(lv_event_t *e);
     static void ui_event_alert_button(lv_event_t *e);
@@ -163,6 +174,11 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_screen_timeout_slider(lv_event_t *e);
     static void ui_event_brightness_slider(lv_event_t *e);
+    static void ui_event_frequency_slot_slider(lv_event_t *e);
+    static void ui_event_modem_preset_dropdown(lv_event_t *e);
+
+    static void ui_event_calibration_screen_loaded(lv_event_t *e);
+
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);
 
@@ -174,16 +190,18 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *input_group = nullptr;
 
-    enum BasicSettings activeSettings = eNone;
+    enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
-    static TFTView_320x240 *gui;
-    time_t lastrun60, lastrun5;
-    static bool advanced_mode;
-    char old_val1_scratch[64], old_val2_scratch[64];
+    static TFTView_320x240 *gui;                     // singleton pattern
+    time_t lastrun60, lastrun5;                      // timers for task loop
+    static bool advanced_mode;                       // advanced settings
+    char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
+    std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
+    meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db
 
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
-        meshtastic_Channel channel[8];
+        meshtastic_Channel channel[c_max_channels];
     };
 
-    meshtastic_DeviceProfile_ext db;
+    meshtastic_DeviceProfile_ext db; // full copy of the node's configuration db (except nodeinfos)
 };

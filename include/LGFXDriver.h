@@ -2,6 +2,7 @@
 
 #include "DisplayDriverConfig.h"
 #include "ILog.h"
+#include "InputDriver.h"
 #include "LovyanGFX.h"
 #include "TFTDriver.h"
 #include <functional>
@@ -15,6 +16,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     LGFXDriver(uint16_t width, uint16_t height);
     LGFXDriver(const DisplayDriverConfig &cfg);
     void init(DeviceGUI *gui) override;
+    bool calibrate(void) override;
     bool hasTouch() override { return lgfx->touch(); }
     bool hasLight(void) override { return lgfx->light(); }
     bool isPowersaving() override { return powerSaving; }
@@ -43,6 +45,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     size_t bufsize;
     lv_color_t *buf1;
     lv_color_t *buf2;
+    bool calibrating;
 };
 
 template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
@@ -50,7 +53,7 @@ template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
     : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), screenTimeout(defaultScreenTimeout),
-      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr)
+      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
 {
     lgfx = this->tft;
 }
@@ -58,48 +61,66 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
     : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), powerSaving(false), bufsize(0), buf1(nullptr),
-      buf2(nullptr)
+      buf2(nullptr), calibrating(false)
 {
     lgfx = this->tft;
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
-    if ((hasTouch() /* || hasButton() */) && hasLight()) {
-        if (screenTimeout > 0 && screenTimeout < lv_display_get_inactive_time(NULL)) {
-            if (!powerSaving) {
-                // dim display brightness slowly down
-                uint32_t brightness = lgfx->getBrightness();
-                if (brightness > 1) {
-                    lgfx->setBrightness(brightness - 1);
-                } else {
-                    lgfx->sleep();
-                    lgfx->powerSaveOn();
+    // handle display timeout
+    if ((screenTimeout > 0 && screenTimeout < lv_display_get_inactive_time(NULL)) || powerSaving) {
+        // sleep screen only if there are means for wakeup
+        if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
+            DisplayDriver::view->getInputDriver()->hasKeyboardDevice() /* || hasButton() */) {
+            if (hasLight()) {
+                if (!powerSaving) {
+                    // dim display brightness slowly down
+                    uint32_t brightness = lgfx->getBrightness();
+                    if (brightness > 1) {
+                        lgfx->setBrightness(brightness - 1);
+                    } else {
+                        lgfx->sleep();
+                        lgfx->powerSaveOn();
+                        powerSaving = true;
+                    }
+                }
+                if (powerSaving) {
+                    if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int) ||
+                        screenTimeout > lv_display_get_inactive_time(NULL)) {
+                        // woke up by touch or button
+                        powerSaving = false;
+                        lgfx->powerSaveOff();
+                        lgfx->wakeup();
+                        lgfx->setBrightness(lastBrightness);
+                    } else {
+                        // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
+                        // continue with processing loop and enter sleep() again next round
+                    }
+                }
+            }
+            // no BL pin defined to control brightness, so show blank screen instead
+            else {
+                if (!powerSaving) {
+                    DisplayDriver::view->blankScreen(true);
                     powerSaving = true;
+                }
+                if (screenTimeout > lv_display_get_inactive_time(NULL)) {
+                    DisplayDriver::view->blankScreen(false);
+                    powerSaving = false;
                 }
             }
         }
-        if (powerSaving) {
-            if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int) ||
-                screenTimeout > lv_display_get_inactive_time(NULL)) {
-                // woke up by touch or button
-                powerSaving = false;
-                lgfx->powerSaveOff();
-                lgfx->wakeup();
-                lgfx->setBrightness(lastBrightness);
-            } else {
-                // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
-                // continue with processing loop and enter sleep() again next round
-            }
-        }
     }
-#ifdef HAS_FREE_RTOS
-    lv_tick_set_cb(xTaskGetTickCount);
-#else
-    lv_tick_set_cb(my_tick_get_cb);
-#endif
 
-    DisplayDriver::task_handler();
+    if (!calibrating) {
+#ifdef HAS_FREE_RTOS
+        lv_tick_set_cb(xTaskGetTickCount);
+#else
+        lv_tick_set_cb(my_tick_get_cb);
+#endif
+        DisplayDriver::task_handler();
+    }
 }
 
 #if 1
@@ -138,7 +159,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         data->point.x = touchX;
         data->point.y = touchY;
 
-        ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
+        // ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
     }
 }
 
@@ -195,7 +216,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
 
     ILOG_DEBUG("Set display resolution: %dx%d\n", lgfx->screenWidth, lgfx->screenHeight);
-    lv_display_set_resolution(this->display, lgfx->screenWidth, lgfx->screenHeight);
+    // lv_display_set_resolution(this->display, lgfx->screenWidth, lgfx->screenHeight);
     // lv_display_set_physical_resolution(this->display, this->screenWidth, this->screenHeight);
     // lv_display_set_rotation(this->display, LV_DISPLAY_ROTATION_90);
 
@@ -227,9 +248,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 {
     // Initialize LovyanGFX
     ILOG_DEBUG("LGFX init...\n");
-    TFTDriver<LGFX>::tft->init();
-    TFTDriver<LGFX>::tft->setBrightness(defaultBrightness);
-    TFTDriver<LGFX>::tft->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
+    lgfx->init();
+    lgfx->setBrightness(defaultBrightness);
+    lgfx->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
 
     if (hasTouch()) {
 #ifdef CALIBRATE_TOUCH
@@ -254,19 +275,17 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 #endif
 
 #if !CALIBRATE_TOUCH
-        TFTDriver<LGFX>::tft->setTouchCalibrate(parameters);
+        lgfx->setTouchCalibrate(parameters);
 #else
-        TFTDriver<LGFX>::tft->setTextSize(2);
-        TFTDriver<LGFX>::tft->setTextDatum(textdatum_t::middle_center);
-        TFTDriver<LGFX>::tft->drawString("touch the arrow marker.", TFTDriver<LGFX>::tft->width() >> 1,
-                                         TFTDriver<LGFX>::tft->height() >> 1);
-        TFTDriver<LGFX>::tft->setTextDatum(textdatum_t::top_left);
+        lgfx->setTextSize(2);
+        lgfx->setTextDatum(textdatum_t::middle_center);
+        lgfx->drawString("touch the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
+        lgfx->setTextDatum(textdatum_t::top_left);
         std::uint16_t fg = TFT_BLUE;
-        std::uint16_t bg = LGFX::color565(0x40, 0xFF, 0x72);
-        if (TFTDriver<LGFX>::tft->isEPD())
+        std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
+        if (lgfx->isEPD())
             std::swap(fg, bg);
-        TFTDriver<LGFX>::tft->calibrateTouch(parameters, fg, bg,
-                                             std::max(TFTDriver<LGFX>::tft->width(), TFTDriver<LGFX>::tft->height()) >> 3);
+        lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
 
 #endif
         // FIXME: store parameters[] using lfs_file_write
@@ -274,6 +293,28 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
                    parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
 #endif
     }
+}
+
+template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
+{
+    calibrating = true;
+    lgfx->clearDisplay();
+    lgfx->fillScreen(LGFX::color565(0x67, 0xEA, 0x94));
+    lgfx->setTextSize(1);
+    lgfx->setTextDatum(textdatum_t::middle_center);
+    lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
+    lgfx->setTextDatum(textdatum_t::top_left);
+    std::uint16_t fg = TFT_BLUE;
+    std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
+    if (lgfx->isEPD())
+        std::swap(fg, bg);
+    uint16_t parameters[8];
+    lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
+    ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", parameters[0], parameters[1],
+               parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
+
+    calibrating = false;
+    return true;
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::setBrightness(uint8_t brightness)

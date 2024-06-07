@@ -25,7 +25,10 @@ OLEDView_128x64 *OLEDView_128x64::instance(const DisplayDriverConfig &cfg)
     return gui;
 }
 
-OLEDView_128x64::OLEDView_128x64(const DisplayDriverConfig *cfg, DisplayDriver *driver) : MeshtasticView(cfg, driver, new OLEDViewController) {}
+OLEDView_128x64::OLEDView_128x64(const DisplayDriverConfig *cfg, DisplayDriver *driver)
+    : MeshtasticView(cfg, driver, new OLEDViewController)
+{
+}
 
 void OLEDView_128x64::init(IClientBase *client)
 {

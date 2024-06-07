@@ -5,7 +5,7 @@
 class LinuxInputDriver : public InputDriver
 {
   public:
-    LinuxInputDriver(const std::string& kbdDevice, const std::string& ptrDevice);
+    LinuxInputDriver(const std::string &kbdDevice, const std::string &ptrDevice);
     void init(void) override;
     void task_handler(void) override;
     virtual ~LinuxInputDriver(void);

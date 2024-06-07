@@ -7,8 +7,10 @@
 
 extern const char *firmware_version;
 
-MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller) : 
-    DeviceGUI(cfg, driver), controller(_controller) {}
+MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller)
+    : DeviceGUI(cfg, driver), controller(_controller), requests(c_request_timeout)
+{
+}
 
 void MeshtasticView::init(IClientBase *client)
 {
@@ -24,12 +26,15 @@ void MeshtasticView::task_handler(void)
 
     time_t curtime;
     time(&curtime);
-    if (curtime - lastrun30 >= 30) {
-        lastrun30 = curtime;
+    if (curtime - lastrun20 >= 20) {
+        lastrun20 = curtime;
         // send heartbeat to server every 30s
         if (!displaydriver->isPowersaving()) {
             controller->sendHeartbeat();
         }
+
+        // cleanup queued requests
+        requests.task_handler();
     }
 };
 
@@ -81,6 +86,8 @@ void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float v
 void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {}
 
 void MeshtasticView::notifyResync(bool show) {}
+
+void MeshtasticView::notifyReboot(bool show) {}
 
 void MeshtasticView::showMessagePopup(const char *from) {}
 
@@ -180,30 +187,12 @@ const char *MeshtasticView::deviceRoleToString(enum eRole role)
     };
 }
 
-const char *MeshtasticView::loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region)
-{
-    static std::unordered_map<meshtastic_Config_LoRaConfig_RegionCode, std::string> regionString{
-        {meshtastic_Config_LoRaConfig_RegionCode_UNSET, "<unset>"}, {meshtastic_Config_LoRaConfig_RegionCode_US, "US"},
-        {meshtastic_Config_LoRaConfig_RegionCode_EU_433, "EU_433"}, {meshtastic_Config_LoRaConfig_RegionCode_EU_868, "EU_868"},
-        {meshtastic_Config_LoRaConfig_RegionCode_CN, "CN"},         {meshtastic_Config_LoRaConfig_RegionCode_JP, "JP"},
-        {meshtastic_Config_LoRaConfig_RegionCode_ANZ, "ANZ"},       {meshtastic_Config_LoRaConfig_RegionCode_KR, "KR"},
-        {meshtastic_Config_LoRaConfig_RegionCode_TW, "TW"},         {meshtastic_Config_LoRaConfig_RegionCode_RU, "RU"},
-        {meshtastic_Config_LoRaConfig_RegionCode_IN, "TN"},         {meshtastic_Config_LoRaConfig_RegionCode_NZ_865, "NZ_865"},
-        {meshtastic_Config_LoRaConfig_RegionCode_TH, "TH"},         {meshtastic_Config_LoRaConfig_RegionCode_LORA_24, "LORA_24"},
-        {meshtastic_Config_LoRaConfig_RegionCode_UA_433, "UA_433"}, {meshtastic_Config_LoRaConfig_RegionCode_UA_868, "UA_868"},
-        {meshtastic_Config_LoRaConfig_RegionCode_MY_433, "MY_433"}, {meshtastic_Config_LoRaConfig_RegionCode_MY_919, "MY_919"},
-        {meshtastic_Config_LoRaConfig_RegionCode_SG_923, "SG_923"}};
-    return regionString[region].c_str();
-}
-
 #include "Base64.h"
+#include <cstring>
 std::string MeshtasticView::pskToBase64(const meshtastic_ChannelSettings_psk_t &psk)
 {
     if (psk.size > 0) {
-        char psk_string[sizeof(psk.bytes) + 1];
-        memcpy(psk_string, psk.bytes, psk.size);
-        psk_string[psk.size] = '\0';
-        return macaron::Base64::Encode(psk_string);
+        return macaron::Base64::Encode(&psk.bytes[0], psk.size);
     } else {
         return "";
     }
@@ -218,6 +207,10 @@ bool MeshtasticView::base64ToPsk(const std::string &base64, meshtastic_ChannelSe
         return false;
     } else {
         strcpy((char *)&psk.bytes[0], out.data());
+        // skip trailing 0x00 bytes
+        // uint32_t size = 32;
+        // while (psk.bytes[size-1] == 0x00 && size-->1);
+        psk.size = 32;
     }
     return true;
 }

@@ -68,6 +68,7 @@ typedef struct _objects_t {
     lv_obj_t *main_screen;
     lv_obj_t *blank_screen;
     lv_obj_t *open_sauce_screen;
+    lv_obj_t *calibration_screen;
     lv_obj_t *advanced_settings_panel;
     lv_obj_t *alert_label;
     lv_obj_t *alert_panel;
@@ -75,12 +76,16 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_alert_label;
     lv_obj_t *basic_settings_brightness_button;
     lv_obj_t *basic_settings_brightness_label;
+    lv_obj_t *basic_settings_calibration_button;
+    lv_obj_t *basic_settings_calibration_label;
     lv_obj_t *basic_settings_channel_button;
     lv_obj_t *basic_settings_channel_label;
     lv_obj_t *basic_settings_input_button;
     lv_obj_t *basic_settings_input_label;
     lv_obj_t *basic_settings_language_button;
     lv_obj_t *basic_settings_language_label;
+    lv_obj_t *basic_settings_modem_preset_button;
+    lv_obj_t *basic_settings_modem_preset_label;
     lv_obj_t *basic_settings_panel;
     lv_obj_t *basic_settings_reboot_button;
     lv_obj_t *basic_settings_reboot_label;
@@ -123,6 +128,8 @@ typedef struct _objects_t {
     lv_obj_t *del_label;
     lv_obj_t *firmware_label;
     lv_obj_t *firmware_label_1;
+    lv_obj_t *frequency_slot_label;
+    lv_obj_t *frequency_slot_slider;
     lv_obj_t *groups_button;
     lv_obj_t *groups_panel;
     lv_obj_t *home_bluetooth_button;
@@ -184,6 +191,10 @@ typedef struct _objects_t {
     lv_obj_t *obj11__cancel_button_w;
     lv_obj_t *obj11__ok_button_w;
     lv_obj_t *obj11__ok_cancel_panel_w;
+    lv_obj_t *obj12;
+    lv_obj_t *obj12__cancel_button_w;
+    lv_obj_t *obj12__ok_button_w;
+    lv_obj_t *obj12__ok_cancel_panel_w;
     lv_obj_t *obj2;
     lv_obj_t *obj2__cancel_button_w;
     lv_obj_t *obj2__ok_button_w;
@@ -245,6 +256,8 @@ typedef struct _objects_t {
     lv_obj_t *settings_keyboard_input_dropdown;
     lv_obj_t *settings_language_dropdown;
     lv_obj_t *settings_language_panel;
+    lv_obj_t *settings_modem_preset_dropdown;
+    lv_obj_t *settings_modem_preset_panel;
     lv_obj_t *settings_modify_channel_name_textarea;
     lv_obj_t *settings_modify_channel_panel;
     lv_obj_t *settings_modify_channel_psk_textarea;
@@ -297,7 +310,8 @@ enum ScreensEnum {
     SCREEN_ID_MAIN_SCREEN = 2,
     SCREEN_ID_BLANK_SCREEN = 3,
     SCREEN_ID_OPEN_SAUCE_SCREEN = 4,
-    SCREEN_ID_OK_CANCEL_WIDGET = 5,
+    SCREEN_ID_CALIBRATION_SCREEN = 5,
+    SCREEN_ID_OK_CANCEL_WIDGET = 6,
 };
 
 void create_screen_boot_screen();
@@ -311,6 +325,9 @@ void tick_screen_blank_screen();
 
 void create_screen_open_sauce_screen();
 void tick_screen_open_sauce_screen();
+
+void create_screen_calibration_screen();
+void tick_screen_calibration_screen();
 
 void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIndex);
 void tick_user_widget_ok_cancel_widget(int startWidgetIndex);

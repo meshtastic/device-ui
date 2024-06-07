@@ -19,9 +19,12 @@ class DeviceGUI
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
     virtual bool sleep(int16_t pin) { return false; }
-    virtual void addNode(void) {}
+    virtual void blankScreen(bool enable) {}
+
+    DisplayDriver *getDisplayDriver(void) const { return displaydriver; }
+    InputDriver *getInputDriver(void) const { return inputdriver; }
 
   protected:
     DisplayDriver *displaydriver;
-    InputDriver* inputdriver;
+    InputDriver *inputdriver;
 };

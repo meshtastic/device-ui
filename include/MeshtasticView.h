@@ -2,17 +2,19 @@
 
 #include "DeviceGUI.h"
 #include "DisplayDriverConfig.h"
+#include "ResponseHandler.h"
 #include "lvgl.h"
 #include "mesh-pb-constants.h"
 #include <array>
 #include <stdint.h>
-#include <time.h>
 #include <string>
+#include <time.h>
 #include <unordered_map>
 
 #define LV_OBJ_IDX(x) spec_attr->children[x]
 
 constexpr uint8_t c_max_channels = 8;
+constexpr uint32_t c_request_timeout = 60 * 1000;
 
 class ViewController;
 
@@ -59,7 +61,7 @@ class MeshtasticView : public DeviceGUI
     virtual void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) {}
 
     // methods to update device config
-    virtual void updateChannelConfig(const meshtastic_Channel& ch) {}
+    virtual void updateChannelConfig(const meshtastic_Channel &ch) {}
     virtual void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) {}
     virtual void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) {}
     virtual void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) {}
@@ -85,9 +87,11 @@ class MeshtasticView : public DeviceGUI
 
     virtual void configCompleted(void) { configComplete = true; }
 
+    virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &route) {}
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
     virtual void notifyResync(bool show);
+    virtual void notifyReboot(bool show);
     virtual void showMessagePopup(const char *from);
 
     virtual void removeNode(uint32_t nodeNum);
@@ -101,11 +105,11 @@ class MeshtasticView : public DeviceGUI
     std::tuple<uint32_t, uint32_t> nodeColor(uint32_t nodeNum);
     bool lastHeartToString(uint32_t lastHeard, char *buf);
     const char *deviceRoleToString(enum eRole role);
-    const char *loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region);
     std::string pskToBase64(const meshtastic_ChannelSettings_psk_t &psk);
     bool base64ToPsk(const std::string &base64, meshtastic_ChannelSettings_psk_t &psk);
 
     ViewController *controller;
+    ResponseHandler requests;
     std::unordered_map<uint32_t, lv_obj_t *> nodes;       // node panels
     std::unordered_map<uint32_t, lv_obj_t *> messages;    // message containers (within ui_MessagesPanel)
     std::unordered_map<uint32_t, lv_obj_t *> chats;       // active chats (within ui_ChatPanel)
@@ -114,5 +118,5 @@ class MeshtasticView : public DeviceGUI
     uint32_t nodeCount = 1, nodesOnline = 1, ownNode = 0; // node info
     uint32_t unreadMessages = 0;                          // messages
     bool configComplete = false;                          // config request finishe
-    time_t lastrun30 = 0;                                 // 30s task
+    time_t lastrun20 = 0;                                 // 20s task
 };

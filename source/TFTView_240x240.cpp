@@ -24,7 +24,10 @@ TFTView_240x240 *TFTView_240x240::instance(const DisplayDriverConfig &cfg)
     return gui;
 }
 
-TFTView_240x240::TFTView_240x240(const DisplayDriverConfig *cfg, DisplayDriver *driver) : MeshtasticView(cfg, driver, new ViewController) {}
+TFTView_240x240::TFTView_240x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
+    : MeshtasticView(cfg, driver, new ViewController)
+{
+}
 
 void TFTView_240x240::init(IClientBase *client)
 {

@@ -8,24 +8,23 @@
 
 LV_IMG_DECLARE(mouse_cursor_icon);
 
-LinuxInputDriver::LinuxInputDriver(const std::string& kbdDevice, const std::string& ptrDevice)
+LinuxInputDriver::LinuxInputDriver(const std::string &kbdDevice, const std::string &ptrDevice)
 {
     keyboardDevice = kbdDevice;
     pointerDevice = ptrDevice;
 }
 
-void LinuxInputDriver::init(void) {
+void LinuxInputDriver::init(void)
+{
     ILOG_DEBUG("LinuxInputDriver::init ...\n");
     if (!keyboardDevice.empty()) {
         useKeyboardDevice(keyboardDevice);
-    }
-    else
+    } else
         keyboardDevice = "none";
 
     if (!pointerDevice.empty()) {
         usePointerDevice(pointerDevice);
-    }
-    else
+    } else
         pointerDevice = "none";
 }
 
@@ -97,7 +96,7 @@ std::vector<std::string> LinuxInputDriver::globVector(const std::string &pattern
 /**
  * create input device for keyboard
  * name is either eventX or the full path to the input event
-*/
+ */
 bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
 {
     std::string kb_path;
@@ -106,10 +105,9 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
     if (name.at(0) != '/') {
         kb_path += "/dev/input/" + name;
         event = name;
-    }
-    else {
+    } else {
         char buf[16];
-        uint16_t nbytes;
+        int16_t nbytes;
         if ((nbytes = readlink(name.c_str(), buf, 16)) != -1) {
             buf[nbytes] = '\0';
             event = &buf[3];
@@ -121,8 +119,7 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
     if (keyboard) {
         ILOG_INFO("Using keyboard device %s\n", kb_path.c_str());
         keyboardDevice = event;
-    }
-    else {
+    } else {
         ILOG_ERROR("Failed to use keyboard device %s\n", kb_path.c_str());
         keyboardDevice = "none";
     }
@@ -133,7 +130,7 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
 /**
  * create input device for keyboard
  * name is either eventX or the full path to the input event
-*/
+ */
 bool LinuxInputDriver::usePointerDevice(const std::string &name)
 {
     std::string ptr_path;
@@ -142,10 +139,9 @@ bool LinuxInputDriver::usePointerDevice(const std::string &name)
     if (name.at(0) != '/') {
         event = name;
         ptr_path += "/dev/input/" + name;
-    }
-    else {
+    } else {
         char buf[16];
-        uint16_t nbytes;
+        int16_t nbytes;
         if ((nbytes = readlink(name.c_str(), buf, 16)) != -1) {
             buf[nbytes] = '\0';
             event = &buf[3];
@@ -161,8 +157,7 @@ bool LinuxInputDriver::usePointerDevice(const std::string &name)
         lv_indev_set_cursor(pointer, mouse_cursor);
         pointerDevice = event;
         return true;
-    }
-    else {
+    } else {
         ILOG_ERROR("Failed to use pointer device %s\n", ptr_path.c_str());
         pointerDevice = "none";
     }
@@ -192,9 +187,12 @@ bool LinuxInputDriver::releasePointerDevice(void)
     return true;
 }
 
-LinuxInputDriver::~LinuxInputDriver(void) {
-    if (keyboard) releaseKeyboardDevice();
-    if (pointer) releasePointerDevice();
+LinuxInputDriver::~LinuxInputDriver(void)
+{
+    if (keyboard)
+        releaseKeyboardDevice();
+    if (pointer)
+        releasePointerDevice();
 }
 
 #endif
