@@ -98,6 +98,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [ ] Nodes panel
       - [x] Scroll display and sorting
       - [ ] Node details
+      - [ ] Position data
       - [ ] Telemetry data display
       - [ ] Repeater support (manual insertion)
       - [ ] LastHeard & time source handling improvements
@@ -120,10 +121,10 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [x] User name
         - [x] Region
         - [x] Modem Preset
-        - [ ] Channel
+        - [x] Channel
         - [x] Device Role
         - [x] Screen Timeout
-        - [ ] Screen Calibration
+        - [x] Screen Calibration
         - [x] Brightness
         - [x] Input Control
         - [ ] Message Alert
