@@ -356,15 +356,21 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
 {
+    static bool ignore_clicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target_obj(e);
     if (event_code == LV_EVENT_LONG_PRESSED) {
+        ignore_clicked = true;
         lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
         lv_obj_clear_flag(delBtn, LV_OBJ_FLAG_HIDDEN);
-    } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_RELEASED || event_code == LV_EVENT_PRESS_LOST) {
+    } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE) {
         lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
         lv_obj_add_flag(delBtn, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_CLICKED) {
+        if (ignore_clicked) { // prevent long press to enter this setting
+            ignore_clicked = false;
+            return;
+        }
         lv_obj_set_style_border_color(target, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
 
         uint32_t channelOrNode = (unsigned long)e->user_data;
@@ -395,16 +401,19 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
         uint32_t channelOrNode = (unsigned long)e->user_data;
         if (channelOrNode < c_max_channels) {
             uint8_t ch = (uint8_t)channelOrNode;
-            lv_obj_clean(THIS->channelGroup[ch]);
+            lv_obj_delete_delayed(THIS->chats[ch], 500);
+            lv_obj_del(THIS->channelGroup[ch]);
+            THIS->channelGroup[ch] = nullptr;
+            THIS->chats.erase(ch);
         } else {
             uint32_t nodeNum = channelOrNode;
             lv_obj_delete_delayed(THIS->chats[nodeNum], 500);
             lv_obj_del(THIS->messages[nodeNum]);
-            THIS->chats.erase(nodeNum);
             THIS->messages.erase(nodeNum);
-            THIS->activeMsgContainer = objects.messages_container;
-            THIS->updateActiveChats();
+            THIS->chats.erase(nodeNum);
         }
+        THIS->activeMsgContainer = objects.messages_container;
+        THIS->updateActiveChats();
     }
 }
 
@@ -2055,6 +2064,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
             lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xffa70a0a), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_add_flag(chatDelBtn, LV_OBJ_FLAG_HIDDEN);
+            //            lv_obj_clear_state(chatDelBtn, LV_STATE_DISABLED);
             lv_obj_clear_flag(chatDelBtn, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_bg_opa(chatDelBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
@@ -2075,7 +2085,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     updateActiveChats();
 
     lv_obj_add_event_cb(chatBtn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
-    lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_ALL, (void *)index);
+    lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
 }
 
 void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
