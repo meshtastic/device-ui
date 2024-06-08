@@ -862,7 +862,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
             lora.region =
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
-            lora.channel_num = 1;
+            lora.channel_num = LoRaPresets::getDefaultSlot(lora.region);
             THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
             THIS->notifyReboot(true);
 
