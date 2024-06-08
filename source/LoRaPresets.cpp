@@ -1,12 +1,13 @@
 #include "LoRaPresets.h"
 
 LoRaPresets::RegionInfo LoRaPresets::regionInfo[] = {
-    {"UNSET", 902.0f, 928.0f},  {"US", 902.0f, 928.0f},     {"EU_433", 433.0f, 434.0f},   {"EU_868", 869.4f, 869.65f},
-    {"CN", 470.0f, 510.0f},     {"JP", 920.8f, 927.8f},     {"ANZ", 915.0f, 928.0f},      {"RU", 868.7f, 869.2f},
-    {"KR", 920.0f, 923.0f},     {"TW", 920.0f, 925.0f},     {"IN", 865.0f, 867.0f},       {"NZ_865", 864.0f, 868.0f},
-    {"TH", 920.0f, 925.0f},     {"UA_433", 433.0f, 434.7f}, {"UA_868", 868.0f, 868.6f},   {"MY_433", 433.0f, 435.0f},
-    {"MY_919", 919.0f, 924.0f}, {"SG_923", 917.0f, 925.0f}, {"LORA_24", 2400.0f, 2483.5f} // TODO
-};
+    {"UNSET", 902.0f, 928.0f, 20},   {"US", 902.0f, 928.0f, 20},     {"EU_433", 433.0f, 434.0f, 4},
+    {"EU_868", 869.4f, 869.65f, 1},  {"CN", 470.0f, 510.0f, 36},     {"JP", 920.8f, 927.8f, 20},
+    {"ANZ", 915.0f, 928.0f, 20},     {"RU", 868.7f, 869.2f, 2},      {"KR", 920.0f, 923.0f, 12},
+    {"TW", 920.0f, 925.0f, 16},      {"IN", 865.0f, 867.0f, 4},      {"NZ_865", 864.0f, 868.0f, 4},
+    {"TH", 920.0f, 925.0f, 16},      {"UA_433", 433.0f, 434.7f, 6},  {"UA_868", 868.0f, 868.6f, 2},
+    {"MY_433", 433.0f, 435.0f, 4},   {"MY_919", 919.0f, 924.0f, 16}, {"SG_923", 917.0f, 925.0f, 4},
+    {"LORA_24", 2400.0f, 2483.5f, 6}};
 
 LoRaPresets::ModemPreset LoRaPresets::modemPreset[] = {{"LONG FAST", "250", .250f},        {"LONG SLOW", "125", .125f},
                                                        {"VERY LONG SLOW", "62.5", .0625f}, {"MEDIUM SLOW", "250", .250f},
@@ -26,6 +27,11 @@ float LoRaPresets::getFrequencyStart(meshtastic_Config_LoRaConfig_RegionCode reg
 float LoRaPresets::getFrequencyEnd(meshtastic_Config_LoRaConfig_RegionCode region)
 {
     return regionInfo[region].freqEnd;
+}
+
+uint16_t LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode region)
+{
+    return regionInfo[region].defaultSlot;
 }
 
 float LoRaPresets::getBandwidth(meshtastic_Config_LoRaConfig_ModemPreset preset)

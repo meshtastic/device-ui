@@ -10,11 +10,13 @@ class LoRaPresets
         const char *region;
         float freqStart;
         float freqEnd;
+        uint16_t defaultSlot;
     };
 
     static const char *loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region);
     static float getFrequencyStart(meshtastic_Config_LoRaConfig_RegionCode region);
     static float getFrequencyEnd(meshtastic_Config_LoRaConfig_RegionCode region);
+    static uint16_t getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode region);
 
     struct ModemPreset {
         const char *preset;
