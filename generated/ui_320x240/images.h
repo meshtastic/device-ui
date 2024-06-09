@@ -48,6 +48,7 @@ extern const lv_img_dsc_t img_knob_logo_image;
 extern const lv_img_dsc_t img_circle_question_image;
 extern const lv_img_dsc_t img_meshtastic_logo_image;
 extern const lv_img_dsc_t img_open_sauce_image;
+extern const lv_img_dsc_t img_settings_trash_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -57,7 +58,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[41];
+extern const ext_img_desc_t images[42];
 
 
 #ifdef __cplusplus

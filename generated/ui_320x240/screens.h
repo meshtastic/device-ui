@@ -260,6 +260,7 @@ typedef struct _objects_t {
     lv_obj_t *settings_modify_channel_name_textarea;
     lv_obj_t *settings_modify_channel_panel;
     lv_obj_t *settings_modify_channel_psk_textarea;
+    lv_obj_t *settings_modify_trash_button;
     lv_obj_t *settings_mouse_input_dropdown;
     lv_obj_t *settings_reboot_dropdown;
     lv_obj_t *settings_reboot_panel;
