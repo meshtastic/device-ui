@@ -275,6 +275,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_channel5_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)5);
     lv_obj_add_event_cb(objects.settings_channel6_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)6);
     lv_obj_add_event_cb(objects.settings_channel7_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)7);
+    // delete channel button
+    lv_obj_add_event_cb(objects.settings_modify_trash_button, ui_event_delete_channel, LV_EVENT_CLICKED, NULL);
 
     // screen
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
@@ -802,6 +804,12 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_delete_channel(lv_event_t *e)
+{
+    lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, "");
+    lv_textarea_set_text(objects.settings_modify_channel_name_textarea, "");
+}
+
 void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
 {
     bool done = THIS->displaydriver->calibrate();
@@ -1020,21 +1028,38 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eModifyChannel: {
             meshtastic_ChannelSettings_psk_t psk = {};
+            const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
+            const char *base64 = lv_textarea_get_text(objects.settings_modify_channel_psk_textarea);
+            uint8_t btn_id = (unsigned long)objects.settings_modify_channel_name_textarea->user_data;
+            int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
+
+            if (strlen(base64) == 0 && strlen(name) == 0) {
+                // delete channel
+                THIS->channel_scratch[ch].role = meshtastic_Channel_Role_DISABLED;
+                THIS->channel_scratch[ch].settings.psk.size = 0;
+                strcpy(THIS->channel_scratch[ch].settings.name, "");
+                lv_label_set_text(THIS->ch_label[btn_id], "<unset>");
+                THIS->activeSettings = eChannel;
+            }
+
+            if (strlen(base64) != 0 && base64[strlen(base64) - 1] != '=')
+                lv_textarea_add_text(objects.settings_modify_channel_psk_textarea, "=");
+
             if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk)) {
-                const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
                 if (strlen(name) != 0) {
                     // TODO: fill temp storage -> user data
-                    uint8_t btn_id = (unsigned long)objects.settings_modify_channel_name_textarea->user_data;
-                    int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
                     lv_label_set_text(THIS->ch_label[btn_id], name);
                     strcpy(THIS->channel_scratch[ch].settings.name, name);
                     memcpy(THIS->channel_scratch[ch].settings.psk.bytes, psk.bytes, 32);
                     THIS->channel_scratch[ch].settings.psk.size = psk.size;
-                    lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
-                    lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
                     THIS->activeSettings = eChannel;
                 }
+            }
+
+            if (THIS->activeSettings == eChannel) {
+                lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
+                lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
             }
             return;
         }

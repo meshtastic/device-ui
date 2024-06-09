@@ -2871,6 +2871,20 @@ void create_screen_main_screen() {
                     lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
+                    // SettingsModifyTrashButton
+                    lv_obj_t *obj = lv_btn_create(parent_obj);
+                    objects.settings_modify_trash_button = obj;
+                    lv_obj_set_pos(obj, 224, 125);
+                    lv_obj_set_size(obj, 24, 24);
+                    lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+                    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+                    lv_obj_set_style_bg_image_src(obj, &img_settings_trash_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_shadow_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_shadow_ofs_y(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff63d2f4), LV_PART_MAIN | LV_STATE_PRESSED);
+                }
+                {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
                     objects.obj12 = obj;
                     lv_obj_set_pos(obj, 4, 14);
