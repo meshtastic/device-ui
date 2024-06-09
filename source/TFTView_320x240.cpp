@@ -1020,6 +1020,10 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eModifyChannel: {
             meshtastic_ChannelSettings_psk_t psk = {};
+            const char *base64 = lv_textarea_get_text(objects.settings_modify_channel_psk_textarea);
+            if (strlen(base64) != 0 && base64[strlen(base64) - 1] != '=')
+                lv_textarea_add_text(objects.settings_modify_channel_psk_textarea, "=");
+
             if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk)) {
                 const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
                 if (strlen(name) != 0) {
