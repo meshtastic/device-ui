@@ -80,7 +80,7 @@ void TFTView_320x240::init(IClientBase *client)
     // lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
 
     // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, min(millis() + 3000, 9000), true);
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, std::min(millis() + 3000, 9000UL), true);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
