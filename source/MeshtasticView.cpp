@@ -206,11 +206,8 @@ bool MeshtasticView::base64ToPsk(const std::string &base64, meshtastic_ChannelSe
         ILOG_ERROR("Cannot decode '%s'\n", base64);
         return false;
     } else {
-        strcpy((char *)&psk.bytes[0], out.data());
-        // skip trailing 0x00 bytes
-        // uint32_t size = 32;
-        // while (psk.bytes[size-1] == 0x00 && size-->1);
-        psk.size = 32;
+        memcpy((char *)&psk.bytes[0], out.data(), out.size());
+        psk.size = out.size();
     }
     return true;
 }

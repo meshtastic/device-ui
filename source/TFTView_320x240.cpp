@@ -1019,7 +1019,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eModifyChannel: {
-            meshtastic_ChannelSettings_psk_t psk;
+            meshtastic_ChannelSettings_psk_t psk = {};
             if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk)) {
                 const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
                 if (strlen(name) != 0) {
@@ -1028,7 +1028,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
                     lv_label_set_text(THIS->ch_label[btn_id], name);
                     strcpy(THIS->channel_scratch[ch].settings.name, name);
-                    memcpy(THIS->channel_scratch[ch].settings.psk.bytes, psk.bytes, psk.size);
+                    memcpy(THIS->channel_scratch[ch].settings.psk.bytes, psk.bytes, 32);
+                    THIS->channel_scratch[ch].settings.psk.size = psk.size;
                     lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
                     lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
                     lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
@@ -1771,7 +1772,13 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
 
         lv_obj_set_width(btn[ch.index], lv_pct(70));
         lv_obj_set_style_pad_left(btn[ch.index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_t *lockImage = lv_img_create(btn[ch.index]);
+
+        lv_obj_t *lockImage = NULL;
+        if (lv_obj_get_child_cnt(btn[ch.index]) == 1)
+            lockImage = lv_img_create(btn[ch.index]);
+        else
+            lockImage = lv_obj_get_child(btn[ch.index], 1);
+
         uint32_t recolor = 0;
 
         if (memcmp(ch.settings.psk.bytes, "\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
@@ -1796,6 +1803,10 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_snprintf(buf, sizeof(buf), "%d", ch.index);
         lv_label_set_text(channel[ch.index], buf);
         lv_obj_set_width(btn[ch.index], lv_pct(30));
+
+        if (lv_obj_get_child_cnt(btn[ch.index]) == 2) {
+            lv_obj_delete(lv_obj_get_child(btn[ch.index], 1));
+        }
     }
 }
 
