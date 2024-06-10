@@ -269,6 +269,8 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         uint16_t parameters[8] = {1, 2, 69, 313, 187, 5, 239, 314};
 #elif defined(ESP32_2432S028RV1)
         uint16_t parameters[8] = {278, 3651, 228, 173, 3819, 3648, 3815, 179};
+#elif defined(UNPHONE)
+        uint16_t parameters[8] = {222, 146, 241, 3812, 3860, 131, 3857, 3813};
 #elif defined(NODEMCU_32S) || defined(ARCH_PORTDUINO)
         uint16_t parameters[8] = {255, 3691, 203, 198, 3836, 3659, 3795, 162};
 #else
@@ -302,7 +304,7 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
     calibrating = true;
     lgfx->clearDisplay();
     lgfx->fillScreen(LGFX::color565(0x67, 0xEA, 0x94));
-    lgfx->setTextSize(1);
+    lgfx->setTextSize(2);
     lgfx->setTextDatum(textdatum_t::middle_center);
     lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
     lgfx->setTextDatum(textdatum_t::top_left);
