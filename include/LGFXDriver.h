@@ -34,6 +34,8 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
     static uint32_t my_tick_get_cb(void) { return millis(); }
 
+    virtual bool calibrate(uint16_t parameters[8]);
+
     uint32_t screenTimeout;
     uint32_t lastBrightness;
     bool powerSaving;
@@ -259,7 +261,6 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         ILOG_INFO("Calibrating touch...\n");
 #ifdef T_DECK
         // FIXME: read calibration data from persistent storage using lfs_file_read
-        // uint16_t parameters[8] = {3, 13, 1, 316, 227, 19, 231, 311};
         uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
 #elif defined(WT32_SC01)
         uint16_t parameters[8] = {0, 2, 0, 479, 319, 0, 319, 479};
@@ -278,33 +279,27 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         ILOG_WARN("Touch screen has no calibration data!!!\n");
 #endif
 
-#if !CALIBRATE_TOUCH
-        lgfx->setTouchCalibrate(parameters);
+#if CALIBRATE_TOUCH
+        calibrate(parameters);
 #else
-        lgfx->setTextSize(2);
-        lgfx->setTextDatum(textdatum_t::middle_center);
-        lgfx->drawString("touch the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
-        lgfx->setTextDatum(textdatum_t::top_left);
-        std::uint16_t fg = TFT_BLUE;
-        std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
-        if (lgfx->isEPD())
-            std::swap(fg, bg);
-        lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
-
+        lgfx->setTouchCalibrate(parameters);
 #endif
-        // FIXME: store parameters[] using lfs_file_write
-        ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", parameters[0], parameters[1],
-                   parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
 #endif
     }
 }
 
 template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
 {
+    uint16_t parameters[8];
+    return calibrate(parameters);
+};
+
+template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
+{
     calibrating = true;
     lgfx->clearDisplay();
     lgfx->fillScreen(LGFX::color565(0x67, 0xEA, 0x94));
-    lgfx->setTextSize(2);
+    lgfx->setTextSize(1);
     lgfx->setTextDatum(textdatum_t::middle_center);
     lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
     lgfx->setTextDatum(textdatum_t::top_left);
@@ -312,12 +307,11 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
     std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
     if (lgfx->isEPD())
         std::swap(fg, bg);
-    uint16_t parameters[8];
     lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
+    calibrating = false;
+
     ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", parameters[0], parameters[1],
                parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
-
-    calibrating = false;
     return true;
 }
 
