@@ -715,12 +715,16 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 break;
             }
             case meshtastic_Telemetry_environment_metrics_tag: {
-                ILOG_WARN("meshtastic_Telemetry_environment_metrics_tag not implemented\n");
+                view->updateEnvironmentMetrics(p.from, telemetry.variant.environment_metrics);
+                break;
+            }
+            case meshtastic_Telemetry_air_quality_metrics_tag: {
+                view->updateAirQualityMetrics(p.from, telemetry.variant.air_quality_metrics);
                 return false;
                 break;
             }
             case meshtastic_Telemetry_power_metrics_tag: {
-                ILOG_WARN("meshtastic_Telemetry_power_metrics_tag not implemented\n");
+                view->updatePowerMetrics(p.from, telemetry.variant.power_metrics);
                 return false;
                 break;
             }
