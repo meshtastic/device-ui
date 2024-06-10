@@ -1194,9 +1194,9 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
         (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown);
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
 
-    uint32_t channel = 1;
+    uint32_t channel = LoRaPresets::getDefaultSlot(THIS->db.config.lora.region);
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-    lv_slider_set_value(objects.frequency_slot_slider, channel, LV_ANIM_ON);
+    lv_slider_set_value(objects.frequency_slot_slider, channel, LV_ANIM_OFF);
 
     char buf[40];
     sprintf(buf, "FrequencySlot: %d (%.2f MHz)", channel,
@@ -1882,7 +1882,11 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 
     uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-    lv_slider_set_value(objects.frequency_slot_slider, cfg.channel_num, LV_ANIM_OFF);
+
+    if (!db.config.lora.channel_num) {
+        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region);
+    }
+    lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
 }
 
 void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg)
