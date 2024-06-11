@@ -60,8 +60,8 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
 
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
-    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), powerSaving(false), bufsize(0), buf1(nullptr),
-      buf2(nullptr), calibrating(false)
+    : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), screenTimeout(defaultScreenTimeout),
+      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
 {
     lgfx = this->tft;
 }
