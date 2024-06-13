@@ -97,13 +97,13 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [x] Free memory info
     - [ ] Nodes panel
       - [x] Scroll display and sorting
-      - [ ] Node details
-      - [ ] Position data
-      - [ ] Telemetry data display
+      - [x] Node details
+      - [x] Position data
+      - [x] Telemetry data display
       - [ ] Repeater support (manual insertion)
       - [ ] LastHeard & time source handling improvements
       - [ ] Remote Node configuration
-      - [ ] Filter (mqtt, offline, unknown, by name)
+      - [x] Filter (mqtt, offline, unknown, by name)
     - [x] Group channel panel
     - [x] Chat panel
       - [x] Scroll container and messages display
@@ -116,6 +116,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [ ] WLAN
       - [ ] Pan & Zoom
       - [ ] Node locations
+      - [ ] Location precision
     - [ ] Settings
       - [ ] Basic Settings
         - [x] User name
@@ -148,7 +149,6 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [ ] T-Deck UI
       - [x] 320x240 scalable view
       - [x] GPS position
-      - [ ] Node location and precision
       - [ ] Radio frequency display
       - [ ] Offline map display
     - [x] I2C keyboard input handling
@@ -191,7 +191,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [X] 480x320 view -> scaled 320x240
     - [ ] image size reduction
     - [ ] Fix/Workaround serial light sleep UART reading issue (-> firmware)
-    - [ ] Heartbeat timer
+    - [ ] Heartbeat timer improvements
     - [x] Serial data send/receive
       - [x] UART connection support
       - [ ] WLAN connection support
