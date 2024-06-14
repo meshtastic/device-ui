@@ -20,11 +20,11 @@ class TFTView_320x240 : public MeshtasticView
     void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                            bool can_shutdown) override;
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role) override;
-    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                 eRole role) override;
+                         eRole role, bool viaMqtt) override;
+    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role,
+                 bool viaMqtt) override;
     void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                    eRole role) override;
+                    eRole role, bool viaMqtt) override;
     void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision) override;
     void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) override;
     void updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics) override;
@@ -65,7 +65,6 @@ class TFTView_320x240 : public MeshtasticView
     void notifyReboot(bool show) override;
     void blankScreen(bool enable) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
-    void updateNodesOnline(const char *str) override;
     void removeNode(uint32_t nodeNum) override;
 
     enum BasicSettings {
@@ -86,8 +85,29 @@ class TFTView_320x240 : public MeshtasticView
     };
 
   protected:
+    struct NodeFilter {
+        bool unknown;  // filter out unknown nodes
+        bool mqtt;     // filter out via mqtt nodes
+        bool offline;  // filter out offline nodes (>15min lastheard)
+        bool position; // filter out nodes without position
+        char *name;    // filter by name
+        bool active;   // flag for active filter
+    };
+
+    struct NodeHighlight {
+        bool chat;      // highlight nodes with active chats
+        bool position;  // highlight nodes with position
+        bool telemetry; // highlight nodes with telemetry
+        bool iaq;       // highlight nodes with IAQ
+        char *name;     // hightlight by name
+        bool active;    // flag for active highlight;
+    };
+
     typedef void (*UserWidgetFunc)(lv_obj_t *, void *, int);
 
+    // update node counter display (online and filtered)
+    virtual void updateNodesStatus(void);
+    // display message popup
     virtual void showMessagePopup(uint32_t from, uint32_t to, uint8_t ch, const char *name);
     // hide new message popup
     virtual void hideMessagePopup(void);
@@ -111,12 +131,16 @@ class TFTView_320x240 : public MeshtasticView
     virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
     // create empty message container for node or group channel
     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
+    // filter or highlight node
+    virtual bool applyNodesFilter(uint32_t nodeNum, bool reset = false);
     // display message alert popup
     virtual void messageAlert(const char *alert, bool show);
     // mark sent message as received
     virtual void responseReceived(uint32_t channelOrNode, uint32_t id, bool ack);
     // set node image based on role
-    virtual void setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img);
+    virtual void setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, lv_obj_t *img);
+    // apply filter and count number of filtered nodes
+    virtual void updateNodesFiltered(void);
     // set last heard to now, update nodes online
     virtual void updateLastHeard(uint32_t nodeNum);
     // update last heard value on all node panels
@@ -125,6 +149,9 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateUnreadMessages(void);
     // update free memory display on home screen
     virtual void updateFreeMem(void);
+
+    NodeFilter filter;
+    NodeHighlight highlight;
 
   private:
     // view creation only via ViewFactory
@@ -200,6 +227,7 @@ class TFTView_320x240 : public MeshtasticView
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
     static TFTView_320x240 *gui;                     // singleton pattern
+    uint32_t nodesFiltered;                          // no. hidden nodes in node list
     time_t lastrun60, lastrun5;                      // timers for task loop
     static bool advanced_mode;                       // advanced settings
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings

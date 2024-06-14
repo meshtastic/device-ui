@@ -51,7 +51,7 @@ void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool h
 }
 
 void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                             eRole role)
+                             eRole role, bool viaMqtt)
 {
 }
 
@@ -59,23 +59,23 @@ void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *user
  * @brief add or update node with unknown user
  *
  */
-void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role)
+void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool viaMqtt)
 {
     // has_user == false, generate default user name
     char userShort[5], userLong[32];
     sprintf(userShort, "%04x", nodeNum & 0xffff);
     strcpy(userLong, "Meshtastic ");
     strcat(userLong, userShort);
-    addOrUpdateNode(nodeNum, channel, (const char *)&userShort[0], (const char *)&userLong[0], lastHeard, role);
+    addOrUpdateNode(nodeNum, channel, (const char *)&userShort[0], (const char *)&userLong[0], lastHeard, role, viaMqtt);
 }
 
 void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                     uint32_t lastHeard, eRole role)
+                                     uint32_t lastHeard, eRole role, bool viaMqtt)
 {
 }
 
 void MeshtasticView::updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                uint32_t lastHeard, eRole role)
+                                uint32_t lastHeard, eRole role, bool viaMqtt)
 {
 }
 
@@ -91,8 +91,6 @@ void MeshtasticView::notifyReboot(bool show) {}
 
 void MeshtasticView::showMessagePopup(const char *from) {}
 
-void MeshtasticView::updateNodesOnline(const char *str) {}
-
 void MeshtasticView::updateLastHeard(uint32_t nodeNum) {}
 
 void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
@@ -100,7 +98,7 @@ void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
     // if there's a message from a node we don't know (yet), create it with defaults
     auto it = nodes.find(p.from);
     if (it == nodes.end()) {
-        MeshtasticView::addOrUpdateNode(p.from, p.channel, 0, eRole::unknown);
+        MeshtasticView::addOrUpdateNode(p.from, p.channel, 0, eRole::unknown, false);
         updateLastHeard(p.from);
     }
 }

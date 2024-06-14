@@ -53,8 +53,10 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 }
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
-    : MeshtasticView(cfg, driver, new ViewController)
+    : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0)
 {
+    filter.active = false;
+    highlight.active = false;
 }
 
 void TFTView_320x240::init(IClientBase *client)
@@ -305,9 +307,24 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
 
 void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 {
+    static bool ignoreClicked = false;
+    static bool filterNeedsUpdate = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
         THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+        if (filterNeedsUpdate) {
+            THIS->updateNodesFiltered();
+            THIS->updateNodesStatus();
+            filterNeedsUpdate = false;
+        }
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        filterNeedsUpdate = true;
+        ignoreClicked = true;
+        THIS->ui_set_active(objects.nodes_button, ui_NodesOptionsPanel, objects.top_node_options_panel);
     }
 }
 
@@ -405,19 +422,19 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
 {
-    static bool ignore_clicked = false;
+    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target_obj(e);
     if (event_code == LV_EVENT_LONG_PRESSED) {
-        ignore_clicked = true;
+        ignoreClicked = true;
         lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
         lv_obj_clear_flag(delBtn, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE) {
         lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
         lv_obj_add_flag(delBtn, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_CLICKED) {
-        if (ignore_clicked) { // prevent long press to enter this setting
-            ignore_clicked = false;
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
             return;
         }
         lv_obj_set_style_border_color(target, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -460,6 +477,7 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
             lv_obj_del(THIS->messages[nodeNum]);
             THIS->messages.erase(nodeNum);
             THIS->chats.erase(nodeNum);
+            THIS->applyNodesFilter(nodeNum);
         }
         THIS->activeMsgContainer = objects.messages_container;
         THIS->updateActiveChats();
@@ -763,6 +781,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
     }
 }
 
+// configuration reset
 void TFTView_320x240::ui_event_reset_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -772,6 +791,7 @@ void TFTView_320x240::ui_event_reset_button(lv_event_t *e)
     }
 }
 
+// reboot / shutdown
 void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -783,11 +803,11 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
 
 void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
 {
-    static bool ignore_clicked = false;
+    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eChannel) {
-        if (ignore_clicked) { // prevent long press to enter this setting
-            ignore_clicked = false;
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
             return;
         }
         uint32_t btn_id = (unsigned long)e->user_data;
@@ -832,7 +852,7 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
         lv_obj_clear_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->activeSettings = eModifyChannel;
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eChannel) {
-        ignore_clicked = true;
+        ignoreClicked = true;
         // make channel primary on long press; swap with current primary (role, id and name)
         uint8_t btn_id = (uint8_t)(unsigned long)e->user_data;
         int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
@@ -1349,7 +1369,7 @@ void TFTView_320x240::addMessage(uint32_t requestId, char *msg)
 }
 
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                              eRole role)
+                              eRole role, bool viaMqtt)
 {
     // lv_obj nodesPanel children
     // [0]: img
@@ -1384,7 +1404,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_border_width(p, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
     // NodeImage
     lv_obj_t *img = lv_img_create(p);
-    setNodeImage(nodeNum, role, img);
+    setNodeImage(nodeNum, role, viaMqtt, img);
     lv_obj_set_width(img, LV_SIZE_CONTENT);
     lv_obj_set_height(img, LV_SIZE_CONTENT);
     lv_obj_set_x(img, -5);
@@ -1396,6 +1416,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
+    img->user_data = (void *)viaMqtt; // used for filtering (applyNodesFilter)
     // NodeButton
     lv_obj_t *nodeButton = lv_btn_create(p);
     lv_obj_set_size(nodeButton, LV_PCT(70), LV_PCT(100));
@@ -1523,6 +1544,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     lv_obj_add_event_cb(nodeButton, ui_event_NodeButton, LV_EVENT_ALL, (void *)nodeNum);
 
+    applyNodesFilter(nodeNum);
+
     // move node into new position within nodePanel
     if (lastHeard) {
         lv_obj_t **children = objects.nodes_panel->spec_attr->children;
@@ -1537,7 +1560,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
         }
     }
 
-    updateNodesOnline("%u of %u nodes online");
+    updateNodesStatus();
 }
 
 void TFTView_320x240::setMyInfo(uint32_t nodeNum)
@@ -1552,12 +1575,12 @@ void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool 
 }
 
 void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong,
-                                      uint32_t lastHeard, eRole role)
+                                      uint32_t lastHeard, eRole role, bool viaMqtt)
 {
     if (nodes.find(nodeNum) == nodes.end()) {
-        addNode(nodeNum, ch, userShort, userLong, lastHeard, role);
+        addNode(nodeNum, ch, userShort, userLong, lastHeard, role, viaMqtt);
     } else {
-        updateNode(nodeNum, ch, userShort, userLong, lastHeard, role);
+        updateNode(nodeNum, ch, userShort, userLong, lastHeard, role, viaMqtt);
     }
 }
 
@@ -1570,9 +1593,10 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *
  * @param userLong
  * @param lastHeard
  * @param role
+ * @param viaMqtt
  */
 void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                                 eRole role)
+                                 eRole role, bool viaMqtt)
 {
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
@@ -1583,7 +1607,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
             lv_label_set_text(objects.basic_settings_user_label, buf);
             lv_snprintf(buf, sizeof(buf), "Device Role: %s", deviceRoleToString(role));
             lv_label_set_text(objects.basic_settings_role_label, buf);
-            it->second->LV_OBJ_IDX(node_img_idx)->user_data = (void *)role;
+            it->second->LV_OBJ_IDX(node_img_idx)->user_data = (void *)role; // TODO: not used -> remove?
 
             // update DB
             strcpy(db.short_name, userShort);
@@ -1593,7 +1617,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), userLong);
         it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)strlen(userLong);
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
-        setNodeImage(nodeNum, role, it->second->LV_OBJ_IDX(node_img_idx));
+        setNodeImage(nodeNum, role, viaMqtt, it->second->LV_OBJ_IDX(node_img_idx));
     }
 }
 
@@ -1638,10 +1662,7 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
         lv_label_set_text(panel->LV_OBJ_IDX(node_pos2_idx), buf);
     }
 
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
-        // TODO
-    }
+    applyNodesFilter(nodeNum);
 }
 
 /**
@@ -1704,7 +1725,7 @@ void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtasti
 {
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
-        char buf[32];
+        char buf[50];
         if ((int)metrics.relative_humidity > 0) {
             sprintf(buf, "%2.1f°C %d%% %3.1fhPa", metrics.temperature, (int)metrics.relative_humidity,
                     metrics.barometric_pressure);
@@ -1712,6 +1733,13 @@ void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtasti
             sprintf(buf, "%2.1f°C %3.1fhPa", metrics.temperature, metrics.barometric_pressure);
         }
         lv_label_set_text(it->second->LV_OBJ_IDX(node_tm1_idx), buf);
+
+        if (metrics.iaq > 0 && metrics.iaq < 1000) {
+            sprintf(buf, "IAQ: %d %.1fV %.1fmA", metrics.iaq, metrics.voltage, metrics.current);
+            lv_label_set_text(it->second->LV_OBJ_IDX(node_tm2_idx), buf);
+            it->second->LV_OBJ_IDX(node_tm2_idx)->user_data = (void *)(uint32_t)metrics.iaq;
+        }
+        applyNodesFilter(nodeNum);
     }
 }
 
@@ -1730,9 +1758,10 @@ void TFTView_320x240::updatePowerMetrics(uint32_t nodeNum, const meshtastic_Powe
 {
     auto it = nodes.find(nodeNum);
     if (it != nodes.end() && it->first != ownNode) {
-        char buf[32];
-        sprintf(buf, "%0.1fmA %0.2fV", metrics.ch1_current, metrics.ch1_voltage);
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_tm2_idx), buf);
+        // TODO
+        // char buf[32];
+        // sprintf(buf, "%0.1fmA %0.2fV", metrics.ch1_current, metrics.ch1_voltage);
+        // lv_label_set_text(it->second->LV_OBJ_IDX(node_tm2_idx), buf);
     }
 }
 
@@ -1847,6 +1876,135 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
         ILOG_ERROR("unhandled meshtastic_Routing tag\n");
         break;
     }
+}
+
+/**
+ * @brief apply enabled filters and highlight node
+ *
+ * @param nodeNum
+ * @param reset : set true when filter has changed (to recalculaterd number of filterred nodes)
+ * @return true
+ * @return false
+ */
+bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
+{
+    if (nodeNum == ownNode)
+        return false;
+    lv_obj_t *panel = nodes[nodeNum];
+    bool hide = false;
+    if (true /*filter.active*/) { // TODO
+        if (lv_obj_has_state(ui_NodesFilterUnknownSwitch, LV_STATE_CHECKED)) {
+            if (lv_img_get_src(panel->LV_OBJ_IDX(node_img_idx)) == &img_circle_question_image) {
+                hide = true;
+            }
+        }
+        if (lv_obj_has_state(ui_NodesFilterOfflineSwitch, LV_STATE_CHECKED)) {
+            time_t curtime, lastHeard = (time_t)panel->LV_OBJ_IDX(node_lh_idx)->user_data;
+            time(&curtime);
+            if (curtime - lastHeard > 15 * 60)
+                hide = true;
+        }
+        if (lv_obj_has_state(ui_NodesFilterMQTTSwitch, LV_STATE_CHECKED)) {
+            bool viaMqtt = (unsigned long)panel->LV_OBJ_IDX(node_img_idx)->user_data;
+            if (viaMqtt)
+                hide = true;
+        }
+        if (lv_obj_has_state(ui_NodesFilterPositionSwitch, LV_STATE_CHECKED)) {
+            if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] == '\0')
+                hide = true;
+        }
+        const char *name = lv_textarea_get_text(ui_NodesFilterNameArea);
+        if (name[0] != '\0') {
+            if (name[0] != '!') { // use '!' char to negate search result
+                if (!strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) &&
+                    !strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), name)) {
+                    hide = true;
+                }
+            } else {
+                if (strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), &name[1]) ||
+                    strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), &name[1])) {
+                    hide = true;
+                }
+            }
+        }
+    }
+    if (hide) {
+        if (reset || !lv_obj_has_flag(panel, LV_OBJ_FLAG_HIDDEN)) {
+            lv_obj_add_flag(panel, LV_OBJ_FLAG_HIDDEN);
+            nodesFiltered++;
+        }
+    } else {
+        lv_obj_clear_flag(panel, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    bool highlight = false;
+    if (true /*highlight.active*/) { // TODO
+        if (lv_obj_has_state(ui_NodesHLActiveChatSwitch, LV_STATE_CHECKED)) {
+            auto it = chats.find(nodeNum);
+            if (it != nodes.end()) {
+                lv_obj_set_style_border_color(panel, lv_color_hex(0xffff8c04), LV_PART_MAIN | LV_STATE_DEFAULT);
+                highlight = true;
+            }
+        }
+        if (lv_obj_has_state(ui_NodesHLPositionSwitch, LV_STATE_CHECKED)) {
+            if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] != '\0') {
+                lv_obj_set_style_border_color(panel, lv_color_hex(0xff05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);
+                highlight = true;
+            }
+        }
+        if (lv_obj_has_state(ui_NodesHLTelemetrySwitch, LV_STATE_CHECKED)) {
+            if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm1_idx))[0] != '\0') {
+                lv_obj_set_style_border_color(panel, lv_color_hex(0xff436C70), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_border_width(panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+                highlight = true;
+            }
+        }
+        if (lv_obj_has_state(ui_NodesHLIAQSwitch, LV_STATE_CHECKED)) {
+            if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm2_idx))[0] != '\0') {
+                uint32_t iaq = (unsigned long)panel->LV_OBJ_IDX(node_tm2_idx)->user_data;
+                // IAQ color code
+                lv_color_t fg, bg;
+                if (iaq <= 50) {
+                    fg = lv_color_hex(0x00000000);
+                    bg = lv_color_hex(0x000ce810);
+                } else if (iaq <= 100) {
+                    fg = lv_color_hex(0x00000000);
+                    bg = lv_color_hex(0x00faf646);
+                } else if (iaq <= 150) {
+                    fg = lv_color_hex(0x00000000);
+                    bg = lv_color_hex(0x00f98204);
+                } else if (iaq <= 200) {
+                    fg = lv_color_hex(0x00000000);
+                    bg = lv_color_hex(0x00e42104);
+                } else if (iaq <= 300) {
+                    fg = lv_color_hex(0xffffffff);
+                    bg = lv_color_hex(0x009b2970);
+                } else {
+                    fg = lv_color_hex(0xffffffff);
+                    bg = lv_color_hex(0x001d1414);
+                }
+                lv_obj_set_style_text_color(panel->LV_OBJ_IDX(node_tm2_idx), fg, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_color(panel->LV_OBJ_IDX(node_tm2_idx), bg, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_opa(panel->LV_OBJ_IDX(node_tm2_idx), 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_border_color(panel, bg, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_border_width(panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+                highlight = true;
+            }
+        }
+        const char *name = lv_textarea_get_text(ui_NodesHLNameArea);
+        if (name[0] != '\0') {
+            if (strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) ||
+                strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), name)) {
+                lv_obj_set_style_border_color(panel, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+                highlight = true;
+            }
+        }
+    }
+    if (!highlight) {
+        lv_obj_set_style_border_color(panel, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_width(panel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+    return hide; // TODO || filter.active;
 }
 
 void TFTView_320x240::messageAlert(const char *alert, bool show)
@@ -2257,7 +2415,6 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
             lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xffa70a0a), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_add_flag(chatDelBtn, LV_OBJ_FLAG_HIDDEN);
-            //            lv_obj_clear_state(chatDelBtn, LV_STATE_DISABLED);
             lv_obj_clear_flag(chatDelBtn, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_bg_opa(chatDelBtn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
@@ -2276,6 +2433,8 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
 
     chats[index] = chatBtn;
     updateActiveChats();
+    if (index > c_max_channels)
+        applyNodesFilter(index);
 
     lv_obj_add_event_cb(chatBtn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
     lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
@@ -2422,7 +2581,8 @@ void TFTView_320x240::setInputGroup(void)
     lv_group_add_obj(input_group, objects.settings_user_long_textarea);
     lv_group_add_obj(input_group, objects.settings_modify_channel_name_textarea);
     lv_group_add_obj(input_group, objects.settings_modify_channel_psk_textarea);
-    lv_group_add_obj(input_group, objects.nodes_panel);
+    lv_group_add_obj(input_group, ui_NodesFilterNameArea);
+    lv_group_add_obj(input_group, ui_NodesHLNameArea);
 }
 
 void TFTView_320x240::setInputButtonLabel(void)
@@ -2444,10 +2604,14 @@ void TFTView_320x240::removeNode(uint32_t nodeNum)
     }
 }
 
-void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img)
+void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, lv_obj_t *img)
 {
     uint32_t bgColor, fgColor;
     std::tie(bgColor, fgColor) = nodeColor(nodeNum);
+    // if (viaMqtt) {
+    //     lv_img_set_src(img, &//TODO );
+    // }
+    // else
     switch (role) {
     case client:
     case client_mute:
@@ -2486,12 +2650,30 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, lv_obj_t *img)
     lv_obj_set_style_img_recolor_opa(img, fgColor ? 0 : 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
-void TFTView_320x240::updateNodesOnline(const char *str)
+void TFTView_320x240::updateNodesStatus(void)
 {
-    char buf[30];
-    sprintf(buf, str, nodesOnline, nodeCount);
-    lv_label_set_text(objects.top_nodes_online_label, buf);
+    char buf[32];
+    lv_snprintf(buf, sizeof(buf), "%d of %d nodes online", nodesOnline, nodeCount);
     lv_label_set_text(objects.home_nodes_label, buf);
+
+    if (nodesFiltered) {
+        lv_snprintf(buf, sizeof(buf), "Filter: %d of %d nodes", nodeCount - nodesFiltered, nodeCount);
+    }
+    lv_label_set_text(objects.top_nodes_online_label, buf);
+}
+
+/**
+ * @brief update all nodes filter and hightlight
+ *
+ */
+void TFTView_320x240::updateNodesFiltered(void)
+{
+    nodesFiltered = 0;
+    if (activePanel == objects.nodes_panel) {
+        for (auto &it : THIS->nodes) {
+            THIS->applyNodesFilter(it.first, true);
+        }
+    }
 }
 
 /**
@@ -2511,7 +2693,8 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
         if (it->first != ownNode) {
             if (curtime - lastHeard >= 900) {
                 nodesOnline++;
-                updateNodesOnline("%d of %d nodes online");
+                applyNodesFilter(nodeNum);
+                updateNodesStatus();
             }
             // move to top position
             lv_obj_move_to_index(it->second, 1);
@@ -2545,7 +2728,8 @@ void TFTView_320x240::updateAllLastHeard(void)
         }
     }
     nodesOnline = online;
-    updateNodesOnline("%d of %d nodes online");
+    updateNodesFiltered(); // FIXME: currently updated conditionless, even there may be no change
+    updateNodesStatus();
 }
 
 void TFTView_320x240::updateUnreadMessages(void)
