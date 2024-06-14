@@ -185,7 +185,7 @@ const char *MeshtasticView::deviceRoleToString(enum eRole role)
     };
 }
 
-#include "Base64.h"
+#include "macaron_Base64.h"
 #include <cstring>
 std::string MeshtasticView::pskToBase64(const meshtastic_ChannelSettings_psk_t &psk)
 {
