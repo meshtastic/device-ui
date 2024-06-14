@@ -132,6 +132,7 @@ typedef struct _objects_t {
     lv_obj_t *battery_percentage_label;
     lv_obj_t *brightness_slider;
     lv_obj_t *button_panel;
+    lv_obj_t *cancel_reboot_button;
     lv_obj_t *channel_button0;
     lv_obj_t *channel_button1;
     lv_obj_t *channel_button2;
@@ -214,10 +215,6 @@ typedef struct _objects_t {
     lv_obj_t *obj11__cancel_button_w;
     lv_obj_t *obj11__ok_button_w;
     lv_obj_t *obj11__ok_cancel_panel_w;
-    lv_obj_t *obj12;
-    lv_obj_t *obj12__cancel_button_w;
-    lv_obj_t *obj12__ok_button_w;
-    lv_obj_t *obj12__ok_cancel_panel_w;
     lv_obj_t *obj2;
     lv_obj_t *obj2__cancel_button_w;
     lv_obj_t *obj2__ok_button_w;
@@ -252,6 +249,8 @@ typedef struct _objects_t {
     lv_obj_t *obj9__ok_cancel_panel_w;
     lv_obj_t *position_label;
     lv_obj_t *position2_label;
+    lv_obj_t *reboot_button;
+    lv_obj_t *reboot_panel;
     lv_obj_t *screen_timeout_slider;
     lv_obj_t *settings_alert_buzzer_panel;
     lv_obj_t *settings_alert_buzzer_switch;
@@ -288,8 +287,6 @@ typedef struct _objects_t {
     lv_obj_t *settings_modify_channel_psk_textarea;
     lv_obj_t *settings_modify_trash_button;
     lv_obj_t *settings_mouse_input_dropdown;
-    lv_obj_t *settings_reboot_dropdown;
-    lv_obj_t *settings_reboot_panel;
     lv_obj_t *settings_region_dropdown;
     lv_obj_t *settings_region_panel;
     lv_obj_t *settings_reset_dropdown;
@@ -299,6 +296,7 @@ typedef struct _objects_t {
     lv_obj_t *settings_user_long_textarea;
     lv_obj_t *settings_user_short_textarea;
     lv_obj_t *settings_username_panel;
+    lv_obj_t *shutdown_button;
     lv_obj_t *signal_label;
     lv_obj_t *telemetry1_label;
     lv_obj_t *telemetry2_label;

@@ -95,6 +95,7 @@ class MeshtasticView : public DeviceGUI
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
+    virtual void notifyShutdown(void);
     virtual void showMessagePopup(const char *from);
 
     virtual void removeNode(uint32_t nodeNum);

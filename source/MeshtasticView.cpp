@@ -89,6 +89,8 @@ void MeshtasticView::notifyResync(bool show) {}
 
 void MeshtasticView::notifyReboot(bool show) {}
 
+void MeshtasticView::notifyShutdown(void) {}
+
 void MeshtasticView::showMessagePopup(const char *from) {}
 
 void MeshtasticView::updateLastHeard(uint32_t nodeNum) {}

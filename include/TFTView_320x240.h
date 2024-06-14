@@ -63,6 +63,7 @@ class TFTView_320x240 : public MeshtasticView
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) override;
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
+    void notifyShutdown(void) override;
     void blankScreen(bool enable) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
     void removeNode(uint32_t nodeNum) override;
@@ -200,6 +201,10 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_alert_button(lv_event_t *e);
     static void ui_event_reset_button(lv_event_t *e);
     static void ui_event_reboot_button(lv_event_t *e);
+    static void ui_event_device_reboot_button(lv_event_t *e);
+    static void ui_event_device_shutdown_button(lv_event_t *e);
+    static void ui_event_device_cancel_button(lv_event_t *e);
+    static void ui_event_shutdown_button(lv_event_t *e);
     static void ui_event_modify_channel(lv_event_t *e);
     static void ui_event_delete_channel(lv_event_t *e);
 

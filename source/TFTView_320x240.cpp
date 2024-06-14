@@ -90,11 +90,8 @@ void TFTView_320x240::init(IClientBase *client)
     ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
     ui_events_init();
 
-    // load boot screen
-    // lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, true);
-
     // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, std::min(millis() + 3000, 9000UL), true);
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, std::min(millis() + 3000, 9000UL), false);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
@@ -244,6 +241,10 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_ALL, NULL);
 
+    lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.shutdown_button, ui_event_device_shutdown_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.cancel_reboot_button, ui_event_device_cancel_button, LV_EVENT_CLICKED, NULL);
+
     // sliders
     lv_obj_add_event_cb(objects.screen_timeout_slider, ui_event_screen_timeout_slider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.brightness_slider, ui_event_brightness_slider, LV_EVENT_VALUE_CHANGED, NULL);
@@ -277,8 +278,6 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj10__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj11__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj11__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj12__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj12__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -796,8 +795,39 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        lv_obj_clear_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 1000, 0, false);
+        lv_obj_clear_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->activeSettings = eReboot;
+    }
+}
+
+void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        THIS->controller->requestReboot(5, THIS->ownNode);
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
+        lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+void TFTView_320x240::ui_event_device_shutdown_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        THIS->controller->requestShutdown(5, THIS->ownNode);
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
+        lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+void TFTView_320x240::ui_event_device_cancel_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->activeSettings = eNone;
     }
 }
 
@@ -1076,20 +1106,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
-        case eReboot: {
-            uint32_t option = lv_dropdown_get_selected(objects.settings_reboot_dropdown);
-            if (option == 0) {
-                THIS->notifyReboot(true);
-                THIS->controller->requestReboot(5, THIS->ownNode);
-            } else if (option == 1) {
-                THIS->controller->requestShutdown(5, THIS->ownNode);
-            } else if (option == 2) {
-                THIS->notifyReboot(true);
-                THIS->controller->requestRebootOTA(5, THIS->ownNode);
-            }
-            lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
-            break;
-        }
         case eModifyChannel: {
             meshtastic_ChannelSettings_psk_t psk = {};
             const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
@@ -1191,10 +1207,6 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eReset: {
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
-            break;
-        }
-        case TFTView_320x240::eReboot: {
-            lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
         case TFTView_320x240::eModifyChannel: {
@@ -2064,6 +2076,11 @@ void TFTView_320x240::notifyResync(bool show)
 void TFTView_320x240::notifyReboot(bool show)
 {
     messageAlert("Rebooting ...", show);
+}
+
+void TFTView_320x240::notifyShutdown(void)
+{
+    messageAlert("Shutting down ...", true);
 }
 
 void TFTView_320x240::blankScreen(bool enable)
