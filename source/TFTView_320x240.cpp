@@ -795,7 +795,7 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 1000, 0, false);
+        lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_FADE_IN, 1000, 0, false);
         lv_obj_clear_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->activeSettings = eReboot;
     }
