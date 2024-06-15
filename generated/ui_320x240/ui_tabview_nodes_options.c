@@ -1,3 +1,6 @@
+// this file is not fully generated
+// it is partly created with Squareline Studio (tabview) and the tabview buttons are manually fixed for lvgl v9
+
 #include "ui.h"
 
 lv_obj_t * ui_NodesOptionsPanel;
@@ -27,203 +30,6 @@ lv_obj_t * ui_NodesHLNameArea;
 
 void create_tabview_nodes_options()
 {
-#ifdef TRYALLICAN
-    ui_NodesOptionsPanel = lv_obj_create(objects.main_screen);
-    lv_obj_set_pos(ui_NodesOptionsPanel, 39, 25);
-    lv_obj_set_size(ui_NodesOptionsPanel, LV_PCT(88), 215);
-    lv_obj_add_flag(ui_NodesOptionsPanel, LV_OBJ_FLAG_HIDDEN);
-    //lv_obj_set_align(ui_NodesOptionsPanel, LV_ALIGN_BOTTOM_RIGHT);
-    lv_obj_clear_flag(ui_NodesOptionsPanel,
-                      LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
-                      LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
-                      LV_OBJ_FLAG_SCROLL_CHAIN);     /// Flags
-    lv_obj_set_style_radius(ui_NodesOptionsPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_NodesOptionsPanel, lv_color_hex(0x303030), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_NodesOptionsPanel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_NodesOptionsPanel, 255, LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_width(ui_NodesOptionsPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_NodesOptionsTabView = lv_tabview_create(ui_NodesOptionsPanel);
-
-#if 0  
-    static lv_style_t style1;
-    lv_style_init(&style1);
-    lv_style_set_bg_color(&style1, lv_color_hex(0x303030));
-    lv_style_set_bg_opa(&style1, LV_OPA_COVER);
-    lv_obj_add_style(ui_NodesOptionsTabView, &style1, LV_PART_ITEMS | LV_STATE_DEFAULT);
-
-    static lv_style_t style2;
-    lv_style_init(&style2);
-    lv_style_set_bg_color(&style2, lv_color_hex(0x404040));
-    lv_style_set_bg_opa(&style2, LV_OPA_COVER);
-    lv_obj_add_style(ui_NodesOptionsTabView, &style2, LV_PART_ITEMS | LV_STATE_CHECKED);
-#endif
-  
-    lv_tabview_set_tab_bar_position(ui_NodesOptionsTabView, LV_DIR_BOTTOM);
-    lv_tabview_set_tab_bar_size(ui_NodesOptionsTabView, 25);
-    lv_obj_set_width(ui_NodesOptionsTabView, lv_pct(110));
-    lv_obj_set_height(ui_NodesOptionsTabView, lv_pct(114));
-    lv_obj_set_align(ui_NodesOptionsTabView, LV_ALIGN_CENTER);
-    lv_obj_remove_flag(ui_NodesOptionsTabView, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(ui_NodesOptionsTabView, lv_color_hex(0x303030), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_NodesOptionsTabView, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_NodesOptionsTabView, 255, LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(ui_NodesOptionsTabView, lv_color_hex(0xAAFBFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_NodesOptionsTabView, 255, 0);
-
-    lv_obj_t* tab_buttons = lv_tabview_get_tab_bar(ui_NodesOptionsTabView);
-#if 1
-    static lv_style_t style1;
-    lv_style_init(&style1);
-    lv_style_set_text_color(&style1, lv_color_hex(0x808080));
-    lv_style_set_bg_color(&style1, lv_color_hex(0x303030));
-    lv_style_set_bg_opa(&style1, LV_OPA_COVER);
-    lv_style_set_border_color(&style1, lv_color_hex(0xff404040));
-    lv_style_set_border_opa(&style1, LV_OPA_COVER);
-    lv_style_set_border_width(&style1, 1);
-    lv_style_set_border_side(&style1, LV_BORDER_SIDE_FULL);
-    lv_obj_add_style(tab_buttons, &style1, 0);
-    lv_obj_add_style(tab_buttons, &style1, LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_add_style(ui_NodesOptionsTabView, &style1, 0);
-    lv_obj_add_style(ui_NodesOptionsTabView, &style1, LV_PART_ITEMS | LV_STATE_DEFAULT);
-
-    static lv_style_t style2;
-    lv_style_init(&style2);
-    lv_style_set_text_color(&style1, lv_color_hex(0xFFFFFF));
-    lv_style_set_bg_color(&style2, lv_color_hex(0x404040));
-    lv_style_set_bg_opa(&style2, LV_OPA_COVER);
-    lv_style_set_border_color(&style2, lv_color_hex(0xff67ea94));
-    lv_style_set_border_opa(&style2, LV_OPA_COVER);
-    lv_style_set_border_width(&style2, 3);
-    lv_style_set_border_side(&style2, LV_BORDER_SIDE_BOTTOM);
-    lv_obj_add_style(tab_buttons, &style2, LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_add_style(tab_buttons, &style2, LV_PART_ITEMS | LV_STATE_FOCUSED);
-    lv_obj_add_style(ui_NodesOptionsTabView, &style2, LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_add_style(ui_NodesOptionsTabView, &style2, LV_PART_ITEMS | LV_STATE_FOCUSED);
-    lv_obj_add_style(tab_buttons, &style2, 0);
-#endif
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0x808080), LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(tab_buttons, 255, LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(tab_buttons, LV_TEXT_ALIGN_CENTER, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x303030), LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(tab_buttons, 255, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_grad_color(tab_buttons, lv_color_hex(0x303030), LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0x404040), LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(tab_buttons, 255, LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(tab_buttons, 1, LV_STATE_DEFAULT);
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_text_opa(tab_buttons, LV_OPA_COVER,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_radius(tab_buttons, 0,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x404040), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(tab_buttons, LV_OPA_COVER,  LV_PART_ANY | LV_STATE_CHECKED);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0xff67ea94), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_opa(tab_buttons, LV_OPA_COVER,  LV_PART_ANY | LV_STATE_CHECKED);
-    lv_obj_set_style_border_width(tab_buttons, 3,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_side(tab_buttons, LV_BORDER_SIDE_BOTTOM, LV_PART_ITEMS | LV_STATE_CHECKED);
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_text_opa(tab_buttons, LV_OPA_COVER,  LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0xff67ea94), LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_bg_opa(tab_buttons, LV_OPA_COVER,  LV_PART_ITEMS | LV_STATE_PRESSED);
-
-#if 0
-//    lv_obj_set_style_outline_width(tab_buttons, 0, LV_PART_ITEMS | LV_STATE_FOCUS_KEY);
-    lv_obj_set_style_bg_color(tab_buttons, lv_palette_darken(LV_PALETTE_GREY, 3), 0);
-      lv_obj_set_style_bg_opa(tab_buttons, 255, LV_PART_ITEMS | LV_STATE_DEFAULT);
-      lv_obj_set_style_bg_opa(tab_buttons, 255, LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0x808080), LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0x808080), LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_side(tab_buttons, LV_BORDER_SIDE_BOTTOM, LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0xff67ea94), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_side(tab_buttons, LV_BORDER_SIDE_BOTTOM, LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0xff67ea94), LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_width(tab_buttons, 3,  LV_PART_ITEMS | LV_STATE_CHECKED);
-#endif
-#if 0
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0x808080), LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  0);
-    lv_obj_set_style_text_align(tab_buttons, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x303030), 0);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  0);
-    lv_obj_set_style_bg_grad_color(tab_buttons, lv_color_hex(0x303030), 0);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0x404040), LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(tab_buttons, 1,  LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_radius(tab_buttons, 0,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x303030), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0xff67ea94), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_width(tab_buttons, 3,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_side(tab_buttons, LV_BORDER_SIDE_BOTTOM,
-                                 LV_PART_ITEMS | LV_STATE_CHECKED);
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0xff67ea94), LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_PRESSED);
-
-#else
-#if 1
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0x808080), LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  0);
-    lv_obj_set_style_text_align(tab_buttons, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x303030), 0);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  0);
-    lv_obj_set_style_bg_grad_color(tab_buttons, lv_color_hex(0x303030), 0);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0x404040), LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(tab_buttons, 255,  0);
-    lv_obj_set_style_border_width(tab_buttons, 1,  0);
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_STATE_PRESSED);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  LV_STATE_PRESSED);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0xff67ea94), LV_STATE_PRESSED);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_STATE_PRESSED);
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF),  0);
-    lv_obj_set_style_text_opa(tab_buttons, 255,   0);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0xff67ea94),  0);
-    lv_obj_set_style_bg_opa(tab_buttons, 0,   LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(ui_NodesOptionsTabView, 0,   LV_STATE_CHECKED);
-
-#endif
-
-#if 0
-#define XXX  LV_PART_ITEMS // LV_PART_ITEMS
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), 0 | LV_STATE_CHECKED);
-    lv_obj_set_style_text_opa(tab_buttons, 255, XXX | LV_STATE_CHECKED);
-    lv_obj_set_style_radius(tab_buttons, 0,  XXX | LV_STATE_CHECKED);
-//    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0xff67ea94), XXX | LV_STATE_CHECKED);
-//    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0xff67ea94), 0);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  XXX | LV_STATE_CHECKED);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0xff67ea94), XXX | LV_STATE_CHECKED);
-    //lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0xff67ea94), 0);
-    lv_obj_set_style_border_opa(tab_buttons, 255,  XXX | LV_STATE_CHECKED);
-    lv_obj_set_style_border_width(tab_buttons, 3,  XXX | LV_STATE_CHECKED);
-
-    lv_obj_set_style_border_side(tab_buttons, LV_BORDER_SIDE_BOTTOM, XXX | LV_STATE_CHECKED);
-    lv_obj_set_style_border_side(tab_buttons, LV_BORDER_SIDE_BOTTOM,  LV_STATE_CHECKED);
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_STATE_PRESSED);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  LV_STATE_PRESSED);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0xff67ea94), LV_STATE_PRESSED);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_STATE_PRESSED);
-
-//    lv_obj_set_style_outline_width(tab_buttons, 0, LV_STATE_FOCUS_KEY);
-//    lv_obj_set_style_outline_width(tab_buttons, 0, LV_PART_ITEMS | LV_STATE_FOCUS_KEY);
-#endif
-#endif
-
-#endif // TRYALLICAN
-
     ui_NodesOptionsPanel = lv_obj_create(objects.main_screen);
     lv_obj_set_pos(ui_NodesOptionsPanel, 39, 25);
     lv_obj_set_size(ui_NodesOptionsPanel, LV_PCT(88), 215);
@@ -238,7 +44,7 @@ void create_tabview_nodes_options()
     lv_obj_set_style_border_width(ui_NodesOptionsPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_NodesOptionsTabView = lv_tabview_create(ui_NodesOptionsPanel);
-    lv_tabview_set_tab_bar_position(ui_NodesOptionsTabView, LV_DIR_BOTTOM);
+    lv_tabview_set_tab_bar_position(ui_NodesOptionsTabView, LV_DIR_TOP);
     lv_tabview_set_tab_bar_size(ui_NodesOptionsTabView, 25);
     lv_obj_set_width(ui_NodesOptionsTabView, lv_pct(110));
     lv_obj_set_height(ui_NodesOptionsTabView, lv_pct(114));
@@ -249,39 +55,6 @@ void create_tabview_nodes_options()
     lv_obj_set_style_text_color(ui_NodesOptionsTabView, lv_color_hex(0xAAFBFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_NodesOptionsTabView, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_obj_t* tab_buttons = lv_tabview_get_tab_bar(ui_NodesOptionsTabView);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x303030), LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x303030), LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0x808080), LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  LV_STATE_DEFAULT);
-    
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0x808080), LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(tab_buttons, LV_TEXT_ALIGN_CENTER, LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x303030), LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_grad_color(tab_buttons, lv_color_hex(0x303030), LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0x404040), LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(tab_buttons, 1,  LV_PART_ITEMS | LV_STATE_DEFAULT);
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_radius(tab_buttons, 0,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x303030), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_color(tab_buttons, lv_color_hex(0x67EA94), LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_width(tab_buttons, 3,  LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_border_side(tab_buttons, LV_BORDER_SIDE_BOTTOM, LV_PART_ITEMS | LV_STATE_CHECKED);
-
-    lv_obj_set_style_text_color(tab_buttons, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_text_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_bg_color(tab_buttons, lv_color_hex(0x67EA94), LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_bg_opa(tab_buttons, 255,  LV_PART_ITEMS | LV_STATE_PRESSED);
 
     ui_TabPageFilter = lv_tabview_add_tab(ui_NodesOptionsTabView, "Filter");
     lv_obj_set_flex_flow(ui_TabPageFilter, LV_FLEX_FLOW_COLUMN);
@@ -631,4 +404,47 @@ void create_tabview_nodes_options()
     lv_obj_set_style_pad_right(ui_NodesHLNameArea, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_NodesHLNameArea, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(ui_NodesHLNameArea, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    // lvgl v9 tabview buttons are not btn-matrix anymore but array of buttons
+    // see https://forum.lvgl.io/t/style-a-tabview-widget-in-v9-0-0/14747
+
+    lv_obj_t* tab_buttons = lv_tabview_get_tab_bar(ui_NodesOptionsTabView);
+
+    static lv_style_t style_btn_default;
+    lv_style_init(&style_btn_default);
+    lv_style_set_text_color(&style_btn_default, lv_color_hex(0x707070));
+    lv_style_set_bg_color(&style_btn_default, lv_color_hex(0x303030));
+    lv_style_set_bg_opa(&style_btn_default, LV_OPA_COVER);
+    lv_style_set_border_color(&style_btn_default, lv_color_hex(0x505050));
+    lv_style_set_border_opa(&style_btn_default, LV_OPA_COVER);
+    lv_style_set_border_width(&style_btn_default, 1);
+    lv_style_set_border_side(&style_btn_default, LV_BORDER_SIDE_FULL);
+
+    static lv_style_t style_btn_active;
+    lv_style_init(&style_btn_active);
+    lv_style_set_text_color(&style_btn_active, lv_color_hex(0xFFFFFF));
+    lv_style_set_bg_color(&style_btn_active, lv_color_hex(0x303030));
+    lv_style_set_bg_opa(&style_btn_active, LV_OPA_COVER);
+    lv_style_set_border_color(&style_btn_active, lv_color_hex(0xff67ea94));
+    lv_style_set_border_opa(&style_btn_active, LV_OPA_COVER);
+    lv_style_set_border_width(&style_btn_active, 3);
+    lv_style_set_border_side(&style_btn_active, LV_BORDER_SIDE_BOTTOM);
+
+    static lv_style_t style_btn_pressed;
+    lv_style_init(&style_btn_pressed);
+    lv_style_set_text_color(&style_btn_pressed, lv_color_hex(0xFFFFFF));
+    lv_style_set_bg_color(&style_btn_pressed, lv_color_hex(0xff67ea94));
+    lv_style_set_bg_opa(&style_btn_pressed, LV_OPA_COVER);
+    lv_style_set_border_color(&style_btn_pressed, lv_color_hex(0xff67ea94));
+    lv_style_set_border_opa(&style_btn_pressed, LV_OPA_COVER);
+    lv_style_set_border_width(&style_btn_pressed, 3);
+    lv_style_set_border_side(&style_btn_pressed, LV_BORDER_SIDE_BOTTOM);
+
+    for(int i = 0; i < tab_buttons->spec_attr->child_cnt; i++) {
+        if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
+            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_default, LV_STATE_DEFAULT);
+            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_active, LV_STATE_CHECKED);
+            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_pressed, LV_STATE_PRESSED);
+        }
+    }
 }
