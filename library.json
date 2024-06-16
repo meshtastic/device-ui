@@ -27,6 +27,7 @@
     "flags": [
       "-Iinclude",
       "-Igenerated",
+      "-Ilocale",
       "-Iportduino",
       "-DLV_LVGL_H_INCLUDE_SIMPLE",
       "-DLV_CONF_INCLUDE_SIMPLE",

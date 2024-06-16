@@ -1,0 +1,48 @@
+pl:
+  no new messages: ~
+  1 of 1 nodes online: ~
+  DEL: ~
+  "User name: ": ~
+  "Modem Preset: LONG FAST": ~
+  "Channel: LongFast": ~
+  "Role: Client": ~
+  "Screen Timeout: 60s": ~
+  "Screen Brightness: 60%": ~
+  "Screen Calibration: default": ~
+  "Input Control: none/none": ~
+  "Message Alert Buzzer: on": ~
+  "Language: English": ~
+  Configuration  Reset: ~
+  Reboot / Shutdown: ~
+  Group Channels: ~
+  no messages: ~
+  Settings: ~
+  Settings (advanced): ~
+  Locations Map: ~
+  no chats: ~
+  Node Options: ~
+  Short Name: ~
+  Long Name: ~
+  <unset>: ~
+  LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
+  "FrequencySlot: 1 (902.0MHz)": ~
+  Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  "Brightness: 60%": ~
+  "Timeout: 60s": ~
+  Mouse: ~
+  Keyboard: ~
+  Message Alert: ~
+  NodeDB Reset\nFactory Reset: ~
+  Channel Name: ~
+  Pre-shared Key: ~
+  New Message from\n: ~
+  Resynch...: ~
+  "User name: %s": ~
+  "Device Role: %s": ~
+  "Screen Calibration: %s": ~
+  done: ~
+  default: ~
+  "Region: %s": ~
+  "Modem Preset: %s": ~
+  "Channel: %s": ~
+  "Language: %s": ~
