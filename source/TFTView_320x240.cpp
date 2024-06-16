@@ -221,7 +221,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_2, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)2);
     lv_obj_add_event_cb(objects.keyboard_button_3, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)3);
     lv_obj_add_event_cb(objects.keyboard_button_4, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)4);
-    lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(ui_KeyboardButton5, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)5);
+    lv_obj_add_event_cb(ui_KeyboardButton6, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)6);
 
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
@@ -542,6 +543,14 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
             break;
         case 4:
             THIS->showKeyboard(objects.settings_modify_channel_psk_textarea);
+            break;
+        case 5:
+            THIS->showKeyboard(ui_NodesFilterNameArea);
+            lv_obj_add_state(ui_NodesFilterNameArea, LV_STATE_FOCUSED);
+            break;
+        case 6:
+            THIS->showKeyboard(ui_NodesHLNameArea);
+            lv_obj_add_state(ui_NodesHLNameArea, LV_STATE_FOCUSED);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment\n");

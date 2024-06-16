@@ -28,6 +28,12 @@ lv_obj_t * ui_NodesHLIAQSwitch;
 lv_obj_t * ui_NodesHLNameLabel;
 lv_obj_t * ui_NodesHLNameArea;
 
+lv_obj_t *ui_KeyboardButton5;
+lv_obj_t *ui_KeyboardButton6;
+
+extern const lv_img_dsc_t img_keyboard_image;
+
+
 void create_tabview_nodes_options()
 {
     ui_NodesOptionsPanel = lv_obj_create(objects.main_screen);
@@ -82,7 +88,7 @@ void create_tabview_nodes_options()
     ui_NodesFilterUnknownSwitch = lv_switch_create(ui_NodesFilterUnknownLabel);
     lv_obj_set_width(ui_NodesFilterUnknownSwitch, 50);
     lv_obj_set_height(ui_NodesFilterUnknownSwitch, 20);
-    lv_obj_set_x(ui_NodesFilterUnknownSwitch, -20);
+    lv_obj_set_x(ui_NodesFilterUnknownSwitch, -10);
     lv_obj_set_y(ui_NodesFilterUnknownSwitch, -3);
     lv_obj_set_align(ui_NodesFilterUnknownSwitch, LV_ALIGN_RIGHT_MID);
 
@@ -118,7 +124,7 @@ void create_tabview_nodes_options()
     ui_NodesFilterOfflineSwitch = lv_switch_create(ui_NodesFilterOfflineLabel);
     lv_obj_set_width(ui_NodesFilterOfflineSwitch, 50);
     lv_obj_set_height(ui_NodesFilterOfflineSwitch, 20);
-    lv_obj_set_x(ui_NodesFilterOfflineSwitch, -20);
+    lv_obj_set_x(ui_NodesFilterOfflineSwitch, -10);
     lv_obj_set_y(ui_NodesFilterOfflineSwitch, -3);
     lv_obj_set_align(ui_NodesFilterOfflineSwitch, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_border_color(ui_NodesFilterOfflineSwitch, lv_color_hex(0x606060), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -151,7 +157,7 @@ void create_tabview_nodes_options()
     ui_NodesFilterMQTTSwitch = lv_switch_create(ui_NodesFilterMQTTLabel);
     lv_obj_set_width(ui_NodesFilterMQTTSwitch, 50);
     lv_obj_set_height(ui_NodesFilterMQTTSwitch, 20);
-    lv_obj_set_x(ui_NodesFilterMQTTSwitch, -20);
+    lv_obj_set_x(ui_NodesFilterMQTTSwitch, -10);
     lv_obj_set_y(ui_NodesFilterMQTTSwitch, -3);
     lv_obj_set_align(ui_NodesFilterMQTTSwitch, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_border_color(ui_NodesFilterMQTTSwitch, lv_color_hex(0x606060), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -184,7 +190,7 @@ void create_tabview_nodes_options()
     ui_NodesFilterPositionSwitch = lv_switch_create(ui_NodesFilterPositionLabel);
     lv_obj_set_width(ui_NodesFilterPositionSwitch, 50);
     lv_obj_set_height(ui_NodesFilterPositionSwitch, 20);
-    lv_obj_set_x(ui_NodesFilterPositionSwitch, -20);
+    lv_obj_set_x(ui_NodesFilterPositionSwitch, -10);
     lv_obj_set_y(ui_NodesFilterPositionSwitch, -3);
     lv_obj_set_align(ui_NodesFilterPositionSwitch, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_border_color(ui_NodesFilterPositionSwitch, lv_color_hex(0x606060), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -215,13 +221,13 @@ void create_tabview_nodes_options()
     lv_obj_set_style_pad_bottom(ui_NodesFilterNameLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_NodesFilterNameArea = lv_textarea_create(ui_NodesFilterNameLabel);
-    lv_obj_set_width(ui_NodesFilterNameArea, lv_pct(70));
+    lv_obj_set_width(ui_NodesFilterNameArea, lv_pct(60));
     lv_obj_set_height(ui_NodesFilterNameArea, LV_SIZE_CONTENT);    /// 24
-    lv_obj_set_x(ui_NodesFilterNameArea, -20);
+    lv_obj_set_x(ui_NodesFilterNameArea, -40);
     lv_obj_set_y(ui_NodesFilterNameArea, -3);
     lv_obj_set_align(ui_NodesFilterNameArea, LV_ALIGN_BOTTOM_RIGHT);
     lv_textarea_set_max_length(ui_NodesFilterNameArea, 237);
-    lv_textarea_set_placeholder_text(ui_NodesFilterNameArea, "Enter Filter ...");
+    lv_textarea_set_placeholder_text(ui_NodesFilterNameArea, "!Enter filter ...");
     lv_textarea_set_one_line(ui_NodesFilterNameArea, true);
     lv_obj_add_state(ui_NodesFilterNameArea, LV_STATE_FOCUSED);       /// States
     lv_obj_add_flag(ui_NodesFilterNameArea, LV_OBJ_FLAG_SCROLL_ONE);     /// Flags
@@ -230,6 +236,20 @@ void create_tabview_nodes_options()
     lv_obj_set_style_pad_right(ui_NodesFilterNameArea, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_NodesFilterNameArea, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(ui_NodesFilterNameArea, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_KeyboardButton5 = lv_btn_create(ui_NodesFilterNameLabel);
+    lv_obj_set_pos(ui_KeyboardButton5, -10, -3);
+    lv_obj_set_size(ui_KeyboardButton5, 25, 24);
+    lv_obj_set_align(ui_KeyboardButton5, LV_ALIGN_BOTTOM_RIGHT);
+    lv_obj_add_flag(ui_KeyboardButton5, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_KeyboardButton5, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_KeyboardButton5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_KeyboardButton5, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_src(ui_KeyboardButton5, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor(ui_KeyboardButton5, lv_color_hex(0x373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor_opa(ui_KeyboardButton5, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui_KeyboardButton5, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_spread(ui_KeyboardButton5, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
 
     ui_TabPageHighlight = lv_tabview_add_tab(ui_NodesOptionsTabView, "HighLight");
@@ -259,7 +279,7 @@ void create_tabview_nodes_options()
     ui_NodesHLActiveChatSwitch = lv_switch_create(ui_NodesHLActiveChatLabel);
     lv_obj_set_width(ui_NodesHLActiveChatSwitch, 50);
     lv_obj_set_height(ui_NodesHLActiveChatSwitch, 20);
-    lv_obj_set_x(ui_NodesHLActiveChatSwitch, -20);
+    lv_obj_set_x(ui_NodesHLActiveChatSwitch, -10);
     lv_obj_set_y(ui_NodesHLActiveChatSwitch, -3);
     lv_obj_set_align(ui_NodesHLActiveChatSwitch, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_border_color(ui_NodesHLActiveChatSwitch, lv_color_hex(0x606060), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -292,7 +312,7 @@ void create_tabview_nodes_options()
     ui_NodesHLPositionSwitch = lv_switch_create(ui_NodesHLPositionLabel);
     lv_obj_set_width(ui_NodesHLPositionSwitch, 50);
     lv_obj_set_height(ui_NodesHLPositionSwitch, 20);
-    lv_obj_set_x(ui_NodesHLPositionSwitch, -20);
+    lv_obj_set_x(ui_NodesHLPositionSwitch, -10);
     lv_obj_set_y(ui_NodesHLPositionSwitch, -3);
     lv_obj_set_align(ui_NodesHLPositionSwitch, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_border_color(ui_NodesHLPositionSwitch, lv_color_hex(0x606060), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -325,7 +345,7 @@ void create_tabview_nodes_options()
     ui_NodesHLTelemetrySwitch = lv_switch_create(ui_NodesHLTelemetryLabel);
     lv_obj_set_width(ui_NodesHLTelemetrySwitch, 50);
     lv_obj_set_height(ui_NodesHLTelemetrySwitch, 20);
-    lv_obj_set_x(ui_NodesHLTelemetrySwitch, -20);
+    lv_obj_set_x(ui_NodesHLTelemetrySwitch, -10);
     lv_obj_set_y(ui_NodesHLTelemetrySwitch, -3);
     lv_obj_set_align(ui_NodesHLTelemetrySwitch, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_border_color(ui_NodesHLTelemetrySwitch, lv_color_hex(0x606060), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -358,7 +378,7 @@ void create_tabview_nodes_options()
     ui_NodesHLIAQSwitch = lv_switch_create(ui_NodesHLIAQLabel);
     lv_obj_set_width(ui_NodesHLIAQSwitch, 50);
     lv_obj_set_height(ui_NodesHLIAQSwitch, 20);
-    lv_obj_set_x(ui_NodesHLIAQSwitch, -20);
+    lv_obj_set_x(ui_NodesHLIAQSwitch, -10);
     lv_obj_set_y(ui_NodesHLIAQSwitch, -3);
     lv_obj_set_align(ui_NodesHLIAQSwitch, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_border_color(ui_NodesHLIAQSwitch, lv_color_hex(0x606060), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -389,13 +409,13 @@ void create_tabview_nodes_options()
     lv_obj_set_style_pad_bottom(ui_NodesHLNameLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_NodesHLNameArea = lv_textarea_create(ui_NodesHLNameLabel);
-    lv_obj_set_width(ui_NodesHLNameArea, lv_pct(70));
+    lv_obj_set_width(ui_NodesHLNameArea, lv_pct(60));
     lv_obj_set_height(ui_NodesHLNameArea, LV_SIZE_CONTENT);    /// 24
     lv_obj_set_x(ui_NodesHLNameArea, -20);
     lv_obj_set_y(ui_NodesHLNameArea, -3);
     lv_obj_set_align(ui_NodesHLNameArea, LV_ALIGN_BOTTOM_RIGHT);
     lv_textarea_set_max_length(ui_NodesHLNameArea, 237);
-    lv_textarea_set_placeholder_text(ui_NodesHLNameArea, "Enter Filter ...");
+    lv_textarea_set_placeholder_text(ui_NodesHLNameArea, "Enter filter ...");
     lv_textarea_set_one_line(ui_NodesHLNameArea, true);
     lv_obj_add_state(ui_NodesHLNameArea, LV_STATE_FOCUSED);       /// States
     lv_obj_add_flag(ui_NodesHLNameArea, LV_OBJ_FLAG_SCROLL_ONE);     /// Flags
@@ -404,6 +424,21 @@ void create_tabview_nodes_options()
     lv_obj_set_style_pad_right(ui_NodesHLNameArea, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_NodesHLNameArea, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(ui_NodesHLNameArea, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_KeyboardButton6 = lv_btn_create(ui_NodesHLNameLabel);
+    lv_obj_set_pos(ui_KeyboardButton6, -10, -3);
+    lv_obj_set_size(ui_KeyboardButton6, 25, 24);
+    lv_obj_set_align(ui_KeyboardButton6, LV_ALIGN_BOTTOM_RIGHT);
+    lv_obj_add_flag(ui_KeyboardButton6, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_KeyboardButton6, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_KeyboardButton6, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_KeyboardButton6, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_src(ui_KeyboardButton6, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor(ui_KeyboardButton6, lv_color_hex(0x373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor_opa(ui_KeyboardButton6, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui_KeyboardButton6, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_spread(ui_KeyboardButton6, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
 
     // lvgl v9 tabview buttons are not btn-matrix anymore but array of buttons
     // see https://forum.lvgl.io/t/style-a-tabview-widget-in-v9-0-0/14747

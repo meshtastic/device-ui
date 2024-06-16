@@ -32,6 +32,9 @@ extern lv_obj_t * ui_NodesHLIAQLabel;
 extern lv_obj_t * ui_NodesHLIAQSwitch;
 extern lv_obj_t * ui_NodesHLNameLabel;
 extern lv_obj_t * ui_NodesHLNameArea;
+extern lv_obj_t * ui_KeyboardButton5;
+extern lv_obj_t * ui_KeyboardButton6;
+
 
 // advanced settings
 extern lv_obj_t * ui_AdvancedSettingsPanel;
