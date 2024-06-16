@@ -171,11 +171,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
  */
 void TFTView_320x240::apply_hotfix(void)
 {
-    lv_obj_set_scrollbar_mode(objects.home_container, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_scrollbar_mode(objects.settings_user_long_textarea, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_scrollbar_mode(objects.settings_modify_channel_psk_textarea, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_scrollbar_mode(objects.message_input_area, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_scroll_dir(objects.message_input_area, LV_DIR_HOR);
+    lv_obj_move_foreground(objects.keyboard);
 }
 
 void TFTView_320x240::ui_events_init(void)
@@ -221,6 +217,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.msg_popup_panel, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
 
     // keyboard
+    lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
     lv_obj_add_event_cb(objects.keyboard_button_0, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)0);
     lv_obj_add_event_cb(objects.keyboard_button_1, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)1);
     lv_obj_add_event_cb(objects.keyboard_button_2, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)2);

@@ -411,7 +411,7 @@ void create_tabview_nodes_options()
     ui_NodesHLNameArea = lv_textarea_create(ui_NodesHLNameLabel);
     lv_obj_set_width(ui_NodesHLNameArea, lv_pct(60));
     lv_obj_set_height(ui_NodesHLNameArea, LV_SIZE_CONTENT);    /// 24
-    lv_obj_set_x(ui_NodesHLNameArea, -20);
+    lv_obj_set_x(ui_NodesHLNameArea, -40);
     lv_obj_set_y(ui_NodesHLNameArea, -3);
     lv_obj_set_align(ui_NodesHLNameArea, LV_ALIGN_BOTTOM_RIGHT);
     lv_textarea_set_max_length(ui_NodesHLNameArea, 237);
