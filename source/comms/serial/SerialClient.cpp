@@ -33,7 +33,7 @@ void SerialClient::init(void)
 #elif defined(ARCH_PORTDUINO)
     std::thread *tft_task = new std::thread([] { instance->task_loop(nullptr); });
 #else
-#error "unsupported architecture"
+// #error "unsupported architecture"
 #endif
 }
 

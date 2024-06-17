@@ -7,6 +7,36 @@
 extern "C" {
 #endif
 
+// nodes options tabview
+extern lv_obj_t * ui_NodesOptionsPanel;
+extern lv_obj_t * ui_NodesOptionsTabView;
+extern lv_obj_t * ui_TabPageFilter;
+extern lv_obj_t * ui_NodesFilterUnknownLabel;
+extern lv_obj_t * ui_NodesFilterUnknownSwitch;
+extern lv_obj_t * ui_NodesFilterOfflineLabel;
+extern lv_obj_t * ui_NodesFilterOfflineSwitch;
+extern lv_obj_t * ui_NodesFilterMQTTLabel;
+extern lv_obj_t * ui_NodesFilterMQTTSwitch;
+extern lv_obj_t * ui_NodesFilterPositionLabel;
+extern lv_obj_t * ui_NodesFilterPositionSwitch;
+extern lv_obj_t * ui_NodesFilterNameLabel;
+extern lv_obj_t * ui_NodesFilterNameArea;
+extern lv_obj_t * ui_TabPageHighlight;
+extern lv_obj_t * ui_NodesHLActiveChatLabel;
+extern lv_obj_t * ui_NodesHLActiveChatSwitch;
+extern lv_obj_t * ui_NodesHLPositionLabel;
+extern lv_obj_t * ui_NodesHLPositionSwitch;
+extern lv_obj_t * ui_NodesHLTelemetryLabel;
+extern lv_obj_t * ui_NodesHLTelemetrySwitch;
+extern lv_obj_t * ui_NodesHLIAQLabel;
+extern lv_obj_t * ui_NodesHLIAQSwitch;
+extern lv_obj_t * ui_NodesHLNameLabel;
+extern lv_obj_t * ui_NodesHLNameArea;
+extern lv_obj_t * ui_KeyboardButton5;
+extern lv_obj_t * ui_KeyboardButton6;
+
+
+// advanced settings
 extern lv_obj_t * ui_AdvancedSettingsPanel;
 extern lv_obj_t * ui_SettingsTabView;
 extern lv_obj_t * ui_TabPageGeneral;
@@ -61,12 +91,14 @@ extern lv_obj_t * ui_DetectionSensorLabel;
 extern lv_obj_t * ui_ModuleRemoteHardwareButton;
 extern lv_obj_t * ui_RemoteHardwareLabel;
 
+void create_tabview_nodes_options(void);
 void create_tabview_settings(void);
 
 typedef struct _objects_t {
     lv_obj_t *boot_screen;
     lv_obj_t *main_screen;
     lv_obj_t *blank_screen;
+    lv_obj_t *calibration_screen;
     lv_obj_t *advanced_settings_panel;
     lv_obj_t *alert_label;
     lv_obj_t *alert_panel;
@@ -74,12 +106,16 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_alert_label;
     lv_obj_t *basic_settings_brightness_button;
     lv_obj_t *basic_settings_brightness_label;
+    lv_obj_t *basic_settings_calibration_button;
+    lv_obj_t *basic_settings_calibration_label;
     lv_obj_t *basic_settings_channel_button;
     lv_obj_t *basic_settings_channel_label;
     lv_obj_t *basic_settings_input_button;
     lv_obj_t *basic_settings_input_label;
     lv_obj_t *basic_settings_language_button;
     lv_obj_t *basic_settings_language_label;
+    lv_obj_t *basic_settings_modem_preset_button;
+    lv_obj_t *basic_settings_modem_preset_label;
     lv_obj_t *basic_settings_panel;
     lv_obj_t *basic_settings_reboot_button;
     lv_obj_t *basic_settings_reboot_label;
@@ -99,6 +135,7 @@ typedef struct _objects_t {
     lv_obj_t *battery_percentage_label;
     lv_obj_t *brightness_slider;
     lv_obj_t *button_panel;
+    lv_obj_t *cancel_reboot_button;
     lv_obj_t *channel_button0;
     lv_obj_t *channel_button1;
     lv_obj_t *channel_button2;
@@ -121,6 +158,8 @@ typedef struct _objects_t {
     lv_obj_t *chats_panel;
     lv_obj_t *del_label;
     lv_obj_t *firmware_label;
+    lv_obj_t *frequency_slot_label;
+    lv_obj_t *frequency_slot_slider;
     lv_obj_t *groups_button;
     lv_obj_t *groups_panel;
     lv_obj_t *home_bluetooth_button;
@@ -211,6 +250,10 @@ typedef struct _objects_t {
     lv_obj_t *obj9__cancel_button_w;
     lv_obj_t *obj9__ok_button_w;
     lv_obj_t *obj9__ok_cancel_panel_w;
+    lv_obj_t *position_label;
+    lv_obj_t *position2_label;
+    lv_obj_t *reboot_button;
+    lv_obj_t *reboot_panel;
     lv_obj_t *screen_timeout_slider;
     lv_obj_t *settings_alert_buzzer_panel;
     lv_obj_t *settings_alert_buzzer_switch;
@@ -240,12 +283,13 @@ typedef struct _objects_t {
     lv_obj_t *settings_keyboard_input_dropdown;
     lv_obj_t *settings_language_dropdown;
     lv_obj_t *settings_language_panel;
+    lv_obj_t *settings_modem_preset_dropdown;
+    lv_obj_t *settings_modem_preset_panel;
     lv_obj_t *settings_modify_channel_name_textarea;
     lv_obj_t *settings_modify_channel_panel;
     lv_obj_t *settings_modify_channel_psk_textarea;
+    lv_obj_t *settings_modify_trash_button;
     lv_obj_t *settings_mouse_input_dropdown;
-    lv_obj_t *settings_reboot_dropdown;
-    lv_obj_t *settings_reboot_panel;
     lv_obj_t *settings_region_dropdown;
     lv_obj_t *settings_region_panel;
     lv_obj_t *settings_reset_dropdown;
@@ -255,7 +299,10 @@ typedef struct _objects_t {
     lv_obj_t *settings_user_long_textarea;
     lv_obj_t *settings_user_short_textarea;
     lv_obj_t *settings_username_panel;
+    lv_obj_t *shutdown_button;
     lv_obj_t *signal_label;
+    lv_obj_t *telemetry1_label;
+    lv_obj_t *telemetry2_label;
     lv_obj_t *top_advanced_settings_image;
     lv_obj_t *top_advanced_settings_label;
     lv_obj_t *top_advanced_settings_panel;
@@ -275,6 +322,9 @@ typedef struct _objects_t {
     lv_obj_t *top_messages_node_image;
     lv_obj_t *top_messages_node_label;
     lv_obj_t *top_messages_panel;
+    lv_obj_t *top_node_options_image;
+    lv_obj_t *top_node_options_label;
+    lv_obj_t *top_node_options_panel;
     lv_obj_t *top_nodes_image;
     lv_obj_t *top_nodes_online_label;
     lv_obj_t *top_nodes_panel;
@@ -291,7 +341,8 @@ enum ScreensEnum {
     SCREEN_ID_BOOT_SCREEN = 1,
     SCREEN_ID_MAIN_SCREEN = 2,
     SCREEN_ID_BLANK_SCREEN = 3,
-    SCREEN_ID_OK_CANCEL_WIDGET = 4,
+    SCREEN_ID_CALIBRATION_SCREEN = 4,
+    SCREEN_ID_OK_CANCEL_WIDGET = 5,
 };
 
 void create_screen_boot_screen();
@@ -302,6 +353,9 @@ void tick_screen_main_screen();
 
 void create_screen_blank_screen();
 void tick_screen_blank_screen();
+
+void create_screen_calibration_screen();
+void tick_screen_calibration_screen();
 
 void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIndex);
 void tick_user_widget_ok_cancel_widget(int startWidgetIndex);

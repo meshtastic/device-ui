@@ -16,15 +16,15 @@ class OLEDView_128x64 : public MeshtasticView
     void task_handler(void) override;
 
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role) override
+                         eRole role, bool viaMqtt) override
     {
     }
-    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                 eRole role) override
+    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role,
+                 bool viaMqtt) override
     {
     }
     void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                    eRole role) override
+                    eRole role, bool viaMqtt) override
     {
     }
 
@@ -38,7 +38,7 @@ class OLEDView_128x64 : public MeshtasticView
     static OLEDView_128x64 *instance(void);
     static OLEDView_128x64 *instance(const DisplayDriverConfig &cfg);
     OLEDView_128x64();
-    OLEDView_128x64(DisplayDriver *driver);
+    OLEDView_128x64(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
     static OLEDView_128x64 *gui;
 };

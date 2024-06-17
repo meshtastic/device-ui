@@ -74,7 +74,7 @@ class LGFX_UNPHONE_V9 : public lgfx::LGFX_Device
             cfg.panel_height = screenHeight; // actual displayable height
             cfg.offset_x = 0;                // Panel offset amount in X direction
             cfg.offset_y = 0;                // Panel offset amount in Y direction
-            cfg.offset_rotation = 4;         // Rotation direction value offset 0~7 (4~7 is upside down)
+            cfg.offset_rotation = 6;         // Rotation direction value offset 0~7 (4~7 is upside down)
             cfg.dummy_read_pixel = 8;        // Number of bits for dummy read before pixel readout
             cfg.dummy_read_bits = 1;         // Number of bits for dummy read before non-pixel data read
             cfg.readable = true;             // Set to true if data can be read

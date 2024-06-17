@@ -22,7 +22,13 @@ class ViewController
     virtual uint32_t requestDisplayConfig(uint32_t nodeId = 0);
     virtual uint32_t requestLoRaConfig(uint32_t nodeId = 0);
     virtual uint32_t requestBluetoothConfig(uint32_t nodeId = 0);
-    virtual bool sendConfig(const meshtastic_User &user, uint32_t nodeId);
+
+    virtual bool requestReboot(int32_t seconds, uint32_t nodeId = 0);
+    virtual bool requestRebootOTA(int32_t seconds, uint32_t nodeId = 0);
+    virtual bool requestShutdown(int32_t seconds, uint32_t nodeId = 0);
+    virtual bool requestReset(bool factoryReset, uint32_t nodeId = 0);
+
+    virtual bool sendConfig(const meshtastic_User &user, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_DeviceConfig &&device, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_PositionConfig &&position, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_PowerConfig &&power, uint32_t nodeId = 0);
@@ -30,10 +36,25 @@ class ViewController
     virtual bool sendConfig(meshtastic_Config_DisplayConfig &&display, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_LoRaConfig &&lora, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_BluetoothConfig &&bluetooth, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_Channel &channel, uint32_t nodeId = 0);
 
     // module config
+    virtual bool sendConfig(meshtastic_ModuleConfig_MQTTConfig &&mqtt, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_SerialConfig &&serial, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig &&extNotif, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_StoreForwardConfig &&storeForward, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_RangeTestConfig &&rangeTest, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_TelemetryConfig &&telemetry, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_CannedMessageConfig &&cannedMessage, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_AudioConfig &&audio, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_RemoteHardwareConfig &&remoteHW, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_NeighborInfoConfig &&neighborInfo, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_AmbientLightingConfig &&ambientLighting, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_DetectionSensorConfig &&detectionSensor, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCounter, uint32_t nodeId = 0);
 
-    virtual void sendText(uint32_t to, uint8_t ch, const char *textmsg);
+    virtual void sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg);
+    virtual bool sendAdminMessage(meshtastic_AdminMessage &&config, uint32_t nodeId);
     virtual void sendHeartbeat(void);
 
     virtual ~ViewController();
@@ -44,8 +65,8 @@ class ViewController
     // generic send method to send a (decoded) payload in a meshpacket to radio
     virtual bool send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload);
     // generic send method to send a decoded byte string in a meshpacket to radio
-    virtual bool send(uint32_t to, uint8_t ch, meshtastic_PortNum portnum, const uint8_t *decoded, size_t len);
-    // try receive packet from radio via client interface
+    virtual bool send(uint32_t to, uint8_t ch, uint32_t requestId, meshtastic_PortNum portnum, const unsigned char bytes[237],
+                      size_t len);
     virtual bool receive(void);
     // request initial config from radio
     virtual void requestConfig(void);

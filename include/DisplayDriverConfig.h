@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdint.h"
+#include <string>
 
 const uint16_t c_default_width = 320;
 const uint16_t c_default_height = 240;
@@ -125,6 +126,11 @@ class DisplayDriverConfig
         int16_t pin_cs = -1;
     };
 
+    struct input_config_t {
+        std::string keyboardDevice;
+        std::string pointerDevice;
+    };
+
     struct light_config_t {
         uint32_t freq = 1200;
         int16_t pin_bl = -1;
@@ -135,17 +141,20 @@ class DisplayDriverConfig
     DisplayDriverConfig(void);
     DisplayDriverConfig(enum device_t device, uint16_t width = c_default_width, uint16_t height = c_default_height);
     DisplayDriverConfig(struct panel_config_t &&panel, struct bus_config_t &&bus, struct light_config_t &&light,
-                        struct touch_config_t &&touch);
+                        struct touch_config_t &&touch, struct input_config_t &&input);
 
     // class builder when using ctor(void)
     DisplayDriverConfig &device(enum device_t device);
     DisplayDriverConfig &panel(panel_config_t &&cfg);
     DisplayDriverConfig &bus(bus_config_t &&cfg);
     DisplayDriverConfig &touch(touch_config_t &&cfg);
+    DisplayDriverConfig &input(input_config_t &&cfg);
     DisplayDriverConfig &light(light_config_t &&cfg);
 
     uint16_t width(void) const { return _width; }
     uint16_t height(void) const { return _height; }
+    const std::string &keyboard(void) const { return _input.keyboardDevice; }
+    const std::string &pointer(void) const { return _input.pointerDevice; }
 
   private:
     friend class DisplayDriverFactory;
@@ -155,6 +164,7 @@ class DisplayDriverConfig
     panel_config_t _panel;
     bus_config_t _bus;
     touch_config_t _touch;
+    input_config_t _input;
     light_config_t _light;
     uint16_t _width;
     uint16_t _height;

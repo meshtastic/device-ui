@@ -5,13 +5,16 @@
 class LinuxInputDriver : public InputDriver
 {
   public:
-    LinuxInputDriver(void);
-    virtual void init(void) override;
-    virtual void task_handler(void) override;
+    LinuxInputDriver(const std::string &kbdDevice, const std::string &ptrDevice);
+    void init(void) override;
+    void task_handler(void) override;
     virtual ~LinuxInputDriver(void);
 
     std::vector<std::string> getKeyboardDevices(void) override;
     std::vector<std::string> getPointerDevices(void) override;
+
+    std::string getCurrentKeyboardDevice(void) { return keyboardDevice; }
+    std::string getCurrentPointerDevice(void) { return pointerDevice; }
 
     bool useKeyboardDevice(const std::string &name) override;
     bool usePointerDevice(const std::string &name) override;

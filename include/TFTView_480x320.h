@@ -16,15 +16,15 @@ class TFTView_480x320 : public MeshtasticView
     void task_handler(void) override;
 
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role) override
+                         eRole role, bool viaMqtt) override
     {
     }
-    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                 eRole role) override
+    void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role,
+                 bool viaMqtt) override
     {
     }
     void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                    eRole role) override
+                    eRole role, bool viaMqtt) override
     {
     }
 
@@ -38,7 +38,7 @@ class TFTView_480x320 : public MeshtasticView
     static TFTView_480x320 *instance(void);
     static TFTView_480x320 *instance(const DisplayDriverConfig &cfg);
     TFTView_480x320();
-    TFTView_480x320(DisplayDriver *driver);
+    TFTView_480x320(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
     static TFTView_480x320 *gui;
 };

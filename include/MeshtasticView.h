@@ -1,24 +1,27 @@
 #pragma once
 
 #include "DeviceGUI.h"
+#include "DisplayDriverConfig.h"
+#include "ResponseHandler.h"
 #include "lvgl.h"
 #include "mesh-pb-constants.h"
 #include <array>
 #include <stdint.h>
-#include <time.h>
 #include <string>
+#include <time.h>
 #include <unordered_map>
 
 #define LV_OBJ_IDX(x) spec_attr->children[x]
 
 constexpr uint8_t c_max_channels = 8;
+constexpr uint32_t c_request_timeout = 60 * 1000;
 
 class ViewController;
 
 class MeshtasticView : public DeviceGUI
 {
   public:
-    MeshtasticView(DisplayDriver *driver, ViewController *_controller);
+    MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller);
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
     virtual bool sleep(int16_t pin);
@@ -44,21 +47,24 @@ class MeshtasticView : public DeviceGUI
     virtual void setMyInfo(uint32_t nodeNum);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                    bool can_shutdown);
-    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role);
+    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool viaMqtt);
     virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                 uint32_t lastHeard, eRole role);
+                                 uint32_t lastHeard, eRole role, bool viaMqtt);
     virtual void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role);
+                         eRole role, bool viaMqtt);
     virtual void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                            eRole role);
+                            eRole role, bool viaMqtt);
     virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision);
     virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
+    virtual void updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics) {}
+    virtual void updateAirQualityMetrics(uint32_t nodeNum, const meshtastic_AirQualityMetrics &metrics) {}
+    virtual void updatePowerMetrics(uint32_t nodeNum, const meshtastic_PowerMetrics &metrics) {}
     virtual void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr);
     virtual void updateHopsAway(uint32_t nodeNum, uint8_t hopsAway) {}
     virtual void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) {}
 
     // methods to update device config
-    virtual void updateChannelConfig(const meshtastic_Channel& ch) {}
+    virtual void updateChannelConfig(const meshtastic_Channel &ch) {}
     virtual void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) {}
     virtual void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) {}
     virtual void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) {}
@@ -84,15 +90,17 @@ class MeshtasticView : public DeviceGUI
 
     virtual void configCompleted(void) { configComplete = true; }
 
+    virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &route) {}
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
     virtual void notifyResync(bool show);
+    virtual void notifyReboot(bool show);
+    virtual void notifyShutdown(void);
     virtual void showMessagePopup(const char *from);
 
     virtual void removeNode(uint32_t nodeNum);
 
     // local update methods
-    virtual void updateNodesOnline(const char *str);
     virtual void updateLastHeard(uint32_t nodeNum);
 
   protected:
@@ -100,11 +108,11 @@ class MeshtasticView : public DeviceGUI
     std::tuple<uint32_t, uint32_t> nodeColor(uint32_t nodeNum);
     bool lastHeartToString(uint32_t lastHeard, char *buf);
     const char *deviceRoleToString(enum eRole role);
-    const char *loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region);
     std::string pskToBase64(const meshtastic_ChannelSettings_psk_t &psk);
     bool base64ToPsk(const std::string &base64, meshtastic_ChannelSettings_psk_t &psk);
 
     ViewController *controller;
+    ResponseHandler requests;
     std::unordered_map<uint32_t, lv_obj_t *> nodes;       // node panels
     std::unordered_map<uint32_t, lv_obj_t *> messages;    // message containers (within ui_MessagesPanel)
     std::unordered_map<uint32_t, lv_obj_t *> chats;       // active chats (within ui_ChatPanel)
@@ -113,5 +121,5 @@ class MeshtasticView : public DeviceGUI
     uint32_t nodeCount = 1, nodesOnline = 1, ownNode = 0; // node info
     uint32_t unreadMessages = 0;                          // messages
     bool configComplete = false;                          // config request finishe
-    time_t lastrun30 = 0;                                 // 30s task
+    time_t lastrun20 = 0;                                 // 20s task
 };

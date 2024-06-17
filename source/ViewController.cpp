@@ -97,96 +97,245 @@ uint32_t ViewController::requestBluetoothConfig(uint32_t nodeId)
  */
 uint32_t ViewController::requestConfig(meshtastic_AdminMessage_ConfigType type, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{.which_payload_variant = meshtastic_AdminMessage_get_config_request_tag,
-                                    .get_config_request = type};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_get_config_request_tag,
+                                                    .get_config_request = type},
+                            nodeId);
+}
 
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+bool ViewController::requestReboot(int32_t seconds, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_reboot_seconds_tag, .reboot_seconds = seconds},
+        nodeId);
+}
+
+bool ViewController::requestRebootOTA(int32_t seconds, uint32_t nodeId)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_reboot_ota_seconds_tag,
+                                                    .reboot_ota_seconds = seconds},
+                            nodeId);
+}
+
+bool ViewController::requestShutdown(int32_t seconds, uint32_t nodeId)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_shutdown_seconds_tag,
+                                                    .shutdown_seconds = seconds},
+                            nodeId);
+}
+
+/**
+ * @brief request factory reset or nodedb reset
+ *
+ * @param factoryReset set to false if only nodeDB reset is desired
+ * @param nodeId
+ * @return true
+ * @return false
+ */
+bool ViewController::requestReset(bool factoryReset, uint32_t nodeId)
+{
+    return sendAdminMessage(factoryReset
+                                ? meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_factory_reset_tag}
+                                : meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_nodedb_reset_tag},
+                            nodeId);
 }
 
 bool ViewController::sendConfig(const meshtastic_User &user, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{.which_payload_variant = meshtastic_AdminMessage_set_owner_tag, .set_owner{user}};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_owner_tag, .set_owner{user}}, nodeId);
 }
 
 bool ViewController::sendConfig(meshtastic_Config_DeviceConfig &&device, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{
-        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
-        .set_config{.which_payload_variant = meshtastic_Config_device_tag, .payload_variant{.device = device}}};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
-
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+                                                    .set_config{.which_payload_variant = meshtastic_Config_device_tag,
+                                                                .payload_variant{.device = device}}},
+                            nodeId);
 }
 
 bool ViewController::sendConfig(meshtastic_Config_PositionConfig &&position, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{
-        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
-        .set_config{.which_payload_variant = meshtastic_Config_position_tag, .payload_variant{.position = position}}};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
-
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+                                                    .set_config{.which_payload_variant = meshtastic_Config_position_tag,
+                                                                .payload_variant{.position = position}}},
+                            nodeId);
 }
 
 bool ViewController::sendConfig(meshtastic_Config_PowerConfig &&power, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{
-        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
-        .set_config{.which_payload_variant = meshtastic_Config_power_tag, .payload_variant{.power = power}}};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
-
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+                                                    .set_config{.which_payload_variant = meshtastic_Config_power_tag,
+                                                                .payload_variant{.power = power}}},
+                            nodeId);
 }
 
 bool ViewController::sendConfig(meshtastic_Config_NetworkConfig &&network, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{
-        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
-        .set_config{.which_payload_variant = meshtastic_Config_network_tag, .payload_variant{.network = network}}};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
-
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+                                                    .set_config{.which_payload_variant = meshtastic_Config_network_tag,
+                                                                .payload_variant{.network = network}}},
+                            nodeId);
 }
 
 bool ViewController::sendConfig(meshtastic_Config_DisplayConfig &&display, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{
-        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
-        .set_config{.which_payload_variant = meshtastic_Config_display_tag, .payload_variant{.display = display}}};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
-
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+                                                    .set_config{.which_payload_variant = meshtastic_Config_display_tag,
+                                                                .payload_variant{.display = display}}},
+                            nodeId);
 }
 
 bool ViewController::sendConfig(meshtastic_Config_LoRaConfig &&lora, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{
-        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
-        .set_config{.which_payload_variant = meshtastic_Config_lora_tag, .payload_variant{.lora = lora}}};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
-
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+                                .set_config{.which_payload_variant = meshtastic_Config_lora_tag, .payload_variant{.lora = lora}}},
+        nodeId);
 }
 
 bool ViewController::sendConfig(meshtastic_Config_BluetoothConfig &&bluetooth, uint32_t nodeId)
 {
-    meshtastic_AdminMessage request{
-        .which_payload_variant = meshtastic_AdminMessage_set_config_tag,
-        .set_config{.which_payload_variant = meshtastic_Config_bluetooth_tag, .payload_variant{.bluetooth = bluetooth}}};
-    meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &request);
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+                                                    .set_config{.which_payload_variant = meshtastic_Config_bluetooth_tag,
+                                                                .payload_variant{.bluetooth = bluetooth}}},
+                            nodeId);
+}
 
+bool ViewController::sendConfig(meshtastic_Channel &channel, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_channel_tag, .set_channel{channel}}, nodeId);
+}
+
+// module config
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_MQTTConfig &&mqtt, uint32_t nodeId)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                                    .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_mqtt_tag,
+                                                                       .payload_variant{.mqtt = mqtt}}},
+                            nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_SerialConfig &&serial, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{
+            .which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+            .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_serial_tag, .payload_variant{.serial = serial}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig &&extNotif, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_external_notification_tag,
+                                                   .payload_variant{.external_notification = extNotif}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_StoreForwardConfig &&storeForward, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_store_forward_tag,
+                                                   .payload_variant{.store_forward = storeForward}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_RangeTestConfig &&rangeTest, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_range_test_tag,
+                                                   .payload_variant{.range_test = rangeTest}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_TelemetryConfig &&telemetry, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_telemetry_tag,
+                                                   .payload_variant{.telemetry = telemetry}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_CannedMessageConfig &&cannedMessage, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_canned_message_tag,
+                                                   .payload_variant{.canned_message = cannedMessage}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_AudioConfig &&audio, uint32_t nodeId)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                                    .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_audio_tag,
+                                                                       .payload_variant{.audio = audio}}},
+                            nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_RemoteHardwareConfig &&remoteHW, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_remote_hardware_tag,
+                                                   .payload_variant{.remote_hardware = remoteHW}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_NeighborInfoConfig &&neighborInfo, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_neighbor_info_tag,
+                                                   .payload_variant{.neighbor_info = neighborInfo}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_AmbientLightingConfig &&ambientLighting, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_ambient_lighting_tag,
+                                                   .payload_variant{.ambient_lighting = ambientLighting}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_DetectionSensorConfig &&detectionSensor, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_detection_sensor_tag,
+                                                   .payload_variant{.detection_sensor = detectionSensor}}},
+        nodeId);
+}
+
+bool ViewController::sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCounter, uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_module_config_tag,
+                                .set_module_config{.which_payload_variant = meshtastic_ModuleConfig_paxcounter_tag,
+                                                   .payload_variant{.paxcounter = paxCounter}}},
+        nodeId);
+}
+
+/**
+ * @brief Generic admin message
+ *
+ * @param bluetooth
+ * @param nodeId
+ * @return true
+ * @return false
+ */
+bool ViewController::sendAdminMessage(meshtastic_AdminMessage &&config, uint32_t nodeId)
+{
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &config);
     return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
 }
 
@@ -202,10 +351,10 @@ void ViewController::setConfigRequested(bool required)
     requestConfigRequired = required;
 }
 
-void ViewController::sendText(uint32_t to, uint8_t ch, const char *textmsg)
+void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg)
 {
     assert(strlen(textmsg) <= (size_t)DATA_PAYLOAD_LEN);
-    send(to, ch, meshtastic_PortNum_TEXT_MESSAGE_APP, (const uint8_t *)textmsg, strlen(textmsg));
+    send(to, ch, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, (const uint8_t *)textmsg, strlen(textmsg));
 }
 
 /**
@@ -230,7 +379,8 @@ bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtas
 /**
  * generic send method for sending meshpackets with encoded payload
  */
-bool ViewController::send(uint32_t to, uint8_t ch, meshtastic_PortNum portnum, const unsigned char *bytes, size_t len)
+bool ViewController::send(uint32_t to, uint8_t ch, uint32_t requestId, meshtastic_PortNum portnum, const unsigned char bytes[237],
+                          size_t len)
 {
     ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, portnum=%u, len=%u\n", to, to, (unsigned int)ch, portnum, len);
     // send requires movable lvalue, i.e. a temporary object
@@ -274,7 +424,8 @@ bool ViewController::send(uint32_t to, uint8_t ch, meshtastic_PortNum portnum, c
                                    bytes[224], bytes[225], bytes[226], bytes[227], bytes[228], bytes[229], bytes[230], bytes[231],
                                    bytes[232], bytes[233], bytes[234], bytes[235], bytes[236]}},
                 .want_response = false}, // FIXME: traceRoute, requestPosition, remote config: true
-            .hop_limit = 3,              // FIXME: use value from setting
+            .id = requestId,
+            .hop_limit = 3, // FIXME: use value from setting
             .want_ack = (to != 0)}});
 }
 
@@ -311,11 +462,12 @@ void ViewController::requestConfig(void)
 void ViewController::requestDeviceConnectionStatus(void)
 {
     return; // FIXME this encoding leads to crash
+    uint32_t requestId = 42;
     meshtastic_AdminMessage msg{.which_payload_variant = meshtastic_AdminMessage_get_device_connection_status_request_tag,
                                 .get_device_connection_status_request = true};
     uint8_t encoded[DATA_PAYLOAD_LEN];
     size_t len = pb_encode_to_bytes(encoded, sizeof(encoded), &meshtastic_AdminMessage_msg, &msg);
-    this->send(view->getMyNodeNum(), 0, meshtastic_PortNum_ADMIN_APP, encoded, len);
+    this->send(view->getMyNodeNum(), 0, requestId, meshtastic_PortNum_ADMIN_APP, encoded, len);
 }
 
 bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
@@ -341,9 +493,9 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         const meshtastic_NodeInfo &node = from.node_info;
         if (node.has_user) {
             view->addOrUpdateNode(node.num, node.channel, node.user.short_name, node.user.long_name, node.last_heard,
-                                  (MeshtasticView::eRole)node.user.role);
+                                  (MeshtasticView::eRole)node.user.role, node.via_mqtt);
         } else {
-            view->addOrUpdateNode(node.num, node.channel, node.last_heard, (MeshtasticView::eRole)node.user.role);
+            view->addOrUpdateNode(node.num, node.channel, node.last_heard, (MeshtasticView::eRole)node.user.role, node.via_mqtt);
         }
         if (node.has_position) {
             view->updatePosition(node.num, node.position.latitude_i, node.position.longitude_i, node.position.altitude, 0,
@@ -545,7 +697,8 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
     case meshtastic_PortNum_NODEINFO_APP: {
         meshtastic_User user;
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_User_msg, &user)) {
-            view->updateNode(p.from, -1, user.short_name, user.long_name, 0, (MeshtasticView::eRole)user.role);
+            view->updateNode(p.from, -1, user.short_name, user.long_name, 0, (MeshtasticView::eRole)user.role,
+                             false); // TODO viaMqtt?
         } else {
             ILOG_ERROR("Error decoding protobuf meshtastic_User (nodeinfo)!\n");
             return false;
@@ -563,12 +716,16 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 break;
             }
             case meshtastic_Telemetry_environment_metrics_tag: {
-                ILOG_WARN("meshtastic_Telemetry_environment_metrics_tag not implemented\n");
+                view->updateEnvironmentMetrics(p.from, telemetry.variant.environment_metrics);
+                break;
+            }
+            case meshtastic_Telemetry_air_quality_metrics_tag: {
+                view->updateAirQualityMetrics(p.from, telemetry.variant.air_quality_metrics);
                 return false;
                 break;
             }
             case meshtastic_Telemetry_power_metrics_tag: {
-                ILOG_WARN("meshtastic_Telemetry_power_metrics_tag not implemented\n");
+                view->updatePowerMetrics(p.from, telemetry.variant.power_metrics);
                 return false;
                 break;
             }
@@ -584,7 +741,27 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
         break;
     }
     case meshtastic_PortNum_ROUTING_APP:
-        ILOG_WARN("meshtastic_PortNum_ROUTING_APP not implemented\n");
+        meshtastic_Routing routing;
+        ILOG_DEBUG("PortNum_ROUTING_APP: id:%08x, from:%08x, to:%08x, dest:%08x, source:%08x, requestId:%08x, replyId:%08x\n",
+                   p.id, p.from, p.to, p.decoded.dest, p.decoded.source, p.decoded.request_id, p.decoded.reply_id);
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Routing_msg, &routing)) {
+            if (routing.which_variant == meshtastic_Routing_error_reason_tag) {
+                switch (routing.error_reason) {
+                case meshtastic_Routing_Error_NONE:
+                case meshtastic_Routing_Error_MAX_RETRANSMIT:
+                    view->handleResponse(p.from, p.decoded.request_id, routing);
+                    break;
+                default:
+                    ILOG_WARN("got unhandled Routing_Error: %d\n", routing.error_reason);
+                    break;
+                }
+            } else {
+                view->handleResponse(p.from, p.decoded.request_id, routing);
+            }
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_Routing!\n");
+            return false;
+        }
         break;
     case meshtastic_PortNum_ADMIN_APP: {
         meshtastic_AdminMessage admin;

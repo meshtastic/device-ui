@@ -97,15 +97,18 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [x] Free memory info
     - [ ] Nodes panel
       - [x] Scroll display and sorting
-      - [ ] Node details
+      - [x] Node details
+      - [x] Position data
+      - [x] Telemetry data display
       - [ ] Repeater support (manual insertion)
       - [ ] LastHeard & time source handling improvements
       - [ ] Remote Node configuration
+      - [x] Filter (mqtt, offline, unknown, by name)
     - [x] Group channel panel
-    - [ ] Chat panel
+    - [x] Chat panel
       - [x] Scroll container and messages display
       - [x] Virtual keyboard
-      - [ ] Message acknowledgement
+      - [x] Message acknowledgement
       - [x] Delete chat
     - [ ] Map
       - [ ] Tiles dynamic loading
@@ -113,21 +116,32 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [ ] WLAN
       - [ ] Pan & Zoom
       - [ ] Node locations
+      - [ ] Location precision
     - [ ] Settings
       - [ ] Basic Settings
-      - [ ] General Settings
+        - [x] User name
+        - [x] Region
+        - [x] Modem Preset
+        - [x] Channel
+        - [x] Device Role
+        - [x] Screen Timeout
+        - [x] Screen Calibration
+        - [x] Brightness
+        - [x] Input Control
+        - [x] Message Alert
         - [ ] Language
         - [ ] Timezone
-        - [x] Screen
         - [ ] Maps
         - [ ] Audio
-      - [ ] Radio Settings
-        - [ ] Frequency region configuration
-        - [ ] Channel configuration & QR code display
-        - [ ] Device Role
-      - [ ] Module Settings
+        - [x] NodeDB / Factory Reset
+        - [x] Reboot / Shutdown
+      - [ ] Advanced Settings
+        - [ ] General Settings
+        - [ ] Radio Settings
+        - [ ] Module Settings
     - [x] Status bar with battery symbol
-    - [ ] UI Keyboard navigation & control
+    - [x] UI Keyboard navigation & control
+    - [x] Latin supplemental fonts
 
 ### :pager: T-Deck (also covered: unPhone)
 
@@ -135,7 +149,6 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [ ] T-Deck UI
       - [x] 320x240 scalable view
       - [x] GPS position
-      - [ ] Node location and precision
       - [ ] Radio frequency display
       - [ ] Offline map display
     - [x] I2C keyboard input handling
@@ -176,8 +189,9 @@ This C++ library is intended to support the following scenarios with enhanced sc
     - [X] WT32-SC01 (Plus) support (480x320)
       - [x] Display driver
       - [X] 480x320 view -> scaled 320x240
+    - [ ] image size reduction
     - [ ] Fix/Workaround serial light sleep UART reading issue (-> firmware)
-    - [ ] Heartbeat timer
+    - [ ] Heartbeat timer improvements
     - [x] Serial data send/receive
       - [x] UART connection support
       - [ ] WLAN connection support
