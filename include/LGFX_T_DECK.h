@@ -98,7 +98,7 @@ class LGFX_TDECK : public lgfx::LGFX_Device
             cfg.x_max = screenWidth - 1;
             cfg.y_min = 0;
             cfg.y_max = screenHeight - 1;
-            // cfg.pin_int = 16; // disabled (may cause crashes)
+            cfg.pin_int = 16;
             cfg.offset_rotation = 0;
 
             // I2C
