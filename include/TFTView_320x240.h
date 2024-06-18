@@ -148,6 +148,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateAllLastHeard(void);
     // update image and unread messages on home screen
     virtual void updateUnreadMessages(void);
+    // update time display on home screen
+    virtual void updateTime(void);
     // update free memory display on home screen
     virtual void updateFreeMem(void);
 
@@ -233,7 +235,8 @@ class TFTView_320x240 : public MeshtasticView
 
     static TFTView_320x240 *gui;                     // singleton pattern
     uint32_t nodesFiltered;                          // no. hidden nodes in node list
-    time_t lastrun60, lastrun5;                      // timers for task loop
+    time_t lastrun60, lastrun5, lastrun1;            // timers for task loop
+    time_t actTime, uptime;                          // actual time and uptime;
     static bool advanced_mode;                       // advanced settings
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings

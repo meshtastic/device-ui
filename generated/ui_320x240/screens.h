@@ -175,6 +175,8 @@ typedef struct _objects_t {
     lv_obj_t *home_nodes_button;
     lv_obj_t *home_nodes_label;
     lv_obj_t *home_panel;
+    lv_obj_t *home_time_button;
+    lv_obj_t *home_time_label;
     lv_obj_t *home_wlan_button;
     lv_obj_t *home_wlan_label;
     lv_obj_t *keyboard;
