@@ -294,6 +294,7 @@ typedef struct _objects_t {
     lv_obj_t *settings_region_panel;
     lv_obj_t *settings_reset_dropdown;
     lv_obj_t *settings_reset_panel;
+    lv_obj_t *settings_ringtone_dropdown;
     lv_obj_t *settings_screen_timeout_label;
     lv_obj_t *settings_screen_timeout_panel;
     lv_obj_t *settings_user_long_textarea;

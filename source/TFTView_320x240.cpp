@@ -7,6 +7,7 @@
 #include "ILog.h"
 #include "InputDriver.h"
 #include "LoRaPresets.h"
+#include "Ringtones.h"
 #include "ViewController.h"
 #include "images.h"
 #include "lv_i18n.h"
@@ -780,12 +781,22 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.module_config.has_external_notification) {
-        bool alert_enabled = THIS->db.module_config.external_notification.alert_message;
+        bool alert_enabled = THIS->db.module_config.external_notification.alert_message_buzzer &&
+                             THIS->db.module_config.external_notification.enabled;
         if (alert_enabled) {
             lv_obj_add_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
         } else {
             lv_obj_remove_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
         }
+        // populate dropdown
+        if (lv_dropdown_get_option_count(objects.settings_ringtone_dropdown) <= 1) {
+            for (int i = 1; i < numRingtones; i++) {
+                lv_dropdown_add_option(objects.settings_ringtone_dropdown, ringtone[i].name, i);
+            }
+        }
+
+        // TODO select option according rttl string
+        // TODO need to fetch and store rttl string from radio
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->activeSettings = eAlertBuzzer;
     }
@@ -1107,19 +1118,30 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         case eAlertBuzzer: {
             char buf[32];
             meshtastic_ModuleConfig_ExternalNotificationConfig &config = THIS->db.module_config.external_notification;
+            int tone = lv_dropdown_get_selected(objects.settings_ringtone_dropdown);
 
-            config.alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
-            if (config.alert_message) {
-                config.enabled = true;
-                config.use_i2s_as_buzzer = true;
-                config.nag_timeout = 5; // TODO: make configurable
+            bool alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
+            if (!config.alert_message_buzzer && alert_message) {
+                if (!config.enabled || !config.alert_message_buzzer || !config.use_pwm || !config.use_i2s_as_buzzer) {
+                    config.enabled = true;
+                    config.alert_message_buzzer = true;
+                    config.use_pwm = true;
+                    config.use_i2s_as_buzzer = true;
+                    config.nag_timeout = 0;
+                }
+                THIS->notifyReboot(true);
+                THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
+            } else if (config.alert_message_buzzer && !alert_message) {
+                config.enabled = false;
+                THIS->notifyReboot(true);
+                THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
             }
 
-            lv_snprintf(buf, sizeof(buf), "Message Alert: %s", config.alert_message ? "on" : "off");
+            THIS->controller->sendConfig(ringtone[tone].rtttl, THIS->ownNode);
+
+            lv_snprintf(buf, sizeof(buf), "Message Alert: %s", config.alert_message_buzzer ? ringtone[tone].name : "off");
             lv_label_set_text(objects.basic_settings_alert_label, buf);
 
-            THIS->notifyReboot(true);
-            THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
             break;
         }
@@ -1884,7 +1906,6 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
 
     if (nodeNum == UINT32_MAX) {
         ILOG_WARN("request id 0x%08x not valid (anymore)\n", id);
-        return;
     }
     switch (routing.which_variant) {
     case meshtastic_Routing_error_reason_tag: {
@@ -2240,7 +2261,10 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
     db.module_config.has_external_notification = true;
 
     char buf[32];
-    lv_snprintf(buf, sizeof(buf), "Message Alert: %s", db.module_config.external_notification.alert_message ? "on" : "off");
+    lv_snprintf(buf, sizeof(buf), "Message Alert: %s",
+                db.module_config.external_notification.alert_message_buzzer && db.module_config.external_notification.enabled
+                    ? "on"
+                    : "off");
     lv_label_set_text(objects.basic_settings_alert_label, buf);
 }
 

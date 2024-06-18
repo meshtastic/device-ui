@@ -2744,7 +2744,7 @@ void create_screen_main_screen() {
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.settings_alert_buzzer_panel = obj;
             lv_obj_set_pos(obj, LV_PCT(3), LV_PCT(25));
-            lv_obj_set_size(obj, 220, 120);
+            lv_obj_set_size(obj, 220, 138);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2760,18 +2760,18 @@ void create_screen_main_screen() {
                 lv_obj_t *parent_obj = obj;
                 {
                     lv_obj_t *obj = lv_label_create(parent_obj);
-                    lv_obj_set_pos(obj, 0, 10);
+                    lv_obj_set_pos(obj, 0, 5);
                     lv_obj_set_size(obj, 125, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, _("Message Alert"));
                     lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // SettingsAlertBuzzerSwitch
                     lv_obj_t *obj = lv_switch_create(parent_obj);
                     objects.settings_alert_buzzer_switch = obj;
-                    lv_obj_set_pos(obj, 132, 5);
+                    lv_obj_set_pos(obj, 150, 0);
                     lv_obj_set_size(obj, 50, 25);
                     lv_obj_add_state(obj, LV_STATE_CHECKED);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xffb4b4b4), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2782,9 +2782,31 @@ void create_screen_main_screen() {
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xff67ea94), LV_PART_INDICATOR | LV_STATE_PRESSED);
                 }
                 {
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    lv_obj_set_pos(obj, 0, 35);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_label_set_text(obj, _("Ringtone"));
+                    lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                }
+                {
+                    // SettingsRingtoneDropdown
+                    lv_obj_t *obj = lv_dropdown_create(parent_obj);
+                    objects.settings_ringtone_dropdown = obj;
+                    lv_obj_set_pos(obj, 40, 30);
+                    lv_obj_set_size(obj, 130, 30);
+                    lv_dropdown_set_options(obj, "Default");
+                    lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff404040), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_top(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+                }
+                {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
                     objects.obj8 = obj;
-                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_pos(obj, 0, 10);
                     lv_obj_set_size(obj, 160, 50);
                     lv_style_value_t value;
                     value.num = 0;

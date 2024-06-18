@@ -46,7 +46,7 @@ void ResponseHandler::task_handler(void)
 {
     if (pendingRequest.size())
         ILOG_DEBUG("ResponseHandler has %d pending request(s)\n", pendingRequest.size());
-    std::map<uint32_t, Request>::iterator it = pendingRequest.begin();
+    auto it = pendingRequest.begin();
     while (it != pendingRequest.end()) {
         if (it->second.timestamp + maxTime < millis()) {
             ILOG_DEBUG("removing timed out request %08x\n", it->first);

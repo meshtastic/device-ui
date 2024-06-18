@@ -1,7 +1,7 @@
 #pragma once
 
-#include <map>
 #include <stdint.h>
+#include <unordered_map>
 
 /**
  * @brief Generic class that stores an id together with a timestamp
@@ -25,5 +25,5 @@ class ResponseHandler
 
     uint32_t requestIdCounter;
     uint32_t maxTime;
-    std::map<uint32_t, Request> pendingRequest;
+    std::unordered_map<uint32_t, Request> pendingRequest;
 };

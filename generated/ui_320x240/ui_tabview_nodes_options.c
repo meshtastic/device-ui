@@ -447,7 +447,7 @@ void create_tabview_nodes_options()
 
     static lv_style_t style_btn_default;
     lv_style_init(&style_btn_default);
-    lv_style_set_text_color(&style_btn_default, lv_color_hex(0x707070));
+    lv_style_set_text_color(&style_btn_default, lv_color_hex(0xA0A0A0));
     lv_style_set_bg_color(&style_btn_default, lv_color_hex(0x303030));
     lv_style_set_bg_opa(&style_btn_default, LV_OPA_COVER);
     lv_style_set_border_color(&style_btn_default, lv_color_hex(0x505050));

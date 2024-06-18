@@ -22,6 +22,7 @@ class ViewController
     virtual uint32_t requestDisplayConfig(uint32_t nodeId = 0);
     virtual uint32_t requestLoRaConfig(uint32_t nodeId = 0);
     virtual uint32_t requestBluetoothConfig(uint32_t nodeId = 0);
+    virtual uint32_t requestRingtone(uint32_t nodeId = 0);
 
     virtual bool requestReboot(int32_t seconds, uint32_t nodeId = 0);
     virtual bool requestRebootOTA(int32_t seconds, uint32_t nodeId = 0);
@@ -53,7 +54,11 @@ class ViewController
     virtual bool sendConfig(meshtastic_ModuleConfig_DetectionSensorConfig &&detectionSensor, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCounter, uint32_t nodeId = 0);
 
+    virtual bool sendConfig(const char ringtone[231], uint32_t nodeId = 0);
     virtual void sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg);
+
+    // helpers
+    virtual bool sendAdminMessage(meshtastic_AdminMessage &config, uint32_t nodeId);
     virtual bool sendAdminMessage(meshtastic_AdminMessage &&config, uint32_t nodeId);
     virtual void sendHeartbeat(void);
 
@@ -70,6 +75,8 @@ class ViewController
     virtual bool receive(void);
     // request initial config from radio
     virtual void requestConfig(void);
+    // request additional startup config from radio
+    virtual void requestAdditionalConfig(void);
     // request specific config
     virtual uint32_t requestConfig(meshtastic_AdminMessage_ConfigType type, uint32_t nodeId = 0);
     // request WLAN/BT/MQTT connection status
@@ -82,6 +89,7 @@ class ViewController
     MeshtasticView *view;
     IClientBase *client;
     uint32_t sendId;
+    uint32_t myNodeNum;
     time_t lastrun10;
     bool requestConfigRequired;
 };
