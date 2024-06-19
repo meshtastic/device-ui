@@ -1241,7 +1241,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
             // revert to old brightness value
             uint32_t old_brightness = (unsigned long)objects.brightness_slider->user_data;
-            THIS->displaydriver->setBrightness((int8_t)(old_brightness * 255 / 100));
+            THIS->displaydriver->setBrightness((uint8_t)(old_brightness * 255 / 100));
             break;
         }
         case TFTView_320x240::eInputControl: {
@@ -1294,7 +1294,7 @@ void TFTView_320x240::ui_event_brightness_slider(lv_event_t *e)
     char buf[20];
     lv_snprintf(buf, sizeof(buf), "Brightness: %d%%", (int)lv_slider_get_value(slider));
     lv_label_set_text(objects.settings_brightness_label, buf);
-    THIS->displaydriver->setBrightness((int8_t)(lv_slider_get_value(slider) * 255 / 100));
+    THIS->displaydriver->setBrightness((uint8_t)(lv_slider_get_value(slider) * 255 / 100));
 }
 
 void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
