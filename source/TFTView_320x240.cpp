@@ -2848,16 +2848,16 @@ void TFTView_320x240::updateTime(void)
 
     int len = 0;
     if (curr_time > 1000000) {
-        len = strftime(buf, 16, "%T GMT\n", curr_tm);
+        len = strftime(buf, 40, "%T GMT\n%a %d-%b-%g", curr_tm);
+    } else {
+        uint32_t uptime = millis() / 1000;
+        int hours = uptime / 3600;
+        uptime -= hours * 3600;
+        int minutes = uptime / 60;
+        int seconds = uptime - minutes * 60;
+
+        sprintf(&buf[len], "%02d:%02d:%02d uptime", hours, minutes, seconds);
     }
-
-    uint32_t uptime = millis() / 1000;
-    int hours = uptime / 3600;
-    uptime -= hours * 3600;
-    int minutes = uptime / 60;
-    int seconds = uptime - minutes * 60;
-
-    sprintf(&buf[len], "%02d:%02d:%02d uptime", hours, minutes, seconds);
     lv_label_set_text(objects.home_time_label, buf);
 }
 
