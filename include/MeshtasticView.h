@@ -24,6 +24,7 @@ class MeshtasticView : public DeviceGUI
     MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller);
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
+    virtual void triggerHeartbeat(void);
     virtual bool sleep(int16_t pin);
 
     uint32_t getMyNodeNum(void) { return ownNode; }

@@ -38,6 +38,11 @@ void MeshtasticView::task_handler(void)
     }
 };
 
+void MeshtasticView::triggerHeartbeat(void)
+{
+    controller->sendHeartbeat();
+}
+
 bool MeshtasticView::sleep(int16_t pin)
 {
     return controller->sleep(pin);

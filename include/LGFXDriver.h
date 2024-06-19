@@ -92,6 +92,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         screenTimeout > lv_display_get_inactive_time(NULL)) {
                         // woke up by touch or button
                         powerSaving = false;
+                        DisplayDriver::view->triggerHeartbeat();
                         lgfx->powerSaveOff();
                         lgfx->wakeup();
                         lgfx->setBrightness(lastBrightness);
