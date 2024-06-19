@@ -1123,7 +1123,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             int tone = lv_dropdown_get_selected(objects.settings_ringtone_dropdown);
 
             bool alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
-            if (!config.alert_message_buzzer && alert_message) {
+            if ((!config.enabled || !config.alert_message_buzzer) && alert_message) {
                 if (!config.enabled || !config.alert_message_buzzer || !config.use_pwm || !config.use_i2s_as_buzzer) {
                     config.enabled = true;
                     config.alert_message_buzzer = true;
@@ -1135,6 +1135,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
             } else if (config.alert_message_buzzer && !alert_message) {
                 config.enabled = false;
+                config.alert_message_buzzer = false;
                 THIS->notifyReboot(true);
                 THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
             }
