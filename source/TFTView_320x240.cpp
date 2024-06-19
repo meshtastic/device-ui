@@ -1946,11 +1946,9 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
  */
 bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
 {
-    if (nodeNum == ownNode)
-        return false;
     lv_obj_t *panel = nodes[nodeNum];
     bool hide = false;
-    if (true /*filter.active*/) { // TODO
+    if (nodeNum != ownNode /* && filter.active*/) { // TODO
         if (lv_obj_has_state(ui_NodesFilterUnknownSwitch, LV_STATE_CHECKED)) {
             if (lv_img_get_src(panel->LV_OBJ_IDX(node_img_idx)) == &img_circle_question_image) {
                 hide = true;
