@@ -36,6 +36,10 @@ This C++ library is intended to support the following scenarios with enhanced sc
 
 <img src="docs/T-Deck.jpg" alt="scenario 1" width="205" height="150"><img src="docs/CYD.png" alt="scenario 2" width="220" height="150"><img src="docs/Pi400-TFT.jpg" alt="scenario 3" width="170" height="150"><img src="docs/X11.png" alt="scenario 4" width="230" height="150">
 
+<p align="center">
+Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo</a>
+</p>
+
 ## :pencil: TODOs
 
 ### General Architecture
@@ -92,7 +96,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
       - [x] Nodes info
       - [x] GPS info
       - [ ] WiFi info
-      - [ ] Bluetooth info
+      - [x] Time and Data
       - [ ] MQTT info
       - [x] Free memory info
     - [ ] Nodes panel
@@ -128,7 +132,7 @@ This C++ library is intended to support the following scenarios with enhanced sc
         - [x] Screen Calibration
         - [x] Brightness
         - [x] Input Control
-        - [x] Message Alert
+        - [x] Message Alert / Ringtones
         - [ ] Language
         - [ ] Timezone
         - [ ] Maps
