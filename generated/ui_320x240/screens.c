@@ -2988,7 +2988,7 @@ void create_screen_main_screen() {
                     objects.settings_modify_channel_name_textarea = obj;
                     lv_obj_set_pos(obj, 0, 18);
                     lv_obj_set_size(obj, LV_PCT(90), 25);
-                    lv_textarea_set_max_length(obj, 12);
+                    lv_textarea_set_max_length(obj, 11);
                     lv_textarea_set_placeholder_text(obj, "LongFast");
                     lv_textarea_set_one_line(obj, true);
                     lv_textarea_set_password_mode(obj, false);
