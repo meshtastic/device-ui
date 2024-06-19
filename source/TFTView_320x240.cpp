@@ -2755,8 +2755,10 @@ void TFTView_320x240::updateNodesFiltered(bool reset)
         it++;
     }
 
-    if (it == nodes.end())
+    if (it == nodes.end()) {
         processingFilter = false;
+        updateNodesStatus();
+    }
 }
 
 /**
