@@ -56,7 +56,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 }
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
-    : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), actTime(0), uptime(0)
+    : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), actTime(0), uptime(0)
 {
     lastrun1 = lastrun5 = lastrun60 = 0;
     filter.active = false;
@@ -322,7 +322,7 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
         }
         THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
         if (filterNeedsUpdate) {
-            THIS->updateNodesFiltered();
+            THIS->updateNodesFiltered(true);
             THIS->updateNodesStatus();
             filterNeedsUpdate = false;
         }
@@ -1940,7 +1940,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
  * @brief apply enabled filters and highlight node
  *
  * @param nodeNum
- * @param reset : set true when filter has changed (to recalculaterd number of filterred nodes)
+ * @param reset : set true when filter has changed (to recalculate number of filtered nodes)
  * @return true
  * @return false
  */
@@ -1957,7 +1957,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         if (lv_obj_has_state(ui_NodesFilterOfflineSwitch, LV_STATE_CHECKED)) {
             time_t curtime, lastHeard = (time_t)panel->LV_OBJ_IDX(node_lh_idx)->user_data;
             time(&curtime);
-            if (curtime - lastHeard > 15 * 60)
+            if (curtime - lastHeard - 10 > 15 * 60)
                 hide = true;
         }
         if (lv_obj_has_state(ui_NodesFilterMQTTSwitch, LV_STATE_CHECKED)) {
@@ -2725,23 +2725,38 @@ void TFTView_320x240::updateNodesStatus(void)
     lv_label_set_text(objects.home_nodes_label, buf);
 
     if (nodesFiltered) {
-        lv_snprintf(buf, sizeof(buf), "Filter: %d of %d nodes", nodeCount - nodesFiltered, nodeCount);
+        if (processingFilter)
+            lv_snprintf(buf, sizeof(buf), "Filtering ...");
+        else
+            lv_snprintf(buf, sizeof(buf), "Filter: %d of %d nodes", nodeCount - nodesFiltered, nodeCount);
     }
     lv_label_set_text(objects.top_nodes_online_label, buf);
 }
 
 /**
- * @brief update all nodes filter and hightlight
- *
+ * @brief Dynamically update all nodes filter and highlight
+ *        Because the update can take quite some time (tens of ms) it is done in smaller
+ *        chunks of 10 nodes per invocation, so it must be periodically called
+ *        TODO: check for side effects if new nodes are inserted during filter processing
+ * @param reset indicates to start update from beginning of node list otherwise
+ *        continue with iterator position or skip if done
  */
-void TFTView_320x240::updateNodesFiltered(void)
+void TFTView_320x240::updateNodesFiltered(bool reset)
 {
-    nodesFiltered = 0;
-    if (activePanel == objects.nodes_panel) {
-        for (auto &it : THIS->nodes) {
-            THIS->applyNodesFilter(it.first, true);
-        }
+    static auto it = nodes.begin();
+    if (reset) {
+        nodesFiltered = 0;
+        processingFilter = true;
+        it = nodes.begin();
     }
+
+    for (int i = 0; i < 10 && it != nodes.end(); i++) {
+        applyNodesFilter(it->first, true);
+        it++;
+    }
+
+    if (it == nodes.end())
+        processingFilter = false;
 }
 
 /**
@@ -2759,7 +2774,7 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
         it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)curtime;
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), "now");
         if (it->first != ownNode) {
-            if (curtime - lastHeard >= 900) {
+            if (curtime - lastHeard + 10 >= 900) {
                 nodesOnline++;
                 applyNodesFilter(nodeNum);
                 updateNodesStatus();
@@ -2796,7 +2811,7 @@ void TFTView_320x240::updateAllLastHeard(void)
         }
     }
     nodesOnline = online;
-    updateNodesFiltered(); // FIXME: currently updated conditionless, even there may be no change
+    updateNodesFiltered(true);
     updateNodesStatus();
 }
 
@@ -2881,6 +2896,10 @@ void TFTView_320x240::task_handler(void)
     if (curtime - lastrun60 >= 60) { // call every 60s
         lastrun60 = curtime;
         updateAllLastHeard();
+    }
+
+    if (processingFilter) {
+        updateNodesFiltered(false);
     }
 }
 

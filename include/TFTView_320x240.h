@@ -141,7 +141,7 @@ class TFTView_320x240 : public MeshtasticView
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, lv_obj_t *img);
     // apply filter and count number of filtered nodes
-    virtual void updateNodesFiltered(void);
+    virtual void updateNodesFiltered(bool reset);
     // set last heard to now, update nodes online
     virtual void updateLastHeard(uint32_t nodeNum);
     // update last heard value on all node panels
@@ -235,6 +235,7 @@ class TFTView_320x240 : public MeshtasticView
 
     static TFTView_320x240 *gui;                     // singleton pattern
     uint32_t nodesFiltered;                          // no. hidden nodes in node list
+    bool processingFilter;                           // indicates that filtering is ongoing
     time_t lastrun60, lastrun5, lastrun1;            // timers for task loop
     time_t actTime, uptime;                          // actual time and uptime;
     static bool advanced_mode;                       // advanced settings
