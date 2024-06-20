@@ -23,6 +23,7 @@ class DisplayDriverConfig
         X11,
         THMI,
         TDECK,
+        BPICOMPUTER_S3,
         TWATCH_S3,
         UNPHONE_V9,
         HELTEC_TRACKER,

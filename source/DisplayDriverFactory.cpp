@@ -21,6 +21,9 @@
 #ifdef T_DECK
 #include "LGFX_T_DECK.h"
 #endif
+#ifdef PICOMPUTER_S3
+#include "LGFX_PICOMPUTER_S3.h"
+#endif
 #ifdef T_WATCH_S3
 #include "LGFX_T_WATCH_S3.h"
 #endif
@@ -96,6 +99,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(T_DECK)
     case DisplayDriverConfig::device_t::TDECK:
         return new LGFXDriver<LGFX_TDECK>(cfg.width(), cfg.height());
+        break;
+#elif defined(PICOMPUTER_S3)
+    case DisplayDriverConfig::device_t::BPICOMPUTER_S3:
+        return new LGFXDriver<LGFX_PICOMPUTER_S3>(cfg.width(), cfg.height());
         break;
 #elif defined(TWATCH_S3)
     case DisplayDriverConfig::device_t::TWATCH_S3:
