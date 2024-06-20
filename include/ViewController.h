@@ -23,6 +23,8 @@ class ViewController
     virtual uint32_t requestLoRaConfig(uint32_t nodeId = 0);
     virtual uint32_t requestBluetoothConfig(uint32_t nodeId = 0);
     virtual uint32_t requestRingtone(uint32_t nodeId = 0);
+    // request WLAN/BT/MQTT connection status
+    virtual bool requestDeviceConnectionStatus(void);
 
     virtual bool requestReboot(int32_t seconds, uint32_t nodeId = 0);
     virtual bool requestRebootOTA(int32_t seconds, uint32_t nodeId = 0);
@@ -79,8 +81,6 @@ class ViewController
     virtual void requestAdditionalConfig(void);
     // request specific config
     virtual uint32_t requestConfig(meshtastic_AdminMessage_ConfigType type, uint32_t nodeId = 0);
-    // request WLAN/BT/MQTT connection status
-    virtual void requestDeviceConnectionStatus(void);
     // handle received packet and update view
     bool handleFromRadio(const meshtastic_FromRadio &from);
     // handle meshPacket

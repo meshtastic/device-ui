@@ -51,6 +51,8 @@ extern const lv_img_dsc_t img_settings_trash_image;
 extern const lv_img_dsc_t img_reboot_image;
 extern const lv_img_dsc_t img_shutdown_image;
 extern const lv_img_dsc_t img_home_clock_image;
+extern const lv_img_dsc_t img_mqtt_logo_image;
+extern const lv_img_dsc_t img_home_ethernet_button_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -60,7 +62,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[44];
+extern const ext_img_desc_t images[46];
 
 
 #ifdef __cplusplus

@@ -166,12 +166,16 @@ typedef struct _objects_t {
     lv_obj_t *home_bluetooth_label;
     lv_obj_t *home_button;
     lv_obj_t *home_container;
+    lv_obj_t *home_ethernet_button;
+    lv_obj_t *home_ethernet_label;
     lv_obj_t *home_location_button;
     lv_obj_t *home_location_label;
     lv_obj_t *home_mail_button;
     lv_obj_t *home_mail_label;
     lv_obj_t *home_memory_button;
     lv_obj_t *home_memory_label;
+    lv_obj_t *home_mqtt_button;
+    lv_obj_t *home_mqtt_label;
     lv_obj_t *home_nodes_button;
     lv_obj_t *home_nodes_label;
     lv_obj_t *home_panel;

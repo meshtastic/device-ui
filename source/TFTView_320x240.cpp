@@ -18,6 +18,10 @@
 #include <functional>
 #include <math.h>
 
+#ifdef ARCH_PORTDUINO
+#include "LinuxHelper.h"
+#endif
+
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
 #define THIS TFTView_320x240::instance() // need to use this in all static methods
 
@@ -58,7 +62,6 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), actTime(0), uptime(0)
 {
-    lastrun1 = lastrun5 = lastrun60 = 0;
     filter.active = false;
     highlight.active = false;
 }
@@ -80,7 +83,9 @@ void TFTView_320x240::init(IClientBase *client)
     apply_hotfix();
 
     time(&lastrun60);
-    time(&lastrun5);
+    time(&lastrun10);
+    lastrun10 += 10;
+    time(&lastrun1);
 
     activeMsgContainer = objects.messages_container;
     // setup the two channel label panels with arrays that allow indexing
@@ -117,9 +122,16 @@ void TFTView_320x240::init(IClientBase *client)
     setInputGroup();
     setInputButtonLabel();
 
+    // user data
+    objects.home_time_button->user_data = (void *)0;
+    objects.home_wlan_button->user_data = (void *)0;
+    objects.home_memory_button->user_data = (void *)0;
+
     // localization
     lv_i18n_init(lv_i18n_language_pack);
     lv_i18n_set_locale("en");
+
+    updateFreeMem();
 }
 
 /**
@@ -200,6 +212,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
 
     // home buttons
+    lv_obj_add_event_cb(objects.home_time_button, this->ui_event_TimeButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
 
     // node and channel buttons
@@ -515,6 +529,30 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_TimeButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        // toggle date/time <-> uptime display
+        uint32_t toggle = (unsigned long)objects.home_time_button->user_data;
+        objects.home_time_button->user_data = (void *)(1 - toggle);
+        THIS->updateTime();
+    }
+}
+
+void TFTView_320x240::ui_event_WLANButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_LONG_PRESSED) {
+        // toggle WLAN on/off
+        uint32_t toggle = (unsigned long)objects.home_wlan_button->user_data;
+        objects.home_wlan_button->user_data = (void *)(1 - toggle);
+
+        lv_obj_set_style_bg_image_recolor(objects.home_wlan_button, toggle ? lv_color_hex(0xff606060) : lv_color_hex(0xffffffff),
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+}
+
 void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -525,6 +563,9 @@ void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
         lv_obj_set_style_bg_image_recolor(objects.home_memory_button,
                                           toggle ? lv_color_hex(0xff606060) : lv_color_hex(0xffffffff),
                                           LV_PART_MAIN | LV_STATE_DEFAULT);
+        if ((unsigned long)objects.home_memory_button->user_data) {
+            THIS->updateFreeMem();
+        }
     }
 }
 
@@ -717,7 +758,7 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        int32_t brightness = THIS->displaydriver->getBrightness() * 100 / 255;
+        uint32_t brightness = THIS->displaydriver->getBrightness() * 100 / 255;
         char buf[32];
         lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", brightness);
         lv_label_set_text(objects.basic_settings_brightness_label, buf);
@@ -1856,43 +1897,92 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
 void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
 {
     if (status.has_wifi) {
-        if (status.wifi.has_status) {
-            char buf[16];
-            uint32_t ip = status.wifi.status.ip_address;
-            sprintf(buf, "%d.%d.%d.%d", ip & 0xff000000, ip & 0xff0000, ip & 0xff00, ip & 0xff);
-            lv_label_set_text(objects.home_wlan_label, buf);
-            if (status.wifi.status.is_connected) {
+        if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
+            if (status.wifi.has_status) {
+                char buf[16];
+                uint32_t ip = status.wifi.status.ip_address;
+                sprintf(buf, "%d.%d.%d.%d", ip & 0xff, (ip & 0xff00) >> 8, (ip & 0xff0000) >> 16, (ip & 0xff000000) >> 24);
+                lv_label_set_text(objects.home_wlan_label, buf);
                 lv_obj_set_style_bg_img_recolor_opa(objects.home_wlan_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_button_image,
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
-            } else {
-                lv_obj_set_style_bg_img_recolor_opa(objects.home_wlan_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_button_image,
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+                if (status.wifi.status.is_connected) {
+                    lv_obj_set_style_text_color(objects.home_wlan_label, lv_color_hex(0xAAFBFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_button_image,
+                                                LV_PART_MAIN | LV_STATE_DEFAULT);
+                } else {
+                    lv_obj_set_style_text_color(objects.home_wlan_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image,
+                                                LV_PART_MAIN | LV_STATE_DEFAULT);
+                }
+
+                if (status.wifi.status.is_mqtt_connected) {
+                    lv_obj_set_style_bg_image_opa(objects.home_mqtt_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_color(objects.home_mqtt_label, lv_color_hex(0xAAFBFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+                } else {
+                    if (db.module_config.mqtt.enabled) {
+                        lv_obj_set_style_bg_image_opa(objects.home_mqtt_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    } else {
+                        lv_obj_set_style_bg_image_opa(objects.home_mqtt_button, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    }
+                    lv_obj_set_style_text_color(objects.home_mqtt_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+                }
             }
+        } else {
+            lv_obj_set_style_bg_img_recolor_opa(objects.home_wlan_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(objects.home_wlan_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(objects.home_mqtt_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     } else {
-        lv_obj_set_style_bg_img_recolor_opa(objects.home_wlan_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_add_flag(objects.home_wlan_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.home_wlan_button, LV_OBJ_FLAG_HIDDEN);
     }
+
     if (status.has_bluetooth) {
-        if (status.bluetooth.is_connected) {
-            char buf[16];
-            uint32_t mac = ownNode;
-            sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
-            lv_label_set_text(objects.home_bluetooth_label, buf);
-            lv_obj_set_style_bg_opa(objects.home_bluetooth_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
-                                        LV_PART_MAIN | LV_STATE_DEFAULT);
+        if (db.config.bluetooth.enabled) {
+            if (status.bluetooth.is_connected) {
+                char buf[16];
+                uint32_t mac = ownNode;
+                lv_obj_set_style_text_color(objects.home_bluetooth_label, lv_color_hex(0xAAFBFF),
+                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+                sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff, (mac & 0xff00) >> 8, (mac & 0xff0000) >> 16,
+                        (mac & 0xff000000) >> 24);
+                lv_label_set_text(objects.home_bluetooth_label, buf);
+                lv_obj_set_style_bg_opa(objects.home_bluetooth_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
+                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+            } else {
+                lv_obj_set_style_text_color(objects.home_bluetooth_label, lv_color_hex(0x808080),
+                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
+                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+            }
         } else {
-            lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
+            lv_obj_set_style_text_color(objects.home_bluetooth_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_off_button_image,
                                         LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     } else {
-        lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_off_button_image,
-                                    LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_add_flag(objects.home_bluetooth_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.home_bluetooth_button, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    if (status.has_ethernet) {
+        if (status.ethernet.status.is_connected) {
+            char buf[16];
+            uint32_t mac = ownNode;
+            sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
+            lv_label_set_text(objects.home_ethernet_label, buf);
+            lv_obj_set_style_text_color(objects.home_ethernet_label, lv_color_hex(0xAAFBFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(objects.home_ethernet_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else {
+            lv_obj_set_style_bg_img_recolor_opa(objects.home_ethernet_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(objects.home_ethernet_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+    } else {
+        lv_obj_add_flag(objects.home_ethernet_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.home_ethernet_button, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -2260,6 +2350,21 @@ void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothCon
 
 /// ---- module updates ----
 
+void TFTView_320x240::updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg)
+{
+    db.module_config.mqtt = cfg;
+    db.module_config.has_mqtt = true;
+
+    char buf[32];
+    lv_snprintf(buf, sizeof(buf), "%s", db.module_config.mqtt.root);
+    lv_label_set_text(objects.home_mqtt_label, buf);
+
+    if (!db.module_config.mqtt.enabled) {
+        lv_obj_set_style_bg_image_opa(objects.home_mqtt_button, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_color(objects.home_mqtt_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+}
+
 void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg)
 {
     db.module_config.external_notification = cfg;
@@ -2271,6 +2376,11 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
                     ? "on"
                     : "off");
     lv_label_set_text(objects.basic_settings_alert_label, buf);
+}
+
+void TFTView_320x240::updateRingtone(const char rtttl[231])
+{
+    ILOG_DEBUG("Ringtone: %s", rtttl);
 }
 
 /**
@@ -2848,7 +2958,7 @@ void TFTView_320x240::updateTime(void)
     tm *curr_tm = gmtime(&curr_time);
 
     int len = 0;
-    if (curr_time > 1000000) {
+    if (curr_time > 1000000 && (unsigned long)objects.home_time_button->user_data == 0) {
         len = strftime(buf, 40, "%T GMT\n%a %d-%b-%g", curr_tm);
     } else {
         uint32_t uptime = millis() / 1000;
@@ -2857,7 +2967,7 @@ void TFTView_320x240::updateTime(void)
         int minutes = uptime / 60;
         int seconds = uptime - minutes * 60;
 
-        sprintf(&buf[len], "%02d:%02d:%02d uptime", hours, minutes, seconds);
+        sprintf(&buf[len], "uptime: %02d:%02d:%02d", hours, minutes, seconds);
     }
     lv_label_set_text(objects.home_time_label, buf);
 }
@@ -2869,14 +2979,22 @@ void TFTView_320x240::updateFreeMem(void)
         char buf[64];
         uint32_t freeHeap = 0;
         uint32_t freeHeap_pct = 100;
-#ifdef ARDUINO_ARCH_ESP32
-        freeHeap = ESP.getFreeHeap();
-        freeHeap_pct = 100 * freeHeap / ESP.getHeapSize();
-#endif
 
         lv_mem_monitor_t mon;
         lv_mem_monitor(&mon);
+
+#ifdef ARDUINO_ARCH_ESP32
+        freeHeap = ESP.getFreeHeap();
+        freeHeap_pct = 100 * freeHeap / ESP.getHeapSize();
         sprintf(buf, "Heap: %d (%d%%)\nLVGL: %d (%d%%)", freeHeap, freeHeap_pct, mon.free_size, 100 - mon.used_pct);
+#elif defined(ARCH_PORTDUINO)
+        static uint32_t totalMem = LinuxHelper::getTotalMem();
+        freeHeap = LinuxHelper::getAvailableMem();
+        freeHeap_pct = 100 * freeHeap / totalMem;
+        sprintf(buf, "Heap: %d (%d%%)\nLVGL: %d (%d%%)", freeHeap, freeHeap_pct, mon.free_size / 1024, 100 - mon.used_pct);
+#else
+        buf[0] = '\0';
+#endif
         lv_label_set_text(objects.home_memory_label, buf);
     }
 }
@@ -2892,9 +3010,13 @@ void TFTView_320x240::task_handler(void)
         actTime++;
         updateTime();
     }
-    if (curtime - lastrun5 >= 5) { // call every 5s
-        lastrun5 = curtime;
+    if (curtime - lastrun10 >= 10) { // call every 10s
+        lastrun10 = curtime;
         updateFreeMem();
+
+        if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
+            controller->requestDeviceConnectionStatus();
+        }
     }
     if (curtime - lastrun60 >= 60) { // call every 60s
         lastrun60 = curtime;

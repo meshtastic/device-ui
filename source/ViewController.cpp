@@ -40,7 +40,6 @@ void ViewController::runOnce(void)
 
         if (curtime - lastrun10 >= 10) {
             lastrun10 = curtime;
-            requestDeviceConnectionStatus();
             if (!client->isConnected())
                 client->connect();
         }
@@ -492,15 +491,12 @@ void ViewController::requestAdditionalConfig(void)
 /**
  * request connection status of WLAN/BT/MQTT
  */
-void ViewController::requestDeviceConnectionStatus(void)
+bool ViewController::requestDeviceConnectionStatus(void)
 {
-    return; // FIXME this encoding leads to crash
-    uint32_t requestId = 42;
-    meshtastic_AdminMessage msg{.which_payload_variant = meshtastic_AdminMessage_get_device_connection_status_request_tag,
-                                .get_device_connection_status_request = true};
-    uint8_t encoded[DATA_PAYLOAD_LEN];
-    size_t len = pb_encode_to_bytes(encoded, sizeof(encoded), &meshtastic_AdminMessage_msg, &msg);
-    this->send(view->getMyNodeNum(), 0, requestId, meshtastic_PortNum_ADMIN_APP, encoded, len);
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_get_device_connection_status_request_tag,
+                                .get_device_connection_status_request = true},
+        myNodeNum);
 }
 
 bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
@@ -848,6 +844,23 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 default:
                     ILOG_ERROR("unhandled meshtastic_Config variant: %u\n", config.which_payload_variant);
                 }
+                break;
+            }
+            case meshtastic_AdminMessage_get_module_config_response_tag: {
+                meshtastic_ModuleConfig &config = admin.get_module_config_response;
+                switch (config.which_payload_variant) {
+                case meshtastic_ModuleConfig_mqtt_tag: {
+                    const meshtastic_ModuleConfig_MQTTConfig &cfg = config.payload_variant.mqtt;
+                    view->updateMQTTModule(cfg);
+                    break;
+                }
+                default:
+                    ILOG_ERROR("unhandled meshtastic_ModuleConfig variant: %u\n", config.which_payload_variant);
+                }
+                break;
+            }
+            case meshtastic_AdminMessage_get_ringtone_response_tag: {
+                view->updateRingtone(admin.get_ringtone_response);
                 break;
             }
             default:

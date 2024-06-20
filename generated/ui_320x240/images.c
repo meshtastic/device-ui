@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[44] = {
+const ext_img_desc_t images[46] = {
     { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
     { "settings_button_image", &img_settings_button_image },
     { "map_button_image", &img_map_button_image },
@@ -45,4 +45,6 @@ const ext_img_desc_t images[44] = {
     { "reboot_image", &img_reboot_image },
     { "shutdown_image", &img_shutdown_image },
     { "home_clock_image", &img_home_clock_image },
+    { "mqtt_logo_image", &img_mqtt_logo_image },
+    { "home_ethernet_button_image", &img_home_ethernet_button_image },
 };

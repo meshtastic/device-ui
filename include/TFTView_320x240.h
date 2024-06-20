@@ -45,7 +45,7 @@ class TFTView_320x240 : public MeshtasticView
     void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) override;
 
     // methods to update module config
-    void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) override {}
+    void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) override;
     void updateSerialModule(const meshtastic_ModuleConfig_SerialConfig &cfg) override {}
     void updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg) override;
     void updateStoreForwardModule(const meshtastic_ModuleConfig_StoreForwardConfig &cfg) override {}
@@ -58,6 +58,7 @@ class TFTView_320x240 : public MeshtasticView
     void updateAmbientLightingModule(const meshtastic_ModuleConfig_AmbientLightingConfig &cfg) override {}
     void updateDetectionSensorModule(const meshtastic_ModuleConfig_DetectionSensorConfig &cfg) override {}
     void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) override {}
+    void updateRingtone(const char rtttl[231]) override;
 
     void packetReceived(const meshtastic_MeshPacket &p) override;
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) override;
@@ -184,6 +185,9 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ChatButton(lv_event_t *e);
     static void ui_event_ChatDelButton(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
+    static void ui_event_TimeButton(lv_event_t *e);
+    static void ui_event_WLANButton(lv_event_t *e);
+    static void ui_event_MQTTButton(lv_event_t *e);
     static void ui_event_MemoryButton(lv_event_t *e);
     static void ui_event_KeyboardButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
@@ -236,7 +240,7 @@ class TFTView_320x240 : public MeshtasticView
     static TFTView_320x240 *gui;                     // singleton pattern
     uint32_t nodesFiltered;                          // no. hidden nodes in node list
     bool processingFilter;                           // indicates that filtering is ongoing
-    time_t lastrun60, lastrun5, lastrun1;            // timers for task loop
+    time_t lastrun60, lastrun10, lastrun1;           // timers for task loop
     time_t actTime, uptime;                          // actual time and uptime;
     static bool advanced_mode;                       // advanced settings
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
