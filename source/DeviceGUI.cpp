@@ -3,8 +3,10 @@
 #include "DisplayDriverConfig.h"
 #if LV_USE_LIBINPUT
 #include "LinuxInputDriver.h"
-#elif defined(T_DECK)
-#include "TDeckInputDriver.h"
+#elif defined(INPUTDRIVER_I2C_KBD_TYPE)
+#include "I2CKeyboardInputDriver.h"
+#elif defined(INPUTDRIVER_MATRIX_TYPE)
+#include "KeyMatrixInputDriver.h"
 #else
 #include "InputDriver.h"
 #endif
@@ -19,8 +21,10 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
         inputdriver = new LinuxInputDriver(cfg->keyboard(), cfg->pointer());
     else
         inputdriver = new InputDriver;
-#elif defined(T_DECK)
-    inputdriver = new TDeckInputDriver;
+#elif defined(INPUTDRIVER_I2C_KBD_TYPE)
+    inputdriver = new I2CKeyboardInputDriver;
+#elif defined(INPUTDRIVER_MATRIX_TYPE)
+    inputdriver = new KeyMatrixInputDriver;
 #else
     inputdriver = new InputDriver;
 #endif

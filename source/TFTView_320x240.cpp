@@ -2762,6 +2762,17 @@ void TFTView_320x240::setInputGroup(void)
     lv_group_add_obj(input_group, objects.settings_modify_channel_psk_textarea);
     lv_group_add_obj(input_group, ui_NodesFilterNameArea);
     lv_group_add_obj(input_group, ui_NodesHLNameArea);
+
+    if (inputdriver->hasKeyboardDevice()) {
+        ILOG_DEBUG("Attaching button panel to keyboard\n");
+        // connect keyboard with all main buttons
+        lv_group_add_obj(input_group, objects.home_button);
+        lv_group_add_obj(input_group, objects.nodes_button);
+        lv_group_add_obj(input_group, objects.groups_button);
+        lv_group_add_obj(input_group, objects.messages_button);
+        lv_group_add_obj(input_group, objects.map_button);
+        lv_group_add_obj(input_group, objects.settings_button);
+    }
 }
 
 void TFTView_320x240::setInputButtonLabel(void)

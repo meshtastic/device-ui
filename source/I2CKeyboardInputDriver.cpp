@@ -1,20 +1,20 @@
-#include "TDeckInputDriver.h"
+#ifdef INPUTDRIVER_I2C_KBD_TYPE
+
+#include "I2CKeyboardInputDriver.h"
 #include "ILog.h"
 #include <Arduino.h>
 #include <Wire.h>
 
-#define KB_SLAVE_ADDRESS 0x55
+I2CKeyboardInputDriver::I2CKeyboardInputDriver(void) {}
 
-TDeckInputDriver::TDeckInputDriver(void) {}
-
-void TDeckInputDriver::init(void)
+void I2CKeyboardInputDriver::init(void)
 {
     keyboard = lv_indev_create();
     lv_indev_set_type(keyboard, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_read_cb(keyboard, keyboard_read);
 }
 
-#if 0
+/******************************************************************
     LV_KEY_NEXT: Focus on the next object
     LV_KEY_PREV: Focus on the previous object
     LV_KEY_ENTER: Triggers LV_EVENT_PRESSED, LV_EVENT_CLICKED, or LV_EVENT_LONG_PRESSED etc. events
@@ -28,24 +28,24 @@ void TDeckInputDriver::init(void)
     LV_KEY_HOME: Go to the beginning/top (E.g. in a Text area)
     LV_KEY_END: Go to the end (E.g. in a Text area)
 
-    LV_KEY_UP        = 17,  /*0x11*/
-    LV_KEY_DOWN      = 18,  /*0x12*/
-    LV_KEY_RIGHT     = 19,  /*0x13*/
-    LV_KEY_LEFT      = 20,  /*0x14*/
-    LV_KEY_ESC       = 27,  /*0x1B*/
-    LV_KEY_DEL       = 127, /*0x7F*/
-    LV_KEY_BACKSPACE = 8,   /*0x08*/
-    LV_KEY_ENTER     = 10,  /*0x0A, '\n'*/
-    LV_KEY_NEXT      = 9,   /*0x09, '\t'*/
-    LV_KEY_PREV      = 11,  /*0x0B, '*/
-    LV_KEY_HOME      = 2,   /*0x02, STX*/
-    LV_KEY_END       = 3,   /*0x03, ETX*/
-#endif
+    LV_KEY_UP        = 17,  // 0x11
+    LV_KEY_DOWN      = 18,  // 0x12
+    LV_KEY_RIGHT     = 19,  // 0x13
+    LV_KEY_LEFT      = 20,  // 0x14
+    LV_KEY_ESC       = 27,  // 0x1B
+    LV_KEY_DEL       = 127, // 0x7F
+    LV_KEY_BACKSPACE = 8,   // 0x08
+    LV_KEY_ENTER     = 10,  // 0x0A, '\n'
+    LV_KEY_NEXT      = 9,   // 0x09, '\t'
+    LV_KEY_PREV      = 11,  // 0x0B, '
+    LV_KEY_HOME      = 2,   // 0x02, STX
+    LV_KEY_END       = 3,   // 0x03, ETX
+*******************************************************************/
 
-void TDeckInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *data)
+void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    Wire.requestFrom(KB_SLAVE_ADDRESS, 1);
+    Wire.requestFrom(INPUTDRIVER_I2C_KBD_TYPE, 1);
     if (Wire.available() > 0) {
         keyValue = Wire.read();
         if (keyValue != (char)0x00) {
@@ -66,6 +66,8 @@ void TDeckInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *data)
     data->key = (uint32_t)keyValue;
 }
 
-void TDeckInputDriver::task_handler(void) {}
+void I2CKeyboardInputDriver::task_handler(void) {}
 
-TDeckInputDriver::~TDeckInputDriver(void) {}
+I2CKeyboardInputDriver::~I2CKeyboardInputDriver(void) {}
+
+#endif
