@@ -15,6 +15,9 @@
 #endif
 
 #ifndef ARCH_PORTDUINO
+#ifdef LGFX_DRIVER_TEMPLATE
+#include "LGFX_GENERIC.h"
+#endif
 #ifdef T_HMI
 #include "LGFX_T_HMI.h"
 #endif
