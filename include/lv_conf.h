@@ -549,7 +549,7 @@
 
 #define LV_USE_LINE       0
 
-#define LV_USE_LIST       0
+#define LV_USE_LIST       1
 
 #define LV_USE_MENU       0
 
@@ -822,7 +822,7 @@
 #define LV_USE_MONKEY 0
 
 /*1: Enable grid navigation*/
-#define LV_USE_GRIDNAV 0
+#define LV_USE_GRIDNAV 1
 
 /*1: Enable lv_obj fragment*/
 #define LV_USE_FRAGMENT 0
