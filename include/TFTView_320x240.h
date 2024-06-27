@@ -169,6 +169,8 @@ class TFTView_320x240 : public MeshtasticView
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
+
+    void setGroupFocus(lv_obj_t *panel);
     void setInputGroup(void);
     void setInputButtonLabel(void);
 

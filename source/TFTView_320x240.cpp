@@ -113,14 +113,14 @@ void TFTView_320x240::init(IClientBase *client)
     lv_obj_clear_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN);
 #endif
 
-#if defined(USE_I2S_BUZZER)
+#if defined(USE_I2S_BUZZER) || defined(USE_PIN_BUZZER)
     lv_obj_clear_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
 #else
     lv_obj_add_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
 #endif
 
-    setInputGroup();
     setInputButtonLabel();
+    lv_group_focus_obj(objects.home_button);
 
     // user data
     objects.home_time_button->user_data = (void *)0;
@@ -132,6 +132,7 @@ void TFTView_320x240::init(IClientBase *client)
     lv_i18n_set_locale("en");
 
     updateFreeMem();
+    ILOG_DEBUG("TFTView_320x240 init done.\n");
 }
 
 /**
@@ -174,6 +175,8 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     activePanel = p;
     if (activePanel == objects.messages_panel) {
         lv_group_focus_obj(objects.message_input_area);
+    } else if (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice()) {
+        setGroupFocus(activePanel);
     }
 
     lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
@@ -577,26 +580,31 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         switch (keyBtnIdx) {
         case 0:
             THIS->showKeyboard(objects.message_input_area);
+            lv_group_focus_obj(objects.message_input_area);
             break;
         case 1:
             THIS->showKeyboard(objects.settings_user_short_textarea);
+            lv_group_focus_obj(objects.settings_user_short_textarea);
             break;
         case 2:
             THIS->showKeyboard(objects.settings_user_long_textarea);
+            lv_group_focus_obj(objects.settings_user_long_textarea);
             break;
         case 3:
             THIS->showKeyboard(objects.settings_modify_channel_name_textarea);
+            lv_group_focus_obj(objects.settings_modify_channel_name_textarea);
             break;
         case 4:
             THIS->showKeyboard(objects.settings_modify_channel_psk_textarea);
+            lv_group_focus_obj(objects.settings_modify_channel_psk_textarea);
             break;
         case 5:
             THIS->showKeyboard(ui_NodesFilterNameArea);
-            lv_obj_add_state(ui_NodesFilterNameArea, LV_STATE_FOCUSED);
+            lv_group_focus_obj(ui_NodesFilterNameArea);
             break;
         case 6:
             THIS->showKeyboard(ui_NodesHLNameArea);
-            lv_obj_add_state(ui_NodesHLNameArea, LV_STATE_FOCUSED);
+            lv_group_focus_obj(ui_NodesHLNameArea);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment\n");
@@ -667,6 +675,7 @@ void TFTView_320x240::ui_event_user_button(lv_event_t *e)
         lv_textarea_set_text(objects.settings_user_short_textarea, THIS->db.short_name);
         lv_textarea_set_text(objects.settings_user_long_textarea, THIS->db.long_name);
         lv_obj_clear_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_user_short_textarea);
         THIS->activeSettings = eUsername;
     }
 }
@@ -677,6 +686,7 @@ void TFTView_320x240::ui_event_role_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_device) {
         lv_dropdown_set_selected(objects.settings_device_role_dropdown, THIS->db.config.device.role);
         lv_obj_clear_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_device_role_dropdown);
         THIS->activeSettings = eDeviceRole;
     }
 }
@@ -685,9 +695,10 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_lora) {
-        THIS->activeSettings = eRegion;
         lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
         lv_obj_clear_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_region_dropdown);
+        THIS->activeSettings = eRegion;
     }
 }
 
@@ -709,6 +720,7 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
         lv_slider_set_value(objects.frequency_slot_slider, THIS->db.config.lora.channel_num, LV_ANIM_OFF);
 
         lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_modem_preset_dropdown);
     }
 }
 
@@ -718,6 +730,7 @@ void TFTView_320x240::ui_event_language_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         // TODO: set actual value for dropdown
         lv_obj_clear_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_language_dropdown);
         THIS->activeSettings = eLanguage;
     }
 }
@@ -744,6 +757,7 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
             lv_label_set_text(THIS->ch_label[i], "<unset>");
         }
         lv_obj_clear_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_channel0_button);
         THIS->activeSettings = eChannel;
 
         // create scratch channels to store temporary changes until cancelled or applied
@@ -765,6 +779,7 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
         lv_slider_set_value(objects.brightness_slider, brightness, LV_ANIM_OFF);
         objects.brightness_slider->user_data = (void *)brightness; // store old value
         lv_obj_clear_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.brightness_slider);
         THIS->activeSettings = eScreenBrightness;
     }
 }
@@ -784,6 +799,7 @@ void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
         int32_t timeout = THIS->displaydriver->getScreenTimeout();
         lv_obj_clear_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
         lv_slider_set_value(objects.screen_timeout_slider, timeout, LV_ANIM_OFF);
+        lv_group_focus_obj(objects.screen_timeout_slider);
         THIS->activeSettings = eScreenTimeout;
     }
 }
@@ -816,6 +832,7 @@ void TFTView_320x240::ui_event_input_button(lv_event_t *e)
         lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, THIS->old_val2_scratch, sizeof(old_val2_scratch));
 
         lv_obj_clear_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_mouse_input_dropdown);
         THIS->activeSettings = eInputControl;
     }
 }
@@ -841,6 +858,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
         // TODO select option according rttl string
         // TODO need to fetch and store rttl string from radio
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_alert_buzzer_switch);
         THIS->activeSettings = eAlertBuzzer;
     }
 }
@@ -851,6 +869,7 @@ void TFTView_320x240::ui_event_reset_button(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         lv_obj_clear_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_reset_dropdown);
         THIS->activeSettings = eReset;
     }
 }
@@ -862,6 +881,7 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_FADE_IN, 1000, 0, false);
         lv_obj_clear_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.cancel_reboot_button);
         THIS->activeSettings = eReboot;
     }
 }
@@ -892,6 +912,7 @@ void TFTView_320x240::ui_event_device_cancel_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.basic_settings_reboot_button);
         THIS->activeSettings = eNone;
     }
 }
@@ -945,6 +966,7 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
         }
         lv_obj_add_state(objects.settings_channel_panel, LV_STATE_DISABLED);
         lv_obj_clear_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_modify_channel_name_textarea);
         THIS->activeSettings = eModifyChannel;
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eChannel) {
         ignoreClicked = true;
@@ -1004,6 +1026,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             THIS->controller->sendConfig(user, THIS->ownNode);
             THIS->notifyReboot(true);
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_user_button);
             break;
         }
         case eDeviceRole: {
@@ -1018,6 +1041,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_role_button);
             break;
         }
         case eRegion: {
@@ -1034,6 +1058,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_region_button);
             break;
         }
         case eModemPreset: {
@@ -1051,6 +1076,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_modem_preset_button);
             break;
         }
         case eChannel: {
@@ -1070,6 +1096,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 
             lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
             lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_channel_button);
             delete[] THIS->channel_scratch;
             break;
         }
@@ -1092,6 +1119,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
 
             lv_obj_add_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_language_button);
             break;
         }
         case eScreenTimeout: {
@@ -1106,6 +1134,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", value);
             lv_label_set_text(objects.basic_settings_timeout_label, buf);
             lv_obj_add_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_timeout_button);
             break;
         }
         case eScreenBrightness: {
@@ -1113,6 +1142,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", (int)lv_slider_get_value(objects.brightness_slider));
             lv_label_set_text(objects.basic_settings_brightness_label, buf);
             lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_brightness_button);
             break;
         }
         case eInputControl: {
@@ -1156,6 +1186,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
 
             lv_obj_add_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_input_button);
             break;
         }
         case eAlertBuzzer: {
@@ -1169,8 +1200,10 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     config.enabled = true;
                     config.alert_message_buzzer = true;
                     config.use_pwm = true;
-                    config.use_i2s_as_buzzer = true;
                     config.nag_timeout = 0;
+#ifdef USE_I2S_BUZZER
+                    config.use_i2s_as_buzzer = true;
+#endif
                 }
                 THIS->notifyReboot(true);
                 THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
@@ -1187,12 +1220,14 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_label_set_text(objects.basic_settings_alert_label, buf);
 
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_alert_button);
             break;
         }
         case eReset: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
             THIS->controller->requestReset(option, THIS->ownNode);
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_reset_button);
             break;
         }
         case eModifyChannel: {
@@ -1229,6 +1264,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
                 lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+                lv_group_focus_obj(objects.settings_channel0_button);
             }
             return;
         }
@@ -1252,35 +1288,43 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         switch (THIS->activeSettings) {
         case TFTView_320x240::eUsername: {
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_user_button);
             break;
         }
         case TFTView_320x240::eDeviceRole: {
             lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_role_button);
             break;
         }
         case TFTView_320x240::eRegion: {
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_region_button);
             break;
         }
         case TFTView_320x240::eModemPreset: {
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_modem_preset_button);
             break;
         }
         case TFTView_320x240::eChannel: {
             delete[] THIS->channel_scratch;
             lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_channel_button);
             break;
         }
         case TFTView_320x240::eLanguage: {
             lv_obj_add_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_language_button);
             break;
         }
         case TFTView_320x240::eScreenTimeout: {
             lv_obj_add_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_timeout_button);
             break;
         }
         case TFTView_320x240::eScreenBrightness: {
             lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_brightness_button);
             // revert to old brightness value
             uint32_t old_brightness = (unsigned long)objects.brightness_slider->user_data;
             THIS->displaydriver->setBrightness((uint8_t)(old_brightness * 255 / 100));
@@ -1288,20 +1332,24 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eInputControl: {
             lv_obj_add_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_input_button);
             break;
         }
         case TFTView_320x240::eAlertBuzzer: {
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_alert_button);
             break;
         }
         case TFTView_320x240::eReset: {
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_reset_button);
             break;
         }
         case TFTView_320x240::eModifyChannel: {
             lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
             lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.settings_channel0_button);
             THIS->activeSettings = eChannel;
             return;
         }
@@ -1520,10 +1568,9 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     img->user_data = (void *)viaMqtt; // used for filtering (applyNodesFilter)
     // NodeButton
     lv_obj_t *nodeButton = lv_btn_create(p);
-    lv_obj_set_size(nodeButton, LV_PCT(70), LV_PCT(100));
-    lv_obj_set_x(nodeButton, -13);
-    lv_obj_set_y(nodeButton, 0);
-    lv_obj_set_align(nodeButton, LV_ALIGN_TOP_LEFT);
+    lv_obj_set_pos(nodeButton, 0, 0);
+    lv_obj_set_size(nodeButton, LV_PCT(106), LV_PCT(104));
+    lv_obj_set_align(nodeButton, LV_ALIGN_CENTER);
     lv_obj_add_flag(nodeButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
     lv_obj_set_style_bg_color(nodeButton, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1532,7 +1579,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_border_width(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_spread(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_max_height(nodeButton, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_max_height(nodeButton, 110, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_min_height(nodeButton, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
     // UserNameLabel
     lv_obj_t *ln_lbl = lv_label_create(p);
@@ -2380,7 +2427,8 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
 
 void TFTView_320x240::updateRingtone(const char rtttl[231])
 {
-    ILOG_DEBUG("Ringtone: %s", rtttl);
+    ILOG_DEBUG("update Ringtone\n");
+    // TODO: store and use for initializing ringtone dropdown
 }
 
 /**
@@ -2658,6 +2706,8 @@ void TFTView_320x240::showMessagePopup(uint32_t from, uint32_t to, uint8_t ch, c
 
         if (db.module_config.external_notification.alert_message)
             lv_disp_trig_activity(NULL);
+
+        lv_group_focus_obj(objects.msg_popup_button);
     }
 }
 
@@ -2738,41 +2788,48 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
 }
 
 /**
- * input group for all widgets to be used by keyboard and/or pointer
+ * Set focus to first button of a panel
+ */
+void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
+{
+    if (panel == objects.home_panel) {
+        lv_group_focus_obj(objects.home_mail_button);
+    } else if (panel == objects.nodes_panel) {
+        lv_group_focus_obj(objects.node_button);
+    } else if (panel == objects.groups_panel) {
+        lv_group_focus_obj(objects.channel_button0);
+    } else if (panel == objects.messages_panel) {
+        lv_group_focus_obj(objects.message_input_area);
+    } else if (panel == objects.chats_panel) {
+        if (chats.size() > 0) {
+            lv_group_focus_obj(panel->spec_attr->children[1]); // TODO: does not work
+        }
+    } else if (panel == objects.map_panel) {
+
+    } else if (panel == objects.basic_settings_panel) {
+        lv_group_focus_obj(objects.basic_settings_user_button);
+    } else {
+        for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
+            if (panel->spec_attr->children[i]->class_p == &lv_button_class) {
+                lv_group_focus_obj(panel->spec_attr->children[i]);
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * input group used by keyboard and/or pointer for dynamic assignment
  */
 void TFTView_320x240::setInputGroup(void)
 {
-    if (input_group)
-        lv_group_delete(input_group);
-
-    input_group = lv_group_create();
-    lv_group_set_default(input_group);
+    lv_group_t *group = inputdriver->getInputGroup();
 
     if (inputdriver->hasKeyboardDevice())
-        lv_indev_set_group(inputdriver->getKeyboard(), input_group);
+        lv_indev_set_group(inputdriver->getKeyboard(), group);
 
     if (inputdriver->hasPointerDevice())
-        lv_indev_set_group(inputdriver->getPointer(), input_group);
-
-    // connect keyboard and pointer with all message text areas
-    lv_group_add_obj(input_group, objects.message_input_area);
-    lv_group_add_obj(input_group, objects.settings_user_short_textarea);
-    lv_group_add_obj(input_group, objects.settings_user_long_textarea);
-    lv_group_add_obj(input_group, objects.settings_modify_channel_name_textarea);
-    lv_group_add_obj(input_group, objects.settings_modify_channel_psk_textarea);
-    lv_group_add_obj(input_group, ui_NodesFilterNameArea);
-    lv_group_add_obj(input_group, ui_NodesHLNameArea);
-
-    if (inputdriver->hasKeyboardDevice()) {
-        ILOG_DEBUG("Attaching button panel to keyboard\n");
-        // connect keyboard with all main buttons
-        lv_group_add_obj(input_group, objects.home_button);
-        lv_group_add_obj(input_group, objects.nodes_button);
-        lv_group_add_obj(input_group, objects.groups_button);
-        lv_group_add_obj(input_group, objects.messages_button);
-        lv_group_add_obj(input_group, objects.map_button);
-        lv_group_add_obj(input_group, objects.settings_button);
-    }
+        lv_indev_set_group(inputdriver->getPointer(), group);
 }
 
 void TFTView_320x240::setInputButtonLabel(void)
