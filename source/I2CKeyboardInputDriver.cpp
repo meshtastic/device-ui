@@ -12,6 +12,12 @@ void I2CKeyboardInputDriver::init(void)
     keyboard = lv_indev_create();
     lv_indev_set_type(keyboard, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_read_cb(keyboard, keyboard_read);
+
+    if (!inputGroup) {
+        inputGroup = lv_group_create();
+        lv_group_set_default(inputGroup);
+    }
+    lv_indev_set_group(keyboard, inputGroup);
 }
 
 /******************************************************************
