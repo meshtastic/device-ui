@@ -13,18 +13,18 @@ constexpr byte keys_rows[] = {12, 16, 42, 18, 14, 7};
 constexpr unsigned char KeyMap[3][sizeof(keys_rows)][sizeof(keys_cols)] = {{{' ', '.', 'm', 'n', 'b', 0x12},  // down
                                                                             {0x0a, 'l', 'k', 'j', 'h', 0x0b}, // prev
                                                                             {'p', 'o', 'i', 'u', 'y', 0x11},  // up
-                                                                            {0x7f, 'z', 'x', 'c', 'v', 0x9},  // next
+                                                                            {0x08, 'z', 'x', 'c', 'v', 0x9},  // next
                                                                             {'a', 's', 'd', 'f', 'g', 0x1b},
                                                                             {'q', 'w', 'e', 'r', 't', 0x1a}},
                                                                            {                                  // SHIFT
-                                                                            {':', ';', 'M', 'N', 'B', 0x03},  // end
+                                                                            {'_', ',', 'M', 'N', 'B', 0x03},  // end
                                                                             {0x0d, 'L', 'K', 'J', 'H', 0x14}, // left
                                                                             {'P', 'O', 'I', 'U', 'Y', 0x02},  // home
-                                                                            {0x08, 'Z', 'X', 'C', 'V', 0x13}, // right
+                                                                            {0x7f, 'Z', 'X', 'C', 'V', 0x13}, // right
                                                                             {'A', 'S', 'D', 'F', 'G', 0x09},
                                                                             {'Q', 'W', 'E', 'R', 'T', 0x1a}},
                                                                            {// SHIFT-SHIFT
-                                                                            {'_', ',', '>', '<', '"', '{'},
+                                                                            {':', ';', '>', '<', '"', '{'},
                                                                             {'~', '-', '*', '&', '+', '['},
                                                                             {'0', '9', '8', '7', '6', '}'},
                                                                             {'=', '(', ')', '?', '/', ']'},
@@ -47,6 +47,12 @@ void KeyMatrixInputDriver::init(void)
     keyboard = lv_indev_create();
     lv_indev_set_type(keyboard, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_read_cb(keyboard, keyboard_read);
+
+    if (!inputGroup) {
+        inputGroup = lv_group_create();
+        lv_group_set_default(inputGroup);
+    }
+    lv_indev_set_group(keyboard, inputGroup);
 }
 
 /******************************************************************
@@ -97,21 +103,23 @@ void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *dat
             digitalWrite(keys_rows[i], HIGH);
         }
         // suppress repeating key
-        if (key != prevkey) {
+        static uint32_t lastPressed = millis();
+        if (key != prevkey || millis() > lastPressed + 100) {
             if (key != 0) {
-                data->state = LV_INDEV_STATE_PRESSED;
-                ILOG_DEBUG("Key 0x%x pressed\n", key);
-
                 switch (key) {
                 case 0x1a: // Shift
                     if (++shift > 2) {
                         shift = 0;
                     }
-                    break;
+                    data->key = 0;
+                    return; // don't process shift as key input
                 default:
                     break;
                 }
+                ILOG_DEBUG("Key 0x%x pressed\n", key);
+                data->state = LV_INDEV_STATE_PRESSED;
                 data->key = (uint32_t)key;
+                lastPressed = millis();
             } else {
                 data->state = LV_INDEV_STATE_RELEASED;
                 // ILOG_DEBUG("Key released\n");
