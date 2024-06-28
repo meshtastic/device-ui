@@ -88,6 +88,7 @@ class MeshtasticView : public DeviceGUI
     virtual void updateAmbientLightingModule(const meshtastic_ModuleConfig_AmbientLightingConfig &cfg) {}
     virtual void updateDetectionSensorModule(const meshtastic_ModuleConfig_DetectionSensorConfig &cfg) {}
     virtual void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) {}
+    virtual void updateFileinfo(const meshtastic_FileInfo &fileinfo) {}
     virtual void updateRingtone(const char rtttl[231]) {}
 
     virtual void configCompleted(void) { configComplete = true; }

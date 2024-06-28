@@ -58,6 +58,7 @@ class TFTView_320x240 : public MeshtasticView
     void updateAmbientLightingModule(const meshtastic_ModuleConfig_AmbientLightingConfig &cfg) override {}
     void updateDetectionSensorModule(const meshtastic_ModuleConfig_DetectionSensorConfig &cfg) override {}
     void updatePaxCounterModule(const meshtastic_ModuleConfig_PaxcounterConfig &cfg) override {}
+    void updateFileinfo(const meshtastic_FileInfo &fileinfo) override {}
     void updateRingtone(const char rtttl[231]) override;
 
     void packetReceived(const meshtastic_MeshPacket &p) override;

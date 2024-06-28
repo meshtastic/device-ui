@@ -655,6 +655,11 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         }
         break;
     }
+    case meshtastic_FromRadio_fileInfo_tag: {
+        const meshtastic_FileInfo &fileinfo = from.fileInfo;
+        view->updateFileinfo(fileinfo);
+        break;
+    }
     case meshtastic_FromRadio_channel_tag: {
         const meshtastic_Channel &ch = from.channel;
         if (ch.has_settings) {
