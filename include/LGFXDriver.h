@@ -94,7 +94,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     if (hasTouch())
                         pin_int = lgfx->touch()->config().pin_int;
                     else if (hasButton()) {
-#ifdef BUTTON_PIN       // only relevant for CYD scenario
+#ifdef BUTTON_PIN // only relevant for CYD scenario
                         pin_int = BUTTON_PIN;
 #endif
                     }
