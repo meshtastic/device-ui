@@ -15,6 +15,8 @@ class LGFX_T_HMI : public lgfx::LGFX_Device
     const uint16_t screenWidth = 320;
     const uint16_t screenHeight = 240;
 
+    bool hasButton(void) { return true; }
+
     LGFX_T_HMI(void)
     {
         {

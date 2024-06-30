@@ -20,6 +20,8 @@ class LGFX_HELTEC_TRACKER : public lgfx::LGFX_Device
     const uint16_t screenWidth = 160;
     const uint16_t screenHeight = 80;
 
+    bool hasButton(void) { return true; }
+
     LGFX_HELTEC_TRACKER(void)
     {
         {

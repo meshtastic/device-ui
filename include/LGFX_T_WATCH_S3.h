@@ -19,6 +19,8 @@ class LGFX_TWATCH_S3 : public lgfx::LGFX_Device
     const uint32_t screenWidth = 240;
     const uint32_t screenHeight = 240;
 
+    bool hasButton(void) { return false; }
+
     LGFX_TWATCH_S3(void)
     {
         {

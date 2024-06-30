@@ -25,6 +25,8 @@ class LGFX_PICO_TFT_240x135 : public lgfx::LGFX_Device
     const uint32_t screenWidth = 240;
     const uint32_t screenHeight = 135;
 
+    bool hasButton(void) { return true; }
+
     LGFX_PICO_TFT_240x135(void)
     {
         {

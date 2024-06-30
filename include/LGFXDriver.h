@@ -17,9 +17,10 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     LGFXDriver(const DisplayDriverConfig &cfg);
     void init(DeviceGUI *gui) override;
     bool calibrate(void) override;
-    bool hasTouch() override { return lgfx->touch(); }
+    bool hasTouch(void) override { return lgfx->touch(); }
+    bool hasButton(void) override { return lgfx->hasButton(); }
     bool hasLight(void) override { return lgfx->light(); }
-    bool isPowersaving() override { return powerSaving; }
+    bool isPowersaving(void) override { return powerSaving; }
     void task_handler(void) override;
 
     uint8_t getBrightness(void) override { return lgfx->getBrightness(); }
@@ -74,7 +75,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
     if ((screenTimeout > 0 && screenTimeout < lv_display_get_inactive_time(NULL)) || powerSaving) {
         // sleep screen only if there are means for wakeup
         if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
-            DisplayDriver::view->getInputDriver()->hasKeyboardDevice() /* || hasButton() */) {
+            DisplayDriver::view->getInputDriver()->hasKeyboardDevice() || hasButton()) {
             if (hasLight()) {
                 if (!powerSaving) {
                     // dim display brightness slowly down
@@ -82,15 +83,24 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     if (brightness > 1) {
                         lgfx->setBrightness(brightness - 1);
                     } else {
+                        ILOG_INFO("enter powersave\n");
                         lgfx->sleep();
                         lgfx->powerSaveOn();
                         powerSaving = true;
                     }
                 }
                 if (powerSaving) {
-                    if (DisplayDriver::view->sleep(lgfx->touch()->config().pin_int) ||
-                        screenTimeout > lv_display_get_inactive_time(NULL)) {
+                    int pin_int = 0;
+                    if (hasTouch())
+                        pin_int = lgfx->touch()->config().pin_int;
+                    else if (hasButton()) {
+#ifdef BUTTON_PIN       // only relevant for CYD scenario
+                        pin_int = BUTTON_PIN;
+#endif
+                    }
+                    if (DisplayDriver::view->sleep(pin_int) || screenTimeout > lv_display_get_inactive_time(NULL)) {
                         // woke up by touch or button
+                        ILOG_INFO("leaving powersave\n");
                         powerSaving = false;
                         DisplayDriver::view->triggerHeartbeat();
                         lgfx->powerSaveOff();

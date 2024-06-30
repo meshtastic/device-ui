@@ -196,6 +196,8 @@ class LGFX_GENERIC : public lgfx::LGFX_Device
     const uint32_t screenWidth = LGFX_SCREEN_WIDTH;
     const uint32_t screenHeight = LGFX_SCREEN_HEIGHT;
 
+    bool hasButton(void) { return false; }
+
     LGFX_GENERIC(void)
     {
         {

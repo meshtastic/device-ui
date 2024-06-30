@@ -39,6 +39,8 @@ class LGFX_UNPHONE_V9 : public lgfx::LGFX_Device
     const uint32_t screenWidth = 320;
     const uint32_t screenHeight = 480;
 
+    bool hasButton(void) { return true; }
+
     LGFX_UNPHONE_V9(void)
     {
         {

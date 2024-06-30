@@ -26,6 +26,8 @@ class LGFX_WT_SC01_PLUS : public lgfx::LGFX_Device
     const uint8_t offsetRotation = 0;
 #endif
 
+    bool hasButton(void) { return true; }
+
     LGFX_WT_SC01_PLUS(void)
     {
         {

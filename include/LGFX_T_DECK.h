@@ -18,6 +18,8 @@ class LGFX_TDECK : public lgfx::LGFX_Device
     const uint32_t screenWidth = 320;
     const uint32_t screenHeight = 240;
 
+    bool hasButton(void) { return true; }
+
     LGFX_TDECK(void)
     {
         {

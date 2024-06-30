@@ -25,6 +25,8 @@ class LGFX_ESP2432S028RV1 : public lgfx::LGFX_Device
     const uint32_t screenWidth = 320;
     const uint32_t screenHeight = 240;
 
+    bool hasButton(void) { return true; }
+
     LGFX_ESP2432S028RV1(void)
     {
         {

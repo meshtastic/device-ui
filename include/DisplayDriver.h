@@ -16,6 +16,7 @@ class DisplayDriver
     virtual void init(DeviceGUI *gui);
     virtual bool calibrate(void) { return false; }
     virtual bool hasTouch(void) { return false; }
+    virtual bool hasButton(void) { return false; }
     virtual bool hasLight(void) { return false; }
     virtual void task_handler(void) { lv_timer_handler(); };
     virtual bool isPowersaving() { return false; }
