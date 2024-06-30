@@ -1225,6 +1225,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eReset: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
+            THIS->notifyReboot(true);
             THIS->controller->requestReset(option, THIS->ownNode);
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_reset_button);
