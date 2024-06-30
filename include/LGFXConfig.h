@@ -23,6 +23,9 @@ class LGFXConfig : public lgfx::LGFX_Device
   public:
     uint16_t screenWidth = 0;
     uint16_t screenHeight = 0;
+
+    bool hasButton(void) { return false; }
+
     LGFXConfig(void) {}
 
     LGFXConfig(const DisplayDriverConfig &config)
