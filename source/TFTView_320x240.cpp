@@ -204,6 +204,7 @@ void TFTView_320x240::ui_events_init(void)
         } else if (event_code == LV_EVENT_LONG_PRESSED) {
             // force re-sync with node
             THIS->controller->setConfigRequested(true);
+            THIS->notifyResync(true);
         }
     };
 
