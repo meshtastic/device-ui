@@ -115,6 +115,7 @@ void TFTView_320x240::init(IClientBase *client)
 
 #if defined(USE_I2S_BUZZER) || defined(USE_PIN_BUZZER)
     lv_obj_clear_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
+    db.ringtoneId = 0;
 #else
     lv_obj_add_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
 #endif
@@ -855,8 +856,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
             }
         }
 
-        // TODO select option according rttl string
-        // TODO need to fetch and store rttl string from radio
+        lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.ringtoneId);
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_alert_buzzer_switch);
         THIS->activeSettings = eAlertBuzzer;
@@ -1215,6 +1215,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
 
             THIS->controller->sendConfig(ringtone[tone].rtttl, THIS->ownNode);
+            THIS->db.ringtoneId = tone;
 
             lv_snprintf(buf, sizeof(buf), "Message Alert: %s", config.alert_message_buzzer ? ringtone[tone].name : "off");
             lv_label_set_text(objects.basic_settings_alert_label, buf);
@@ -2428,8 +2429,15 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
 
 void TFTView_320x240::updateRingtone(const char rtttl[231])
 {
-    ILOG_DEBUG("update Ringtone\n");
-    // TODO: store and use for initializing ringtone dropdown
+    // retrieving ringtone index for dropdown
+    uint16_t rtIndex = 0;
+    for (int i = 1; i < numRingtones; i++) {
+        if (strncmp(ringtone[i].rtttl, rtttl, 16) == 0) {
+            rtIndex = i;
+            break;
+        }
+    }
+    db.ringtoneId = rtIndex;
 }
 
 /**

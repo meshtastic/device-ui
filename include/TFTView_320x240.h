@@ -250,9 +250,15 @@ class TFTView_320x240 : public MeshtasticView
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
     meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db
 
+    // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
-        meshtastic_Channel channel[c_max_channels];
+        meshtastic_Channel channel[c_max_channels]; // storage of channel info
     };
 
-    meshtastic_DeviceProfile_ext db; // full copy of the node's configuration db (except nodeinfos)
+    // additional local ui data
+    struct meshtastic_DeviceProfile_full : meshtastic_DeviceProfile_ext {
+        uint16_t ringtoneId; // index into ringtone preset
+    };
+
+    meshtastic_DeviceProfile_full db; // full copy of the node's configuration db (except nodeinfos) plus ui data
 };
