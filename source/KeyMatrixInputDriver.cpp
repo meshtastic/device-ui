@@ -86,9 +86,10 @@ void KeyMatrixInputDriver::init(void)
 void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
     static int shift = 0;
-    static char prevkey = 0;
+    static uint32_t prevkey = 0;
 
-    char key = 0;
+    data->key = 0;
+    data->state = LV_INDEV_STATE_RELEASED;
 
     if (INPUTDRIVER_MATRIX_TYPE == 1) {
         // scan for keypresses
@@ -96,35 +97,31 @@ void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *dat
             digitalWrite(keys_rows[i], LOW);
             for (byte j = 0; j < sizeof(keys_cols); j++) {
                 if (digitalRead(keys_cols[j]) == LOW) {
-                    key = KeyMap[shift][i][j];
+                    data->key = (uint32_t)KeyMap[shift][i][j];
                     break;
                 }
             }
             digitalWrite(keys_rows[i], HIGH);
         }
-        // suppress repeating key
+
+        // suppress repeating shift key, others repeat five times/s
         static uint32_t lastPressed = millis();
-        if (key != prevkey || millis() > lastPressed + 100) {
-            if (key != 0) {
-                switch (key) {
-                case 0x1a: // Shift
-                    if (++shift > 2) {
-                        shift = 0;
-                    }
-                    data->key = 0;
-                    return; // don't process shift as key input
-                default:
-                    break;
+        if (data->key != 0 && (data->key != prevkey || (millis() > lastPressed + 200))) {
+            lastPressed = millis();
+            prevkey = data->key;
+
+            switch (data->key) {
+            case 0x1a: // Shift
+                if (++shift > 2) {
+                    shift = 0;
                 }
-                ILOG_DEBUG("Key 0x%x pressed\n", key);
-                data->state = LV_INDEV_STATE_PRESSED;
-                data->key = (uint32_t)key;
-                lastPressed = millis();
-            } else {
-                data->state = LV_INDEV_STATE_RELEASED;
-                // ILOG_DEBUG("Key released\n");
+                data->key = 0;
+                return; // don't process shift as key input
+            default:
+                break;
             }
-            prevkey = key;
+            data->state = LV_INDEV_STATE_PRESSED;
+            ILOG_DEBUG("Key 0x%x pressed\n", data->key);
         }
     }
 }
