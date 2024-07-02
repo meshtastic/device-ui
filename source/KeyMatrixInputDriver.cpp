@@ -104,9 +104,10 @@ void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *dat
             digitalWrite(keys_rows[i], HIGH);
         }
 
-        // suppress repeating shift key, others repeat five times/s
+        // suppress repeating key, only repeat five times/s
+        // the enter key is an exception for LONG_PRESSED monitoring
         static uint32_t lastPressed = millis();
-        if (data->key != 0 && (data->key != prevkey || (millis() > lastPressed + 200))) {
+        if (data->key != 0 && (data->key == LV_KEY_ENTER || (millis() > lastPressed + 200))) {
             lastPressed = millis();
             prevkey = data->key;
 
@@ -122,6 +123,13 @@ void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *dat
             }
             data->state = LV_INDEV_STATE_PRESSED;
             ILOG_DEBUG("Key 0x%x pressed\n", data->key);
+        } else {
+            if (prevkey != 0) {
+                data->state = LV_INDEV_STATE_RELEASED;
+                data->key = prevkey; // must provide released key here!
+                // ILOG_DEBUG("Key 0x%x released\n", prevkey);
+                prevkey = 0;
+            }
         }
     }
 }
