@@ -10,10 +10,10 @@
 constexpr byte keys_cols[] = {44, 47, 17, 15, 13, 41};
 constexpr byte keys_rows[] = {12, 16, 42, 18, 14, 7};
 
-constexpr unsigned char KeyMap[3][sizeof(keys_rows)][sizeof(keys_cols)] = {{{' ', '.', 'm', 'n', 'b', 0x12},  // down
-                                                                            {0x0a, 'l', 'k', 'j', 'h', 0x0b}, // prev
-                                                                            {'p', 'o', 'i', 'u', 'y', 0x11},  // up
-                                                                            {0x08, 'z', 'x', 'c', 'v', 0x9},  // next
+constexpr unsigned char KeyMap[3][sizeof(keys_rows)][sizeof(keys_cols)] = {{{' ', '.', 'm', 'n', 'b', 0x9},   // next
+                                                                            {0x0a, 'l', 'k', 'j', 'h', 0x12}, // down
+                                                                            {'p', 'o', 'i', 'u', 'y', 0x0b},  // prev
+                                                                            {0x08, 'z', 'x', 'c', 'v', 0x11}, // up
                                                                             {'a', 's', 'd', 'f', 'g', 0x1b},
                                                                             {'q', 'w', 'e', 'r', 't', 0x1a}},
                                                                            {                                  // SHIFT
