@@ -10,6 +10,7 @@ EncoderInputDriver::EncoderInputDriver(void) {}
 
 void EncoderInputDriver::init(void)
 {
+    // trackball or joystick type encoder with four directions
     if (INPUTDRIVER_ENCODER_TYPE == 3) {
 #ifdef INPUTDRIVER_ENCODER_LEFT
         pinMode(INPUTDRIVER_ENCODER_LEFT, INPUT_PULLUP);
@@ -26,10 +27,6 @@ void EncoderInputDriver::init(void)
 #ifdef INPUTDRIVER_ENCODER_DOWN
         pinMode(INPUTDRIVER_ENCODER_DOWN, INPUT_PULLUP);
         attachInterrupt(INPUTDRIVER_ENCODER_DOWN, intDownHandler, RISING);
-#endif
-#ifdef INPUTDRIVER_ENCODER_BTN
-        pinMode(INPUTDRIVER_ENCODER_BTN, INPUT_PULLUP);
-        attachInterrupt(INPUTDRIVER_ENCODER_BTN, intPressHandler, RISING);
 #endif
     }
 
@@ -57,23 +54,32 @@ void EncoderInputDriver::encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
             data->enc_diff = 1;
 #endif
 #ifdef INPUTDRIVER_ENCODER_BTN
+        // FIXME: need same logix as below to trigger LONG_PRESSED events
         if (!digitalRead(INPUTDRIVER_ENCODER_BTN)) {
             data->key = LV_KEY_ENTER;
             data->state = LV_INDEV_STATE_PRESSED;
         }
 #endif
     }
-    // trackball with additional up/down inputs to control sliders
+    // trackball/jowstick with additional up/down inputs to control sliders
     else if (INPUTDRIVER_ENCODER_TYPE == 3) {
-        if (action == TB_ACTION_NONE) {
-            return;
-        }
-
-        data->state = LV_INDEV_STATE_RELEASED;
-        data->enc_diff = 0;
-
+        static uint32_t prevkey = 0;
         static uint32_t lastPressed = millis();
-        if (millis() > lastPressed + 200) {
+
+        data->key = 0;
+        data->enc_diff = 0;
+        data->state = LV_INDEV_STATE_RELEASED;
+
+#ifdef INPUTDRIVER_ENCODER_BTN
+        if (action == TB_ACTION_NONE) {
+            if (!digitalRead(INPUTDRIVER_ENCODER_BTN)) {
+                action = TB_ACTION_PRESSED;
+            }
+        }
+#endif
+        // slow down repeating key to max. five events per second
+        // the button is an exception for LONG_PRESSED monitoring
+        if (action != TB_ACTION_NONE && (action == TB_ACTION_PRESSED || millis() > lastPressed + 200)) {
             if (action == TB_ACTION_PRESSED) {
                 data->key = LV_KEY_ENTER;
                 data->state = LV_INDEV_STATE_PRESSED;
@@ -82,15 +88,23 @@ void EncoderInputDriver::encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
             } else if (action == TB_ACTION_DOWN) {
                 data->enc_diff = 1;
             } else if (action == TB_ACTION_LEFT) {
-                data->key = LV_KEY_DOWN;
+                data->key = LV_KEY_DOWN; // slider widget reacts on UP/DOWN
                 data->state = LV_INDEV_STATE_PRESSED;
             } else if (action == TB_ACTION_RIGHT) {
-                data->key = LV_KEY_UP;
+                data->key = LV_KEY_UP; // slider widget reacts on UP/DOWN
                 data->state = LV_INDEV_STATE_PRESSED;
             }
 
             lastPressed = millis();
+            prevkey = data->key;
             action = TB_ACTION_NONE;
+        } else {
+            // this logic is required for LONG_PRESSED event, see lv_indev.c
+            if (prevkey != 0) {
+                data->state = LV_INDEV_STATE_RELEASED;
+                data->key = prevkey;
+                prevkey = 0;
+            }
         }
     }
 }
