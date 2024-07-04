@@ -80,9 +80,9 @@ void EncoderInputDriver::encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
             }
         }
 #endif
-        // slow down repeating key to max. five events per second
+        // slow down repeating key to max. three events per second
         // the button is an exception for LONG_PRESSED monitoring
-        if (action != TB_ACTION_NONE && (action == TB_ACTION_PRESSED || millis() > lastPressed + 200)) {
+        if (action != TB_ACTION_NONE && (action == TB_ACTION_PRESSED || millis() > lastPressed + 300)) {
             if (action == TB_ACTION_PRESSED) {
                 data->key = LV_KEY_ENTER;
                 data->state = LV_INDEV_STATE_PRESSED;
