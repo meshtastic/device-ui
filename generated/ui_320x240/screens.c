@@ -609,7 +609,7 @@ void create_screen_main_screen() {
                             lv_obj_t *obj = lv_btn_create(parent_obj);
                             objects.node_button = obj;
                             lv_obj_set_pos(obj, 0, 0);
-                            lv_obj_set_size(obj, LV_PCT(106), LV_PCT(96));
+                            lv_obj_set_size(obj, LV_PCT(106), LV_PCT(100));
                             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff404040), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -617,7 +617,7 @@ void create_screen_main_screen() {
                             lv_obj_set_style_shadow_ofs_y(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_max_height(obj, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_max_height(obj, 132, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_min_height(obj, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                         {
