@@ -28,6 +28,9 @@ void EncoderInputDriver::init(void)
         pinMode(INPUTDRIVER_ENCODER_DOWN, INPUT_PULLUP);
         attachInterrupt(INPUTDRIVER_ENCODER_DOWN, intDownHandler, RISING);
 #endif
+#ifdef INPUTDRIVER_ENCODER_BTN
+        pinMode(INPUTDRIVER_ENCODER_BTN, INPUT);
+#endif
     }
 
     encoder = lv_indev_create();
@@ -61,7 +64,7 @@ void EncoderInputDriver::encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
         }
 #endif
     }
-    // trackball/jowstick with additional up/down inputs to control sliders
+    // trackball/joystick with additional up/down inputs to control sliders
     else if (INPUTDRIVER_ENCODER_TYPE == 3) {
         static uint32_t prevkey = 0;
         static uint32_t lastPressed = millis();
