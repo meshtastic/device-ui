@@ -678,6 +678,7 @@ void TFTView_320x240::ui_event_user_button(lv_event_t *e)
         lv_textarea_set_text(objects.settings_user_long_textarea, THIS->db.long_name);
         lv_obj_clear_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_user_short_textarea);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eUsername;
     }
 }
@@ -689,6 +690,7 @@ void TFTView_320x240::ui_event_role_button(lv_event_t *e)
         lv_dropdown_set_selected(objects.settings_device_role_dropdown, THIS->db.config.device.role);
         lv_obj_clear_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_device_role_dropdown);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eDeviceRole;
     }
 }
@@ -700,6 +702,7 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
         lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
         lv_obj_clear_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_region_dropdown);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eRegion;
     }
 }
@@ -723,6 +726,7 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
 
         lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_modem_preset_dropdown);
+        THIS->disablePanel(objects.basic_settings_panel);
     }
 }
 
@@ -733,6 +737,7 @@ void TFTView_320x240::ui_event_language_button(lv_event_t *e)
         // TODO: set actual value for dropdown
         lv_obj_clear_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_language_dropdown);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eLanguage;
     }
 }
@@ -760,6 +765,7 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
         }
         lv_obj_clear_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_channel0_button);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eChannel;
 
         // create scratch channels to store temporary changes until cancelled or applied
@@ -782,6 +788,7 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
         objects.brightness_slider->user_data = (void *)brightness; // store old value
         lv_obj_clear_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.brightness_slider);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eScreenBrightness;
     }
 }
@@ -802,6 +809,7 @@ void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
         lv_obj_clear_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
         lv_slider_set_value(objects.screen_timeout_slider, timeout, LV_ANIM_OFF);
         lv_group_focus_obj(objects.screen_timeout_slider);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eScreenTimeout;
     }
 }
@@ -835,6 +843,7 @@ void TFTView_320x240::ui_event_input_button(lv_event_t *e)
 
         lv_obj_clear_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_mouse_input_dropdown);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eInputControl;
     }
 }
@@ -860,6 +869,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
         lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.ringtoneId);
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_alert_buzzer_switch);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eAlertBuzzer;
     }
 }
@@ -871,6 +881,7 @@ void TFTView_320x240::ui_event_reset_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         lv_obj_clear_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_reset_dropdown);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eReset;
     }
 }
@@ -883,6 +894,7 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
         lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_FADE_IN, 1000, 0, false);
         lv_obj_clear_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.cancel_reboot_button);
+        THIS->disablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eReboot;
     }
 }
@@ -913,6 +925,7 @@ void TFTView_320x240::ui_event_device_cancel_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->enablePanel(objects.basic_settings_panel);
         lv_group_focus_obj(objects.basic_settings_reboot_button);
         THIS->activeSettings = eNone;
     }
@@ -965,7 +978,8 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
                 }
             }
         }
-        lv_obj_add_state(objects.settings_channel_panel, LV_STATE_DISABLED);
+
+        THIS->disablePanel(objects.settings_channel_panel);
         lv_obj_clear_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_modify_channel_name_textarea);
         THIS->activeSettings = eModifyChannel;
@@ -1265,8 +1279,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 
             if (THIS->activeSettings == eChannel) {
                 lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
-                lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
+                THIS->enablePanel(objects.settings_channel_panel);
                 lv_group_focus_obj(objects.settings_channel0_button);
             }
             return;
@@ -1275,6 +1288,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             ILOG_ERROR("Unhandled ok event\n");
             break;
         }
+        THIS->enablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eNone;
     }
 }
@@ -1350,9 +1364,8 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eModifyChannel: {
             lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
-            lv_obj_remove_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.settings_channel0_button);
+            THIS->enablePanel(objects.settings_channel_panel);
             THIS->activeSettings = eChannel;
             return;
         }
@@ -1361,6 +1374,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             break;
         }
 
+        THIS->enablePanel(objects.basic_settings_panel);
         THIS->activeSettings = eNone;
     }
 }
@@ -1698,6 +1712,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     applyNodesFilter(nodeNum);
 
     // move node into new position within nodePanel
+    // TODO: this messed up the input group order when navigating with trackball/cursor keys
     if (lastHeard) {
         lv_obj_t **children = objects.nodes_panel->spec_attr->children;
         int i = objects.nodes_panel->spec_attr->child_cnt - 1;
@@ -2795,6 +2810,44 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     }
 
     lv_keyboard_set_textarea(objects.keyboard, textArea);
+}
+
+/**
+ * Enable underlying panel, buttons and scrollbar after it was disabled
+ */
+void TFTView_320x240::enablePanel(lv_obj_t *panel)
+{
+    lv_obj_clear_state(panel, LV_STATE_DISABLED);
+    lv_obj_set_scrollbar_mode(panel, LV_SCROLLBAR_MODE_AUTO);
+    lv_obj_add_flag(panel, LV_OBJ_FLAG_SCROLLABLE);
+
+    auto enableButtons = [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
+        if (obj->class_p == &lv_button_class) {
+            lv_obj_clear_state(obj, LV_STATE_DISABLED);
+        }
+        return LV_OBJ_TREE_WALK_NEXT;
+    };
+
+    lv_obj_tree_walk(panel, enableButtons, NULL);
+}
+
+/**
+ * Disable underlying panel with it's children buttons and scrollbar
+ */
+void TFTView_320x240::disablePanel(lv_obj_t *panel)
+{
+    lv_obj_add_state(panel, LV_STATE_DISABLED);
+    lv_obj_set_scrollbar_mode(panel, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_clear_flag(panel, LV_OBJ_FLAG_SCROLLABLE);
+
+    auto disableButtons = [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
+        if (obj->class_p == &lv_button_class) {
+            lv_obj_add_state(obj, LV_STATE_DISABLED);
+        }
+        return LV_OBJ_TREE_WALK_NEXT;
+    };
+
+    lv_obj_tree_walk(panel, disableButtons, NULL);
 }
 
 /**
