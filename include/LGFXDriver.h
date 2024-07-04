@@ -310,14 +310,15 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
 template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
 {
     calibrating = true;
+    std::uint16_t fg = TFT_BLUE;
+    std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
     lgfx->clearDisplay();
     lgfx->fillScreen(LGFX::color565(0x67, 0xEA, 0x94));
     lgfx->setTextSize(1);
     lgfx->setTextDatum(textdatum_t::middle_center);
+    lgfx->setTextColor(fg, bg);
     lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
     lgfx->setTextDatum(textdatum_t::top_left);
-    std::uint16_t fg = TFT_BLUE;
-    std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
     if (lgfx->isEPD())
         std::swap(fg, bg);
     lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
