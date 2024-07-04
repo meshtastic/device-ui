@@ -4,7 +4,7 @@
 #include "SharedQueue.h"
 #include <assert.h>
 
-const uint32_t max_packet_queue_size = 10;
+const uint32_t max_packet_queue_size = 25;
 
 void PacketClient::init(void)
 {
