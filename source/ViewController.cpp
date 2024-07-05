@@ -139,10 +139,10 @@ bool ViewController::requestShutdown(int32_t seconds, uint32_t nodeId)
  */
 bool ViewController::requestReset(bool factoryReset, uint32_t nodeId)
 {
-    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = factoryReset
-                                                                                 ? meshtastic_AdminMessage_factory_reset_tag
-                                                                                 : meshtastic_AdminMessage_nodedb_reset_tag},
-                            nodeId ? nodeId : myNodeNum);
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = (pb_size_t)(factoryReset ? meshtastic_AdminMessage_factory_reset_tag
+                                                                                  : meshtastic_AdminMessage_nodedb_reset_tag)},
+        nodeId ? nodeId : myNodeNum);
 }
 
 bool ViewController::sendConfig(const meshtastic_User &user, uint32_t nodeId)

@@ -62,12 +62,12 @@ bool SerialClient::sleep(int16_t pin)
 #endif
 
 #ifdef BUTTON_PIN
-    gpio_num_t pin = (gpio_num_t)BUTTON_PIN;
+    pin = (gpio_num_t)BUTTON_PIN;
 #if defined(BUTTON_NEED_PULLUP)
-    gpio_pullup_en(pin);
+    gpio_pullup_en((gpio_num_t)pin);
 #endif
-    gpio_intr_disable(pin);
-    gpio_wakeup_enable(pin, GPIO_INTR_LOW_LEVEL);
+    gpio_intr_disable((gpio_num_t)pin);
+    gpio_wakeup_enable((gpio_num_t)pin, GPIO_INTR_LOW_LEVEL);
 #else
     gpio_wakeup_enable((gpio_num_t)pin, GPIO_INTR_LOW_LEVEL);
 #endif
