@@ -154,6 +154,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateTime(void);
     // update free memory display on home screen
     virtual void updateFreeMem(void);
+    // update distance to other node
+    virtual void updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon);
 
     NodeFilter filter;
     NodeHighlight highlight;
@@ -247,6 +249,8 @@ class TFTView_320x240 : public MeshtasticView
     bool processingFilter;                           // indicates that filtering is ongoing
     time_t lastrun60, lastrun10, lastrun1;           // timers for task loop
     time_t actTime, uptime;                          // actual time and uptime;
+    bool hasPosition;                                // if our position is known
+    int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
     static bool advanced_mode;                       // advanced settings
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
