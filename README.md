@@ -95,9 +95,9 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [x] Messages info
       - [x] Nodes info
       - [x] GPS info
-      - [ ] WiFi info
+      - [x] WiFi info
       - [x] Time and Data
-      - [ ] MQTT info
+      - [x] MQTT info
       - [x] Free memory info
     - [ ] Nodes panel
       - [x] Scroll display and sorting
@@ -156,8 +156,9 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [ ] Radio frequency display
       - [ ] Offline map display
     - [x] I2C keyboard input handling
-    - [ ] Trackball support (e.g. fast scrolling list views)
+    - [x] Trackball support (e.g. fast scrolling list views)
     - [ ] SD card support, mainly for offline maps or import/export (config & chat history)
+    - [ ] load custom fonts from SD card
     - [ ] (Optional): allow bluetooth connection (-> PhoneAPI queue re-design)
     - [ ] I2S Audio support
 
@@ -183,6 +184,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [x] Integrate lvgl keyboard input driver
     - [x] Add support for several SPI devices
     - [ ] Add pwm brightness control
+    - [ ] IP address display (eth/wlan)
     - [x] Target environment cleanup
 
 ### :iphone: Stand-alone Device
