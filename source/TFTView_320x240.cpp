@@ -41,7 +41,6 @@ enum NodePanelIdx {
 };
 
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
-bool TFTView_320x240::advanced_mode = false;
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -61,7 +60,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), actTime(0), uptime(0),
-      hasPosition(false)
+      hasPosition(false), topNodeLL(nullptr)
 {
     filter.active = false;
     highlight.active = false;
@@ -123,6 +122,16 @@ void TFTView_320x240::init(IClientBase *client)
 
     setInputButtonLabel();
     lv_group_focus_obj(objects.home_button);
+
+    // remember position of top node panel button for group linked list
+    lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
+    for (lv_obj_t **obj_i = (lv_obj_t **)_lv_ll_get_head(lv_group_ll); obj_i != NULL;
+         obj_i = (lv_obj_t **)_lv_ll_get_next(lv_group_ll, obj_i)) {
+        if (*obj_i == objects.node_button) {
+            topNodeLL = obj_i;
+            break;
+        }
+    }
 
     // user data
     objects.home_time_button->user_data = (void *)0;
@@ -435,12 +444,13 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
+    static bool advancedMode = false;
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         THIS->ui_set_active(objects.settings_button, objects.basic_settings_panel, objects.top_settings_panel);
-    } else if (event_code == LV_EVENT_LONG_PRESSED && !advanced_mode && THIS->activeSettings == eNone) {
-        advanced_mode = !advanced_mode;
-    } else if (event_code == LV_EVENT_LONG_PRESSED && advanced_mode && THIS->activeSettings == eNone) {
-        advanced_mode = !advanced_mode;
+    } else if (event_code == LV_EVENT_LONG_PRESSED && !advancedMode && THIS->activeSettings == eNone) {
+        advancedMode = !advancedMode;
+    } else if (event_code == LV_EVENT_LONG_PRESSED && advancedMode && THIS->activeSettings == eNone) {
+        advancedMode = !advancedMode;
         THIS->ui_set_active(objects.settings_button, ui_AdvancedSettingsPanel, objects.top_advanced_settings_panel);
     }
 }
@@ -1540,8 +1550,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 {
     // lv_obj nodesPanel children  |  user data
     // ==============================================
-    // [0]: img                    |  role / viaMqtt
-    // [1]: btn                    |
+    // [0]: img                    | role / viaMqtt
+    // [1]: btn                    | ll group
     // [2]: lbl user long          | strlen(userLong)
     // [3]: lbl user short         | userShort (4 chars)
     // [4]: lbl battery            |
@@ -1554,9 +1564,12 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // user_data: ch
 
     lv_obj_t *p = lv_obj_create(objects.nodes_panel);
+    lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
+
     p->user_data = (void *)(uint32_t)ch;
     nodes[nodeNum] = p;
     nodeCount++;
+
     // NodePanel
     lv_obj_set_pos(p, LV_PCT(0), 0);
     lv_obj_set_size(p, LV_PCT(100), 52);
@@ -1594,6 +1607,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_shadow_spread(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_max_height(nodeButton, 110, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_min_height(nodeButton, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
+    nodeButton->user_data = _lv_ll_get_tail(lv_group_ll);
+
     // UserNameLabel
     lv_obj_t *ln_lbl = lv_label_create(p);
     lv_obj_set_pos(ln_lbl, -5, 22);
@@ -1721,7 +1736,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     applyNodesFilter(nodeNum);
 
     // move node into new position within nodePanel
-    // TODO: this messed up the input group order when navigating with trackball/cursor keys
     if (lastHeard) {
         lv_obj_t **children = objects.nodes_panel->spec_attr->children;
         int i = objects.nodes_panel->spec_attr->child_cnt - 1;
@@ -1732,6 +1746,9 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
         }
         if (i >= 1 && i < objects.nodes_panel->spec_attr->child_cnt - 1) {
             lv_obj_move_to_index(p, i);
+            // re-arrange the group linked list by moving the new button (now at the tail) into the right position
+            void *after = children[i]->LV_OBJ_IDX(node_btn_idx)->user_data;
+            _lv_ll_move_before(lv_group_ll, _lv_ll_get_tail(lv_group_ll), after);
         }
     }
 
@@ -2952,12 +2969,12 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
  */
 void TFTView_320x240::setInputGroup(void)
 {
-    lv_group_t *group = inputdriver->getInputGroup();
+    lv_group_t *group = lv_group_get_default();
 
-    if (inputdriver->hasKeyboardDevice())
+    if (group && inputdriver->hasKeyboardDevice())
         lv_indev_set_group(inputdriver->getKeyboard(), group);
 
-    if (inputdriver->hasPointerDevice())
+    if (group && inputdriver->hasPointerDevice())
         lv_indev_set_group(inputdriver->getPointer(), group);
 }
 
@@ -3091,6 +3108,11 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
             }
             // move to top position
             lv_obj_move_to_index(it->second, 1);
+
+            // re-arrange the group linked list i.e. move the node after the top position
+            lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
+            void *act = it->second->LV_OBJ_IDX(node_btn_idx)->user_data;
+            _lv_ll_move_before(lv_group_ll, act, _lv_ll_get_next(lv_group_ll, topNodeLL));
         }
     }
 }

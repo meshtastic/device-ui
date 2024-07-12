@@ -251,7 +251,7 @@ class TFTView_320x240 : public MeshtasticView
     time_t actTime, uptime;                          // actual time and uptime;
     bool hasPosition;                                // if our position is known
     int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
-    static bool advanced_mode;                       // advanced settings
+    void *topNodeLL;                                 // pointer to topmost button in group ll
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
     meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db
