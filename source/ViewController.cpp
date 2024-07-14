@@ -746,9 +746,9 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Telemetry_msg, &telemetry)) {
             switch (telemetry.which_variant) {
             case meshtastic_Telemetry_device_metrics_tag: {
-                view->updateMetrics(
-                    p.from, telemetry.variant.device_metrics.battery_level, telemetry.variant.device_metrics.voltage,
-                    telemetry.variant.device_metrics.channel_utilization, telemetry.variant.device_metrics.air_util_tx);
+                meshtastic_DeviceMetrics &metrics = telemetry.variant.device_metrics;
+                view->updateMetrics(p.from, metrics.battery_level, metrics.voltage, metrics.channel_utilization,
+                                    metrics.air_util_tx);
                 break;
             }
             case meshtastic_Telemetry_environment_metrics_tag: {

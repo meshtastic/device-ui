@@ -1931,20 +1931,20 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                 lv_label_set_text(objects.battery_percentage_label, buf);
                 lv_opa_t recolor = 0;
                 uint32_t txtColor = 0xE0E0E0;
-                if (bat_level > 100 && voltage > 4.3)
+                if (bat_level > 100 && voltage > 4.3) {
                     lv_img_set_src(objects.battery_image, &img_battery_bolt_image);
-                else if (bat_level > 80)
+                } else if (bat_level > 80) {
                     lv_img_set_src(objects.battery_image, &img_battery_full_image);
-                else if (bat_level > 30)
+                } else if (bat_level > 30) {
                     lv_img_set_src(objects.battery_image, &img_battery_mid_image);
-                else if (bat_level > 5)
+                } else if (bat_level > 5) {
                     lv_img_set_src(objects.battery_image, &img_battery_low_image);
-                else if (bat_level > 1) {
-                    lv_img_set_src(objects.battery_image, &img_battery_empty_image);
-                    recolor = 255;
-                    txtColor = 0xF72b2b;
                 } else {
-                    lv_img_set_src(objects.battery_image, &img_battery_slash_image);
+                    if (bat_level > 1) {
+                        lv_img_set_src(objects.battery_image, &img_battery_empty_image);
+                    } else {
+                        lv_img_set_src(objects.battery_image, &img_battery_slash_image);
+                    }
                     recolor = 255;
                     txtColor = 0xF72b2b;
                 }
