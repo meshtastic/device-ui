@@ -1747,8 +1747,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
         if (i >= 1 && i < objects.nodes_panel->spec_attr->child_cnt - 1) {
             lv_obj_move_to_index(p, i);
             // re-arrange the group linked list by moving the new button (now at the tail) into the right position
-            void *after = children[i]->LV_OBJ_IDX(node_btn_idx)->user_data;
-            _lv_ll_move_before(lv_group_ll, _lv_ll_get_tail(lv_group_ll), after);
+            void *after = children[i + 1]->LV_OBJ_IDX(node_btn_idx)->user_data;
+            _lv_ll_move_before(lv_group_ll, nodeButton->user_data, after);
         }
     }
 
