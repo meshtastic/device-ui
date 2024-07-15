@@ -1921,7 +1921,7 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
     if (it != nodes.end()) {
         char buf[32];
         if (it->first == ownNode) {
-            sprintf(buf, "Util %0.1f%% %0.1f%%", chUtil, airUtil);
+            sprintf(buf, "Util %0.1f%%  Air %0.1f%%", chUtil, airUtil);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
 
             // update battery percentage and symbol
