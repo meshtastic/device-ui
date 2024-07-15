@@ -3112,7 +3112,8 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
             // re-arrange the group linked list i.e. move the node after the top position
             lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
             void *act = it->second->LV_OBJ_IDX(node_btn_idx)->user_data;
-            _lv_ll_move_before(lv_group_ll, act, _lv_ll_get_next(lv_group_ll, topNodeLL));
+            if (lv_group_ll && act)
+                _lv_ll_move_before(lv_group_ll, act, _lv_ll_get_next(lv_group_ll, topNodeLL));
         }
     }
 }
