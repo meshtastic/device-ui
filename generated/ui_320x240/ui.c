@@ -27,7 +27,6 @@ void loadScreen(enum ScreensEnum screenId) {
 
 void ui_init() {
     create_screens();
-    create_tabview_nodes_options();
     create_tabview_settings();
     loadScreen(SCREEN_ID_BOOT_SCREEN);
 }

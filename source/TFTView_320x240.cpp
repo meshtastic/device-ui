@@ -201,6 +201,48 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 void TFTView_320x240::apply_hotfix(void)
 {
     lv_obj_move_foreground(objects.keyboard);
+
+    // lvgl v9 tabview buttons are not btn-matrix anymore but array of buttons
+    // see https://forum.lvgl.io/t/style-a-tabview-widget-in-v9-0-0/14747
+    lv_obj_t *tab_buttons = lv_tabview_get_tab_bar(objects.node_options_tab_view);
+
+    static lv_style_t style_btn_default;
+    lv_style_init(&style_btn_default);
+    lv_style_set_text_color(&style_btn_default, lv_color_hex(0xA0A0A0));
+    lv_style_set_bg_color(&style_btn_default, lv_color_hex(0x303030));
+    lv_style_set_bg_opa(&style_btn_default, LV_OPA_COVER);
+    lv_style_set_border_color(&style_btn_default, lv_color_hex(0x505050));
+    lv_style_set_border_opa(&style_btn_default, LV_OPA_COVER);
+    lv_style_set_border_width(&style_btn_default, 1);
+    lv_style_set_border_side(&style_btn_default, LV_BORDER_SIDE_FULL);
+
+    static lv_style_t style_btn_active;
+    lv_style_init(&style_btn_active);
+    lv_style_set_text_color(&style_btn_active, lv_color_hex(0xFFFFFF));
+    lv_style_set_bg_color(&style_btn_active, lv_color_hex(0x303030));
+    lv_style_set_bg_opa(&style_btn_active, LV_OPA_COVER);
+    lv_style_set_border_color(&style_btn_active, lv_color_hex(0xff67ea94));
+    lv_style_set_border_opa(&style_btn_active, LV_OPA_COVER);
+    lv_style_set_border_width(&style_btn_active, 3);
+    lv_style_set_border_side(&style_btn_active, LV_BORDER_SIDE_BOTTOM);
+
+    static lv_style_t style_btn_pressed;
+    lv_style_init(&style_btn_pressed);
+    lv_style_set_text_color(&style_btn_pressed, lv_color_hex(0xFFFFFF));
+    lv_style_set_bg_color(&style_btn_pressed, lv_color_hex(0xff67ea94));
+    lv_style_set_bg_opa(&style_btn_pressed, LV_OPA_COVER);
+    lv_style_set_border_color(&style_btn_pressed, lv_color_hex(0xff67ea94));
+    lv_style_set_border_opa(&style_btn_pressed, LV_OPA_COVER);
+    lv_style_set_border_width(&style_btn_pressed, 3);
+    lv_style_set_border_side(&style_btn_pressed, LV_BORDER_SIDE_BOTTOM);
+
+    for (int i = 0; i < tab_buttons->spec_attr->child_cnt; i++) {
+        if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
+            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_default, LV_STATE_DEFAULT);
+            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_active, LV_STATE_CHECKED);
+            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_pressed, LV_STATE_PRESSED);
+        }
+    }
 }
 
 void TFTView_320x240::ui_events_init(void)
@@ -255,8 +297,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_2, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)2);
     lv_obj_add_event_cb(objects.keyboard_button_3, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)3);
     lv_obj_add_event_cb(objects.keyboard_button_4, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)4);
-    lv_obj_add_event_cb(ui_KeyboardButton5, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)5);
-    lv_obj_add_event_cb(ui_KeyboardButton6, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)6);
+    lv_obj_add_event_cb(objects.keyboard_button_5, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)5);
+    lv_obj_add_event_cb(objects.keyboard_button_6, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)6);
 
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
@@ -358,7 +400,7 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         filterNeedsUpdate = true;
         ignoreClicked = true;
-        THIS->ui_set_active(objects.nodes_button, ui_NodesOptionsPanel, objects.top_node_options_panel);
+        THIS->ui_set_active(objects.nodes_button, objects.node_options_panel, objects.top_node_options_panel);
     }
 }
 
@@ -612,12 +654,12 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
             lv_group_focus_obj(objects.settings_modify_channel_psk_textarea);
             break;
         case 5:
-            THIS->showKeyboard(ui_NodesFilterNameArea);
-            lv_group_focus_obj(ui_NodesFilterNameArea);
+            THIS->showKeyboard(objects.nodes_filter_name_area);
+            lv_group_focus_obj(objects.nodes_filter_name_area);
             break;
         case 6:
-            THIS->showKeyboard(ui_NodesHLNameArea);
-            lv_group_focus_obj(ui_NodesHLNameArea);
+            THIS->showKeyboard(objects.nodes_hl_name_area);
+            lv_group_focus_obj(objects.nodes_hl_name_area);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment\n");
@@ -2180,27 +2222,27 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
     lv_obj_t *panel = nodes[nodeNum];
     bool hide = false;
     if (nodeNum != ownNode /* && filter.active*/) { // TODO
-        if (lv_obj_has_state(ui_NodesFilterUnknownSwitch, LV_STATE_CHECKED)) {
+        if (lv_obj_has_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED)) {
             if (lv_img_get_src(panel->LV_OBJ_IDX(node_img_idx)) == &img_circle_question_image) {
                 hide = true;
             }
         }
-        if (lv_obj_has_state(ui_NodesFilterOfflineSwitch, LV_STATE_CHECKED)) {
+        if (lv_obj_has_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED)) {
             time_t curtime, lastHeard = (time_t)panel->LV_OBJ_IDX(node_lh_idx)->user_data;
             time(&curtime);
             if (curtime - lastHeard - 10 > 15 * 60)
                 hide = true;
         }
-        if (lv_obj_has_state(ui_NodesFilterMQTTSwitch, LV_STATE_CHECKED)) {
+        if (lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED)) {
             bool viaMqtt = (unsigned long)panel->LV_OBJ_IDX(node_img_idx)->user_data;
             if (viaMqtt)
                 hide = true;
         }
-        if (lv_obj_has_state(ui_NodesFilterPositionSwitch, LV_STATE_CHECKED)) {
+        if (lv_obj_has_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] == '\0')
                 hide = true;
         }
-        const char *name = lv_textarea_get_text(ui_NodesFilterNameArea);
+        const char *name = lv_textarea_get_text(objects.nodes_filter_name_area);
         if (name[0] != '\0') {
             if (name[0] != '!') { // use '!' char to negate search result
                 if (!strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) &&
@@ -2226,27 +2268,27 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
 
     bool highlight = false;
     if (true /*highlight.active*/) { // TODO
-        if (lv_obj_has_state(ui_NodesHLActiveChatSwitch, LV_STATE_CHECKED)) {
+        if (lv_obj_has_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED)) {
             auto it = chats.find(nodeNum);
             if (it != nodes.end()) {
                 lv_obj_set_style_border_color(panel, lv_color_hex(0xffff8c04), LV_PART_MAIN | LV_STATE_DEFAULT);
                 highlight = true;
             }
         }
-        if (lv_obj_has_state(ui_NodesHLPositionSwitch, LV_STATE_CHECKED)) {
+        if (lv_obj_has_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] != '\0') {
                 lv_obj_set_style_border_color(panel, lv_color_hex(0xff05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);
                 highlight = true;
             }
         }
-        if (lv_obj_has_state(ui_NodesHLTelemetrySwitch, LV_STATE_CHECKED)) {
+        if (lv_obj_has_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm1_idx))[0] != '\0') {
                 lv_obj_set_style_border_color(panel, lv_color_hex(0xff436C70), LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_obj_set_style_border_width(panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
                 highlight = true;
             }
         }
-        if (lv_obj_has_state(ui_NodesHLIAQSwitch, LV_STATE_CHECKED)) {
+        if (lv_obj_has_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm2_idx))[0] != '\0') {
                 uint32_t iaq = (unsigned long)panel->LV_OBJ_IDX(node_tm2_idx)->user_data;
                 // IAQ color code
@@ -2278,7 +2320,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
                 highlight = true;
             }
         }
-        const char *name = lv_textarea_get_text(ui_NodesHLNameArea);
+        const char *name = lv_textarea_get_text(objects.nodes_hl_name_area);
         if (name[0] != '\0') {
             if (strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) ||
                 strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), name)) {

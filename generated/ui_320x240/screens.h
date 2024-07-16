@@ -7,34 +7,6 @@
 extern "C" {
 #endif
 
-// nodes options tabview
-extern lv_obj_t * ui_NodesOptionsPanel;
-extern lv_obj_t * ui_NodesOptionsTabView;
-extern lv_obj_t * ui_TabPageFilter;
-extern lv_obj_t * ui_NodesFilterUnknownLabel;
-extern lv_obj_t * ui_NodesFilterUnknownSwitch;
-extern lv_obj_t * ui_NodesFilterOfflineLabel;
-extern lv_obj_t * ui_NodesFilterOfflineSwitch;
-extern lv_obj_t * ui_NodesFilterMQTTLabel;
-extern lv_obj_t * ui_NodesFilterMQTTSwitch;
-extern lv_obj_t * ui_NodesFilterPositionLabel;
-extern lv_obj_t * ui_NodesFilterPositionSwitch;
-extern lv_obj_t * ui_NodesFilterNameLabel;
-extern lv_obj_t * ui_NodesFilterNameArea;
-extern lv_obj_t * ui_TabPageHighlight;
-extern lv_obj_t * ui_NodesHLActiveChatLabel;
-extern lv_obj_t * ui_NodesHLActiveChatSwitch;
-extern lv_obj_t * ui_NodesHLPositionLabel;
-extern lv_obj_t * ui_NodesHLPositionSwitch;
-extern lv_obj_t * ui_NodesHLTelemetryLabel;
-extern lv_obj_t * ui_NodesHLTelemetrySwitch;
-extern lv_obj_t * ui_NodesHLIAQLabel;
-extern lv_obj_t * ui_NodesHLIAQSwitch;
-extern lv_obj_t * ui_NodesHLNameLabel;
-extern lv_obj_t * ui_NodesHLNameArea;
-extern lv_obj_t * ui_KeyboardButton5;
-extern lv_obj_t * ui_KeyboardButton6;
-
 
 // advanced settings
 extern lv_obj_t * ui_AdvancedSettingsPanel;
@@ -91,7 +63,6 @@ extern lv_obj_t * ui_DetectionSensorLabel;
 extern lv_obj_t * ui_ModuleRemoteHardwareButton;
 extern lv_obj_t * ui_RemoteHardwareLabel;
 
-void create_tabview_nodes_options(void);
 void create_tabview_settings(void);
 
 typedef struct _objects_t {
@@ -127,6 +98,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_role_label;
     lv_obj_t *basic_settings_timeout_button;
     lv_obj_t *basic_settings_timeout_label;
+    lv_obj_t *basic_settings_timezone_button;
+    lv_obj_t *basic_settings_timezone_label;
     lv_obj_t *basic_settings_user_button;
     lv_obj_t *basic_settings_user_label;
     lv_obj_t *battery_image;
@@ -189,6 +162,8 @@ typedef struct _objects_t {
     lv_obj_t *keyboard_button_2;
     lv_obj_t *keyboard_button_3;
     lv_obj_t *keyboard_button_4;
+    lv_obj_t *keyboard_button_5;
+    lv_obj_t *keyboard_button_6;
     lv_obj_t *last_heard_label;
     lv_obj_t *map_button;
     lv_obj_t *map_panel;
@@ -205,8 +180,30 @@ typedef struct _objects_t {
     lv_obj_t *msg_popup_panel;
     lv_obj_t *node_button;
     lv_obj_t *node_image;
+    lv_obj_t *node_options_panel;
+    lv_obj_t *node_options_tab_view;
     lv_obj_t *node_panel;
     lv_obj_t *nodes_button;
+    lv_obj_t *nodes_filter_mqtt_label;
+    lv_obj_t *nodes_filter_mqtt_switch;
+    lv_obj_t *nodes_filter_name_area;
+    lv_obj_t *nodes_filter_name_label;
+    lv_obj_t *nodes_filter_offline_label;
+    lv_obj_t *nodes_filter_offline_switch;
+    lv_obj_t *nodes_filter_position_label;
+    lv_obj_t *nodes_filter_position_switch;
+    lv_obj_t *nodes_filter_unknown_label;
+    lv_obj_t *nodes_filter_unknown_switch;
+    lv_obj_t *nodes_hl_active_chat_label;
+    lv_obj_t *nodes_hl_active_chat_switch;
+    lv_obj_t *nodes_hl_name_area;
+    lv_obj_t *nodes_hl_name_label;
+    lv_obj_t *nodes_hl_position_label;
+    lv_obj_t *nodes_hl_position_switch;
+    lv_obj_t *nodes_hl_telemetry_label;
+    lv_obj_t *nodes_hl_telemetry_switch;
+    lv_obj_t *nodes_hliaq_label;
+    lv_obj_t *nodes_hliaq_switch;
     lv_obj_t *nodes_panel;
     lv_obj_t *obj0;
     lv_obj_t *obj0__cancel_button_w;
@@ -224,6 +221,10 @@ typedef struct _objects_t {
     lv_obj_t *obj11__cancel_button_w;
     lv_obj_t *obj11__ok_button_w;
     lv_obj_t *obj11__ok_cancel_panel_w;
+    lv_obj_t *obj12;
+    lv_obj_t *obj12__cancel_button_w;
+    lv_obj_t *obj12__ok_button_w;
+    lv_obj_t *obj12__ok_cancel_panel_w;
     lv_obj_t *obj2;
     lv_obj_t *obj2__cancel_button_w;
     lv_obj_t *obj2__ok_button_w;
@@ -303,11 +304,16 @@ typedef struct _objects_t {
     lv_obj_t *settings_ringtone_dropdown;
     lv_obj_t *settings_screen_timeout_label;
     lv_obj_t *settings_screen_timeout_panel;
+    lv_obj_t *settings_timezone;
+    lv_obj_t *settings_tzcity;
+    lv_obj_t *settings_tzzone;
     lv_obj_t *settings_user_long_textarea;
     lv_obj_t *settings_user_short_textarea;
     lv_obj_t *settings_username_panel;
     lv_obj_t *shutdown_button;
     lv_obj_t *signal_label;
+    lv_obj_t *tab_page_filter;
+    lv_obj_t *tab_page_highlight;
     lv_obj_t *telemetry1_label;
     lv_obj_t *telemetry2_label;
     lv_obj_t *top_advanced_settings_image;
