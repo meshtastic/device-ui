@@ -365,6 +365,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj10__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj11__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj11__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj12__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj12__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -2859,7 +2861,22 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
             pos++;
         }
 
-        sprintf(&buf[pos], ":\n%s", msg);
+        // add current time
+        time_t curr_time;
+#ifdef ARCH_PORTDUINO
+        time(&curr_time);
+#else
+        curr_time = actTime;
+#endif
+        if (curr_time > 1000000) {
+            tm *curr_tm = gmtime(&curr_time);
+            size_t len = strftime(&buf[pos], 40, " %R", curr_tm);
+            pos += len;
+        } else {
+            buf[pos++] = ':';
+        }
+
+        sprintf(&buf[pos], "\n%s", msg);
         message = buf;
         container = channelGroup[ch];
     } else { // message for us
