@@ -33,7 +33,7 @@ extern const lv_img_dsc_t img_top_message_node_images;
 extern const lv_img_dsc_t img_battery_full_image;
 extern const lv_img_dsc_t img_battery_mid_image;
 extern const lv_img_dsc_t img_battery_low_image;
-extern const lv_img_dsc_t img_battery_empty_image;
+extern const lv_img_dsc_t img_battery_empty_warn_image;
 extern const lv_img_dsc_t img_battery_slash_image;
 extern const lv_img_dsc_t img_battery_bolt_image;
 extern const lv_img_dsc_t img_home_wlan_off_image;
@@ -55,6 +55,7 @@ extern const lv_img_dsc_t img_mqtt_logo_image;
 extern const lv_img_dsc_t img_home_ethernet_button_image;
 extern const lv_img_dsc_t img_top_trace_route_image;
 extern const lv_img_dsc_t img_top_node_detector_image;
+extern const lv_img_dsc_t img_battery_empty_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -64,7 +65,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[48];
+extern const ext_img_desc_t images[49];
 
 
 #ifdef __cplusplus

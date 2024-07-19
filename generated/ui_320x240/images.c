@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[48] = {
+const ext_img_desc_t images[49] = {
     { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
     { "settings_button_image", &img_settings_button_image },
     { "map_button_image", &img_map_button_image },
@@ -27,7 +27,7 @@ const ext_img_desc_t images[48] = {
     { "battery_full_image", &img_battery_full_image },
     { "battery_mid_image", &img_battery_mid_image },
     { "battery_low_image", &img_battery_low_image },
-    { "battery_empty_image", &img_battery_empty_image },
+    { "battery_empty_warn_image", &img_battery_empty_warn_image },
     { "battery_slash_image", &img_battery_slash_image },
     { "battery_bolt_image", &img_battery_bolt_image },
     { "home_wlan_off_image", &img_home_wlan_off_image },
@@ -49,4 +49,5 @@ const ext_img_desc_t images[48] = {
     { "home_ethernet_button_image", &img_home_ethernet_button_image },
     { "top_trace_route_image", &img_top_trace_route_image },
     { "top_node_detector_image", &img_top_node_detector_image },
+    { "battery_empty_image", &img_battery_empty_image },
 };

@@ -325,7 +325,7 @@ typedef struct _objects_t {
     lv_obj_t *tab_page_basic_settings;
     lv_obj_t *tab_page_filter;
     lv_obj_t *tab_page_highlight;
-    lv_obj_t *tab_page_meshwork;
+    lv_obj_t *tab_page_tools;
     lv_obj_t *telemetry1_label;
     lv_obj_t *telemetry2_label;
     lv_obj_t *top_advanced_settings_image;

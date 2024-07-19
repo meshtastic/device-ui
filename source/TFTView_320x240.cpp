@@ -2086,11 +2086,14 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
                 } else if (bat_level > 35 && voltage > 3.6f) {
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_mid_image, LV_PART_MAIN | LV_STATE_DEFAULT);
-                } else if (bat_level > 15 && voltage > 3.4f) {
+                } else if (bat_level > 15 && voltage > 3.5f) {
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_low_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                } else if (bat_level > 10 && voltage > 3.4f) {
+                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_image,
+                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
                 } else {
                     if (bat_level > 5 && voltage > 3.3f) {
-                        lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_image,
+                        lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_warn_image,
                                                       LV_PART_MAIN | LV_STATE_DEFAULT);
                     } else {
                         lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_slash_image,
