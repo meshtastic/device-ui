@@ -377,7 +377,16 @@ void ViewController::setConfigRequested(bool required)
 void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg)
 {
     assert(strlen(textmsg) <= (size_t)DATA_PAYLOAD_LEN);
-    send(to, ch, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, (const uint8_t *)textmsg, strlen(textmsg));
+    send(to, ch, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, (const uint8_t *)textmsg, strlen(textmsg));
+}
+
+void ViewController::traceRoute(uint32_t to, uint8_t ch, uint32_t requestId)
+{
+    meshtastic_Routing request{.route_request{.route_count = 1, .route{myNodeNum}}};
+
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_Routing_msg, &request);
+    send(to, ch, requestId, meshtastic_PortNum_TRACEROUTE_APP, true, payload.bytes, payload.size);
 }
 
 /**
@@ -402,10 +411,11 @@ bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtas
 /**
  * generic send method for sending meshpackets with encoded payload
  */
-bool ViewController::send(uint32_t to, uint8_t ch, uint32_t requestId, meshtastic_PortNum portnum, const unsigned char bytes[237],
-                          size_t len)
+bool ViewController::send(uint32_t to, uint8_t ch, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
+                          const unsigned char bytes[237], size_t len)
 {
-    ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, portnum=%u, len=%u\n", to, to, (unsigned int)ch, portnum, len);
+    ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, id=0x%08x, portnum=%u, len=%u\n", to, to, (unsigned int)ch,
+               requestId, portnum, len);
     // send requires movable lvalue, i.e. a temporary object
     return client->send(meshtastic_ToRadio{
         .which_payload_variant = meshtastic_ToRadio_packet_tag,
@@ -446,7 +456,7 @@ bool ViewController::send(uint32_t to, uint8_t ch, uint32_t requestId, meshtasti
                                    bytes[216], bytes[217], bytes[218], bytes[219], bytes[220], bytes[221], bytes[222], bytes[223],
                                    bytes[224], bytes[225], bytes[226], bytes[227], bytes[228], bytes[229], bytes[230], bytes[231],
                                    bytes[232], bytes[233], bytes[234], bytes[235], bytes[236]}},
-                .want_response = false}, // FIXME: traceRoute, requestPosition, remote config: true
+                .want_response = wantRsp}, // FIXME: traceRoute, requestPosition, remote config: true
             .id = requestId,
             .hop_limit = 3, // FIXME: use value from setting
             .want_ack = (to != 0)}});
@@ -776,7 +786,18 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
         }
         break;
     }
-    case meshtastic_PortNum_ROUTING_APP:
+    case meshtastic_PortNum_TRACEROUTE_APP: {
+        ILOG_DEBUG("PortNum_TRACEROUTE_APP\n");
+        meshtastic_RouteDiscovery route;
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_RouteDiscovery_msg, &route)) {
+            view->handleResponse(p.from, p.decoded.request_id, route);
+        } else {
+            ILOG_ERROR("Error decoding protobuf meshtastic_RouteDiscovery!\n");
+            return false;
+        }
+        break;
+    }
+    case meshtastic_PortNum_ROUTING_APP: {
         meshtastic_Routing routing;
         ILOG_DEBUG("PortNum_ROUTING_APP: id:%08x, from:%08x, to:%08x, dest:%08x, source:%08x, requestId:%08x, replyId:%08x\n",
                    p.id, p.from, p.to, p.decoded.dest, p.decoded.source, p.decoded.request_id, p.decoded.reply_id);
@@ -799,6 +820,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             return false;
         }
         break;
+    }
     case meshtastic_PortNum_ADMIN_APP: {
         meshtastic_AdminMessage admin;
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_AdminMessage_msg, &admin)) {

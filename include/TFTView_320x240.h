@@ -63,6 +63,7 @@ class TFTView_320x240 : public MeshtasticView
 
     void packetReceived(const meshtastic_MeshPacket &p) override;
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) override;
+    void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) override;
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;
@@ -179,6 +180,9 @@ class TFTView_320x240 : public MeshtasticView
     void setInputGroup(void);
     void setInputButtonLabel(void);
 
+    void handleTraceRouteResponse(const meshtastic_Routing &routing);
+    void addNodeToTraceRoute(uint32_t nodeNum);
+
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
     static void ui_event_NodesButton(lv_event_t *e);
@@ -228,6 +232,13 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 
+    static void ui_event_mesh_detector(lv_event_t *e);
+    static void ui_event_signal_scanner(lv_event_t *e);
+    static void ui_event_trace_route(lv_event_t *e);
+    static void ui_event_neighbors(lv_event_t *e);
+    static void ui_event_trace_route_to(lv_event_t *e);
+    static void ui_event_trace_route_start(lv_event_t *e);
+
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);
 
@@ -252,6 +263,9 @@ class TFTView_320x240 : public MeshtasticView
     bool hasPosition;                                // if our position is known
     int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
     void *topNodeLL;                                 // pointer to topmost button in group ll
+    static lv_obj_t *currentPanel;                   // current selected node panel
+    static lv_obj_t *spinnerButton;                  // start button animation
+    static time_t startTime;                         // time when start button was pressed
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
     meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db

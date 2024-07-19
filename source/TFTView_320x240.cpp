@@ -41,6 +41,9 @@ enum NodePanelIdx {
 };
 
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
+lv_obj_t *TFTView_320x240::currentPanel = nullptr;
+lv_obj_t *TFTView_320x240::spinnerButton = nullptr;
+time_t TFTView_320x240::startTime = 0;
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -204,8 +207,6 @@ void TFTView_320x240::apply_hotfix(void)
 
     // lvgl v9 tabview buttons are not btn-matrix anymore but array of buttons
     // see https://forum.lvgl.io/t/style-a-tabview-widget-in-v9-0-0/14747
-    lv_obj_t *tab_buttons = lv_tabview_get_tab_bar(objects.node_options_tab_view);
-
     static lv_style_t style_btn_default;
     lv_style_init(&style_btn_default);
     lv_style_set_text_color(&style_btn_default, lv_color_hex(0xA0A0A0));
@@ -236,13 +237,20 @@ void TFTView_320x240::apply_hotfix(void)
     lv_style_set_border_width(&style_btn_pressed, 3);
     lv_style_set_border_side(&style_btn_pressed, LV_BORDER_SIDE_BOTTOM);
 
-    for (int i = 0; i < tab_buttons->spec_attr->child_cnt; i++) {
-        if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
-            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_default, LV_STATE_DEFAULT);
-            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_active, LV_STATE_CHECKED);
-            lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_pressed, LV_STATE_PRESSED);
+    auto applyStyle = [](lv_obj_t *tab_buttons) {
+        for (int i = 0; i < tab_buttons->spec_attr->child_cnt; i++) {
+            if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
+                lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_default, LV_STATE_DEFAULT);
+                lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_active, LV_STATE_CHECKED);
+                lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_pressed, LV_STATE_PRESSED);
+            }
         }
-    }
+    };
+
+    lv_obj_t *tab_buttons = lv_tabview_get_tab_bar(objects.node_options_tab_view);
+    applyStyle(tab_buttons);
+    tab_buttons = lv_tabview_get_tab_bar(objects.controller_tab_view);
+    applyStyle(tab_buttons);
 }
 
 void TFTView_320x240::ui_events_init(void)
@@ -370,6 +378,14 @@ void TFTView_320x240::ui_events_init(void)
 
     // screen
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
+
+    // meshwork buttons
+    lv_obj_add_event_cb(objects.meshwork_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.meshwork_signal_scanner_button, ui_event_signal_scanner, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.meshwork_trace_route_button, ui_event_trace_route, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.meshwork_neighbors_button, ui_event_neighbors, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.trace_route_to_button, ui_event_trace_route_to, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.trace_route_start_button, ui_event_trace_route_start, LV_EVENT_CLICKED, 0);
 }
 
 #if 0 // defined above as lambda function for tests
@@ -411,7 +427,6 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
         uint32_t nodeNum = (unsigned long)e->user_data;
         if (!nodeNum) // event-handler for own node has value 0 in user_data
             nodeNum = THIS->ownNode;
-        static lv_obj_t *currentPanel = nullptr;
         lv_obj_t *panel = THIS->nodes[nodeNum];
         if (currentPanel) {
             // create animation to shrink other panel
@@ -488,7 +503,7 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     static bool advancedMode = false;
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        THIS->ui_set_active(objects.settings_button, objects.basic_settings_panel, objects.top_settings_panel);
+        THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
     } else if (event_code == LV_EVENT_LONG_PRESSED && !advancedMode && THIS->activeSettings == eNone) {
         advancedMode = !advancedMode;
     } else if (event_code == LV_EVENT_LONG_PRESSED && advancedMode && THIS->activeSettings == eNone) {
@@ -731,7 +746,7 @@ void TFTView_320x240::ui_event_user_button(lv_event_t *e)
         lv_textarea_set_text(objects.settings_user_long_textarea, THIS->db.long_name);
         lv_obj_clear_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_user_short_textarea);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eUsername;
     }
 }
@@ -743,7 +758,7 @@ void TFTView_320x240::ui_event_role_button(lv_event_t *e)
         lv_dropdown_set_selected(objects.settings_device_role_dropdown, THIS->db.config.device.role);
         lv_obj_clear_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_device_role_dropdown);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eDeviceRole;
     }
 }
@@ -755,7 +770,7 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
         lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
         lv_obj_clear_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_region_dropdown);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eRegion;
     }
 }
@@ -779,7 +794,7 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
 
         lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_modem_preset_dropdown);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
     }
 }
 
@@ -790,7 +805,7 @@ void TFTView_320x240::ui_event_language_button(lv_event_t *e)
         // TODO: set actual value for dropdown
         lv_obj_clear_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_language_dropdown);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eLanguage;
     }
 }
@@ -818,7 +833,7 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
         }
         lv_obj_clear_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_channel0_button);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eChannel;
 
         // create scratch channels to store temporary changes until cancelled or applied
@@ -841,7 +856,7 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
         objects.brightness_slider->user_data = (void *)brightness; // store old value
         lv_obj_clear_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.brightness_slider);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eScreenBrightness;
     }
 }
@@ -862,7 +877,7 @@ void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
         lv_obj_clear_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
         lv_slider_set_value(objects.screen_timeout_slider, timeout, LV_ANIM_OFF);
         lv_group_focus_obj(objects.screen_timeout_slider);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eScreenTimeout;
     }
 }
@@ -896,7 +911,7 @@ void TFTView_320x240::ui_event_input_button(lv_event_t *e)
 
         lv_obj_clear_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_mouse_input_dropdown);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eInputControl;
     }
 }
@@ -922,7 +937,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
         lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.ringtoneId);
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_alert_buzzer_switch);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eAlertBuzzer;
     }
 }
@@ -934,7 +949,7 @@ void TFTView_320x240::ui_event_reset_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         lv_obj_clear_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_reset_dropdown);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eReset;
     }
 }
@@ -947,7 +962,7 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
         lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_FADE_IN, 1000, 0, false);
         lv_obj_clear_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.cancel_reboot_button);
-        THIS->disablePanel(objects.basic_settings_panel);
+        THIS->disablePanel(objects.controller_panel);
         THIS->activeSettings = eReboot;
     }
 }
@@ -978,7 +993,7 @@ void TFTView_320x240::ui_event_device_cancel_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
-        THIS->enablePanel(objects.basic_settings_panel);
+        THIS->enablePanel(objects.controller_panel);
         lv_group_focus_obj(objects.basic_settings_reboot_button);
         THIS->activeSettings = eNone;
     }
@@ -1067,6 +1082,96 @@ void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
     lv_label_set_text(objects.basic_settings_calibration_label, buf);
     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }
+
+void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e) {}
+
+void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e) {}
+
+void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
+{
+    // show still old route setup while processing is ongoing
+    time_t now;
+    time(&now);
+    if (spinnerButton && (now - startTime) < 60) {
+        THIS->ui_set_active(objects.settings_button, objects.trace_route_panel, objects.top_trace_route_panel);
+        return;
+    }
+    if (spinnerButton) {
+        lv_obj_delete(spinnerButton);
+        spinnerButton = nullptr;
+    }
+    // remove old route except first button and spinner panel
+    uint16_t children = lv_obj_get_child_cnt(objects.trace_route_panel) - 1;
+    while (children > 1) {
+        if (objects.trace_route_panel->spec_attr->children[children]->class_p == &lv_button_class) {
+            lv_obj_delete(objects.trace_route_panel->spec_attr->children[children]);
+            children--;
+        }
+    }
+    lv_obj_clear_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
+    if (currentPanel) {
+        // FIXME: remove for loop
+        for (auto &it : THIS->nodes) {
+            if (it.first != THIS->ownNode && it.second == currentPanel) {
+                THIS->setNodeImage(it.first,
+                                   (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
+                                   objects.trace_route_to_image);
+                break;
+            }
+        }
+        const char *lbl = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbl_idx));
+        lv_label_set_text(objects.trace_route_to_button_label, lbl);
+        lv_obj_clear_state(objects.trace_route_start_button, LV_STATE_DISABLED);
+    } else {
+        lv_label_set_text(objects.trace_route_to_button_label, "choose target node");
+        lv_obj_add_state(objects.trace_route_start_button, LV_STATE_DISABLED);
+    }
+    lv_label_set_text(objects.trace_route_start_label, "Start");
+    THIS->ui_set_active(objects.settings_button, objects.trace_route_panel, objects.top_trace_route_panel);
+}
+
+void TFTView_320x240::ui_event_trace_route_to(lv_event_t *e)
+{
+    THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+}
+
+void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
+{
+    if (!spinnerButton) {
+        if (currentPanel) {
+            time(&startTime);
+            lv_label_set_text(objects.trace_route_start_label, "");
+            lv_obj_t *obj = lv_spinner_create(objects.start_button_panel);
+            spinnerButton = obj;
+            lv_spinner_set_anim_params(obj, 2000, 100);
+            lv_obj_set_pos(obj, 0, 0);
+            lv_obj_set_size(obj, 68, 68);
+            lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_arc_width(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_arc_color(obj, lv_color_hex(0xff404040), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_arc_width(obj, 4, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+            lv_obj_set_style_arc_color(obj, lv_color_hex(0xff67ea94), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+
+            // retrieve nodeNum from current node
+            // FIXME: remove for loop
+            for (auto &it : THIS->nodes) {
+                if (it.second == currentPanel) {
+                    uint32_t requestId;
+                    uint32_t to = it.first;
+                    uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
+                    requestId = THIS->requests.addRequest(to, ResponseHandler::TraceRouteRequest);
+                    THIS->controller->traceRoute(to, ch, requestId);
+                    break;
+                }
+            }
+        }
+    } else {
+        // restart
+        ui_event_trace_route(e);
+    }
+}
+
+void TFTView_320x240::ui_event_neighbors(lv_event_t *e) {}
 
 /**
  * @brief User widget OK button handling
@@ -1341,7 +1446,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             ILOG_ERROR("Unhandled ok event\n");
             break;
         }
-        THIS->enablePanel(objects.basic_settings_panel);
+        THIS->enablePanel(objects.controller_panel);
         THIS->activeSettings = eNone;
     }
 }
@@ -1427,7 +1532,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             break;
         }
 
-        THIS->enablePanel(objects.basic_settings_panel);
+        THIS->enablePanel(objects.controller_panel);
         THIS->activeSettings = eNone;
     }
 }
@@ -1525,11 +1630,11 @@ void TFTView_320x240::handleAddMessage(char *msg)
     uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
-        requestId = requests.addRequest(ch);
+        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
-        requestId = requests.addRequest(to);
+        requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest);
     }
 
     controller->sendTextMessage(to, ch, requestId, msg);
@@ -1592,13 +1697,13 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 {
     // lv_obj nodesPanel children  |  user data
     // ==============================================
-    // [0]: img                    | role / viaMqtt
+    // [0]: img                    | role
     // [1]: btn                    | ll group
     // [2]: lbl user long          | strlen(userLong)
     // [3]: lbl user short         | userShort (4 chars)
     // [4]: lbl battery            |
     // [5]: lbl lastHeard          | lastHeard / curtime
-    // [6]: lbl signal (or hops)   |
+    // [6]: lbl signal (or hops)   | viaMqtt
     // [7]: lbl position 1         | lat
     // [8]: lbl position 2         | lon
     // [9]: lbl telemetry 1        |
@@ -1633,7 +1738,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
-    img->user_data = (void *)viaMqtt; // used for filtering (applyNodesFilter)
+    img->user_data = (void *)role;
     // NodeButton
     lv_obj_t *nodeButton = lv_btn_create(p);
     lv_obj_set_pos(nodeButton, 0, 0);
@@ -1731,7 +1836,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_text_color(ui_SignalLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_SignalLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_SignalLabel, &ui_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
-
+    ui_SignalLabel->user_data = (void *)viaMqtt; // used for filtering (applyNodesFilter)
     // PositionLabel
     lv_obj_t *ui_PositionLabel = lv_label_create(p);
     lv_obj_set_pos(ui_PositionLabel, -5, 36);
@@ -2170,42 +2275,139 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
 
 void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const meshtastic_Routing &routing)
 {
-    uint32_t nodeNum;
+    ResponseHandler::RequestType type;
     bool ack = false;
     if (from == ownNode) {
-        nodeNum = requests.findRequest(id);
+        type = requests.findRequest(id);
     } else {
-        nodeNum = requests.removeRequest(id);
+        type = requests.removeRequest(id);
         ack = true;
     }
 
-    if (nodeNum == UINT32_MAX) {
+    if (type == ResponseHandler::noRequest) {
         ILOG_WARN("request id 0x%08x not valid (anymore)\n", id);
+    } else {
+        ILOG_DEBUG("handleResponse request id 0x%08x\n", id);
     }
     switch (routing.which_variant) {
     case meshtastic_Routing_error_reason_tag: {
         if (routing.error_reason == meshtastic_Routing_Error_NONE) {
-            responseReceived(nodeNum, id, ack);
+            if (type == ResponseHandler::TraceRouteRequest) {
+                handleTraceRouteResponse(routing);
+            } else if (type == ResponseHandler::TextMessageRequest) {
+                responseReceived(from, id, ack);
+            }
         } else if (routing.error_reason == meshtastic_Routing_Error_MAX_RETRANSMIT) {
-            requests.removeRequest(id);
+            ResponseHandler::RequestType type = requests.removeRequest(id);
+            if (type == ResponseHandler::TraceRouteRequest) {
+                handleTraceRouteResponse(routing);
+            }
+
         } else {
             ILOG_DEBUG("got Routing_Error %d\n", routing.error_reason);
         }
         break;
     }
     case meshtastic_Routing_route_request_tag: {
-        ILOG_DEBUG("got meshtastic_Routing_route_request_tag\n");
-
+        ILOG_ERROR("got meshtastic_Routing_route_request_tag\n");
         break;
     }
     case meshtastic_Routing_route_reply_tag: {
         ILOG_DEBUG("got meshtastic_Routing_route_reply_tag\n");
-
+        handleResponse(from, id, routing.route_reply);
         break;
     }
     default:
         ILOG_ERROR("unhandled meshtastic_Routing tag\n");
         break;
+    }
+}
+
+void TFTView_320x240::handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route)
+{
+    ILOG_DEBUG("handleResponse: trace route has %d hops\n", route.route_count);
+    lv_obj_add_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
+
+    if (id) {
+        requests.removeRequest(id);
+    }
+
+    for (int i = route.route_count; i > 0; i--) {
+        addNodeToTraceRoute(route.route[i - 1]);
+    }
+
+    // route contains only intermediate nodes, so add our node
+    addNodeToTraceRoute(ownNode);
+}
+
+void TFTView_320x240::handleTraceRouteResponse(const meshtastic_Routing &routing)
+{
+    // we get here only in case of an error
+    ILOG_DEBUG("handleTraceRouteResponse: route has %d hops\n", routing.route_reply.route_count);
+    if (routing.error_reason != meshtastic_Routing_Error_NONE) {
+        lv_label_set_text(objects.trace_route_start_label, "Start");
+        if (spinnerButton)
+            lv_obj_delete(spinnerButton);
+        spinnerButton = nullptr;
+    }
+}
+
+void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum)
+{
+    // check if node exists, and get its panel
+    lv_obj_t *nodePanel = nullptr;
+    auto it = nodes.find(nodeNum);
+    if (it != nodes.end()) {
+        nodePanel = it->second;
+    }
+    lv_obj_t *btn = lv_btn_create(objects.trace_route_panel);
+    objects.trace_route_to_button = btn;
+    lv_obj_set_pos(btn, 0, 0);
+    lv_obj_set_size(btn, LV_PCT(100), 36);
+    lv_obj_set_style_align(btn, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(btn, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(btn, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_ofs_y(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(btn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(btn, lv_color_hex(0xff808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    {
+        {
+            lv_obj_t *img = lv_img_create(btn);
+            if (nodePanel) {
+                setNodeImage(nodeNum, (MeshtasticView::eRole)(unsigned long)nodePanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
+                             img);
+            } else {
+                setNodeImage(0, eRole::unknown, false, img);
+            }
+            lv_obj_set_pos(img, -5, -6);
+            lv_obj_set_size(img, 32, 32);
+            lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_image_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_align(img, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_radius(img, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        {
+            // TraceRouteToButtonLabel
+            lv_obj_t *label = lv_label_create(btn);
+            lv_obj_set_pos(label, 40, 0);
+            lv_obj_set_size(label, LV_PCT(80), LV_SIZE_CONTENT);
+            lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
+            if (nodePanel) {
+                lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbl_idx)));
+            } else {
+                char buf[16];
+                if (nodeNum != UINT32_MAX) {
+                    lv_snprintf(buf, 16, "!%08x", nodeNum);
+                    lv_label_set_text(label, buf);
+                } else
+                    lv_label_set_text(label, "unknown");
+            }
+            lv_obj_set_style_align(label, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
     }
 }
 
@@ -2234,7 +2436,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
                 hide = true;
         }
         if (lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED)) {
-            bool viaMqtt = (unsigned long)panel->LV_OBJ_IDX(node_img_idx)->user_data;
+            bool viaMqtt = (unsigned long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
             if (viaMqtt)
                 hide = true;
         }
@@ -2994,7 +3196,7 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
         }
     } else if (panel == objects.map_panel) {
 
-    } else if (panel == objects.basic_settings_panel) {
+    } else if (panel == objects.controller_panel) {
         lv_group_focus_obj(objects.basic_settings_user_button);
     } else {
         for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
