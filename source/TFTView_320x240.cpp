@@ -251,6 +251,8 @@ void TFTView_320x240::apply_hotfix(void)
     applyStyle(tab_buttons);
     tab_buttons = lv_tabview_get_tab_bar(objects.controller_tab_view);
     applyStyle(tab_buttons);
+    tab_buttons = lv_tabview_get_tab_bar(ui_SettingsTabView);
+    applyStyle(tab_buttons);
 }
 
 void TFTView_320x240::ui_events_init(void)
