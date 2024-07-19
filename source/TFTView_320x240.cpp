@@ -1143,7 +1143,7 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
             lv_label_set_text(objects.trace_route_start_label, "");
             lv_obj_t *obj = lv_spinner_create(objects.start_button_panel);
             spinnerButton = obj;
-            lv_spinner_set_anim_params(obj, 2000, 100);
+            lv_spinner_set_anim_params(obj, 2000, 300);
             lv_obj_set_pos(obj, 0, 0);
             lv_obj_set_size(obj, 68, 68);
             lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2386,7 +2386,7 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum)
             } else {
                 setNodeImage(0, eRole::unknown, false, img);
             }
-            lv_obj_set_pos(img, -5, -6);
+            lv_obj_set_pos(img, -5, -7);
             lv_obj_set_size(img, 32, 32);
             lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
