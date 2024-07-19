@@ -2078,22 +2078,28 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                 lv_label_set_text(objects.battery_percentage_label, buf);
                 lv_opa_t recolor = 0;
                 uint32_t txtColor = 0xE0E0E0;
-                if (bat_level > 100 && voltage > 4.3) {
-                    lv_img_set_src(objects.battery_image, &img_battery_bolt_image);
+                if (bat_level > 100 && voltage > 4.3f) {
+                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image,
+                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
                 } else if (bat_level > 80) {
-                    lv_img_set_src(objects.battery_image, &img_battery_full_image);
-                } else if (bat_level > 30) {
-                    lv_img_set_src(objects.battery_image, &img_battery_mid_image);
-                } else if (bat_level > 5) {
-                    lv_img_set_src(objects.battery_image, &img_battery_low_image);
+                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_full_image,
+                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                } else if (bat_level > 35 && voltage > 3.6f) {
+                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_mid_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                } else if (bat_level > 15 && voltage > 3.4f) {
+                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_low_image, LV_PART_MAIN | LV_STATE_DEFAULT);
                 } else {
-                    if (bat_level > 1) {
-                        lv_img_set_src(objects.battery_image, &img_battery_empty_image);
+                    if (bat_level > 5 && voltage > 3.3f) {
+                        lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_image,
+                                                      LV_PART_MAIN | LV_STATE_DEFAULT);
                     } else {
-                        lv_img_set_src(objects.battery_image, &img_battery_slash_image);
+                        lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_slash_image,
+                                                      LV_PART_MAIN | LV_STATE_DEFAULT);
+                        recolor = 255;
+                        txtColor = 0xF72b2b;
+                        lv_obj_set_style_img_recolor(objects.battery_image, lv_color_hex(0xFF0000),
+                                                     LV_PART_MAIN | LV_STATE_DEFAULT);
                     }
-                    recolor = 255;
-                    txtColor = 0xF72b2b;
                 }
                 lv_obj_set_style_img_recolor_opa(objects.battery_image, recolor, LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_obj_set_style_text_color(objects.battery_percentage_label, lv_color_hex(txtColor),
