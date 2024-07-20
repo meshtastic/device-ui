@@ -1650,8 +1650,8 @@ void create_screen_main_screen() {
                     lv_obj_set_pos(obj, 13, 0);
                     lv_obj_set_size(obj, 24, 24);
                     lv_obj_set_style_bg_image_src(obj, &img_battery_full_image, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xffff2b2b), LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // BatteryPercentageLabel
