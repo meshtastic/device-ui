@@ -187,6 +187,7 @@ class TFTView_320x240 : public MeshtasticView
     void scanSignal(uint32_t scanNo);
     void handleTraceRouteResponse(const meshtastic_Routing &routing);
     void addNodeToTraceRoute(uint32_t nodeNum);
+    void removeSpinner(void);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);

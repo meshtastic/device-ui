@@ -1176,14 +1176,12 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
     // show still old route setup while processing is ongoing
     time_t now;
     time(&now);
-    if (spinnerButton && (now - startTime) < 60) {
+    if (spinnerButton && (now - startTime) < 30) {
         THIS->ui_set_active(objects.settings_button, objects.trace_route_panel, objects.top_trace_route_panel);
         return;
     }
-    if (spinnerButton) {
-        lv_obj_delete(spinnerButton);
-        spinnerButton = nullptr;
-    }
+    THIS->removeSpinner();
+
     // remove old route except first button and spinner panel
     uint16_t children = lv_obj_get_child_cnt(objects.trace_route_panel) - 1;
     while (children > 1) {
@@ -1252,6 +1250,15 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
     } else {
         // restart
         ui_event_trace_route(e);
+    }
+}
+
+void TFTView_320x240::removeSpinner(void)
+{
+    if (spinnerButton) {
+        lv_obj_delete(spinnerButton);
+        spinnerButton = nullptr;
+        startTime = 0;
     }
 }
 
@@ -2442,8 +2449,7 @@ void TFTView_320x240::scanSignal(uint32_t scanNo)
 {
     if (scans == 1 && spinnerButton) {
         lv_label_set_text(objects.signal_scanner_start_label, "Start");
-        lv_obj_delete(spinnerButton);
-        spinnerButton = nullptr;
+        removeSpinner();
     } else {
         uint32_t requestId;
         uint32_t to = currentNode;
@@ -2512,9 +2518,7 @@ void TFTView_320x240::handleTraceRouteResponse(const meshtastic_Routing &routing
     ILOG_DEBUG("handleTraceRouteResponse: route has %d hops\n", routing.route_reply.route_count);
     if (routing.error_reason != meshtastic_Routing_Error_NONE) {
         lv_label_set_text(objects.trace_route_start_label, "Start");
-        if (spinnerButton)
-            lv_obj_delete(spinnerButton);
-        spinnerButton = nullptr;
+        removeSpinner();
     }
 }
 
@@ -3667,6 +3671,9 @@ void TFTView_320x240::task_handler(void)
         if (scans > 0 && activePanel == objects.signal_scanner_panel) {
             scanSignal(scans);
             scans--;
+        }
+        if (startTime && (curtime - startTime) > 30) {
+            removeSpinner();
         }
     }
     if (curtime - lastrun10 >= 10) { // call every 10s
