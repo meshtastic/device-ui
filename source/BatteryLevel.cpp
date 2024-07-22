@@ -14,6 +14,9 @@ BatteryLevel::BatteryLevel(void)
 
 BatteryLevel::Status BatteryLevel::calcStatus(uint32_t percentage, float voltage)
 {
+    if (voltage == 0.0) {
+        return Plugged;
+    }
     if (percentage >= levels[Charging].percentage && voltage > levels[Charging].voltage) {
         return Charging;
     } else if (percentage >= levels[Full].percentage && voltage > levels[Full].voltage) {
@@ -22,11 +25,9 @@ BatteryLevel::Status BatteryLevel::calcStatus(uint32_t percentage, float voltage
         return Mid;
     } else if (percentage >= levels[Low].percentage && voltage > levels[Low].voltage) {
         return Low;
-    } else if (percentage >= levels[Empty].percentage && voltage > levels[Empty].voltage) {
+    } else if (percentage > levels[Empty].percentage) {
         return Empty;
-    } else if (percentage >= levels[Warn].percentage && voltage > levels[Warn].voltage) {
-        return Warn;
     } else {
-        return Slash;
+        return Warn;
     }
 }

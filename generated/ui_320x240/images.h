@@ -34,7 +34,6 @@ extern const lv_img_dsc_t img_battery_full_image;
 extern const lv_img_dsc_t img_battery_mid_image;
 extern const lv_img_dsc_t img_battery_low_image;
 extern const lv_img_dsc_t img_battery_empty_warn_image;
-extern const lv_img_dsc_t img_battery_slash_image;
 extern const lv_img_dsc_t img_battery_bolt_image;
 extern const lv_img_dsc_t img_home_wlan_off_image;
 extern const lv_img_dsc_t img_home_bluetooth_off_button_image;
@@ -58,6 +57,7 @@ extern const lv_img_dsc_t img_top_node_detector_image;
 extern const lv_img_dsc_t img_battery_empty_image;
 extern const lv_img_dsc_t img_signal_slider_image;
 extern const lv_img_dsc_t img_signal_full_image;
+extern const lv_img_dsc_t img_battery_plug_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T

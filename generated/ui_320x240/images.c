@@ -28,7 +28,6 @@ const ext_img_desc_t images[51] = {
     { "battery_mid_image", &img_battery_mid_image },
     { "battery_low_image", &img_battery_low_image },
     { "battery_empty_warn_image", &img_battery_empty_warn_image },
-    { "battery_slash_image", &img_battery_slash_image },
     { "battery_bolt_image", &img_battery_bolt_image },
     { "home_wlan_off_image", &img_home_wlan_off_image },
     { "home_bluetooth_off_button_image", &img_home_bluetooth_off_button_image },
@@ -52,4 +51,5 @@ const ext_img_desc_t images[51] = {
     { "battery_empty_image", &img_battery_empty_image },
     { "signal_slider_image", &img_signal_slider_image },
     { "signal_full_image", &img_signal_full_image },
+    { "battery_plug_image", &img_battery_plug_image },
 };

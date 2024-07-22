@@ -2165,6 +2165,10 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                 BatteryLevel level;
                 BatteryLevel::Status status = level.calcStatus(bat_level, voltage);
                 switch (status) {
+                case BatteryLevel::Plugged:
+                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_plug_image,
+                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                    break;
                 case BatteryLevel::Charging:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image,
                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2186,10 +2190,6 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                 case BatteryLevel::Warn:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_warn_image,
                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
-                    break;
-                default:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_slash_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
                     buf[0] = '\0';
                     recolor = 255;
                     txtColor = 0xF72b2b;
@@ -2197,7 +2197,8 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                 lv_obj_set_style_bg_image_recolor_opa(objects.battery_image, recolor, LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_obj_set_style_text_color(objects.battery_percentage_label, lv_color_hex(txtColor),
                                             LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_label_set_text(objects.battery_percentage_label, buf);
+                if (status != BatteryLevel::Plugged && status != BatteryLevel::Warn)
+                    lv_label_set_text(objects.battery_percentage_label, buf);
             }
         }
 

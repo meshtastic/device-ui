@@ -9,7 +9,7 @@
 class BatteryLevel
 {
   public:
-    enum Status { Charging, Full, Mid, Low, Empty, Warn, Slash };
+    enum Status { Plugged, Charging, Full, Mid, Low, Empty, Warn };
 
     BatteryLevel(void);
     Status calcStatus(uint32_t percentage, float voltage);
