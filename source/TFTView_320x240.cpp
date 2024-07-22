@@ -44,6 +44,7 @@ enum NodePanelIdx {
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
 lv_obj_t *TFTView_320x240::currentPanel = nullptr;
 lv_obj_t *TFTView_320x240::spinnerButton = nullptr;
+uint32_t TFTView_320x240::currentNode = 0;
 time_t TFTView_320x240::startTime = 0;
 
 TFTView_320x240 *TFTView_320x240::instance(void)
@@ -64,7 +65,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), actTime(0), uptime(0),
-      hasPosition(false), topNodeLL(nullptr)
+      hasPosition(false), topNodeLL(nullptr), scans(0)
 {
     filter.active = false;
     highlight.active = false;
@@ -89,6 +90,7 @@ void TFTView_320x240::init(IClientBase *client)
     time(&lastrun60);
     time(&lastrun10);
     lastrun10 += 10;
+    time(&lastrun5);
     time(&lastrun1);
 
     activeMsgContainer = objects.messages_container;
@@ -122,6 +124,22 @@ void TFTView_320x240::init(IClientBase *client)
     db.ringtoneId = 0;
 #else
     lv_obj_add_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
+#endif
+
+#if defined(USE_SX127x)
+    lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-40\n-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120\n-130\n-140");
+    lv_slider_set_range(objects.rssi_slider, -145, -40);
+    lv_label_set_text(objects.signal_scanner_snr_scale_label,
+                      "12.0\n10.0\n8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0\n-18.0");
+    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_slider_set_range(objects.snr_slider, -20, 13);
+#else
+    lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-20\n-30\n-40\n-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120");
+    lv_slider_set_range(objects.rssi_slider, -125, -25);
+    lv_label_set_text(objects.signal_scanner_snr_scale_label,
+                      "8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0\n-18.0");
+    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_slider_set_range(objects.snr_slider, -20, 9);
 #endif
 
     setInputButtonLabel();
@@ -387,6 +405,8 @@ void TFTView_320x240::ui_events_init(void)
     // meshwork buttons
     lv_obj_add_event_cb(objects.meshwork_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.meshwork_signal_scanner_button, ui_event_signal_scanner, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.signal_scanner_node_button, ui_event_signal_scanner_node, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.signal_scanner_start_button, ui_event_signal_scanner_start, LV_EVENT_ALL, 0);
     lv_obj_add_event_cb(objects.meshwork_trace_route_button, ui_event_trace_route, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.meshwork_neighbors_button, ui_event_neighbors, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.trace_route_to_button, ui_event_trace_route_to, LV_EVENT_CLICKED, 0);
@@ -457,8 +477,11 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
             lv_anim_start(&a);
             currentPanel = panel;
-        } else
+            currentNode = nodeNum;
+        } else {
             currentPanel = nullptr;
+            currentNode = 0;
+        }
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         //  set color and text of clicked node
         uint32_t nodeNum = (unsigned long)e->user_data;
@@ -1090,7 +1113,63 @@ void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
 
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e) {}
 
-void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e) {}
+void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
+{
+    if (currentPanel) {
+        THIS->setNodeImage(currentNode, (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data,
+                           false, objects.signal_scanner_node_image);
+        const char *lbs = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbs_idx));
+        lv_label_set_text(objects.signal_scanner_node_button_label, lbs);
+        lv_obj_clear_state(objects.signal_scanner_start_button, LV_STATE_DISABLED);
+    } else {
+        lv_label_set_text(objects.signal_scanner_node_button_label, "choose\nnode");
+        lv_obj_add_state(objects.signal_scanner_start_button, LV_STATE_DISABLED);
+    }
+    lv_label_set_text(objects.signal_scanner_start_label, "Start");
+    THIS->ui_set_active(objects.settings_button, objects.signal_scanner_panel, objects.top_signal_scanner_panel);
+}
+
+void TFTView_320x240::ui_event_signal_scanner_node(lv_event_t *e)
+{
+    THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+}
+
+void TFTView_320x240::ui_event_signal_scanner_start(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (currentNode) {
+        static bool ignoreClicked = false;
+        if (event_code == LV_EVENT_CLICKED) {
+            if (ignoreClicked) {
+                ignoreClicked = false;
+                return;
+            }
+            if (spinnerButton) {
+                lv_label_set_text(objects.signal_scanner_start_label, "Start");
+                lv_obj_delete(spinnerButton);
+                spinnerButton = nullptr;
+                THIS->scans = 0;
+            } else {
+                THIS->scanSignal(0);
+            }
+        } else if (event_code == LV_EVENT_LONG_PRESSED) {
+            ignoreClicked = true;
+            lv_obj_t *obj = lv_spinner_create(objects.signal_scanner_panel);
+            spinnerButton = obj;
+            spinnerButton->user_data = (void *)objects.signal_scanner_panel;
+            lv_spinner_set_anim_params(obj, 5000, 300);
+            lv_obj_set_pos(obj, 0, -50);
+            lv_obj_set_size(obj, 68, 68);
+            lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_arc_width(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_arc_color(obj, lv_color_hex(0xff404040), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_arc_width(obj, 4, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+            lv_obj_set_style_arc_color(obj, lv_color_hex(0xff67ea94), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+            lv_label_set_text(objects.signal_scanner_start_label, "30s");
+            THIS->scans = 6 + 1;
+        }
+    }
+}
 
 void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
 {
@@ -2294,7 +2373,11 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
     }
 }
 
-void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const meshtastic_Routing &routing)
+/**
+ * handle response from routing
+ */
+void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const meshtastic_Routing &routing,
+                                     const meshtastic_MeshPacket &p)
 {
     ResponseHandler::RequestType type;
     bool ack = false;
@@ -2316,14 +2399,21 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             } else if (type == ResponseHandler::TextMessageRequest) {
-                responseReceived(from, id, ack);
+                handleTextMessageResponse(from, id, ack);
+            } else if (type == ResponseHandler::PositionRequest) {
+                // make sure it was really a neighbor node
+                if (p.hop_limit == p.hop_start)
+                    handlePositionResponse(from, id, p.rx_rssi, p.rx_snr);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_MAX_RETRANSMIT) {
             ResponseHandler::RequestType type = requests.removeRequest(id);
             if (type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             }
-
+        } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
+            if (type == ResponseHandler::PositionRequest) {
+                handlePositionResponse(from, id, p.rx_rssi, p.rx_snr);
+            }
         } else {
             ILOG_DEBUG("got Routing_Error %d\n", routing.error_reason);
         }
@@ -2344,6 +2434,60 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
     }
 }
 
+/**
+ * Signal scanner
+ */
+void TFTView_320x240::scanSignal(uint32_t scanNo)
+{
+    if (scans == 1 && spinnerButton) {
+        lv_label_set_text(objects.signal_scanner_start_label, "Start");
+        lv_obj_delete(spinnerButton);
+        spinnerButton = nullptr;
+    } else {
+        uint32_t requestId;
+        uint32_t to = currentNode;
+        uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
+        requestId = requests.addRequest(to, ResponseHandler::PositionRequest);
+        controller->requestPosition(to, ch, requestId);
+        objects.signal_scanner_panel->user_data = (void *)requestId;
+    }
+}
+
+void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr)
+{
+    ILOG_DEBUG("handlePositionResponse(rssi=%d, snr=%0.1f)\n", rx_rssi, rx_snr);
+    if (request_id == (unsigned long)objects.signal_scanner_panel->user_data) {
+        requests.removeRequest(request_id);
+
+        if (from == currentNode) {
+            ILOG_DEBUG("handlePositionResponse: got a reply to our request 0x%08x\n", request_id);
+            char buf[20];
+            sprintf(buf, "SNR\n%.1f", rx_snr);
+            lv_label_set_text(objects.signal_scanner_snr_label, buf);
+            sprintf(buf, "RSSI\n%d", rx_rssi);
+            lv_label_set_text(objects.signal_scanner_rssi_label, buf);
+            lv_slider_set_value(objects.snr_slider, rx_snr, LV_ANIM_ON);
+            lv_slider_set_value(objects.rssi_slider, rx_rssi, LV_ANIM_ON);
+
+#if defined(USE_SX127x)
+            int p_snr = ((std::max(rx_snr, -18.0f) + 18.0f) / 30.0f) * 100.0f; // range -18..12
+            int p_rssi = ((std::max(rx_rssi, -140) + 140) * 100) / 100;        // range -140..-40
+#else
+            int p_snr = ((std::max(rx_snr, -18.0f) + 18.0f) / 26.0f) * 100.0f; // range -18..8
+            int p_rssi = ((std::max(rx_rssi, -125) + 125) * 100) / 100;        // range -125..-25
+#endif
+            ILOG_DEBUG("p_snr=%d, p_rssi=%d :: %d%%\n", p_snr, p_rssi, std::min((p_snr + p_rssi * 2) / 3, 100));
+            sprintf(buf, "%d%%", std::min((p_snr + p_rssi * 2) / 3, 100));
+            lv_label_set_text(objects.signal_scanner_start_label, buf);
+        }
+    } else {
+        ILOG_ERROR("handlePositionResponse: got a reply with not matching request 0x%08x\n", request_id);
+    }
+}
+
+/**
+ * Trace Route
+ */
 void TFTView_320x240::handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route)
 {
     ILOG_DEBUG("handleResponse: trace route has %d hops\n", route.route_count);
@@ -2575,7 +2719,7 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
  * @param id
  * @param ack
  */
-void TFTView_320x240::responseReceived(uint32_t channelOrNode, const uint32_t id, bool ack)
+void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack)
 {
     lv_obj_t *msgContainer;
     if (channelOrNode < c_max_channels) {
@@ -2794,6 +2938,13 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
         }
     }
     db.ringtoneId = rtIndex;
+}
+
+void TFTView_320x240::updateTime(uint32_t time)
+{
+    if (time > 1000000) {
+        actTime = time;
+    }
 }
 
 /**
@@ -3509,6 +3660,13 @@ void TFTView_320x240::task_handler(void)
         lastrun1 = curtime;
         actTime++;
         updateTime();
+    }
+    if (curtime - lastrun5 >= 5) { // call every 5s
+        lastrun5 = curtime;
+        if (scans > 0 && activePanel == objects.signal_scanner_panel) {
+            scanSignal(scans);
+            scans--;
+        }
     }
     if (curtime - lastrun10 >= 10) { // call every 10s
         lastrun10 = curtime;

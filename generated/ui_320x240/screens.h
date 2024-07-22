@@ -270,6 +270,7 @@ typedef struct _objects_t {
     lv_obj_t *position2_label;
     lv_obj_t *reboot_button;
     lv_obj_t *reboot_panel;
+    lv_obj_t *rssi_slider;
     lv_obj_t *screen_timeout_slider;
     lv_obj_t *settings_alert_buzzer_panel;
     lv_obj_t *settings_alert_buzzer_switch;
@@ -321,6 +322,17 @@ typedef struct _objects_t {
     lv_obj_t *settings_username_panel;
     lv_obj_t *shutdown_button;
     lv_obj_t *signal_label;
+    lv_obj_t *signal_scanner_node_button;
+    lv_obj_t *signal_scanner_node_button_label;
+    lv_obj_t *signal_scanner_node_image;
+    lv_obj_t *signal_scanner_panel;
+    lv_obj_t *signal_scanner_rssi_label;
+    lv_obj_t *signal_scanner_rssi_scale_label;
+    lv_obj_t *signal_scanner_snr_label;
+    lv_obj_t *signal_scanner_snr_scale_label;
+    lv_obj_t *signal_scanner_start_button;
+    lv_obj_t *signal_scanner_start_label;
+    lv_obj_t *snr_slider;
     lv_obj_t *start_button_panel;
     lv_obj_t *tab_page_basic_settings;
     lv_obj_t *tab_page_filter;
@@ -344,6 +356,9 @@ typedef struct _objects_t {
     lv_obj_t *top_map_image;
     lv_obj_t *top_map_label;
     lv_obj_t *top_map_panel;
+    lv_obj_t *top_mesh_detector_image;
+    lv_obj_t *top_mesh_detector_label;
+    lv_obj_t *top_mesh_detector_panel;
     lv_obj_t *top_messages_node_image;
     lv_obj_t *top_messages_node_label;
     lv_obj_t *top_messages_panel;
@@ -358,6 +373,9 @@ typedef struct _objects_t {
     lv_obj_t *top_nodes_panel;
     lv_obj_t *top_panel;
     lv_obj_t *top_settings_panel;
+    lv_obj_t *top_signal_scanner_image;
+    lv_obj_t *top_signal_scanner_label;
+    lv_obj_t *top_signal_scanner_panel;
     lv_obj_t *top_trace_route_image;
     lv_obj_t *top_trace_route_label;
     lv_obj_t *top_trace_route_panel;

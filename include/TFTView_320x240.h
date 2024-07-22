@@ -61,9 +61,13 @@ class TFTView_320x240 : public MeshtasticView
     void updateFileinfo(const meshtastic_FileInfo &fileinfo) override {}
     void updateRingtone(const char rtttl[231]) override;
 
+    // update internal time
+    void updateTime(uint32_t time) override;
+
     void packetReceived(const meshtastic_MeshPacket &p) override;
-    void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) override;
+    void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing, const meshtastic_MeshPacket &p) override;
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) override;
+    void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr) override;
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;
@@ -140,7 +144,7 @@ class TFTView_320x240 : public MeshtasticView
     // display message alert popup
     virtual void messageAlert(const char *alert, bool show);
     // mark sent message as received
-    virtual void responseReceived(uint32_t channelOrNode, uint32_t id, bool ack);
+    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack);
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, lv_obj_t *img);
     // apply filter and count number of filtered nodes
@@ -180,6 +184,7 @@ class TFTView_320x240 : public MeshtasticView
     void setInputGroup(void);
     void setInputButtonLabel(void);
 
+    void scanSignal(uint32_t scanNo);
     void handleTraceRouteResponse(const meshtastic_Routing &routing);
     void addNodeToTraceRoute(uint32_t nodeNum);
 
@@ -238,6 +243,8 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_neighbors(lv_event_t *e);
     static void ui_event_trace_route_to(lv_event_t *e);
     static void ui_event_trace_route_start(lv_event_t *e);
+    static void ui_event_signal_scanner_node(lv_event_t *e);
+    static void ui_event_signal_scanner_start(lv_event_t *e);
 
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);
@@ -258,11 +265,13 @@ class TFTView_320x240 : public MeshtasticView
     static TFTView_320x240 *gui;                     // singleton pattern
     uint32_t nodesFiltered;                          // no. hidden nodes in node list
     bool processingFilter;                           // indicates that filtering is ongoing
-    time_t lastrun60, lastrun10, lastrun1;           // timers for task loop
+    time_t lastrun60, lastrun10, lastrun5, lastrun1; // timers for task loop
     time_t actTime, uptime;                          // actual time and uptime;
     bool hasPosition;                                // if our position is known
     int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
     void *topNodeLL;                                 // pointer to topmost button in group ll
+    uint32_t scans;                                  // scanner counter
+    static uint32_t currentNode;                     // current selected node
     static lv_obj_t *currentPanel;                   // current selected node panel
     static lv_obj_t *spinnerButton;                  // start button animation
     static time_t startTime;                         // time when start button was pressed

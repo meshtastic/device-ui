@@ -380,6 +380,24 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId
     send(to, ch, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, (const uint8_t *)textmsg, strlen(textmsg));
 }
 
+bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId)
+{
+    ILOG_DEBUG("sending position request\n");
+    meshtastic_Position position{};
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_Position_msg, &position);
+
+    return client->send(
+        meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_packet_tag,
+                           .packet{.to = to,
+                                   .channel = ch,
+                                   .which_payload_variant = meshtastic_MeshPacket_decoded_tag,
+                                   .decoded{.portnum = meshtastic_PortNum_POSITION_APP, .payload{payload}, .want_response = true},
+                                   .id = requestId,
+                                   .hop_limit = 0,
+                                   .want_ack = false}});
+}
+
 void ViewController::traceRoute(uint32_t to, uint8_t ch, uint32_t requestId)
 {
     meshtastic_Routing request{.route_request{.route_count = 1, .route{myNodeNum}}};
@@ -731,9 +749,14 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
     case meshtastic_PortNum_POSITION_APP: {
         meshtastic_Position position;
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Position_msg, &position)) {
-            view->updatePosition(p.from, position.latitude_i, position.longitude_i, position.altitude, position.sats_in_view,
-                                 position.precision_bits);
-            // TODO: updateTime(position.time);
+            // if "to" is our node then this is a reply to a requestPosition request
+            if (p.to == myNodeNum) {
+                view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr);
+            } else {
+                view->updatePosition(p.from, position.latitude_i, position.longitude_i, position.altitude, position.sats_in_view,
+                                     position.precision_bits);
+            }
+            view->updateTime(position.time);
         } else {
             ILOG_ERROR("Error decoding protobuf meshtastic_Position!\n");
             return false;
@@ -806,14 +829,20 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 switch (routing.error_reason) {
                 case meshtastic_Routing_Error_NONE:
                 case meshtastic_Routing_Error_MAX_RETRANSMIT:
-                    view->handleResponse(p.from, p.decoded.request_id, routing);
+                    view->handleResponse(p.from, p.decoded.request_id, routing, p);
+                    break;
+                case meshtastic_Routing_Error_NO_RESPONSE:
+                    ILOG_DEBUG("Routing error: no response\n");
+                    // this response is sent by the other node when position is not availble
+                    // however, it contains valid rssi/snr, so use these
+                    view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr);
                     break;
                 default:
                     ILOG_WARN("got unhandled Routing_Error: %d\n", routing.error_reason);
                     break;
                 }
             } else {
-                view->handleResponse(p.from, p.decoded.request_id, routing);
+                view->handleResponse(p.from, p.decoded.request_id, routing, p);
             }
         } else {
             ILOG_ERROR("Error decoding protobuf meshtastic_Routing!\n");
@@ -889,6 +918,10 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             case meshtastic_AdminMessage_get_ringtone_response_tag: {
                 view->updateRingtone(admin.get_ringtone_response);
                 break;
+            }
+            case meshtastic_AdminMessage_set_channel_tag: {
+                // TODO
+                ILOG_WARN("meshtastic_AdminMessage_set_channel_tag not implemented\n");
             }
             default:
                 ILOG_ERROR("unhandled AdminMessage variant: %u\n", admin.which_payload_variant);

@@ -58,6 +58,7 @@ class ViewController
 
     virtual bool sendConfig(const char ringtone[231], uint32_t nodeId = 0);
     virtual void sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg);
+    virtual bool requestPosition(uint32_t to, uint8_t ch, uint32_t requestId);
     virtual void traceRoute(uint32_t to, uint8_t ch, uint32_t requestId);
 
     // helpers

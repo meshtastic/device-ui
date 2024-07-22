@@ -93,8 +93,9 @@ class MeshtasticView : public DeviceGUI
 
     virtual void configCompleted(void) { configComplete = true; }
 
-    virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing) {}
+    virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing, const meshtastic_MeshPacket &p) {}
     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) {}
+    virtual void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr) {}
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
     virtual void notifyResync(bool show);
@@ -106,6 +107,7 @@ class MeshtasticView : public DeviceGUI
 
     // local update methods
     virtual void updateLastHeard(uint32_t nodeNum);
+    virtual void updateTime(uint32_t time) {}
 
   protected:
     // helpers
