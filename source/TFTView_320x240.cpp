@@ -127,12 +127,12 @@ void TFTView_320x240::init(IClientBase *client)
 #endif
 
 #if defined(USE_SX127x)
-    lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-40\n-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120\n-130\n-140");
-    lv_slider_set_range(objects.rssi_slider, -145, -40);
+    lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120\n-130\n-140\n-150");
+    lv_slider_set_range(objects.rssi_slider, -150, -50);
     lv_label_set_text(objects.signal_scanner_snr_scale_label,
-                      "12.0\n10.0\n8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0\n-18.0");
+                      "14.0\n12.0\n10.0\n8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0");
     lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_slider_set_range(objects.snr_slider, -20, 13);
+    lv_slider_set_range(objects.snr_slider, -17, 15);
 #else
     lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-20\n-30\n-40\n-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120");
     lv_slider_set_range(objects.rssi_slider, -125, -25);
@@ -2477,8 +2477,8 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
             lv_slider_set_value(objects.rssi_slider, rx_rssi, LV_ANIM_ON);
 
 #if defined(USE_SX127x)
-            int p_snr = ((std::max(rx_snr, -18.0f) + 18.0f) / 30.0f) * 100.0f; // range -18..12
-            int p_rssi = ((std::max(rx_rssi, -140) + 140) * 100) / 100;        // range -140..-40
+            int p_snr = ((std::max(rx_snr, -19.0f) + 19.0f) / 33.0f) * 100.0f; // range -19..14
+            int p_rssi = ((std::max(rx_rssi, -145) + 145) * 100) / 90;         // range -145..-55
 #else
             int p_snr = ((std::max(rx_snr, -18.0f) + 18.0f) / 26.0f) * 100.0f; // range -18..8
             int p_rssi = ((std::max(rx_rssi, -125) + 125) * 100) / 100;        // range -125..-25

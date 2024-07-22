@@ -4174,7 +4174,7 @@ void create_screen_main_screen() {
                     lv_obj_set_size(obj, 20, 200);
                     lv_slider_set_range(obj, -20, 9);
                     lv_slider_set_value(obj, -10, LV_ANIM_OFF);
-                    lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_ON_FOCUS);
                     lv_obj_set_style_bg_image_src(obj, &img_signal_slider_image, LV_PART_INDICATOR | LV_STATE_DEFAULT);
                     lv_obj_set_style_radius(obj, 0, LV_PART_INDICATOR | LV_STATE_DEFAULT);
                     lv_obj_set_style_outline_width(obj, 1, LV_PART_INDICATOR | LV_STATE_DEFAULT);
@@ -4198,7 +4198,7 @@ void create_screen_main_screen() {
                     lv_obj_set_size(obj, 20, 200);
                     lv_slider_set_range(obj, -125, -20);
                     lv_slider_set_value(obj, -100, LV_ANIM_OFF);
-                    lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_ON_FOCUS);
                     lv_obj_set_style_bg_image_src(obj, &img_signal_slider_image, LV_PART_INDICATOR | LV_STATE_DEFAULT);
                     lv_obj_set_style_outline_width(obj, 1, LV_PART_INDICATOR | LV_STATE_DEFAULT);
                     lv_obj_set_style_radius(obj, 0, LV_PART_INDICATOR | LV_STATE_DEFAULT);
