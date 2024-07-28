@@ -18,5 +18,5 @@ class BatteryLevel
     struct {
         uint32_t percentage;
         float voltage;
-    } levels[6];
+    } levels[7];
 };

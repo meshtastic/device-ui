@@ -2,8 +2,9 @@
 
 BatteryLevel::BatteryLevel(void)
     : levels{
+          {100, 0.0},              // Plugged
           {100, CHARGING_VOLTAGE}, // Charging
-          {80, 3.80},              // Full
+          {80, 4.00},              // Full
           {35, 3.50},              // Mid
           {10, 3.30},              // Low
           {0, 3.12},               // Empty
@@ -14,7 +15,7 @@ BatteryLevel::BatteryLevel(void)
 
 BatteryLevel::Status BatteryLevel::calcStatus(uint32_t percentage, float voltage)
 {
-    if (voltage == 0.0) {
+    if (voltage == levels[Plugged].voltage) {
         return Plugged;
     }
     if (percentage >= levels[Charging].percentage && voltage > levels[Charging].voltage) {
