@@ -20,7 +20,12 @@ class DeviceGUI
     virtual void task_handler(void);
     virtual bool sleep(int16_t pin) { return false; }
     virtual void triggerHeartbeat(void) {}
+    // called to inform view to do screen blanking
     virtual void blankScreen(bool enable) {}
+    // called when display (driver) is doing screen blanking
+    virtual void screenSaving(bool enabled){};
+    // return true if screen view is locked
+    virtual bool isScreenLocked(void) { return false; };
 
     DisplayDriver *getDisplayDriver(void) const { return displaydriver; }
     InputDriver *getInputDriver(void) const { return inputdriver; }

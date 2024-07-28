@@ -9,33 +9,33 @@
  */
 ResponseHandler::ResponseHandler(uint32_t timeout) : requestIdCounter(0), maxTime(timeout) {}
 
-uint32_t ResponseHandler::addRequest(uint32_t id, RequestType type)
+uint32_t ResponseHandler::addRequest(uint32_t id, RequestType type, void *cookie)
 {
     requestIdCounter++;
     uint32_t requestId = ((id & 0x0000ffff) << 16) + requestIdCounter;
-    pendingRequest[requestId] = Request{.id = id, .type = type, .timestamp = millis()};
+    pendingRequest[requestId] = Request{.id = id, .cookie = cookie, .type = type, .timestamp = millis()};
     return requestId;
 }
 
-ResponseHandler::RequestType ResponseHandler::findRequest(uint32_t requestId)
+ResponseHandler::Request ResponseHandler::findRequest(uint32_t requestId)
 {
     const auto it = pendingRequest.find(requestId);
     if (it != pendingRequest.end()) {
-        return it->second.type;
+        return it->second;
     }
-    return noRequest;
+    return Request{};
 }
 
-ResponseHandler::RequestType ResponseHandler::removeRequest(uint32_t requestId)
+ResponseHandler::Request ResponseHandler::removeRequest(uint32_t requestId)
 {
-    RequestType type = noRequest;
+    Request req{};
     const auto it = pendingRequest.find(requestId);
     if (it != pendingRequest.end()) {
-        type = it->second.type;
+        req = it->second;
         ILOG_DEBUG("removing request %08x\n", it->first);
         pendingRequest.erase(it);
     }
-    return type;
+    return req;
 }
 
 /**

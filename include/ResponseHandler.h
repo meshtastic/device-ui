@@ -12,20 +12,21 @@ class ResponseHandler
   public:
     enum RequestType { noRequest, TextMessageRequest, TraceRouteRequest, PositionRequest, RemoteConfigRequest };
 
-    ResponseHandler(uint32_t timeout);
-    uint32_t addRequest(uint32_t id, RequestType type);
-    RequestType findRequest(uint32_t requestId);
-    RequestType removeRequest(uint32_t requestId);
-
-    void task_handler(void);
-
-  protected:
     struct Request {
         uint32_t id;
+        void *cookie;
         enum RequestType type;
         unsigned long timestamp;
     };
 
+    ResponseHandler(uint32_t timeout);
+    uint32_t addRequest(uint32_t id, RequestType type, void *cookie = nullptr);
+    Request findRequest(uint32_t requestId);
+    Request removeRequest(uint32_t requestId);
+
+    void task_handler(void);
+
+  protected:
     uint32_t requestIdCounter;
     uint32_t maxTime;
     std::unordered_map<uint32_t, Request> pendingRequest;

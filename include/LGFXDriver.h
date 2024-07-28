@@ -72,7 +72,8 @@ LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
     // handle display timeout
-    if ((screenTimeout > 0 && screenTimeout < lv_display_get_inactive_time(NULL)) || powerSaving) {
+    if ((screenTimeout > 0 && screenTimeout < lv_display_get_inactive_time(NULL)) || powerSaving ||
+        (DisplayDriver::view->isScreenLocked() && lv_display_get_inactive_time(NULL) > 5000)) {
         // sleep screen only if there are means for wakeup
         if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
             DisplayDriver::view->getInputDriver()->hasKeyboardDevice() || hasButton()) {
@@ -84,6 +85,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         lgfx->setBrightness(brightness - 1);
                     } else {
                         ILOG_INFO("enter powersave\n");
+                        DisplayDriver::view->screenSaving(true);
                         lgfx->sleep();
                         lgfx->powerSaveOn();
                         powerSaving = true;
@@ -98,7 +100,10 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         pin_int = BUTTON_PIN;
 #endif
                     }
-                    if (DisplayDriver::view->sleep(pin_int) || screenTimeout > lv_display_get_inactive_time(NULL)) {
+                    if (DisplayDriver::view->sleep(pin_int) ||
+                        (screenTimeout > lv_display_get_inactive_time(NULL) &&
+                         ((DisplayDriver::view->isScreenLocked() && lv_display_get_inactive_time(NULL) < 5000) ||
+                          !DisplayDriver::view->isScreenLocked()))) {
                         // woke up by touch or button
                         ILOG_INFO("leaving powersave\n");
                         powerSaving = false;
@@ -106,6 +111,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         lgfx->powerSaveOff();
                         lgfx->wakeup();
                         lgfx->setBrightness(lastBrightness);
+                        DisplayDriver::view->screenSaving(false);
                     } else {
                         // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
                         // continue with processing loop and enter sleep() again next round

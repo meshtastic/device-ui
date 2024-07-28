@@ -69,6 +69,7 @@ typedef struct _objects_t {
     lv_obj_t *boot_screen;
     lv_obj_t *main_screen;
     lv_obj_t *blank_screen;
+    lv_obj_t *lock_screen;
     lv_obj_t *calibration_screen;
     lv_obj_t *advanced_settings_panel;
     lv_obj_t *alert_label;
@@ -95,6 +96,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_reset_label;
     lv_obj_t *basic_settings_role_button;
     lv_obj_t *basic_settings_role_label;
+    lv_obj_t *basic_settings_screen_lock_button;
+    lv_obj_t *basic_settings_screen_lock_label;
     lv_obj_t *basic_settings_timeout_button;
     lv_obj_t *basic_settings_timeout_label;
     lv_obj_t *basic_settings_timezone_button;
@@ -165,7 +168,9 @@ typedef struct _objects_t {
     lv_obj_t *keyboard_button_4;
     lv_obj_t *keyboard_button_5;
     lv_obj_t *keyboard_button_6;
+    lv_obj_t *keyboard_button_7;
     lv_obj_t *last_heard_label;
+    lv_obj_t *lock_screen_digits_label;
     lv_obj_t *map_button;
     lv_obj_t *map_panel;
     lv_obj_t *meshtastic_image;
@@ -234,6 +239,10 @@ typedef struct _objects_t {
     lv_obj_t *obj12__cancel_button_w;
     lv_obj_t *obj12__ok_button_w;
     lv_obj_t *obj12__ok_cancel_panel_w;
+    lv_obj_t *obj13;
+    lv_obj_t *obj13__cancel_button_w;
+    lv_obj_t *obj13__ok_button_w;
+    lv_obj_t *obj13__ok_cancel_panel_w;
     lv_obj_t *obj2;
     lv_obj_t *obj2__cancel_button_w;
     lv_obj_t *obj2__ok_button_w;
@@ -271,6 +280,7 @@ typedef struct _objects_t {
     lv_obj_t *reboot_button;
     lv_obj_t *reboot_panel;
     lv_obj_t *rssi_slider;
+    lv_obj_t *screen_lock_button_matrix;
     lv_obj_t *screen_timeout_slider;
     lv_obj_t *settings_alert_buzzer_panel;
     lv_obj_t *settings_alert_buzzer_switch;
@@ -312,6 +322,9 @@ typedef struct _objects_t {
     lv_obj_t *settings_reset_dropdown;
     lv_obj_t *settings_reset_panel;
     lv_obj_t *settings_ringtone_dropdown;
+    lv_obj_t *settings_screen_lock_panel;
+    lv_obj_t *settings_screen_lock_password_textarea;
+    lv_obj_t *settings_screen_lock_switch;
     lv_obj_t *settings_screen_timeout_label;
     lv_obj_t *settings_screen_timeout_panel;
     lv_obj_t *settings_timezone;
@@ -396,8 +409,9 @@ enum ScreensEnum {
     SCREEN_ID_BOOT_SCREEN = 1,
     SCREEN_ID_MAIN_SCREEN = 2,
     SCREEN_ID_BLANK_SCREEN = 3,
-    SCREEN_ID_CALIBRATION_SCREEN = 4,
-    SCREEN_ID_OK_CANCEL_WIDGET = 5,
+    SCREEN_ID_LOCK_SCREEN = 4,
+    SCREEN_ID_CALIBRATION_SCREEN = 5,
+    SCREEN_ID_OK_CANCEL_WIDGET = 6,
 };
 
 void create_screen_boot_screen();
@@ -408,6 +422,9 @@ void tick_screen_main_screen();
 
 void create_screen_blank_screen();
 void tick_screen_blank_screen();
+
+void create_screen_lock_screen();
+void tick_screen_lock_screen();
 
 void create_screen_calibration_screen();
 void tick_screen_calibration_screen();

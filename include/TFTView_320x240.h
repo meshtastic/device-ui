@@ -72,6 +72,8 @@ class TFTView_320x240 : public MeshtasticView
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;
     void blankScreen(bool enable) override;
+    void screenSaving(bool enabled) override;
+    bool isScreenLocked(void) override;
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
     void removeNode(uint32_t nodeNum) override;
 
@@ -84,6 +86,7 @@ class TFTView_320x240 : public MeshtasticView
         eChannel,
         eLanguage,
         eScreenTimeout,
+        eScreenLock,
         eScreenBrightness,
         eInputControl,
         eAlertBuzzer,
@@ -220,6 +223,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_brightness_button(lv_event_t *e);
     static void ui_event_calibration_button(lv_event_t *e);
     static void ui_event_timeout_button(lv_event_t *e);
+    static void ui_event_screen_lock_button(lv_event_t *e);
     static void ui_event_input_button(lv_event_t *e);
     static void ui_event_alert_button(lv_event_t *e);
     static void ui_event_reset_button(lv_event_t *e);
@@ -246,6 +250,8 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_trace_route_start(lv_event_t *e);
     static void ui_event_signal_scanner_node(lv_event_t *e);
     static void ui_event_signal_scanner_start(lv_event_t *e);
+
+    static void ui_event_pin_screen_button(lv_event_t *e);
 
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);
@@ -276,6 +282,8 @@ class TFTView_320x240 : public MeshtasticView
     static lv_obj_t *currentPanel;                   // current selected node panel
     static lv_obj_t *spinnerButton;                  // start button animation
     static time_t startTime;                         // time when start button was pressed
+    static uint32_t pinKeys;                         // number of keys pressed (lock screen)
+    static bool screenLocked;                        // screen lock active
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
     meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db

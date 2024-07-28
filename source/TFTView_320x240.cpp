@@ -46,6 +46,8 @@ lv_obj_t *TFTView_320x240::currentPanel = nullptr;
 lv_obj_t *TFTView_320x240::spinnerButton = nullptr;
 uint32_t TFTView_320x240::currentNode = 0;
 time_t TFTView_320x240::startTime = 0;
+uint32_t TFTView_320x240::pinKeys = 0;
+bool TFTView_320x240::screenLocked = false;
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -154,6 +156,10 @@ void TFTView_320x240::init(IClientBase *client)
             break;
         }
     }
+
+    // TODO: set dark/light mode
+    // lv_theme_t * theme = lv_theme_default_init(lv_display_get_default(), lv_color_hex(0xff0000), lv_color_hex(0x00ff00), true,
+    // LV_FONT_DEFAULT); lv_display_set_theme(lv_disp_get_default(), theme);
 
     // user data
     objects.home_time_button->user_data = (void *)0;
@@ -328,18 +334,20 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_4, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)4);
     lv_obj_add_event_cb(objects.keyboard_button_5, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)5);
     lv_obj_add_event_cb(objects.keyboard_button_6, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)6);
+    lv_obj_add_event_cb(objects.keyboard_button_7, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)7);
 
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(objects.basic_settings_timeout_button, ui_event_timeout_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_role_button, ui_event_role_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_region_button, ui_event_region_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_modem_preset_button, ui_event_preset_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_language_button, ui_event_language_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_channel_button, ui_event_channel_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_timeout_button, ui_event_timeout_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_screen_lock_button, ui_event_screen_lock_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_brightness_button, ui_event_brightness_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_calibration_button, ui_event_calibration_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.basic_settings_input_button, ui_event_input_button, LV_EVENT_ALL, NULL);
@@ -386,6 +394,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj11__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj12__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj12__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj13__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj13__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -401,6 +411,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // screen
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
+    lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button, LV_EVENT_ALL, 0);
 
     // meshwork buttons
     lv_obj_add_event_cb(objects.meshwork_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
@@ -533,7 +544,9 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
     } else if (event_code == LV_EVENT_LONG_PRESSED && !advancedMode && THIS->activeSettings == eNone) {
-        advancedMode = !advancedMode;
+        lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        if (THIS->db.config.bluetooth.fixed_pin)
+            screenLocked = true;
     } else if (event_code == LV_EVENT_LONG_PRESSED && advancedMode && THIS->activeSettings == eNone) {
         advancedMode = !advancedMode;
         THIS->ui_set_active(objects.settings_button, ui_AdvancedSettingsPanel, objects.top_advanced_settings_panel);
@@ -703,6 +716,10 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         case 6:
             THIS->showKeyboard(objects.nodes_hl_name_area);
             lv_group_focus_obj(objects.nodes_hl_name_area);
+            break;
+        case 7:
+            THIS->showKeyboard(objects.settings_screen_lock_password_textarea);
+            lv_group_focus_obj(objects.settings_screen_lock_password_textarea);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment\n");
@@ -910,6 +927,26 @@ void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_screen_lock_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        char buf[10];
+        lv_snprintf(buf, 7, "%06d", THIS->db.config.bluetooth.fixed_pin);
+        lv_textarea_set_text(objects.settings_screen_lock_password_textarea, buf);
+        if (strcmp(buf, "000000")) {
+            lv_obj_add_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
+        } else {
+            lv_obj_remove_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
+        }
+
+        lv_obj_clear_flag(objects.settings_screen_lock_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_screen_lock_switch);
+        THIS->disablePanel(objects.controller_panel);
+        THIS->activeSettings = eScreenLock;
+    }
+}
+
 void TFTView_320x240::ui_event_input_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -1111,6 +1148,65 @@ void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }
 
+void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        static const char *hidden[7] = {"o o o o o o", "* o o o o o", "* * o o o o", "* * * o o o",
+                                        "* * * * o o", "* * * * * o", "* * * * * *"};
+        static char pinEntered[7]{};
+        lv_obj_t *obj = (lv_obj_t *)lv_event_get_target(e);
+        uint32_t id = lv_buttonmatrix_get_selected_button(obj);
+        const char *key = lv_buttonmatrix_get_button_text(obj, id);
+        switch (*key) {
+        case 'X': {
+            if (!screenLocked) {
+                pinKeys = 0;
+                lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
+            } else {
+                // TODO: init screen saver
+            }
+            break;
+        }
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9': {
+            if (pinKeys < 6) {
+                pinEntered[pinKeys++] = *key;
+                lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
+
+                char buf[10];
+                lv_snprintf(buf, 7, "%06d", THIS->db.config.bluetooth.fixed_pin);
+                if (pinKeys == 6 && strcmp(pinEntered, buf) == 0) {
+                    // unlock screen
+                    pinKeys = 0;
+                    screenLocked = false;
+                    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
+                    lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
+                }
+            }
+            break;
+        }
+        case 'D': {
+            if (pinKeys > 0) {
+                pinEntered[--pinKeys] = '\0';
+                lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+}
+
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e) {}
 
 void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
@@ -1192,15 +1288,9 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
     }
     lv_obj_clear_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
     if (currentPanel) {
-        // FIXME: remove for loop
-        for (auto &it : THIS->nodes) {
-            if (it.first != THIS->ownNode && it.second == currentPanel) {
-                THIS->setNodeImage(it.first,
-                                   (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
-                                   objects.trace_route_to_image);
-                break;
-            }
-        }
+        THIS->setNodeImage(THIS->currentNode,
+                           (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
+                           objects.trace_route_to_image);
         const char *lbl = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbl_idx));
         lv_label_set_text(objects.trace_route_to_button_label, lbl);
         lv_obj_clear_state(objects.trace_route_start_button, LV_STATE_DISABLED);
@@ -1401,6 +1491,24 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_group_focus_obj(objects.basic_settings_timeout_button);
             break;
         }
+        case eScreenLock: {
+            meshtastic_Config_BluetoothConfig &bt = THIS->db.config.bluetooth;
+            const char *pin = lv_textarea_get_text(objects.settings_screen_lock_password_textarea);
+            bool lock = lv_obj_has_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
+            if (lock && (atol(pin) == 0 || strlen(pin) != 6))
+                return; // require pin != "000000"
+            if (bt.fixed_pin != atol(pin)) {
+                bt.fixed_pin = atol(pin);
+                THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bt}, THIS->ownNode);
+                THIS->notifyReboot(true);
+            }
+            char buf[32];
+            lv_snprintf(buf, 32, "Screen Lock: %s", lock ? "on" : "off");
+            lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
+            lv_obj_add_flag(objects.settings_screen_lock_panel, LV_OBJ_FLAG_HIDDEN);
+
+            break;
+        }
         case eScreenBrightness: {
             char buf[32];
             lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", (int)lv_slider_get_value(objects.brightness_slider));
@@ -1588,6 +1696,11 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             lv_group_focus_obj(objects.basic_settings_timeout_button);
             break;
         }
+        case eScreenLock: {
+            lv_obj_add_flag(objects.settings_screen_lock_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_screen_lock_button);
+            break;
+        }
         case TFTView_320x240::eScreenBrightness: {
             lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_brightness_button);
@@ -1725,7 +1838,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
-        requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest);
+        requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to);
     }
 
     controller->sendTextMessage(to, ch, requestId, msg);
@@ -2387,16 +2500,16 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
 void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const meshtastic_Routing &routing,
                                      const meshtastic_MeshPacket &p)
 {
-    ResponseHandler::RequestType type;
+    ResponseHandler::Request req{};
     bool ack = false;
     if (from == ownNode) {
-        type = requests.findRequest(id);
+        req = requests.findRequest(id);
     } else {
-        type = requests.removeRequest(id);
+        req = requests.removeRequest(id);
         ack = true;
     }
 
-    if (type == ResponseHandler::noRequest) {
+    if (req.type == ResponseHandler::noRequest) {
         ILOG_WARN("request id 0x%08x not valid (anymore)\n", id);
     } else {
         ILOG_DEBUG("handleResponse request id 0x%08x\n", id);
@@ -2404,22 +2517,22 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
     switch (routing.which_variant) {
     case meshtastic_Routing_error_reason_tag: {
         if (routing.error_reason == meshtastic_Routing_Error_NONE) {
-            if (type == ResponseHandler::TraceRouteRequest) {
+            if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
-            } else if (type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse(from, id, ack);
-            } else if (type == ResponseHandler::PositionRequest) {
+            } else if (req.type == ResponseHandler::TextMessageRequest) {
+                handleTextMessageResponse((unsigned long)req.cookie, id, ack);
+            } else if (req.type == ResponseHandler::PositionRequest) {
                 // make sure it was really a neighbor node
                 if (p.hop_limit == p.hop_start)
                     handlePositionResponse(from, id, p.rx_rssi, p.rx_snr);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_MAX_RETRANSMIT) {
-            ResponseHandler::RequestType type = requests.removeRequest(id);
-            if (type == ResponseHandler::TraceRouteRequest) {
+            ResponseHandler::Request req = requests.removeRequest(id);
+            if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
-            if (type == ResponseHandler::PositionRequest) {
+            if (req.type == ResponseHandler::PositionRequest) {
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr);
             }
         } else {
@@ -2454,7 +2567,7 @@ void TFTView_320x240::scanSignal(uint32_t scanNo)
         uint32_t requestId;
         uint32_t to = currentNode;
         uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
-        requestId = requests.addRequest(to, ResponseHandler::PositionRequest);
+        requestId = requests.addRequest(to, ResponseHandler::PositionRequest, (void *)to);
         controller->requestPosition(to, ch, requestId);
         objects.signal_scanner_panel->user_data = (void *)requestId;
     }
@@ -2462,12 +2575,10 @@ void TFTView_320x240::scanSignal(uint32_t scanNo)
 
 void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr)
 {
-    ILOG_DEBUG("handlePositionResponse(rssi=%d, snr=%0.1f)\n", rx_rssi, rx_snr);
     if (request_id == (unsigned long)objects.signal_scanner_panel->user_data) {
         requests.removeRequest(request_id);
 
         if (from == currentNode) {
-            ILOG_DEBUG("handlePositionResponse: got a reply to our request 0x%08x\n", request_id);
             char buf[20];
             sprintf(buf, "SNR\n%.1f", rx_snr);
             lv_label_set_text(objects.signal_scanner_snr_label, buf);
@@ -2483,7 +2594,6 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
             int p_snr = ((std::max(rx_snr, -18.0f) + 18.0f) / 26.0f) * 100.0f; // range -18..8
             int p_rssi = ((std::max(rx_rssi, -125) + 125) * 100) / 100;        // range -125..-25
 #endif
-            ILOG_DEBUG("p_snr=%d, p_rssi=%d :: %d%%\n", p_snr, p_rssi, std::min((p_snr + p_rssi * 2) / 3, 100));
             sprintf(buf, "%d%%", std::min((p_snr + p_rssi * 2) / 3, 100));
             lv_label_set_text(objects.signal_scanner_start_label, buf);
         }
@@ -2784,6 +2894,17 @@ void TFTView_320x240::blankScreen(bool enable)
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
 }
 
+void TFTView_320x240::screenSaving(bool enabled)
+{
+    // if (THIS->db.config.bluetooth.fixed_pin)
+    //     screenLocked |= enabled;
+}
+
+bool TFTView_320x240::isScreenLocked(void)
+{
+    return THIS->db.config.bluetooth.fixed_pin && THIS->screenLocked;
+}
+
 void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
 {
     static lv_obj_t *btn[c_max_channels] = {objects.channel_button0, objects.channel_button1, objects.channel_button2,
@@ -2900,6 +3021,9 @@ void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothCon
 {
     db.config.bluetooth = cfg;
     db.config.has_bluetooth = true;
+    char buf[32];
+    lv_snprintf(buf, 32, "Screen Lock: %s", db.config.bluetooth.fixed_pin ? "on" : "off");
+    lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
 }
 
 /// ---- module updates ----
