@@ -899,6 +899,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 }
                 default:
                     ILOG_ERROR("unhandled meshtastic_Config variant: %u\n", config.which_payload_variant);
+                    return false;
                 }
                 break;
             }
@@ -912,6 +913,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 }
                 default:
                     ILOG_ERROR("unhandled meshtastic_ModuleConfig variant: %u\n", config.which_payload_variant);
+                    return false;
                 }
                 break;
             }
@@ -922,11 +924,11 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             case meshtastic_AdminMessage_set_channel_tag: {
                 // TODO
                 ILOG_WARN("meshtastic_AdminMessage_set_channel_tag not implemented\n");
+                return false;
             }
             default:
                 ILOG_ERROR("unhandled AdminMessage variant: %u\n", admin.which_payload_variant);
                 return false;
-                break;
             }
         } else {
             ILOG_ERROR("Error decoding protobuf meshtastic_AdminMessage!\n");
