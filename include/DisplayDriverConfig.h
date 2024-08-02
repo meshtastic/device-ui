@@ -23,6 +23,7 @@ class DisplayDriverConfig
         X11,
         THMI,
         TDECK,
+        INDICATOR,
         BPICOMPUTER_S3,
         TWATCH_S3,
         UNPHONE_V9,
