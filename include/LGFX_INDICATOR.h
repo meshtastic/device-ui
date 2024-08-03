@@ -27,7 +27,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
     {
         {
             auto cfg = _panel_instance.config();
-            cfg.memory_width = 800;
+            cfg.memory_width = 480;
             cfg.memory_height = 480;
             cfg.panel_width = screenWidth;
             cfg.panel_height = screenHeight;
@@ -102,12 +102,12 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
 
         {
             auto cfg = _touch_instance.config();
-            cfg.pin_cs = -1;
+            cfg.pin_cs = GPIO_NUM_NC;
             cfg.x_min = 0;
             cfg.x_max = 479;
             cfg.y_min = 0;
             cfg.y_max = 479;
-            cfg.pin_int = -1; // don't use IO_EXPANDER!;
+            cfg.pin_int = GPIO_NUM_NC; // don't use IO_EXPANDER!;
             cfg.pin_rst = (7 | IO_EXPANDER);
             cfg.bus_shared = true;
             cfg.offset_rotation = 0;
