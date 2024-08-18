@@ -2533,9 +2533,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             } else if (req.type == ResponseHandler::TextMessageRequest) {
                 handleTextMessageResponse((unsigned long)req.cookie, id, ack);
             } else if (req.type == ResponseHandler::PositionRequest) {
-                // make sure it was really a neighbor node
-                if (p.hop_limit == p.hop_start)
-                    handlePositionResponse(from, id, p.rx_rssi, p.rx_snr);
+                handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_MAX_RETRANSMIT) {
             ResponseHandler::Request req = requests.removeRequest(id);
@@ -2544,7 +2542,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
             if (req.type == ResponseHandler::PositionRequest) {
-                handlePositionResponse(from, id, p.rx_rssi, p.rx_snr);
+                handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             }
         } else {
             ILOG_DEBUG("got Routing_Error %d\n", routing.error_reason);
@@ -2584,12 +2582,12 @@ void TFTView_320x240::scanSignal(uint32_t scanNo)
     }
 }
 
-void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr)
+void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor)
 {
     if (request_id == (unsigned long)objects.signal_scanner_panel->user_data) {
         requests.removeRequest(request_id);
 
-        if (from == currentNode) {
+        if (from == currentNode && isNeighbor) {
             char buf[20];
             sprintf(buf, "SNR\n%.1f", rx_snr);
             lv_label_set_text(objects.signal_scanner_snr_label, buf);

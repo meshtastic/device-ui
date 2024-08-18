@@ -140,8 +140,9 @@ bool ViewController::requestShutdown(int32_t seconds, uint32_t nodeId)
 bool ViewController::requestReset(bool factoryReset, uint32_t nodeId)
 {
     return sendAdminMessage(
-        meshtastic_AdminMessage{.which_payload_variant = (pb_size_t)(factoryReset ? meshtastic_AdminMessage_factory_reset_config_tag
-                                                                                  : meshtastic_AdminMessage_nodedb_reset_tag)},
+        meshtastic_AdminMessage{.which_payload_variant =
+                                    (pb_size_t)(factoryReset ? meshtastic_AdminMessage_factory_reset_config_tag
+                                                             : meshtastic_AdminMessage_nodedb_reset_tag)},
         nodeId ? nodeId : myNodeNum);
 }
 
@@ -751,7 +752,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Position_msg, &position)) {
             // if "to" is our node then this is a reply to a requestPosition request
             if (p.to == myNodeNum) {
-                view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr);
+                view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             } else {
                 view->updatePosition(p.from, position.latitude_i, position.longitude_i, position.altitude, position.sats_in_view,
                                      position.precision_bits);
@@ -835,7 +836,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                     ILOG_DEBUG("Routing error: no response\n");
                     // this response is sent by the other node when position is not availble
                     // however, it contains valid rssi/snr, so use these
-                    view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr);
+                    view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
                     break;
                 default:
                     ILOG_WARN("got unhandled Routing_Error: %d\n", routing.error_reason);

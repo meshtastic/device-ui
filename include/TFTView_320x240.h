@@ -67,7 +67,7 @@ class TFTView_320x240 : public MeshtasticView
     void packetReceived(const meshtastic_MeshPacket &p) override;
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing, const meshtastic_MeshPacket &p) override;
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) override;
-    void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr) override;
+    void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) override;
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;
