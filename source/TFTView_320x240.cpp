@@ -3170,7 +3170,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         curr_time = actTime;
 #endif
         if (curr_time > 1000000) {
-            tm *curr_tm = gmtime(&curr_time);
+            tm *curr_tm = localtime(&curr_time);
             size_t len = strftime(&buf[pos], 40, " %R", curr_tm);
             pos += len;
         } else {
@@ -3730,11 +3730,11 @@ void TFTView_320x240::updateTime(void)
 #else
     curr_time = actTime;
 #endif
-    tm *curr_tm = gmtime(&curr_time);
+    tm *curr_tm = localtime(&curr_time);
 
     int len = 0;
     if (curr_time > 1000000 && (unsigned long)objects.home_time_button->user_data == 0) {
-        len = strftime(buf, 40, "%T GMT\n%a %d-%b-%g", curr_tm);
+        len = strftime(buf, 40, "%T\n%a %d-%b-%g", curr_tm);
     } else {
         uint32_t uptime = millis() / 1000;
         int hours = uptime / 3600;
