@@ -21,6 +21,9 @@
 #ifdef T_HMI
 #include "LGFX_T_HMI.h"
 #endif
+#ifdef SENSECAP_INDICATOR
+#include "LGFX_INDICATOR.h"
+#endif
 #ifdef T_DECK
 #include "LGFX_T_DECK.h"
 #endif
@@ -102,6 +105,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(T_DECK)
     case DisplayDriverConfig::device_t::TDECK:
         return new LGFXDriver<LGFX_TDECK>(cfg.width(), cfg.height());
+        break;
+#elif defined(SENSECAP_INDICATOR)
+    case DisplayDriverConfig::device_t::INDICATOR:
+        return new LGFXDriver<LGFX_INDICATOR>(cfg.width(), cfg.height());
         break;
 #elif defined(PICOMPUTER_S3)
     case DisplayDriverConfig::device_t::BPICOMPUTER_S3:
