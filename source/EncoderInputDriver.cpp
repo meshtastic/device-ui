@@ -75,8 +75,20 @@ void EncoderInputDriver::encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
 
 #ifdef INPUTDRIVER_ENCODER_BTN
         if (action == TB_ACTION_NONE) {
+            static uint32_t pressTime = 0;
+            static bool pressed = false;
             if (!digitalRead(INPUTDRIVER_ENCODER_BTN)) {
-                action = TB_ACTION_PRESSED;
+                // react only on relatively "long" presses > 50ms to workaround T-Deck's trackball button issue
+                if (!pressed) {
+                    pressed = true;
+                    pressTime = millis();
+                }
+                else if (millis() - pressTime > 50) {
+                    action = TB_ACTION_PRESSED;
+                }
+            }
+            else {
+                pressed = false;
             }
         }
 #endif
