@@ -3734,7 +3734,7 @@ void TFTView_320x240::updateTime(void)
 
     int len = 0;
     if (curr_time > 1000000 && (unsigned long)objects.home_time_button->user_data == 0) {
-        len = strftime(buf, 40, "%T\n%a %d-%b-%g", curr_tm);
+        len = strftime(buf, 40, "%T %Z\n%a %d-%b-%g", curr_tm);
     } else {
         uint32_t uptime = millis() / 1000;
         int hours = uptime / 3600;
