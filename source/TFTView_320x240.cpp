@@ -255,7 +255,7 @@ void TFTView_320x240::apply_hotfix(void)
     Themes::recolorButton(objects.home_location_button, false);
     Themes::recolorButton(objects.home_wlan_button, false);
     Themes::recolorButton(objects.home_memory_button, false);
-    Themes::recolorButton(objects.home_mqtt_button, false, 100);
+    Themes::recolorButton(objects.home_mqtt_button, false);
     Themes::recolorText(objects.home_location_label, false);
     Themes::recolorText(objects.home_wlan_label, false);
     Themes::recolorText(objects.home_mqtt_label, false);
