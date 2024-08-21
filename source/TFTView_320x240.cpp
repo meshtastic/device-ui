@@ -252,9 +252,11 @@ void TFTView_320x240::apply_hotfix(void)
     tab_buttons = lv_tabview_get_tab_bar(ui_SettingsTabView);
     applyStyle(tab_buttons);
 
+    Themes::recolorButton(objects.home_location_button, false);
     Themes::recolorButton(objects.home_wlan_button, false);
     Themes::recolorButton(objects.home_memory_button, false);
     Themes::recolorButton(objects.home_mqtt_button, false, 100);
+    Themes::recolorText(objects.home_location_label, false);
     Themes::recolorText(objects.home_wlan_label, false);
     Themes::recolorText(objects.home_mqtt_label, false);
     Themes::recolorText(objects.home_memory_label, false);
@@ -284,8 +286,12 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
 
     // home buttons
+    lv_obj_add_event_cb(objects.home_mail_button, this->ui_event_EnvelopeButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_nodes_button, this->ui_event_OnlineNodesButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_time_button, this->ui_event_TimeButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
 
     // node and channel buttons
@@ -623,6 +629,25 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_EnvelopeButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->configComplete) {
+        THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+    }
+}
+
+void TFTView_320x240::ui_event_OnlineNodesButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->configComplete) {
+        lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, true);
+        THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+        THIS->updateNodesFiltered(true);
+        THIS->updateNodesStatus();
+    }
+}
+
 void TFTView_320x240::ui_event_TimeButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -634,14 +659,61 @@ void TFTView_320x240::ui_event_TimeButton(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_LocationButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_PRESSED && THIS->configComplete) {
+        // TODO: figure out if there is a way to enabled GPS without a reboot (ala triple-click)
+        // over phone api and switch between enabled/disabled with short press
+        // uint32_t toggle = (unsigned long)objects.home_location_button->user_data;
+        // objects.home_location_button->user_data = (void *)(1 - toggle);
+        // Themes::recolorButton(objects.home_location_button, toggle);
+    }
+    else if (event_code == LV_EVENT_LONG_PRESSED && THIS->configComplete) {
+        // toggle GPS not_present <-> enabled
+        uint32_t toggle = (unsigned long)objects.home_location_button->user_data;
+        objects.home_location_button->user_data = (void *)(1 - toggle);
+
+        meshtastic_Config_PositionConfig &position = THIS->db.config.position;
+        if (position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT)
+            position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+        else {
+            position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT;
+        }
+        Themes::recolorButton(objects.home_location_button, position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
+        THIS->controller->sendConfig(meshtastic_Config_PositionConfig{position});
+        THIS->notifyReboot(true);
+    }
+}
+
 void TFTView_320x240::ui_event_WLANButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_LONG_PRESSED) {
+    if (event_code == LV_EVENT_LONG_PRESSED && THIS->configComplete) {
         // toggle WLAN on/off
         uint32_t toggle = (unsigned long)objects.home_wlan_button->user_data;
         objects.home_wlan_button->user_data = (void *)(1 - toggle);
-        Themes::recolorButton(objects.home_wlan_button, toggle);
+        meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
+        network.wifi_enabled = !network.wifi_enabled;
+        Themes::recolorButton(objects.home_wlan_button, network.wifi_enabled);
+        THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
+        THIS->notifyReboot(true);
+    }
+}
+
+void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_LONG_PRESSED && THIS->configComplete) {
+        // toggle MQTT on/off
+        uint32_t toggle = (unsigned long)objects.home_mqtt_button->user_data;
+        objects.home_mqtt_button->user_data = (void *)(1 - toggle);
+
+        meshtastic_ModuleConfig_MQTTConfig &mqtt = THIS->db.module_config.mqtt;
+        mqtt.enabled = !mqtt.enabled;
+        Themes::recolorButton(objects.home_mqtt_button, mqtt.enabled);
+        THIS->controller->sendConfig(meshtastic_ModuleConfig_MQTTConfig{mqtt});
+        THIS->notifyReboot(true);
     }
 }
 
@@ -2915,6 +2987,8 @@ void TFTView_320x240::updatePositionConfig(const meshtastic_Config_PositionConfi
 {
     db.config.position = cfg;
     db.config.has_position = true;
+    Themes::recolorButton(objects.home_location_button, cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
+    Themes::recolorText(objects.home_location_label, cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
 }
 
 void TFTView_320x240::updatePowerConfig(const meshtastic_Config_PowerConfig &cfg)
