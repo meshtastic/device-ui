@@ -44,7 +44,6 @@ const ext_img_desc_t images[51] = {
     { "reboot_image", &img_reboot_image },
     { "shutdown_image", &img_shutdown_image },
     { "home_clock_image", &img_home_clock_image },
-    { "mqtt_logo_image", &img_mqtt_logo_image },
     { "home_ethernet_button_image", &img_home_ethernet_button_image },
     { "top_trace_route_image", &img_top_trace_route_image },
     { "top_node_detector_image", &img_top_node_detector_image },
@@ -52,4 +51,5 @@ const ext_img_desc_t images[51] = {
     { "signal_slider_image", &img_signal_slider_image },
     { "signal_full_image", &img_signal_full_image },
     { "battery_plug_image", &img_battery_plug_image },
+    { "mqtt_logo2_image", &img_mqtt_logo2_image },
 };

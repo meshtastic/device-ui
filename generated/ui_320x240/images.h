@@ -50,7 +50,6 @@ extern const lv_img_dsc_t img_settings_trash_image;
 extern const lv_img_dsc_t img_reboot_image;
 extern const lv_img_dsc_t img_shutdown_image;
 extern const lv_img_dsc_t img_home_clock_image;
-extern const lv_img_dsc_t img_mqtt_logo_image;
 extern const lv_img_dsc_t img_home_ethernet_button_image;
 extern const lv_img_dsc_t img_top_trace_route_image;
 extern const lv_img_dsc_t img_top_node_detector_image;
@@ -58,6 +57,7 @@ extern const lv_img_dsc_t img_battery_empty_image;
 extern const lv_img_dsc_t img_signal_slider_image;
 extern const lv_img_dsc_t img_signal_full_image;
 extern const lv_img_dsc_t img_battery_plug_image;
+extern const lv_img_dsc_t img_mqtt_logo2_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
