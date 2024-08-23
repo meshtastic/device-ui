@@ -1417,7 +1417,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_label_set_text(objects.user_name_label, userLong);
             strcpy(THIS->db.short_name, userShort);
             strcpy(THIS->db.long_name, userLong);
-            meshtastic_User user; // TODO: don't overwrite is_licensed
+            meshtastic_User user{}; // TODO: don't overwrite is_licensed
             strcpy(user.short_name, userShort);
             strcpy(user.long_name, userLong);
             THIS->controller->sendConfig(user, THIS->ownNode);
