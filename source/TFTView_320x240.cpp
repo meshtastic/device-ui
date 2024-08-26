@@ -69,7 +69,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), actTime(0), uptime(0),
-      hasPosition(false), topNodeLL(nullptr), scans(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false)
+      hasPosition(false), topNodeLL(nullptr), scans(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), db{}
 {
     filter.active = false;
     highlight.active = false;
