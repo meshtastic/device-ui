@@ -69,7 +69,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), actTime(0), uptime(0),
-      hasPosition(false), topNodeLL(nullptr), scans(0)
+      hasPosition(false), topNodeLL(nullptr), scans(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false)
 {
     filter.active = false;
     highlight.active = false;
@@ -260,6 +260,11 @@ void TFTView_320x240::apply_hotfix(void)
     Themes::recolorText(objects.home_wlan_label, false);
     Themes::recolorText(objects.home_mqtt_label, false);
     Themes::recolorText(objects.home_memory_label, false);
+
+    lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_text(objects.detector_start_label, "Start");
+    lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
 void TFTView_320x240::ui_events_init(void)
@@ -399,13 +404,17 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
     lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button, LV_EVENT_ALL, 0);
 
-    // meshwork buttons
-    lv_obj_add_event_cb(objects.meshwork_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.meshwork_signal_scanner_button, ui_event_signal_scanner, LV_EVENT_CLICKED, 0);
+    // tools buttons
+    lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.tools_signal_scanner_button, ui_event_signal_scanner, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.tools_trace_route_button, ui_event_trace_route, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.tools_neighbors_button, ui_event_neighbors, LV_EVENT_CLICKED, 0);
+    //lv_obj_add_event_cb(objects.tools_statistics_button, ui_event_statistics, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.tools_debug_log_button, ui_event_debug_log, LV_EVENT_CLICKED, 0);
+    // tools
+    lv_obj_add_event_cb(objects.detector_start_button, ui_event_mesh_detector_start, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.signal_scanner_node_button, ui_event_signal_scanner_node, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.signal_scanner_start_button, ui_event_signal_scanner_start, LV_EVENT_ALL, 0);
-    lv_obj_add_event_cb(objects.meshwork_trace_route_button, ui_event_trace_route, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.meshwork_neighbors_button, ui_event_neighbors, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.trace_route_to_button, ui_event_trace_route_to, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.trace_route_start_button, ui_event_trace_route_start, LV_EVENT_CLICKED, 0);
 }
@@ -478,6 +487,14 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
         } else {
             currentPanel = nullptr;
             currentNode = 0;
+        }
+        if (THIS->chooseNodeSignalScanner) {
+            THIS->chooseNodeSignalScanner = false;
+            ui_event_signal_scanner(NULL);
+        }
+        else if (THIS->chooseNodeTraceRoute) {
+            THIS->chooseNodeTraceRoute = false;
+            ui_event_trace_route(NULL);
         }
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         //  set color and text of clicked node
@@ -1256,7 +1273,35 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
     }
 }
 
-void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e) {}
+void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
+{
+    THIS->ui_set_active(objects.settings_button, objects.mesh_detector_panel, objects.top_mesh_detector_panel);
+}
+
+void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t* e)
+{
+    static bool running = false;
+    if (!running) {
+        lv_label_set_text(objects.detector_start_label, "Stop");
+    
+        // create radar animation
+        lv_anim_t& a = THIS->radar;
+        lv_anim_init(&a);
+        lv_anim_set_var(&a, objects.radar_beam);
+        lv_anim_set_values(&a, 0, 3600);
+        lv_anim_set_repeat_count(&a, 1800);
+        lv_anim_set_duration(&a, 7200);
+        lv_anim_set_exec_cb(&a, ui_anim_radar_cb);
+        lv_anim_start(&a);
+        lv_obj_clear_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
+    }
+    else {
+        lv_label_set_text(objects.detector_start_label, "Start");
+        lv_anim_del(&objects.radar_beam, ui_anim_radar_cb);
+        lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
+    }
+    running = !running;
+}
 
 void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
 {
@@ -1276,6 +1321,7 @@ void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
 
 void TFTView_320x240::ui_event_signal_scanner_node(lv_event_t *e)
 {
+    THIS->chooseNodeSignalScanner = true;
     THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
 }
 
@@ -1350,6 +1396,7 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
 
 void TFTView_320x240::ui_event_trace_route_to(lv_event_t *e)
 {
+    THIS->chooseNodeTraceRoute = true;
     THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
 }
 
@@ -1395,7 +1442,20 @@ void TFTView_320x240::removeSpinner(void)
     }
 }
 
-void TFTView_320x240::ui_event_neighbors(lv_event_t *e) {}
+void TFTView_320x240::ui_event_neighbors(lv_event_t *e)
+{
+    THIS->ui_set_active(objects.settings_button, objects.tools_neighbors_panel, objects.top_neighbors_panel);
+}
+
+void TFTView_320x240::ui_event_statistics(lv_event_t *e)
+{
+    THIS->ui_set_active(objects.settings_button, objects.tools_statistics_panel, objects.top_statistics_label);
+}
+
+void TFTView_320x240::ui_event_debug_log(lv_event_t *e)
+{
+    THIS->ui_set_active(objects.settings_button, objects.tools_debug_log_panel, objects.top_debug_log_panel);
+}
 
 /**
  * @brief User widget OK button handling
@@ -1843,6 +1903,11 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
 void TFTView_320x240::ui_anim_node_panel_cb(void *var, int32_t v)
 {
     lv_obj_set_height((lv_obj_t *)var, v);
+}
+
+void TFTView_320x240::ui_anim_radar_cb(void * var, int32_t r)
+{
+    lv_img_set_angle(objects.radar_beam, r);
 }
 
 /**

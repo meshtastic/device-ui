@@ -249,13 +249,16 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 
     static void ui_event_mesh_detector(lv_event_t *e);
+    static void ui_event_mesh_detector_start(lv_event_t *e);
     static void ui_event_signal_scanner(lv_event_t *e);
-    static void ui_event_trace_route(lv_event_t *e);
-    static void ui_event_neighbors(lv_event_t *e);
-    static void ui_event_trace_route_to(lv_event_t *e);
-    static void ui_event_trace_route_start(lv_event_t *e);
     static void ui_event_signal_scanner_node(lv_event_t *e);
     static void ui_event_signal_scanner_start(lv_event_t *e);
+    static void ui_event_trace_route(lv_event_t *e);
+    static void ui_event_trace_route_to(lv_event_t *e);
+    static void ui_event_trace_route_start(lv_event_t *e);
+    static void ui_event_neighbors(lv_event_t *e);
+    static void ui_event_statistics(lv_event_t *e);
+    static void ui_event_debug_log(lv_event_t *e);
 
     static void ui_event_pin_screen_button(lv_event_t *e);
 
@@ -264,6 +267,7 @@ class TFTView_320x240 : public MeshtasticView
 
     // animations
     static void ui_anim_node_panel_cb(void *var, int32_t v);
+    static void ui_anim_radar_cb(void * var, int32_t r);
 
     lv_obj_t *activeButton = nullptr;
     lv_obj_t *activePanel = nullptr;
@@ -284,12 +288,15 @@ class TFTView_320x240 : public MeshtasticView
     int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
     void *topNodeLL;                                 // pointer to topmost button in group ll
     uint32_t scans;                                  // scanner counter
+    lv_anim_t radar;                                 // radar animation
     static uint32_t currentNode;                     // current selected node
     static lv_obj_t *currentPanel;                   // current selected node panel
     static lv_obj_t *spinnerButton;                  // start button animation
     static time_t startTime;                         // time when start button was pressed
     static uint32_t pinKeys;                         // number of keys pressed (lock screen)
     static bool screenLocked;                        // screen lock active
+    bool chooseNodeSignalScanner;                    // chose a target node for signal scanner
+    bool chooseNodeTraceRoute;                       // chose a target node for trace route
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
     meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db
