@@ -547,7 +547,7 @@
 
 #define LV_USE_LED        0
 
-#define LV_USE_LINE       0
+#define LV_USE_LINE       1
 
 #define LV_USE_LIST       1
 
