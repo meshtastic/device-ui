@@ -95,7 +95,7 @@ uint32_t themeColor[][2] = {
     { 0xff67ea94, 0xff436C70 }, // eTopImageBg
     { 0xff212121, 0xffffffff }, // eTopImageRecolor
     { 255,        255        }, // eTopImageRecolorOpa
-    { 0xfff8f8f8, 0xff303030 }, // ePanelBg
+    { 0xfff4f4f4, 0xff303030 }, // ePanelBg
     { 0xff212121, 0xfff0f0f0 }, // ePanelText
     { 0xff67ea94, 0xff67ea94 }, // ePanelBorder
     { 0xfffafaf4, 0xff404040 }, // eNodePanelBg
@@ -117,7 +117,7 @@ uint32_t themeColor[][2] = {
     { 0xfff4f4ee, 0xff303030 }, // eHomeButtonBg
     { 0xff101010, 0xffffffff }, // eHomeButtonText
     { 0xffd0d0d0, 0xff303030 }, // eHomeButtonBorder
-    { 0xff67ea94, 0xff606060 }, // eHomeButtonImageRecolor
+    { 0xff33a2ac, 0xff606060 }, // eHomeButtonImageRecolor
     { 255,        0          }, // eHomeButtonImageRecolorOpa
     { 0xfffafaf4, 0xff404040 }, // eChannelButtonBg
     { 0xffD0D0D0, 0xffA0A0A0 }, // eChannelButtonBorder
@@ -367,7 +367,7 @@ void Themes::recolorButton(lv_obj_t* obj, bool enabled, lv_opa_t opa)
     lv_color_t color;
     switch(theme) {
     case eLight:
-        color = enabled ? lv_color_hex(0xff67ea94) : lv_color_hex(0xffc0c0c0);
+        color = enabled ? lv_color_hex(THEME(eHomeButtonImageRecolor)) : lv_color_hex(0xffc0c0c0);
         break;
     case eDark:
         color = enabled ? lv_color_hex(0xffe0e0e0) : lv_color_hex(0xff606060);
