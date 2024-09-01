@@ -88,6 +88,7 @@ class TFTView_320x240 : public MeshtasticView
         eScreenTimeout,
         eScreenLock,
         eScreenBrightness,
+        eTheme,
         eInputControl,
         eAlertBuzzer,
         eReset,
@@ -177,6 +178,7 @@ class TFTView_320x240 : public MeshtasticView
     TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
     void apply_hotfix(void);
+    void updateTheme(void);
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
@@ -214,7 +216,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_WLANButton(lv_event_t *e);
     static void ui_event_MQTTButton(lv_event_t *e);
     static void ui_event_MemoryButton(lv_event_t *e);
-    
+
     static void ui_event_KeyboardButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
 
@@ -227,6 +229,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_language_button(lv_event_t *e);
     static void ui_event_channel_button(lv_event_t *e);
     static void ui_event_brightness_button(lv_event_t *e);
+    static void ui_event_theme_button(lv_event_t *e);
     static void ui_event_calibration_button(lv_event_t *e);
     static void ui_event_timeout_button(lv_event_t *e);
     static void ui_event_screen_lock_button(lv_event_t *e);
@@ -267,7 +270,7 @@ class TFTView_320x240 : public MeshtasticView
 
     // animations
     static void ui_anim_node_panel_cb(void *var, int32_t v);
-    static void ui_anim_radar_cb(void * var, int32_t r);
+    static void ui_anim_radar_cb(void *var, int32_t r);
 
     lv_obj_t *activeButton = nullptr;
     lv_obj_t *activePanel = nullptr;

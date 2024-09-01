@@ -98,6 +98,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_role_label;
     lv_obj_t *basic_settings_screen_lock_button;
     lv_obj_t *basic_settings_screen_lock_label;
+    lv_obj_t *basic_settings_theme_button;
+    lv_obj_t *basic_settings_theme_label;
     lv_obj_t *basic_settings_timeout_button;
     lv_obj_t *basic_settings_timeout_label;
     lv_obj_t *basic_settings_timezone_button;
@@ -243,6 +245,10 @@ typedef struct _objects_t {
     lv_obj_t *obj13__cancel_button_w;
     lv_obj_t *obj13__ok_button_w;
     lv_obj_t *obj13__ok_cancel_panel_w;
+    lv_obj_t *obj14;
+    lv_obj_t *obj14__cancel_button_w;
+    lv_obj_t *obj14__ok_button_w;
+    lv_obj_t *obj14__ok_cancel_panel_w;
     lv_obj_t *obj2;
     lv_obj_t *obj2__cancel_button_w;
     lv_obj_t *obj2__ok_button_w;
@@ -328,6 +334,8 @@ typedef struct _objects_t {
     lv_obj_t *settings_screen_lock_switch;
     lv_obj_t *settings_screen_timeout_label;
     lv_obj_t *settings_screen_timeout_panel;
+    lv_obj_t *settings_theme_dropdown;
+    lv_obj_t *settings_theme_panel;
     lv_obj_t *settings_timezone;
     lv_obj_t *settings_tzcity;
     lv_obj_t *settings_tzzone;
