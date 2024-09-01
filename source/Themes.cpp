@@ -16,6 +16,7 @@ enum ThemeColor {
     eTopImageRecolor,
     eTopImageRecolorOpa,
     ePanelBg,
+    ePanelPressedBg,
     ePanelText,
     ePanelBorder,
     eNodePanelBg,
@@ -91,6 +92,7 @@ uint32_t themeColor[][2] = {
     {0xff212121, 0xffffffff}, // eTopImageRecolor
     {255, 255},               // eTopImageRecolorOpa
     {0xfff4f4f4, 0xff303030}, // ePanelBg
+    {0xfffafafa, 0xff303030}, // ePanelPressedBg
     {0xff212121, 0xfff0f0f0}, // ePanelText
     {0xff67ea94, 0xff67ea94}, // ePanelBorder
     {0xffffffff, 0xff404040}, // eNodePanelBg
@@ -175,13 +177,18 @@ void apply_style_top_panel_style(void)
     lv_style_set_text_color(style, lv_color_hex(THEME(eTopPanelText)));
     // lv_style_set_text_font(style, &ui_font_montserrat_16);
 };
-void apply_style_panel_style(void)
+void apply_style_panel_style_MAIN_DEFAULT(void)
 {
     lv_style_t *style = get_style_panel_style_MAIN_DEFAULT();
     lv_style_set_bg_color(style, lv_color_hex(THEME(ePanelBg)));
     lv_style_set_text_color(style, lv_color_hex(THEME(ePanelText)));
     lv_style_set_border_color(style, lv_color_hex(THEME(ePanelBorder)));
     // lv_style_set_shadow_color(style, lv_color_hex(0xffe0e0e0));
+};
+void apply_style_panel_style_MAIN_PRESSED(void)
+{
+    lv_style_t *style = get_style_panel_style_MAIN_PRESSED();
+    lv_style_set_bg_color(style, lv_color_hex(THEME(ePanelPressedBg)));
 };
 void apply_style_home_container_style(void)
 {
@@ -346,7 +353,8 @@ void Themes::set(enum Theme th)
 {
     theme = th;
     apply_style_top_panel_style();
-    apply_style_panel_style();
+    apply_style_panel_style_MAIN_DEFAULT();
+    apply_style_panel_style_MAIN_PRESSED();
     apply_style_home_container_style();
     apply_style_settings_panel_style();
     apply_style_node_panel_style();
