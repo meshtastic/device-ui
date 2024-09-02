@@ -108,6 +108,13 @@ void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
         MeshtasticView::addOrUpdateNode(p.from, p.channel, 0, eRole::unknown, false);
         updateLastHeard(p.from);
     }
+    if (p.to != ownNode && p.to != 0xffffffff) {
+        auto it = nodes.find(p.to);
+        if (it == nodes.end()) {
+            MeshtasticView::addOrUpdateNode(p.to, p.channel, 0, eRole::unknown, false);
+            updateLastHeard(p.to);
+        }
+    }
 }
 
 void MeshtasticView::newMessage(uint32_t from, uint32_t to, uint8_t channel, const char *msg) {}
