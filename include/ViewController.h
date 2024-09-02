@@ -39,6 +39,7 @@ class ViewController
     virtual bool sendConfig(meshtastic_Config_DisplayConfig &&display, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_LoRaConfig &&lora, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_BluetoothConfig &&bluetooth, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_Config_SecurityConfig &&security, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Channel &channel, uint32_t nodeId = 0);
 
     // module config

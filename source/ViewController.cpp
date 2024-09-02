@@ -209,6 +209,14 @@ bool ViewController::sendConfig(meshtastic_Config_BluetoothConfig &&bluetooth, u
                             nodeId ? nodeId : myNodeNum);
 }
 
+bool ViewController::sendConfig(meshtastic_Config_SecurityConfig &&security, uint32_t nodeId)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
+                                                    .set_config{.which_payload_variant = meshtastic_Config_security_tag,
+                                                                .payload_variant{.security = security}}},
+                            nodeId ? nodeId : myNodeNum);
+}
+
 bool ViewController::sendConfig(meshtastic_Channel &channel, uint32_t nodeId)
 {
     return sendAdminMessage(
