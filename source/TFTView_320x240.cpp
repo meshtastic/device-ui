@@ -25,6 +25,10 @@
 #include "LinuxHelper.h"
 #endif
 
+#ifndef PACKET_LOGS_MAX
+#define PACKET_LOGS_MAX 200
+#endif
+
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
 #define THIS TFTView_320x240::instance() // need to use this in all static methods
 
@@ -68,8 +72,9 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 }
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
-    : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), actTime(0), uptime(0),
-      hasPosition(false), topNodeLL(nullptr), scans(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), db{}
+    : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), packetLogEnabled(false),
+      packetCounter(0), actTime(0), uptime(0), hasPosition(false), topNodeLL(nullptr), scans(0), chooseNodeSignalScanner(false),
+      chooseNodeTraceRoute(false), db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -430,7 +435,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.tools_trace_route_button, ui_event_trace_route, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.tools_neighbors_button, ui_event_neighbors, LV_EVENT_CLICKED, 0);
     // lv_obj_add_event_cb(objects.tools_statistics_button, ui_event_statistics, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.tools_debug_log_button, ui_event_debug_log, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.tools_packet_log_button, ui_event_packet_log, LV_EVENT_ALL, 0);
     // tools
     lv_obj_add_event_cb(objects.detector_start_button, ui_event_mesh_detector_start, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.signal_scanner_node_button, ui_event_signal_scanner_node, LV_EVENT_CLICKED, 0);
@@ -1482,9 +1487,141 @@ void TFTView_320x240::ui_event_statistics(lv_event_t *e)
     THIS->ui_set_active(objects.settings_button, objects.tools_statistics_panel, objects.top_statistics_label);
 }
 
-void TFTView_320x240::ui_event_debug_log(lv_event_t *e)
+void TFTView_320x240::ui_event_packet_log(lv_event_t *e)
 {
-    THIS->ui_set_active(objects.settings_button, objects.tools_debug_log_panel, objects.top_debug_log_panel);
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        THIS->ui_set_active(objects.settings_button, objects.tools_packet_log_panel, objects.top_packet_log_panel);
+        THIS->packetLogEnabled = true;
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        THIS->packetCounter = 0;
+        lv_obj_clean(objects.tools_packet_log_panel);
+    }
+}
+
+void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
+{
+    static std::unordered_map<uint16_t, const char *> name = {
+        {0, "unknown"},        {1, "text message"},    {2, "remote hardware"}, {3, "position"},    {4, "node info"},
+        {5, "routing"},        {6, "admin"},           {7, "text message"},    {8, "waypoint"},    {9, "audio"},
+        {10, "sensor"},        {32, "reply"},          {33, "ip tunnel"},      {34, "paxcounter"}, {64, "serial"},
+        {65, "store forward"}, {66, "range test"},     {67, "telemetry"},      {68, "ZPS"},        {69, "simulator"},
+        {70, "trace route"},   {71, "neighbor info"},  {72, "atax"},           {73, "map report"}, {74, "power stress"},
+        {256, "private"},      {257, "atax forwarder"}};
+
+    // ignore admin packages initiated by us
+    if (p.from == ownNode && p.decoded.portnum == meshtastic_PortNum_ADMIN_APP)
+        return;
+
+    // get actual time
+    char timebuf[16];
+    time_t curr_time;
+#ifdef ARCH_PORTDUINO
+    time(&curr_time);
+#else
+    curr_time = actTime;
+#endif
+    tm *curr_tm = localtime(&curr_time);
+    if (curr_time > 1000000) {
+        strftime(timebuf, 16, "%T", curr_tm);
+    } else {
+        strcpy(timebuf, "??:??:??");
+    }
+
+    // get node name from
+    char from[5];
+    char *userShort = (char *)&(nodes[p.from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
+    int pos = 0;
+    while (pos < 4 && userShort[pos] != 0) {
+        from[pos] = userShort[pos];
+        pos++;
+    }
+    from[pos] = '\0';
+
+    char buf[256];
+    if (p.to == 0xffffffff)
+        sprintf(buf, "%s: ch%d %s:%04x->all: %s", timebuf, p.channel, from, p.from & 0xffff,
+                name[p.decoded.portnum]); // note: this may crash if there's a new portnum not in this map...
+    else
+        sprintf(buf, "%s: ch%d %s:%04x->%s%04x: %s", timebuf, p.channel, from, p.from & 0xffff, p.to == ownNode ? "*" : "",
+                p.to & 0xffff, name[p.decoded.portnum]);
+
+    if (p.decoded.portnum == meshtastic_PortNum_TELEMETRY_APP) {
+        meshtastic_Telemetry telemetry;
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Telemetry_msg, &telemetry)) {
+            switch (telemetry.which_variant) {
+            case meshtastic_Telemetry_device_metrics_tag: {
+                if (p.from == ownNode)
+                    return; // suppress (internal) battery level packets
+                strcat(buf, " dev");
+                break;
+            }
+            case meshtastic_Telemetry_environment_metrics_tag: {
+                strcat(buf, " env");
+                break;
+            }
+            case meshtastic_Telemetry_air_quality_metrics_tag: {
+                strcat(buf, " air");
+                break;
+            }
+            case meshtastic_Telemetry_power_metrics_tag: {
+                strcat(buf, " pow");
+                break;
+            }
+            case meshtastic_Telemetry_local_stats_tag: {
+                strcat(buf, " dev"); // bug in firmware that this is local?
+            }
+            default:
+                break;
+            }
+        }
+    } else if (p.decoded.portnum == meshtastic_PortNum_TRACEROUTE_APP) {
+        // print the recorded route and add from/to manually
+        strcat(buf, "\n");
+        int pos = strlen(buf);
+        if (p.to == ownNode) {
+            pos += snprintf(&buf[pos], 16, "%04x", ownNode & 0xffff);
+        }
+
+        meshtastic_RouteDiscovery route;
+        if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_RouteDiscovery_msg, &route)) {
+            for (int i = 0; i < route.route_count; i++) {
+                uint32_t nodeNum = route.route[i];
+                if (nodeNum != UINT32_MAX) {
+                    pos += snprintf(&buf[pos], 16, "->%04x", nodeNum & 0xffff);
+                } else {
+                    strcat(buf, "->unk");
+                    pos += 6;
+                }
+            }
+            if (p.to == ownNode) {
+                pos += snprintf(&buf[pos], 16, "->%04x", p.from & 0xffff);
+            }
+        }
+    }
+
+    if (packetCounter >= PACKET_LOGS_MAX) {
+        // delete oldest entry
+        lv_obj_del(objects.tools_packet_log_panel->spec_attr->children[0]);
+    } else {
+        packetCounter++;
+        char top[16];
+        sprintf(top, "Packet Log: %d", packetCounter);
+        lv_label_set_text(objects.top_packet_log_label, top);
+    }
+    lv_obj_t *pLabel = lv_label_create(objects.tools_packet_log_panel);
+    lv_obj_set_pos(pLabel, 0, 0);
+    lv_obj_set_size(pLabel, LV_PCT(100), LV_SIZE_CONTENT);
+    uint32_t bgColor, fgColor;
+    std::tie(bgColor, fgColor) = nodeColor(p.from);
+    lv_obj_set_style_bg_color(pLabel, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(pLabel, lv_color_hex(fgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(pLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_label_set_text(pLabel, buf);
+
+    // auto-scroll if last item is visible
+    if (lv_obj_get_scroll_bottom(objects.tools_packet_log_panel) < 20)
+        lv_obj_scroll_to_view(pLabel, LV_ANIM_OFF);
 }
 
 /**
@@ -2992,6 +3129,9 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     // update time from packet
     if (p.rx_time > actTime) {
         actTime = p.rx_time;
+    }
+    if (packetLogEnabled) {
+        writePacketLog(p);
     }
 }
 

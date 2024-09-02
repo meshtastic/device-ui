@@ -193,6 +193,7 @@ class TFTView_320x240 : public MeshtasticView
     void handleTraceRouteResponse(const meshtastic_Routing &routing);
     void addNodeToTraceRoute(uint32_t nodeNum);
     void removeSpinner(void);
+    void writePacketLog(const meshtastic_MeshPacket &p);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
@@ -261,7 +262,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_trace_route_start(lv_event_t *e);
     static void ui_event_neighbors(lv_event_t *e);
     static void ui_event_statistics(lv_event_t *e);
-    static void ui_event_debug_log(lv_event_t *e);
+    static void ui_event_packet_log(lv_event_t *e);
 
     static void ui_event_pin_screen_button(lv_event_t *e);
 
@@ -285,6 +286,8 @@ class TFTView_320x240 : public MeshtasticView
     static TFTView_320x240 *gui;                     // singleton pattern
     uint32_t nodesFiltered;                          // no. hidden nodes in node list
     bool processingFilter;                           // indicates that filtering is ongoing
+    bool packetLogEnabled;                           // display received packets
+    uint16_t packetCounter;                          // number of packets in packet log
     time_t lastrun60, lastrun10, lastrun5, lastrun1; // timers for task loop
     time_t actTime, uptime;                          // actual time and uptime;
     bool hasPosition;                                // if our position is known

@@ -363,14 +363,14 @@ typedef struct _objects_t {
     lv_obj_t *tab_page_tools;
     lv_obj_t *telemetry1_label;
     lv_obj_t *telemetry2_label;
-    lv_obj_t *tools_debug_log_button;
-    lv_obj_t *tools_debug_log_label;
-    lv_obj_t *tools_debug_log_panel;
     lv_obj_t *tools_mesh_detector_button;
     lv_obj_t *tools_mesh_detector_label;
     lv_obj_t *tools_neighbors_button;
     lv_obj_t *tools_neighbors_label;
     lv_obj_t *tools_neighbors_panel;
+    lv_obj_t *tools_packet_log_button;
+    lv_obj_t *tools_packet_log_label;
+    lv_obj_t *tools_packet_log_panel;
     lv_obj_t *tools_signal_scanner_button;
     lv_obj_t *tools_signal_scanner_label;
     lv_obj_t *tools_statistics_button;
@@ -386,9 +386,6 @@ typedef struct _objects_t {
     lv_obj_t *top_chats_image;
     lv_obj_t *top_chats_label;
     lv_obj_t *top_chats_panel;
-    lv_obj_t *top_debug_log_image;
-    lv_obj_t *top_debug_log_label;
-    lv_obj_t *top_debug_log_panel;
     lv_obj_t *top_group_chat_image;
     lv_obj_t *top_group_chat_label;
     lv_obj_t *top_group_chat_panel;
@@ -415,6 +412,9 @@ typedef struct _objects_t {
     lv_obj_t *top_nodes_image;
     lv_obj_t *top_nodes_online_label;
     lv_obj_t *top_nodes_panel;
+    lv_obj_t *top_packet_log_image;
+    lv_obj_t *top_packet_log_label;
+    lv_obj_t *top_packet_log_panel;
     lv_obj_t *top_panel;
     lv_obj_t *top_settings_panel;
     lv_obj_t *top_signal_scanner_image;
