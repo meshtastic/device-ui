@@ -3337,7 +3337,7 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
 
 void TFTView_320x240::updateTime(uint32_t time)
 {
-    if (time > 1000000) {
+    if (time > actTime) {
         actTime = time;
     }
 }
