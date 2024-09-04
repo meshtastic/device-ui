@@ -149,7 +149,7 @@ std::tuple<uint32_t, uint32_t> MeshtasticView::nodeColor(uint32_t nodeNum)
  * @param buf - result string
  * @return true, if heard within 15min
  */
-bool MeshtasticView::lastHeartToString(uint32_t lastHeard, char *buf)
+bool MeshtasticView::lastHeardToString(uint32_t lastHeard, char *buf)
 {
     time_t curtime;
     time(&curtime);

@@ -73,8 +73,8 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), packetLogEnabled(false),
-      packetCounter(0), actTime(0), uptime(0), hasPosition(false), topNodeLL(nullptr), scans(0), chooseNodeSignalScanner(false),
-      chooseNodeTraceRoute(false), db{}
+      detectorRunning(false), packetCounter(0), actTime(0), uptime(0), hasPosition(false), topNodeLL(nullptr), scans(0),
+      chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -1316,8 +1316,9 @@ void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
 
 void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t *e)
 {
-    static bool running = false;
-    if (!running) {
+    lv_obj_add_flag(objects.detector_contact_button, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
+    if (!THIS->detectorRunning) {
         lv_label_set_text(objects.detector_start_label, "Stop");
 
         // create radar animation
@@ -1335,7 +1336,8 @@ void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t *e)
         lv_anim_del(&objects.radar_beam, ui_anim_radar_cb);
         lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
     }
-    running = !running;
+    THIS->detectorRunning = !THIS->detectorRunning;
+    THIS->controller->sendPing();
 }
 
 void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
@@ -1496,6 +1498,49 @@ void TFTView_320x240::ui_event_packet_log(lv_event_t *e)
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         THIS->packetCounter = 0;
         lv_obj_clean(objects.tools_packet_log_panel);
+    }
+}
+
+void TFTView_320x240::packetDetected(const meshtastic_MeshPacket &p)
+{
+    uint32_t heard = 0;
+    if (p.from != ownNode)
+        heard = p.from;
+    if (p.to != 0xffffffff && p.to != ownNode)
+        heard = p.to;
+
+    if (heard) {
+        if (p.to == ownNode && p.decoded.portnum == meshtastic_PortNum_NODEINFO_APP) {
+            // we finally sensed a two-way contact to us; stop the detector
+            detectorRunning = false;
+            lv_label_set_text(objects.detector_start_label, "Start");
+            lv_anim_del(&objects.radar_beam, ui_anim_radar_cb);
+            lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
+
+            setNodeImage(p.from, (MeshtasticView::eRole)(unsigned long)nodes[p.from]->LV_OBJ_IDX(node_img_idx)->user_data, false,
+                         objects.detector_contact_image);
+            const char *lbl = lv_label_get_text(nodes[p.from]->LV_OBJ_IDX(node_lbl_idx));
+
+            char from[5];
+            char *userShort = (char *)&(nodes[p.from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
+            int pos = 0;
+            while (pos < 4 && userShort[pos] != 0) {
+                from[pos] = userShort[pos];
+                pos++;
+            }
+            from[pos] = '\0';
+
+            char buf[64];
+            lv_snprintf(buf, 64, "%s(%04x)\n%s", from, p.from & 0xffff, lbl);
+            lv_label_set_text(objects.detector_contact_label, buf);
+            lv_obj_clear_flag(objects.detector_contact_button, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            char buf[20];
+            lv_snprintf(buf, 20, "heard: !%08x", heard);
+            lv_label_set_text(objects.detector_heard_label, buf);
+            lv_obj_clear_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
+        }
     }
 }
 
@@ -2286,7 +2331,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
         lastHeard = std::min(curtime, (time_t)lastHeard); // adapt values too large
 
         char buf[12];
-        bool isOnline = lastHeartToString(lastHeard, buf);
+        bool isOnline = lastHeardToString(lastHeard, buf);
         lv_label_set_text(ui_lastHeardLabel, buf);
         if (isOnline) {
             nodesOnline++;
@@ -3130,6 +3175,9 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     if (p.rx_time > actTime) {
         actTime = p.rx_time;
     }
+    if (detectorRunning) {
+        packetDetected(p);
+    }
     if (packetLogEnabled) {
         writePacketLog(p);
     }
@@ -3945,7 +3993,7 @@ void TFTView_320x240::updateAllLastHeard(void)
             lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
         }
         if (lastHeard) {
-            bool isOnline = lastHeartToString(lastHeard, buf);
+            bool isOnline = lastHeardToString(lastHeard, buf);
             lv_label_set_text(it.second->LV_OBJ_IDX(node_lh_idx), buf);
             if (isOnline)
                 online++;
@@ -4066,6 +4114,10 @@ void TFTView_320x240::task_handler(void)
     if (curtime - lastrun60 >= 60) { // call every 60s
         lastrun60 = curtime;
         updateAllLastHeard();
+
+        if (detectorRunning) {
+            controller->sendPing();
+        }
     }
 
     if (processingFilter) {

@@ -139,6 +139,10 @@ typedef struct _objects_t {
     lv_obj_t *detected_node_button;
     lv_obj_t *detected_node_image;
     lv_obj_t *detected_node_label;
+    lv_obj_t *detector_contact_button;
+    lv_obj_t *detector_contact_image;
+    lv_obj_t *detector_contact_label;
+    lv_obj_t *detector_heard_label;
     lv_obj_t *detector_radar_panel;
     lv_obj_t *detector_start_button;
     lv_obj_t *detector_start_button_panel;

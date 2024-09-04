@@ -66,6 +66,7 @@ class ViewController
     virtual bool sendAdminMessage(meshtastic_AdminMessage &config, uint32_t nodeId);
     virtual bool sendAdminMessage(meshtastic_AdminMessage &&config, uint32_t nodeId);
     virtual void sendHeartbeat(void);
+    virtual void sendPing(void);
 
     virtual ~ViewController();
 
