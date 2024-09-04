@@ -171,16 +171,22 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 
 template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
-    uint16_t touchX, touchY;
-    bool touched = lgfx->getTouch(&touchX, &touchY);
-    if (!touched) {
+    // pin_int is pulled low when screen is touched
+    int16_t pin_int = lgfx->touch()->config().pin_int;
+    if (pin_int > -1 && digitalRead(pin_int)) {
         data->state = LV_INDEV_STATE_REL;
     } else {
-        data->state = LV_INDEV_STATE_PR;
-        data->point.x = touchX;
-        data->point.y = touchY;
+        uint16_t touchX, touchY;
+        bool touched = lgfx->getTouch(&touchX, &touchY);
+        if (!touched) {
+            data->state = LV_INDEV_STATE_REL;
+        } else {
+            data->state = LV_INDEV_STATE_PR;
+            data->point.x = touchX;
+            data->point.y = touchY;
 
-        // ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
+            // ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
+        }
     }
 }
 
