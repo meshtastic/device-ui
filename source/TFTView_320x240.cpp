@@ -1253,7 +1253,7 @@ void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
 void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED && lv_scr_act() == objects.lock_screen) {
         static const char *hidden[7] = {"o o o o o o", "* o o o o o", "* * o o o o", "* * * o o o",
                                         "* * * * o o", "* * * * * o", "* * * * * *"};
         static char pinEntered[7]{};
