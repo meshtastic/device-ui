@@ -37,10 +37,10 @@ void DeviceScreen::init(IClientBase *client)
     ILOG_DEBUG("DeviceScreen::init()...\n");
     gui->init(client);
 
-#ifdef TFT_BL
-    digitalWrite(TFT_BL, HIGH);
-    pinMode(TFT_BL, OUTPUT);
-#endif
+    // #ifdef TFT_BL
+    //     digitalWrite(TFT_BL, HIGH);
+    //     pinMode(TFT_BL, OUTPUT);
+    // #endif
 
 #ifdef VTFT_CTRL
     digitalWrite(VTFT_CTRL, LOW);
