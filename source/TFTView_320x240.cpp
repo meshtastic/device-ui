@@ -571,9 +571,11 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
     } else if (event_code == LV_EVENT_LONG_PRESSED && !advancedMode && THIS->activeSettings == eNone) {
-        lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        if (THIS->db.config.bluetooth.fixed_pin)
-            screenLocked = true;
+        screenLocked = true;
+        if (THIS->db.config.bluetooth.fixed_pin != 0) {
+            lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        } else
+            lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
     } else if (event_code == LV_EVENT_LONG_PRESSED && advancedMode && THIS->activeSettings == eNone) {
         advancedMode = !advancedMode;
         THIS->ui_set_active(objects.settings_button, ui_AdvancedSettingsPanel, objects.top_advanced_settings_panel);
@@ -1036,7 +1038,7 @@ void TFTView_320x240::ui_event_screen_lock_button(lv_event_t *e)
         char buf[10];
         lv_snprintf(buf, 7, "%06d", THIS->db.config.bluetooth.fixed_pin);
         lv_textarea_set_text(objects.settings_screen_lock_password_textarea, buf);
-        if (strcmp(buf, "000000")) {
+        if (strcmp(buf, "000000") != 0) {
             lv_obj_add_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
         } else {
             lv_obj_remove_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
@@ -1262,8 +1264,9 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
         const char *key = lv_buttonmatrix_get_button_text(obj, id);
         switch (*key) {
         case 'X': {
+            pinKeys = 0;
+            lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
             if (!screenLocked) {
-                pinKeys = 0;
                 lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
             } else {
                 // TODO: init screen saver
@@ -1812,8 +1815,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             bool lock = lv_obj_has_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
             if (lock && (atol(pin) == 0 || strlen(pin) != 6))
                 return; // require pin != "000000"
-            if (bt.fixed_pin != atol(pin)) {
-                bt.fixed_pin = atol(pin);
+            if ((!lock && bt.fixed_pin != 0) || bt.fixed_pin != atol(pin)) {
+                if (!lock)
+                    bt.fixed_pin = 0;
+                else
+                    bt.fixed_pin = atol(pin);
                 THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bt}, THIS->ownNode);
                 THIS->notifyReboot(true);
             }
@@ -3208,6 +3214,12 @@ void TFTView_320x240::blankScreen(bool enable)
 
 void TFTView_320x240::screenSaving(bool enabled)
 {
+    if (enabled)
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
+    else
+        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+
+    // TODO: lock screen after e.g. 5 mins blanking
     // if (THIS->db.config.bluetooth.fixed_pin)
     //     screenLocked |= enabled;
 }
@@ -3808,6 +3820,8 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
         }
     } else if (panel == objects.map_panel) {
 
+    } else if (panel == objects.settings_screen_lock_panel) {
+        lv_group_focus_obj(objects.screen_lock_button_matrix);
     } else if (panel == objects.controller_panel) {
         lv_group_focus_obj(objects.basic_settings_user_button);
     } else {

@@ -8,6 +8,7 @@
 #include <functional>
 
 const uint32_t defaultScreenTimeout = 60 * 1000;
+const uint32_t defaultScreenLockTimeout = 5 * 1000;
 const uint32_t defaultBrightness = 153;
 
 template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
@@ -72,8 +73,8 @@ LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
     // handle display timeout
-    if ((screenTimeout > 0 && screenTimeout < lv_display_get_inactive_time(NULL)) || powerSaving ||
-        (DisplayDriver::view->isScreenLocked() && lv_display_get_inactive_time(NULL) > 5000)) {
+    if ((screenTimeout > 0 && lv_display_get_inactive_time(NULL) > screenTimeout) || powerSaving ||
+        (DisplayDriver::view->isScreenLocked() && lv_display_get_inactive_time(NULL) > defaultScreenLockTimeout)) {
         // sleep screen only if there are means for wakeup
         if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
             DisplayDriver::view->getInputDriver()->hasKeyboardDevice() || hasButton()) {
@@ -102,7 +103,8 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     }
                     if (DisplayDriver::view->sleep(pin_int) ||
                         (screenTimeout > lv_display_get_inactive_time(NULL) &&
-                         ((DisplayDriver::view->isScreenLocked() && lv_display_get_inactive_time(NULL) < 5000) ||
+                         ((DisplayDriver::view->isScreenLocked() &&
+                           lv_display_get_inactive_time(NULL) < defaultScreenLockTimeout) ||
                           !DisplayDriver::view->isScreenLocked()))) {
                         // woke up by touch or button
                         ILOG_INFO("leaving powersave\n");
