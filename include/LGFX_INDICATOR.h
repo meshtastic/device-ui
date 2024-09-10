@@ -73,7 +73,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             cfg.pin_vsync = GPIO_NUM_17;
             cfg.pin_hsync = GPIO_NUM_16;
             cfg.pin_pclk = GPIO_NUM_21;
-            cfg.freq_write = 14000000;
+            cfg.freq_write = 12000000;
 
             cfg.hsync_polarity = 0;
             cfg.hsync_front_porch = 10;
@@ -108,11 +108,11 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             cfg.y_min = 0;
             cfg.y_max = 479;
             cfg.pin_int = GPIO_NUM_NC; // don't use IO_EXPANDER!;
-            cfg.pin_rst = (7 | IO_EXPANDER);
+            cfg.pin_rst = GPIO_NUM_NC; // not needed as well;
             cfg.bus_shared = true;
             cfg.offset_rotation = 0;
 
-            cfg.i2c_port = 1;
+            cfg.i2c_port = 0;
             cfg.i2c_addr = 0x48;
             cfg.pin_sda = 39;
             cfg.pin_scl = 40;
