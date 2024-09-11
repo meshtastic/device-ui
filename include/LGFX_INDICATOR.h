@@ -42,7 +42,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             cfg.pin_cs = (4 | IO_EXPANDER);
             cfg.pin_sclk = 41;
             cfg.pin_mosi = 48;
-            // cfg.use_psram = 1;
+            cfg.use_psram = 1;
             _panel_instance.config_detail(cfg);
         }
 
@@ -109,7 +109,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             cfg.y_max = 479;
             cfg.pin_int = GPIO_NUM_NC; // don't use IO_EXPANDER!;
             cfg.pin_rst = GPIO_NUM_NC; // not needed as well;
-            cfg.bus_shared = true;
+            cfg.bus_shared = false;
             cfg.offset_rotation = 0;
 
             cfg.i2c_port = 0;
