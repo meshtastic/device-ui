@@ -50,11 +50,9 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     lv_color_t *buf1;
     lv_color_t *buf2;
     bool calibrating;
-    static int touchLevel;
 };
 
 template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
-template <class LGFX> int LGFXDriver<LGFX>::touchLevel = 1;
 
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
@@ -175,22 +173,16 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 
 template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
-    // pin_int is pulled low (or high) when screen is touched
-    int16_t pin_int = lgfx->touch()->config().pin_int;
-    if (pin_int > -1 && digitalRead(pin_int) == touchLevel) {
+    uint16_t touchX, touchY;
+    bool touched = lgfx->getTouch(&touchX, &touchY);
+    if (!touched) {
         data->state = LV_INDEV_STATE_REL;
     } else {
-        uint16_t touchX, touchY;
-        bool touched = lgfx->getTouch(&touchX, &touchY);
-        if (!touched) {
-            data->state = LV_INDEV_STATE_REL;
-        } else {
-            data->state = LV_INDEV_STATE_PR;
-            data->point.x = touchX;
-            data->point.y = touchY;
+        data->state = LV_INDEV_STATE_PR;
+        data->point.x = touchX;
+        data->point.y = touchY;
 
-            // ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
-        }
+        // ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
     }
 }
 
@@ -284,12 +276,6 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
     lgfx->init();
     lgfx->setBrightness(defaultBrightness);
     lgfx->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
-
-#ifdef T_DECK
-    // T-Deck is low on idle
-    touchLevel = 1 - digitalRead(lgfx->touch()->config().pin_int);
-    ILOG_INFO("Setting touch level=%d\n", touchLevel);
-#endif
 
     if (hasTouch()) {
 #ifdef CALIBRATE_TOUCH
