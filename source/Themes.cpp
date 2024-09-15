@@ -15,6 +15,7 @@ enum ThemeColor {
     eTopImageBg,
     eTopImageRecolor,
     eTopImageRecolorOpa,
+    ePositiveImageRecolor,
     ePanelBg,
     ePanelPressedBg,
     ePanelText,
@@ -91,7 +92,8 @@ uint32_t themeColor[][2] = {
     {0xff67ea94, 0xff436C70}, // eTopImageBg
     {0xff212121, 0xffffffff}, // eTopImageRecolor
     {255, 255},               // eTopImageRecolorOpa
-    {0xfff4f4f4, 0xff303030}, // ePanelBg
+    {0xff212121, 0xffffffff}, // ePositiveImageRecolor,
+    {0xfff4f4f0, 0xff303030}, // ePanelBg
     {0xfffafafa, 0xff303030}, // ePanelPressedBg
     {0xff212121, 0xfff0f0f0}, // ePanelText
     {0xff67ea94, 0xff67ea94}, // ePanelBorder
@@ -347,6 +349,11 @@ void apply_style_settings_label_style(void)
     // lv_style_set_bg_opa(style, 255);
     lv_style_set_bg_color(style, lv_color_hex(THEME(eSettingsLabelBg)));
 };
+void apply_style_positive_image_style(void)
+{
+    lv_style_t *style = get_style_positive_image_style_MAIN_DEFAULT();
+    lv_style_set_image_recolor(style, lv_color_hex(THEME(ePositiveImageRecolor)));
+};
 }
 
 void Themes::set(enum Theme th)
@@ -378,6 +385,7 @@ void Themes::set(enum Theme th)
     apply_style_spinner_style_MAIN_DEFAULT();
     apply_style_spinner_style_INDICATOR_DEFAULT();
     apply_style_settings_label_style();
+    apply_style_positive_image_style();
 }
 
 void Themes::initStyles(void)
