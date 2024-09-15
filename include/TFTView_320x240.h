@@ -20,11 +20,11 @@ class TFTView_320x240 : public MeshtasticView
     void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                            bool can_shutdown) override;
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role, bool viaMqtt) override;
+                         eRole role, bool hasKey, bool viaMqtt) override;
     void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role,
-                 bool viaMqtt) override;
+                 bool hasKey, bool viaMqtt) override;
     void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                    eRole role, bool viaMqtt) override;
+                    eRole role, bool hasKey, bool viaMqtt) override;
     void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision) override;
     void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) override;
     void updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics) override;
@@ -43,6 +43,8 @@ class TFTView_320x240 : public MeshtasticView
     void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) override;
     void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) override;
     void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) override;
+    void updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg) override;
+    void updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg) override;
 
     // methods to update module config
     void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) override;

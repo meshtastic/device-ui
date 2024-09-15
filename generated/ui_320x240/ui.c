@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "images.h"
+#include <string.h>
 
 static int16_t currentScreen = -1;
 

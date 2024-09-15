@@ -16,15 +16,15 @@ class TFTView_480x320 : public MeshtasticView
     void task_handler(void) override;
 
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role, bool viaMqtt) override
+                         eRole role, bool hasKey, bool viaMqtt) override
     {
     }
     void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role,
-                 bool viaMqtt) override
+                 bool hasKey, bool viaMqtt) override
     {
     }
     void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                    eRole role, bool viaMqtt) override
+                    eRole role, bool hasKey, bool viaMqtt) override
     {
     }
 

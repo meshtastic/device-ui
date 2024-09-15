@@ -28,7 +28,7 @@ void MeshtasticView::task_handler(void)
     time(&curtime);
     if (curtime - lastrun20 >= 20) {
         lastrun20 = curtime;
-        // send heartbeat to server every 30s
+        // send heartbeat to server every 20s
         if (!displaydriver->isPowersaving()) {
             controller->sendHeartbeat();
         }
@@ -56,7 +56,7 @@ void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool h
 }
 
 void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                             eRole role, bool viaMqtt)
+                             eRole role, bool hasKey, bool viaMqtt)
 {
 }
 
@@ -64,23 +64,23 @@ void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *user
  * @brief add or update node with unknown user
  *
  */
-void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool viaMqtt)
+void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
 {
     // has_user == false, generate default user name
     char userShort[5], userLong[32];
     sprintf(userShort, "%04x", nodeNum & 0xffff);
     strcpy(userLong, "Meshtastic ");
     strcat(userLong, userShort);
-    addOrUpdateNode(nodeNum, channel, (const char *)&userShort[0], (const char *)&userLong[0], lastHeard, role, viaMqtt);
+    addOrUpdateNode(nodeNum, channel, (const char *)&userShort[0], (const char *)&userLong[0], lastHeard, role, hasKey, viaMqtt);
 }
 
 void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                     uint32_t lastHeard, eRole role, bool viaMqtt)
+                                     uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
 {
 }
 
 void MeshtasticView::updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                uint32_t lastHeard, eRole role, bool viaMqtt)
+                                uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
 {
 }
 
@@ -105,13 +105,13 @@ void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
     // if there's a message from a node we don't know (yet), create it with defaults
     auto it = nodes.find(p.from);
     if (it == nodes.end()) {
-        MeshtasticView::addOrUpdateNode(p.from, p.channel, 0, eRole::unknown, false);
+        MeshtasticView::addOrUpdateNode(p.from, p.channel, 0, eRole::unknown, false, false);
         updateLastHeard(p.from);
     }
     if (p.to != ownNode && p.to != 0xffffffff) {
         auto it = nodes.find(p.to);
         if (it == nodes.end()) {
-            MeshtasticView::addOrUpdateNode(p.to, p.channel, 0, eRole::unknown, false);
+            MeshtasticView::addOrUpdateNode(p.to, p.channel, 0, eRole::unknown, false, false);
             updateLastHeard(p.to);
         }
     }
@@ -147,7 +147,7 @@ std::tuple<uint32_t, uint32_t> MeshtasticView::nodeColor(uint32_t nodeNum)
  *
  * @param lastHeard
  * @param buf - result string
- * @return true, if heard within 15min
+ * @return true, if heard within 30min
  */
 bool MeshtasticView::lastHeardToString(uint32_t lastHeard, char *buf)
 {
@@ -165,7 +165,7 @@ bool MeshtasticView::lastHeardToString(uint32_t lastHeard, char *buf)
     else // after 60 days
         buf[0] = '\0';
 
-    return timediff <= 910; // 15min + some tolerance
+    return timediff <= 1810; // 15min + some tolerance
 }
 
 const char *MeshtasticView::deviceRoleToString(enum eRole role)

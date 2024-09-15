@@ -129,6 +129,11 @@ lv_style_t *get_style_settings_label_style_MAIN_DEFAULT();
 void add_style_settings_label_style(lv_obj_t *obj);
 void remove_style_settings_label_style(lv_obj_t *obj);
 
+// Style: PositiveImageStyle
+lv_style_t *get_style_positive_image_style_MAIN_DEFAULT();
+void add_style_positive_image_style(lv_obj_t *obj);
+void remove_style_positive_image_style(lv_obj_t *obj);
+
 
 
 #ifdef __cplusplus

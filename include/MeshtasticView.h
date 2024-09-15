@@ -48,13 +48,13 @@ class MeshtasticView : public DeviceGUI
     virtual void setMyInfo(uint32_t nodeNum);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                    bool can_shutdown);
-    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool viaMqtt);
+    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt);
     virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                 uint32_t lastHeard, eRole role, bool viaMqtt);
+                                 uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt);
     virtual void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role, bool viaMqtt);
+                         eRole role, bool hasKey, bool viaMqtt);
     virtual void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                            eRole role, bool viaMqtt);
+                            eRole role,  bool hasKey, bool viaMqtt);
     virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision);
     virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
     virtual void updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics) {}
@@ -73,6 +73,8 @@ class MeshtasticView : public DeviceGUI
     virtual void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) {}
     virtual void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) {}
     virtual void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) {}
+    virtual void updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg) {}
+    virtual void updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg) {}
 
     // methods to update module config
     virtual void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) {}

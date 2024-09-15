@@ -2232,10 +2232,10 @@ void TFTView_320x240::addMessage(uint32_t requestId, char *msg)
 }
 
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                              eRole role, bool viaMqtt)
+                              eRole role, bool hasKey, bool viaMqtt)
 {
-    // lv_obj nodesPanel children  |  user data
-    // ==============================================
+    // lv_obj nodesPanel children  |  user data (4 bytes)
+    // ==================================================
     // [0]: img                    | role
     // [1]: btn                    | ll group
     // [2]: lbl user long          | strlen(userLong)
@@ -2247,7 +2247,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // [8]: lbl position 2         | lon
     // [9]: lbl telemetry 1        |
     // [10]: lbl telemetry 2       | iaq
-    // user_data: ch
+    // panel user_data: ch
 
     lv_obj_t *p = lv_obj_create(objects.nodes_panel);
     lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
@@ -2273,7 +2273,11 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_radius(img, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    if (!hasKey) {
+        lv_obj_set_style_border_color(img, lv_color_hex(0xffff5555), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+
     img->user_data = (void *)role;
     // NodeButton
     lv_obj_t *nodeButton = lv_btn_create(p);
@@ -2287,6 +2291,36 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_min_height(nodeButton, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
     nodeButton->user_data = _lv_ll_get_tail(lv_group_ll);
 
+#if 0
+    // Publik Key Image
+    lv_obj_t *pkeyImage = lv_img_create(p);
+    lv_obj_set_pos(pkeyImage, 20, 2);
+    lv_obj_set_size(pkeyImage, 24, 24);
+    lv_img_set_src(p, &img_public_key_24_image);
+    lv_obj_set_style_align(pkeyImage, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+    add_style_positive_image_style(pkeyImage);
+    pkeyImage->user_data = (void*)hasKey;
+    if (hasKey) {
+        //lv_obj_set_x(sn_lbl, 52);
+        lv_obj_clear_flag(pkeyImage, LV_OBJ_FLAG_HIDDEN);
+    }
+    else {
+       lv_obj_add_flag(pkeyImage, LV_OBJ_FLAG_HIDDEN);
+       //lv_obj_set_x(sn_lbl, 30);
+    }
+#endif
+#if 0
+    // NodeLocationImage
+    lv_obj_t *nloc = lv_img_create(p);
+    lv_obj_set_pos(nloc, 40, 3);
+    lv_obj_set_size(nloc, 20, 20);
+    lv_img_set_src(nloc, &img_location_pin_14_image);
+    lv_obj_add_flag(nloc, LV_OBJ_FLAG_HIDDEN);
+    add_style_positive_image_style(nloc);
+    lv_obj_set_style_align(nloc, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+    //lv_obj_set_style_image_recolor(nloc, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //lv_obj_set_style_bg_color(nloc, lv_color_hex(0xff000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+#endif
     // UserNameLabel
     lv_obj_t *ln_lbl = lv_label_create(p);
     lv_obj_set_pos(ln_lbl, -5, 22);
@@ -2295,6 +2329,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_label_set_text(ln_lbl, userLong);
     ln_lbl->user_data = (void *)strlen(userLong);
     lv_obj_set_style_align(ln_lbl, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+
     // UserNameShortLabel
     lv_obj_t *sn_lbl = lv_label_create(p);
     lv_obj_set_pos(sn_lbl, 30, -3);
@@ -2349,14 +2384,14 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     lv_obj_set_style_text_align(ui_lastHeardLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
     ui_lastHeardLabel->user_data = (void *)lastHeard;
-    // SignalLabel
+    // SignalLabel / hopsAway
     lv_obj_t *ui_SignalLabel = lv_label_create(p);
     lv_obj_set_width(ui_SignalLabel, LV_SIZE_CONTENT);
     lv_obj_set_height(ui_SignalLabel, LV_SIZE_CONTENT);
     lv_obj_set_pos(ui_SignalLabel, 8, -12);
     lv_obj_set_align(ui_SignalLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_SignalLabel, "");
-    ui_SignalLabel->user_data = (void *)viaMqtt; // used for filtering (applyNodesFilter)
+    ui_SignalLabel->user_data = (void *)-1; //TODO viaMqtt; // used for filtering (applyNodesFilter)
     // PositionLabel
     lv_obj_t *ui_PositionLabel = lv_label_create(p);
     lv_obj_set_pos(ui_PositionLabel, -5, 36);
@@ -2427,12 +2462,12 @@ void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool 
 }
 
 void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong,
-                                      uint32_t lastHeard, eRole role, bool viaMqtt)
+                                      uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
 {
     if (nodes.find(nodeNum) == nodes.end()) {
-        addNode(nodeNum, ch, userShort, userLong, lastHeard, role, viaMqtt);
+        addNode(nodeNum, ch, userShort, userLong, lastHeard, role, hasKey, viaMqtt);
     } else {
-        updateNode(nodeNum, ch, userShort, userLong, lastHeard, role, viaMqtt);
+        updateNode(nodeNum, ch, userShort, userLong, lastHeard, role, hasKey, viaMqtt);
     }
 }
 
@@ -2448,7 +2483,7 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *
  * @param viaMqtt
  */
 void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                                 eRole role, bool viaMqtt)
+                                 eRole role, bool hasKey,  bool viaMqtt)
 {
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
@@ -2469,6 +2504,14 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
         it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)strlen(userLong);
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
         setNodeImage(nodeNum, role, viaMqtt, it->second->LV_OBJ_IDX(node_img_idx));
+        if (hasKey) {
+            // set border color to bg color
+            lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        else {
+            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), lv_color_hex(0xffff5555), LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
     }
 }
 
@@ -2709,6 +2752,7 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
             char buf[16];
             sprintf(buf, "hops: %d", (int)hopsAway);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
+            it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)hopsAway;
         }
     }
 }
@@ -3028,8 +3072,29 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
             if (curtime - lastHeard - 10 > 15 * 60)
                 hide = true;
         }
+        if (lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED)) {
+            lv_color_t color1 = lv_obj_get_style_bg_color(panel->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_color_t color2 = lv_obj_get_style_border_color(panel->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
+            bool hasKey = color1.blue == color2.blue && color1.red == color2.red && color1.green == color2.green;
+            if (!hasKey)
+                hide = true;
+        }
+        if (lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown) != 0) {
+            int32_t hopsAway = (signed long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
+            int selected = lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown) - 7;
+            if (hopsAway < 0)
+                hide = true;
+            else if (selected <= 0) {
+                if (hopsAway > -selected)
+                    hide = true;
+            }
+            else {
+                if (hopsAway < selected)
+                    hide = true;
+            }
+        }
         if (lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED)) {
-            bool viaMqtt = (unsigned long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
+            bool viaMqtt = false; //TODO (unsigned long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
             if (viaMqtt)
                 hide = true;
         }
@@ -3352,6 +3417,18 @@ void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothCon
     lv_snprintf(buf, 32, "Screen Lock: %s", db.config.bluetooth.fixed_pin ? "on" : "off");
     lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
 }
+
+void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg)
+{
+    db.config.security = cfg;
+    db.config.has_security = true;
+}
+
+void TFTView_320x240::updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg)
+{
+    // TODO
+}
+
 
 /// ---- module updates ----
 
@@ -3729,6 +3806,15 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     if (p) {
         lv_label_set_text(objects.top_messages_node_label, lv_label_get_text(p->LV_OBJ_IDX(node_lbl_idx)));
         ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
+            lv_color_t color1 = lv_obj_get_style_bg_color(p->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_color_t color2 = lv_obj_get_style_border_color(p->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
+            bool hasKey = color1.blue == color2.blue && color1.red == color2.red && color1.green == color2.green;
+        if (hasKey) {
+            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_secure_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        else {
+            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_channel_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
         unreadMessages = 0; // TODO: not all messages may be actually read
         updateUnreadMessages();
     } else {
