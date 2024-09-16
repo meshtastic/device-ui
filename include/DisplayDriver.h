@@ -25,8 +25,8 @@ class DisplayDriver
     virtual uint8_t getBrightness() { return 255; }
     virtual void setBrightness(uint8_t timeout) {}
 
-    virtual uint8_t getScreenTimeout() { return 0; }
-    virtual void setScreenTimeout(uint8_t timeout) {}
+    virtual uint16_t getScreenTimeout() { return 0; }
+    virtual void setScreenTimeout(uint16_t timeout) {}
 
     uint16_t getScreenWidth(void) { return screenWidth; }
     uint16_t getScreenHeight(void) { return screenHeight; }
