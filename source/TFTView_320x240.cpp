@@ -2391,7 +2391,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_pos(ui_SignalLabel, 8, -12);
     lv_obj_set_align(ui_SignalLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_SignalLabel, "");
-    ui_SignalLabel->user_data = (void *)-1; //TODO viaMqtt; // used for filtering (applyNodesFilter)
+    ui_SignalLabel->user_data = (void *)-1; // TODO viaMqtt; // used for filtering (applyNodesFilter)
     // PositionLabel
     lv_obj_t *ui_PositionLabel = lv_label_create(p);
     lv_obj_set_pos(ui_PositionLabel, -5, 36);
@@ -2483,7 +2483,7 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *
  * @param viaMqtt
  */
 void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                                 eRole role, bool hasKey,  bool viaMqtt)
+                                 eRole role, bool hasKey, bool viaMqtt)
 {
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
@@ -2508,9 +2508,9 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
             // set border color to bg color
             lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-        else {
-            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), lv_color_hex(0xffff5555), LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else {
+            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), lv_color_hex(0xffff5555),
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     }
 }
@@ -2740,6 +2740,7 @@ void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float
                 sprintf(buf, "rssi: %d snr: %.1f", rssi, snr);
             }
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
+            it->second->LV_OBJ_IDX(node_sig_idx)->user_data = 0;
         }
     }
 }
@@ -3087,14 +3088,13 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
             else if (selected <= 0) {
                 if (hopsAway > -selected)
                     hide = true;
-            }
-            else {
+            } else {
                 if (hopsAway < selected)
                     hide = true;
             }
         }
         if (lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED)) {
-            bool viaMqtt = false; //TODO (unsigned long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
+            bool viaMqtt = false; // TODO (unsigned long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
             if (viaMqtt)
                 hide = true;
         }
@@ -3428,7 +3428,6 @@ void TFTView_320x240::updateSessionKeyConfig(const meshtastic_Config_SessionkeyC
 {
     // TODO
 }
-
 
 /// ---- module updates ----
 
@@ -3806,14 +3805,15 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     if (p) {
         lv_label_set_text(objects.top_messages_node_label, lv_label_get_text(p->LV_OBJ_IDX(node_lbl_idx)));
         ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
-            lv_color_t color1 = lv_obj_get_style_bg_color(p->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_color_t color2 = lv_obj_get_style_border_color(p->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
-            bool hasKey = color1.blue == color2.blue && color1.red == color2.red && color1.green == color2.green;
+        lv_color_t color1 = lv_obj_get_style_bg_color(p->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_color_t color2 = lv_obj_get_style_border_color(p->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
+        bool hasKey = color1.blue == color2.blue && color1.red == color2.red && color1.green == color2.green;
         if (hasKey) {
-            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_secure_image, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-        else {
-            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_channel_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_secure_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else {
+            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_channel_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
         }
         unreadMessages = 0; // TODO: not all messages may be actually read
         updateUnreadMessages();
