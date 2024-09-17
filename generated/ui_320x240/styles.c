@@ -750,6 +750,50 @@ void remove_style_positive_image_style(lv_obj_t *obj) {
 };
 
 //
+// Style: StatisticsTableStyle
+//
+
+void init_style_statistics_table_style_MAIN_DEFAULT(lv_style_t *style) {
+    lv_style_set_text_font(style, &ui_font_montserrat_12);
+};
+
+lv_style_t *get_style_statistics_table_style_MAIN_DEFAULT() {
+    static lv_style_t *style;
+    if (!style) {
+        style = lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_statistics_table_style_MAIN_DEFAULT(style);
+    }
+    return style;
+};
+
+void init_style_statistics_table_style_ITEMS_DEFAULT(lv_style_t *style) {
+    lv_style_set_bg_color(style, lv_color_hex(0xfff4f4f0));
+    lv_style_set_text_color(style, lv_color_hex(0xff212121));
+    lv_style_set_border_color(style, lv_color_hex(0xffe0e0e0));
+};
+
+lv_style_t *get_style_statistics_table_style_ITEMS_DEFAULT() {
+    static lv_style_t *style;
+    if (!style) {
+        style = lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_statistics_table_style_ITEMS_DEFAULT(style);
+    }
+    return style;
+};
+
+void add_style_statistics_table_style(lv_obj_t *obj) {
+    lv_obj_add_style(obj, get_style_statistics_table_style_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_style(obj, get_style_statistics_table_style_ITEMS_DEFAULT(), LV_PART_ITEMS | LV_STATE_DEFAULT);
+};
+
+void remove_style_statistics_table_style(lv_obj_t *obj) {
+    lv_obj_remove_style(obj, get_style_statistics_table_style_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_remove_style(obj, get_style_statistics_table_style_ITEMS_DEFAULT(), LV_PART_ITEMS | LV_STATE_DEFAULT);
+};
+
+//
 //
 //
 
@@ -780,6 +824,7 @@ void add_style(lv_obj_t *obj, int32_t styleIndex) {
         add_style_spinner_style,
         add_style_settings_label_style,
         add_style_positive_image_style,
+        add_style_statistics_table_style,
     };
     add_style_funcs[styleIndex](obj);
 }
@@ -811,6 +856,7 @@ void remove_style(lv_obj_t *obj, int32_t styleIndex) {
         remove_style_spinner_style,
         remove_style_settings_label_style,
         remove_style_positive_image_style,
+        remove_style_statistics_table_style,
     };
     remove_style_funcs[styleIndex](obj);
 }

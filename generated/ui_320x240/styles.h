@@ -134,6 +134,12 @@ lv_style_t *get_style_positive_image_style_MAIN_DEFAULT();
 void add_style_positive_image_style(lv_obj_t *obj);
 void remove_style_positive_image_style(lv_obj_t *obj);
 
+// Style: StatisticsTableStyle
+lv_style_t *get_style_statistics_table_style_MAIN_DEFAULT();
+lv_style_t *get_style_statistics_table_style_ITEMS_DEFAULT();
+void add_style_statistics_table_style(lv_obj_t *obj);
+void remove_style_statistics_table_style(lv_obj_t *obj);
+
 
 
 #ifdef __cplusplus

@@ -372,7 +372,7 @@ typedef struct _objects_t {
     lv_obj_t *signal_scanner_start_label;
     lv_obj_t *snr_slider;
     lv_obj_t *start_button_panel;
-    lv_obj_t *statistics_label;
+    lv_obj_t *statistics_table;
     lv_obj_t *tab_page_basic_settings;
     lv_obj_t *tab_page_filter;
     lv_obj_t *tab_page_highlight;

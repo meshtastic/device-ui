@@ -265,6 +265,28 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(objects.detector_start_label, "Start");
     lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
+
+    // add event callback to to apply custom drawing for statistics table
+    lv_obj_add_event_cb(objects.statistics_table, ui_event_statistics_table, LV_EVENT_DRAW_TASK_ADDED, NULL);
+    lv_obj_add_flag(objects.statistics_table, LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS);
+    // statistics table item size
+    lv_table_set_row_count(objects.statistics_table, 12);
+    lv_table_set_column_count(objects.statistics_table, 7);
+    lv_table_set_column_width(objects.statistics_table, 0, 57);
+    lv_table_set_column_width(objects.statistics_table, 1, 36);
+    lv_table_set_column_width(objects.statistics_table, 2, 36);
+    lv_table_set_column_width(objects.statistics_table, 3, 36);
+    lv_table_set_column_width(objects.statistics_table, 4, 36);
+    lv_table_set_column_width(objects.statistics_table, 5, 36);
+    lv_table_set_column_width(objects.statistics_table, 6, 36);
+    // fill table heading
+    lv_table_set_cell_value(objects.statistics_table, 0, 0, "Name");
+    lv_table_set_cell_value(objects.statistics_table, 0, 1, "Tel");
+    lv_table_set_cell_value(objects.statistics_table, 0, 2, "Pos");
+    lv_table_set_cell_value(objects.statistics_table, 0, 3, "Inf");
+    lv_table_set_cell_value(objects.statistics_table, 0, 4, "Trc");
+    lv_table_set_cell_value(objects.statistics_table, 0, 5, "Nbr");
+    lv_table_set_cell_value(objects.statistics_table, 0, 6, "All");
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -435,7 +457,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.tools_signal_scanner_button, ui_event_signal_scanner, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.tools_trace_route_button, ui_event_trace_route, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.tools_neighbors_button, ui_event_neighbors, LV_EVENT_CLICKED, 0);
-    // lv_obj_add_event_cb(objects.tools_statistics_button, ui_event_statistics, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.tools_statistics_button, ui_event_statistics, LV_EVENT_ALL, 0);
     lv_obj_add_event_cb(objects.tools_packet_log_button, ui_event_packet_log, LV_EVENT_ALL, 0);
     // tools
     lv_obj_add_event_cb(objects.detector_start_button, ui_event_mesh_detector_start, LV_EVENT_CLICKED, 0);
@@ -1490,7 +1512,13 @@ void TFTView_320x240::ui_event_neighbors(lv_event_t *e)
 
 void TFTView_320x240::ui_event_statistics(lv_event_t *e)
 {
-    THIS->ui_set_active(objects.settings_button, objects.tools_statistics_panel, objects.top_statistics_label);
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        THIS->ui_set_active(objects.settings_button, objects.tools_statistics_panel, objects.top_statistics_panel);
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        // clear statistics table
+        THIS->updateStatistics(meshtastic_MeshPacket{.from = 0});
+    }
 }
 
 void TFTView_320x240::ui_event_packet_log(lv_event_t *e)
@@ -1555,7 +1583,7 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
         {5, "routing"},        {6, "admin"},           {7, "text message"},    {8, "waypoint"},    {9, "audio"},
         {10, "sensor"},        {32, "reply"},          {33, "ip tunnel"},      {34, "paxcounter"}, {64, "serial"},
         {65, "store forward"}, {66, "range test"},     {67, "telemetry"},      {68, "ZPS"},        {69, "simulator"},
-        {70, "trace route"},   {71, "neighbor info"},  {72, "atax"},           {73, "map report"}, {74, "power stress"},
+        {70, "tracert"},       {71, "neighbor info"},  {72, "atax"},           {73, "map report"}, {74, "power stress"},
         {256, "private"},      {257, "atax forwarder"}};
 
     // ignore admin packages initiated by us
@@ -1672,6 +1700,167 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
     if (lv_obj_get_scroll_bottom(objects.tools_packet_log_panel) < 20)
         lv_obj_scroll_to_view(pLabel, LV_ANIM_OFF);
 }
+
+void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
+{
+    struct Stats {
+        uint32_t id;
+        uint16_t row;
+        uint16_t tel;
+        uint16_t pos;
+        uint16_t inf;
+        uint16_t trc;
+        uint16_t txt;
+        uint16_t nbr;
+        uint32_t sum;
+
+        bool operator==(const Stats& rhs) const {
+            return id == rhs.id;
+        }
+
+        Stats& operator+=(const Stats& rhs) {
+            this->tel += rhs.tel;
+            this->pos += rhs.pos;
+            this->inf += rhs.inf;
+            this->trc += rhs.trc;
+            this->txt += rhs.txt;
+            this->nbr += rhs.nbr;
+            this->sum += 1;
+            return *this;
+        }
+
+        bool operator<(const Stats& rhs) const {
+            return sum > rhs.sum;  // sort reverse but skip equal values
+        }
+    };
+    static std::list<Stats> stats;
+
+    if (p.from == 0) {
+        // clear table
+        stats.clear();
+        for (int i=1; i<=11; i++) {
+            for (int j=0; j<7; j++) {
+                lv_table_set_cell_value(objects.statistics_table, i, j, "");
+            }
+        }
+        return;
+    }
+
+    // update statistic for node
+    Stats stat = { p.from };
+    switch (p.decoded.portnum) {
+        case meshtastic_PortNum_TELEMETRY_APP: {
+            meshtastic_Telemetry telemetry;
+            if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Telemetry_msg, &telemetry)) {
+                if (telemetry.which_variant == meshtastic_Telemetry_device_metrics_tag) {
+                    if (p.from == ownNode)
+                        return; // suppress (internal) battery level packets
+                }
+            }
+            stat.tel++;
+            break;
+        }
+        case meshtastic_PortNum_POSITION_APP: {
+           stat.pos++;
+            break;
+        }
+        case meshtastic_PortNum_NODEINFO_APP: {
+            stat.inf++;
+            break;
+        }
+        case meshtastic_PortNum_TRACEROUTE_APP: {
+            stat.trc++;
+            break;
+        }
+        case meshtastic_PortNum_TEXT_MESSAGE_APP: {
+            stat.txt++;
+            break;
+        }
+        case meshtastic_PortNum_NEIGHBORINFO_APP: {
+            stat.nbr++;
+            break;
+        }
+        default:
+            ILOG_DEBUG("unspecified packet in stats\n");
+            stat.sum++;
+            return;
+    }
+
+    std::list<Stats>::iterator it = std::find(stats.begin(), stats.end(), stat);
+    if (it == stats.end()) {
+        stat.row = stats.size();
+        stat.sum = 1;
+        //TODO: stop if memory limit is reached
+        stats.push_back(stat);
+    }
+    else {
+        *it += stat;
+    }
+
+    stats.sort();
+
+    // fill packet statistics table
+    char buf[10];
+    int row = 1;
+    bool move = false;
+    for (auto it2 : stats) {
+        if (it2.id == p.from || move) {
+            char *userData = (char *)&(nodes[it2.id]->LV_OBJ_IDX(node_lbs_idx)->user_data);
+            buf[0] = userData[0];
+            buf[1] = userData[1];
+            buf[2] = userData[2];
+            buf[3] = userData[3];
+            buf[4] = '\0';
+
+            // if name is empty or using glyphs then replace with short id
+            uint32_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
+            if (!width) {
+                sprintf(buf, "%04x", it2.id & 0xffff);
+            }
+
+            lv_table_set_cell_value(objects.statistics_table, row, 0, buf);
+            sprintf(buf, "%d", it2.tel);
+            lv_table_set_cell_value(objects.statistics_table, row, 1, buf);
+            sprintf(buf, "%d", it2.pos);
+            lv_table_set_cell_value(objects.statistics_table, row, 2, buf);
+            sprintf(buf, "%d", it2.inf);
+            lv_table_set_cell_value(objects.statistics_table, row, 3, buf);
+            sprintf(buf, "%d", it2.trc);
+            lv_table_set_cell_value(objects.statistics_table, row, 4, buf);
+            sprintf(buf, "%d", it2.nbr);
+            lv_table_set_cell_value(objects.statistics_table, row, 5, buf);
+            sprintf(buf, "%d", it2.sum);
+            lv_table_set_cell_value(objects.statistics_table, row, 6, buf);
+            move = true;
+        }
+        row++;
+        if (row > 11) // fill rows till bottom of 320x240 display
+            break;
+    }
+}
+
+void TFTView_320x240::ui_event_statistics_table(lv_event_t *e)
+{
+    lv_draw_task_t * draw_task = lv_event_get_draw_task(e);
+    lv_draw_dsc_base_t * base_dsc = (lv_draw_dsc_base_t *)lv_draw_task_get_draw_dsc(draw_task);
+    // if the cells are drawn...
+    if(base_dsc->part == LV_PART_ITEMS) {
+        // make the texts in the first cell blueish
+        lv_draw_fill_dsc_t * fill_draw_dsc = lv_draw_task_get_fill_dsc(draw_task);
+        if(fill_draw_dsc) {
+            uint32_t row = base_dsc->id1;
+            if(row == 0) {
+                fill_draw_dsc->color = lv_color_mix(lv_palette_main(LV_PALETTE_BLUE), fill_draw_dsc->color, LV_OPA_20);
+            }
+            // make every 2nd row grayish
+            else {
+                Themes::recolorTableRow(fill_draw_dsc, row % 2 == 0);
+            }
+        }
+    }
+
+}
+
 
 /**
  * @brief User widget OK button handling
@@ -2753,7 +2942,7 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
             char buf[16];
             sprintf(buf, "hops: %d", (int)hopsAway);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
-            it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)hopsAway;
+            it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)(unsigned long)hopsAway;
         }
     }
 }
@@ -3253,6 +3442,7 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     if (packetLogEnabled) {
         writePacketLog(p);
     }
+    updateStatistics(p);
 }
 
 void TFTView_320x240::notifyResync(bool show)

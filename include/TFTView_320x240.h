@@ -197,6 +197,7 @@ class TFTView_320x240 : public MeshtasticView
     void removeSpinner(void);
     void packetDetected(const meshtastic_MeshPacket &p);
     void writePacketLog(const meshtastic_MeshPacket &p);
+    void updateStatistics(const meshtastic_MeshPacket &p);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
@@ -268,6 +269,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_packet_log(lv_event_t *e);
 
     static void ui_event_pin_screen_button(lv_event_t *e);
+    static void ui_event_statistics_table(lv_event_t *e);
 
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);

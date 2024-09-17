@@ -81,7 +81,14 @@ enum ThemeColor {
     eBatteryPercentageText,
     eColorTextLabel,
     eSpinnerMainArc,
-    eSpinnerIndicatorArc
+    eSpinnerIndicatorArc,
+    eTableHeadingText,
+    eTableHeadingBg,
+    eTableItemText,
+    eTableItemBg,
+    eTableItemDarkBg,
+    eTableBorder,
+    eTableCellBorder
 };
 
 uint32_t themeColor[][2] = {
@@ -143,10 +150,7 @@ uint32_t themeColor[][2] = {
     {0xffffffff, 0xffffffff}, // eTabButtonPressedText
     {0xffb0b0b0, 0xff505050}, // eTabButtonDefaultBorder
     {0xfffbfce9, 0xff303030}, // eChatMessageBg
-    {
-        255,
-        255,
-    },                        // eChatMessageBgOpa
+    {255, 255},               // eChatMessageBgOpa
     {0xff294337, 0xffffffff}, // eChatMessageText
     {0xff888888, 0xff707070}, // eChatMessageBorder
     {0xffffffff, 0xff404040}, // eNewMessageBg
@@ -162,6 +166,13 @@ uint32_t themeColor[][2] = {
     {0xff003c9f, 0xffaafbff}, // eColorTextLabel
     {0xffe0e0e0, 0xff404040}, // eSpinnerMainArc
     {0xff67ea94, 0xff67ea94}, // eSpinnerIndicatorArc
+    {0xff212121, 0xffaafbff}, // eTableHeadingText,
+    {0xfff4f4f0, 0xff303030}, // eTableHeadingBg
+    {0xff212121, 0xffaafbff}, // eTableItemText,
+    {0xfff4f4f0, 0xff505050}, // eTableItemBg
+    {0xffd4d4d0, 0xff303030}, // eTableItemDarkBg
+    {0xffe0e0e0, 0xff404040}, // eTableBorder
+    {0xffe0e0e0, 0xff404040}  // eTableCellBorder
 };
 
 #include "fonts.h"
@@ -354,6 +365,17 @@ void apply_style_positive_image_style(void)
     lv_style_t *style = get_style_positive_image_style_MAIN_DEFAULT();
     lv_style_set_image_recolor(style, lv_color_hex(THEME(ePositiveImageRecolor)));
 };
+void apply_style_statistics_table_style_MAIN_DEFAULT(void) {
+    lv_style_t *style = get_style_statistics_table_style_MAIN_DEFAULT();
+    lv_style_set_border_color(style, lv_color_hex(THEME(eTableBorder)));
+};
+void apply_style_statistics_table_style_ITEMS_DEFAULT(void) {
+    lv_style_t *style = get_style_statistics_table_style_ITEMS_DEFAULT();
+    lv_style_set_bg_color(style, lv_color_hex(THEME(eTableItemBg)));
+    lv_style_set_text_color(style, lv_color_hex(THEME(eTableItemText)));
+    lv_style_set_border_color(style, lv_color_hex(THEME(eTableCellBorder)));
+};
+
 }
 
 void Themes::set(enum Theme th)
@@ -386,6 +408,8 @@ void Themes::set(enum Theme th)
     apply_style_spinner_style_INDICATOR_DEFAULT();
     apply_style_settings_label_style();
     apply_style_positive_image_style();
+    apply_style_statistics_table_style_MAIN_DEFAULT();
+    apply_style_statistics_table_style_ITEMS_DEFAULT();
 }
 
 void Themes::initStyles(void)
@@ -468,4 +492,14 @@ void Themes::recolorTopLabel(lv_obj_t *obj, bool alert)
         break;
     }
     lv_obj_set_style_text_color(obj, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
+void Themes::recolorTableRow(lv_draw_fill_dsc_t* fill_draw_dsc, bool odd)
+{
+    if (odd) {
+        fill_draw_dsc->color = lv_color_hex(THEME(eTableItemBg));
+    }
+    else {
+        fill_draw_dsc->color = lv_color_hex(THEME(eTableItemDarkBg));
+    }
 }
