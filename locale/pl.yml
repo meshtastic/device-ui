@@ -2,16 +2,16 @@ pl:
   no new messages: ~
   1 of 1 nodes online: ~
   DEL: ~
-  "User name: ": ~
-  "Modem Preset: LONG FAST": ~
-  "Channel: LongFast": ~
-  "Role: Client": ~
-  "Screen Timeout: 60s": ~
-  "Screen Brightness: 60%": ~
-  "Screen Calibration: default": ~
-  "Input Control: none/none": ~
-  "Message Alert Buzzer: on": ~
-  "Language: English": ~
+  'User name: ': ~
+  'Modem Preset: LONG FAST': ~
+  'Channel: LongFast': ~
+  'Role: Client': ~
+  'Screen Timeout: 60s': ~
+  'Screen Brightness: 60%': ~
+  'Screen Calibration: default': ~
+  'Input Control: none/none': ~
+  'Message Alert Buzzer: on': ~
+  'Language: English': ~
   Configuration  Reset: ~
   Reboot / Shutdown: ~
   Group Channels: ~
@@ -25,10 +25,10 @@ pl:
   Long Name: ~
   <unset>: ~
   LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
-  "FrequencySlot: 1 (902.0MHz)": ~
+  'FrequencySlot: 1 (902.0MHz)': ~
   Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  "Brightness: 60%": ~
-  "Timeout: 60s": ~
+  'Brightness: 60%': ~
+  'Timeout: 60s': ~
   Mouse: ~
   Keyboard: ~
   Message Alert: ~
@@ -37,12 +37,43 @@ pl:
   Pre-shared Key: ~
   New Message from\n: ~
   Resynch...: ~
-  "User name: %s": ~
-  "Device Role: %s": ~
-  "Screen Calibration: %s": ~
+  'User name: %s': ~
+  'Device Role: %s': ~
+  'Screen Calibration: %s': ~
   done: ~
   default: ~
-  "Region: %s": ~
-  "Modem Preset: %s": ~
-  "Channel: %s": ~
-  "Language: %s": ~
+  'Region: %s': ~
+  'Modem Preset: %s': ~
+  'Channel: %s': ~
+  'Language: %s': ~
+  'Screen Lock: off': ~
+  'Theme: Dark': ~
+  Mesh Detector: ~
+  Signal Scanner: ~
+  Trace Route: ~
+  Neighbors: ~
+  Statistics: ~
+  Packet Log: ~
+  Settings & Tools: ~
+  Node Search: ~
+  Neigbors: ~
+  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  Light\nDark: ~
+  Screen Lock: ~
+  Lock PIN: ~
+  Ringtone: ~
+  Zone: ~
+  City: ~
+  Unknown: ~
+  Offline: ~
+  Public Key: ~
+  Hops away: ~
+  <= 7\n<= 6\n<= 5\n<= 4\n<= 3\n<= 2\n<= 1\n0\n>= 1\n>= 2\n>= 3\n>= 4\n>= 5\n>= 6\n>= 7: ~
+  MQTT: ~
+  Position: ~
+  Name: ~
+  Active Chat: ~
+  Telemetry: ~
+  IAQ: ~
+  Start: ~
+  'Theme: %s': ~

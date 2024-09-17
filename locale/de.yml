@@ -1,19 +1,19 @@
 de:
-  "User name: %s": "Benutzer: %s"
-  "Device Role: %s": "Gerätemodus: %s"
-  no new messages: "keine neue Nachricht"
+  'User name: %s': 'Benutzer: %s'
+  'Device Role: %s': 'Gerätemodus: %s'
+  no new messages: keine neue Nachricht
   1 of 1 nodes online: ~
   DEL: ~
-  "User name: ": "Benutzer: "
-  "Modem Preset: LONG FAST": "Modem: LONG FAST"
-  "Channel: LongFast": "Gruppen-Kanäle: LongFast"
-  "Role: Client": "Gerätemodus: Client"
-  "Screen Timeout: 60s": "Bild aus: 60s"
-  "Screen Brightness: 60%": "Bildschirmhelligkeit: 60%"
-  "Screen Calibration: default": "Kalibrierung: Standard"
-  "Input Control: none/none": "Eingabe: ohne/ohne"
-  "Message Alert Buzzer: on": "Akustischer Alarm: ein"
-  "Language: English": "Sprache: Deutsch"
+  'User name: ': 'Benutzer: '
+  'Modem Preset: LONG FAST': 'Modem: LONG FAST'
+  'Channel: LongFast': 'Gruppen-Kanäle: LongFast'
+  'Role: Client': 'Gerätemodus: Client'
+  'Screen Timeout: 60s': 'Bild aus: 60s'
+  'Screen Brightness: 60%': 'Bildschirmhelligkeit: 60%'
+  'Screen Calibration: default': 'Kalibrierung: Standard'
+  'Input Control: none/none': 'Eingabe: ohne/ohne'
+  'Message Alert Buzzer: on': 'Akustischer Alarm: ein'
+  'Language: English': 'Sprache: Deutsch'
   Configuration  Reset: Einstellungen zurücksetzen
   Reboot / Shutdown: Neustart / Ausschalten
   Group Channels: Gruppen Kanäle
@@ -27,22 +27,55 @@ de:
   Long Name: Langname
   <unset>: <leer>
   LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
-  "FrequencySlot: 1 (902.0MHz)": "Frequenz: 1 (902.0MHz)"
+  'FrequencySlot: 1 (902.0MHz)': 'Frequenz: 1 (902.0MHz)'
   Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  "Brightness: 60%": "Helligkeit: 60%"
-  "Timeout: 60s": "Bild aus: 60s"
+  'Brightness: 60%': 'Helligkeit: 60%'
+  'Timeout: 60s': 'Bild aus: 60s'
   Mouse: Maus
   Keyboard: Tastatur
   Message Alert: Alarm
-  "NodeDB Reset\nFactory Reset": "Einstellungen zurücksetzen"
+  "NodeDB Reset\nFactory Reset": Einstellungen zurücksetzen
   Channel Name: Kanalname
   Pre-shared Key: Schlüssel
-  New Message from\n: "Neue Nachricht von\n"
+  New Message from\n: |
+    Neue Nachricht von
   Resynch...: Synchronisieren...
-  "Screen Calibration: %s": "Kalibrierung: %s"
-  done: "erledigt"
-  default: "Standard"
-  "Region: %s": ~
-  "Modem Preset: %s": "Voreinstellung: %s"
-  "Channel: %s": "Gruppen-Kanäle: %s"
-  "Language: %s": "Sprache: %s"
+  'Screen Calibration: %s': 'Kalibrierung: %s'
+  done: erledigt
+  default: Standard
+  'Region: %s': ~
+  'Modem Preset: %s': 'Voreinstellung: %s'
+  'Channel: %s': 'Gruppen-Kanäle: %s'
+  'Language: %s': 'Sprache: %s'
+  'Screen Lock: off': ~
+  'Theme: Dark': ~
+  Mesh Detector: ~
+  Signal Scanner: ~
+  Trace Route: ~
+  Neighbors: ~
+  Statistics: ~
+  Packet Log: ~
+  Settings & Tools: ~
+  Node Search: ~
+  Neigbors: ~
+  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  Light\nDark: ~
+  Screen Lock: ~
+  Lock PIN: ~
+  Ringtone: ~
+  Zone: ~
+  City: ~
+  NodeDB Reset\nFactory Reset: ~
+  Unknown: ~
+  Offline: ~
+  Public Key: ~
+  Hops away: ~
+  <= 7\n<= 6\n<= 5\n<= 4\n<= 3\n<= 2\n<= 1\n0\n>= 1\n>= 2\n>= 3\n>= 4\n>= 5\n>= 6\n>= 7: ~
+  MQTT: ~
+  Position: ~
+  Name: ~
+  Active Chat: ~
+  Telemetry: ~
+  IAQ: ~
+  Start: ~
+  'Theme: %s': ~
