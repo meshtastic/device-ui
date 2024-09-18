@@ -1831,7 +1831,14 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             lv_table_set_cell_value(objects.statistics_table, row, 5, buf);
             sprintf(buf, "%d", it2.sum);
             lv_table_set_cell_value(objects.statistics_table, row, 6, buf);
-            move = true;
+
+            if (row != it2.row) {
+                it2.row = row;
+                move = true;
+            }
+            else {
+                break;
+            }
         }
         row++;
         if (row > 11) // fill rows till bottom of 320x240 display
