@@ -7,7 +7,50 @@
 #define SPI_FREQUENCY 80000000
 #endif
 
+#ifdef CUSTOM_TOUCH_DRIVER
+#include <bb_captouch.h>
+
+#define TOUCH_SDA 18
+#define TOUCH_SCL 8
+#define TOUCH_INT 16
+#define TOUCH_RST -1
+
+// avoid lovyanGFX touch driver: 
+// custom class for redirecting getTouch() calls and to alternative implementation
+class LGFX_Touch : public lgfx::LGFX_Device
+{
+  public:
+    bool init_impl(bool use_reset, bool use_clear) override
+    {
+        bool result = LGFX_Device::init_impl(use_reset, use_clear);
+        bbct.init(TOUCH_SDA, TOUCH_SCL, TOUCH_RST, TOUCH_INT);
+        bbct.setOrientation(90, 320, 240);
+        return result;
+    }
+
+    int8_t getTouchInt(void) { return TOUCH_INT; }
+
+    // unfortunately not declared as virtual in base class, need to choose a different name
+    bool getTouchXY(uint16_t* touchX, uint16_t* touchY) {
+        TOUCHINFO ti;
+        if (!digitalRead(TOUCH_INT)) {
+            if (bbct.getSamples(&ti)) {
+                *touchX = ti.x[0];
+                *touchY = ti.y[0] -90;
+                return true;
+            }
+        }
+        return false; 
+    };
+
+  private:
+    BBCapTouch bbct;
+};
+
+class LGFX_TDECK : public LGFX_Touch
+#else
 class LGFX_TDECK : public lgfx::LGFX_Device
+#endif
 {
     lgfx::Panel_ST7789 _panel_instance;
     lgfx::Bus_SPI _bus_instance;
@@ -112,7 +155,9 @@ class LGFX_TDECK : public lgfx::LGFX_Device
             cfg.freq = 400000;
 
             _touch_instance.config(cfg);
+#ifndef CUSTOM_TOUCH_DRIVER
             _panel_instance.setTouch(&_touch_instance);
+#endif
         }
 
         setPanel(&_panel_instance); // Sets the panel to use.

@@ -18,7 +18,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     LGFXDriver(const DisplayDriverConfig &cfg);
     void init(DeviceGUI *gui) override;
     bool calibrate(void) override;
-    bool hasTouch(void) override { return lgfx->touch(); }
+    bool hasTouch(void) override;
     bool hasButton(void) override { return lgfx->hasButton(); }
     bool hasLight(void) override { return lgfx->light(); }
     bool isPowersaving(void) override { return powerSaving; }
@@ -70,6 +70,15 @@ LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
     lgfx = this->tft;
 }
 
+template <class LGFX> bool LGFXDriver<LGFX>::hasTouch(void)
+{
+#ifdef CUSTOM_TOUCH_DRIVER
+    return true;
+#else
+    return lgfx->touch();
+#endif
+}
+
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
     // handle display timeout
@@ -94,8 +103,13 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                 }
                 if (powerSaving) {
                     int pin_int = 0;
-                    if (hasTouch())
+                    if (hasTouch()) {
+#ifndef CUSTOM_TOUCH_DRIVER
                         pin_int = lgfx->touch()->config().pin_int;
+#else
+                        pin_int = lgfx->getTouchInt();
+#endif
+                    }
                     else if (hasButton()) {
 #ifdef BUTTON_PIN // only relevant for CYD scenario
                         pin_int = BUTTON_PIN;
@@ -174,7 +188,11 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
     uint16_t touchX, touchY;
+#ifdef CUSTOM_TOUCH_DRIVER
+    bool touched = lgfx->getTouchXY(&touchX, &touchY);
+#else
     bool touched = lgfx->getTouch(&touchX, &touchY);
+#endif
     if (!touched) {
         data->state = LV_INDEV_STATE_REL;
     } else {
@@ -182,7 +200,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         data->point.x = touchX;
         data->point.y = touchY;
 
-        // ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
+        //ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
     }
 }
 
@@ -278,6 +296,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
     lgfx->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
 
     if (hasTouch()) {
+#ifndef CUSTOM_TOUCH_DRIVER
 #ifdef CALIBRATE_TOUCH
         ILOG_INFO("Calibrating touch...\n");
 #ifdef T_DECK
@@ -306,6 +325,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         calibrate(parameters);
 #else
         lgfx->setTouchCalibrate(parameters);
+#endif
 #endif
 #endif
     }

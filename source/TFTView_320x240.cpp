@@ -122,7 +122,9 @@ void TFTView_320x240::init(IClientBase *client)
     if (!displaydriver->hasLight())
         lv_obj_add_flag(objects.basic_settings_brightness_button, LV_OBJ_FLAG_HIDDEN);
 
+#ifndef CUSTOM_TOUCH_DRIVER
     if (!displaydriver->hasTouch())
+#endif
         lv_obj_add_flag(objects.basic_settings_calibration_button, LV_OBJ_FLAG_HIDDEN);
 
 #if LV_USE_LIBINPUT
