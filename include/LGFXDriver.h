@@ -187,7 +187,7 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 
 template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
-    uint16_t touchX, touchY;
+    uint16_t touchX = 0, touchY = 0;
 #ifdef CUSTOM_TOUCH_DRIVER
     bool touched = lgfx->getTouchXY(&touchX, &touchY);
 #else
