@@ -263,6 +263,14 @@ void TFTView_320x240::apply_hotfix(void)
     tab_buttons = lv_tabview_get_tab_bar(ui_SettingsTabView);
     applyStyle(tab_buttons);
 
+    // if display is higher than 240 resolution then place tabs at top
+    uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
+    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
+    if (v > 240) {
+        lv_tabview_set_tab_bar_position(objects.controller_tab_view, LV_DIR_TOP);
+        lv_tabview_set_tab_bar_position(ui_SettingsTabView, LV_DIR_TOP);
+    }
+
     lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(objects.detector_start_label, "Start");
@@ -272,15 +280,24 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_add_event_cb(objects.statistics_table, ui_event_statistics_table, LV_EVENT_DRAW_TASK_ADDED, NULL);
     lv_obj_add_flag(objects.statistics_table, LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS);
     // statistics table item size
-    lv_table_set_row_count(objects.statistics_table, 12);
+    int32_t width = 36;
+    int32_t rows = 12;
+    if (h > 320) {
+        width = (h - 48 - 57) / 6;
+    }
+    if (v > 240) {
+        rows = (v - 32) / 18;
+    }
+    statisticTableRows = rows;
+    lv_table_set_row_count(objects.statistics_table, statisticTableRows);
     lv_table_set_column_count(objects.statistics_table, 7);
     lv_table_set_column_width(objects.statistics_table, 0, 57);
-    lv_table_set_column_width(objects.statistics_table, 1, 36);
-    lv_table_set_column_width(objects.statistics_table, 2, 36);
-    lv_table_set_column_width(objects.statistics_table, 3, 36);
-    lv_table_set_column_width(objects.statistics_table, 4, 36);
-    lv_table_set_column_width(objects.statistics_table, 5, 36);
-    lv_table_set_column_width(objects.statistics_table, 6, 36);
+    lv_table_set_column_width(objects.statistics_table, 1, width);
+    lv_table_set_column_width(objects.statistics_table, 2, width);
+    lv_table_set_column_width(objects.statistics_table, 3, width);
+    lv_table_set_column_width(objects.statistics_table, 4, width);
+    lv_table_set_column_width(objects.statistics_table, 5, width);
+    lv_table_set_column_width(objects.statistics_table, 6, width);
     // fill table heading
     lv_table_set_cell_value(objects.statistics_table, 0, 0, "Name");
     lv_table_set_cell_value(objects.statistics_table, 0, 1, "Tel");
@@ -1740,7 +1757,7 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
     if (p.from == 0) {
         // clear table
         stats.clear();
-        for (int i=1; i<=11; i++) {
+        for (int i=1; i<statisticTableRows; i++) {
             for (int j=0; j<7; j++) {
                 lv_table_set_cell_value(objects.statistics_table, i, j, "");
             }
@@ -1843,7 +1860,7 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             }
         }
         row++;
-        if (row > 11) // fill rows till bottom of 320x240 display
+        if (row >= statisticTableRows) // fill rows till bottom of 320x240 display
             break;
     }
 }

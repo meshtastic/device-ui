@@ -293,6 +293,7 @@ class TFTView_320x240 : public MeshtasticView
     bool processingFilter;                           // indicates that filtering is ongoing
     bool packetLogEnabled;                           // display received packets
     bool detectorRunning;                            // meshDetector is active
+    uint16_t statisticTableRows;                     // number of rows in statistics table
     uint16_t packetCounter;                          // number of packets in packet log
     time_t lastrun60, lastrun10, lastrun5, lastrun1; // timers for task loop
     time_t actTime, uptime;                          // actual time and uptime;
