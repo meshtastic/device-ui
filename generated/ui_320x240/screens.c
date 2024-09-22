@@ -160,12 +160,11 @@ void create_screen_main_screen() {
             lv_obj_set_size(obj, LV_PCT(12), LV_PCT(100));
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM);
             add_style_button_panel_style(obj);
-            lv_obj_set_style_max_width(obj, 38, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_max_height(obj, 536870911, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_max_height(obj, 480, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_flex_main_place(obj, LV_FLEX_ALIGN_START, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_flex_main_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_flex_track_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_top(obj, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -174,7 +173,8 @@ void create_screen_main_screen() {
             lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_column(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_row(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_min_width(obj, 38, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_min_width(obj, 36, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_max_width(obj, 72, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
                 {
@@ -194,7 +194,7 @@ void create_screen_main_screen() {
                     // NodesButton
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.nodes_button = obj;
-                    lv_obj_set_pos(obj, -12, 0);
+                    lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 36, 36);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -206,7 +206,7 @@ void create_screen_main_screen() {
                     // GroupsButton
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.groups_button = obj;
-                    lv_obj_set_pos(obj, -12, 0);
+                    lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 36, 36);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -218,7 +218,7 @@ void create_screen_main_screen() {
                     // MessagesButton
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.messages_button = obj;
-                    lv_obj_set_pos(obj, -12, 0);
+                    lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 36, 36);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -230,7 +230,7 @@ void create_screen_main_screen() {
                     // MapButton
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.map_button = obj;
-                    lv_obj_set_pos(obj, -12, 0);
+                    lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 36, 36);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -242,7 +242,7 @@ void create_screen_main_screen() {
                     // SettingsButton
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.settings_button = obj;
-                    lv_obj_set_pos(obj, -12, 0);
+                    lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 36, 36);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -256,7 +256,7 @@ void create_screen_main_screen() {
             // HomePanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.home_panel = obj;
-            lv_obj_set_pos(obj, 39, 24);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_SCROLLABLE);
             add_style_panel_style(obj);
@@ -533,7 +533,7 @@ void create_screen_main_screen() {
             // NodesPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.nodes_panel = obj;
-            lv_obj_set_pos(obj, 39, 24);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -701,7 +701,7 @@ void create_screen_main_screen() {
             // GroupsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.groups_panel = obj;
-            lv_obj_set_pos(obj, 39, 24);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -935,7 +935,7 @@ void create_screen_main_screen() {
             // MessagesPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.messages_panel = obj;
-            lv_obj_set_pos(obj, 39, 24);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_SCROLLABLE);
@@ -1006,7 +1006,7 @@ void create_screen_main_screen() {
             // ChatsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.chats_panel = obj;
-            lv_obj_set_pos(obj, 39, 24);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -1078,7 +1078,7 @@ void create_screen_main_screen() {
             // MapPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.map_panel = obj;
-            lv_obj_set_pos(obj, 39, 24);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             add_style_panel_style(obj);
@@ -1089,7 +1089,7 @@ void create_screen_main_screen() {
             // ControllerPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.controller_panel = obj;
-            lv_obj_set_pos(obj, 39, 24);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SNAPPABLE);
@@ -1097,6 +1097,10 @@ void create_screen_main_screen() {
             lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
             add_style_panel_style(obj);
             lv_obj_set_style_layout(obj, LV_LAYOUT_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
                 {
@@ -1106,13 +1110,12 @@ void create_screen_main_screen() {
                     lv_tabview_set_tab_bar_size(obj, 25);
                     objects.controller_tab_view = obj;
                     lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_PCT(108), LV_PCT(110));
+                    lv_obj_set_size(obj, LV_PCT(100), LV_PCT(100));
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
                     lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
                     add_style_tab_view_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_pad_left(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
                         lv_obj_t *parent_obj = obj;
                         {
@@ -1707,7 +1710,7 @@ void create_screen_main_screen() {
             // AdvancedSettingsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.advanced_settings_panel = obj;
-            lv_obj_set_pos(obj, 39, 25);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1718,8 +1721,8 @@ void create_screen_main_screen() {
             // TopPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
             lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
             add_style_top_panel_style(obj);
@@ -1730,11 +1733,11 @@ void create_screen_main_screen() {
                     // MeshtasticImage
                     lv_obj_t *obj = lv_img_create(parent_obj);
                     objects.meshtastic_image = obj;
-                    lv_obj_set_pos(obj, -60, -9);
+                    lv_obj_set_pos(obj, -60, 0);
                     lv_obj_set_size(obj, 36, 17);
                     lv_img_set_src(obj, &img_meshtastic_logo_image);
                     add_style_top_image_style(obj);
-                    lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_image_opa(obj, 255, LV_PART_MAIN | LV_STATE_DISABLED);
                     lv_obj_set_style_image_recolor(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DISABLED);
                     lv_obj_set_style_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DISABLED);
@@ -1743,12 +1746,12 @@ void create_screen_main_screen() {
                     // MeshtasticLabel
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     objects.meshtastic_label = obj;
-                    lv_obj_set_pos(obj, 14, -12);
+                    lv_obj_set_pos(obj, 14, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, "Meshtastic");
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_text_font(obj, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
             }
         }
@@ -1756,8 +1759,8 @@ void create_screen_main_screen() {
             // TopNodesPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_nodes_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -1792,8 +1795,8 @@ void create_screen_main_screen() {
             // TopGroupsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_groups_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -1828,8 +1831,8 @@ void create_screen_main_screen() {
             // TopGroupChatPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_group_chat_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -1864,8 +1867,8 @@ void create_screen_main_screen() {
             // TopSettingsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_settings_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -1900,8 +1903,8 @@ void create_screen_main_screen() {
             // TopAdvancedSettingsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_advanced_settings_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -1934,8 +1937,8 @@ void create_screen_main_screen() {
             // TopMapPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_map_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -1969,8 +1972,8 @@ void create_screen_main_screen() {
             // TopChatsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_chats_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2004,8 +2007,8 @@ void create_screen_main_screen() {
             // TopMessagesPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_messages_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2040,8 +2043,8 @@ void create_screen_main_screen() {
             // TopNodeSearchPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_node_search_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2075,8 +2078,8 @@ void create_screen_main_screen() {
             // TopMeshDetectorPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_mesh_detector_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2110,8 +2113,8 @@ void create_screen_main_screen() {
             // TopSignalScannerPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_signal_scanner_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2146,8 +2149,8 @@ void create_screen_main_screen() {
             // TopTraceRoutePanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_trace_route_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2181,8 +2184,8 @@ void create_screen_main_screen() {
             // TopNeighborsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_neighbors_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2216,8 +2219,8 @@ void create_screen_main_screen() {
             // TopStatisticsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_statistics_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2251,8 +2254,8 @@ void create_screen_main_screen() {
             // TopPacketLogPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_packet_log_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2286,8 +2289,8 @@ void create_screen_main_screen() {
             // TopNodeOptionsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.top_node_options_panel = obj;
-            lv_obj_set_pos(obj, 38, 0);
-            lv_obj_set_size(obj, LV_PCT(80), 24);
+            lv_obj_set_pos(obj, LV_PCT(12), 0);
+            lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -2323,7 +2326,7 @@ void create_screen_main_screen() {
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.battery_panel = obj;
             lv_obj_set_pos(obj, 0, 0);
-            lv_obj_set_size(obj, LV_PCT(19), 24);
+            lv_obj_set_size(obj, LV_PCT(19), LV_PCT(10));
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
             add_style_top_panel_style(obj);
@@ -3657,14 +3660,18 @@ void create_screen_main_screen() {
             // NodeOptionsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.node_options_panel = obj;
-            lv_obj_set_pos(obj, 39, 25);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SNAPPABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
             add_style_settings_panel_style(obj);
-            lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_layout(obj, LV_LAYOUT_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
                 {
@@ -3674,12 +3681,10 @@ void create_screen_main_screen() {
                     lv_tabview_set_tab_bar_size(obj, 25);
                     objects.node_options_tab_view = obj;
                     lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_PCT(105), LV_PCT(110));
+                    lv_obj_set_size(obj, LV_PCT(100), LV_PCT(100));
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
                     add_style_tab_view_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_pad_left(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_pad_right(obj, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
                         lv_obj_t *parent_obj = obj;
                         {
@@ -3688,12 +3693,12 @@ void create_screen_main_screen() {
                             objects.tab_page_filter = obj;
                             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_pad_top(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_row(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_column(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_pad_top(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
                             {
                                 lv_obj_t *parent_obj = obj;
                                 {
@@ -4135,7 +4140,7 @@ void create_screen_main_screen() {
             // MeshDetectorPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.mesh_detector_panel = obj;
-            lv_obj_set_pos(obj, 39, 25);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -4604,7 +4609,7 @@ void create_screen_main_screen() {
             // TraceRoutePanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.trace_route_panel = obj;
-            lv_obj_set_pos(obj, 39, 25);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -4721,7 +4726,7 @@ void create_screen_main_screen() {
             // ToolsNeighborsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.tools_neighbors_panel = obj;
-            lv_obj_set_pos(obj, 39, 25);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -4847,7 +4852,7 @@ void create_screen_main_screen() {
             // ToolsStatisticsPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.tools_statistics_panel = obj;
-            lv_obj_set_pos(obj, 39, 25);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
@@ -4885,7 +4890,7 @@ void create_screen_main_screen() {
             // ToolsPacketLogPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.tools_packet_log_panel = obj;
-            lv_obj_set_pos(obj, 39, 25);
+            lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);

@@ -243,6 +243,10 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 void TFTView_320x240::apply_hotfix(void)
 {
     lv_obj_move_foreground(objects.keyboard);
+    lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_text(objects.detector_start_label, "Start");
+    lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
 
     updateTheme();
 
@@ -263,18 +267,16 @@ void TFTView_320x240::apply_hotfix(void)
     tab_buttons = lv_tabview_get_tab_bar(ui_SettingsTabView);
     applyStyle(tab_buttons);
 
-    // if display is higher than 240 resolution then place tabs at top
     uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
-    if (v > 240) {
-        lv_tabview_set_tab_bar_position(objects.controller_tab_view, LV_DIR_TOP);
-        lv_tabview_set_tab_bar_position(ui_SettingsTabView, LV_DIR_TOP);
+    // resize buttons on larger display (assuming 480x480)
+    if (h > 320 && v > 320) {
+        lv_obj_t *button[] = { objects.home_button, objects.nodes_button, objects.groups_button,
+                                objects.messages_button, objects.map_button, objects.settings_button };
+        for (int i=0; i<6; i++) {
+            lv_obj_set_size(button[i], 72, 72);
+        }
     }
-
-    lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
-    lv_label_set_text(objects.detector_start_label, "Start");
-    lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
 
     // add event callback to to apply custom drawing for statistics table
     lv_obj_add_event_cb(objects.statistics_table, ui_event_statistics_table, LV_EVENT_DRAW_TASK_ADDED, NULL);
