@@ -2130,6 +2130,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     config.nag_timeout = 0;
 #ifdef USE_I2S_BUZZER
                     config.use_i2s_as_buzzer = true;
+                    config.use_pwm = false;
 #endif
                 }
                 THIS->notifyReboot(true);
