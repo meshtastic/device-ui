@@ -308,6 +308,7 @@ class TFTView_320x240 : public MeshtasticView
     static time_t startTime;                         // time when start button was pressed
     static uint32_t pinKeys;                         // number of keys pressed (lock screen)
     static bool screenLocked;                        // screen lock active
+    uint32_t selectedHops;                           // remember selected choice
     bool chooseNodeSignalScanner;                    // chose a target node for signal scanner
     bool chooseNodeTraceRoute;                       // chose a target node for trace route
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings

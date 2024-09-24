@@ -75,7 +75,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), packetLogEnabled(false),
       detectorRunning(false), packetCounter(0), actTime(0), uptime(0), hasPosition(false), topNodeLL(nullptr), scans(0),
-      chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), db{}
+      selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -560,6 +560,10 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
         if (THIS->chooseNodeSignalScanner) {
             THIS->chooseNodeSignalScanner = false;
             ui_event_signal_scanner(NULL);
+            // restore previous filter
+            lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, THIS->selectedHops);
+            THIS->updateNodesFiltered(true);
+            THIS->updateNodesStatus();
         } else if (THIS->chooseNodeTraceRoute) {
             THIS->chooseNodeTraceRoute = false;
             ui_event_trace_route(NULL);
@@ -1406,7 +1410,11 @@ void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
 void TFTView_320x240::ui_event_signal_scanner_node(lv_event_t *e)
 {
     THIS->chooseNodeSignalScanner = true;
+    THIS->selectedHops = lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown);
+    lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, 7); // 0 hops away
     THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+    THIS->updateNodesFiltered(true);
+    THIS->updateNodesStatus();
 }
 
 void TFTView_320x240::ui_event_signal_scanner_start(lv_event_t *e)
