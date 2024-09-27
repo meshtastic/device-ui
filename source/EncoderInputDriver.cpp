@@ -75,7 +75,6 @@ void EncoderInputDriver::encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
 
 #ifdef INPUTDRIVER_ENCODER_BTN
         if (action == TB_ACTION_NONE) {
-            pinMode(INPUTDRIVER_ENCODER_BTN, INPUT); // workaround for trackball button issue
             if (!digitalRead(INPUTDRIVER_ENCODER_BTN)) {
                 action = TB_ACTION_PRESSED;
             }
