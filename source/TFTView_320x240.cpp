@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <ctime>
 #include <functional>
+#include <list>
 
 #ifdef ARCH_PORTDUINO
 #include "LinuxHelper.h"
