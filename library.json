@@ -19,7 +19,7 @@
   "platforms": "Expressif 32, Nordic nRF52, Raspberry Pi RP2040, Native, Linux x86_64, Linux ARM",
   "headers": ["DeviceScreen.h", "SharedQueue.h"],
   "dependencies": {
-    "lvgl/lvgl": "9.2.0",
+    "external-repo": "https://github.com/lvgl/lvgl#0daebca18b2e7d4c51d5b53e7f2a60df634850f2",
     "nanopb/Nanopb": "0.4.7"
   },
   "build": {
