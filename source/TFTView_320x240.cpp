@@ -3727,10 +3727,10 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
     // create container for new messages
     lv_obj_t *container = lv_obj_create(objects.messages_panel);
     lv_obj_remove_style_all(container);
-    lv_obj_set_width(container, lv_pct(110));
-    lv_obj_set_height(container, lv_pct(100));
+    lv_obj_set_width(container, lv_pct(100));
+    lv_obj_set_height(container, lv_pct(88));
     lv_obj_set_x(container, 0);
-    lv_obj_set_y(container, -10);
+    lv_obj_set_y(container, 0);
     lv_obj_set_align(container, LV_ALIGN_TOP_MID);
     lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);

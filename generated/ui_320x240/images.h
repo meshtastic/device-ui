@@ -62,9 +62,6 @@ extern const lv_img_dsc_t img_top_chart_image;
 extern const lv_img_dsc_t img_debug_log_image;
 extern const lv_img_dsc_t img_top_neighbors_image;
 extern const lv_img_dsc_t img_radar_beam_image;
-extern const lv_img_dsc_t img_shield_check;
-extern const lv_img_dsc_t img_public_key_24_image;
-extern const lv_img_dsc_t img_location_pin_14_image;
 extern const lv_img_dsc_t img_lock_channel_image;
 extern const lv_img_dsc_t img_lock_secure_image;
 
@@ -76,7 +73,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[60];
+extern const ext_img_desc_t images[57];
 
 
 #ifdef __cplusplus
