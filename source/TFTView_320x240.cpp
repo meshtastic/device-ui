@@ -2730,7 +2730,22 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), userLong);
         it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)strlen(userLong);
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
+        char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
+        userData[0] = userShort[0];
+        if (userData[0] == 0x00)
+            userData[0] = ' ';
+        userData[1] = userShort[1];
+        if (userData[0] == 0x00)
+            userData[0] = ' ';
+        userData[2] = userShort[2];
+        if (userData[0] == 0x00)
+            userData[0] = ' ';
+        userData[3] = userShort[3];
+        if (userData[0] == 0x00)
+            userData[0] = ' ';
+
         setNodeImage(nodeNum, role, viaMqtt, it->second->LV_OBJ_IDX(node_img_idx));
+
         if (hasKey) {
             // set border color to bg color
             lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
