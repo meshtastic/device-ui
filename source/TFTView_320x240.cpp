@@ -1071,8 +1071,15 @@ void TFTView_320x240::ui_event_calibration_button(lv_event_t *e)
 void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        int32_t timeout = THIS->displaydriver->getScreenTimeout();
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_display) {
+        int32_t timeout = THIS->db.config.display.screen_on_secs;
+        char buf[32];
+        if (timeout == 0)
+            lv_snprintf(buf, sizeof(buf), "Timeout: off");
+        else
+            lv_snprintf(buf, sizeof(buf), "Timeout: %ds", timeout);
+        lv_label_set_text(objects.settings_screen_timeout_label, buf);
+
         lv_obj_clear_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
         lv_slider_set_value(objects.screen_timeout_slider, timeout, LV_ANIM_OFF);
         lv_group_focus_obj(objects.screen_timeout_slider);
@@ -2043,6 +2050,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             else
                 lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", value);
             lv_label_set_text(objects.basic_settings_timeout_label, buf);
+
+            meshtastic_Config_DisplayConfig &display = THIS->db.config.display;
+            display.screen_on_secs = value;
+            THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display});
+            THIS->notifyReboot(true);
+
             lv_obj_add_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_timeout_button);
             break;
@@ -3658,6 +3671,14 @@ void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig 
 {
     db.config.display = cfg;
     db.config.has_display = true;
+    displaydriver->setScreenTimeout(db.config.display.screen_on_secs);
+
+    char buf[32];
+    if (db.config.display.screen_on_secs == 0)
+        lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
+    else
+        lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", db.config.display.screen_on_secs);
+    lv_label_set_text(objects.basic_settings_timeout_label, buf);
 }
 
 void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
