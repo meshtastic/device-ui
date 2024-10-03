@@ -1792,7 +1792,7 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             break;
         }
         case meshtastic_PortNum_POSITION_APP: {
-           stat.pos++;
+            stat.pos++;
             break;
         }
         case meshtastic_PortNum_NODEINFO_APP: {
@@ -3054,11 +3054,8 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                     Themes::recolorButton(objects.home_mqtt_button, true, 255);
                     Themes::recolorText(objects.home_mqtt_label, true);
                 } else {
-                    if (db.module_config.mqtt.enabled) {
-                        Themes::recolorButton(objects.home_mqtt_button, true, 255);
-                    } else {
-                        Themes::recolorButton(objects.home_mqtt_button, false, 100);
-                    }
+                    Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
+
                     Themes::recolorText(objects.home_mqtt_label, false);
                 }
             }
@@ -3069,6 +3066,7 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                 Themes::recolorButton(objects.home_mqtt_button, true, 255);
                 Themes::recolorText(objects.home_mqtt_label, true);
             } else {
+                Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled, 100);
                 Themes::recolorText(objects.home_mqtt_label, false);
             }
             lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3715,7 +3713,7 @@ void TFTView_320x240::updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig 
     lv_label_set_text(objects.home_mqtt_label, buf);
 
     if (!db.module_config.mqtt.enabled) {
-        Themes::recolorButton(objects.home_mqtt_button, false, 100);
+        Themes::recolorButton(objects.home_mqtt_button, false);
         Themes::recolorText(objects.home_mqtt_label, false);
     }
 }
