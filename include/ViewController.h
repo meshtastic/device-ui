@@ -58,9 +58,9 @@ class ViewController
     virtual bool sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCounter, uint32_t nodeId = 0);
 
     virtual bool sendConfig(const char ringtone[231], uint32_t nodeId = 0);
-    virtual void sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg);
+    virtual void sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, const char *textmsg);
     virtual bool requestPosition(uint32_t to, uint8_t ch, uint32_t requestId);
-    virtual void traceRoute(uint32_t to, uint8_t ch, uint32_t requestId);
+    virtual void traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId);
 
     // helpers
     virtual bool sendAdminMessage(meshtastic_AdminMessage &config, uint32_t nodeId);
@@ -76,7 +76,7 @@ class ViewController
     // generic send method to send a (decoded) payload in a meshpacket to radio
     virtual bool send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload);
     // generic send method to send a decoded byte string in a meshpacket to radio
-    virtual bool send(uint32_t to, uint8_t ch, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
+    virtual bool send(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
                       const unsigned char bytes[237], size_t len);
     virtual bool receive(void);
     // request initial config from radio

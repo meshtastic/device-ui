@@ -350,7 +350,7 @@ bool ViewController::sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCo
 }
 
 /**
- * @brief Generic admin message (takes lvalue) and variable portnum
+ * @brief Generic admin message (takes lvalue)
  *
  */
 bool ViewController::sendAdminMessage(meshtastic_AdminMessage &config, uint32_t nodeId)
@@ -391,10 +391,10 @@ void ViewController::setConfigRequested(bool required)
     requestConfigRequired = required;
 }
 
-void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint32_t requestId, const char *textmsg)
+void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, const char *textmsg)
 {
     assert(strlen(textmsg) <= (size_t)DATA_PAYLOAD_LEN);
-    send(to, ch, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, (const uint8_t *)textmsg, strlen(textmsg));
+    send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, (const uint8_t *)textmsg, strlen(textmsg));
 }
 
 bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId)
@@ -415,13 +415,13 @@ bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId
                                    .want_ack = false}});
 }
 
-void ViewController::traceRoute(uint32_t to, uint8_t ch, uint32_t requestId)
+void ViewController::traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId)
 {
     meshtastic_Routing request{.route_request{.route_count = 1, .route{myNodeNum}}};
 
     meshtastic_Data_payload_t payload;
     payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_Routing_msg, &request);
-    send(to, ch, requestId, meshtastic_PortNum_TRACEROUTE_APP, true, payload.bytes, payload.size);
+    send(to, ch, hopLimit, requestId, meshtastic_PortNum_TRACEROUTE_APP, true, payload.bytes, payload.size);
 }
 
 /**
@@ -446,7 +446,7 @@ bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtas
 /**
  * generic send method for sending meshpackets with encoded payload
  */
-bool ViewController::send(uint32_t to, uint8_t ch, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
+bool ViewController::send(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
                           const unsigned char bytes[237], size_t len)
 {
     ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, id=0x%08x, portnum=%u, len=%u\n", to, to, (unsigned int)ch,
@@ -493,7 +493,7 @@ bool ViewController::send(uint32_t to, uint8_t ch, uint32_t requestId, meshtasti
                                    bytes[232], bytes[233], bytes[234], bytes[235], bytes[236]}},
                 .want_response = wantRsp}, // FIXME: traceRoute, requestPosition, remote config: true
             .id = requestId,
-            .hop_limit = 3, // FIXME: use value from setting
+            .hop_limit = hopLimit,
             .want_ack = (to != 0)}});
 }
 

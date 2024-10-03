@@ -1522,8 +1522,11 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
                     uint32_t requestId;
                     uint32_t to = it.first;
                     uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
+                    // trial: hoplimit optimization for direct messages
+                    uint8_t hopsAway = (unsigned long)THIS->nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
+                    uint8_t hopLimit = (hopsAway < THIS->db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
                     requestId = THIS->requests.addRequest(to, ResponseHandler::TraceRouteRequest);
-                    THIS->controller->traceRoute(to, ch, requestId);
+                    THIS->controller->traceRoute(to, ch, hopLimit, requestId);
                     break;
                 }
             }
@@ -2447,9 +2450,10 @@ void TFTView_320x240::showUserWidget(UserWidgetFunc createWidget)
 void TFTView_320x240::handleAddMessage(char *msg)
 {
     // retrieve nodeNum + channel from activeMsgContainer
-    uint8_t ch;
-    uint32_t requestId;
     uint32_t to = UINT32_MAX;
+    uint8_t ch;
+    uint8_t hopLimit = db.config.lora.hop_limit;
+    uint32_t requestId;
     uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
@@ -2458,9 +2462,12 @@ void TFTView_320x240::handleAddMessage(char *msg)
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
         requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to);
+        // trial: hoplimit optimization for direct text messages
+        uint8_t hopsAway = (unsigned long)nodes[channelOrNode]->LV_OBJ_IDX(node_sig_idx)->user_data;
+        hopLimit = (hopsAway < db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
     }
 
-    controller->sendTextMessage(to, ch, requestId, msg);
+    controller->sendTextMessage(to, ch, hopLimit, requestId, msg);
     addMessage(requestId, msg);
 }
 
@@ -2513,7 +2520,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // [3]: lbl user short         | userShort (4 chars)
     // [4]: lbl battery            |
     // [5]: lbl lastHeard          | lastHeard / curtime
-    // [6]: lbl signal (or hops)   | viaMqtt
+    // [6]: lbl signal (or hops)   | hops away
     // [7]: lbl position 1         | lat
     // [8]: lbl position 2         | lon
     // [9]: lbl telemetry 1        |
@@ -2562,36 +2569,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_min_height(nodeButton, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
     nodeButton->user_data = _lv_ll_get_tail(lv_group_ll);
 
-#if 0
-    // Publik Key Image
-    lv_obj_t *pkeyImage = lv_img_create(p);
-    lv_obj_set_pos(pkeyImage, 20, 2);
-    lv_obj_set_size(pkeyImage, 24, 24);
-    lv_img_set_src(p, &img_public_key_24_image);
-    lv_obj_set_style_align(pkeyImage, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    add_style_positive_image_style(pkeyImage);
-    pkeyImage->user_data = (void*)hasKey;
-    if (hasKey) {
-        //lv_obj_set_x(sn_lbl, 52);
-        lv_obj_clear_flag(pkeyImage, LV_OBJ_FLAG_HIDDEN);
-    }
-    else {
-       lv_obj_add_flag(pkeyImage, LV_OBJ_FLAG_HIDDEN);
-       //lv_obj_set_x(sn_lbl, 30);
-    }
-#endif
-#if 0
-    // NodeLocationImage
-    lv_obj_t *nloc = lv_img_create(p);
-    lv_obj_set_pos(nloc, 40, 3);
-    lv_obj_set_size(nloc, 20, 20);
-    lv_img_set_src(nloc, &img_location_pin_14_image);
-    lv_obj_add_flag(nloc, LV_OBJ_FLAG_HIDDEN);
-    add_style_positive_image_style(nloc);
-    lv_obj_set_style_align(nloc, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    //lv_obj_set_style_image_recolor(nloc, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
-    //lv_obj_set_style_bg_color(nloc, lv_color_hex(0xff000000), LV_PART_MAIN | LV_STATE_DEFAULT);
-#endif
     // UserNameLabel
     lv_obj_t *ln_lbl = lv_label_create(p);
     lv_obj_set_pos(ln_lbl, -5, 22);
@@ -3377,11 +3354,13 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
                     hide = true;
             }
         }
+#if 0
         if (lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED)) {
             bool viaMqtt = false; // TODO (unsigned long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
             if (viaMqtt)
                 hide = true;
         }
+#endif
         if (lv_obj_has_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] == '\0')
                 hide = true;
