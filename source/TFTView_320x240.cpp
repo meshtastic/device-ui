@@ -3354,7 +3354,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         if (lv_obj_has_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED)) {
             time_t curtime, lastHeard = (time_t)panel->LV_OBJ_IDX(node_lh_idx)->user_data;
             time(&curtime);
-            if (curtime - lastHeard - 10 > 15 * 60)
+            if (curtime - lastHeard > secs_until_offline)
                 hide = true;
         }
         if (lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED)) {

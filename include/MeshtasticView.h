@@ -21,6 +21,8 @@ class ViewController;
 class MeshtasticView : public DeviceGUI
 {
   public:
+    const uint32_t secs_until_offline = 60 * 60 + 60;
+
     MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller);
     virtual void init(IClientBase *client);
     virtual void task_handler(void);

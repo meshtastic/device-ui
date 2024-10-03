@@ -165,7 +165,7 @@ bool MeshtasticView::lastHeardToString(uint32_t lastHeard, char *buf)
     else // after 60 days
         buf[0] = '\0';
 
-    return timediff <= 1810; // 15min + some tolerance
+    return timediff <= secs_until_offline;
 }
 
 const char *MeshtasticView::deviceRoleToString(enum eRole role)
