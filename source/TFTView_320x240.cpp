@@ -424,6 +424,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.frequency_slot_slider, ui_event_frequency_slot_slider, LV_EVENT_VALUE_CHANGED, NULL);
 
     // dropdown
+    lv_obj_add_event_cb(objects.settings_device_role_dropdown, ui_event_device_role_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.settings_modem_preset_dropdown, ui_event_modem_preset_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // OK / Cancel widget for basic settings dialog
@@ -1949,10 +1950,20 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
             lv_label_set_text(objects.basic_settings_region_label, buf2);
 
-            meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
-            lora.region =
+            meshtastic_Config_LoRaConfig_RegionCode region =
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
-            lora.channel_num = LoRaPresets::getDefaultSlot(lora.region);
+
+            uint32_t numChannels = LoRaPresets::getNumChannels(region, THIS->db.config.lora.modem_preset);
+            if (numChannels == 0) {
+                // region not possible for selected preset, revert
+                lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
+                return;
+            }
+
+            meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
+            uint32_t defaultSlot = LoRaPresets::getDefaultSlot(lora.region);
+            lora.region = region;
+            lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
             THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
             THIS->notifyReboot(true);
 
@@ -2355,15 +2366,35 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
     meshtastic_Config_LoRaConfig_ModemPreset preset =
         (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown);
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
+    if (preset == meshtastic_Config_LoRaConfig_ModemPreset_VERY_LONG_SLOW || numChannels == 0) {
+        // preset deprecated or not possible for this region, revert
+        lv_dropdown_set_selected(dropdown, THIS->db.config.lora.modem_preset);
+        numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset);
+        return;
+    }
 
     uint32_t channel = LoRaPresets::getDefaultSlot(THIS->db.config.lora.region);
+    if (channel > numChannels)
+        channel = 1;
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-    lv_slider_set_value(objects.frequency_slot_slider, channel, LV_ANIM_OFF);
+    lv_slider_set_value(objects.frequency_slot_slider, channel, LV_ANIM_ON);
 
     char buf[40];
     sprintf(buf, "FrequencySlot: %d (%.2f MHz)", channel,
             LoRaPresets::getRadioFreq(THIS->db.config.lora.region, preset, channel));
     lv_label_set_text(objects.frequency_slot_label, buf);
+}
+
+void TFTView_320x240::ui_event_device_role_dropdown(lv_event_t *e)
+{
+    lv_obj_t *dropdown = lv_event_get_target_obj(e);
+    meshtastic_Config_DeviceConfig_Role role =
+        (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(dropdown);
+    if (role == meshtastic_Config_DeviceConfig_Role_ROUTER_CLIENT) {
+        // role deprecated, revert
+        lv_dropdown_set_selected(dropdown, THIS->db.config.device.role);
+        return;
+    }
 }
 
 // animations

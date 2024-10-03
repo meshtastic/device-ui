@@ -2871,7 +2871,7 @@ void create_screen_main_screen() {
                     objects.settings_modem_preset_dropdown = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 180, 30);
-                    lv_dropdown_set_options(obj, _("LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE"));
+                    lv_dropdown_set_options(obj, _("LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"));
                     add_style_drop_down_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2948,7 +2948,7 @@ void create_screen_main_screen() {
                     objects.settings_device_role_dropdown = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 150, 30);
-                    lv_dropdown_set_options(obj, _("Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"));
+                    lv_dropdown_set_options(obj, _("Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"));
                     add_style_drop_down_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
