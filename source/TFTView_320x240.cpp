@@ -2044,21 +2044,22 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eScreenTimeout: {
             char buf[32];
+            meshtastic_Config_DisplayConfig &display = THIS->db.config.display;
             uint32_t value = lv_slider_get_value(objects.screen_timeout_slider);
             if (value > 5)
                 value -= value % 5;
-            THIS->displaydriver->setScreenTimeout(value);
-            if (value == 0)
-                lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
-            else
-                lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", value);
-            lv_label_set_text(objects.basic_settings_timeout_label, buf);
-
-            meshtastic_Config_DisplayConfig &display = THIS->db.config.display;
-            display.screen_on_secs = value;
-            THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display});
-            THIS->notifyReboot(true);
-
+            if (value != display.screen_on_secs) {
+                THIS->displaydriver->setScreenTimeout(value);
+                if (value == 0)
+                    lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
+                else
+                    lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", value);
+                lv_label_set_text(objects.basic_settings_timeout_label, buf);
+    
+                display.screen_on_secs = value;
+                THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display});
+                THIS->notifyReboot(true);
+            }
             lv_obj_add_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_timeout_button);
             break;
