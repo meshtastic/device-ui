@@ -621,11 +621,13 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
     } else if (event_code == LV_EVENT_LONG_PRESSED && !advancedMode && THIS->activeSettings == eNone) {
-        screenLocked = true;
-        if (THIS->db.config.bluetooth.fixed_pin != 0) {
-            lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        } else
-            lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
+        if (lv_obj_has_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED)) {
+            screenLocked = true;
+            if (THIS->db.config.bluetooth.fixed_pin != 0) {
+                lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            } else
+                lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
+        }
     } else if (event_code == LV_EVENT_LONG_PRESSED && advancedMode && THIS->activeSettings == eNone) {
         advancedMode = !advancedMode;
         THIS->ui_set_active(objects.settings_button, ui_AdvancedSettingsPanel, objects.top_advanced_settings_panel);
@@ -1940,16 +1942,20 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eDeviceRole: {
-            char buf1[10], buf2[30];
-            lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
-            lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
-            lv_label_set_text(objects.basic_settings_role_label, buf2);
-
             meshtastic_Config_DeviceConfig &device = THIS->db.config.device;
-            device.role = (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(objects.settings_device_role_dropdown);
-            THIS->controller->sendConfig(meshtastic_Config_DeviceConfig{device}, THIS->ownNode);
-            THIS->notifyReboot(true);
+            meshtastic_Config_DeviceConfig_Role role = 
+            (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(objects.settings_device_role_dropdown);
 
+            if (role != device.role) {
+                char buf1[10], buf2[30];
+                lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
+                lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
+                lv_label_set_text(objects.basic_settings_role_label, buf2);
+    
+                device.role = role;
+                THIS->controller->sendConfig(meshtastic_Config_DeviceConfig{device}, THIS->ownNode);
+                THIS->notifyReboot(true);
+            }
             lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_role_button);
             break;
