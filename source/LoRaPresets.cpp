@@ -10,11 +10,11 @@ LoRaPresets::RegionInfo LoRaPresets::regionInfo[] = {
     {"SG_923", 917.0f, 925.0f, 4}
     };
 
-LoRaPresets::ModemPreset LoRaPresets::modemPreset[] = {{"LONG FAST", "250", .250f},        {"LONG SLOW", "125", .125f},
-                                                       {"VERY LONG SLOW", "62.5", .0625f}, {"MEDIUM SLOW", "250", .250f},
-                                                       {"MEDIUM FAST", "250", .250f},      {"SHORT SLOW", "250", .250f},
-                                                       {"SHORT FAST", "250", .250f},       {"LONG MODERATE", "125", .125f},
-                                                       {"SHORT TURBO", "500", .500f}};
+LoRaPresets::ModemPreset LoRaPresets::modemPreset[] = {{"LongFast", "250", .250f},    {"LongSlow", "125", .125f},
+                                                       {"VLongSlow", "62.5", .0625f}, {"MediumSlow", "250", .250f},
+                                                       {"MediumFast", "250", .250f},  {"ShortSlow", "250", .250f},
+                                                       {"ShortFast", "250", .250f},   {"LongMod", "125", .125f},
+                                                       {"ShortTurbo", "500", .500f}};
 
 const char *LoRaPresets::loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region)
 {
@@ -31,9 +31,22 @@ float LoRaPresets::getFrequencyEnd(meshtastic_Config_LoRaConfig_RegionCode regio
     return regionInfo[region].freqEnd;
 }
 
-uint16_t LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode region)
+/**
+ * Default slot number is generated using the same firmware hash algorithm
+ */
+uint16_t LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode region,
+                                     meshtastic_Config_LoRaConfig_ModemPreset preset)
 {
-    return regionInfo[region].defaultSlot;
+    auto hash = [](const char *str) -> uint32_t {
+        uint32_t hash = 5381;
+        unsigned char c;
+        while ((c = *str++) != '\0')
+            hash += (hash << 5) + c;
+        return hash;
+    };
+
+    uint32_t numChannels = getNumChannels(region, preset);
+    return numChannels == 0 ? 1 : hash(modemPreset[preset].preset) % numChannels + 1;
 }
 
 float LoRaPresets::getBandwidth(meshtastic_Config_LoRaConfig_ModemPreset preset)

@@ -1955,11 +1955,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eRegion: {
-            char buf1[10], buf2[30];
-            lv_dropdown_get_selected_str(objects.settings_region_dropdown, buf1, sizeof(buf1));
-            lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
-            lv_label_set_text(objects.basic_settings_region_label, buf2);
-
             meshtastic_Config_LoRaConfig_RegionCode region =
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
 
@@ -1970,31 +1965,40 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 return;
             }
 
-            meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
-            uint32_t defaultSlot = LoRaPresets::getDefaultSlot(lora.region);
-            lora.region = region;
-            lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
-            THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
-            THIS->notifyReboot(true);
-
+            if (region != THIS->db.config.lora.region) {
+                char buf1[10], buf2[30];
+                lv_dropdown_get_selected_str(objects.settings_region_dropdown, buf1, sizeof(buf1));
+                lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
+                lv_label_set_text(objects.basic_settings_region_label, buf2);
+    
+                meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
+                uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset);
+                lora.region = region;
+                lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
+                THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
+                THIS->notifyReboot(true);
+            }
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_region_button);
             break;
         }
         case eModemPreset: {
-            char buf1[16], buf2[32];
-            lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
-            lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
-            lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
-
             meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
-            lora.use_preset = true;
-            lora.modem_preset =
+            meshtastic_Config_LoRaConfig_ModemPreset preset =
                 (meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
-            lora.channel_num = (uint16_t)lv_slider_get_value(objects.frequency_slot_slider);
-            THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
-            THIS->notifyReboot(true);
-
+            uint16_t channelNum = lv_slider_get_value(objects.frequency_slot_slider);
+            if (preset != lora.modem_preset || lora.channel_num != channelNum) {
+                char buf1[16], buf2[32];
+                lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
+                lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
+                lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
+    
+                lora.use_preset = true;
+                lora.modem_preset = preset;
+                lora.channel_num = channelNum;
+                THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
+                THIS->notifyReboot(true);
+            }
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_modem_preset_button);
             break;
@@ -2390,7 +2394,7 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
         return;
     }
 
-    uint32_t channel = LoRaPresets::getDefaultSlot(THIS->db.config.lora.region);
+    uint32_t channel = LoRaPresets::getDefaultSlot(THIS->db.config.lora.region, preset);
     if (channel > numChannels)
         channel = 1;
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
@@ -3677,7 +3681,7 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
 
     if (!db.config.lora.channel_num) {
-        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region);
+        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset);
     }
     lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
 }
