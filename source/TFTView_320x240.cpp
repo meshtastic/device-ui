@@ -168,12 +168,6 @@ void TFTView_320x240::init(IClientBase *client)
         }
     }
 
-    // TODO: set dark/light mode
-    // lv_theme_t * theme = lv_theme_default_init(lv_display_get_default(), lv_color_hex(0xff0000), lv_color_hex(0x00ff00), true,
-    // LV_FONT_DEFAULT); lv_display_set_theme(lv_disp_get_default(), theme);
-    Themes::set(Themes::eDark);
-    lv_label_set_text(objects.basic_settings_theme_label, Themes::get() ? "Theme: Dark" : "Theme: Light");
-
     // user data
     objects.home_time_button->user_data = (void *)0;
     objects.home_wlan_button->user_data = (void *)0;
@@ -185,6 +179,51 @@ void TFTView_320x240::init(IClientBase *client)
 
     updateFreeMem();
     ILOG_DEBUG("TFTView_320x240 init done.\n");
+}
+
+/**
+ * @brief initialize UI with persistent data
+ */
+void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
+{
+    ILOG_DEBUG("setupUIConfig\n");
+    db.uiConfig = uiconfig;
+
+    // set language
+    lv_dropdown_set_selected(objects.settings_language_dropdown, language2val(uiconfig.language));
+    setLanguage();
+
+    // set brightness
+    if (displaydriver->hasLight())
+        THIS->setBrightness(uiconfig.screen_brightness);
+
+    // set timeout
+    THIS->setTimeout(uiconfig.screen_timeout);
+
+    // set node filter options
+    meshtastic_NodeFilter &filter = db.uiConfig.node_filter;
+    lv_obj_set_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED, filter.unknown_switch);
+    lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, filter.offline_switch);
+    lv_obj_set_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED, filter.public_key_switch);
+    lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, filter.hops_away);
+    //lv_obj_set_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED, filter.mqtt_switch);
+    lv_obj_set_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED, filter.position_switch);
+    lv_textarea_set_text(objects.nodes_filter_name_area, filter.node_name);
+
+    // set node highlight options
+    meshtastic_NodeHighlight &highlight = db.uiConfig.node_highlight;
+    lv_obj_set_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED, highlight.chat_switch);
+    lv_obj_set_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED, highlight.position_switch);
+    lv_obj_set_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED, highlight.telemetry_switch);
+    lv_obj_set_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED, highlight.iaq_switch);
+    lv_textarea_set_text(objects.nodes_hl_name_area, highlight.node_name);
+
+    // set theme
+    lv_dropdown_set_selected(objects.settings_theme_dropdown, uiconfig.theme);
+    setTheme(uiconfig.theme);
+    lv_obj_set_style_bg_img_recolor(objects.home_button, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    //lv_obj_invalidate(objects.main_screen);
 }
 
 /**
@@ -212,6 +251,10 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
             lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
             unreadMessages = 0; // TODO: not all messages may be actually read
             updateUnreadMessages();
+        }
+        else if (activePanel == objects.node_options_panel) {
+            // we're moving away from node options panel, so save latest settings
+            storeNodeOptions();
         }
     }
 
@@ -249,7 +292,7 @@ void TFTView_320x240::apply_hotfix(void)
     lv_label_set_text(objects.detector_start_label, "Start");
     lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
 
-    updateTheme();
+    //updateTheme();
 
     auto applyStyle = [](lv_obj_t *tab_buttons) {
         for (int i = 0; i < tab_buttons->spec_attr->child_cnt; i++) {
@@ -991,7 +1034,7 @@ void TFTView_320x240::ui_event_language_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        // TODO: set actual value for dropdown
+        lv_dropdown_set_selected(objects.settings_language_dropdown, THIS->language2val(THIS->db.uiConfig.language));
         lv_obj_clear_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_language_dropdown);
         THIS->disablePanel(objects.controller_panel);
@@ -1037,12 +1080,11 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        uint32_t brightness = THIS->displaydriver->getBrightness() * 100 / 255;
-        char buf[32];
-        lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", brightness);
-        lv_label_set_text(objects.basic_settings_brightness_label, buf);
+        char buf[20];
+        uint32_t brightness = THIS->db.uiConfig.screen_brightness;
+        lv_snprintf(buf, sizeof(buf), "Brightness: %d%%", brightness);
+        lv_label_set_text(objects.settings_brightness_label, buf);
         lv_slider_set_value(objects.brightness_slider, brightness, LV_ANIM_OFF);
-        objects.brightness_slider->user_data = (void *)brightness; // store old value
         lv_obj_clear_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.brightness_slider);
         THIS->disablePanel(objects.controller_panel);
@@ -1054,7 +1096,7 @@ void TFTView_320x240::ui_event_theme_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        lv_dropdown_set_selected(objects.settings_theme_dropdown, Themes::get());
+        lv_dropdown_set_selected(objects.settings_theme_dropdown, THIS->db.uiConfig.theme);
         lv_obj_clear_flag(objects.settings_theme_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_theme_dropdown);
         THIS->disablePanel(objects.controller_panel);
@@ -1073,15 +1115,14 @@ void TFTView_320x240::ui_event_calibration_button(lv_event_t *e)
 void TFTView_320x240::ui_event_timeout_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_display) {
-        int32_t timeout = THIS->db.config.display.screen_on_secs;
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        uint32_t timeout = THIS->db.uiConfig.screen_timeout;
         char buf[32];
         if (timeout == 0)
             lv_snprintf(buf, sizeof(buf), "Timeout: off");
         else
             lv_snprintf(buf, sizeof(buf), "Timeout: %ds", timeout);
         lv_label_set_text(objects.settings_screen_timeout_label, buf);
-
         lv_obj_clear_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
         lv_slider_set_value(objects.screen_timeout_slider, timeout, LV_ANIM_OFF);
         lv_group_focus_obj(objects.screen_timeout_slider);
@@ -1911,6 +1952,150 @@ void TFTView_320x240::ui_event_statistics_table(lv_event_t *e)
 
 }
 
+uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
+{
+    switch(lang) {
+    case meshtastic_Language_ENGLISH:
+        return 0;
+    case meshtastic_Language_FRENCH:
+        return 3;
+    case meshtastic_Language_GERMAN:
+        return 1;
+    case meshtastic_Language_ITALIAN:
+        return 4;
+    case meshtastic_Language_PORTUGUESE:
+        return 5;
+    case meshtastic_Language_SPANISH:
+        return 2;
+    default:
+        ILOG_WARN("unknown language uiconfig\n");
+    }
+    return 0;
+}
+
+meshtastic_Language TFTView_320x240::val2language(uint32_t val)
+{
+    switch(val) {
+    case 0:
+        return meshtastic_Language_ENGLISH;
+    case 3:
+        return meshtastic_Language_FRENCH;
+    case 1:
+        return meshtastic_Language_GERMAN;
+    case 4:
+        return meshtastic_Language_ITALIAN;
+    case 5:
+        return meshtastic_Language_PORTUGUESE;
+    case 2:
+        return meshtastic_Language_SPANISH;
+    default:
+        ILOG_WARN("unknown language val\n");
+    }
+    return meshtastic_Language_ENGLISH;
+}
+
+/**
+ * @brief Set language according current dropdown selection
+ */
+void TFTView_320x240::setLanguage(void)
+{
+    char buf1[10], buf2[30];
+    lv_dropdown_get_selected_str(objects.settings_language_dropdown, buf1, sizeof(buf1));
+    lv_snprintf(buf2, sizeof(buf2), _("Language: %s"), buf1);
+    lv_label_set_text(objects.basic_settings_language_label, buf2);
+    // TODO: change language acc. lvgl localization
+    switch (lv_dropdown_get_selected(objects.settings_language_dropdown)) {
+    case 0:
+        lv_i18n_set_locale("en");
+        break;
+    case 1:
+        lv_i18n_set_locale("de");
+        break;
+    case 2:
+        lv_i18n_set_locale("es");
+        break;
+    case 3:
+        lv_i18n_set_locale("fr");
+        break;
+    case 4:
+        lv_i18n_set_locale("it");
+        break;
+    case 5:
+        lv_i18n_set_locale("pt");
+        break;
+    default:
+        ILOG_WARN("Language %s not implemented\n", buf1);
+        break;
+    }
+}
+
+/**
+ * @brief Set timeout
+ */
+void TFTView_320x240::setTimeout(uint32_t timeout)
+{
+    char buf[32];
+    if (timeout == 0)
+        lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
+    else
+        lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", timeout);
+    lv_label_set_text(objects.basic_settings_timeout_label, buf);
+    THIS->displaydriver->setScreenTimeout(timeout);
+}
+
+/**
+ * @brief Set brightness
+ */
+void TFTView_320x240::setBrightness(uint32_t brightness)
+{
+    char buf[32];
+    lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", brightness);
+    lv_label_set_text(objects.basic_settings_brightness_label, buf);
+    THIS->displaydriver->setBrightness((uint8_t)(brightness * 255 / 100));
+}
+
+/**
+ * @brief Set theme according current dropdown selection
+ */
+void TFTView_320x240::setTheme(uint32_t value)
+{
+    char buf1[10], buf2[30];
+    lv_dropdown_get_selected_str(objects.settings_theme_dropdown, buf1, sizeof(buf1));
+    lv_snprintf(buf2, sizeof(buf2), _("Theme: %s"), buf1);
+    lv_label_set_text(objects.basic_settings_theme_label, buf2);
+
+    // change theme and redraw UI
+    Themes::set(Themes::Theme(value));
+    updateTheme();
+}
+
+/**
+ * @brief Save all data from node options panel
+ */
+void TFTView_320x240::storeNodeOptions(void)
+{
+    // store node filter options
+    meshtastic_NodeFilter &filter = db.uiConfig.node_filter;
+    db.uiConfig.has_node_filter = true;
+    filter.unknown_switch = lv_obj_has_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED);
+    filter.offline_switch = lv_obj_has_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED);
+    filter.public_key_switch = lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED);
+    filter.hops_away = lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown);
+    //filter.mqtt_switch = lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED);
+    filter.position_switch = lv_obj_has_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED);
+    strncpy(filter.node_name, lv_textarea_get_text(objects.nodes_filter_name_area), sizeof(filter.node_name));
+
+    // store node highlight options
+    meshtastic_NodeHighlight &highlight = db.uiConfig.node_highlight;
+    db.uiConfig.has_node_highlight = true;
+    highlight.chat_switch = lv_obj_has_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED);
+    highlight.position_switch = lv_obj_has_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED);
+    highlight.telemetry_switch = lv_obj_has_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED);
+    highlight.iaq_switch = lv_obj_has_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED);
+    strncpy(highlight.node_name, lv_textarea_get_text(objects.nodes_hl_name_area), sizeof(highlight.node_name));
+
+    controller->storeUIConfig(db.uiConfig);
+}
 
 /**
  * @brief User widget OK button handling
@@ -2031,21 +2216,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eLanguage: {
-            char buf1[10], buf2[30];
-            lv_dropdown_get_selected_str(objects.settings_language_dropdown, buf1, sizeof(buf1));
-            lv_snprintf(buf2, sizeof(buf2), _("Language: %s"), buf1);
-            lv_label_set_text(objects.basic_settings_language_label, buf2);
-            // TODO: change language acc. lvgl localization
-            switch (lv_dropdown_get_selected(objects.settings_language_dropdown)) {
-            case 0:
-                lv_i18n_set_locale("en");
-                break;
-            case 1:
-                lv_i18n_set_locale("de");
-                break;
-            default:
-                ILOG_WARN("Language %s not implemented\n", buf1);
-                break;
+            uint32_t value = lv_dropdown_get_selected(objects.settings_language_dropdown);
+            meshtastic_Language lang = THIS->val2language(value);
+            if (lang != THIS->db.uiConfig.language) {
+                THIS->setLanguage();
+                THIS->db.uiConfig.language = lang;
+                THIS->controller->storeUIConfig(THIS->db.uiConfig);
             }
 
             lv_obj_add_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
@@ -2053,22 +2229,13 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eScreenTimeout: {
-            char buf[32];
-            meshtastic_Config_DisplayConfig &display = THIS->db.config.display;
             uint32_t value = lv_slider_get_value(objects.screen_timeout_slider);
             if (value > 5)
                 value -= value % 5;
-            if (value != display.screen_on_secs) {
-                THIS->displaydriver->setScreenTimeout(value);
-                if (value == 0)
-                    lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
-                else
-                    lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", value);
-                lv_label_set_text(objects.basic_settings_timeout_label, buf);
-    
-                display.screen_on_secs = value;
-                THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display});
-                THIS->notifyReboot(true);
+            if (value != THIS->db.uiConfig.screen_timeout) {
+                THIS->setTimeout(value);
+                THIS->db.uiConfig.screen_timeout = value;
+                THIS->controller->storeUIConfig(THIS->db.uiConfig);
             }
             lv_obj_add_flag(objects.settings_screen_timeout_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_timeout_button);
@@ -2096,23 +2263,24 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eScreenBrightness: {
-            char buf[32];
-            lv_snprintf(buf, sizeof(buf), "Screen Brightness: %d%%", (int)lv_slider_get_value(objects.brightness_slider));
-            lv_label_set_text(objects.basic_settings_brightness_label, buf);
+            int32_t value = lv_slider_get_value(objects.brightness_slider);
+            if (value != THIS->db.uiConfig.screen_brightness) {
+                THIS->setBrightness(value);
+                THIS->db.uiConfig.screen_brightness = value;
+                THIS->controller->storeUIConfig(THIS->db.uiConfig);
+            }
             lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_brightness_button);
             break;
         }
         case eTheme: {
-            char buf1[10], buf2[30];
-            lv_dropdown_get_selected_str(objects.settings_theme_dropdown, buf1, sizeof(buf1));
-            lv_snprintf(buf2, sizeof(buf2), _("Theme: %s"), buf1);
-            lv_label_set_text(objects.basic_settings_theme_label, buf2);
-            // change theme and redraw UI
-            Themes::Theme theme = (Themes::Theme)lv_dropdown_get_selected(objects.settings_theme_dropdown);
-            Themes::set(theme);
-            THIS->updateTheme();
-            lv_obj_set_style_bg_img_recolor(objects.settings_button, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+            uint32_t value = lv_dropdown_get_selected(objects.settings_theme_dropdown);
+            if (value != THIS->db.uiConfig.theme) {
+                THIS->setTheme(value);
+                THIS->db.uiConfig.theme = meshtastic_Theme(value);
+                THIS->controller->storeUIConfig(THIS->db.uiConfig);
+                lv_obj_set_style_bg_img_recolor(objects.settings_button, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+            }
 
             lv_obj_add_flag(objects.settings_theme_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_theme_button);
@@ -2308,7 +2476,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_brightness_button);
             // revert to old brightness value
-            uint32_t old_brightness = (unsigned long)objects.brightness_slider->user_data;
+            uint32_t old_brightness = THIS->db.uiConfig.screen_brightness;
             THIS->displaydriver->setBrightness((uint8_t)(old_brightness * 255 / 100));
             break;
         }
@@ -3661,14 +3829,6 @@ void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig 
 {
     db.config.display = cfg;
     db.config.has_display = true;
-    displaydriver->setScreenTimeout(db.config.display.screen_on_secs);
-
-    char buf[32];
-    if (db.config.display.screen_on_secs == 0)
-        lv_snprintf(buf, sizeof(buf), "Screen Timeout: off");
-    else
-        lv_snprintf(buf, sizeof(buf), "Screen Timeout: %ds", db.config.display.screen_on_secs);
-    lv_label_set_text(objects.basic_settings_timeout_label, buf);
 }
 
 void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)

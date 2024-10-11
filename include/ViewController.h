@@ -15,6 +15,7 @@ class ViewController
     virtual void processEvent(void);
 
     // device config
+    virtual uint32_t requestDeviceUIConfig(void);
     virtual uint32_t requestDeviceConfig(uint32_t nodeId = 0);
     virtual uint32_t requestPositionConfig(uint32_t nodeId = 0);
     virtual uint32_t requestPowerConfig(uint32_t nodeId = 0);
@@ -31,6 +32,7 @@ class ViewController
     virtual bool requestShutdown(int32_t seconds, uint32_t nodeId = 0);
     virtual bool requestReset(bool factoryReset, uint32_t nodeId = 0);
 
+    virtual bool storeUIConfig(const meshtastic_DeviceUIConfig &config);
     virtual bool sendConfig(const meshtastic_User &user, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_DeviceConfig &&device, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_PositionConfig &&position, uint32_t nodeId = 0);
@@ -74,7 +76,7 @@ class ViewController
 
   protected:
     // generic send method to send a (decoded) payload in a meshpacket to radio
-    virtual bool send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload);
+    virtual bool send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload, bool wantRsp = false);
     // generic send method to send a decoded byte string in a meshpacket to radio
     virtual bool send(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
                       const unsigned char bytes[237], size_t len);

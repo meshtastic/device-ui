@@ -56,6 +56,12 @@ bool ViewController::sleep(int16_t pin)
 
 void ViewController::processEvent(void) {}
 
+uint32_t ViewController::requestDeviceUIConfig(void)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_get_ui_config_request_tag,
+                                                    .get_ui_config_request = true}, myNodeNum);
+}
+
 uint32_t ViewController::requestDeviceConfig(uint32_t nodeId)
 {
     return requestConfig(meshtastic_AdminMessage_ConfigType_DEVICE_CONFIG, nodeId ? nodeId : myNodeNum);
@@ -144,6 +150,12 @@ bool ViewController::requestReset(bool factoryReset, uint32_t nodeId)
                                     (pb_size_t)(factoryReset ? meshtastic_AdminMessage_factory_reset_config_tag
                                                              : meshtastic_AdminMessage_nodedb_reset_tag)},
         nodeId ? nodeId : myNodeNum);
+}
+
+bool ViewController::storeUIConfig(const meshtastic_DeviceUIConfig &config)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_store_ui_config_tag,
+                                                    .store_ui_config = config}, myNodeNum);
 }
 
 bool ViewController::sendConfig(const meshtastic_User &user, uint32_t nodeId)
@@ -433,13 +445,13 @@ void ViewController::traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint3
  * @return true
  * @return false
  */
-bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload)
+bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload, bool wantRsp)
 {
     ILOG_DEBUG("sending meshpacket to radio portnum=%u\n", portnum);
     return client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_packet_tag,
                                            .packet{.to = to,
                                                    .which_payload_variant = meshtastic_MeshPacket_decoded_tag,
-                                                   .decoded{.portnum = portnum, .payload{payload}, .want_response = true},
+                                                   .decoded{.portnum = portnum, .payload{payload}, .want_response = wantRsp},
                                                    .want_ack = (to != 0)}});
 }
 
@@ -548,6 +560,10 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 {
     ILOG_DEBUG("handleFromRadio variant %u\n", from.which_payload_variant);
     switch (from.which_payload_variant) {
+    case meshtastic_FromRadio_deviceuiConfig_tag: {
+        view->setupUIConfig(from.deviceuiConfig);
+        break;
+    }
     case meshtastic_FromRadio_my_info_tag: {
         const meshtastic_MyNodeInfo &info = from.my_info;
         view->setMyInfo(info.my_node_num);

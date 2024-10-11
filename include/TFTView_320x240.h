@@ -13,6 +13,7 @@ class TFTView_320x240 : public MeshtasticView
 {
   public:
     void init(IClientBase *client) override;
+    void setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig) override;
     void task_handler(void) override;
 
     // methods to update view
@@ -199,6 +200,14 @@ class TFTView_320x240 : public MeshtasticView
     void writePacketLog(const meshtastic_MeshPacket &p);
     void updateStatistics(const meshtastic_MeshPacket &p);
 
+    uint32_t language2val(meshtastic_Language lang);
+    meshtastic_Language val2language(uint32_t val);
+    void setLanguage(void);
+    void setTimeout(uint32_t timeout);
+    void setBrightness(uint32_t brightness);
+    void setTheme(uint32_t theme);
+    void storeNodeOptions(void);
+
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
     static void ui_event_NodesButton(lv_event_t *e);
@@ -319,6 +328,7 @@ class TFTView_320x240 : public MeshtasticView
     // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
         meshtastic_Channel channel[c_max_channels]; // storage of channel info
+        meshtastic_DeviceUIConfig uiConfig;         // storage of persistent UI data
     };
 
     // additional local ui data
