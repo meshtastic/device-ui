@@ -3057,7 +3057,7 @@ void create_screen_main_screen() {
                     objects.settings_theme_dropdown = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 150, 30);
-                    lv_dropdown_set_options(obj, _("Light\nDark"));
+                    lv_dropdown_set_options(obj, _("Dark\nLight"));
                     add_style_drop_down_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3931,7 +3931,7 @@ void create_screen_main_screen() {
                                             objects.nodes_filter_name_area = obj;
                                             lv_obj_set_pos(obj, -40, -2);
                                             lv_obj_set_size(obj, LV_PCT(60), 24);
-                                            lv_textarea_set_max_length(obj, 237);
+                                            lv_textarea_set_max_length(obj, 15);
                                             lv_textarea_set_placeholder_text(obj, "!Enter Filter ...");
                                             lv_textarea_set_one_line(obj, true);
                                             lv_textarea_set_password_mode(obj, false);
@@ -4123,7 +4123,7 @@ void create_screen_main_screen() {
                                             objects.nodes_hl_name_area = obj;
                                             lv_obj_set_pos(obj, -40, -2);
                                             lv_obj_set_size(obj, LV_PCT(60), 24);
-                                            lv_textarea_set_max_length(obj, 237);
+                                            lv_textarea_set_max_length(obj, 15);
                                             lv_textarea_set_placeholder_text(obj, "Enter Filter ...");
                                             lv_textarea_set_one_line(obj, true);
                                             lv_textarea_set_password_mode(obj, false);
