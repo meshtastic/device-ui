@@ -42,7 +42,7 @@ void create_screen_boot_screen() {
             objects.meshtastic_url = obj;
             lv_obj_set_pos(obj, 0, LV_PCT(-15));
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_label_set_text(obj, " www.meshtastic.org");
+            lv_label_set_text(obj, "www.meshtastic.org");
             lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
@@ -366,7 +366,7 @@ void create_screen_main_screen() {
                             objects.home_time_label = obj;
                             lv_obj_set_pos(obj, 105, 50);
                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
-                            lv_label_set_text(obj, "uptime 00:00:00");
+                            lv_label_set_text(obj, _("uptime 00:00:00"));
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                         }
                         {
@@ -523,7 +523,7 @@ void create_screen_main_screen() {
                             objects.home_memory_label = obj;
                             lv_obj_set_pos(obj, 105, 50);
                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
-                            lv_label_set_text(obj, "Heap: 0\nLVGL: 0");
+                            lv_label_set_text(obj, _("Heap: 0\nLVGL: 0"));
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                         }
                     }
@@ -1755,7 +1755,7 @@ void create_screen_main_screen() {
                     objects.meshtastic_label = obj;
                     lv_obj_set_pos(obj, 14, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_label_set_text(obj, "Meshtastic");
+                    lv_label_set_text(obj, _("Meshtastic"));
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     lv_obj_set_style_text_font(obj, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3268,7 +3268,7 @@ void create_screen_main_screen() {
                     objects.settings_mouse_input_dropdown = obj;
                     lv_obj_set_pos(obj, 50, -5);
                     lv_obj_set_size(obj, 100, 30);
-                    lv_dropdown_set_options(obj, "none");
+                    lv_dropdown_set_options(obj, _("none"));
                     add_style_drop_down_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3288,7 +3288,7 @@ void create_screen_main_screen() {
                     objects.settings_keyboard_input_dropdown = obj;
                     lv_obj_set_pos(obj, 50, 40);
                     lv_obj_set_size(obj, 100, 30);
-                    lv_dropdown_set_options(obj, "none");
+                    lv_dropdown_set_options(obj, _("none"));
                     add_style_drop_down_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3363,7 +3363,7 @@ void create_screen_main_screen() {
                     objects.settings_ringtone_dropdown = obj;
                     lv_obj_set_pos(obj, 40, 30);
                     lv_obj_set_size(obj, 130, 30);
-                    lv_dropdown_set_options(obj, "Default");
+                    lv_dropdown_set_options(obj, _("Default"));
                     add_style_drop_down_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4167,7 +4167,7 @@ void create_screen_main_screen() {
             lv_obj_set_pos(obj, LV_PCT(12), LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
+            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
             lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
             add_style_panel_style(obj);
@@ -4190,6 +4190,7 @@ void create_screen_main_screen() {
                     objects.detector_radar_panel = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 202, 202);
+                    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
                     lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
                     add_style_panel_style(obj);
@@ -5184,7 +5185,7 @@ void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIn
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             lv_obj_set_pos(obj, 0, 0);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                            lv_label_set_text(obj, "OK");
+                            lv_label_set_text(obj, _("OK"));
                         }
                     }
                 }
@@ -5205,7 +5206,7 @@ void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIn
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             lv_obj_set_pos(obj, 0, 0);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                            lv_label_set_text(obj, "Cancel");
+                            lv_label_set_text(obj, _("Cancel"));
                         }
                     }
                 }
