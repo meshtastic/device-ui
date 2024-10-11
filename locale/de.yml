@@ -1,8 +1,8 @@
 de:
   'User name: %s': 'Benutzer: %s'
   'Device Role: %s': 'Gerätemodus: %s'
-  no new messages: keine neue Nachricht
-  1 of 1 nodes online: ~
+  no new messages: keine Nachrichten
+  1 of 1 nodes online: 1/1 Gerät online
   DEL: ~
   'User name: ': 'Benutzer: '
   'Modem Preset: LONG FAST': 'Modem: LONG FAST'
@@ -17,7 +17,7 @@ de:
   Configuration  Reset: Einstellungen zurücksetzen
   Reboot / Shutdown: Neustart / Ausschalten
   Group Channels: Gruppen Kanäle
-  no messages: Keine Nachrichten
+  no messages: keine Nachrichten
   Settings: Einstellungen
   Settings (advanced): Erweiterte Einstellungen
   Locations Map: Karte
@@ -47,35 +47,77 @@ de:
   'Modem Preset: %s': 'Voreinstellung: %s'
   'Channel: %s': 'Gruppen-Kanäle: %s'
   'Language: %s': 'Sprache: %s'
-  'Screen Lock: off': ~
-  'Theme: Dark': ~
-  Mesh Detector: ~
-  Signal Scanner: ~
-  Trace Route: ~
-  Neighbors: ~
-  Statistics: ~
-  Packet Log: ~
-  Settings & Tools: ~
-  Node Search: ~
-  Neigbors: ~
+  'Screen Lock: off': 'Bildschirmsperre: aus'
+  'Theme: Dark': 'Farbschema: Dunkel'
+  Mesh Detector: Mesh-Detektor
+  Signal Scanner: Signalstärke
+  Trace Route: Route verfolgen
+  Neighbors: Nachbarn
+  Statistics: Statistik
+  Packet Log: Paket Historie
+  Settings & Tools: Einstellungen
+  Node Search: Gerätesuche
+  Neigbors: Nachbarn
   Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Light\nDark: ~
+  Light\nDark: Hell\nDunkel
   Screen Lock: ~
   Lock PIN: ~
-  Ringtone: ~
-  Zone: ~
-  City: ~
+  Ringtone: Klingelton
+  Zone: Gebiet
+  City: Stadt
   NodeDB Reset\nFactory Reset: ~
-  Unknown: ~
-  Offline: ~
-  Public Key: ~
+  Unknown: Unbekannt
+  Offline: Abwesend
+  Public Key: PKC Schlüssel
   Hops away: ~
   <= 7\n<= 6\n<= 5\n<= 4\n<= 3\n<= 2\n<= 1\n0\n>= 1\n>= 2\n>= 3\n>= 4\n>= 5\n>= 6\n>= 7: ~
   MQTT: ~
   Position: ~
   Name: ~
-  Active Chat: ~
-  Telemetry: ~
+  Active Chat: Aktiver Chat
+  Telemetry: Telemetrie
   IAQ: ~
   Start: ~
-  'Theme: %s': ~
+  'Theme: %s': 'Farbschema: %s'
+  'uptime 00:00:00': ~
+  'Heap: 0\nLVGL: 0': ~
+  Meshtastic: ~
+  Packet Statistics: Paketstatistik
+  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
+  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  Dark\nLight: Dunkel\nHell
+  none: kein
+  Default: Standard
+  OK: ~
+  Cancel: Abbruch
+  'FrequencySlot: %d (%.2f MHz)': 'Frequenz: %d (%.2f MHz)'
+  'Brightness: %d%%': 'Helligkeit: %d%%'
+  'Timeout: off': 'Timeout: aus'
+  'Timeout: %ds': ~
+  Stop: Stopp
+  choose\nnode: wähle\nGerät
+  choose target node: wähle Ziel
+  'heard: !%08x': 'Gehört: !%08x'
+  'Packet Log: %d': 'Paket Historie: %d'
+  'Screen Timeout: off': 'Bild autom. aus: nie'
+  'Screen Timeout: %ds': 'Bild autom. aus: %ds'
+  'Screen Brightness: %d%%': 'Helligkeit: %d%%'
+  'Screen Lock: %s': 'Bildschirmsperre: %s'
+  'on': ein
+  'off': aus
+  'Message Alert: %s': 'Klingelton: %s'
+  Util %0.1f%%  Air %0.1f%%: ~
+  'hops: %d': ~
+  unknown: unbekannt
+  <no name>: <kein Name>
+  '%d active chat(s)': '%d aktive Chat(s)'
+  New message from \n%s: Neue Nachricht von \n%s
+  'Input Control: %s/%s': 'Eingabegeräte: %s/%s'
+  '%d of %d nodes online': '%d/%d Geräte online'
+  Filtering ...: Filtern ...
+  'Filter: %d of %d nodes': 'Filter: %d / %d Geräte'
+  now: jetzt
+  '%d new message': '%d Nachricht'
+  '%d new messages': '%d Nachrichten'
+  'uptime: %02d:%02d:%02d': ~
+  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~

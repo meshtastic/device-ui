@@ -77,3 +77,45 @@ pt:
   IAQ: ~
   Start: ~
   'Theme: %s': ~
+  'uptime 00:00:00': ~
+  'Heap: 0\nLVGL: 0': ~
+  Meshtastic: ~
+  Packet Statistics: ~
+  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
+  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  Dark\nLight: ~
+  none: ~
+  Default: ~
+  OK: ~
+  Cancel: ~
+  'FrequencySlot: %d (%.2f MHz)': ~
+  'Brightness: %d%%': ~
+  'Timeout: off': ~
+  'Timeout: %ds': ~
+  Stop: ~
+  choose\nnode: ~
+  choose target node: ~
+  'heard: !%08x': ~
+  'Packet Log: %d': ~
+  'Screen Timeout: off': ~
+  'Screen Timeout: %ds': ~
+  'Screen Brightness: %d%%': ~
+  'Screen Lock: %s': ~
+  'on': ~
+  'off': ~
+  'Message Alert: %s': ~
+  Util %0.1f%%  Air %0.1f%%: ~
+  'hops: %d': ~
+  unknown: ~
+  <no name>: ~
+  '%d active chat(s)': ~
+  New message from \n%s: ~
+  'Input Control: %s/%s': ~
+  '%d of %d nodes online': ~
+  Filtering ...: ~
+  'Filter: %d of %d nodes': ~
+  now: ~
+  '%d new message': ~
+  '%d new messages': ~
+  'uptime: %02d:%02d:%02d': ~
+  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
