@@ -19,12 +19,12 @@
 #define LV_ATTRIBUTE_MEM_ALIGN
 #endif
 
-#ifndef LV_ATTRIBUTE_IMG_DUST
-#define LV_ATTRIBUTE_IMG_DUST
+#ifndef LV_ATTRIBUTE_IMG_LOCK_CHANNEL_IMAGE
+#define LV_ATTRIBUTE_IMG_LOCK_CHANNEL_IMAGE
 #endif
 
 static const
-LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_DUST
+LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_LOCK_CHANNEL_IMAGE
 uint8_t img_lock_channel_image_map[] = {
 
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xdb,0xde,0xbe,0xf7,0xfb,0xde,0xfb,0xde,0xfb,0xde,0xfb,0xde,0xdf,0xff,0xdb,0xde,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -66,14 +66,14 @@ uint8_t img_lock_channel_image_map[] = {
 
 };
 
-const lv_img_dsc_t img_lock_channel_image = {
+const lv_image_dsc_t img_lock_channel_image = {
   .header.magic = LV_IMAGE_HEADER_MAGIC,
   .header.cf = LV_COLOR_FORMAT_RGB565A8,
   .header.flags = 0,
   .header.w = 24,
   .header.h = 24,
   .header.stride = 48,
-  .data_size = 1728,
+  .data_size = sizeof(img_lock_channel_image_map),
   .data = img_lock_channel_image_map,
 };
 

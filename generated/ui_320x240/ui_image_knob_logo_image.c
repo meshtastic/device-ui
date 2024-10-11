@@ -19,12 +19,12 @@
 #define LV_ATTRIBUTE_MEM_ALIGN
 #endif
 
-#ifndef LV_ATTRIBUTE_IMG_DUST
-#define LV_ATTRIBUTE_IMG_DUST
+#ifndef LV_ATTRIBUTE_IMG_KNOB_LOGO_IMAGE
+#define LV_ATTRIBUTE_IMG_KNOB_LOGO_IMAGE
 #endif
 
 static const
-LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_DUST
+LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_KNOB_LOGO_IMAGE
 uint8_t img_knob_logo_image_map[] = {
 
     0x00,0x00,0x00,0x00,0xff,0xff,0xff,0x00,0xff,0xff,0xff,0x00,0xff,0xff,0xff,0x03,0xff,0xff,0xff,0x5b,0xff,0xff,0xff,0x2a,0xff,0xff,0xff,0x00,0xff,0xff,0xff,0x00,0xff,0xff,0xff,0x33,0xff,0xff,0xff,0x55,0xff,0xff,0xff,0x01,0xff,0xff,0xff,0x00,0xff,0xff,0xff,0x00,0x00,0x00,0x00,0x00,
@@ -38,14 +38,14 @@ uint8_t img_knob_logo_image_map[] = {
 
 };
 
-const lv_img_dsc_t img_knob_logo_image = {
+const lv_image_dsc_t img_knob_logo_image = {
   .header.magic = LV_IMAGE_HEADER_MAGIC,
   .header.cf = LV_COLOR_FORMAT_ARGB8888,
   .header.flags = 0,
   .header.w = 14,
   .header.h = 8,
   .header.stride = 56,
-  .data_size = 448,
+  .data_size = sizeof(img_knob_logo_image_map),
   .data = img_knob_logo_image_map,
 };
 

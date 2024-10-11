@@ -19,12 +19,12 @@
 #define LV_ATTRIBUTE_MEM_ALIGN
 #endif
 
-#ifndef LV_ATTRIBUTE_IMG_DUST
-#define LV_ATTRIBUTE_IMG_DUST
+#ifndef LV_ATTRIBUTE_IMG_BATTERY_PLUG_IMAGE
+#define LV_ATTRIBUTE_IMG_BATTERY_PLUG_IMAGE
 #endif
 
 static const
-LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_DUST
+LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BATTERY_PLUG_IMAGE
 uint8_t img_battery_plug_image_map[] = {
 
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xba,0xd6,0x1c,0xe7,0xfb,0xde,0xfb,0xde,0xfb,0xde,0xfb,0xde,0xfb,0xde,0xfb,0xde,0x1c,0xe7,0xba,0xd6,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -66,14 +66,14 @@ uint8_t img_battery_plug_image_map[] = {
 
 };
 
-const lv_img_dsc_t img_battery_plug_image = {
+const lv_image_dsc_t img_battery_plug_image = {
   .header.magic = LV_IMAGE_HEADER_MAGIC,
   .header.cf = LV_COLOR_FORMAT_RGB565A8,
   .header.flags = 0,
   .header.w = 24,
   .header.h = 24,
   .header.stride = 48,
-  .data_size = 1728,
+  .data_size = sizeof(img_battery_plug_image_map),
   .data = img_battery_plug_image_map,
 };
 
