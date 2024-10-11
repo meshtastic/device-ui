@@ -1082,7 +1082,7 @@ void TFTView_320x240::ui_event_brightness_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         char buf[20];
         uint32_t brightness = THIS->db.uiConfig.screen_brightness;
-        lv_snprintf(buf, sizeof(buf), "Brightness: %d%%", brightness * 100 / 255);
+        lv_snprintf(buf, sizeof(buf), "Brightness: %d%%", (uint16_t)round(brightness * 100.0 / 255.0));
         lv_label_set_text(objects.settings_brightness_label, buf);
         lv_slider_set_value(objects.brightness_slider, brightness * 100 / 255, LV_ANIM_OFF);
         lv_obj_clear_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
@@ -2477,7 +2477,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             lv_group_focus_obj(objects.basic_settings_brightness_button);
             // revert to old brightness value
             uint32_t old_brightness = THIS->db.uiConfig.screen_brightness;
-            THIS->displaydriver->setBrightness((uint8_t)(old_brightness * 255 / 100));
+            THIS->displaydriver->setBrightness((uint8_t)old_brightness);
             break;
         }
         case TFTView_320x240::eTheme: {
