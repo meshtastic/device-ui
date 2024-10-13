@@ -491,7 +491,7 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Brightness: 60%", "Jasność: 60%"},
     {"Mouse", "Kursor"},
     {"Keyboard", "Klawiatura"},
-    {"Message Alert", "Alarm włączony"},
+    {"Message Alert", "Alerty dźwiękowe"},
     {"NodeDB Reset\nFactory Reset", "Reset NodeDB\nReset do ustawień domyślnych"},
     {"Channel Name", "Nazwa kanału"},
     {"New Message from\n", "Nowa wiadomość od\n"},

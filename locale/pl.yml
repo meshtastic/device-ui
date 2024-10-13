@@ -28,7 +28,7 @@ pl:
   'Timeout: 60s': ~
   Mouse: Kursor
   Keyboard: Klawiatura
-  Message Alert: Alarm włączony
+  Message Alert: Alerty dźwiękowe
   "NodeDB Reset\nFactory Reset": |-
     Reset NodeDB
     Reset do ustawień domyślnych
