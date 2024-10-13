@@ -1126,7 +1126,7 @@ void create_screen_main_screen() {
                         lv_obj_t *parent_obj = obj;
                         {
                             // TabPageBasicSettings
-                            lv_obj_t *obj = lv_tabview_add_tab(parent_obj, "Settings");
+                            lv_obj_t *obj = lv_tabview_add_tab(parent_obj, _("Settings"));
                             objects.tab_page_basic_settings = obj;
                             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_ACTIVE);
                             lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
@@ -1199,6 +1199,8 @@ void create_screen_main_screen() {
                                     add_style_settings_button_style(obj);
                                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                                     lv_obj_set_style_shadow_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_obj_set_style_pad_left(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_obj_set_style_pad_right(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
                                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xff4db270), LV_PART_MAIN | LV_STATE_PRESSED);
                                     lv_obj_set_style_text_color(obj, lv_color_hex(0xff015114), LV_PART_MAIN | LV_STATE_PRESSED);
                                     {
@@ -1209,7 +1211,7 @@ void create_screen_main_screen() {
                                             objects.basic_settings_modem_preset_label = obj;
                                             lv_obj_set_pos(obj, 0, 0);
                                             lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
-                                            lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
+                                            lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
                                             lv_label_set_text(obj, _("Modem Preset: LONG FAST"));
                                         }
                                     }
@@ -1503,7 +1505,7 @@ void create_screen_main_screen() {
                                             lv_obj_set_pos(obj, 0, 0);
                                             lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
                                             lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
-                                            lv_label_set_text(obj, _("Configuration  Reset"));
+                                            lv_label_set_text(obj, _("Configuration Reset"));
                                         }
                                     }
                                 }
@@ -1535,7 +1537,7 @@ void create_screen_main_screen() {
                         }
                         {
                             // TabPageTools
-                            lv_obj_t *obj = lv_tabview_add_tab(parent_obj, "Tools");
+                            lv_obj_t *obj = lv_tabview_add_tab(parent_obj, _("Tools"));
                             objects.tab_page_tools = obj;
                             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_ACTIVE);
                             lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
@@ -1894,7 +1896,6 @@ void create_screen_main_screen() {
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
                     lv_label_set_text(obj, _("Settings & Tools"));
-                    lv_obj_set_style_text_font(obj, &ui_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
@@ -2219,7 +2220,7 @@ void create_screen_main_screen() {
                     lv_obj_set_pos(obj, 25, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
-                    lv_label_set_text(obj, _("Neigbors"));
+                    lv_label_set_text(obj, _("Neighbors"));
                     lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
@@ -2526,7 +2527,7 @@ void create_screen_main_screen() {
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 200, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
-                    lv_label_set_text(obj, "Primary Channel");
+                    lv_label_set_text(obj, _("Primary Channel"));
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DISABLED);
@@ -2567,7 +2568,7 @@ void create_screen_main_screen() {
                     lv_obj_set_pos(obj, 0, 50);
                     lv_obj_set_size(obj, 200, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
-                    lv_label_set_text(obj, "Secondary Channels");
+                    lv_label_set_text(obj, _("Secondary Channels"));
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -2831,6 +2832,7 @@ void create_screen_main_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_top(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_row(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
@@ -2876,6 +2878,7 @@ void create_screen_main_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_top(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_row(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // FrequencySlotLabel
@@ -2953,6 +2956,7 @@ void create_screen_main_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_top(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_row(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
@@ -3361,11 +3365,11 @@ void create_screen_main_screen() {
                     // SettingsRingtoneDropdown
                     lv_obj_t *obj = lv_dropdown_create(parent_obj);
                     objects.settings_ringtone_dropdown = obj;
-                    lv_obj_set_pos(obj, 40, 30);
-                    lv_obj_set_size(obj, 130, 30);
+                    lv_obj_set_pos(obj, 10, 30);
+                    lv_obj_set_size(obj, 120, 30);
                     lv_dropdown_set_options(obj, _("Default"));
                     add_style_drop_down_style(obj);
-                    lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_top(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -3713,7 +3717,7 @@ void create_screen_main_screen() {
                         lv_obj_t *parent_obj = obj;
                         {
                             // TabPageFilter
-                            lv_obj_t *obj = lv_tabview_add_tab(parent_obj, "Filter");
+                            lv_obj_t *obj = lv_tabview_add_tab(parent_obj, _("Filter"));
                             objects.tab_page_filter = obj;
                             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3839,7 +3843,7 @@ void create_screen_main_screen() {
                                             objects.nodes_filter_hops_dropdown = obj;
                                             lv_obj_set_pos(obj, -8, -2);
                                             lv_obj_set_size(obj, 65, 25);
-                                            lv_dropdown_set_options(obj, _("<= 7\n<= 6\n<= 5\n<= 4\n<= 3\n<= 2\n<= 1\n0\n>= 1\n>= 2\n>= 3\n>= 4\n>= 5\n>= 6\n>= 7"));
+                                            lv_dropdown_set_options(obj, "<= 7\n<= 6\n<= 5\n<= 4\n<= 3\n<= 2\n<= 1\n0\n>= 1\n>= 2\n>= 3\n>= 4\n>= 5\n>= 6\n>= 7");
                                             add_style_drop_down_style(obj);
                                             lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                                             lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3966,7 +3970,7 @@ void create_screen_main_screen() {
                         }
                         {
                             // TabPageHighlight
-                            lv_obj_t *obj = lv_tabview_add_tab(parent_obj, "Highlight");
+                            lv_obj_t *obj = lv_tabview_add_tab(parent_obj, _("Highlight"));
                             objects.tab_page_highlight = obj;
                             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4500,7 +4504,7 @@ void create_screen_main_screen() {
                             objects.signal_scanner_node_button_label = obj;
                             lv_obj_set_pos(obj, 35, 0);
                             lv_obj_set_size(obj, LV_PCT(75), LV_SIZE_CONTENT);
-                            lv_label_set_text(obj, "Choose Node");
+                            lv_label_set_text(obj, _("choose\nnode"));
                             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
@@ -4694,7 +4698,7 @@ void create_screen_main_screen() {
                             lv_obj_set_pos(obj, 40, 0);
                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL);
-                            lv_label_set_text(obj, "choose target node");
+                            lv_label_set_text(obj, _("choose target node"));
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
@@ -5161,11 +5165,16 @@ void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIn
             lv_obj_t *obj = lv_obj_create(parent_obj);
             ((lv_obj_t **)&objects)[startWidgetIndex + 2] = obj;
             lv_obj_set_pos(obj, 0, 0);
-            lv_obj_set_size(obj, 160, 50);
-            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_set_size(obj, LV_PCT(100), 50);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ONE);
+            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
+            lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
+            lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
             add_style_panel_style(obj);
             lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_grid_row_align(obj, LV_GRID_ALIGN_SPACE_EVENLY, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
                 {
@@ -5200,6 +5209,8 @@ void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIn
                     lv_obj_set_style_radius(obj, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_clip_corner(obj, true, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_left(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_right(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
                         lv_obj_t *parent_obj = obj;
                         {

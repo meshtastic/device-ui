@@ -26,10 +26,22 @@ void loadScreen(enum ScreensEnum screenId) {
     lv_screen_load_anim(screen, LV_SCR_LOAD_ANIM_FADE_IN, 200, 0, false);
 }
 
-void ui_init() {
-    create_screens();
-    create_tabview_settings();
+void ui_init_boot() {
+    lv_disp_t *dispp = lv_disp_get_default();
+    lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), false, LV_FONT_DEFAULT);
+    lv_disp_set_theme(dispp, theme);
+    
+    create_screen_boot_screen();
     loadScreen(SCREEN_ID_BOOT_SCREEN);
+}
+
+void ui_init() {
+    //create_screens();
+    create_screen_main_screen();
+    create_screen_blank_screen();
+    create_screen_lock_screen();
+    create_screen_calibration_screen();
+    create_tabview_settings();
 }
 
 void ui_tick() {

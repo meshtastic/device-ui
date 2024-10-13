@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 
+void ui_init_boot();
 void ui_init();
 void ui_tick();
 
