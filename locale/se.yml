@@ -1,0 +1,155 @@
+se:
+  no new messages: inga nya meddelanden
+  1 of 1 nodes online: 1 av 1 noder online
+  'uptime 00:00:00': 'upptid 00:00:00'
+  'Heap: 0\nLVGL: 0': ~
+  DEL: ~
+  'User name: ': 'Användarnamn: '
+  'Modem Preset: LONG FAST': 'Förinställning: Lång räckvidd / Snabb'
+  'Channel: LongFast': 'Kanal: LongFast'
+  'Role: Client': 'Roll: Klient'
+  'Screen Timeout: 60s': 'Bildskärms Timeout: 60s'
+  'Screen Lock: off': 'Bildskärms Lås: av'
+  'Screen Brightness: 60%': 'Bildskärmens Ljusstyrka: 60%'
+  'Theme: Dark': 'Tema: Mörkt'
+  'Screen Calibration: default': 'Bildskärmens Kalibrering: standard'
+  'Input Control: none/none': 'Inmatningsmetod: ingen/ingen'
+  'Message Alert Buzzer: on': 'Meddelande varningsklocka: på'
+  'Language: English': 'Språk: Engelska'
+  Configuration Reset: Återställ konfiguration
+  Reboot / Shutdown: Starta om / Stäng av
+  Mesh Detector: Meshdetektor
+  Signal Scanner: Signalskanner
+  Trace Route: Traceroute (spåra rutt)
+  Neighbors: Grannar
+  Statistics: Statistik
+  Packet Log: Paket Loggbok
+  Meshtastic: ~
+  Group Channels: Kanaler
+  no messages: inga meddelanden
+  Settings & Tools: Inställningar & Verktyg
+  Settings (advanced): Inställningar (Avancerat)
+  Locations Map: Karta
+  no chats: inga chattar
+  Node Search: Sök nod
+  Packet Statistics: Paket Statistik
+  Node Options: Nod alternativ
+  Short Name: Kort Namn
+  Long Name: Lånt Namn
+  <unset>: <ej inställt>
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": |-
+    Lång räckvidd / Snabb
+    Lång räckvidd / Långsam
+    -- utfasad --
+    Medium Räckvidd / Långsam
+    Medium räckvidd / Snabb
+    Kort räckvidd / Långsam
+    Kort räckvidd / Snabb
+    Lång räckvidd / Måttlig
+    Kort räckvidd / Turbo
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
+    Klient
+    Klient Stum
+    Router
+    -- utfasad --
+    Relästation
+    Spårare
+    Sensor
+    TAK
+    Klient Gömd
+    Förlorad & hittad
+    TAK Spårare
+  'Brightness: 60%': 'Ljusstyrka: 60%'
+  "Dark\nLight": |-
+    Mörkt
+    Ljust
+  'Timeout: 60s': ~
+  Screen Lock: Bildskärms Lås
+  Lock PIN: Lås PIN
+  Mouse: Mus
+  none: ingen
+  Keyboard: Tangentbord
+  Message Alert: Meddelande Varning
+  Ringtone: Ringsignal
+  Default: Standard
+  Zone: Zon
+  City: Stad
+  "NodeDB Reset\nFactory Reset": |-
+    Nollställ NodeDB
+    Fabriksåterställning
+  Channel Name: Kanal Namn
+  Pre-shared Key: Tidigare delad Nyckel
+  Unknown: Okänd
+  Offline: Frånkopplad
+  Public Key: Publik Nyckel
+  Hops away: Hopp bort
+  MQTT: ~
+  Position: Position
+  Name: Namn
+  Active Chat: Aktiv Chatt
+  Telemetry: Telemetri
+  IAQ: ~
+  Start: Kör
+  "New Message from\n": |
+    Nytt meddelande från
+  Resynch...: Synkronisera om...
+  OK: ~
+  Cancel: Avbryt
+  'FrequencySlot: %d (%.2f MHz)': 'Frekvensplats: %d (%.2f MHz)'
+  'Brightness: %d%%': 'Ljusstyrka: %d%%'
+  'Timeout: off': 'Timeout: av'
+  'Timeout: %ds': ~
+  'Screen Calibration: %s': 'Bildskärmens Kalibrering: %s'
+  done: klar
+  default: standard
+  Stop: Stopp
+  "choose\nnode": |-
+    välj
+    nod
+  choose target node: välj mål nod
+  'heard: !%08x': 'hört: !%08x'
+  'Packet Log: %d': 'Paket Loggbok: %d'
+  'Language: %s': 'Språk: %s'
+  'Screen Timeout: off': 'Bildskärms Timeout: av'
+  'Screen Timeout: %ds': 'Bildskärms Timeout: %ds'
+  'Screen Brightness: %d%%': 'Bildskärmens Ljusstyrka: %d%%'
+  'Theme: %s': 'Tema: %s'
+  'User name: %s': 'Användarnamn: %s'
+  'Device Role: %s': 'Roll: %s'
+  'Region: %s': 'Region: %s'
+  'Modem Preset: %s': 'Förinställning: %s'
+  'Channel: %s': 'Kanal: %s'
+  'Screen Lock: %s': 'Bildskärms Lås: %s'
+  'on': på
+  'off': av
+  'Message Alert: %s': 'Meddelande Varning: %s'
+  Util %0.1f%%  Air %0.1f%%: ~
+  'hops: %d': 'hopp: %d'
+  unknown: okänd
+  <no name>: <inget namn>
+  '%d active chat(s)': '%d aktiva chatt(ar)'
+  "New message from \n%s": |-
+    Nytt meddelande från 
+    %s
+  'Input Control: %s/%s': 'Inmatningsmetod: %s/%s'
+  '%d of %d nodes online': '%d av %d noder online'
+  Filtering ...: Filtrerar ...
+  'Filter: %d of %d nodes': 'Filter: %d av %d noder'
+  now: nu
+  '%d new message': '%d nytt meddelande'
+  '%d new messages': '%d nya meddelanden'
+  'uptime: %02d:%02d:%02d': 'upptid: %02d:%02d:%02d'
+  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  Tools: Verktyg
+  Filter: ~
+  Highlight: Markera
+  Settings: Inställningar
+  Primary Channel: ~
+  Secondary Channels: ~
+  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
+  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  Dark\nLight: ~
+  NodeDB Reset\nFactory Reset: ~
+  choose\nnode: ~
+  New Message from\n: ~
+  New message from \n%s: ~

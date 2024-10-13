@@ -1,69 +1,60 @@
-pl:
+fi:
   no new messages: ~
   1 of 1 nodes online: ~
+  'uptime 00:00:00': ~
+  'Heap: 0\nLVGL: 0': ~
   DEL: ~
   'User name: ': ~
   'Modem Preset: LONG FAST': ~
   'Channel: LongFast': ~
   'Role: Client': ~
   'Screen Timeout: 60s': ~
+  'Screen Lock: off': ~
   'Screen Brightness: 60%': ~
+  'Theme: Dark': ~
   'Screen Calibration: default': ~
   'Input Control: none/none': ~
   'Message Alert Buzzer: on': ~
   'Language: English': ~
-  Configuration  Reset: ~
+  Configuration Reset: ~
   Reboot / Shutdown: ~
-  Group Channels: ~
-  no messages: ~
-  Settings: ~
-  Settings (advanced): ~
-  Locations Map: ~
-  no chats: ~
-  Node Options: ~
-  Short Name: ~
-  Long Name: ~
-  <unset>: ~
-  LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
-  'FrequencySlot: 1 (902.0MHz)': ~
-  Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  'Brightness: 60%': ~
-  'Timeout: 60s': ~
-  Mouse: ~
-  Keyboard: ~
-  Message Alert: ~
-  NodeDB Reset\nFactory Reset: ~
-  Channel Name: ~
-  Pre-shared Key: ~
-  New Message from\n: ~
-  Resynch...: ~
-  'User name: %s': ~
-  'Device Role: %s': ~
-  'Screen Calibration: %s': ~
-  done: ~
-  default: ~
-  'Region: %s': ~
-  'Modem Preset: %s': ~
-  'Channel: %s': ~
-  'Language: %s': ~
-  'Screen Lock: off': ~
-  'Theme: Dark': ~
   Mesh Detector: ~
   Signal Scanner: ~
   Trace Route: ~
   Neighbors: ~
   Statistics: ~
   Packet Log: ~
+  Meshtastic: ~
+  Group Channels: ~
+  no messages: ~
   Settings & Tools: ~
+  Settings (advanced): ~
+  Locations Map: ~
+  no chats: ~
   Node Search: ~
-  Neigbors: ~
-  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Light\nDark: ~
+  Packet Statistics: ~
+  Node Options: ~
+  Short Name: ~
+  Long Name: ~
+  <unset>: ~
+  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
+  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  'Brightness: 60%': ~
+  Dark\nLight: ~
+  'Timeout: 60s': ~
   Screen Lock: ~
   Lock PIN: ~
+  Mouse: ~
+  none: ~
+  Keyboard: ~
+  Message Alert: ~
   Ringtone: ~
+  Default: ~
   Zone: ~
   City: ~
+  NodeDB Reset\nFactory Reset: ~
+  Channel Name: ~
+  Pre-shared Key: ~
   Unknown: ~
   Offline: ~
   Public Key: ~
@@ -75,30 +66,32 @@ pl:
   Telemetry: ~
   IAQ: ~
   Start: ~
-  'Theme: %s': ~
-  'uptime 00:00:00': ~
-  'Heap: 0\nLVGL: 0': ~
-  Meshtastic: ~
-  Packet Statistics: ~
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
-  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Dark\nLight: ~
-  none: ~
-  Default: ~
+  New Message from\n: ~
+  Resynch...: ~
   OK: ~
   Cancel: ~
   'FrequencySlot: %d (%.2f MHz)': ~
   'Brightness: %d%%': ~
   'Timeout: off': ~
   'Timeout: %ds': ~
+  'Screen Calibration: %s': ~
+  done: ~
+  default: ~
   Stop: ~
   choose\nnode: ~
   choose target node: ~
   'heard: !%08x': ~
   'Packet Log: %d': ~
+  'Language: %s': ~
   'Screen Timeout: off': ~
   'Screen Timeout: %ds': ~
   'Screen Brightness: %d%%': ~
+  'Theme: %s': ~
+  'User name: %s': ~
+  'Device Role: %s': ~
+  'Region: %s': ~
+  'Modem Preset: %s': ~
+  'Channel: %s': ~
   'Screen Lock: %s': ~
   'on': ~
   'off': ~
@@ -118,7 +111,7 @@ pl:
   '%d new messages': ~
   'uptime: %02d:%02d:%02d': ~
   'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
-  Configuration Reset: ~
+  Settings: ~
   Tools: ~
   Filter: ~
   Highlight: ~

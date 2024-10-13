@@ -1,121 +1,135 @@
 es:
-  no new messages: ~
-  1 of 1 nodes online: ~
-  DEL: ~
-  'User name: ': ~
+  no new messages: sin mensajes
+  1 of 1 nodes online: 1 de 1 nodos online
+  DEL: BOR
+  'User name: ': 'Nomb. Usua:'
   'Modem Preset: LONG FAST': ~
-  'Channel: LongFast': ~
-  'Role: Client': ~
-  'Screen Timeout: 60s': ~
-  'Screen Brightness: 60%': ~
-  'Screen Calibration: default': ~
+  'Channel: LongFast': 'Canal: LongFast'
+  'Role: Client': 'Rol: Cliente'
+  'Screen Timeout: 60s': 'Apag. Panta: 60s'
+  'Screen Brightness: 60%': 'Brillo Pantalla: 60%'
+  'Screen Calibration: default': 'Calibración Pantalla: predet.'
   'Input Control: none/none': ~
-  'Message Alert Buzzer: on': ~
-  'Language: English': ~
-  Configuration  Reset: ~
-  Reboot / Shutdown: ~
+  'Message Alert Buzzer: on': 'Zumbador en mensaje: on'
+  'Language: English': 'Idioma: Español'
+  Configuration Reset: Reiniciar Configuración
+  Reboot / Shutdown: Reiniciar / Apagar
   Group Channels: ~
-  no messages: ~
-  Settings: ~
-  Settings (advanced): ~
+  no messages: sin mensajes
+  Settings: Configuración
+  Settings (advanced): Configur. avanzada
   Locations Map: ~
-  no chats: ~
+  no chats: sin chats
   Node Options: ~
-  Short Name: ~
-  Long Name: ~
+  Short Name: Nom. Corto
+  Long Name: Nom. Largo
   <unset>: ~
   LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
   'FrequencySlot: 1 (902.0MHz)': ~
   Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  'Brightness: 60%': ~
+  'Brightness: 60%': 'Brillo: 60%'
   'Timeout: 60s': ~
-  Mouse: ~
-  Keyboard: ~
+  Mouse: Ratón
+  Keyboard: Teclado
   Message Alert: ~
-  NodeDB Reset\nFactory Reset: ~
-  Channel Name: ~
-  Pre-shared Key: ~
-  New Message from\n: ~
+  NodeDB Reset\nFactory Reset: Borrar NodeDB\nReini. Fábrica
+  Channel Name: Nomb. Canal
+  Pre-shared Key: Clave Precomp.
+  New Message from\n: Nuevo msg de\n
   Resynch...: ~
-  'User name: %s': ~
-  'Device Role: %s': ~
-  'Screen Calibration: %s': ~
-  done: ~
-  default: ~
-  'Region: %s': ~
+  'User name: %s': 'Nombre Usua: %s'
+  'Device Role: %s': 'Rol Dispo.: %s'
+  'Screen Calibration: %s': 'Calibración pant.: %s'
+  done: hecho
+  default: defecto
+  'Region: %s': 'Región: %s'
   'Modem Preset: %s': ~
-  'Channel: %s': ~
-  'Language: %s': ~
-  'Screen Lock: off': ~
-  'Theme: Dark': ~
-  Mesh Detector: ~
-  Signal Scanner: ~
-  Trace Route: ~
-  Neighbors: ~
-  Statistics: ~
-  Packet Log: ~
-  Settings & Tools: ~
-  Node Search: ~
-  Neigbors: ~
-  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Light\nDark: ~
-  Screen Lock: ~
-  Lock PIN: ~
-  Ringtone: ~
-  Zone: ~
-  City: ~
-  Unknown: ~
+  'Channel: %s': 'Canal: %s'
+  'Language: %s': 'Idioma: %s'
+  'Screen Lock: off': 'Bloq. Panta.: off'
+  'Theme: Dark': 'Tema: Oscuro'
+  Mesh Detector: Detector Mesh
+  Signal Scanner: Escáner señal
+  Trace Route: Trazar ruta
+  Neighbors: Vecinos
+  Statistics: Estadísticas
+  Packet Log: Reg. Paquetes
+  Settings & Tools: Config y herramientas
+  Node Search: Buscar nodo
+  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: >-
+    Client\nClient Mute\n-- obsoleto
+    --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK
+    Tracker
+  Light\nDark: Claro\nOscuro
+  Screen Lock: Bloq. Panta.
+  Lock PIN: PIN bloqu
+  Ringtone: Timbre
+  Zone: Zona
+  City: Ciudad
+  Unknown: Desconocido
   Offline: ~
-  Public Key: ~
-  Hops away: ~
-  <= 7\n<= 6\n<= 5\n<= 4\n<= 3\n<= 2\n<= 1\n0\n>= 1\n>= 2\n>= 3\n>= 4\n>= 5\n>= 6\n>= 7: ~
+  Public Key: Clave Pública
+  Hops away: Saltos
   MQTT: ~
-  Position: ~
-  Name: ~
-  Active Chat: ~
-  Telemetry: ~
+  Position: Posición
+  Name: Nombre
+  Active Chat: Chat Activo
+  Telemetry: Telemetría
   IAQ: ~
   Start: ~
-  'Theme: %s': ~
+  'Theme: %s': 'Tema: %s'
   'uptime 00:00:00': ~
   'Heap: 0\nLVGL: 0': ~
   Meshtastic: ~
-  Packet Statistics: ~
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
-  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Dark\nLight: ~
+  Packet Statistics: Estadísticas
+  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: >-
+    LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT
+    SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO
+  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: >-
+    Client\nClient Mute\nRouter\n-- obsoleto
+    --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker
+  Dark\nLight: Oscuro\nClaro
   none: ~
   Default: ~
   OK: ~
   Cancel: ~
   'FrequencySlot: %d (%.2f MHz)': ~
-  'Brightness: %d%%': ~
+  'Brightness: %d%%': 'Brillo : %d%%'
   'Timeout: off': ~
   'Timeout: %ds': ~
-  Stop: ~
-  choose\nnode: ~
-  choose target node: ~
+  Stop: Parar
+  choose\nnode: escoge\nnodo
+  choose target node: escoge nodo dest.
   'heard: !%08x': ~
-  'Packet Log: %d': ~
+  'Packet Log: %d': 'Reg. Paquetes: %d'
   'Screen Timeout: off': ~
   'Screen Timeout: %ds': ~
-  'Screen Brightness: %d%%': ~
+  'Screen Brightness: %d%%': 'Brillo pantalla: %d%%'
   'Screen Lock: %s': ~
   'on': ~
   'off': ~
-  'Message Alert: %s': ~
+  'Message Alert: %s': 'Alerta Mensaje: %s'
   Util %0.1f%%  Air %0.1f%%: ~
   'hops: %d': ~
-  unknown: ~
-  <no name>: ~
-  '%d active chat(s)': ~
-  New message from \n%s: ~
+  unknown: desconocido
+  <no name>: <sin nombre>
+  '%d active chat(s)': '%d chat(s) activos'
+  "New message from \n%s": |-
+    Nuevo mensaje de
+    %s
   'Input Control: %s/%s': ~
-  '%d of %d nodes online': ~
-  Filtering ...: ~
-  'Filter: %d of %d nodes': ~
-  now: ~
-  '%d new message': ~
-  '%d new messages': ~
+  '%d of %d nodes online': '%d de %d nodos online'
+  Filtering ...: Filtrando ...
+  'Filter: %d of %d nodes': 'Filtro: %d de %d nodos'
+  now: ahora
+  '%d new message': '%d nuev. mensaje'
+  '%d new messages': '%d nuev. mensajes'
   'uptime: %02d:%02d:%02d': ~
   'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  Tools: ~
+  Filter: ~
+  Highlight: ~
+  choose node: ~
+  Primary Channel: ~
+  Secondary Channels: ~
+  New message from \n%s: ~

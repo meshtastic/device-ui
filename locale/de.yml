@@ -14,7 +14,7 @@ de:
   'Input Control: none/none': 'Eingabe: ohne/ohne'
   'Message Alert Buzzer: on': 'Akustischer Alarm: ein'
   'Language: English': 'Sprache: Deutsch'
-  Configuration  Reset: Einstellungen zurücksetzen
+  Configuration Reset: Einstellungen zurücksetzen
   Reboot / Shutdown: Neustart / Ausschalten
   Group Channels: Gruppen Kanäle
   no messages: keine Nachrichten
@@ -26,18 +26,18 @@ de:
   Short Name: Kurzname
   Long Name: Langname
   <unset>: <leer>
-  LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
   'FrequencySlot: 1 (902.0MHz)': 'Frequenz: 1 (902.0MHz)'
-  Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
   'Brightness: 60%': 'Helligkeit: 60%'
   'Timeout: 60s': 'Bild aus: 60s'
   Mouse: Maus
   Keyboard: Tastatur
   Message Alert: Alarm
-  "NodeDB Reset\nFactory Reset": Einstellungen zurücksetzen
+  "NodeDB Reset\nFactory Reset": |-
+    Database Reset
+    Werkseinstellungen
   Channel Name: Kanalname
   Pre-shared Key: Schlüssel
-  New Message from\n: |
+  "New Message from\n": |
     Neue Nachricht von
   Resynch...: Synchronisieren...
   'Screen Calibration: %s': 'Kalibrierung: %s'
@@ -53,24 +53,20 @@ de:
   Signal Scanner: Signalstärke
   Trace Route: Route verfolgen
   Neighbors: Nachbarn
-  Statistics: Statistik
+  Statistics: Paketstatistik
   Packet Log: Paket Historie
-  Settings & Tools: Einstellungen
+  Settings & Tools: Einstellungen & Funktionen
   Node Search: Gerätesuche
-  Neigbors: Nachbarn
   Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Light\nDark: Hell\nDunkel
-  Screen Lock: ~
-  Lock PIN: ~
+  Screen Lock: Bildschirmsperre
+  Lock PIN: PIN
   Ringtone: Klingelton
   Zone: Gebiet
   City: Stadt
-  NodeDB Reset\nFactory Reset: ~
   Unknown: Unbekannt
   Offline: Abwesend
   Public Key: PKC Schlüssel
   Hops away: ~
-  <= 7\n<= 6\n<= 5\n<= 4\n<= 3\n<= 2\n<= 1\n0\n>= 1\n>= 2\n>= 3\n>= 4\n>= 5\n>= 6\n>= 7: ~
   MQTT: ~
   Position: ~
   Name: ~
@@ -83,10 +79,7 @@ de:
   'Heap: 0\nLVGL: 0': ~
   Meshtastic: ~
   Packet Statistics: Paketstatistik
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
-  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Dark\nLight: Dunkel\nHell
-  none: kein
+  none: keine
   Default: Standard
   OK: ~
   Cancel: Abbruch
@@ -95,12 +88,14 @@ de:
   'Timeout: off': 'Timeout: aus'
   'Timeout: %ds': ~
   Stop: Stopp
-  choose\nnode: wähle\nGerät
+  "choose\nnode": |-
+    wähle
+    Nachbar
   choose target node: wähle Ziel
   'heard: !%08x': 'Gehört: !%08x'
   'Packet Log: %d': 'Paket Historie: %d'
-  'Screen Timeout: off': 'Bild autom. aus: nie'
-  'Screen Timeout: %ds': 'Bild autom. aus: %ds'
+  'Screen Timeout: off': 'Display abschalten: nie'
+  'Screen Timeout: %ds': 'Display abschalten: %ds'
   'Screen Brightness: %d%%': 'Helligkeit: %d%%'
   'Screen Lock: %s': 'Bildschirmsperre: %s'
   'on': ein
@@ -111,7 +106,9 @@ de:
   unknown: unbekannt
   <no name>: <kein Name>
   '%d active chat(s)': '%d aktive Chat(s)'
-  New message from \n%s: Neue Nachricht von \n%s
+  "New message from \n%s": |-
+    Neue Nachricht von 
+    %s
   'Input Control: %s/%s': 'Eingabegeräte: %s/%s'
   '%d of %d nodes online': '%d/%d Geräte online'
   Filtering ...: Filtern ...
@@ -121,3 +118,10 @@ de:
   '%d new messages': '%d Nachrichten'
   'uptime: %02d:%02d:%02d': ~
   'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  Tools: Funktionen
+  Filter: ~
+  Highlight: Hervorheben
+  choose node: wähle Nachbar
+  Primary Channel: Primärkanal
+  Secondary Channels: Sekundärkanal
+  "Dark\nLight": "Dunkel\nHell"
