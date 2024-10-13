@@ -2074,7 +2074,7 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
  */
 void TFTView_320x240::setLanguage(meshtastic_Language lang)
 {
-    char buf1[10], buf2[30];
+    char buf1[20], buf2[40];
     lv_dropdown_set_selected(objects.settings_language_dropdown, language2val(lang));
     lv_dropdown_get_selected_str(objects.settings_language_dropdown, buf1, sizeof(buf1));
     lv_snprintf(buf2, sizeof(buf2), _("Language: %s"), buf1);
@@ -4610,7 +4610,7 @@ void TFTView_320x240::updateAllLastHeard(void)
 
 void TFTView_320x240::updateUnreadMessages(void)
 {
-    char buf[20];
+    char buf[32];
     if (unreadMessages > 0) {
         sprintf(buf, unreadMessages == 1 ? _("%d new message") : _("%d new messages"), unreadMessages);
         lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_unread_button_image,
