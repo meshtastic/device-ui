@@ -49,7 +49,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Input Control: none/none", "Eingabe: ohne/ohne"},
     {"Message Alert Buzzer: on", "Akustischer Alarm: ein"},
     {"Language: English", "Sprache: Deutsch"},
-    {"Configuration  Reset", "Einstellungen zurücksetzen"},
+    {"Configuration Reset", "Einstellungen zurücksetzen"},
     {"Reboot / Shutdown", "Neustart / Ausschalten"},
     {"Group Channels", "Gruppen Kanäle"},
     {"no messages", "keine Nachrichten"},
@@ -67,10 +67,10 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Mouse", "Maus"},
     {"Keyboard", "Tastatur"},
     {"Message Alert", "Alarm"},
-    {"NodeDB Reset\nFactory Reset", "Einstellungen zurücksetzen"},
+    {"NodeDB Reset\nFactory Reset", "Database Reset\nWerkseinstellungen"},
     {"Channel Name", "Kanalname"},
     {"Pre-shared Key", "Schlüssel"},
-    {"New Message from\\n", "Neue Nachricht von\n"},
+    {"New Message from\n", "Neue Nachricht von\n"},
     {"Resynch...", "Synchronisieren..."},
     {"Screen Calibration: %s", "Kalibrierung: %s"},
     {"done", "erledigt"},
@@ -84,12 +84,12 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Signal Scanner", "Signalstärke"},
     {"Trace Route", "Route verfolgen"},
     {"Neighbors", "Nachbarn"},
-    {"Statistics", "Statistik"},
+    {"Statistics", "Paketstatistik"},
     {"Packet Log", "Paket Historie"},
-    {"Settings & Tools", "Einstellungen"},
+    {"Settings & Tools", "Einstellungen & Funktionen"},
     {"Node Search", "Gerätesuche"},
-    {"Neigbors", "Nachbarn"},
-    {"Light\\nDark", "Hell\\nDunkel"},
+    {"Screen Lock", "Bildschirmsperre"},
+    {"Lock PIN", "PIN"},
     {"Ringtone", "Klingelton"},
     {"Zone", "Gebiet"},
     {"City", "Stadt"},
@@ -100,20 +100,19 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Telemetry", "Telemetrie"},
     {"Theme: %s", "Farbschema: %s"},
     {"Packet Statistics", "Paketstatistik"},
-    {"Dark\\nLight", "Dunkel\\nHell"},
-    {"none", "kein"},
+    {"none", "keine"},
     {"Default", "Standard"},
     {"Cancel", "Abbruch"},
     {"FrequencySlot: %d (%.2f MHz)", "Frequenz: %d (%.2f MHz)"},
     {"Brightness: %d%%", "Helligkeit: %d%%"},
     {"Timeout: off", "Timeout: aus"},
     {"Stop", "Stopp"},
-    {"choose\\nnode", "wähle\\nGerät"},
+    {"choose\nnode", "wähle\nNachbar"},
     {"choose target node", "wähle Ziel"},
     {"heard: !%08x", "Gehört: !%08x"},
     {"Packet Log: %d", "Paket Historie: %d"},
-    {"Screen Timeout: off", "Bild autom. aus: nie"},
-    {"Screen Timeout: %ds", "Bild autom. aus: %ds"},
+    {"Screen Timeout: off", "Display abschalten: nie"},
+    {"Screen Timeout: %ds", "Display abschalten: %ds"},
     {"Screen Brightness: %d%%", "Helligkeit: %d%%"},
     {"Screen Lock: %s", "Bildschirmsperre: %s"},
     {"on", "ein"},
@@ -122,7 +121,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"unknown", "unbekannt"},
     {"<no name>", "<kein Name>"},
     {"%d active chat(s)", "%d aktive Chat(s)"},
-    {"New message from \\n%s", "Neue Nachricht von \\n%s"},
+    {"New message from \n%s", "Neue Nachricht von \n%s"},
     {"Input Control: %s/%s", "Eingabegeräte: %s/%s"},
     {"%d of %d nodes online", "%d/%d Geräte online"},
     {"Filtering ...", "Filtern ..."},
@@ -130,6 +129,12 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"now", "jetzt"},
     {"%d new message", "%d Nachricht"},
     {"%d new messages", "%d Nachrichten"},
+    {"Tools", "Funktionen"},
+    {"Highlight", "Hervorheben"},
+    {"choose node", "wähle Nachbar"},
+    {"Primary Channel", "Primärkanal"},
+    {"Secondary Channels", "Sekundärkanal"},
+    {"Dark\nLight", "Dunkel\nHell"},
     {NULL, NULL} // End mark
 };
 
@@ -152,6 +157,92 @@ static const lv_i18n_lang_t de_lang = {
     .locale_plural_fn = de_plural_fn
 };
 
+static lv_i18n_phrase_t es_singulars[] = {
+    {"no new messages", "sin mensajes"},
+    {"1 of 1 nodes online", "1 de 1 nodos online"},
+    {"DEL", "BOR"},
+    {"User name: ", "Nomb. Usua:"},
+    {"Channel: LongFast", "Canal: LongFast"},
+    {"Role: Client", "Rol: Cliente"},
+    {"Screen Timeout: 60s", "Apag. Panta: 60s"},
+    {"Screen Brightness: 60%", "Brillo Pantalla: 60%"},
+    {"Screen Calibration: default", "Calibración Pantalla: predet."},
+    {"Message Alert Buzzer: on", "Zumbador en mensaje: on"},
+    {"Language: English", "Idioma: Español"},
+    {"Configuration Reset", "Reiniciar Configuración"},
+    {"Reboot / Shutdown", "Reiniciar / Apagar"},
+    {"no messages", "sin mensajes"},
+    {"Settings", "Configuración"},
+    {"Settings (advanced)", "Configur. avanzada"},
+    {"no chats", "sin chats"},
+    {"Short Name", "Nom. Corto"},
+    {"Long Name", "Nom. Largo"},
+    {"Brightness: 60%", "Brillo: 60%"},
+    {"Mouse", "Ratón"},
+    {"Keyboard", "Teclado"},
+    {"NodeDB Reset\\nFactory Reset", "Borrar NodeDB\\nReini. Fábrica"},
+    {"Channel Name", "Nomb. Canal"},
+    {"Pre-shared Key", "Clave Precomp."},
+    {"New Message from\\n", "Nuevo msg de\\n"},
+    {"User name: %s", "Nombre Usua: %s"},
+    {"Device Role: %s", "Rol Dispo.: %s"},
+    {"Screen Calibration: %s", "Calibración pant.: %s"},
+    {"done", "hecho"},
+    {"default", "defecto"},
+    {"Region: %s", "Región: %s"},
+    {"Channel: %s", "Canal: %s"},
+    {"Language: %s", "Idioma: %s"},
+    {"Screen Lock: off", "Bloq. Panta.: off"},
+    {"Theme: Dark", "Tema: Oscuro"},
+    {"Mesh Detector", "Detector Mesh"},
+    {"Signal Scanner", "Escáner señal"},
+    {"Trace Route", "Trazar ruta"},
+    {"Neighbors", "Vecinos"},
+    {"Statistics", "Estadísticas"},
+    {"Packet Log", "Reg. Paquetes"},
+    {"Settings & Tools", "Config y herramientas"},
+    {"Node Search", "Buscar nodo"},
+    {"Client\\nClient Mute\\n-- deprecated --\\nRouter\\nRepeater\\nTracker\\nSensor\\nTAK\\nClient Hidden\\nLost & Found\\nTAK Tracker", "Client\\nClient Mute\\n-- obsoleto --\\nRouter\\nRepeater\\nTracker\\nSensor\\nTAK\\nClient Hidden\\nLost & Found\\nTAK Tracker"},
+    {"Light\\nDark", "Claro\\nOscuro"},
+    {"Screen Lock", "Bloq. Panta."},
+    {"Lock PIN", "PIN bloqu"},
+    {"Ringtone", "Timbre"},
+    {"Zone", "Zona"},
+    {"City", "Ciudad"},
+    {"Unknown", "Desconocido"},
+    {"Public Key", "Clave Pública"},
+    {"Hops away", "Saltos"},
+    {"Position", "Posición"},
+    {"Name", "Nombre"},
+    {"Active Chat", "Chat Activo"},
+    {"Telemetry", "Telemetría"},
+    {"Theme: %s", "Tema: %s"},
+    {"Packet Statistics", "Estadísticas"},
+    {"LONG FAST\\nLONG SLOW\\n-- deprecated --\\nMEDIUM SLOW\\nMEDIUM FAST\\nSHORT SLOW\\nSHORT FAST\\nLONG MODERATE\\nSHORT TURBO", "LONG FAST\\nLONG SLOW\\n-- obsoleto --\\nMEDIUM SLOW\\nMEDIUM FAST\\nSHORT SLOW\\nSHORT FAST\\nLONG MODERATE\\nSHORT TURBO"},
+    {"Client\\nClient Mute\\nRouter\\n-- deprecated --\\nRepeater\\nTracker\\nSensor\\nTAK\\nClient Hidden\\nLost & Found\\nTAK Tracker", "Client\\nClient Mute\\nRouter\\n-- obsoleto --\\nRepeater\\nTracker\\nSensor\\nTAK\\nClient Hidden\\nLost & Found\\nTAK Tracker"},
+    {"Dark\\nLight", "Oscuro\\nClaro"},
+    {"Brightness: %d%%", "Brillo : %d%%"},
+    {"Stop", "Parar"},
+    {"choose\\nnode", "escoge\\nnodo"},
+    {"choose target node", "escoge nodo dest."},
+    {"Packet Log: %d", "Reg. Paquetes: %d"},
+    {"Screen Brightness: %d%%", "Brillo pantalla: %d%%"},
+    {"Message Alert: %s", "Alerta Mensaje: %s"},
+    {"unknown", "desconocido"},
+    {"<no name>", "<sin nombre>"},
+    {"%d active chat(s)", "%d chat(s) activos"},
+    {"New message from \n%s", "Nuevo mensaje de\n%s"},
+    {"%d of %d nodes online", "%d de %d nodos online"},
+    {"Filtering ...", "Filtrando ..."},
+    {"Filter: %d of %d nodes", "Filtro: %d de %d nodos"},
+    {"now", "ahora"},
+    {"%d new message", "%d nuev. mensaje"},
+    {"%d new messages", "%d nuev. mensajes"},
+    {NULL, NULL} // End mark
+};
+
+
+
 static uint8_t es_plural_fn(int32_t num)
 {
     uint32_t n = op_n(num); UNUSED(n);
@@ -163,9 +254,26 @@ static uint8_t es_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t es_lang = {
     .locale_name = "es",
-
+    .singulars = es_singulars,
 
     .locale_plural_fn = es_plural_fn
+};
+
+static uint8_t fi_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t i = op_i(n); UNUSED(i);
+    uint32_t v = op_v(n); UNUSED(v);
+
+    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t fi_lang = {
+    .locale_name = "fi",
+
+
+    .locale_plural_fn = fi_plural_fn
 };
 
 static uint8_t fr_plural_fn(int32_t num)
@@ -255,15 +363,162 @@ static const lv_i18n_lang_t ro_lang = {
     .locale_plural_fn = ro_plural_fn
 };
 
+static lv_i18n_phrase_t se_singulars[] = {
+    {"no new messages", "inga nya meddelanden"},
+    {"1 of 1 nodes online", "1 av 1 noder online"},
+    {"uptime 00:00:00", "upptid 00:00:00"},
+    {"User name: ", "Användarnamn: "},
+    {"Modem Preset: LONG FAST", "Förinställning: Lång räckvidd / Snabb"},
+    {"Channel: LongFast", "Kanal: LongFast"},
+    {"Role: Client", "Roll: Klient"},
+    {"Screen Timeout: 60s", "Bildskärms Timeout: 60s"},
+    {"Screen Lock: off", "Bildskärms Lås: av"},
+    {"Screen Brightness: 60%", "Bildskärmens Ljusstyrka: 60%"},
+    {"Theme: Dark", "Tema: Mörkt"},
+    {"Screen Calibration: default", "Bildskärmens Kalibrering: standard"},
+    {"Input Control: none/none", "Inmatningsmetod: ingen/ingen"},
+    {"Message Alert Buzzer: on", "Meddelande varningsklocka: på"},
+    {"Language: English", "Språk: Engelska"},
+    {"Configuration Reset", "Återställ konfiguration"},
+    {"Reboot / Shutdown", "Starta om / Stäng av"},
+    {"Mesh Detector", "Meshdetektor"},
+    {"Signal Scanner", "Signalskanner"},
+    {"Trace Route", "Traceroute (spåra rutt)"},
+    {"Neighbors", "Grannar"},
+    {"Statistics", "Statistik"},
+    {"Packet Log", "Paket Loggbok"},
+    {"Group Channels", "Kanaler"},
+    {"no messages", "inga meddelanden"},
+    {"Settings & Tools", "Inställningar & Verktyg"},
+    {"Settings (advanced)", "Inställningar (Avancerat)"},
+    {"Locations Map", "Karta"},
+    {"no chats", "inga chattar"},
+    {"Node Search", "Sök nod"},
+    {"Packet Statistics", "Paket Statistik"},
+    {"Node Options", "Nod alternativ"},
+    {"Short Name", "Kort Namn"},
+    {"Long Name", "Lånt Namn"},
+    {"<unset>", "<ej inställt>"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium Räckvidd / Långsam\nMedium räckvidd / Snabb\nKort räckvidd / Långsam\nKort räckvidd / Snabb\nLång räckvidd / Måttlig\nKort räckvidd / Turbo"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Klient\nKlient Stum\nRouter\n-- utfasad --\nRelästation\nSpårare\nSensor\nTAK\nKlient Gömd\nFörlorad & hittad\nTAK Spårare"},
+    {"Brightness: 60%", "Ljusstyrka: 60%"},
+    {"Dark\nLight", "Mörkt\nLjust"},
+    {"Screen Lock", "Bildskärms Lås"},
+    {"Lock PIN", "Lås PIN"},
+    {"Mouse", "Mus"},
+    {"none", "ingen"},
+    {"Keyboard", "Tangentbord"},
+    {"Message Alert", "Meddelande Varning"},
+    {"Ringtone", "Ringsignal"},
+    {"Default", "Standard"},
+    {"Zone", "Zon"},
+    {"City", "Stad"},
+    {"NodeDB Reset\nFactory Reset", "Nollställ NodeDB\nFabriksåterställning"},
+    {"Channel Name", "Kanal Namn"},
+    {"Pre-shared Key", "Tidigare delad Nyckel"},
+    {"Unknown", "Okänd"},
+    {"Offline", "Frånkopplad"},
+    {"Public Key", "Publik Nyckel"},
+    {"Hops away", "Hopp bort"},
+    {"Position", "Position"},
+    {"Name", "Namn"},
+    {"Active Chat", "Aktiv Chatt"},
+    {"Telemetry", "Telemetri"},
+    {"Start", "Kör"},
+    {"New Message from\n", "Nytt meddelande från\n"},
+    {"Resynch...", "Synkronisera om..."},
+    {"Cancel", "Avbryt"},
+    {"FrequencySlot: %d (%.2f MHz)", "Frekvensplats: %d (%.2f MHz)"},
+    {"Brightness: %d%%", "Ljusstyrka: %d%%"},
+    {"Timeout: off", "Timeout: av"},
+    {"Screen Calibration: %s", "Bildskärmens Kalibrering: %s"},
+    {"done", "klar"},
+    {"default", "standard"},
+    {"Stop", "Stopp"},
+    {"choose\nnode", "välj\nnod"},
+    {"choose target node", "välj mål nod"},
+    {"heard: !%08x", "hört: !%08x"},
+    {"Packet Log: %d", "Paket Loggbok: %d"},
+    {"Language: %s", "Språk: %s"},
+    {"Screen Timeout: off", "Bildskärms Timeout: av"},
+    {"Screen Timeout: %ds", "Bildskärms Timeout: %ds"},
+    {"Screen Brightness: %d%%", "Bildskärmens Ljusstyrka: %d%%"},
+    {"Theme: %s", "Tema: %s"},
+    {"User name: %s", "Användarnamn: %s"},
+    {"Device Role: %s", "Roll: %s"},
+    {"Region: %s", "Region: %s"},
+    {"Modem Preset: %s", "Förinställning: %s"},
+    {"Channel: %s", "Kanal: %s"},
+    {"Screen Lock: %s", "Bildskärms Lås: %s"},
+    {"on", "på"},
+    {"off", "av"},
+    {"Message Alert: %s", "Meddelande Varning: %s"},
+    {"hops: %d", "hopp: %d"},
+    {"unknown", "okänd"},
+    {"<no name>", "<inget namn>"},
+    {"%d active chat(s)", "%d aktiva chatt(ar)"},
+    {"New message from \n%s", "Nytt meddelande från \n%s"},
+    {"Input Control: %s/%s", "Inmatningsmetod: %s/%s"},
+    {"%d of %d nodes online", "%d av %d noder online"},
+    {"Filtering ...", "Filtrerar ..."},
+    {"Filter: %d of %d nodes", "Filter: %d av %d noder"},
+    {"now", "nu"},
+    {"%d new message", "%d nytt meddelande"},
+    {"%d new messages", "%d nya meddelanden"},
+    {"uptime: %02d:%02d:%02d", "upptid: %02d:%02d:%02d"},
+    {"Tools", "Verktyg"},
+    {"Highlight", "Markera"},
+    {"Settings", "Inställningar"},
+    {NULL, NULL} // End mark
+};
+
+
+
+static uint8_t se_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num); UNUSED(n);
+
+
+    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 2)) return LV_I18N_PLURAL_TYPE_TWO;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t se_lang = {
+    .locale_name = "se",
+    .singulars = se_singulars,
+
+    .locale_plural_fn = se_plural_fn
+};
+
+static uint8_t tr_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num); UNUSED(n);
+
+
+    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t tr_lang = {
+    .locale_name = "tr",
+
+
+    .locale_plural_fn = tr_plural_fn
+};
+
 const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
     &en_lang,
     &de_lang,
     &es_lang,
+    &fi_lang,
     &fr_lang,
     &it_lang,
     &pl_lang,
     &pt_lang,
     &ro_lang,
+    &se_lang,
+    &tr_lang,
     NULL // End mark
 };
 
