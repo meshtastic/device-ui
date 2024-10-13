@@ -1,6 +1,6 @@
 es:
-  no new messages: sin mensajes
-  1 of 1 nodes online: 1 de 1 nodos online
+  no new messages: sin mensajes nuevos
+  1 of 1 nodes online: 1 de 1 nodos activos
   DEL: BOR
   'User name: ': 'Nomb. Usua:'
   'Modem Preset: LONG FAST': ~
@@ -14,13 +14,13 @@ es:
   'Language: English': 'Idioma: Español'
   Configuration Reset: Reiniciar Configuración
   Reboot / Shutdown: Reiniciar / Apagar
-  Group Channels: ~
+  Group Channels: Canales Grupales
   no messages: sin mensajes
   Settings: Configuración
   Settings (advanced): Configur. avanzada
-  Locations Map: ~
+  Locations Map: Mapa de localizaciones
   no chats: sin chats
-  Node Options: ~
+  Node Options: Opciones de Nodos
   Short Name: Nombre Corto
   Long Name: Nombre Largo
   <unset>: ~
@@ -29,8 +29,8 @@ es:
   'Timeout: 60s': ~
   Mouse: Ratón
   Keyboard: Teclado
-  Message Alert: ~
-  NodeDB Reset\nFactory Reset: Borrar NodeDB\nReini. Fábrica
+  Message Alert: Alertar mensaje
+  "NodeDB Reset\nFactory Reset": "Borrar NodeDB\nReini. Fábrica"
   Channel Name: Nombre Canal
   Pre-shared Key: Clave Precomp.
   New Message from\n: Nuevo msg de\n
@@ -46,21 +46,21 @@ es:
   'Screen Lock: off': 'Bloq. Panta.: off'
   'Theme: Dark': 'Tema: Oscuro'
   Mesh Detector: Detector Mesh
-  Signal Scanner: Escáner señal
+  Signal Scanner: Escáner de señal
   Trace Route: Trazar ruta
   Neighbors: Vecinos
   Statistics: Estadísticas
-  Packet Log: Reg. Paquetes
+  Packet Log: Registro de paquetes
   Settings & Tools: Config y herramientas
   Node Search: Buscar nodo
   "Light\nDark": "Claro\nOscuro"
-  Screen Lock: Bloq. Panta.
-  Lock PIN: PIN bloqu
+  Screen Lock: Bloqueo Pantalla
+  Lock PIN: PIN bloq.
   Ringtone: Timbre
   Zone: Zona
   City: Ciudad
   Unknown: Desconocido
-  Offline: ~
+  Offline: Inactivo(s)
   Public Key: Clave Pública
   Hops away: Saltos
   MQTT: ~
@@ -69,7 +69,7 @@ es:
   Active Chat: Chat Activo
   Telemetry: Telemetría
   IAQ: ~
-  Start: ~
+  Start: Iniciar
   'Theme: %s': 'Tema: %s'
   'uptime 00:00:00': ~
   'Heap: 0\nLVGL: 0': ~
@@ -81,43 +81,43 @@ es:
   none: ~
   Default: ~
   OK: ~
-  Cancel: ~
+  Cancel: Cancelar
   'FrequencySlot: %d (%.2f MHz)': ~
   'Brightness: %d%%': 'Brillo : %d%%'
   'Timeout: off': ~
   'Timeout: %ds': ~
   Stop: Parar
   "choose\nnode": "escoge\nnodo"
-  choose target node: escoge nodo dest.
-  'heard: !%08x': ~
+  choose target node: escoge nodo de destino
+  'heard: !%08x': 'oído: !%08x'
   'Packet Log: %d': 'Reg. Paquetes: %d'
-  'Screen Timeout: off': ~
-  'Screen Timeout: %ds': ~
+  'Screen Timeout: off': 'Apag. Pantalla: off'
+  'Screen Timeout: %ds': 'Apag. Pantalla: %ds'
   'Screen Brightness: %d%%': 'Brillo pantalla: %d%%'
-  'Screen Lock: %s': ~
+  'Screen Lock: %s': 'Bloq. Pantalla: %s'
   'on': ~
   'off': ~
-  'Message Alert: %s': 'Alerta Mensaje: %s'
-  Util %0.1f%%  Air %0.1f%%: ~
-  'hops: %d': ~
+  'Message Alert: %s': 'Alertar mensaje: %s'
+  Util %0.1f%%  Air %0.1f%%: Util %0.1f%%  Aire %0.1f%%
+  'hops: %d': 'saltos: %d'
   unknown: desconocido
   <no name>: <sin nombre>
   '%d active chat(s)': '%d chat(s) activos'
-  "New message from \n%s": "Nuevo mensaje de\n%s"
+  "New message from \n%s": "Nuevo mensaje de:\n%s"
   'Input Control: %s/%s': ~
-  '%d of %d nodes online': '%d de %d nodos online'
+  '%d of %d nodes online': '%d de %d nodos activos'
   Filtering ...: Filtrando ...
   'Filter: %d of %d nodes': 'Filtro: %d de %d nodos'
   now: ahora
-  '%d new message': '%d nuev. mensaje'
-  '%d new messages': '%d nuev. mensajes'
-  'uptime: %02d:%02d:%02d': ~
+  '%d new message': '%d mensaje nuevo'
+  '%d new messages': '%d mensajes nuevos'
+  'uptime: %02d:%02d:%02d': 'encendido: %02d:%02d:%02d'
   'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
   Tools: Herramientas
   Filter: Filtro
-  Highlight: Resaltar
+  Highlight: Resalte
   Primary Channel: Canal Primario
   Secondary Channels: Canal Secundario
-  Resynch ...: Resincronizar ...
+  Resynch ...: Resincronizando ...
   Rebooting ...: Reiniciando ...
   Shutting down ...: Apagando ...
