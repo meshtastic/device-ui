@@ -67,7 +67,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Mouse", "Maus"},
     {"Keyboard", "Tastatur"},
     {"Message Alert", "Alarm"},
-    {"NodeDB Reset\nFactory Reset", "Database Reset\nWerkseinstellungen"},
+    {"NodeDB Reset\nFactory Reset", "Datenbank Reset\nWerkseinstellungen"},
     {"Channel Name", "Kanalname"},
     {"Pre-shared Key", "Schlüssel"},
     {"New Message from\n", "Neue Nachricht von\n"},
@@ -330,7 +330,6 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Screen Brightness: 60%", "Jasność ekranu: 60%"},
     {"Screen Calibration: default", "Kalibracja ekranu: domyślna"},
     {"Input Control: none/none", ""},
-    {"Message Alert Buzzer: on", "Powiadomienie brzęczykiem na wiadomość: tak"},
     {"Language: English", "Język: Angielski"},
     {"Configuration  Reset", "Zresetuj konfigurację"},
     {"Reboot / Shutdown", "Zrestartuj / Wyłącz"},
@@ -348,7 +347,6 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Brightness: 60%", "Jasność: 60%"},
     {"Mouse", "Kursor"},
     {"Keyboard", "Klawiatura"},
-    {"Message Alert", "Powiadomienie o wiadomości"},
     {"NodeDB Reset\nFactory Reset", "Reset NodeDB\nReset do ustawień domyślnych"},
     {"Channel Name", "Nazwa kanału"},
     {"New Message from\n", "Nowa wiadomość od\n"},
@@ -399,7 +397,7 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Screen Lock: %s", "Blokada ekranu: %s"},
     {"on", "włączony"},
     {"off", "wyłączony"},
-    {"Message Alert: %s", "Powiadomienie o wiadomości: %s"},
+    {"Message Alert: %s", "Dzwonek alertu: %s"},
     {"hops: %d", "Skoki: %d"},
     {"unknown", "nieznany"},
     {"<no name>", "<brak nazwy>"},
@@ -419,6 +417,8 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Highlight", "Podświetl"},
     {"Primary Channel", "Kanał główny"},
     {"Secondary Channels", "Kanały dodatkowe"},
+    {"Rebooting ...", "Uruchamiam ponownie ..."},
+    {"Shutting down ...", "Wyłączam ..."},
     {NULL, NULL} // End mark
 };
 

@@ -10,7 +10,6 @@ pl:
   'Screen Brightness: 60%': 'Jasność ekranu: 60%'
   'Screen Calibration: default': 'Kalibracja ekranu: domyślna'
   'Input Control: none/none': ''
-  'Message Alert Buzzer: on': 'Powiadomienie brzęczykiem na wiadomość: tak'
   'Language: English': 'Język: Angielski'
   Configuration  Reset: Zresetuj konfigurację
   Reboot / Shutdown: Zrestartuj / Wyłącz
@@ -29,7 +28,7 @@ pl:
   'Timeout: 60s': ~
   Mouse: Kursor
   Keyboard: Klawiatura
-  Message Alert: Powiadomienie o wiadomości
+  Message Alert: Alarm włączony
   "NodeDB Reset\nFactory Reset": |-
     Reset NodeDB
     Reset do ustawień domyślnych
@@ -104,7 +103,7 @@ pl:
   'Screen Lock: %s': 'Blokada ekranu: %s'
   'on': 'włączony'
   'off': 'wyłączony'
-  'Message Alert: %s': 'Powiadomienie o wiadomości: %s'
+  'Message Alert: %s': 'Dzwonek alertu: %s'
   Util %0.1f%%  Air %0.1f%%: ~
   'hops: %d': 'Skoki: %d'
   unknown: nieznany
@@ -128,5 +127,5 @@ pl:
   Highlight: Podświetl
   Primary Channel: Kanał główny
   Secondary Channels: Kanały dodatkowe
-  Rebooting ...: ~
-  Shutting down ...: ~
+  Rebooting ...: Uruchamiam ponownie ...
+  Shutting down ...: Wyłączam ...
