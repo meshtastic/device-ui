@@ -3745,17 +3745,17 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
 
 void TFTView_320x240::notifyResync(bool show)
 {
-    messageAlert("Resynch ...", show);
+    messageAlert(_("Resynch ..."), show);
 }
 
 void TFTView_320x240::notifyReboot(bool show)
 {
-    messageAlert("Rebooting ...", show);
+    messageAlert(_("Rebooting ..."), show);
 }
 
 void TFTView_320x240::notifyShutdown(void)
 {
-    messageAlert("Shutting down ...", true);
+    messageAlert(_("Shutting down ..."), true);
 }
 
 void TFTView_320x240::blankScreen(bool enable)

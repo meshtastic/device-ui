@@ -1,127 +1,132 @@
 pl:
-  no new messages: ~
-  1 of 1 nodes online: ~
+  no new messages: Brak wiadomości
+  1 of 1 nodes online: 1 z 1 węzłów online
   DEL: ~
-  'User name: ': ~
-  'Modem Preset: LONG FAST': ~
-  'Channel: LongFast': ~
-  'Role: Client': ~
-  'Screen Timeout: 60s': ~
-  'Screen Brightness: 60%': ~
-  'Screen Calibration: default': ~
-  'Input Control: none/none': ~
-  'Message Alert Buzzer: on': ~
-  'Language: English': ~
-  Configuration  Reset: ~
-  Reboot / Shutdown: ~
-  Group Channels: ~
-  no messages: ~
-  Settings: ~
-  Settings (advanced): ~
-  Locations Map: ~
-  no chats: ~
-  Node Options: ~
-  Short Name: ~
-  Long Name: ~
-  <unset>: ~
-  LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
-  'FrequencySlot: 1 (902.0MHz)': ~
-  Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  'Brightness: 60%': ~
+  'User name: ': 'Nazwa'
+  'Modem Preset: LONG FAST': ''
+  'Channel: LongFast': 'Kanał: LongFast'
+  'Role: Client': 'Tryb: Client'
+  'Screen Timeout: 60s': ''
+  'Screen Brightness: 60%': 'Jasność ekranu: 60%'
+  'Screen Calibration: default': 'Kalibracja ekranu: domyślna'
+  'Input Control: none/none': ''
+  'Message Alert Buzzer: on': 'Powiadomienie brzęczykiem na wiadomość: tak'
+  'Language: English': 'Język: Angielski'
+  Configuration  Reset: Zresetuj konfigurację
+  Reboot / Shutdown: Zrestartuj / Wyłącz
+  Group Channels: Kanały grupowe
+  no messages: brak wiadomości
+  Settings: Ustawienia
+  Settings (advanced): Ustawienia (zaawansowane)
+  Locations Map: Mapa miejsc
+  no chats: brak czatów
+  Node Options: Ustawienia węzła
+  Short Name: Krótka nazwa
+  Long Name: Długa nazwa
+  <unset>: Nieustawione
+  'FrequencySlot: 1 (902.0MHz)': 'Kanał częstotliwości: 1 (902.0MHz)'
+  'Brightness: 60%': 'Jasność: 60%'
   'Timeout: 60s': ~
-  Mouse: ~
-  Keyboard: ~
-  Message Alert: ~
-  NodeDB Reset\nFactory Reset: ~
-  Channel Name: ~
+  Mouse: Kursor
+  Keyboard: Klawiatura
+  Message Alert: Powiadomienie o wiadomości
+  "NodeDB Reset\nFactory Reset": |-
+    Reset NodeDB
+    Reset do ustawień domyślnych
+  Channel Name: Nazwa kanału
   Pre-shared Key: ~
-  New Message from\n: ~
-  Resynch...: ~
-  'User name: %s': ~
-  'Device Role: %s': ~
-  'Screen Calibration: %s': ~
-  done: ~
-  default: ~
+  "New Message from\n": "Nowa wiadomość od\n"
+  Resynch ...: Resynchronizacja...
+  'User name: %s': 'Nazwa: %s'
+  'Device Role: %s': 'Typ urządzenia: %s'
+  'Screen Calibration: %s': 'Kalibracja ekranu: %s'
+  done: wykonano
+  default: domyślny
   'Region: %s': ~
   'Modem Preset: %s': ~
-  'Channel: %s': ~
-  'Language: %s': ~
-  'Screen Lock: off': ~
-  'Theme: Dark': ~
-  Mesh Detector: ~
-  Signal Scanner: ~
-  Trace Route: ~
-  Neighbors: ~
-  Statistics: ~
-  Packet Log: ~
-  Settings & Tools: ~
-  Node Search: ~
-  Neigbors: ~
-  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Light\nDark: ~
-  Screen Lock: ~
-  Lock PIN: ~
-  Ringtone: ~
-  Zone: ~
-  City: ~
-  Unknown: ~
+  'Channel: %s': 'Kanał: %s'
+  'Language: %s': 'Język: %s'
+  'Screen Lock: off': 'Blokada ekranu: wyłączona'
+  'Theme: Dark': 'Skórka: Ciemny'
+  Mesh Detector: Wykrywanie siatki
+  Signal Scanner: Skaner sygnału
+  Trace Route: Śledzenie trasy
+  Neighbors: Sąsiedzi
+  Statistics: Statystyki
+  Packet Log: Dziennik pakietów
+  Settings & Tools: Ustawienia & Narzędzia
+  Node Search: Szukanie Węzła
+  Light\nDark: Jasny\nCiemny
+  Screen Lock: Blokada Ekranu
+  Lock PIN: Blokada PIN
+  Ringtone: Dzwonek
+  Zone: Strefa
+  City: Miasto
+  Unknown: Nieznany
   Offline: ~
-  Public Key: ~
+  Public Key: Klucz publiczny
   Hops away: ~
   MQTT: ~
-  Position: ~
-  Name: ~
-  Active Chat: ~
-  Telemetry: ~
+  Position: Pozycja
+  Name: Nazwa
+  Active Chat: Aktywny czat
+  Telemetry: Telemetria
   IAQ: ~
   Start: ~
-  'Theme: %s': ~
-  'uptime 00:00:00': ~
+  'Theme: %s': 'Skórka: %s'
+  'uptime 00:00:00': 'Aktywny: 00:00:00'
   'Heap: 0\nLVGL: 0': ~
   Meshtastic: ~
-  Packet Statistics: ~
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
-  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Dark\nLight: ~
-  none: ~
-  Default: ~
+  Packet Statistics: Statystyki pakietu
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  "Dark\nLight": |-
+    Ciemny
+    Jasny
+  none: brak # or 'żaden', depends on the context
+  Default: Domyślny
   OK: ~
-  Cancel: ~
-  'FrequencySlot: %d (%.2f MHz)': ~
-  'Brightness: %d%%': ~
+  Cancel: Anuluj
+  'FrequencySlot: %d (%.2f MHz)': 'Kanał: %d (%.2f MHz)'
+  'Brightness: %d%%': 'Jasność: %d%%'
   'Timeout: off': ~
   'Timeout: %ds': ~
   Stop: ~
-  choose\nnode: ~
-  choose target node: ~
-  'heard: !%08x': ~
-  'Packet Log: %d': ~
+  "choose\nnode": |-
+    wybierz
+    węzeł
+  choose target node: Wybierz adresata
+  'heard: !%08x': Widziano !%08x
+  'Packet Log: %d': 'Dziennik pakietów: %d'
   'Screen Timeout: off': ~
   'Screen Timeout: %ds': ~
-  'Screen Brightness: %d%%': ~
-  'Screen Lock: %s': ~
-  'on': ~
-  'off': ~
-  'Message Alert: %s': ~
+  'Screen Brightness: %d%%': 'Jasność ekranu: %d%%'
+  'Screen Lock: %s': 'Blokada ekranu: %s'
+  'on': 'włączony'
+  'off': 'wyłączony'
+  'Message Alert: %s': 'Powiadomienie o wiadomości: %s'
   Util %0.1f%%  Air %0.1f%%: ~
-  'hops: %d': ~
-  unknown: ~
-  <no name>: ~
-  '%d active chat(s)': ~
-  New message from \n%s: ~
-  'Input Control: %s/%s': ~
-  '%d of %d nodes online': ~
-  Filtering ...: ~
-  'Filter: %d of %d nodes': ~
-  now: ~
-  '%d new message': ~
-  '%d new messages': ~
-  'uptime: %02d:%02d:%02d': ~
+  'hops: %d': 'Skoki: %d'
+  unknown: nieznany
+  <no name>: <brak nazwy>
+  '%d active chat(s)': '%d brak aktywnych czatów'
+  "New message from \n%s": |-
+    Nowa wiadomość od 
+    %s
+  'Input Control: %s/%s': 'Kontrola wprowadzania: %s/%s'
+  '%d of %d nodes online': '%d z %d węzłów online'
+  Filtering ...: Filtrowanie...
+  'Filter: %d of %d nodes': 'Wyfiltrowano: %d z %d węzłów'
+  now: teraz
+  '%d new message': '%d nowa wiadomość'
+  '%d new messages': '%d nowe wiadomości'
+  'uptime: %02d:%02d:%02d': 'aktywny: %02d:%02d:%02d'
   'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
-  Configuration Reset: ~
-  Tools: ~
-  Filter: ~
-  Highlight: ~
-  choose node: ~
-  Primary Channel: ~
-  Secondary Channels: ~
+  Configuration Reset: Reset konfiguracji
+  Tools: Narzędzia
+  Filter: Filtruj
+  Highlight: Podświetl
+  Primary Channel: Kanał główny
+  Secondary Channels: Kanały dodatkowe
+  Rebooting ...: ~
+  Shutting down ...: ~

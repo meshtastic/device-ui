@@ -37,10 +37,10 @@ fi:
   Short Name: ~
   Long Name: ~
   <unset>: ~
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
-  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
   'Brightness: 60%': ~
-  Dark\nLight: ~
+  "Dark\nLight": ~
   'Timeout: 60s': ~
   Screen Lock: ~
   Lock PIN: ~
@@ -52,7 +52,7 @@ fi:
   Default: ~
   Zone: ~
   City: ~
-  NodeDB Reset\nFactory Reset: ~
+  "NodeDB Reset\nFactory Reset": ~
   Channel Name: ~
   Pre-shared Key: ~
   Unknown: ~
@@ -78,7 +78,7 @@ fi:
   done: ~
   default: ~
   Stop: ~
-  choose\nnode: ~
+  "choose\nnode": ~
   choose target node: ~
   'heard: !%08x': ~
   'Packet Log: %d': ~
@@ -115,6 +115,8 @@ fi:
   Tools: ~
   Filter: ~
   Highlight: ~
-  choose node: ~
   Primary Channel: ~
   Secondary Channels: ~
+  Resynch ...: ~
+  Rebooting ...: ~
+  Shutting down ...: ~

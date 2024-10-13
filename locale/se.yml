@@ -15,7 +15,7 @@ se:
   'Screen Calibration: default': 'Bildskärmens Kalibrering: standard'
   'Input Control: none/none': 'Inmatningsmetod: ingen/ingen'
   'Message Alert Buzzer: on': 'Meddelande varningsklocka: på'
-  'Language: English': 'Språk: Engelska'
+  'Language: English': 'Språk: Svenska'
   Configuration Reset: Återställ konfiguration
   Reboot / Shutdown: Starta om / Stäng av
   Mesh Detector: Meshdetektor
@@ -144,12 +144,8 @@ se:
   Filter: ~
   Highlight: Markera
   Settings: Inställningar
-  Primary Channel: ~
-  Secondary Channels: ~
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
-  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Dark\nLight: ~
-  NodeDB Reset\nFactory Reset: ~
-  choose\nnode: ~
-  New Message from\n: ~
-  New message from \n%s: ~
+  Primary Channel: Primär Kanal
+  Secondary Channels: Sekundär Kanal
+  Resynch ...: Synkroniserar om ...
+  Rebooting ...: Startar om ...
+  Shutting down ...: Stänger av ...

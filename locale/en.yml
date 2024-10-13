@@ -26,9 +26,7 @@ en:
   Short Name: ~
   Long Name: ~
   <unset>: ~
-  LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
   'FrequencySlot: 1 (902.0MHz)': ~
-  Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
   'Brightness: 60%': ~
   'Timeout: 60s': ~
   Mouse: ~
@@ -56,9 +54,6 @@ en:
   Packet Log: ~
   Settings & Tools: ~
   Node Search: ~
-  Neigbors: ~
-  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Light\nDark: ~
   Screen Lock: ~
   Lock PIN: ~
   Ringtone: ~
@@ -125,3 +120,6 @@ en:
   choose node: ~
   Primary Channel: ~
   Secondary Channels: ~
+  Resynch ...: ~
+  Rebooting ...: ~
+  Shutting down ...: ~

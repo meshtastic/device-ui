@@ -82,13 +82,11 @@ es:
   'Heap: 0\nLVGL: 0': ~
   Meshtastic: ~
   Packet Statistics: Estadísticas
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: >-
-    LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT
-    SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO
-  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: >-
-    Client\nClient Mute\nRouter\n-- obsoleto
-    --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker
-  Dark\nLight: Oscuro\nClaro
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": >-
+    "LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": >-
+    "Client\nClient Mute\nRouter\n-- obsoleto --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"
+  "Dark\nLight": "Oscuro\nClaro"
   none: ~
   Default: ~
   OK: ~
@@ -98,7 +96,7 @@ es:
   'Timeout: off': ~
   'Timeout: %ds': ~
   Stop: Parar
-  choose\nnode: escoge\nnodo
+  "choose\nnode": "escoge\nnodo"
   choose target node: escoge nodo dest.
   'heard: !%08x': ~
   'Packet Log: %d': 'Reg. Paquetes: %d'
@@ -114,9 +112,7 @@ es:
   unknown: desconocido
   <no name>: <sin nombre>
   '%d active chat(s)': '%d chat(s) activos'
-  "New message from \n%s": |-
-    Nuevo mensaje de
-    %s
+  "New message from \n%s": "Nuevo mensaje de\n%s"
   'Input Control: %s/%s': ~
   '%d of %d nodes online': '%d de %d nodos online'
   Filtering ...: Filtrando ...
@@ -132,4 +128,6 @@ es:
   choose node: ~
   Primary Channel: ~
   Secondary Channels: ~
-  New message from \n%s: ~
+  Resynch ...: ~
+  Rebooting ...: ~
+  Shutting down ...: ~
