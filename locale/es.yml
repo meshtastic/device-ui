@@ -21,23 +21,20 @@ es:
   Locations Map: ~
   no chats: sin chats
   Node Options: ~
-  Short Name: Nom. Corto
-  Long Name: Nom. Largo
+  Short Name: Nombre Corto
+  Long Name: Nombre Largo
   <unset>: ~
-  LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
   'FrequencySlot: 1 (902.0MHz)': ~
-  Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
   'Brightness: 60%': 'Brillo: 60%'
   'Timeout: 60s': ~
   Mouse: Ratón
   Keyboard: Teclado
   Message Alert: ~
   NodeDB Reset\nFactory Reset: Borrar NodeDB\nReini. Fábrica
-  Channel Name: Nomb. Canal
+  Channel Name: Nombre Canal
   Pre-shared Key: Clave Precomp.
   New Message from\n: Nuevo msg de\n
-  Resynch...: ~
-  'User name: %s': 'Nombre Usua: %s'
+  'User name: %s': 'Nombre: %s'
   'Device Role: %s': 'Rol Dispo.: %s'
   'Screen Calibration: %s': 'Calibración pant.: %s'
   done: hecho
@@ -56,11 +53,7 @@ es:
   Packet Log: Reg. Paquetes
   Settings & Tools: Config y herramientas
   Node Search: Buscar nodo
-  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: >-
-    Client\nClient Mute\n-- obsoleto
-    --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK
-    Tracker
-  Light\nDark: Claro\nOscuro
+  "Light\nDark": "Claro\nOscuro"
   Screen Lock: Bloq. Panta.
   Lock PIN: PIN bloqu
   Ringtone: Timbre
@@ -82,10 +75,8 @@ es:
   'Heap: 0\nLVGL: 0': ~
   Meshtastic: ~
   Packet Statistics: Estadísticas
-  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": >-
-    "LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": >-
-    "Client\nClient Mute\nRouter\n-- obsoleto --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Client\nClient Mute\nRouter\n-- obsoleto --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"
   "Dark\nLight": "Oscuro\nClaro"
   none: ~
   Default: ~
@@ -122,12 +113,11 @@ es:
   '%d new messages': '%d nuev. mensajes'
   'uptime: %02d:%02d:%02d': ~
   'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
-  Tools: ~
-  Filter: ~
-  Highlight: ~
-  choose node: ~
-  Primary Channel: ~
-  Secondary Channels: ~
-  Resynch ...: ~
-  Rebooting ...: ~
-  Shutting down ...: ~
+  Tools: Herramientas
+  Filter: Filtro
+  Highlight: Resaltar
+  Primary Channel: Canal Primario
+  Secondary Channels: Canal Secundario
+  Resynch ...: Resincronizar ...
+  Rebooting ...: Reiniciando ...
+  Shutting down ...: Apagando ...

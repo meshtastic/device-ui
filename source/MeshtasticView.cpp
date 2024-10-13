@@ -3,6 +3,7 @@
 #include "ILog.h"
 #include "ViewController.h"
 #include "ui.h"
+#include "lv_i18n.h"
 #include <cstdio>
 
 MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller)
@@ -153,7 +154,7 @@ bool MeshtasticView::lastHeardToString(uint32_t lastHeard, char *buf)
     time(&curtime);
     time_t timediff = curtime - lastHeard;
     if (timediff < 60)
-        strcpy(buf, "now");
+        strcpy(buf, _("now"));
     else if (timediff < 3600)
         sprintf(buf, "%d min", timediff / 60);
     else if (timediff < 3600 * 24)
