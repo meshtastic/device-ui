@@ -22,6 +22,7 @@
 #include <ctime>
 #include <functional>
 #include <list>
+#include <locale>
 
 #ifdef ARCH_PORTDUINO
 #include "LinuxHelper.h"
@@ -123,7 +124,7 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
     db.uiConfig = uiconfig;
 
     lv_i18n_init(lv_i18n_language_pack);
-    setLanguageLocale(uiconfig.language);
+    setLocale(uiconfig.language);
 
     // now we have set language, continue creating all screens
     if (!screensInitialised)
@@ -172,7 +173,7 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
     if (ownNode && objects.node_panel)
         nodes[ownNode] = objects.node_panel;
 
-    //lv_obj_invalidate(objects.main_screen);
+    lv_disp_trig_activity(NULL);
 }
 
 /**
@@ -197,7 +198,7 @@ void TFTView_320x240::init_screens(void)
     ui_events_init();
 
     // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 300, std::min(millis() + 3000, 9000UL), false);
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 300, 2000, false);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
@@ -2031,31 +2032,41 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
 /**
  * @brief Set lv_i18n language
  */
-void TFTView_320x240::setLanguageLocale(meshtastic_Language lang)
+void TFTView_320x240::setLocale(meshtastic_Language lang)
 {
+    const char *locale = "en_US.UTF-8";
     switch (lang) {
     case meshtastic_Language_ENGLISH:
         lv_i18n_set_locale("en");
         break;
     case meshtastic_Language_GERMAN:
         lv_i18n_set_locale("de");
+        locale = "de_DE.UTF-8";
         break;
     case meshtastic_Language_SPANISH:
         lv_i18n_set_locale("es");
+        locale = "es_ES.UTF-8";
         break;
     case meshtastic_Language_FRENCH:
         lv_i18n_set_locale("fr");
+        locale = "fr_FR.UTF-8";
         break;
     case meshtastic_Language_ITALIAN:
         lv_i18n_set_locale("it");
+        locale = "it_IT.UTF-8";
         break;
     case meshtastic_Language_PORTUGUESE:
         lv_i18n_set_locale("pt");
+        locale = "pt_PT.UTF-8";
         break;
     default:
         ILOG_WARN("Language %d not implemented\n", lang);
         break;
     }
+
+#ifdef ARCH_PORTDUINO
+    std::locale::global(std::locale(locale));
+#endif
 }
 
 /**

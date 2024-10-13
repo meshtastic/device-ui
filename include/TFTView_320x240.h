@@ -204,7 +204,7 @@ class TFTView_320x240 : public MeshtasticView
 
     uint32_t language2val(meshtastic_Language lang);
     meshtastic_Language val2language(uint32_t val);
-    void setLanguageLocale(meshtastic_Language lang);
+    void setLocale(meshtastic_Language lang);
     void setLanguage(meshtastic_Language lang);
     void setTimeout(uint32_t timeout);
     void setBrightness(uint32_t brightness);
