@@ -120,6 +120,8 @@ class TFTView_320x240 : public MeshtasticView
 
     typedef void (*UserWidgetFunc)(lv_obj_t *, void *, int);
 
+    // initialize all ui screens
+    virtual void init_screens(void);
     // update node counter display (online and filtered)
     virtual void updateNodesStatus(void);
     // display message popup
@@ -202,7 +204,8 @@ class TFTView_320x240 : public MeshtasticView
 
     uint32_t language2val(meshtastic_Language lang);
     meshtastic_Language val2language(uint32_t val);
-    void setLanguage(void);
+    void setLanguageLocale(meshtastic_Language lang);
+    void setLanguage(meshtastic_Language lang);
     void setTimeout(uint32_t timeout);
     void setBrightness(uint32_t brightness);
     void setTheme(uint32_t theme);
@@ -299,6 +302,7 @@ class TFTView_320x240 : public MeshtasticView
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
     static TFTView_320x240 *gui;                     // singleton pattern
+    bool screensInitialised;                         // true if init_screens is completed
     uint32_t nodesFiltered;                          // no. hidden nodes in node list
     bool processingFilter;                           // indicates that filtering is ongoing
     bool packetLogEnabled;                           // display received packets

@@ -5,8 +5,6 @@
 #include "ui.h"
 #include <cstdio>
 
-extern const char *firmware_version;
-
 MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller)
     : DeviceGUI(cfg, driver), controller(_controller), requests(c_request_timeout)
 {
@@ -15,7 +13,7 @@ MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *dr
 void MeshtasticView::init(IClientBase *client)
 {
     DeviceGUI::init(client);
-    lv_label_set_text(objects.firmware_label, firmware_version);
+    //lv_label_set_text(objects.firmware_label, firmware_version);
     controller->init(this, client);
 }
 

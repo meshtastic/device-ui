@@ -49,6 +49,8 @@ enum NodePanelIdx {
     node_tm2_idx
 };
 
+extern const char *firmware_version;
+
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
 lv_obj_t *TFTView_320x240::currentPanel = nullptr;
 lv_obj_t *TFTView_320x240::spinnerButton = nullptr;
@@ -74,7 +76,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 }
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
-    : MeshtasticView(cfg, driver, new ViewController), nodesFiltered(0), processingFilter(false), packetLogEnabled(false),
+    : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), processingFilter(false), packetLogEnabled(false),
       detectorRunning(false), packetCounter(0), actTime(0), uptime(0), hasPosition(false), topNodeLL(nullptr), scans(0),
       selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), db{}
 {
@@ -82,6 +84,11 @@ TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *
     highlight.active = false;
 }
 
+/**
+ * @brief Initialize view and boot screen
+ * Note: We'll wait until we got our persistent data and then initialize
+ *       the remaining screens.
+ */
 void TFTView_320x240::init(IClientBase *client)
 {
     ILOG_DEBUG("TFTView_320x240 init...\n");
@@ -96,13 +103,86 @@ void TFTView_320x240::init(IClientBase *client)
     ILOG_DEBUG("### Total size: %d bytes ###\n", total_size);
 
     MeshtasticView::init(client);
-    apply_hotfix();
+
+    ui_init_boot();
+    lv_label_set_text(objects.firmware_label, firmware_version);
 
     time(&lastrun60);
     time(&lastrun10);
     lastrun10 += 10;
     time(&lastrun5);
     time(&lastrun1);
+}
+
+/**
+ * @brief initialize UI with persistent data
+ */
+void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
+{
+    ILOG_DEBUG("setupUIConfig\n");
+    db.uiConfig = uiconfig;
+
+    lv_i18n_init(lv_i18n_language_pack);
+    setLanguageLocale(uiconfig.language);
+
+    // now we have set language, continue creating all screens
+    if (!screensInitialised)
+        init_screens();
+
+    // set language
+    setLanguage(uiconfig.language);
+
+    //TODO: set virtual keyboard according language
+    // setKeyboard(uiconfig.language);
+
+    // set theme
+    Themes::set(Themes::Theme(uiconfig.theme));
+    Themes::initStyles();
+    updateTheme();
+    //lv_dropdown_set_selected(objects.settings_theme_dropdown, uiconfig.theme);
+    //setTheme(uiconfig.theme);
+    lv_obj_set_style_bg_img_recolor(objects.home_button, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    // set brightness
+    if (displaydriver->hasLight())
+        THIS->setBrightness(uiconfig.screen_brightness);
+
+    // set timeout
+    THIS->setTimeout(uiconfig.screen_timeout);
+
+    // set node filter options
+    meshtastic_NodeFilter &filter = db.uiConfig.node_filter;
+    lv_obj_set_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED, filter.unknown_switch);
+    lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, filter.offline_switch);
+    lv_obj_set_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED, filter.public_key_switch);
+    lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, filter.hops_away);
+    //lv_obj_set_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED, filter.mqtt_switch);
+    lv_obj_set_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED, filter.position_switch);
+    lv_textarea_set_text(objects.nodes_filter_name_area, filter.node_name);
+
+    // set node highlight options
+    meshtastic_NodeHighlight &highlight = db.uiConfig.node_highlight;
+    lv_obj_set_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED, highlight.chat_switch);
+    lv_obj_set_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED, highlight.position_switch);
+    lv_obj_set_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED, highlight.telemetry_switch);
+    lv_obj_set_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED, highlight.iaq_switch);
+    lv_textarea_set_text(objects.nodes_hl_name_area, highlight.node_name);
+
+    // initialize own node panel
+    if (ownNode && objects.node_panel)
+        nodes[ownNode] = objects.node_panel;
+
+    //lv_obj_invalidate(objects.main_screen);
+}
+
+/**
+ * @brief Initialize all screens and apply customizations
+ *
+ */
+void TFTView_320x240::init_screens(void)
+{
+    ui_init();
+    apply_hotfix();
 
     activeMsgContainer = objects.messages_container;
     // setup the two channel label panels with arrays that allow indexing
@@ -117,7 +197,7 @@ void TFTView_320x240::init(IClientBase *client)
     ui_events_init();
 
     // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, std::min(millis() + 3000, 9000UL), false);
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 300, std::min(millis() + 3000, 9000UL), false);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
@@ -139,6 +219,7 @@ void TFTView_320x240::init(IClientBase *client)
     lv_obj_add_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
 #endif
 
+    //signal scanner scale
 #if defined(USE_SX127x)
     lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120\n-130\n-140\n-150");
     lv_slider_set_range(objects.rssi_slider, -150, -50);
@@ -173,57 +254,10 @@ void TFTView_320x240::init(IClientBase *client)
     objects.home_wlan_button->user_data = (void *)0;
     objects.home_memory_button->user_data = (void *)0;
 
-    // localization
-    lv_i18n_init(lv_i18n_language_pack);
-    lv_i18n_set_locale("en");
-
     updateFreeMem();
+
+    screensInitialised = true;
     ILOG_DEBUG("TFTView_320x240 init done.\n");
-}
-
-/**
- * @brief initialize UI with persistent data
- */
-void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
-{
-    ILOG_DEBUG("setupUIConfig\n");
-    db.uiConfig = uiconfig;
-
-    // set language
-    lv_dropdown_set_selected(objects.settings_language_dropdown, language2val(uiconfig.language));
-    setLanguage();
-
-    // set brightness
-    if (displaydriver->hasLight())
-        THIS->setBrightness(uiconfig.screen_brightness);
-
-    // set timeout
-    THIS->setTimeout(uiconfig.screen_timeout);
-
-    // set node filter options
-    meshtastic_NodeFilter &filter = db.uiConfig.node_filter;
-    lv_obj_set_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED, filter.unknown_switch);
-    lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, filter.offline_switch);
-    lv_obj_set_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED, filter.public_key_switch);
-    lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, filter.hops_away);
-    //lv_obj_set_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED, filter.mqtt_switch);
-    lv_obj_set_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED, filter.position_switch);
-    lv_textarea_set_text(objects.nodes_filter_name_area, filter.node_name);
-
-    // set node highlight options
-    meshtastic_NodeHighlight &highlight = db.uiConfig.node_highlight;
-    lv_obj_set_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED, highlight.chat_switch);
-    lv_obj_set_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED, highlight.position_switch);
-    lv_obj_set_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED, highlight.telemetry_switch);
-    lv_obj_set_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED, highlight.iaq_switch);
-    lv_textarea_set_text(objects.nodes_hl_name_area, highlight.node_name);
-
-    // set theme
-    lv_dropdown_set_selected(objects.settings_theme_dropdown, uiconfig.theme);
-    setTheme(uiconfig.theme);
-    lv_obj_set_style_bg_img_recolor(objects.home_button, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    //lv_obj_invalidate(objects.main_screen);
 }
 
 /**
@@ -1766,7 +1800,7 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
         lv_obj_del(objects.tools_packet_log_panel->spec_attr->children[0]);
     } else {
         packetCounter++;
-        char top[16];
+        char top[24];
         sprintf(top, _("Packet Log: %d"), packetCounter);
         lv_label_set_text(objects.top_packet_log_label, top);
     }
@@ -1995,38 +2029,45 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
 }
 
 /**
- * @brief Set language according current dropdown selection
+ * @brief Set lv_i18n language
  */
-void TFTView_320x240::setLanguage(void)
+void TFTView_320x240::setLanguageLocale(meshtastic_Language lang)
 {
-    char buf1[10], buf2[30];
-    lv_dropdown_get_selected_str(objects.settings_language_dropdown, buf1, sizeof(buf1));
-    lv_snprintf(buf2, sizeof(buf2), _("Language: %s"), buf1);
-    lv_label_set_text(objects.basic_settings_language_label, buf2);
-    // TODO: change language acc. lvgl localization
-    switch (lv_dropdown_get_selected(objects.settings_language_dropdown)) {
-    case 0:
+    switch (lang) {
+    case meshtastic_Language_ENGLISH:
         lv_i18n_set_locale("en");
         break;
-    case 1:
+    case meshtastic_Language_GERMAN:
         lv_i18n_set_locale("de");
         break;
-    case 2:
+    case meshtastic_Language_SPANISH:
         lv_i18n_set_locale("es");
         break;
-    case 3:
+    case meshtastic_Language_FRENCH:
         lv_i18n_set_locale("fr");
         break;
-    case 4:
+    case meshtastic_Language_ITALIAN:
         lv_i18n_set_locale("it");
         break;
-    case 5:
+    case meshtastic_Language_PORTUGUESE:
         lv_i18n_set_locale("pt");
         break;
     default:
-        ILOG_WARN("Language %s not implemented\n", buf1);
+        ILOG_WARN("Language %d not implemented\n", lang);
         break;
     }
+}
+
+/**
+ * @brief Set language (using dropdown strings)
+ */
+void TFTView_320x240::setLanguage(meshtastic_Language lang)
+{
+    char buf1[10], buf2[30];
+    lv_dropdown_set_selected(objects.settings_language_dropdown, language2val(lang));
+    lv_dropdown_get_selected_str(objects.settings_language_dropdown, buf1, sizeof(buf1));
+    lv_snprintf(buf2, sizeof(buf2), _("Language: %s"), buf1);
+    lv_label_set_text(objects.basic_settings_language_label, buf2);
 }
 
 /**
@@ -2132,7 +2173,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(objects.settings_device_role_dropdown);
 
             if (role != device.role) {
-                char buf1[10], buf2[30];
+                char buf1[30], buf2[40];
                 lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
                 lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
                 lv_label_set_text(objects.basic_settings_role_label, buf2);
@@ -2219,9 +2260,10 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             uint32_t value = lv_dropdown_get_selected(objects.settings_language_dropdown);
             meshtastic_Language lang = THIS->val2language(value);
             if (lang != THIS->db.uiConfig.language) {
-                THIS->setLanguage();
                 THIS->db.uiConfig.language = lang;
                 THIS->controller->storeUIConfig(THIS->db.uiConfig);
+                THIS->controller->requestReboot(3, THIS->ownNode);
+                THIS->notifyReboot(true);
             }
 
             lv_obj_add_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
@@ -2880,7 +2922,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 void TFTView_320x240::setMyInfo(uint32_t nodeNum)
 {
     ownNode = nodeNum;
-    nodes[ownNode] = objects.node_panel;
 }
 
 void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
@@ -2919,8 +2960,12 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
             char buf[30];
             lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
             lv_label_set_text(objects.basic_settings_user_label, buf);
-            lv_snprintf(buf, sizeof(buf), _("Device Role: %s"), deviceRoleToString(role));
-            lv_label_set_text(objects.basic_settings_role_label, buf);
+
+            char buf1[30], buf2[40];
+            lv_dropdown_set_selected(objects.settings_device_role_dropdown, role);
+            lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
+            lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
+            lv_label_set_text(objects.basic_settings_role_label, buf2);
 
             // update DB
             strcpy(db.short_name, userShort);
@@ -3800,9 +3845,12 @@ void TFTView_320x240::updateDeviceConfig(const meshtastic_Config_DeviceConfig &c
 {
     db.config.device = cfg;
     db.config.has_device = true;
-    char role[30];
-    lv_snprintf(role, sizeof(role), _("Device Role: %s"), deviceRoleToString((eRole)cfg.role));
-    lv_label_set_text(objects.basic_settings_role_label, role);
+
+    char buf1[30], buf2[40];
+    lv_dropdown_set_selected(objects.settings_device_role_dropdown, cfg.role);
+    lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
+    lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
+    lv_label_set_text(objects.basic_settings_role_label, buf2);
 }
 
 void TFTView_320x240::updatePositionConfig(const meshtastic_Config_PositionConfig &cfg)
@@ -3839,9 +3887,11 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
     lv_label_set_text(objects.basic_settings_region_label, region);
 
-    char preset[30];
-    lv_snprintf(preset, sizeof(preset), _("Modem Preset: %s"), LoRaPresets::modemPresetToString(cfg.modem_preset));
-    lv_label_set_text(objects.basic_settings_modem_preset_label, preset);
+    char buf1[16], buf2[32];
+    lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
+    lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
+    lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
+    lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
     uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
@@ -4567,7 +4617,7 @@ void TFTView_320x240::updateUnreadMessages(void)
  */
 void TFTView_320x240::updateTime(void)
 {
-    char buf[64];
+    char buf[80];
     time_t curr_time;
 #ifdef ARCH_PORTDUINO
     time(&curr_time);
@@ -4622,49 +4672,51 @@ void TFTView_320x240::task_handler(void)
 {
     MeshtasticView::task_handler();
 
-    time_t curtime;
-    time(&curtime);
-    if (curtime - lastrun1 >= 1) { // call every 1s
-        lastrun1 = curtime;
-        actTime++;
-        updateTime();
-    }
-    if (curtime - lastrun5 >= 5) { // call every 5s
-        lastrun5 = curtime;
-        if (scans > 0 && activePanel == objects.signal_scanner_panel) {
-            scanSignal(scans);
-            scans--;
+    if (screensInitialised) {
+        time_t curtime;
+        time(&curtime);
+        if (curtime - lastrun1 >= 1) { // call every 1s
+            lastrun1 = curtime;
+            actTime++;
+            updateTime();
         }
-        if (startTime) {
-            if (curtime - startTime > 30) {
-                lv_label_set_text(objects.trace_route_start_label, _("Start"));
-                removeSpinner();
-            } else {
-                char buf[16];
-                sprintf(buf, "%ds", ((35 - (curtime - startTime)) / 5) * 5);
-                lv_label_set_text(objects.trace_route_start_label, buf);
+        if (curtime - lastrun5 >= 5) { // call every 5s
+            lastrun5 = curtime;
+            if (scans > 0 && activePanel == objects.signal_scanner_panel) {
+                scanSignal(scans);
+                scans--;
+            }
+            if (startTime) {
+                if (curtime - startTime > 30) {
+                    lv_label_set_text(objects.trace_route_start_label, _("Start"));
+                    removeSpinner();
+                } else {
+                    char buf[16];
+                    sprintf(buf, "%ds", ((35 - (curtime - startTime)) / 5) * 5);
+                    lv_label_set_text(objects.trace_route_start_label, buf);
+                }
             }
         }
-    }
-    if (curtime - lastrun10 >= 10) { // call every 10s
-        lastrun10 = curtime;
-        updateFreeMem();
-
-        if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
-            controller->requestDeviceConnectionStatus();
+        if (curtime - lastrun10 >= 10) { // call every 10s
+            lastrun10 = curtime;
+            updateFreeMem();
+    
+            if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
+                controller->requestDeviceConnectionStatus();
+            }
         }
-    }
-    if (curtime - lastrun60 >= 60) { // call every 60s
-        lastrun60 = curtime;
-        updateAllLastHeard();
-
-        if (detectorRunning) {
-            controller->sendPing();
+        if (curtime - lastrun60 >= 60) { // call every 60s
+            lastrun60 = curtime;
+            updateAllLastHeard();
+    
+            if (detectorRunning) {
+                controller->sendPing();
+            }
         }
-    }
-
-    if (processingFilter) {
-        updateNodesFiltered(false);
+    
+        if (processingFilter) {
+            updateNodesFiltered(false);
+        }
     }
 }
 
