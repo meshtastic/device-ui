@@ -23,18 +23,14 @@ es:
   Node Options: Opciones de Nodos
   Short Name: Nombre Corto
   Long Name: Nombre Largo
-  <unset>: ~
+  <unset>: <vacío>
   'FrequencySlot: 1 (902.0MHz)': ~
   'Brightness: 60%': 'Brillo: 60%'
   'Timeout: 60s': ~
   Mouse: Ratón
   Keyboard: Teclado
   Message Alert: Alertar mensaje
-<<<<<<< HEAD
   "NodeDB Reset\nFactory Reset": "Borrar NodeDB\nReini. Fábrica"
-=======
-  NodeDB Reset\nFactory Reset: Borrar NodeDB\nReini. Fábrica
->>>>>>> 7d19b8cd41d8ac682a5c80d2db8ed0416ceba327
   Channel Name: Nombre Canal
   Pre-shared Key: Clave Precomp.
   New Message from\n: Nuevo msg de\n
@@ -57,7 +53,6 @@ es:
   Packet Log: Registro de paquetes
   Settings & Tools: Config y herramientas
   Node Search: Buscar nodo
-  "Light\nDark": "Claro\nOscuro"
   Screen Lock: Bloqueo Pantalla
   Lock PIN: PIN bloq.
   Ringtone: Timbre
