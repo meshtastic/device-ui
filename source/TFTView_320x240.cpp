@@ -1999,9 +1999,21 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_ITALIAN:
         return 4;
     case meshtastic_Language_PORTUGUESE:
-        return 5;
+        return 7;
     case meshtastic_Language_SPANISH:
         return 2;
+#if 0
+    case meshtastic_Language_SWEDISH:
+        return 9;
+    case meshtastic_Language_FINNISH:
+        return 8;
+    case meshtastic_Language_POLISH:
+        return 6;
+    case meshtastic_Language_TURKISH:
+        return 10;
+    case meshtastic_Language_DUTCH:
+        return 5;
+#endif
     default:
         ILOG_WARN("unknown language uiconfig\n");
     }
@@ -2019,10 +2031,22 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
         return meshtastic_Language_GERMAN;
     case 4:
         return meshtastic_Language_ITALIAN;
-    case 5:
+    case 7:
         return meshtastic_Language_PORTUGUESE;
     case 2:
         return meshtastic_Language_SPANISH;
+#if 0
+    case 9:
+        return meshtastic_Language_SWEDISH;
+    case 8:
+        return meshtastic_Language_FINNISH;
+    case 6:
+        return meshtastic_Language_POLISH;
+    case 10:
+        return meshtastic_Language_TURKISH;
+    case 5:
+        return meshtastic_Language_DUTCH;
+#endif
     default:
         ILOG_WARN("unknown language val\n");
     }
@@ -2059,6 +2083,28 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("pt");
         locale = "pt_PT.UTF-8";
         break;
+#if 0
+    case meshtastic_Language_SWEDISH:
+        lv_i18n_set_locale("se");
+        locale = "se_SE.UTF-8";
+        break;
+    case meshtastic_Language_FINNISH:
+        lv_i18n_set_locale("fi");
+        locale = "fi_FI.UTF-8";
+        break;
+    case meshtastic_Language_POLISH:
+        lv_i18n_set_locale("pl");
+        locale = "pl_PL.UTF-8";
+        break;
+    case meshtastic_Language_TURKISH:
+        lv_i18n_set_locale("tr");
+        locale = "tr_TR.UTF-8";
+        break;
+    case meshtastic_Language_DUTCH:
+        lv_i18n_set_locale("nl");
+        locale = "nl_NL.UTF-8";
+        break;
+#endif
     default:
         ILOG_WARN("Language %d not implemented\n", lang);
         break;
