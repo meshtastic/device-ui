@@ -2402,7 +2402,7 @@ void create_screen_main_screen() {
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.settings_username_panel = obj;
             lv_obj_set_pos(obj, LV_PCT(5), LV_PCT(15));
-            lv_obj_set_size(obj, 240, 165);
+            lv_obj_set_size(obj, 240, 170);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             add_style_settings_panel_style(obj);
@@ -2458,7 +2458,7 @@ void create_screen_main_screen() {
                 }
                 {
                     lv_obj_t *obj = lv_label_create(parent_obj);
-                    lv_obj_set_pos(obj, 0, 60);
+                    lv_obj_set_pos(obj, 0, 55);
                     lv_obj_set_size(obj, 200, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                     lv_label_set_text(obj, _("Long Name"));
@@ -2469,7 +2469,7 @@ void create_screen_main_screen() {
                     // SettingsUserLongTextarea
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.settings_user_long_textarea = obj;
-                    lv_obj_set_pos(obj, 0, 80);
+                    lv_obj_set_pos(obj, 0, 75);
                     lv_obj_set_size(obj, LV_PCT(88), 25);
                     lv_textarea_set_max_length(obj, 39);
                     lv_textarea_set_one_line(obj, true);
@@ -2484,7 +2484,7 @@ void create_screen_main_screen() {
                     // KeyboardButton_2
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_2 = obj;
-                    lv_obj_set_pos(obj, 200, 80);
+                    lv_obj_set_pos(obj, 200, 75);
                     lv_obj_set_size(obj, 25, 24);
                     lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2495,7 +2495,7 @@ void create_screen_main_screen() {
                 {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
                     objects.obj0 = obj;
-                    lv_obj_set_pos(obj, 4, 14);
+                    lv_obj_set_pos(obj, 4, 5);
                     lv_obj_set_size(obj, 160, 50);
                     lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
