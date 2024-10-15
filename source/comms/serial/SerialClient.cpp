@@ -78,7 +78,7 @@ bool SerialClient::sleep(int16_t pin)
     }
 
     ILOG_INFO("going to sleep, wake up on GPIO%02d\n", pin);
-    delay(1);
+    delay(5);
     res = esp_light_sleep_start();
     if (res != ESP_OK) {
         ILOG_ERROR("esp_light_sleep_start result %d\n", res);
@@ -198,11 +198,11 @@ void SerialClient::task_loop(void *)
             if (instance->queue.clientQueueSize() != 0) {
                 instance->handleSendPacket();
             }
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
-            vTaskDelay((TickType_t)5); // yield, do not remove
-#else
-            delay(5);
-#endif
         }
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
+        vTaskDelay((TickType_t)5); // yield, do not remove
+#else
+        delay(5);
+#endif
     }
 }

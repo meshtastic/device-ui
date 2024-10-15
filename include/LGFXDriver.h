@@ -128,6 +128,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         lgfx->wakeup();
                         lgfx->setBrightness(lastBrightness);
                         DisplayDriver::view->screenSaving(false);
+                        lv_disp_trig_activity(NULL);
                     } else {
                         // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
                         // continue with processing loop and enter sleep() again next round
@@ -143,6 +144,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                 if (screenTimeout > lv_display_get_inactive_time(NULL)) {
                     DisplayDriver::view->blankScreen(false);
                     powerSaving = false;
+                    lv_disp_trig_activity(NULL);
                 }
             }
         }

@@ -1,3 +1,4 @@
+
 #include "UARTClient.h"
 #include "Arduino.h"
 #include "ILog.h"
@@ -75,7 +76,7 @@ bool UARTClient::connect(void)
         }
 
         connected = true;
-        ILOG_TRACE("UARTClient::connected, skipped %d bytes\n", skipped);
+        ILOG_TRACE("UARTClient::connect, skipped %d bytes\n", skipped);
     }
     return true;
 }
@@ -98,6 +99,26 @@ meshtastic_FromRadio UARTClient::receive(void)
 UARTClient::~UARTClient(){
 
 };
+
+// --- convenience interface ---
+
+bool UARTClient::isActive(void) const
+{ 
+    time_t now;
+    time(&now);
+    return lastReceived > 0 && now - lastReceived < 60;
+}
+
+const char* UARTClient::getConnectionInfo(void) const
+{
+    static char connectionInfo[32];
+#ifdef SERIAL_RX
+    sprintf(connectionInfo, "serial rx=%d/tx=%d", SERIAL_RX, SERIAL_TX);
+#else
+    strcpy(connectionInfo, "serial RX/TX/GND");
+#endif
+    return connectionInfo;
+}
 
 // --- protected part ---
 
@@ -126,6 +147,7 @@ size_t UARTClient::receive(uint8_t *buf, size_t space_left)
     }
     if (bytes_read > 0) {
         ILOG_TRACE("received %d bytes from serial\n", bytes_read);
+        time(&lastReceived);
     }
     return bytes_read;
 }
