@@ -1900,7 +1900,7 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             break;
         }
         default:
-            ILOG_DEBUG("unspecified packet in stats\n");
+            ILOG_WARN("packet portnum in stats ignored: %d\n", p.decoded.portnum);
             stat.sum++;
             return;
     }
@@ -2002,7 +2002,6 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
         return 7;
     case meshtastic_Language_SPANISH:
         return 2;
-#if 0
     case meshtastic_Language_SWEDISH:
         return 9;
     case meshtastic_Language_FINNISH:
@@ -2011,11 +2010,12 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
         return 6;
     case meshtastic_Language_TURKISH:
         return 10;
+#if 0
     case meshtastic_Language_DUTCH:
         return 5;
 #endif
     default:
-        ILOG_WARN("unknown language uiconfig\n");
+        ILOG_WARN("unknown language uiconfig: %d\n", lang);
     }
     return 0;
 }
@@ -2035,7 +2035,6 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
         return meshtastic_Language_PORTUGUESE;
     case 2:
         return meshtastic_Language_SPANISH;
-#if 0
     case 9:
         return meshtastic_Language_SWEDISH;
     case 8:
@@ -2044,11 +2043,12 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
         return meshtastic_Language_POLISH;
     case 10:
         return meshtastic_Language_TURKISH;
+#if 0
     case 5:
         return meshtastic_Language_DUTCH;
 #endif
     default:
-        ILOG_WARN("unknown language val\n");
+        ILOG_WARN("unknown language val: %d\n", val);
     }
     return meshtastic_Language_ENGLISH;
 }
@@ -2083,10 +2083,9 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("pt");
         locale = "pt_PT.UTF-8";
         break;
-#if 0
     case meshtastic_Language_SWEDISH:
         lv_i18n_set_locale("se");
-        locale = "se_SE.UTF-8";
+        locale = "sv_SE.UTF-8";
         break;
     case meshtastic_Language_FINNISH:
         lv_i18n_set_locale("fi");
@@ -2100,6 +2099,7 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("tr");
         locale = "tr_TR.UTF-8";
         break;
+#if 0
     case meshtastic_Language_DUTCH:
         lv_i18n_set_locale("nl");
         locale = "nl_NL.UTF-8";
