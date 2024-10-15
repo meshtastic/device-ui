@@ -4299,7 +4299,7 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
 
 void TFTView_320x240::updateActiveChats(void)
 {
-    char buf[20];
+    char buf[40];
     sprintf(buf, _("%d active chat(s)"), chats.size());
     lv_label_set_text(objects.top_chats_label, buf);
 }
