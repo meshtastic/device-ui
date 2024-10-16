@@ -370,7 +370,7 @@ bool ViewController::sendAdminMessage(meshtastic_AdminMessage &config, uint32_t 
 {
     meshtastic_Data_payload_t payload;
     payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &config);
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload, true);
 }
 
 /**
@@ -381,7 +381,7 @@ bool ViewController::sendAdminMessage(meshtastic_AdminMessage &&config, uint32_t
 {
     meshtastic_Data_payload_t payload;
     payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &config);
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload);
+    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload, true);
 }
 
 void ViewController::sendHeartbeat(void)
