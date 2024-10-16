@@ -1909,8 +1909,12 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             stat.nbr++;
             break;
         }
+        case meshtastic_PortNum_ADMIN_APP: {
+            // ignore
+            break;
+        }
         default:
-            ILOG_WARN("packet portnum in stats ignored: %d\n", p.decoded.portnum);
+            ILOG_WARN("packet portnum in stats unhandled: %d\n", p.decoded.portnum);
             stat.sum++;
             return;
     }
