@@ -59,23 +59,30 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
         - [x] protobuf encoding/decoding
       - [x] Logging interface
       - [x] Add lvgl compatible input driver interface
-      - [ ] Add interface for persistency via lvgl littlefs callbacks
+      - [ ] Add interface for persistency
         - [ ] Screen calibration data
-        - [ ] Device settings (General)
+        - [x] Device settings (General)
         - [ ] Message storage
         - [ ] Serial connection config
-    - [ ] Dynamic behavior
+    - [x] Dynamic behavior
       - [x] Startup config
       - [x] Restart behavior
       - [x] Display sleep
-      - [ ] Heartbeat timer based on device input actions
-    - [ ] Localisation support
-      - [ ] German translation
-      - [ ] Spanish translation
-      - [ ] Portuguese translation
+      - [x] Heartbeat timer based on device input actions
+    - [x] Localisation support
+      - [x] German translation
+      - [x] Spanish translation
+      - [x] Portuguese translation
+      - [x] Swedish translation
+      - [x] Finnish translation
+      - [x] Polish translation
+      - [x] Portuguese translation
+      - [x] Netherlands translation
+      - [x] Dutch translation
       - [ ] French translation
       - [ ] Italian translation
-      - [ ] Optional: other languages with latin characters)
+      - [ ] Turkish translation
+      - [ ] Optional: other languages with latin or cyrillic characters)
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
     - [ ] Allow co-existence of generated files/views by different eez-studio projects
@@ -83,7 +90,6 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [ ] Test native lvgl driver support
       - [ ] TFT drivers
       - [ ] OLED drivers
-    - [ ] Check lovyanGFX double-buffering DMA capabilities
     - [ ] Check lvgl native driver DMA double-buffering
     - [ ] E-Ink support
     - [ ] RP2040 support
@@ -107,7 +113,8 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [ ] Repeater support (manual insertion)
       - [ ] LastHeard & time source handling improvements
       - [ ] Remote Node configuration
-      - [x] Filter (mqtt, offline, unknown, by name)
+      - [x] Filter (offline, unknown, public key, position, hops away, by name)
+      - [x] Highlight (position, telemetry, , by name)
     - [x] Group channel panel
     - [x] Chat panel
       - [x] Scroll container and messages display
@@ -133,7 +140,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
         - [x] Brightness
         - [x] Input Control
         - [x] Message Alert / Ringtones
-        - [ ] Language
+        - [x] Language
         - [ ] Timezone
         - [ ] Maps
         - [ ] Audio
@@ -146,6 +153,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [x] Status bar with battery symbol
     - [x] UI Keyboard navigation & control
     - [x] Latin supplemental fonts
+    - [ ] Cyrillic font glyphs
 
 ### :pager: T-Deck (also covered: unPhone)
 
@@ -190,7 +198,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
 ### :iphone: Stand-alone Device
 
     - [x] Dedicated device-ui project
-    - [x] Sunton/EstarDyn CYD support (320x240)
+    - [ ] Sunton/EstarDyn CYD support (320x240) Note: no longer working due to insufficient memory 
     - [x] LilyGo T-HMI support (320x240)
     - [X] WT32-SC01 (Plus) support (480x320)
       - [x] Display driver
