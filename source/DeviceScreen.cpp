@@ -34,7 +34,7 @@ DeviceScreen::DeviceScreen(DisplayDriverConfig &&cfg)
 
 void DeviceScreen::init(IClientBase *client)
 {
-    ILOG_DEBUG("DeviceScreen::init()...\n");
+    ILOG_DEBUG("DeviceScreen::init()...");
     gui->init(client);
 
     // #ifdef TFT_BL
@@ -46,7 +46,7 @@ void DeviceScreen::init(IClientBase *client)
     digitalWrite(VTFT_CTRL, LOW);
     pinMode(VTFT_CTRL, OUTPUT);
 #endif
-    ILOG_DEBUG("DeviceScreen::init() done.\n");
+    ILOG_DEBUG("DeviceScreen::init() done.");
 }
 
 void DeviceScreen::task_handler(void)

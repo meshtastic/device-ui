@@ -412,7 +412,7 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, 
 
 bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId)
 {
-    ILOG_DEBUG("sending position request\n");
+    ILOG_DEBUG("sending position request");
     meshtastic_Position position{};
     meshtastic_Data_payload_t payload;
     payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_Position_msg, &position);
@@ -448,7 +448,7 @@ void ViewController::traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint3
  */
 bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload, bool wantRsp)
 {
-    ILOG_DEBUG("sending meshpacket to radio portnum=%u\n", portnum);
+    ILOG_DEBUG("sending meshpacket to radio portnum=%u", portnum);
     return client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_packet_tag,
                                            .packet{.to = to,
                                                    .which_payload_variant = meshtastic_MeshPacket_decoded_tag,
@@ -462,7 +462,7 @@ bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtas
 bool ViewController::send(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
                           const unsigned char bytes[237], size_t len)
 {
-    ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, id=0x%08x, portnum=%u, len=%u\n", to, to, (unsigned int)ch,
+    ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, id=0x%08x, portnum=%u, len=%u", to, to, (unsigned int)ch,
                requestId, portnum, len);
     // send requires movable lvalue, i.e. a temporary object
     return client->send(meshtastic_ToRadio{
@@ -559,7 +559,7 @@ bool ViewController::requestDeviceConnectionStatus(void)
 
 bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 {
-    ILOG_DEBUG("handleFromRadio variant %u\n", from.which_payload_variant);
+    ILOG_DEBUG("handleFromRadio variant %u", from.which_payload_variant);
     if (from.which_payload_variant == meshtastic_FromRadio_deviceuiConfig_tag) {
         view->setupUIConfig(from.deviceuiConfig);
         setupDone = true;
@@ -578,7 +578,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                         packetReceived(p);
                     } else {
                         // FIXME: needs implementation when not using PacketClient interface
-                        ILOG_ERROR("dropping encoded meshpacket id=%u from radio!\n", from.id);
+                        ILOG_WARN("dropping encoded meshpacket id=%u from radio!", from.id);
                     }
                     break;
                 }
@@ -649,7 +649,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                         break;
                     }
                     default:
-                        ILOG_ERROR("unsupported device config variant: %u\n", config.which_payload_variant);
+                        ILOG_ERROR("unsupported device config variant: %u", config.which_payload_variant);
                         return false;
                     }
                     break;
@@ -723,7 +723,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                         break;
                     }
                     default:
-                        ILOG_ERROR("unsupported module config variant: %u\n", module.which_payload_variant);
+                        ILOG_ERROR("unsupported module config variant: %u", module.which_payload_variant);
                         return false;
                     }
                     break;
@@ -755,7 +755,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                 case meshtastic_FromRadio_queueStatus_tag: {
                     const meshtastic_QueueStatus &q = from.queueStatus;
                     if (q.free == 0) {
-                        ILOG_CRIT("meshqueue full!?\n");
+                        ILOG_CRIT("meshqueue full!?");
                     }
                     break;
                 }
@@ -765,13 +765,13 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                     break;
                 }
                 default: {
-                    ILOG_ERROR("unhandled fromRadio packet variant: %u\n", from.which_payload_variant);
+                    ILOG_ERROR("unhandled fromRadio packet variant: %u", from.which_payload_variant);
                     return false;
                 }
             }
         }
         else {
-            ILOG_WARN("skipping packet while setup not finished: %u\n", from.which_payload_variant);
+            ILOG_WARN("skipping packet while setup not finished: %u", from.which_payload_variant);
             return false;
         }
     }
@@ -780,7 +780,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 
 bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 {
-    ILOG_DEBUG("received packet from 0x%08x(%u), portnum=%u\n", p.from, p.from, p.decoded.portnum);
+    ILOG_DEBUG("received packet from 0x%08x(%u), portnum=%u", p.from, p.from, p.decoded.portnum);
     view->packetReceived(p);
 
     // only for direct neighbors print rssi/snr
@@ -793,7 +793,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
-        ILOG_INFO("received text message from 0x%08x(%u): '%s'\n", p.from, p.from, (const char *)p.decoded.payload.bytes);
+        ILOG_INFO("received text message from 0x%08x(%u): '%s'", p.from, p.from, (const char *)p.decoded.payload.bytes);
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes);
         break;
     }
@@ -809,7 +809,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             }
             view->updateTime(position.time);
         } else {
-            ILOG_ERROR("Error decoding protobuf meshtastic_Position!\n");
+            ILOG_ERROR("Error decoding protobuf meshtastic_Position!");
             return false;
         }
         break;
@@ -820,7 +820,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             view->updateNode(p.from, -1, user.short_name, user.long_name, 0, (MeshtasticView::eRole)user.role,
                              user.public_key.size != 0, false); // TODO viaMqtt?
         } else {
-            ILOG_ERROR("Error decoding protobuf meshtastic_User (nodeinfo)!\n");
+            ILOG_ERROR("Error decoding protobuf meshtastic_User (nodeinfo)!");
             return false;
         }
         break;
@@ -850,30 +850,30 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 break;
             }
             default:
-                ILOG_ERROR("unhandled telemetry variant: %u\n", telemetry.which_variant);
+                ILOG_ERROR("unhandled telemetry variant: %u", telemetry.which_variant);
                 return false;
                 break;
             }
         } else {
-            ILOG_ERROR("Error decoding protobuf meshtastic_Telemetry!\n");
+            ILOG_ERROR("Error decoding protobuf meshtastic_Telemetry!");
             return false;
         }
         break;
     }
     case meshtastic_PortNum_TRACEROUTE_APP: {
-        ILOG_DEBUG("PortNum_TRACEROUTE_APP\n");
+        ILOG_DEBUG("PortNum_TRACEROUTE_APP");
         meshtastic_RouteDiscovery route;
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_RouteDiscovery_msg, &route)) {
             view->handleResponse(p.from, p.decoded.request_id, route);
         } else {
-            ILOG_ERROR("Error decoding protobuf meshtastic_RouteDiscovery!\n");
+            ILOG_ERROR("Error decoding protobuf meshtastic_RouteDiscovery!");
             return false;
         }
         break;
     }
     case meshtastic_PortNum_ROUTING_APP: {
         meshtastic_Routing routing;
-        ILOG_DEBUG("PortNum_ROUTING_APP: id:%08x, from:%08x, to:%08x, dest:%08x, source:%08x, requestId:%08x, replyId:%08x\n",
+        ILOG_DEBUG("PortNum_ROUTING_APP: id:%08x, from:%08x, to:%08x, dest:%08x, source:%08x, requestId:%08x, replyId:%08x",
                    p.id, p.from, p.to, p.decoded.dest, p.decoded.source, p.decoded.request_id, p.decoded.reply_id);
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Routing_msg, &routing)) {
             if (routing.which_variant == meshtastic_Routing_error_reason_tag) {
@@ -883,20 +883,20 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                     view->handleResponse(p.from, p.decoded.request_id, routing, p);
                     break;
                 case meshtastic_Routing_Error_NO_RESPONSE:
-                    ILOG_DEBUG("Routing error: no response\n");
+                    ILOG_DEBUG("Routing error: no response");
                     // this response is sent by the other node when position is not availble
                     // however, it contains valid rssi/snr, so use these
                     view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
                     break;
                 default:
-                    ILOG_WARN("got unhandled Routing_Error: %d\n", routing.error_reason);
+                    ILOG_WARN("got unhandled Routing_Error: %d", routing.error_reason);
                     break;
                 }
             } else {
                 view->handleResponse(p.from, p.decoded.request_id, routing, p);
             }
         } else {
-            ILOG_ERROR("Error decoding protobuf meshtastic_Routing!\n");
+            ILOG_ERROR("Error decoding protobuf meshtastic_Routing!");
             return false;
         }
         break;
@@ -949,7 +949,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                     break;
                 }
                 default:
-                    ILOG_ERROR("unhandled meshtastic_Config variant: %u\n", config.which_payload_variant);
+                    ILOG_ERROR("unhandled meshtastic_Config variant: %u", config.which_payload_variant);
                     return false;
                 }
                 break;
@@ -963,7 +963,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                     break;
                 }
                 default:
-                    ILOG_ERROR("unhandled meshtastic_ModuleConfig variant: %u\n", config.which_payload_variant);
+                    ILOG_ERROR("unhandled meshtastic_ModuleConfig variant: %u", config.which_payload_variant);
                     return false;
                 }
                 break;
@@ -974,15 +974,15 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             }
             case meshtastic_AdminMessage_set_channel_tag: {
                 // TODO
-                ILOG_WARN("meshtastic_AdminMessage_set_channel_tag not implemented\n");
+                ILOG_WARN("meshtastic_AdminMessage_set_channel_tag not implemented");
                 return false;
             }
             default:
-                ILOG_ERROR("unhandled AdminMessage variant: %u\n", admin.which_payload_variant);
+                ILOG_ERROR("unhandled AdminMessage variant: %u", admin.which_payload_variant);
                 return false;
             }
         } else {
-            ILOG_ERROR("Error decoding protobuf meshtastic_AdminMessage!\n");
+            ILOG_ERROR("Error decoding protobuf meshtastic_AdminMessage!");
             return false;
         }
         break;
@@ -990,7 +990,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
     case meshtastic_PortNum_SIMULATOR_APP:
         break;
     default:
-        ILOG_ERROR("unhandled meshpacket portnum: %u\n", p.decoded.portnum);
+        ILOG_ERROR("unhandled meshpacket portnum: %u", p.decoded.portnum);
         return false;
     }
     return true;

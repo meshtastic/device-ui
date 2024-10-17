@@ -26,15 +26,15 @@ UARTClient::UARTClient(void) : _serial(nullptr) {}
 void UARTClient::init(void)
 {
 #if SOC_UART_NUM > 2 && defined(USE_SERIAL2)
-    ILOG_INFO("UARTClient::init SERIAL2 baud=%d\n", SERIAL_BAUD);
+    ILOG_INFO("UARTClient::init SERIAL2 baud=%d", SERIAL_BAUD);
     _serial = &Serial2;
 #elif SOC_UART_NUM > 1 && defined(USE_SERIAL1)
-    ILOG_INFO("UARTClient::init SERIAL1 baud=%d\n", SERIAL_BAUD);
+    ILOG_INFO("UARTClient::init SERIAL1 baud=%d", SERIAL_BAUD);
     _serial = &Serial1;
 #elif defined(ARDUINO_USB_CDC_ON_BOOT) && ARDUINO_USB_CDC_ON_BOOT
     _serial = &Serial0;
 #elif !defined(ARCH_PORTDUINO)
-    ILOG_INFO("UARTClient::init SERIAL1 baud=%dn", SERIAL_BAUD);
+    ILOG_INFO("UARTClient::init SERIAL1 baud=%d", SERIAL_BAUD);
     _serial = &Serial;
 #else
     _serial = nullptr;
@@ -49,7 +49,7 @@ void UARTClient::init(void)
 #endif
 #ifdef SERIAL_RX
     _serial->setPins(SERIAL_RX, SERIAL_TX);
-    ILOG_INFO("UARTClient::setPins rx=%d, tx=%d with %d baud\n", SERIAL_RX, SERIAL_TX, SERIAL_BAUD);
+    ILOG_INFO("UARTClient::setPins rx=%d, tx=%d with %d baud", SERIAL_RX, SERIAL_TX, SERIAL_BAUD);
 #endif
     SerialClient::init();
 }
@@ -76,7 +76,7 @@ bool UARTClient::connect(void)
         }
 
         connected = true;
-        ILOG_TRACE("UARTClient::connect, skipped %d bytes\n", skipped);
+        ILOG_TRACE("UARTClient::connect, skipped %d bytes", skipped);
     }
     return true;
 }
@@ -125,10 +125,10 @@ const char* UARTClient::getConnectionInfo(void) const
 // raw write to serial UART interface
 bool UARTClient::send(const uint8_t *buf, size_t len)
 {
-    ILOG_TRACE("sending %d bytes to radio\n", len);
+    ILOG_TRACE("sending %d bytes to radio", len);
     size_t wrote = _serial->write(buf, len);
     if (wrote != len) {
-        ILOG_ERROR("only %d bytes were sent this time\n", wrote);
+        ILOG_ERROR("only %d bytes were sent this time", wrote);
     }
     return wrote == len;
 }
@@ -141,12 +141,12 @@ size_t UARTClient::receive(uint8_t *buf, size_t space_left)
         uint8_t byte = _serial->read();
         *buf++ = byte;
         if (++bytes_read >= space_left) {
-            ILOG_ERROR("Serial overflow!\n");
+            ILOG_ERROR("Serial overflow!");
             break;
         }
     }
     if (bytes_read > 0) {
-        ILOG_TRACE("received %d bytes from serial\n", bytes_read);
+        ILOG_TRACE("received %d bytes from serial", bytes_read);
         time(&lastReceived);
     }
     return bytes_read;

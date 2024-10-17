@@ -93,16 +93,16 @@ TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *
  */
 void TFTView_320x240::init(IClientBase *client)
 {
-    ILOG_DEBUG("TFTView_320x240 init...\n");
-    ILOG_DEBUG("TFTView_320x240 db size: %d\n", sizeof(TFTView_320x240));
-    ILOG_DEBUG("### Images size in flash ###\n");
+    ILOG_DEBUG("TFTView_320x240 init...");
+    ILOG_DEBUG("TFTView_320x240 db size: %d", sizeof(TFTView_320x240));
+    ILOG_DEBUG("### Images size in flash ###");
     uint32_t total_size = 0;
     for (int i = 0; i < sizeof(images) / sizeof(ext_img_desc_t); i++) {
         total_size += images[i].img_dsc->data_size;
-        ILOG_DEBUG("    %s: %d\n", images[i].name, images[i].img_dsc->data_size);
+        ILOG_DEBUG("    %s: %d", images[i].name, images[i].img_dsc->data_size);
     }
-    ILOG_DEBUG("================================\n");
-    ILOG_DEBUG("### Total size: %d bytes ###\n", total_size);
+    ILOG_DEBUG("================================");
+    ILOG_DEBUG("### Total size: %d bytes ###", total_size);
 
     MeshtasticView::init(client);
 
@@ -121,7 +121,7 @@ void TFTView_320x240::init(IClientBase *client)
  */
 void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
 {
-    ILOG_DEBUG("setupUIConfig\n");
+    ILOG_DEBUG("setupUIConfig");
     db.uiConfig = uiconfig;
 
     lv_i18n_init(lv_i18n_language_pack);
@@ -268,7 +268,7 @@ void TFTView_320x240::init_screens(void)
     updateFreeMem();
 
     screensInitialised = true;
-    ILOG_DEBUG("TFTView_320x240 init done.\n");
+    ILOG_DEBUG("TFTView_320x240 init done.");
 }
 
 /**
@@ -954,7 +954,7 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
             lv_group_focus_obj(objects.settings_screen_lock_password_textarea);
             break;
         default:
-            ILOG_ERROR("missing keyboard <-> textarea assignment\n");
+            ILOG_ERROR("missing keyboard <-> textarea assignment");
         }
         lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN) ? lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)
                                                               : lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
@@ -1347,7 +1347,7 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
                             btn_id = 0; // place on top
                         } else {
                             // FIXME: swap ids as in long press
-                            ILOG_ERROR("node does not have primary channel!\n");
+                            ILOG_ERROR("node does not have primary channel!");
                         }
                     } else
                         THIS->channel_scratch[i].role = meshtastic_Channel_Role_SECONDARY;
@@ -1914,7 +1914,7 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             break;
         }
         default:
-            ILOG_WARN("packet portnum in stats unhandled: %d\n", p.decoded.portnum);
+            ILOG_WARN("packet portnum in stats unhandled: %d", p.decoded.portnum);
             stat.sum++;
             return;
     }
@@ -2029,7 +2029,7 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
         return 5;
 #endif
     default:
-        ILOG_WARN("unknown language uiconfig: %d\n", lang);
+        ILOG_WARN("unknown language uiconfig: %d", lang);
     }
     return 0;
 }
@@ -2062,7 +2062,7 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
         return meshtastic_Language_DUTCH;
 #endif
     default:
-        ILOG_WARN("unknown language val: %d\n", val);
+        ILOG_WARN("unknown language val: %d", val);
     }
     return meshtastic_Language_ENGLISH;
 }
@@ -2120,7 +2120,7 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         break;
 #endif
     default:
-        ILOG_WARN("Language %d not implemented\n", lang);
+        ILOG_WARN("Language %d not implemented", lang);
         break;
     }
 
@@ -2426,7 +2426,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             THIS->setInputButtonLabel();
 
             if (error) {
-                ILOG_WARN("failed to use %s/%s\n", new_val_kbd, new_val_ptr);
+                ILOG_WARN("failed to use %s/%s", new_val_kbd, new_val_ptr);
                 return;
             }
 
@@ -2526,7 +2526,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             return;
         }
         default:
-            ILOG_ERROR("Unhandled ok event\n");
+            ILOG_ERROR("Unhandled ok event");
             break;
         }
         THIS->enablePanel(objects.controller_panel);
@@ -2621,7 +2621,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             return;
         }
         default:
-            ILOG_ERROR("Unhandled cancel event\n");
+            ILOG_ERROR("Unhandled cancel event");
             break;
         }
 
@@ -3225,7 +3225,7 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                     alert = true;
                     break;
                 default:
-                    ILOG_ERROR("unhandled battery level %d\n", status);
+                    ILOG_ERROR("unhandled battery level %d", status);
                     break;
                 }
                 Themes::recolorTopLabel(objects.battery_percentage_label, alert);
@@ -3426,9 +3426,9 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
     }
 
     if (req.type == ResponseHandler::noRequest) {
-        ILOG_WARN("request id 0x%08x not valid (anymore)\n", id);
+        ILOG_WARN("request id 0x%08x not valid (anymore)", id);
     } else {
-        ILOG_DEBUG("handleResponse request id 0x%08x\n", id);
+        ILOG_DEBUG("handleResponse request id 0x%08x", id);
     }
     switch (routing.which_variant) {
     case meshtastic_Routing_error_reason_tag: {
@@ -3450,21 +3450,21 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             }
         } else {
-            ILOG_DEBUG("got Routing_Error %d\n", routing.error_reason);
+            ILOG_DEBUG("got Routing_Error %d", routing.error_reason);
         }
         break;
     }
     case meshtastic_Routing_route_request_tag: {
-        ILOG_ERROR("got meshtastic_Routing_route_request_tag\n");
+        ILOG_ERROR("got meshtastic_Routing_route_request_tag");
         break;
     }
     case meshtastic_Routing_route_reply_tag: {
-        ILOG_DEBUG("got meshtastic_Routing_route_reply_tag\n");
+        ILOG_DEBUG("got meshtastic_Routing_route_reply_tag");
         handleResponse(from, id, routing.route_reply);
         break;
     }
     default:
-        ILOG_ERROR("unhandled meshtastic_Routing tag\n");
+        ILOG_ERROR("unhandled meshtastic_Routing tag");
         break;
     }
 }
@@ -3512,7 +3512,7 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
             lv_label_set_text(objects.signal_scanner_start_label, buf);
         }
     } else {
-        ILOG_ERROR("handlePositionResponse: got a reply with not matching request 0x%08x\n", request_id);
+        ILOG_ERROR("handlePositionResponse: got a reply with not matching request 0x%08x", request_id);
     }
 }
 
@@ -3521,7 +3521,7 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
  */
 void TFTView_320x240::handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route)
 {
-    ILOG_DEBUG("handleResponse: trace route has %d hops\n", route.route_count);
+    ILOG_DEBUG("handleResponse: trace route has %d hops", route.route_count);
     lv_obj_add_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
 
     if (id) {
@@ -3539,10 +3539,13 @@ void TFTView_320x240::handleResponse(uint32_t from, uint32_t id, const meshtasti
 void TFTView_320x240::handleTraceRouteResponse(const meshtastic_Routing &routing)
 {
     // we get here only in case of an error
-    ILOG_DEBUG("handleTraceRouteResponse: route has %d hops\n", routing.route_reply.route_count);
+    ILOG_DEBUG("handleTraceRouteResponse: route has %d hops", routing.route_reply.route_count);
     if (routing.error_reason != meshtastic_Routing_Error_NONE) {
         lv_label_set_text(objects.trace_route_start_label, _("Start"));
         removeSpinner();
+    }
+    else {
+        ILOG_WARN("handleTraceRouteResponse: is Error_NONE !?");
     }
 }
 
@@ -3780,7 +3783,7 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
         msgContainer = messages[channelOrNode];
     }
     if (!msgContainer) {
-        ILOG_WARN("received unexpected response nodeNum/channel 0x%08x for request id 0x%08x\n", channelOrNode, id);
+        ILOG_WARN("received unexpected response nodeNum/channel 0x%08x for request id 0x%08x", channelOrNode, id);
         return;
     }
     // go through all hiddenPanels and search for requestId
@@ -4808,7 +4811,7 @@ extern "C" {
 
 void action_on_boot_screen_displayed(lv_event_t *e)
 {
-    ILOG_DEBUG("action_on_boot_screen_displayed()\n");
+    ILOG_DEBUG("action_on_boot_screen_displayed()");
 }
 }
 

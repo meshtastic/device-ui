@@ -56,7 +56,7 @@ void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *d
         keyValue = Wire.read();
         if (keyValue != (char)0x00) {
             data->state = LV_INDEV_STATE_PRESSED;
-            ILOG_DEBUG("key press value: %d\n", (int)keyValue);
+            ILOG_DEBUG("key press value: %d", (int)keyValue);
 
             switch (keyValue) {
             case 0x0D:

@@ -65,7 +65,7 @@ DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 #elif defined(LGFX_DRIVER)
     return new LGFXDriver<LGFX_DRIVER>(width, height);
 #endif
-    ILOG_CRIT("DisplayDriverFactory: missing or wrong configuration\n");
+    ILOG_CRIT("DisplayDriverFactory: missing or wrong configuration");
     assert(false);
     return nullptr;
 }
@@ -145,7 +145,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         break;
 #endif
     default:
-        ILOG_CRIT("LGFX device_t config not implemented: %d\n", cfg._device);
+        ILOG_CRIT("LGFX device_t config not implemented: %d", cfg._device);
         assert(false);
         break;
     }

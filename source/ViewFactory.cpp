@@ -37,7 +37,7 @@ DeviceGUI *ViewFactory::create(void)
 #elif defined(VIEW_320x240)
     return TFTView_320x240::instance();
 #endif
-    ILOG_CRIT("ViewFactory: VIEW is not defined and no config provided\n");
+    ILOG_CRIT("ViewFactory: VIEW is not defined and no config provided");
     assert(false);
     return nullptr;
 }

@@ -94,7 +94,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     if (brightness > 1) {
                         lgfx->setBrightness(brightness - 1);
                     } else {
-                        ILOG_INFO("enter powersave\n");
+                        ILOG_INFO("enter powersave");
                         DisplayDriver::view->screenSaving(true);
                         lgfx->sleep();
                         lgfx->powerSaveOn();
@@ -121,7 +121,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                            lv_display_get_inactive_time(NULL) < defaultScreenLockTimeout) ||
                           !DisplayDriver::view->isScreenLocked()))) {
                         // woke up by touch or button
-                        ILOG_INFO("leaving powersave\n");
+                        ILOG_INFO("leaving powersave");
                         powerSaving = false;
                         DisplayDriver::view->triggerHeartbeat();
                         lgfx->powerSaveOff();
@@ -202,18 +202,18 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         data->point.x = touchX;
         data->point.y = touchY;
 
-        //ILOG_DEBUG("Touch(%hd/%hd)\n", touchX, touchY);
+        //ILOG_DEBUG("Touch(%hd/%hd)", touchX, touchY);
     }
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 {
-    ILOG_DEBUG("LGFXDriver<LGFX>::init...\n");
+    ILOG_DEBUG("LGFXDriver<LGFX>::init...");
     init_lgfx();
     TFTDriver<LGFX>::init(gui);
 
     // LVGL: setup display device driver
-    ILOG_DEBUG("LVGL display driver init...\n");
+    ILOG_DEBUG("LVGL display driver init...");
 
     DisplayDriver::display = lv_display_create(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
     lv_display_set_color_format(this->display, LV_COLOR_FORMAT_RGB565);
@@ -221,7 +221,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 #if defined(USE_DOUBLE_BUFFER) // speedup drawing by using double-buffered DMA mode
     bufsize = screenWidth * screenHeight / 8 * sizeof(lv_color_t);
 #if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
-    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for double buffering\n"), bufsize;
+    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for double buffering"), bufsize;
     assert(ESP.getFreePsram());
     // buf1 = (lv_color_t*)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL |
     // MALLOC_CAP_DMA);  //assert failed: block_trim_free heap_tlsf.c:371 buf2 =
@@ -235,7 +235,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     // MALLOC_CAP_SPIRAM);
     draw_buf = (lv_disp_draw_buf_t *)heap_caps_aligned_alloc(32, sizeof(lv_disp_draw_buf_t), MALLOC_CAP_SPIRAM);
 #else
-    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for double buffering\n"), bufsize;
+    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for double buffering"), bufsize;
     buf1 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA); // heap_alloc_dma
     buf2 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA); // heap_alloc_dma
 #endif
@@ -244,7 +244,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 #elif 0 // defined BOARD_HAS_PSRAM
     assert(ESP.getFreePsram());
     bufsize = screenWidth * height / 8 * sizeof(lv_color_t);
-    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for draw buffer\n"), bufsize;
+    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for draw buffer"), bufsize;
     buf1 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT); // heap_alloc_psram
     assert(buf1 != 0);
     lv_display_set_buffers(display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
@@ -252,13 +252,13 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     bufsize = lgfx->screenWidth * 10;
     buf1 = new lv_color_t[bufsize];
     assert(buf1 != 0);
-    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer\n", sizeof(lv_color_t) * bufsize);
+    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer", sizeof(lv_color_t) * bufsize);
     lv_display_set_buffers(this->display, buf1, buf2, sizeof(lv_color_t) * bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #endif
 
     lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
 
-    ILOG_DEBUG("Set display resolution: %dx%d\n", lgfx->screenWidth, lgfx->screenHeight);
+    ILOG_DEBUG("Set display resolution: %dx%d", lgfx->screenWidth, lgfx->screenHeight);
 #if defined(UNPHONE) || defined(SENSECAP_INDICATOR)
     lv_display_set_resolution(this->display, lgfx->screenWidth, lgfx->screenHeight);
 #endif
@@ -292,7 +292,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 {
     // Initialize LovyanGFX
-    ILOG_DEBUG("LGFX init...\n");
+    ILOG_DEBUG("LGFX init...");
     lgfx->init();
     lgfx->setBrightness(defaultBrightness);
     lgfx->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
@@ -300,7 +300,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
     if (hasTouch()) {
 #ifndef CUSTOM_TOUCH_DRIVER
 #ifdef CALIBRATE_TOUCH
-        ILOG_INFO("Calibrating touch...\n");
+        ILOG_INFO("Calibrating touch...");
 #ifdef T_DECK
         // FIXME: read calibration data from persistent storage using lfs_file_read
         uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
@@ -320,7 +320,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         uint16_t parameters[8] = {23, 3, 0, 479, 476, 2, 475, 479};
 #else
         uint16_t parameters[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-        ILOG_WARN("Touch screen has no calibration data!!!\n");
+        ILOG_WARN("Touch screen has no calibration data!!!");
 #endif
 
 #if CALIBRATE_TOUCH
@@ -356,7 +356,7 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
     lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
     calibrating = false;
 
-    ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}\n", parameters[0], parameters[1],
+    ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}", parameters[0], parameters[1],
                parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
     return true;
 }

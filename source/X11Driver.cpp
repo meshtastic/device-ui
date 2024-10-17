@@ -18,7 +18,7 @@ X11Driver::X11Driver(uint16_t width, uint16_t height) : DisplayDriver(width, hei
 
 void X11Driver::init(DeviceGUI *gui)
 {
-    ILOG_DEBUG("X11Driver::init...\n");
+    ILOG_DEBUG("X11Driver::init...");
     // Initialize LVGL
     DisplayDriver::init(gui);
 

@@ -27,7 +27,7 @@ SerialClient::SerialClient(void) : shutdown(false), connected(false), pb_size(0)
 
 void SerialClient::init(void)
 {
-    ILOG_TRACE("SerialClient::init() creating serial task\n");
+    ILOG_TRACE("SerialClient::init() creating serial task");
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
     xTaskCreateUniversal(task_loop, "serial", 8192, NULL, 2, NULL, 0);
 #elif defined(ARCH_PORTDUINO)
@@ -74,18 +74,18 @@ bool SerialClient::sleep(int16_t pin)
 
     auto res = esp_sleep_enable_gpio_wakeup();
     if (res != ESP_OK) {
-        ILOG_ERROR("esp_sleep_enable_gpio_wakeup result %d\n", res);
+        ILOG_ERROR("esp_sleep_enable_gpio_wakeup result %d", res);
     }
 
-    ILOG_INFO("going to sleep, wake up on GPIO%02d\n", pin);
+    ILOG_INFO("going to sleep, wake up on GPIO%02d", pin);
     delay(5);
     res = esp_light_sleep_start();
     if (res != ESP_OK) {
-        ILOG_ERROR("esp_light_sleep_start result %d\n", res);
+        ILOG_ERROR("esp_light_sleep_start result %d", res);
     }
 
     // esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
-    // ILOG_INFO("Exit light sleep cause: %d, gpio=%d\n", cause, digitalRead((uint8_t)pin));
+    // ILOG_INFO("Exit light sleep cause: %d, gpio=%d", cause, digitalRead((uint8_t)pin));
     return digitalRead((uint8_t)pin) == 0;
 #else
     return false;
@@ -94,7 +94,7 @@ bool SerialClient::sleep(int16_t pin)
 
 bool SerialClient::connect(void)
 {
-    ILOG_ERROR("SerialClient::connect() not implemented\n");
+    ILOG_ERROR("SerialClient::connect() not implemented");
     return false;
 }
 
@@ -112,7 +112,7 @@ bool SerialClient::isConnected(void)
 bool SerialClient::send(meshtastic_ToRadio &&to)
 {
     static uint32_t id = 1;
-    ILOG_TRACE("SerialClient::send() push packet %d to queue\n", id);
+    ILOG_TRACE("SerialClient::send() push packet %d to queue", id);
     queue.clientSend(DataPacket<meshtastic_ToRadio>(id++, to));
     return false;
 }
@@ -120,7 +120,7 @@ bool SerialClient::send(meshtastic_ToRadio &&to)
 meshtastic_FromRadio SerialClient::receive(void)
 {
     if (queue.serverQueueSize() != 0) {
-        ILOG_TRACE("SerialClient::receive() got a packet from queue\n");
+        ILOG_TRACE("SerialClient::receive() got a packet from queue");
         auto p = queue.clientReceive()->move();
         return static_cast<DataPacket<meshtastic_FromRadio> *>(p.get())->getData();
     }
@@ -136,13 +136,13 @@ SerialClient::~SerialClient()
 
 bool SerialClient::send(const uint8_t *buf, size_t len)
 {
-    ILOG_ERROR("SerialClient::send not implemented\n");
+    ILOG_ERROR("SerialClient::send not implemented");
     return false;
 }
 
 size_t SerialClient::receive(uint8_t *buf, size_t space_left)
 {
-    ILOG_ERROR("SerialClient::receive not implemented\n");
+    ILOG_ERROR("SerialClient::receive not implemented");
     return 0;
 }
 
@@ -152,7 +152,7 @@ size_t SerialClient::receive(uint8_t *buf, size_t space_left)
  */
 void SerialClient::handlePacketReceived(void)
 {
-    ILOG_TRACE("SerialClient::handlePacketReceived pb_size=%d\n", pb_size);
+    ILOG_TRACE("SerialClient::handlePacketReceived pb_size=%d", pb_size);
 
     MeshEnvelope envelope(buffer, pb_size);
     meshtastic_FromRadio fromRadio = envelope.decode();
@@ -180,7 +180,7 @@ void SerialClient::handleSendPacket(void)
 void SerialClient::task_loop(void *)
 {
     size_t space_left = PB_BUFSIZE - instance->pb_size;
-    ILOG_TRACE("SerialClient::task_loop running\n");
+    ILOG_TRACE("SerialClient::task_loop running");
 
     while (!instance->shutdown) {
         if (instance->connected) {

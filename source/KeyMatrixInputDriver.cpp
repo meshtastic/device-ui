@@ -122,12 +122,12 @@ void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *dat
                 break;
             }
             data->state = LV_INDEV_STATE_PRESSED;
-            ILOG_DEBUG("Key 0x%x pressed\n", data->key);
+            ILOG_DEBUG("Key 0x%x pressed", data->key);
         } else {
             if (prevkey != 0) {
                 data->state = LV_INDEV_STATE_RELEASED;
                 data->key = prevkey; // must provide released key here!
-                // ILOG_DEBUG("Key 0x%x released\n", prevkey);
+                // ILOG_DEBUG("Key 0x%x released", prevkey);
                 prevkey = 0;
             }
         }

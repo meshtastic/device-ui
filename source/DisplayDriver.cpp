@@ -8,7 +8,7 @@ DisplayDriver::DisplayDriver(uint16_t width, uint16_t height)
 
 void DisplayDriver::init(DeviceGUI *gui)
 {
-    ILOG_DEBUG("DisplayDriver init...\n");
+    ILOG_DEBUG("DisplayDriver init...");
     view = gui;
     lvgl.init();
 }

@@ -22,10 +22,10 @@ std::vector<uint8_t> &MeshEnvelope::encode(const meshtastic_ToRadio &toRadio)
         envelope[3] = stream.bytes_written & 0xFF;
 
         if (stream.bytes_written <= PB_BUFSIZE) {
-            ILOG_TRACE("encoding %d byte successful\n", stream.bytes_written);
+            ILOG_TRACE("encoding %d byte successful", stream.bytes_written);
             envelope.resize(stream.bytes_written + MT_HEADER_SIZE);
         } else {
-            ILOG_ERROR("PB_BUFSIZE too small (<%d)\n", stream.bytes_written);
+            ILOG_ERROR("PB_BUFSIZE too small (<%d)", stream.bytes_written);
             envelope.resize(0);
         }
     } else {
@@ -50,7 +50,7 @@ meshtastic_FromRadio MeshEnvelope::decode()
     bool status = pb_decode(&stream, meshtastic_FromRadio_fields, &fromRadio);
 
     if (!status) {
-        ILOG_ERROR("Decoding failed!\n");
+        ILOG_ERROR("Decoding failed!");
         return meshtastic_FromRadio(meshtastic_FromRadio_init_zero);
     }
 
@@ -77,7 +77,7 @@ bool MeshEnvelope::validate(uint8_t *pb_buf, size_t &pb_size, size_t &payload_le
         startpos++;
     }
     if (startpos >= pb_size) {
-        ILOG_WARN("MeshEnvelope: no magic found, skipping %d bytes (%02x%02x%02x...)\n", pb_size, (int)pb_buf[0], (int)pb_buf[1],
+        ILOG_WARN("MeshEnvelope: no magic found, skipping %d bytes (%02x%02x%02x...)", pb_size, (int)pb_buf[0], (int)pb_buf[1],
                   (int)pb_buf[2]);
         pb_size = 0;
         return false;
@@ -86,24 +86,24 @@ bool MeshEnvelope::validate(uint8_t *pb_buf, size_t &pb_size, size_t &payload_le
     payload_len = (pb_buf[startpos + 2] << 8) | pb_buf[startpos + 3];
     if (startpos > 0) {
         if (payload_len > PB_BUFSIZE) {
-            ILOG_ERROR("Got packet claiming to be ridiculous length (%d bytes)\n", payload_len);
+            ILOG_ERROR("Got packet claiming to be ridiculous length (%d bytes)", payload_len);
             pb_size = 0;
             payload_len = 0;
             return false;
         }
 
         // re-align magic header to front of buffer
-        ILOG_TRACE("Skipping first %d bytes (%02x%02x%02x...)\n", startpos, (int)pb_buf[0], (int)pb_buf[1], (int)pb_buf[2]);
+        ILOG_TRACE("Skipping first %d bytes (%02x%02x%02x...)", startpos, (int)pb_buf[0], (int)pb_buf[1], (int)pb_buf[2]);
         pb_size -= startpos;
         memmove(&pb_buf[0], &pb_buf[startpos], pb_size);
     }
 
     if ((size_t)(payload_len + MT_HEADER_SIZE) > pb_size) {
-        ILOG_TRACE("Partial packet received. Expected %d, have only %d\n", payload_len + MT_HEADER_SIZE, pb_size);
+        ILOG_TRACE("Partial packet received. Expected %d, have only %d", payload_len + MT_HEADER_SIZE, pb_size);
         return false;
     }
 
-    ILOG_TRACE("Valididated packet, payload_len=%d, pb_size=%d\n", payload_len, pb_size);
+    ILOG_TRACE("Valididated packet, payload_len=%d, pb_size=%d", payload_len, pb_size);
 
     return true;
 }

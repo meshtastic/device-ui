@@ -193,7 +193,7 @@ const char *MeshtasticView::deviceRoleToString(enum eRole role)
     case tak_tracker:
         return "TAK Tracker";
     default:
-        ILOG_ERROR("Invalid device role\n");
+        ILOG_ERROR("Invalid device role");
         return "<unknown>";
     };
 }
@@ -214,7 +214,7 @@ bool MeshtasticView::base64ToPsk(const std::string &base64, meshtastic_ChannelSe
     std::string out;
     auto error = macaron::Base64::Decode(base64, out);
     if (!error.empty()) {
-        ILOG_ERROR("Cannot decode '%s'\n", base64);
+        ILOG_ERROR("Cannot decode '%s'", base64);
         return false;
     } else {
         memcpy((char *)&psk.bytes[0], out.data(), out.size());

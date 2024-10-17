@@ -32,7 +32,7 @@ ResponseHandler::Request ResponseHandler::removeRequest(uint32_t requestId)
     const auto it = pendingRequest.find(requestId);
     if (it != pendingRequest.end()) {
         req = it->second;
-        ILOG_DEBUG("removing request %08x\n", it->first);
+        ILOG_DEBUG("removing request %08x", it->first);
         pendingRequest.erase(it);
     }
     return req;
@@ -46,11 +46,11 @@ ResponseHandler::Request ResponseHandler::removeRequest(uint32_t requestId)
 void ResponseHandler::task_handler(void)
 {
     if (pendingRequest.size())
-        ILOG_DEBUG("ResponseHandler has %d pending request(s)\n", pendingRequest.size());
+        ILOG_DEBUG("ResponseHandler has %d pending request(s)", pendingRequest.size());
     auto it = pendingRequest.begin();
     while (it != pendingRequest.end()) {
         if (it->second.timestamp + maxTime < millis()) {
-            ILOG_DEBUG("removing timed out request %08x\n", it->first);
+            ILOG_DEBUG("removing timed out request %08x", it->first);
             it = pendingRequest.erase(it);
         } else {
             it++;

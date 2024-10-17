@@ -6,7 +6,7 @@ LVGLGraphics::LVGLGraphics(uint16_t width, uint16_t height) : screenWidth(width)
 
 void LVGLGraphics::init(void)
 {
-    ILOG_DEBUG("LV init...\n");
+    ILOG_DEBUG("LV init...");
 #if LV_USE_LOG
     lv_log_register_print_cb(lv_debug);
 #endif
