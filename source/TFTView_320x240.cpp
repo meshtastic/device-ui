@@ -1611,7 +1611,9 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
                     uint32_t to = it.first;
                     uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
                     // trial: hoplimit optimization for direct messages
-                    uint8_t hopsAway = (unsigned long)THIS->nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
+                    int8_t hopsAway = (signed long)THIS->nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
+                    if (hopsAway < 0) 
+                        hopsAway = THIS->db.config.lora.hop_limit;
                     uint8_t hopLimit = (hopsAway < THIS->db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
                     requestId = THIS->requests.addRequest(to, ResponseHandler::TraceRouteRequest);
                     THIS->controller->traceRoute(to, ch, hopLimit, requestId);
