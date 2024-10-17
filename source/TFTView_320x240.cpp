@@ -3294,7 +3294,7 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
     if (nodeNum != ownNode) {
         auto it = nodes.find(nodeNum);
         if (it != nodes.end()) {
-            char buf[16];
+            char buf[20];
             sprintf(buf, _("hops: %d"), (int)hopsAway);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
             it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)(unsigned long)hopsAway;
@@ -3307,7 +3307,7 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
     if (status.has_wifi) {
         if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
             if (status.wifi.has_status) {
-                char buf[16];
+                char buf[20];
                 uint32_t ip = status.wifi.status.ip_address;
                 sprintf(buf, "%d.%d.%d.%d", ip & 0xff, (ip & 0xff00) >> 8, (ip & 0xff0000) >> 16, (ip & 0xff000000) >> 24);
                 lv_label_set_text(objects.home_wlan_label, buf);
@@ -3350,7 +3350,7 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
     if (status.has_bluetooth) {
         if (db.config.bluetooth.enabled) {
             if (status.bluetooth.is_connected) {
-                char buf[16];
+                char buf[20];
                 uint32_t mac = ownNode;
                 lv_obj_set_style_text_color(objects.home_bluetooth_label, lv_color_hex(0xAAFBFF),
                                             LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3380,7 +3380,7 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
 
     if (status.has_ethernet) {
         if (status.ethernet.status.is_connected) {
-            char buf[16];
+            char buf[20];
             uint32_t mac = ownNode;
             sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
             lv_label_set_text(objects.home_ethernet_label, buf);
@@ -3578,7 +3578,7 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum)
             if (nodePanel) {
                 lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbl_idx)));
             } else {
-                char buf[16];
+                char buf[20];
                 if (nodeNum != UINT32_MAX) {
                     lv_snprintf(buf, 16, "!%08x", nodeNum);
                     lv_label_set_text(label, buf);
