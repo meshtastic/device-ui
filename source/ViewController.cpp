@@ -842,17 +842,18 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             case meshtastic_Telemetry_air_quality_metrics_tag: {
                 view->updateAirQualityMetrics(p.from, telemetry.variant.air_quality_metrics);
                 return false;
-                break;
             }
             case meshtastic_Telemetry_power_metrics_tag: {
                 view->updatePowerMetrics(p.from, telemetry.variant.power_metrics);
                 return false;
-                break;
+            }
+            case meshtastic_Telemetry_local_stats_tag: {
+                ILOG_DEBUG("meshtastic_Telemetry_local_stats_tag not implemented!");
+                return false;
             }
             default:
                 ILOG_ERROR("unhandled telemetry variant: %u", telemetry.which_variant);
                 return false;
-                break;
             }
         } else {
             ILOG_ERROR("Error decoding protobuf meshtastic_Telemetry!");
