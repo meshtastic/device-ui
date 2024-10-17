@@ -173,6 +173,7 @@ typedef struct _objects_t {
     lv_obj_t *home_time_label;
     lv_obj_t *home_wlan_button;
     lv_obj_t *home_wlan_label;
+    lv_obj_t *hop_routes_panel;
     lv_obj_t *keyboard;
     lv_obj_t *keyboard_button_0;
     lv_obj_t *keyboard_button_1;
@@ -302,6 +303,8 @@ typedef struct _objects_t {
     lv_obj_t *radar_beam;
     lv_obj_t *reboot_button;
     lv_obj_t *reboot_panel;
+    lv_obj_t *route_back_panel;
+    lv_obj_t *route_towards_panel;
     lv_obj_t *rssi_slider;
     lv_obj_t *screen_lock_button_matrix;
     lv_obj_t *screen_timeout_slider;
@@ -447,8 +450,17 @@ typedef struct _objects_t {
     lv_obj_t *trace_route_start_button;
     lv_obj_t *trace_route_start_label;
     lv_obj_t *trace_route_to_button;
+    lv_obj_t *trace_route_to_button_1;
+    lv_obj_t *trace_route_to_button_2;
+    lv_obj_t *trace_route_to_button_3;
     lv_obj_t *trace_route_to_button_label;
+    lv_obj_t *trace_route_to_button_label_1;
+    lv_obj_t *trace_route_to_button_label_2;
+    lv_obj_t *trace_route_to_button_label_3;
     lv_obj_t *trace_route_to_image;
+    lv_obj_t *trace_route_to_image_1;
+    lv_obj_t *trace_route_to_image_2;
+    lv_obj_t *trace_route_to_image_3;
     lv_obj_t *user_name_label;
     lv_obj_t *user_name_short_label;
 } objects_t;

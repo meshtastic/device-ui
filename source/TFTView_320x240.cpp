@@ -1564,9 +1564,28 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
     while (children > 1) {
         if (objects.trace_route_panel->spec_attr->children[children]->class_p == &lv_button_class) {
             lv_obj_delete(objects.trace_route_panel->spec_attr->children[children]);
-            children--;
+        }
+        children--;
+    }
+
+    // forward route
+    children = lv_obj_get_child_cnt(objects.route_towards_panel);
+    while (children > 0) {
+        children--;
+        if (objects.route_towards_panel->spec_attr->children[children]->class_p == &lv_button_class) {
+            lv_obj_delete(objects.route_towards_panel->spec_attr->children[children]);
         }
     }
+
+    // backward route
+    children = lv_obj_get_child_cnt(objects.route_back_panel);
+    while (children > 0) {
+        children--;
+        if (objects.route_back_panel->spec_attr->children[children]->class_p == &lv_button_class) {
+            lv_obj_delete(objects.route_back_panel->spec_attr->children[children]);
+        }
+    }
+
     lv_obj_clear_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
     if (currentPanel) {
         THIS->setNodeImage(THIS->currentNode,
@@ -1613,7 +1632,7 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
                     // trial: hoplimit optimization for direct messages
                     int8_t hopsAway = (signed long)THIS->nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
                     if (hopsAway < 0) 
-                        hopsAway = THIS->db.config.lora.hop_limit;
+                        hopsAway = 5;
                     uint8_t hopLimit = (hopsAway < THIS->db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
                     requestId = THIS->requests.addRequest(to, ResponseHandler::TraceRouteRequest);
                     THIS->controller->traceRoute(to, ch, hopLimit, requestId);
@@ -1899,6 +1918,7 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             stat.inf++;
             break;
         }
+        case meshtastic_PortNum_ROUTING_APP:
         case meshtastic_PortNum_TRACEROUTE_APP: {
             stat.trc++;
             break;
@@ -3519,39 +3539,47 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
 }
 
 /**
- * Trace Route
+ * Trace Route: handle  ack or timeout
  */
-void TFTView_320x240::handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route)
-{
-    ILOG_DEBUG("handleResponse: trace route has %d hops", route.route_count);
-    lv_obj_add_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
-
-    if (id) {
-        requests.removeRequest(id);
-    }
-
-    for (int i = route.route_count; i > 0; i--) {
-        addNodeToTraceRoute(route.route[i - 1]);
-    }
-
-    // route contains only intermediate nodes, so add our node
-    addNodeToTraceRoute(ownNode);
-}
-
 void TFTView_320x240::handleTraceRouteResponse(const meshtastic_Routing &routing)
 {
-    // we get here only in case of an error
     ILOG_DEBUG("handleTraceRouteResponse: route has %d hops", routing.route_reply.route_count);
     if (routing.error_reason != meshtastic_Routing_Error_NONE) {
         lv_label_set_text(objects.trace_route_start_label, _("Start"));
         removeSpinner();
     }
     else {
-        ILOG_WARN("handleTraceRouteResponse: is Error_NONE !?");
+        // we got a first ACK to our route request
+        if (spinnerButton) {
+            lv_obj_set_style_outline_color(objects.trace_route_start_button, 
+                lv_color_hex(0xDBD251), LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
     }
 }
 
-void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum)
+void TFTView_320x240::handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route)
+{
+    ILOG_DEBUG("handleResponse: trace route has %d / %d hops", route.route_count, route.route_back_count);
+    lv_obj_add_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(objects.hop_routes_panel, LV_OBJ_FLAG_HIDDEN);
+
+    if (id) {
+        requests.removeRequest(id);
+    }
+
+    for (int i = route.route_count; i > 0; i--) {
+        addNodeToTraceRoute(route.route[i - 1], objects.route_towards_panel);
+    }
+
+    for (int i = 0; i < route.route_back_count; i++) {
+        addNodeToTraceRoute(route.route_back[i], objects.route_back_panel);
+    }
+
+    // route contains only intermediate nodes, so add our node
+    addNodeToTraceRoute(ownNode, objects.trace_route_panel);
+}
+
+void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
 {
     // check if node exists, and get its panel
     lv_obj_t *nodePanel = nullptr;
@@ -3559,7 +3587,7 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum)
     if (it != nodes.end()) {
         nodePanel = it->second;
     }
-    lv_obj_t *btn = lv_btn_create(objects.trace_route_panel);
+    lv_obj_t *btn = lv_btn_create(panel);
     // objects.trace_route_to_button = btn;
     lv_obj_set_pos(btn, 0, 0);
     lv_obj_set_size(btn, LV_PCT(100), 38);
@@ -3595,7 +3623,7 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum)
             lv_obj_set_size(label, LV_PCT(80), LV_SIZE_CONTENT);
             lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
             if (nodePanel) {
-                lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbl_idx)));
+                lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbs_idx)));
             } else {
                 char buf[20];
                 if (nodeNum != UINT32_MAX) {
@@ -4773,6 +4801,8 @@ void TFTView_320x240::task_handler(void)
             if (startTime) {
                 if (curtime - startTime > 30) {
                     lv_label_set_text(objects.trace_route_start_label, _("Start"));
+                    lv_obj_set_style_outline_color(objects.trace_route_start_button, 
+                       lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
                     removeSpinner();
                 } else {
                     char buf[16];
