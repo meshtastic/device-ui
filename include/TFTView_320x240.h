@@ -122,6 +122,8 @@ class TFTView_320x240 : public MeshtasticView
 
     // initialize all ui screens
     virtual void init_screens(void);
+    // update custom display string on boot screen 
+    virtual void updateBootMessage(void);
     // update node counter display (online and filtered)
     virtual void updateNodesStatus(void);
     // display message popup

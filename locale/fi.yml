@@ -1,122 +1,122 @@
-fi:
-  no new messages: ~
-  1 of 1 nodes online: ~
-  'uptime 00:00:00': ~
+﻿fi:
+  no new messages: "ei uusia viestejä"
+  1 of 1 nodes online: 1/1 nodea verkossa
+  "uptime 00:00:00": "käyttöaika 00:00:00"
   'Heap: 0\nLVGL: 0': ~
   DEL: ~
-  'User name: ': ~
-  'Modem Preset: LONG FAST': ~
-  'Channel: LongFast': ~
-  'Role: Client': ~
-  'Screen Timeout: 60s': ~
-  'Screen Lock: off': ~
-  'Screen Brightness: 60%': ~
-  'Theme: Dark': ~
-  'Screen Calibration: default': ~
-  'Input Control: none/none': ~
-  'Message Alert Buzzer: on': ~
-  'Language: English': ~
-  Configuration Reset: ~
-  Reboot / Shutdown: ~
-  Mesh Detector: ~
-  Signal Scanner: ~
-  Trace Route: ~
-  Neighbors: ~
-  Statistics: ~
-  Packet Log: ~
+  "User name: ": "Käyttäjätunnus"
+  "Modem Preset: LONG FAST": "modeemin esiasetus: LONG FAST"
+  "Channel: LongFast": "Kanava: LongFast"
+  "Role: Client": "Rooli: Client"
+  "Screen Timeout: 60s": "Näytön aikakatkaisu: 60s"
+  "Screen Lock: off": "Näytön lukitus: pois"
+  "Screen Brightness: 60%": "Näytön kirklaus: 60%"
+  "Theme: Dark": "Teema: Tumma"
+  "Screen Calibration: default": "Näytön kalibrointi: oletus"
+  "Input Control: none/none": "Tulon ohjaus: ei mitään/ei mitään"
+  "Message Alert Buzzer: on": "Viestihälytyssummeri: päällä"
+  "Language: English": "Kieli: Englanti"
+  Configuration Reset: Konfiguraation palautus
+  Reboot / Shutdown: Käynn. uudest. / Sammuta
+  Mesh Detector: Mesh verkko tunnistin
+  Signal Scanner: Signaalin skanneri
+  Trace Route: Reitin selvitys
+  Neighbors: Naapurit
+  Statistics: Tilastot
+  Packet Log: Pakettiloki
   Meshtastic: ~
-  Group Channels: ~
-  no messages: ~
-  Settings & Tools: ~
-  Settings (advanced): ~
-  Locations Map: ~
-  no chats: ~
-  Node Search: ~
-  Packet Statistics: ~
-  Node Options: ~
-  Short Name: ~
-  Long Name: ~
-  <unset>: ~
+  Group Channels: Ryhmä keskustelut
+  no messages: Ei viestejä
+  Settings & Tools: Asetukset ja Työkalut
+  Settings (advanced): lisäasetukset
+  Locations Map: Sijaintikartta
+  no chats: ei keskusteluja
+  Node Search: Node haku
+  Packet Statistics: Pakettitilastot
+  Node Options: noden asetukset
+  Short Name: Lyhyt Nimi
+  Long Name: Pitkä Nimi
+  <unset>: <ei asetettu>
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
   "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
-  'Brightness: 60%': ~
-  "Dark\nLight": ~
-  'Timeout: 60s': ~
-  Screen Lock: ~
-  Lock PIN: ~
-  Mouse: ~
-  none: ~
-  Keyboard: ~
-  Message Alert: ~
-  Ringtone: ~
-  Default: ~
-  Zone: ~
-  City: ~
-  "NodeDB Reset\nFactory Reset": ~
-  Channel Name: ~
-  Pre-shared Key: ~
-  Unknown: ~
+  "Brightness: 60%": "Kirkkaus: 60%"
+  "Dark\nLight": "Tumma\nVaalea"
+  "Timeout: 60s": "Aikakatkaisu: 60s"
+  Screen Lock: Näytön lukitus
+  Lock PIN: Pinkoodi
+  Mouse: Hiiri
+  none: ei mikään
+  Keyboard: Näppäimistö
+  Message Alert: Viestihälytys
+  Ringtone: Soittoääni
+  Default: Oletus
+  Zone: vyöhyke
+  City: Kaupunki
+  "NodeDB Reset\nFactory Reset": "NodeDB:n nollaus\nTehdasasetusten palautus"
+  Channel Name: Kanavan nimi
+  Pre-shared Key: Esijaettu avain
+  Unknown: Tuntematon
   Offline: ~
-  Public Key: ~
-  Hops away: ~
+  Public Key: Julkinen avain
+  Hops away: hyppyjen päässä
   MQTT: ~
-  Position: ~
-  Name: ~
-  Active Chat: ~
-  Telemetry: ~
+  Position: Sijainti
+  Name: Nimi
+  Active Chat: Aktiivinen keskustelu
+  Telemetry: Telemetria
   IAQ: ~
-  Start: ~
-  New Message from\n: ~
+  Start: Aloita
+  "New Message from\n": "Uusi viesti lähettäjälyä\n"
   Resynch...: ~
   OK: ~
-  Cancel: ~
-  'FrequencySlot: %d (%.2f MHz)': ~
-  'Brightness: %d%%': ~
-  'Timeout: off': ~
-  'Timeout: %ds': ~
-  'Screen Calibration: %s': ~
-  done: ~
-  default: ~
-  Stop: ~
-  "choose\nnode": ~
-  choose target node: ~
-  'heard: !%08x': ~
-  'Packet Log: %d': ~
-  'Language: %s': ~
-  'Screen Timeout: off': ~
-  'Screen Timeout: %ds': ~
-  'Screen Brightness: %d%%': ~
-  'Theme: %s': ~
-  'User name: %s': ~
-  'Device Role: %s': ~
-  'Region: %s': ~
-  'Modem Preset: %s': ~
-  'Channel: %s': ~
-  'Screen Lock: %s': ~
-  'on': ~
-  'off': ~
-  'Message Alert: %s': ~
+  Cancel: Peruuta
+  "FrequencySlot: %d (%.2f MHz)": "Taajuuspaikka: %d (%.2f MHz)"
+  "Brightness: %d%%": "Kirkkaus: %d%%"
+  "Timeout: off": "Aikakatkaisu: pois"
+  "Timeout: %ds": "Aikakatkaisu: %ds"
+  "Screen Calibration: %s": "Näytön kalibrointi: %s"
+  done: valmis
+  default: oletus
+  Stop: Lopeta
+  "choose\nnode": "valitse\nnode"
+  choose target node: valitse kohde node
+  "heard: !%08x": ~
+  "Packet Log: %d": "Pakettiloki: %d"
+  "Language: %s": "Kieli: %s"
+  "Screen Timeout: off": "Näytön aikakatkaisu: pois päältä"
+  "Screen Timeout: %ds": "Näytön aikakatkaisu: %ds"
+  "Screen Brightness: %d%%": "Näytön kirkkaus: %d%%"
+  "Theme: %s": "Teema: %s"
+  "User name: %s": "Käyttäjätunnus: %s"
+  "Device Role: %s": "Laitteen rooli: %s"
+  "Region: %s": "Alue: %s"
+  "Modem Preset: %s": ~
+  "Channel: %s": "Kanava: %s"
+  "Screen Lock: %s": "Näytön lukitus: %s"
+  "on": päällä
+  "off": pois
+  "Message Alert: %s": "Viestihälytys: %s"
   Util %0.1f%%  Air %0.1f%%: ~
-  'hops: %d': ~
-  unknown: ~
-  <no name>: ~
-  '%d active chat(s)': ~
-  New message from \n%s: ~
-  'Input Control: %s/%s': ~
-  '%d of %d nodes online': ~
-  Filtering ...: ~
-  'Filter: %d of %d nodes': ~
-  now: ~
-  '%d new message': ~
-  '%d new messages': ~
-  'uptime: %02d:%02d:%02d': ~
+  "hops: %d": "hypyt: %d"
+  unknown: tuntematon
+  <no name>: <ei nimeä>
+  "%d active chat(s)": "aktiivisia keskusteluja: %d"
+  "New message from \n%s": "Uusi viesti lähettäjältä\n%s"
+  "Input Control: %s/%s": "Tulon ohjaus: %s/%s"
+  "%d of %d nodes online": "%d/%d nodea verkossa"
+  Filtering ...: Suodatus ...
+  "Filter: %d of %d nodes": Suodatetaan %d/%d nodea
+  now: nyt
+  "%d new message": "%d uusi viesti"
+  "%d new messages": "%d uutta viestä"
+  "uptime: %02d:%02d:%02d": "käyttöaika: %02d:%02d:%02d"
   'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
-  Settings: ~
-  Tools: ~
-  Filter: ~
-  Highlight: ~
-  Primary Channel: ~
-  Secondary Channels: ~
-  Resynch ...: ~
-  Rebooting ...: ~
-  Shutting down ...: ~
+  Settings: Asetukset
+  Tools: Työkalut
+  Filter: Suodatin
+  Highlight: Korosta
+  Primary Channel: Ensisijainen kanava
+  Secondary Channels: Toissijaiset kanavat
+  Resynch ...: Synkronoi uudelleen ...
+  Rebooting ...: Käynnistetään uudelleen ...
+  Shutting down ...: Sammutetetaan ...

@@ -83,6 +83,7 @@ TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *
 {
     filter.active = false;
     highlight.active = false;
+    objects.main_screen = nullptr;
 }
 
 /**
@@ -174,6 +175,15 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
         nodes[ownNode] = objects.node_panel;
 
     lv_disp_trig_activity(NULL);
+}
+
+/**
+ * @brief display custom message on boot screen
+ *        Note: currently, the firmware version field is used and set in main()/setup()
+ */
+void TFTView_320x240::updateBootMessage(void)
+{
+    lv_label_set_text(objects.firmware_label, firmware_version);
 }
 
 /**
@@ -1899,8 +1909,12 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             stat.nbr++;
             break;
         }
+        case meshtastic_PortNum_ADMIN_APP: {
+            // ignore
+            break;
+        }
         default:
-            ILOG_WARN("packet portnum in stats ignored: %d\n", p.decoded.portnum);
+            ILOG_WARN("packet portnum in stats unhandled: %d\n", p.decoded.portnum);
             stat.sum++;
             return;
     }
@@ -3819,16 +3833,24 @@ void TFTView_320x240::blankScreen(bool enable)
 {
     if (enable)
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
-    else
-        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    else {
+        if (objects.main_screen)
+            lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        else
+            lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    }
 }
 
 void TFTView_320x240::screenSaving(bool enabled)
 {
     if (enabled)
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
-    else
-        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    else {
+        if (objects.main_screen)
+            lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        else
+            lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    }
 
     // TODO: lock screen after e.g. 5 mins blanking
     // if (THIS->db.config.bluetooth.fixed_pin)
@@ -4281,7 +4303,7 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
 
 void TFTView_320x240::updateActiveChats(void)
 {
-    char buf[20];
+    char buf[40];
     sprintf(buf, _("%d active chat(s)"), chats.size());
     lv_label_set_text(objects.top_chats_label, buf);
 }
@@ -4774,6 +4796,9 @@ void TFTView_320x240::task_handler(void)
         if (processingFilter) {
             updateNodesFiltered(false);
         }
+    }
+    else {
+        updateBootMessage();
     }
 }
 

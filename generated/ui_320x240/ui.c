@@ -32,13 +32,13 @@ void ui_init_boot() {
     lv_disp_set_theme(dispp, theme);
     
     create_screen_boot_screen();
+    create_screen_blank_screen();
     loadScreen(SCREEN_ID_BOOT_SCREEN);
 }
 
 void ui_init() {
     //create_screens();
     create_screen_main_screen();
-    create_screen_blank_screen();
     create_screen_lock_screen();
     create_screen_calibration_screen();
     create_tabview_settings();
