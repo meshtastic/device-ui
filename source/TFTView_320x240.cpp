@@ -4013,6 +4013,12 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 {
     db.config.lora = cfg;
     db.config.has_lora = true;
+    char loraFreq[48];
+    sprintf(loraFreq, "LoRa %0.3f MHz [%s kHz]", 
+        LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num),
+        LoRaPresets::getBandwidthString(cfg.modem_preset));
+    lv_label_set_text(objects.home_lo_ra_label, loraFreq);
+
     char region[30];
     lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
     lv_label_set_text(objects.basic_settings_region_label, region);
