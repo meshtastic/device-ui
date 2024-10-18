@@ -1587,6 +1587,8 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
     }
 
     lv_obj_clear_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.hop_routes_panel, LV_OBJ_FLAG_HIDDEN);
+
     if (currentPanel) {
         THIS->setNodeImage(THIS->currentNode,
                            (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
@@ -1646,6 +1648,14 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
         // restart
         ui_event_trace_route(e);
     }
+}
+
+void TFTView_320x240::ui_event_trace_route_node(lv_event_t *e)
+{   
+    // navigate to node in node list
+    lv_obj_t *panel = (lv_obj_t*)e->user_data;
+    THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+    lv_obj_scroll_to_view(panel, LV_ANIM_ON);
 }
 
 void TFTView_320x240::removeSpinner(void)
@@ -3625,7 +3635,13 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
             lv_obj_set_size(label, LV_PCT(80), LV_SIZE_CONTENT);
             lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
             if (nodePanel) {
-                lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbs_idx)));
+                if (nodeNum != ownNode) {
+                    lv_obj_add_event_cb(btn, ui_event_trace_route_node, LV_EVENT_CLICKED, nodePanel);
+                    lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbs_idx)));
+                }
+                else {
+                    lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbl_idx)));
+                }
             } else {
                 char buf[20];
                 if (nodeNum != UINT32_MAX) {

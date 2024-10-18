@@ -279,6 +279,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_trace_route(lv_event_t *e);
     static void ui_event_trace_route_to(lv_event_t *e);
     static void ui_event_trace_route_start(lv_event_t *e);
+    static void ui_event_trace_route_node(lv_event_t *e);
     static void ui_event_neighbors(lv_event_t *e);
     static void ui_event_statistics(lv_event_t *e);
     static void ui_event_packet_log(lv_event_t *e);
