@@ -2934,7 +2934,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
         time(&curtime);
         lastHeard = std::min(curtime, (time_t)lastHeard); // adapt values too large
 
-        char buf[12];
+        char buf[20];
         bool isOnline = lastHeardToString(lastHeard, buf);
         lv_label_set_text(ui_lastHeardLabel, buf);
         if (isOnline) {
@@ -3202,7 +3202,7 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
 {
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
-        char buf[32];
+        char buf[48];
         if (it->first == ownNode) {
             sprintf(buf, _("Util %0.1f%%  Air %0.1f%%"), chUtil, airUtil);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
@@ -3313,7 +3313,7 @@ void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float
     if (nodeNum != ownNode) {
         auto it = nodes.find(nodeNum);
         if (it != nodes.end()) {
-            char buf[30];
+            char buf[32];
             if (rssi == 0.0 && snr == 0.0) {
                 buf[0] = '\0';
             } else {
@@ -3330,7 +3330,7 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
     if (nodeNum != ownNode) {
         auto it = nodes.find(nodeNum);
         if (it != nodes.end()) {
-            char buf[20];
+            char buf[32];
             sprintf(buf, _("hops: %d"), (int)hopsAway);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
             it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)(unsigned long)hopsAway;
@@ -4688,7 +4688,7 @@ void TFTView_320x240::updateAllLastHeard(void)
     uint16_t online = 0;
     time_t lastHeard;
     for (auto &it : nodes) {
-        char buf[20];
+        char buf[32];
         if (it.first == ownNode) { // own node is always now, so do update
             time_t curtime;
             time(&curtime);
