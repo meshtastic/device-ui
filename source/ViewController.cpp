@@ -430,9 +430,10 @@ bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId
 
 void ViewController::traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId)
 {
-    meshtastic_RouteDiscovery request{};
+    meshtastic_Routing request{.route_request{.route_count = 1, .route{myNodeNum}}};
+
     meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_RouteDiscovery_msg, &request);
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_Routing_msg, &request);
     send(to, ch, hopLimit, requestId, meshtastic_PortNum_TRACEROUTE_APP, true, payload.bytes, payload.size);
 }
 
