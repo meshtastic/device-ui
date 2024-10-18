@@ -1604,8 +1604,10 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
 
 void TFTView_320x240::ui_event_trace_route_to(lv_event_t *e)
 {
-    THIS->chooseNodeTraceRoute = true;
-    THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+    if (!spinnerButton) {
+        THIS->chooseNodeTraceRoute = true;
+        THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+    }
 }
 
 void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
