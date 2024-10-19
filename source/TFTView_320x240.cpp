@@ -484,6 +484,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_5, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)5);
     lv_obj_add_event_cb(objects.keyboard_button_6, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)6);
     lv_obj_add_event_cb(objects.keyboard_button_7, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)7);
+    lv_obj_add_event_cb(objects.keyboard_button_8, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)8);
+    lv_obj_add_event_cb(objects.keyboard_button_9, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)9);
 
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
@@ -493,6 +495,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_role_button, ui_event_role_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_region_button, ui_event_region_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_modem_preset_button, ui_event_preset_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_wifi_button, ui_event_wifi_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_language_button, ui_event_language_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_channel_button, ui_event_channel_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_timeout_button, ui_event_timeout_button, LV_EVENT_CLICKED, NULL);
@@ -547,8 +550,10 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj14__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj15__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj15__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj18__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj18__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj16__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj16__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj19__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj19__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -848,7 +853,7 @@ void TFTView_320x240::ui_event_TimeButton(lv_event_t *e)
 void TFTView_320x240::ui_event_LoRaButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_LONG_PRESSED && THIS->configComplete) {
+    if (event_code == LV_EVENT_LONG_PRESSED && THIS->db.config.has_lora) {
         // toggle lora tx on/off
         meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
         lora.tx_enabled = !lora.tx_enabled;
@@ -886,9 +891,26 @@ void TFTView_320x240::ui_event_LocationButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_WLANButton(lv_event_t *e)
 {
+    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_LONG_PRESSED && THIS->configComplete) {
+#if 0
+    if (event_code == LV_EVENT_CLICKED && THIS->db.config.has_network && THIS->activeSettings == eNone) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+        lv_textarea_set_text(objects.settings_wifi_ssid_textarea, THIS->db.config.network.wifi_ssid);
+        lv_textarea_set_text(objects.settings_wifi_password_textarea, THIS->db.config.network.wifi_psk);
+        lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
+        THIS->disablePanel(objects.home_panel);
+        THIS->activeSettings = eWifi;
+    }
+    else 
+#endif
+    if (event_code == LV_EVENT_LONG_PRESSED && THIS->db.config.has_network) {
         // toggle WLAN on/off
+        ignoreClicked = true;
         uint32_t toggle = (unsigned long)objects.home_wlan_button->user_data;
         objects.home_wlan_button->user_data = (void *)(1 - toggle);
         meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
@@ -967,6 +989,14 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         case 7:
             THIS->showKeyboard(objects.settings_screen_lock_password_textarea);
             lv_group_focus_obj(objects.settings_screen_lock_password_textarea);
+            break;
+        case 8:
+            THIS->showKeyboard(objects.settings_wifi_ssid_textarea);
+            lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
+            break;
+        case 9:
+            THIS->showKeyboard(objects.settings_wifi_password_textarea);
+            lv_group_focus_obj(objects.settings_wifi_password_textarea);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment");
@@ -1087,6 +1117,19 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
         lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_modem_preset_dropdown);
         THIS->disablePanel(objects.controller_panel);
+    }
+}
+
+void TFTView_320x240::ui_event_wifi_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->db.config.has_network && THIS->activeSettings == eNone) {
+        lv_textarea_set_text(objects.settings_wifi_ssid_textarea, THIS->db.config.network.wifi_ssid);
+        lv_textarea_set_text(objects.settings_wifi_password_textarea, THIS->db.config.network.wifi_psk);
+        lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
+        THIS->disablePanel(objects.controller_panel);
+        THIS->activeSettings = eWifi;
     }
 }
 
@@ -2376,6 +2419,23 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             delete[] THIS->channel_scratch;
             break;
         }
+        case eWifi: {
+            char buf[30];
+            const char *ssid = lv_textarea_get_text(objects.settings_wifi_ssid_textarea);
+            const char *psk = lv_textarea_get_text(objects.settings_wifi_password_textarea);
+            lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), ssid[0] ? ssid : _("<not set>"));
+            lv_label_set_text(objects.basic_settings_wifi_label, buf);
+            if (strcmp(THIS->db.config.network.wifi_ssid, ssid) != 0 || strcmp(THIS->db.config.network.wifi_psk, psk) != 0) {
+                strcpy(THIS->db.config.network.wifi_ssid, ssid);
+                strcpy(THIS->db.config.network.wifi_psk, psk);
+                THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{THIS->db.config.network}, THIS->ownNode);
+                THIS->notifyReboot(true);
+            }
+            //THIS->enablePanel(objects.home_panel);
+            lv_obj_add_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_wifi_button);
+            break;
+        }
         case eLanguage: {
             uint32_t value = lv_dropdown_get_selected(objects.settings_language_dropdown);
             meshtastic_Language lang = THIS->val2language(value);
@@ -2617,6 +2677,13 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             delete[] THIS->channel_scratch;
             lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_channel_button);
+            break;
+        }
+        case TFTView_320x240::eWifi: {
+            lv_obj_add_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+            //THIS->enablePanel(objects.home_panel);
+            lv_group_focus_obj(objects.home_wlan_button);
+
             break;
         }
         case TFTView_320x240::eLanguage: {
@@ -4016,6 +4083,10 @@ void TFTView_320x240::updateNetworkConfig(const meshtastic_Config_NetworkConfig 
 {
     db.config.network = cfg;
     db.config.has_network = true;
+
+    char buf[40];
+    lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), cfg.wifi_ssid[0] ? cfg.wifi_ssid : _("<not set>"));
+    lv_label_set_text(objects.basic_settings_wifi_label, buf);
 }
 
 void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg)
@@ -4052,10 +4123,11 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
 {
     char loraFreq[48];
-    sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", 
-        LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num),
-        LoRaPresets::getBandwidthString(cfg.modem_preset));
-    lv_label_set_text(objects.home_lora_label, loraFreq);
+    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num);
+    if (frequency > 1.0) {
+        sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
+        lv_label_set_text(objects.home_lora_label, loraFreq);
+    }
     Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
     Themes::recolorText(objects.home_lora_label, cfg.tx_enabled);
     if (!cfg.tx_enabled) {
