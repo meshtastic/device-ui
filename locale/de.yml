@@ -83,7 +83,7 @@ de:
   Default: Standard
   OK: ~
   Cancel: Abbruch
-  'FrequencySlot: %d (%.2f MHz)': 'Frequenz: %d (%.2f MHz)'
+  'FrequencySlot: %d (%g MHz)': 'Frequenz: %d (%g MHz)'
   'Brightness: %d%%': 'Helligkeit: %d%%'
   'Timeout: off': 'Timeout: aus'
   'Timeout: %ds': ~

@@ -95,7 +95,7 @@ se:
   Resynch...: Synkronisera om...
   OK: ~
   Cancel: Avbryt
-  'FrequencySlot: %d (%.2f MHz)': 'Frekvensplats: %d (%.2f MHz)'
+  'FrequencySlot: %d (%g MHz)': 'Frekvensplats: %d (%g MHz)'
   'Brightness: %d%%': 'Ljusstyrka: %d%%'
   'Timeout: off': 'Timeout: av'
   'Timeout: %ds': ~

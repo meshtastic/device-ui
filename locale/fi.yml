@@ -70,7 +70,7 @@
   Resynch...: ~
   OK: ~
   Cancel: Peruuta
-  "FrequencySlot: %d (%.2f MHz)": "Taajuuspaikka: %d (%.2f MHz)"
+  "FrequencySlot: %d (%g MHz)": "Taajuuspaikka: %d (%g MHz)"
   "Brightness: %d%%": "Kirkkaus: %d%%"
   "Timeout: off": "Aikakatkaisu: pois"
   "Timeout: %ds": "Aikakatkaisu: %ds"

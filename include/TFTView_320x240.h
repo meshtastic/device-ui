@@ -212,6 +212,7 @@ class TFTView_320x240 : public MeshtasticView
     void setBrightness(uint32_t brightness);
     void setTheme(uint32_t theme);
     void storeNodeOptions(void);
+    void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
@@ -231,6 +232,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_EnvelopeButton(lv_event_t *e);
     static void ui_event_OnlineNodesButton(lv_event_t *e);
     static void ui_event_TimeButton(lv_event_t *e);
+    static void ui_event_LoRaButton(lv_event_t *e);
     static void ui_event_LocationButton(lv_event_t *e);
     static void ui_event_WLANButton(lv_event_t *e);
     static void ui_event_MQTTButton(lv_event_t *e);

@@ -81,7 +81,7 @@ es:
   Default: ~
   OK: ~
   Cancel: Cancelar
-  'FrequencySlot: %d (%.2f MHz)': ~
+  'FrequencySlot: %d (%g MHz)': ~
   'Brightness: %d%%': 'Brillo : %d%%'
   'Timeout: off': ~
   'Timeout: %ds': ~

@@ -402,11 +402,13 @@ void TFTView_320x240::apply_hotfix(void)
 void TFTView_320x240::updateTheme(void)
 {
     Themes::initStyles();
+    Themes::recolorButton(objects.home_lora_button, db.config.lora.tx_enabled);
     Themes::recolorButton(objects.home_location_button,
                           db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorButton(objects.home_wlan_button, db.config.network.wifi_enabled);
     Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
     Themes::recolorButton(objects.home_memory_button, (bool)objects.home_memory_button->user_data);
+    Themes::recolorText(objects.home_lora_label, db.config.lora.tx_enabled);
     Themes::recolorText(objects.home_location_label,
                         db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorText(objects.home_wlan_label, db.config.network.wifi_enabled);
@@ -449,6 +451,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_mail_button, this->ui_event_EnvelopeButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_nodes_button, this->ui_event_OnlineNodesButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_time_button, this->ui_event_TimeButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_lora_button, this->ui_event_LoRaButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
@@ -842,6 +845,18 @@ void TFTView_320x240::ui_event_TimeButton(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_LoRaButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_LONG_PRESSED && THIS->configComplete) {
+        // toggle lora tx on/off
+        meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
+        lora.tx_enabled = !lora.tx_enabled;
+        THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora});
+        THIS->showLoRaFrequency(lora);
+    }
+}
+
 void TFTView_320x240::ui_event_LocationButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -1060,7 +1075,7 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
         lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->db.config.lora.modem_preset);
 
         char buf[40];
-        sprintf(buf, _("FrequencySlot: %d (%.2f MHz)"), THIS->db.config.lora.channel_num,
+        sprintf(buf, _("FrequencySlot: %d (%g MHz)"), THIS->db.config.lora.channel_num,
                 LoRaPresets::getRadioFreq(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset,
                                           THIS->db.config.lora.channel_num));
         lv_label_set_text(objects.frequency_slot_label, buf);
@@ -2694,7 +2709,7 @@ void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
     lv_obj_t *slider = lv_event_get_target_obj(e);
     char buf[40];
     uint32_t channel = (uint32_t)lv_slider_get_value(slider);
-    sprintf(buf, _("FrequencySlot: %d (%.2f MHz)"), channel,
+    sprintf(buf, _("FrequencySlot: %d (%g MHz)"), channel,
             LoRaPresets::getRadioFreq(
                 THIS->db.config.lora.region,
                 (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(objects.settings_modem_preset_dropdown),
@@ -2722,7 +2737,7 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
     lv_slider_set_value(objects.frequency_slot_slider, channel, LV_ANIM_ON);
 
     char buf[40];
-    sprintf(buf, _("FrequencySlot: %d (%.2f MHz)"), channel,
+    sprintf(buf, _("FrequencySlot: %d (%g MHz)"), channel,
             LoRaPresets::getRadioFreq(THIS->db.config.lora.region, preset, channel));
     lv_label_set_text(objects.frequency_slot_label, buf);
 }
@@ -4013,11 +4028,7 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 {
     db.config.lora = cfg;
     db.config.has_lora = true;
-    char loraFreq[48];
-    sprintf(loraFreq, "LoRa %0.3f MHz [%s kHz]", 
-        LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num),
-        LoRaPresets::getBandwidthString(cfg.modem_preset));
-    lv_label_set_text(objects.home_lo_ra_label, loraFreq);
+    showLoRaFrequency(cfg);
 
     char region[30];
     lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
@@ -4036,6 +4047,23 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
         db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset);
     }
     lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
+}
+
+void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
+{
+    char loraFreq[48];
+    sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", 
+        LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num),
+        LoRaPresets::getBandwidthString(cfg.modem_preset));
+    lv_label_set_text(objects.home_lora_label, loraFreq);
+    Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
+    Themes::recolorText(objects.home_lora_label, cfg.tx_enabled);
+    if (!cfg.tx_enabled) {
+        lv_obj_clear_flag(objects.top_lora_tx_panel, LV_OBJ_FLAG_HIDDEN);
+    }
+    else {
+        lv_obj_add_flag(objects.top_lora_tx_panel, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg)

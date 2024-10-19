@@ -86,7 +86,7 @@ pl:
   Default: Domyślny
   OK: ~
   Cancel: Anuluj
-  'FrequencySlot: %d (%.2f MHz)': 'Kanał: %d (%.2f MHz)'
+  'FrequencySlot: %d (%g MHz)': 'Kanał: %d (%g MHz)'
   'Brightness: %d%%': 'Jasność: %d%%'
   'Timeout: off': ~
   'Timeout: %ds': ~

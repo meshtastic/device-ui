@@ -70,7 +70,7 @@ pt:
   Resynch...: 'Resincronizando...'
   OK: 'OK'
   Cancel: 'Cancelar'
-  'FrequencySlot: %d (%.2f MHz)': 'Banco de Frequência %d (%.2f MHz)'
+  'FrequencySlot: %d (%g MHz)': 'Banco de Frequência %d (%g MHz)'
   'Brightness: %d%%': 'Brilho de Tela: %d%%'
   'Timeout: off': 'Temporizador de tela: desligado'
   'Timeout: %ds': 'Temporizador de tela: %ds'

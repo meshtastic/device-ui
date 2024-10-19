@@ -70,7 +70,7 @@ nl:
   Resynch...: Hersync...
   OK: OK
   Cancel: Annuleer
-  'FrequencySlot: %d (%.2f MHz)': 'FrequencySlot: %d (%.2f MHz)'
+  'FrequencySlot: %d (%g MHz)': 'FrequencySlot: %d (%g MHz)'
   'Brightness: %d%%': 'Helderheid: %d%%'
   'Timeout: off': 'Timeout: uit'
   'Timeout: %ds': 'Timeout: %ds'

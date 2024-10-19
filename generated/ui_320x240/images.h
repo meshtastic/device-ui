@@ -65,6 +65,7 @@ extern const lv_img_dsc_t img_radar_beam_image;
 extern const lv_img_dsc_t img_lock_channel_image;
 extern const lv_img_dsc_t img_lock_secure_image;
 extern const lv_img_dsc_t img_home_lora_image;
+extern const lv_img_dsc_t img_top_lora_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -74,7 +75,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[58];
+extern const ext_img_desc_t images[59];
 
 
 #ifdef __cplusplus

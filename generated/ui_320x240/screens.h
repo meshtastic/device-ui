@@ -94,8 +94,8 @@ typedef struct _objects_t {
     lv_obj_t *home_nodes_label;
     lv_obj_t *home_time_button;
     lv_obj_t *home_time_label;
-    lv_obj_t *home_lo_ra_button;
-    lv_obj_t *home_lo_ra_label;
+    lv_obj_t *home_lora_button;
+    lv_obj_t *home_lora_label;
     lv_obj_t *home_location_button;
     lv_obj_t *home_location_label;
     lv_obj_t *home_wlan_button;
@@ -252,6 +252,9 @@ typedef struct _objects_t {
     lv_obj_t *battery_panel;
     lv_obj_t *battery_image;
     lv_obj_t *battery_percentage_label;
+    lv_obj_t *top_lora_tx_panel;
+    lv_obj_t *top_lora_tx_label;
+    lv_obj_t *top_lora_tx_image;
     lv_obj_t *settings_username_panel;
     lv_obj_t *settings_user_short_textarea;
     lv_obj_t *keyboard_button_1;

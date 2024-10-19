@@ -82,7 +82,7 @@ en:
   Default: ~
   OK: ~
   Cancel: ~
-  'FrequencySlot: %d (%.2f MHz)': ~
+  'FrequencySlot: %d (%g MHz)': ~
   'Brightness: %d%%': ~
   'Timeout: off': ~
   'Timeout: %ds': ~
