@@ -447,7 +447,7 @@ void ViewController::traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint3
  */
 bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload, bool wantRsp)
 {
-    ILOG_DEBUG("sending meshpacket to radio portnum=%u", portnum);
+    ILOG_DEBUG("sending meshpacket to radio id=0x%08x, to=0x%08x(%u), portnum=%u, len=%u, wantRsp=%d", 0, to, to, portnum, payload.size, wantRsp);
     return client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_packet_tag,
                                            .packet{.to = to,
                                                    .which_payload_variant = meshtastic_MeshPacket_decoded_tag,
@@ -461,8 +461,8 @@ bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtas
 bool ViewController::send(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
                           const unsigned char bytes[237], size_t len)
 {
-    ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, id=0x%08x, portnum=%u, len=%u", to, to, (unsigned int)ch,
-               requestId, portnum, len);
+    ILOG_DEBUG("sending meshpacket to radio id=0x%x, to=0x%08x(%u), ch=%u, portnum=%u, len=%u, wantRsp=%d", requestId, to, to, (unsigned int)ch,
+               portnum, len, wantRsp);
     // send requires movable lvalue, i.e. a temporary object
     return client->send(meshtastic_ToRadio{
         .which_payload_variant = meshtastic_ToRadio_packet_tag,
@@ -779,7 +779,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 
 bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 {
-    ILOG_DEBUG("received packet from 0x%08x(%u), portnum=%u", p.from, p.from, p.decoded.portnum);
+    ILOG_DEBUG("received packet from 0x%08x, id=0x%08x, portnum=%u", p.from, p.id, p.decoded.portnum);
     view->packetReceived(p);
 
     // only for direct neighbors print rssi/snr
@@ -792,7 +792,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
-        ILOG_INFO("received text message from 0x%08x(%u): '%s'", p.from, p.from, (const char *)p.decoded.payload.bytes);
+        ILOG_INFO("received text message '%s'", (const char *)p.decoded.payload.bytes);
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes);
         break;
     }

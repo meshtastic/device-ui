@@ -27,6 +27,9 @@ class ResponseHandler
     void task_handler(void);
 
   protected:
+    uint32_t generatePacketId(void);
+
+    static uint32_t rollingPacketId;
     uint32_t requestIdCounter;
     uint32_t maxTime;
     std::unordered_map<uint32_t, Request> pendingRequest;
