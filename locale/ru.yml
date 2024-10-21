@@ -44,7 +44,7 @@ ru:
   'Channel: %s': 'Канал: %s'
   'Language: %s': 'Язык: %s'
   'Screen Lock: off': 'Блокировка экрана: off'
-  'Theme: Dark': 'Тема: Dark'
+  'Theme: Dark': 'Тема: Тёмная'
   Mesh Detector: Детектор Mesh
   Signal Scanner: Сканер сигнала
   Trace Route: Маршрут
@@ -76,7 +76,7 @@ ru:
   Packet Statistics: Статистика пакетов
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "LONG FAST\nLONG SLOW\n-- устарело --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
   "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Client\nClient Mute\nRouter\n-- устарело --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"
-  "Dark\nLight": "Dark\nLight"
+  "Dark\nLight": "Тёмная\nСветлая"
   none: ~
   Default: ~
   OK: ~
