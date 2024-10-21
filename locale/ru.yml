@@ -1,0 +1,122 @@
+ru:
+  no new messages: нет новых сообщений
+  1 of 1 nodes online: 1 из 1 узлов онлайн
+  DEL: DEL
+  'User name: ': 'Имя пользователя:'
+  'Modem Preset: LONG FAST': ~
+  'Channel: LongFast': 'Канал: LongFast'
+  'Role: Client': 'Роль: Клиент'
+  'Screen Timeout: 60s': 'Таймаут экрана: 60с'
+  'Screen Brightness: 60%': 'Яркость экрана: 60%'
+  'Screen Calibration: default': 'Калибровка экрана: по умолчанию'
+  'Input Control: none/none': ~
+  'Message Alert Buzzer: on': 'Оповещение: включено'
+  'Language: English': 'Язык: Русский'
+  Configuration Reset: 'Сброс настроек'
+  Reboot / Shutdown: Перезагрузка / Выкл.
+  Group Channels: Групповые каналы
+  no messages: нет сообщений
+  Settings: Настройки
+  Settings (advanced): Расширенные настройки
+  Locations Map: Карта локаций
+  no chats: нет чатов
+  Node Options: Опции узлов
+  Short Name: Краткое имя
+  Long Name: Полное имя
+  <unset>: <пусто>
+  'FrequencySlot: 1 (902.0MHz)': ~
+  'Brightness: 60%': 'Яркость: 60%'
+  'Timeout: 60s': ~
+  Mouse: Мышка
+  Keyboard: Клавиатура
+  Message Alert: Оповещение
+  "NodeDB Reset\nFactory Reset": "Сброс NodeDB\nСброс настроек"
+  Channel Name: Имя канала
+  Pre-shared Key: ~
+  New Message from\n: Новое сообщение от\n
+  'User name: %s': 'Имя: %s'
+  'Device Role: %s': 'Роль устройства: %s'
+  'Screen Calibration: %s': 'Калибровка экрана: %s'
+  done: готово
+  default: по умолчанию
+  'Region: %s': 'Регион: %s'
+  'Modem Preset: %s': ~
+  'Channel: %s': 'Канал: %s'
+  'Language: %s': 'Язык: %s'
+  'Screen Lock: off': 'Блокировка экрана: off'
+  'Theme: Dark': 'Тема: Тёмная'
+  Mesh Detector: Детектор Mesh
+  Signal Scanner: Сканер сигнала
+  Trace Route: Маршрут
+  Neighbors: Соседи
+  Statistics: Статистика
+  Packet Log: Лог пакетов
+  Settings & Tools: Настройки и инструменты
+  Node Search: Поиск узла
+  Screen Lock: Блокировка экрана
+  Lock PIN: PIN-код
+  Ringtone: Рингтон
+  Zone: Зона
+  City: Город
+  Unknown: Неизвестно
+  Offline: Не в сети
+  Public Key: Открытый ключ
+  Hops away: Переходы
+  MQTT: ~
+  Position: Позиция
+  Name: Имя
+  Active Chat: Активный чат
+  Telemetry: Телеметрия
+  IAQ: ~
+  Start: Начать
+  'Theme: %s': 'Тема: %s'
+  'uptime 00:00:00': ~
+  'Heap: 0\nLVGL: 0': ~
+  Meshtastic: ~
+  Packet Statistics: Статистика пакетов
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "LONG FAST\nLONG SLOW\n-- устарело --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Client\nClient Mute\nRouter\n-- устарело --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"
+  "Dark\nLight": "Тёмная\nСветлая"
+  none: ~
+  Default: ~
+  OK: ~
+  Cancel: Отмена
+  'FrequencySlot: %d (%.2f MHz)': ~
+  'Brightness: %d%%': 'Яркость: %d%%'
+  'Timeout: off': ~
+  'Timeout: %ds': ~
+  Stop: Стоп
+  "choose\nnode": "выбрать\nузел"
+  choose target node: выбрать узел назначения
+  'heard: !%08x': 'услышано: !%08x'
+  'Packet Log: %d': 'Журнал пакетов: %d'
+  'Screen Timeout: off': 'Таймаут экрана: выкл'
+  'Screen Timeout: %ds': 'Таймаут экрана: %ds'
+  'Screen Brightness: %d%%': 'Яркость экрана: %d%%'
+  'Screen Lock: %s': 'Блокировка экрана: %s'
+  'on': ~
+  'off': ~
+  'Message Alert: %s': 'Оповещение: %s'
+  Util %0.1f%%  Air %0.1f%%: ~
+  'hops: %d': 'переходов: %d'
+  unknown: неизвестно
+  <no name>: <без имени>
+  '%d active chat(s)': '%d активных чатов'
+  "New message from \n%s": "Новое сообщение от:\n%s"
+  'Input Control: %s/%s': ~
+  '%d of %d nodes online': '%d из %d узлов онлайн'
+  Filtering ...: Фильтрация ...
+  'Filter: %d of %d nodes': 'Фильтр: %d из %d узлов'
+  now: сейчас
+  '%d new message': '%d новое сообщение'
+  '%d new messages': '%d новых сообщений'
+  'uptime: %02d:%02d:%02d': 'время работы: %02d:%02d:%02d'
+  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  Tools: Инструменты
+  Filter: Фильтр
+  Highlight: Выделить
+  Primary Channel: Основной канал
+  Secondary Channels: Вторичные каналы
+  Resynch ...: Ресинхронизация ...
+  Rebooting ...: Перезагрузка ...
+  Shutting down ...: 'Выключение ...'
