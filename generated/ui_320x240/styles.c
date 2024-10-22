@@ -656,7 +656,7 @@ void remove_style_button_matrix_style(lv_obj_t *obj) {
 //
 
 void init_style_spinner_style_MAIN_DEFAULT(lv_style_t *style) {
-    lv_style_set_arc_color(style, lv_color_hex(0xff000000));
+    lv_style_set_arc_color(style, lv_color_hex(0xff67ea94));
     lv_style_set_arc_width(style, 5);
 };
 
@@ -671,7 +671,7 @@ lv_style_t *get_style_spinner_style_MAIN_DEFAULT() {
 };
 
 void init_style_spinner_style_INDICATOR_DEFAULT(lv_style_t *style) {
-    lv_style_set_arc_color(style, lv_color_hex(0xff000000));
+    lv_style_set_arc_color(style, lv_color_hex(0xff67ea94));
     lv_style_set_arc_width(style, 4);
 };
 
