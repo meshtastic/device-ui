@@ -138,6 +138,14 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Resynch ...", "Synchronisierung ..."},
     {"Rebooting ...", "Neustart ..."},
     {"Shutting down ...", "Herunterfahren ..."},
+    {"silent", "stumm"},
+    {"WiFi: <not setup>", "WiFi: <kein Passwort>"},
+    {"LoRa TX off!", "LoRa TX ausgeschaltet!"},
+    {"WiFi pre-shared Key", "WiFi Passwort"},
+    {"<not set>", "<nicht gesetzt>"},
+    {"Banner & Sound", "Banner & Ton"},
+    {"Banner only", "nur Banner"},
+    {"Sound only", "nur Ton"},
     {NULL, NULL} // End mark
 };
 
@@ -262,6 +270,15 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"Resynch ...", "Resincronizando ..."},
     {"Rebooting ...", "Reiniciando ..."},
     {"Shutting down ...", "Apagando ..."},
+    {"silent", "silenciado"},
+    {"WiFi: <not setup>", "WiFi: <no configurada>"},
+    {"LoRa TX off!", "LoRa TX apagado!"},
+    {"WiFi SSID", "Nombre de la WiFi"},
+    {"WiFi pre-shared Key", "Clave de la WiFi"},
+    {"<not set>", "<vacío>"},
+    {"Banner & Sound", "Visual y sonora"},
+    {"Banner only", "Solo visual"},
+    {"Sound only", "Solo Sonora"},
     {NULL, NULL} // End mark
 };
 

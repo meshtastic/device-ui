@@ -1,6 +1,7 @@
 #include "Ringtones.h"
 
 const Rtttl ringtone[] = {
+    {"Silent", "Silent:"},
     {"Default", "24:d=32,o=5,b=565:f6,p,f6,4p,p,f6,p,f6,2p,p,b6,p,b6,p,b6,p,b6,p,b,p,b,p,b,p,b,p,b,p,b,p,b,p,b,1p.,2p.,p,"},
     {"Text Alert", "TextAlert:d=16,o=7,b=225:e6,p,g6,p,e,p,c,p,d,p,2g"},
     {"Pager 1", "Pager1:d=16,o=5,b=200:d6,8p,d6,8p,f6,32p,d6"},

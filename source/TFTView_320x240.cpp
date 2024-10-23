@@ -141,8 +141,11 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
     Themes::set(Themes::Theme(uiconfig.theme));
     Themes::initStyles();
     updateTheme();
-    //lv_dropdown_set_selected(objects.settings_theme_dropdown, uiconfig.theme);
-    //setTheme(uiconfig.theme);
+
+    // grey out bell until we got the ringtone (0 = silent)
+    Themes::recolorButton(objects.home_bell_button, false);
+    Themes::recolorText(objects.home_bell_label, false);
+
     lv_obj_set_style_bg_img_recolor(objects.home_button, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     // set brightness
@@ -337,8 +340,6 @@ void TFTView_320x240::apply_hotfix(void)
     lv_label_set_text(objects.detector_start_label, _("Start"));
     lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
 
-    //updateTheme();
-
     auto applyStyle = [](lv_obj_t *tab_buttons) {
         for (int i = 0; i < tab_buttons->spec_attr->child_cnt; i++) {
             if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
@@ -403,12 +404,14 @@ void TFTView_320x240::updateTheme(void)
 {
     Themes::initStyles();
     Themes::recolorButton(objects.home_lora_button, db.config.lora.tx_enabled);
+    Themes::recolorButton(objects.home_bell_button, db.uiConfig.alert_enabled || !db.silent);
     Themes::recolorButton(objects.home_location_button,
                           db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorButton(objects.home_wlan_button, db.config.network.wifi_enabled);
     Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
     Themes::recolorButton(objects.home_memory_button, (bool)objects.home_memory_button->user_data);
     Themes::recolorText(objects.home_lora_label, db.config.lora.tx_enabled);
+    Themes::recolorText(objects.home_bell_label, db.uiConfig.alert_enabled || !db.silent);
     Themes::recolorText(objects.home_location_label,
                         db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorText(objects.home_wlan_label, db.config.network.wifi_enabled);
@@ -452,6 +455,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_nodes_button, this->ui_event_OnlineNodesButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_time_button, this->ui_event_TimeButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_lora_button, this->ui_event_LoRaButton, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.home_bell_button, this->ui_event_BellButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
@@ -859,6 +863,72 @@ void TFTView_320x240::ui_event_LoRaButton(lv_event_t *e)
         lora.tx_enabled = !lora.tx_enabled;
         THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora});
         THIS->showLoRaFrequency(lora);
+    }
+}
+
+void TFTView_320x240::ui_event_BellButton(lv_event_t *e)
+{
+    static bool ignoreClicked = false;
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->db.module_config.has_external_notification) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+        // set banner and sound on
+        if (THIS->db.silent && (bool)objects.home_bell_button->user_data) {
+            if (THIS->db.ringtoneId == 0) {
+                THIS->db.ringtoneId = 1;
+            }
+            THIS->db.silent = false;
+            THIS->db.uiConfig.alert_enabled = true;
+            THIS->controller->sendConfig(ringtone[THIS->db.ringtoneId].rtttl, THIS->ownNode);
+            objects.home_bell_button->user_data = (void *)false;
+        }
+        // toggle sound only
+        else if (THIS->db.uiConfig.alert_enabled && !THIS->db.silent) {
+            if (THIS->db.ringtoneId == 0) {
+                THIS->db.ringtoneId = 1;
+            }
+            THIS->db.uiConfig.alert_enabled = false;
+            THIS->controller->sendConfig(ringtone[THIS->db.ringtoneId].rtttl, THIS->ownNode);
+        }
+        // toggle banner only
+        else if (!THIS->db.uiConfig.alert_enabled && !THIS->db.silent) {
+            THIS->db.silent = true;
+            THIS->db.uiConfig.alert_enabled = true;
+            THIS->controller->sendConfig(ringtone[0].rtttl, THIS->ownNode);
+        }
+        // toggle banner & sound
+        else {
+            if (THIS->db.ringtoneId == 0) {
+                THIS->db.ringtoneId = 1;
+            }
+            THIS->db.silent = false;
+            THIS->db.uiConfig.alert_enabled = true;
+            THIS->controller->sendConfig(ringtone[THIS->db.ringtoneId].rtttl, THIS->ownNode);
+        }
+        THIS->setBellText(THIS->db.uiConfig.alert_enabled, !THIS->db.silent);
+        THIS->controller->storeUIConfig(THIS->db.uiConfig);
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        ignoreClicked = true;
+        if ((bool)objects.home_bell_button->user_data) {
+            if (THIS->db.ringtoneId == 0) {
+                THIS->db.ringtoneId = 1;
+            }
+            THIS->db.silent = false;
+            THIS->db.uiConfig.alert_enabled = true;
+            THIS->controller->sendConfig(ringtone[THIS->db.ringtoneId].rtttl, THIS->ownNode);
+            objects.home_bell_button->user_data = (void *)false;
+        }
+        else {
+            THIS->db.silent = true;
+            THIS->db.uiConfig.alert_enabled = false;
+            THIS->controller->sendConfig(ringtone[0].rtttl, THIS->ownNode);
+            objects.home_bell_button->user_data = (void *)true;
+        }
+        THIS->setBellText(THIS->db.uiConfig.alert_enabled, !THIS->db.silent);
+        THIS->controller->storeUIConfig(THIS->db.uiConfig);
     }
 }
 
@@ -1293,7 +1363,8 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.module_config.has_external_notification) {
         bool alert_enabled = THIS->db.module_config.external_notification.alert_message_buzzer &&
-                             THIS->db.module_config.external_notification.enabled;
+                             THIS->db.module_config.external_notification.enabled &&
+                             !THIS->db.silent;
         if (alert_enabled) {
             lv_obj_add_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
         } else {
@@ -1301,12 +1372,12 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
         }
         // populate dropdown
         if (lv_dropdown_get_option_count(objects.settings_ringtone_dropdown) <= 1) {
-            for (int i = 1; i < numRingtones; i++) {
+            for (int i = 2; i < numRingtones; i++) {
                 lv_dropdown_add_option(objects.settings_ringtone_dropdown, ringtone[i].name, i);
             }
         }
 
-        lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.ringtoneId);
+        lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.ringtoneId - 1);
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_alert_buzzer_switch);
         THIS->disablePanel(objects.controller_panel);
@@ -1618,6 +1689,10 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
     THIS->removeSpinner();
 
     // remove old route except first button and spinner panel
+    ILOG_DEBUG("removing old route: %d %d %d", lv_obj_get_child_cnt(objects.trace_route_panel),
+                                               lv_obj_get_child_cnt(objects.route_towards_panel),
+                                               lv_obj_get_child_cnt(objects.route_back_panel));
+
     uint16_t children = lv_obj_get_child_cnt(objects.trace_route_panel) - 1;
     while (children > 1) {
         if (objects.trace_route_panel->spec_attr->children[children]->class_p == &lv_button_class) {
@@ -2556,8 +2631,9 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         case eAlertBuzzer: {
             char buf[32];
             meshtastic_ModuleConfig_ExternalNotificationConfig &config = THIS->db.module_config.external_notification;
-            int tone = lv_dropdown_get_selected(objects.settings_ringtone_dropdown);
+            int tone = lv_dropdown_get_selected(objects.settings_ringtone_dropdown) + 1;
 
+            bool silent = false;
             bool alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
             if ((!config.enabled || !config.alert_message_buzzer) && alert_message) {
                 if (!config.enabled || !config.alert_message_buzzer || !config.use_pwm || !config.use_i2s_as_buzzer) {
@@ -2573,17 +2649,15 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->notifyReboot(true);
                 THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
             } else if (config.alert_message_buzzer && !alert_message) {
-                config.enabled = false;
-                config.alert_message_buzzer = false;
-                THIS->notifyReboot(true);
-                THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
+                silent = true;
             }
 
-            THIS->controller->sendConfig(ringtone[tone].rtttl, THIS->ownNode);
+            THIS->controller->sendConfig(ringtone[silent ? 0 : tone].rtttl, THIS->ownNode);
             THIS->db.ringtoneId = tone;
-
-            lv_snprintf(buf, sizeof(buf), _("Message Alert: %s"), config.alert_message_buzzer ? ringtone[tone].name : "off");
-            lv_label_set_text(objects.basic_settings_alert_label, buf);
+            THIS->db.silent = silent;
+            THIS->db.uiConfig.alert_enabled = !silent;
+            THIS->setBellText(THIS->db.uiConfig.alert_enabled, !silent);
+            THIS->controller->storeUIConfig(THIS->db.uiConfig);
 
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_alert_button);
@@ -3456,7 +3530,6 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                     Themes::recolorText(objects.home_mqtt_label, true);
                 } else {
                     Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
-
                     Themes::recolorText(objects.home_mqtt_label, false);
                 }
             }
@@ -3657,7 +3730,7 @@ void TFTView_320x240::handleResponse(uint32_t from, uint32_t id, const meshtasti
     lv_obj_add_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(objects.hop_routes_panel, LV_OBJ_FLAG_HIDDEN);
 
-    if (id) {
+    if (id && requests.findRequest(id).type == ResponseHandler::TraceRouteRequest) {
         requests.removeRequest(id);
     }
 
@@ -4138,6 +4211,30 @@ void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
     }
 }
 
+void TFTView_320x240::setBellText(bool banner, bool sound)
+{
+    if (banner && sound) {
+        lv_label_set_text(objects.home_bell_label, _("Banner & Sound"));
+    }
+    else if (banner) {
+        lv_label_set_text(objects.home_bell_label, _("Banner only"));
+    }
+    else if (sound) {
+        lv_label_set_text(objects.home_bell_label, _("Sound only"));
+    }
+    else {
+        lv_label_set_text(objects.home_bell_label, _("silent"));
+    }
+
+    char buf[40];
+    lv_snprintf(buf, sizeof(buf), _("Message Alert: %s"), 
+                db.module_config.external_notification.alert_message_buzzer ? (!sound ? _("silent") : ringtone[db.ringtoneId].name) : "off");
+    lv_label_set_text(objects.basic_settings_alert_label, buf);
+
+    Themes::recolorButton(objects.home_bell_button, banner || sound);
+    Themes::recolorText(objects.home_bell_label, banner || sound);
+}
+
 void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg)
 {
     db.config.bluetooth = cfg;
@@ -4192,13 +4289,29 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
 {
     // retrieving ringtone index for dropdown
     uint16_t rtIndex = 0;
-    for (int i = 1; i < numRingtones; i++) {
+    for (int i = 0; i < numRingtones; i++) {
         if (strncmp(ringtone[i].rtttl, rtttl, 16) == 0) {
             rtIndex = i;
             break;
         }
     }
-    db.ringtoneId = rtIndex;
+    if (rtIndex != 0)
+        db.ringtoneId = rtIndex;
+    if (db.ringtoneId == 0)
+        db.ringtoneId = 1;
+    db.silent = rtIndex == 0;
+
+//    char buf[32];
+//    lv_snprintf(buf, sizeof(buf), _("Message Alert: %s"),
+//        db.module_config.external_notification.alert_message_buzzer ? (rtIndex == 0 ? _("silent") : ringtone[rtIndex].name) : "off");
+//    lv_label_set_text(objects.basic_settings_alert_label, buf);
+
+    // update home panel bell text
+    setBellText(db.uiConfig.alert_enabled, !db.silent);
+    bool off = !db.uiConfig.alert_enabled && db.silent;
+    Themes::recolorButton(objects.home_bell_button, !off);
+    Themes::recolorText(objects.home_bell_label, !off);
+    objects.home_bell_button->user_data = (void *)off;
 }
 
 void TFTView_320x240::updateTime(uint32_t time)
@@ -4314,7 +4427,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     if (container != activeMsgContainer || activePanel != objects.messages_panel) {
         unreadMessages++;
         updateUnreadMessages();
-        if (activePanel != objects.messages_panel) {
+        if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
             showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
         }
         lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
