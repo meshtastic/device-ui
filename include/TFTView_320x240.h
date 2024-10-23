@@ -214,6 +214,7 @@ class TFTView_320x240 : public MeshtasticView
     void setTheme(uint32_t theme);
     void storeNodeOptions(void);
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
+    void setBellText(bool banner, bool sound);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
@@ -234,6 +235,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_OnlineNodesButton(lv_event_t *e);
     static void ui_event_TimeButton(lv_event_t *e);
     static void ui_event_LoRaButton(lv_event_t *e);
+    static void ui_event_BellButton(lv_event_t *e);
     static void ui_event_LocationButton(lv_event_t *e);
     static void ui_event_WLANButton(lv_event_t *e);
     static void ui_event_MQTTButton(lv_event_t *e);
@@ -345,6 +347,7 @@ class TFTView_320x240 : public MeshtasticView
     // additional local ui data
     struct meshtastic_DeviceProfile_full : meshtastic_DeviceProfile_ext {
         uint16_t ringtoneId; // index into ringtone preset
+        bool silent;         // sound silenced
     };
 
     meshtastic_DeviceProfile_full db; // full copy of the node's configuration db (except nodeinfos) plus ui data

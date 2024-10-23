@@ -96,6 +96,8 @@ typedef struct _objects_t {
     lv_obj_t *home_time_label;
     lv_obj_t *home_lora_button;
     lv_obj_t *home_lora_label;
+    lv_obj_t *home_bell_button;
+    lv_obj_t *home_bell_label;
     lv_obj_t *home_location_button;
     lv_obj_t *home_location_label;
     lv_obj_t *home_wlan_button;
