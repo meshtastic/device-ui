@@ -138,6 +138,14 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Resynch ...", "Synchronisierung ..."},
     {"Rebooting ...", "Neustart ..."},
     {"Shutting down ...", "Herunterfahren ..."},
+    {"silent", "stumm"},
+    {"WiFi: <not setup>", "WiFi: <kein Passwort>"},
+    {"LoRa TX off!", "LoRa TX ausgeschaltet!"},
+    {"WiFi pre-shared Key", "WiFi Passwort"},
+    {"<not set>", "<nicht gesetzt>"},
+    {"Banner & Sound", "Banner & Ton"},
+    {"Banner only", "nur Banner"},
+    {"Sound only", "nur Ton"},
     {NULL, NULL} // End mark
 };
 

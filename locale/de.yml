@@ -110,7 +110,7 @@ de:
     Neue Nachricht von 
     %s
   'Input Control: %s/%s': 'Eingabegeräte: %s/%s'
-  '%d of %d nodes online': '%d/%d Geräte online'
+  '%d of %d nodes online': '%d / %d Geräte online'
   Filtering ...: Filtern ...
   'Filter: %d of %d nodes': 'Filter: %d / %d Geräte'
   now: jetzt
@@ -128,3 +128,14 @@ de:
   Resynch ...: Synchronisierung ...
   Rebooting ...: Neustart ...
   Shutting down ...: Herunterfahren ...
+  LoRa 0.0 MHz: ~
+  silent: stumm
+  'WiFi: <not setup>': 'WiFi: <kein Passwort>'
+  LoRa TX off!: LoRa TX ausgeschaltet!
+  WiFi SSID: ~
+  WiFi pre-shared Key: WiFi Passwort
+  'WiFi: %s': ~
+  <not set>: <nicht gesetzt>
+  Banner & Sound: Banner & Ton
+  Banner only: nur Banner
+  Sound only: nur Ton
