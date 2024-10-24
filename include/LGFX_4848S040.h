@@ -50,7 +50,7 @@ class LGFX_4848S040 : public LGFX_Touch
 class LGFX_4848S040 : public lgfx::LGFX_Device
 #endif
 {
-    lgfx::Panel_ST7701 _panel_instance;
+    lgfx::Panel_ST7701_guition_esp32_4848S040 _panel_instance;
     lgfx::Bus_RGB _bus_instance;
     lgfx::Light_PWM _light_instance;
     lgfx::Touch_GT911 _touch_instance;
