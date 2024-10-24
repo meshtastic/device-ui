@@ -134,6 +134,7 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
         {
             auto cfg = _light_instance.config();
             cfg.pin_bl = 38;
+            cfg.freq = 2000;
             _light_instance.config(cfg);
         }
         _panel_instance.light(&_light_instance);
@@ -145,8 +146,8 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
             cfg.x_max = 479;
             cfg.y_min = 0;
             cfg.y_max = 479;
-            cfg.pin_int = GPIO_NUM_NC; // don't use IO_EXPANDER!;
-            cfg.pin_rst = GPIO_NUM_NC; // not needed as well;
+            cfg.pin_int = GPIO_NUM_NC;
+            cfg.pin_rst = GPIO_NUM_NC;
             cfg.bus_shared = false;
             cfg.offset_rotation = 0;
 
