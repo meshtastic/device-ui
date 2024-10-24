@@ -150,7 +150,7 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
             cfg.bus_shared = false;
             cfg.offset_rotation = 0;
 
-            cfg.i2c_port = 0;
+            cfg.i2c_port = 1;
             cfg.i2c_addr = 0x5D;
             cfg.pin_sda = 19;
             cfg.pin_scl = 45;
