@@ -123,7 +123,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"%d active chat(s)", "%d aktive Chat(s)"},
     {"New message from \n%s", "Neue Nachricht von \n%s"},
     {"Input Control: %s/%s", "Eingabegeräte: %s/%s"},
-    {"%d of %d nodes online", "%d/%d Geräte online"},
+    {"%d of %d nodes online", "%d / %d Geräte online"},
     {"Filtering ...", "Filtern ..."},
     {"Filter: %d of %d nodes", "Filter: %d / %d Geräte"},
     {"now", "jetzt"},
@@ -1025,6 +1025,157 @@ static const lv_i18n_lang_t se_lang = {
     .locale_plural_fn = se_plural_fn
 };
 
+static lv_i18n_phrase_t sr_singulars[] = {
+    {"no new messages", "nema novih poruka"},
+    {"1 of 1 nodes online", "1 od 1 nodova online"},
+    {"uptime 00:00:00", "uključen pre 00:00:00"},
+    {"Heap: 0\nLVGL: 0", "Hip: 0\nLVGL: 0"},
+    {"DEL", "Obriši"},
+    {"User name: ", "Korisnikovo ime: "},
+    {"Modem Preset: LONG FAST", "Modem: DALEKO BRZO"},
+    {"Channel: LongFast", "Kanal: LongFast"},
+    {"Role: Client", "Uloga: Client"},
+    {"Screen Timeout: 60s", "Ekran se gasi posle: 60s"},
+    {"Screen Lock: off", "Zaključivanje ekrana: ugašen"},
+    {"Screen Brightness: 60%", "Pozadinsko osvetljenje: 60%"},
+    {"Theme: Dark", "Tema: Dark"},
+    {"Screen Calibration: default", "Kalibracija ekrana: podrazumevano"},
+    {"Input Control: none/none", "Kontrola ulaza: ništa/ništa"},
+    {"Message Alert Buzzer: on", "Zvonce za poruku: uključeno"},
+    {"Language: English", "Jezik: "},
+    {"Configuration Reset", "Resetovanje konfiguracije"},
+    {"Reboot / Shutdown", "Reset / Gašenje"},
+    {"Mesh Detector", "Detektor mreže"},
+    {"Signal Scanner", "Skener signala"},
+    {"Trace Route", "Traženje rute"},
+    {"Neighbors", "Komšije"},
+    {"Statistics", "Statistika"},
+    {"Packet Log", "Log paketa"},
+    {"Group Channels", "Grupni kanali"},
+    {"no messages", "nema poruka"},
+    {"Settings & Tools", "Podešavanja i alat"},
+    {"Settings (advanced)", "Podešavanja (napredna)"},
+    {"Locations Map", "Mapa lokacija"},
+    {"no chats", "nema četova"},
+    {"Node Search", "Pretraga Nodova"},
+    {"Packet Statistics", "Statistika paketa"},
+    {"Node Options", "Opcije nodova"},
+    {"Short Name", "Kratko ime"},
+    {"Long Name", "Dugo ime"},
+    {"<unset>", "<nesetovano>"},
+    {"Brightness: 60%", "Pozadinsko osvetljenje: 60%"},
+    {"Dark\nLight", "Tamno\\nSvetlo"},
+    {"Timeout: 60s", "Tajmaut: 60s"},
+    {"Screen Lock", "Zaključivanje ekrana"},
+    {"Lock PIN", "PIN zaključivanje"},
+    {"Mouse", "Miš"},
+    {"none", "ništa"},
+    {"Keyboard", "Tastatura"},
+    {"Message Alert", "Poruka upozorenja"},
+    {"Ringtone", "Zvono"},
+    {"Default", "Podrazumevano"},
+    {"Zone", "Zona"},
+    {"City", "Grad"},
+    {"NodeDB Reset\nFactory Reset", "Resetovanje NodeDB\nFabrička podešavanja"},
+    {"Channel Name", "Ime kanala"},
+    {"Pre-shared Key", "Podeljen ključ"},
+    {"Unknown", "Nepoznato"},
+    {"Offline", "Oflajn"},
+    {"Public Key", "Javni ključ"},
+    {"Hops away", "Skokovi"},
+    {"MQTT", "MQTT"},
+    {"Position", "Pozicija"},
+    {"Name", "Ime"},
+    {"Active Chat", "Aktivan čet"},
+    {"Telemetry", "Telemetrija"},
+    {"Start", "Start"},
+    {"New Message from\\n", "Nova poruka od\n:"},
+    {"Resynch...", "Sinhronizacija..."},
+    {"OK", "OK"},
+    {"Cancel", "Odustajanje"},
+    {"FrequencySlot: %d (%g MHz)", "Frekventni slot: %d (%g MHz)"},
+    {"Brightness: %d%%", "Pozadinsko: %d%%"},
+    {"Timeout: off", "Isticanje: ugašeno"},
+    {"Timeout: %ds", "Isticanje: %ds"},
+    {"Screen Calibration: %s", "Kalibracija ekrana %s"},
+    {"done", "urađeno"},
+    {"default", "podrazumevano"},
+    {"Stop", "Stop"},
+    {"choose\nnode", "odaberi\nništa"},
+    {"choose target node", "odaberi ciljani nod"},
+    {"Packet Log: %d", "Log paketa: %d"},
+    {"Language: %s", "Jezik: %s"},
+    {"Screen Timeout: off", "Vreme osvetljenja: ugašeno"},
+    {"Screen Timeout: %ds", "Vreme osvetljenja: %ds"},
+    {"Screen Brightness: %d%%", "Pozadinsko osvetljenje: %d%%"},
+    {"Theme: %s", "Tema: %s"},
+    {"User name: %s", "Korisnikovo ime: %s"},
+    {"Device Role: %s", "Uloga uređaja"},
+    {"Region: %s", "Region: %s"},
+    {"Modem Preset: %s", "Modem: %s"},
+    {"Channel: %s", "Ime kanala: %s"},
+    {"Screen Lock: %s", "Zaključivanje ekrana: %s"},
+    {"on", "uključen"},
+    {"off", "isključen"},
+    {"Message Alert: %s", "Poruka upozorenja: %s"},
+    {"hops: %d", "skokovi: %d"},
+    {"unknown", "nepoznato"},
+    {"<no name>", "<bez imena>"},
+    {"%d active chat(s)", "%d aktivnih četova"},
+    {"New message from \\n%s", "Nova poruka od \n%s"},
+    {"Input Control: %s/%s", "Kontrola ulaza: %s/%s"},
+    {"%d of %d nodes online", "%d od %d nodova online"},
+    {"Filtering ...", "Filtriranje..."},
+    {"Filter: %d of %d nodes", "Filtrirano %d od %d nodova"},
+    {"now", "sada"},
+    {"%d new message", "%d novih poruka"},
+    {"%d new messages", "%d novih poruka"},
+    {"uptime: %02d:%02d:%02d", "uključen %02d:%02d:%02d"},
+    {"Heap: %d (%d%%)\nLVGL: %d (%d%%)", "Hip: %d (%d%%)\nLVGL: %d (%d%%)"},
+    {"Settings", "Podešavanja"},
+    {"Tools", "Alat"},
+    {"Filter", "Filter"},
+    {"Highlight", "Označeno"},
+    {"Primary Channel", "Primarni kanal"},
+    {"Secondary Channels", "Sekundarni kanal"},
+    {"Resynch ...", "Sinhronizacija ..."},
+    {"Rebooting ...", "Resetovanje ..."},
+    {"Shutting down ...", "Gašenje ..."},
+    {"silent", "bez zvuka"},
+    {"WiFi: <not setup>", "WiFi: <nije podešen>"},
+    {"LoRa TX off!", "LoRa TX ugašen!"},
+    {"WiFi pre-shared Key", "WiFi šifra"},
+    {"<not set>", "<nije podešen>"},
+    {"Banner & Sound", "Baner i zvuk"},
+    {"Banner only", "Samo baner"},
+    {"Sound only", "Samo zvuk"},
+    {NULL, NULL} // End mark
+};
+
+
+
+static uint8_t sr_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t i = op_i(n); UNUSED(i);
+    uint32_t f = op_f(n); UNUSED(f);
+    uint32_t i10 = i % 10;
+    uint32_t i100 = i % 100;
+    uint32_t f10 = f % 10;
+    uint32_t f100 = f % 100;
+    if ((v == 0 && i10 == 1 && i100 != 11) || (f10 == 1 && f100 != 11)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))) || ((2 <= f10 && f10 <= 4) && (!(12 <= f100 && f100 <= 14)))) return LV_I18N_PLURAL_TYPE_FEW;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t sr_lang = {
+    .locale_name = "sr",
+    .singulars = sr_singulars,
+
+    .locale_plural_fn = sr_plural_fn
+};
+
 static uint8_t tr_plural_fn(int32_t num)
 {
     uint32_t n = op_n(num); UNUSED(n);
@@ -1053,6 +1204,7 @@ const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
     &pt_lang,
     &ro_lang,
     &se_lang,
+    &sr_lang,
     &tr_lang,
     NULL // End mark
 };
