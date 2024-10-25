@@ -32,10 +32,10 @@ en:
   Mouse: ~
   Keyboard: ~
   Message Alert: ~
-  NodeDB Reset\nFactory Reset: ~
+  "NodeDB Reset\nFactory Reset": ~
   Channel Name: ~
   Pre-shared Key: ~
-  New Message from\n: ~
+  "New Message from\n": ~
   Resynch...: ~
   'Screen Calibration: %s': ~
   done: ~
@@ -72,12 +72,12 @@ en:
   Start: ~
   'Theme: %s': ~
   'uptime 00:00:00': ~
-  'Heap: 0\nLVGL: 0': ~
+  "Heap: 0\nLVGL: 0": ~
   Meshtastic: ~
   Packet Statistics: ~
   LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
   Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Dark\nLight: ~
+  "Dark\nLight": ~
   none: ~
   Default: ~
   OK: ~
@@ -87,7 +87,7 @@ en:
   'Timeout: off': ~
   'Timeout: %ds': ~
   Stop: ~
-  choose\nnode: ~
+  "choose\nnode": ~
   choose target node: ~
   'heard: !%08x': ~
   'Packet Log: %d': ~
@@ -103,7 +103,7 @@ en:
   unknown: ~
   <no name>: ~
   '%d active chat(s)': ~
-  New message from \n%s: ~
+  "New message from \n%s": ~
   'Input Control: %s/%s': ~
   '%d of %d nodes online': ~
   Filtering ...: ~
@@ -112,7 +112,7 @@ en:
   '%d new message': ~
   '%d new messages': ~
   'uptime: %02d:%02d:%02d': ~
-  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
   Configuration Reset: ~
   Tools: ~
   Filter: ~
@@ -123,3 +123,14 @@ en:
   Resynch ...: ~
   Rebooting ...: ~
   Shutting down ...: ~
+  LoRa 0.0 MHz: ~
+  silent: ~
+  'WiFi: <not setup>': ~
+  LoRa TX off!: ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  'WiFi: %s': ~
+  <not set>: ~
+  Banner & Sound: ~
+  Banner only: ~
+  Sound only: ~
