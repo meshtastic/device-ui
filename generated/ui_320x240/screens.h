@@ -340,12 +340,13 @@ typedef struct _objects_t {
     lv_obj_t *obj10__cancel_button_w;
     lv_obj_t *settings_screen_lock_panel;
     lv_obj_t *settings_screen_lock_switch;
+    lv_obj_t *settings_settings_lock_switch;
     lv_obj_t *settings_screen_lock_password_textarea;
-    lv_obj_t *keyboard_button_7;
     lv_obj_t *obj11;
     lv_obj_t *obj11__ok_cancel_panel_w;
     lv_obj_t *obj11__ok_button_w;
     lv_obj_t *obj11__cancel_button_w;
+    lv_obj_t *keyboard_button_7;
     lv_obj_t *settings_input_control_panel;
     lv_obj_t *settings_mouse_input_dropdown;
     lv_obj_t *settings_keyboard_input_dropdown;

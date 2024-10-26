@@ -155,6 +155,11 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
     // set timeout
     THIS->setTimeout(uiconfig.screen_timeout);
 
+    // set screen/settings lock
+    char buf[32];
+    lv_snprintf(buf, 32, _("Lock: %s/%s"), uiconfig.screen_lock ? _("on") : _("off"), uiconfig.settings_lock ? _("on") : _("off"));
+    lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
+
     // set node filter options
     meshtastic_NodeFilter &filter = db.uiConfig.node_filter;
     lv_obj_set_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED, filter.unknown_switch);
@@ -719,7 +724,14 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     static bool advancedMode = false;
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
+        if (THIS->db.uiConfig.settings_lock) {
+            lv_obj_add_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
+            THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
+            lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        }
+        else {
+            THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
+        }
     } else if (event_code == LV_EVENT_LONG_PRESSED && !advancedMode && THIS->activeSettings == eNone) {
         if (lv_obj_has_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED)) {
             screenLocked = true;
@@ -1309,12 +1321,17 @@ void TFTView_320x240::ui_event_screen_lock_button(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         char buf[10];
-        lv_snprintf(buf, 7, "%06d", THIS->db.config.bluetooth.fixed_pin);
+        lv_snprintf(buf, 7, "%06d", THIS->db.uiConfig.pin_code);
         lv_textarea_set_text(objects.settings_screen_lock_password_textarea, buf);
-        if (strcmp(buf, "000000") != 0) {
+        if (THIS->db.uiConfig.screen_lock) {
             lv_obj_add_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
         } else {
             lv_obj_remove_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
+        }
+        if (THIS->db.uiConfig.settings_lock) {
+            lv_obj_add_state(objects.settings_settings_lock_switch, LV_STATE_CHECKED);
+        } else {
+            lv_obj_remove_state(objects.settings_settings_lock_switch, LV_STATE_CHECKED);
         }
 
         lv_obj_clear_flag(objects.settings_screen_lock_panel, LV_OBJ_FLAG_HIDDEN);
@@ -1562,11 +1579,12 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
                 lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
 
                 char buf[10];
-                lv_snprintf(buf, 7, "%06d", THIS->db.config.bluetooth.fixed_pin);
+                lv_snprintf(buf, 7, "%06d", THIS->db.uiConfig.pin_code);
                 if (pinKeys == 6 && strcmp(pinEntered, buf) == 0) {
                     // unlock screen
                     pinKeys = 0;
                     screenLocked = false;
+                    lv_obj_clear_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
                     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
                     lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
                 }
@@ -2280,10 +2298,22 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("tr");
         locale = "tr_TR.UTF-8";
         break;
-#if 0
+#if 1
+    case meshtastic_Language_SERBIAN:
+        lv_i18n_set_locale("sr");
+        locale = "sr_RS.UTF-8";
+        break;
     case meshtastic_Language_DUTCH:
         lv_i18n_set_locale("nl");
         locale = "nl_NL.UTF-8";
+        break;
+    case meshtastic_Language_RUSSIAN:
+        lv_i18n_set_locale("ru");
+        locale = "ru_RU.UTF-8";
+        break;
+    case meshtastic_Language_GREEK:
+        lv_i18n_set_locale("gr");
+        locale = "el_GR.UTF-8";
         break;
 #endif
     default:
@@ -2539,21 +2569,21 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eScreenLock: {
-            meshtastic_Config_BluetoothConfig &bt = THIS->db.config.bluetooth;
             const char *pin = lv_textarea_get_text(objects.settings_screen_lock_password_textarea);
-            bool lock = lv_obj_has_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
-            if (lock && (atol(pin) == 0 || strlen(pin) != 6))
+            bool screenLock = lv_obj_has_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED);
+            bool settingsLock = lv_obj_has_state(objects.settings_settings_lock_switch, LV_STATE_CHECKED);
+            if ((screenLock || settingsLock) && (atol(pin) == 0 || strlen(pin) != 6))
                 return; // require pin != "000000"
-            if ((!lock && bt.fixed_pin != 0) || bt.fixed_pin != atol(pin)) {
-                if (!lock)
-                    bt.fixed_pin = 0;
-                else
-                    bt.fixed_pin = atol(pin);
-                THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bt}, THIS->ownNode);
-                THIS->notifyReboot(true);
+            if ((screenLock != THIS->db.uiConfig.screen_lock) || settingsLock != THIS->db.uiConfig.settings_lock ||
+                 atol(pin) != THIS->db.uiConfig.pin_code) {
+                THIS->db.uiConfig.screen_lock = screenLock;
+                THIS->db.uiConfig.settings_lock = settingsLock;
+                THIS->db.uiConfig.pin_code = atol(pin);
+                THIS->controller->storeUIConfig(THIS->db.uiConfig);
             }
+
             char buf[32];
-            lv_snprintf(buf, 32, _("Screen Lock: %s"), lock ? _("on") : _("off"));
+            lv_snprintf(buf, 32, _("Lock: %s/%s"), screenLock ? _("on") : _("off"), settingsLock ? _("on") : _("off"));
             lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
             lv_obj_add_flag(objects.settings_screen_lock_panel, LV_OBJ_FLAG_HIDDEN);
 
@@ -4239,9 +4269,6 @@ void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothCon
 {
     db.config.bluetooth = cfg;
     db.config.has_bluetooth = true;
-    char buf[32];
-    lv_snprintf(buf, 32, _("Screen Lock: %s"), db.config.bluetooth.fixed_pin ? _("on") : _("off"));
-    lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
 }
 
 void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg)
@@ -4843,7 +4870,7 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, l
 
 void TFTView_320x240::updateNodesStatus(void)
 {
-    char buf[32];
+    char buf[40];
     lv_snprintf(buf, sizeof(buf), _("%d of %d nodes online"), nodesOnline, nodeCount);
     lv_label_set_text(objects.home_nodes_label, buf);
 
