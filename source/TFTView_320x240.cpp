@@ -121,24 +121,33 @@ void TFTView_320x240::init(IClientBase *client)
  */
 void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
 {
-    ILOG_DEBUG("setupUIConfig");
-    db.uiConfig = uiconfig;
+    if (uiconfig.version == 1) {
+        ILOG_INFO("setupUIConfig version %d", uiconfig.version);
+        db.uiConfig = uiconfig;
+    }
+    else {
+        ILOG_WARN("invalid uiconfig version %d, reset UI settings to default", uiconfig.version);
+        db.uiConfig.version = 1;
+        db.uiConfig.screen_brightness = 153;
+        db.uiConfig.screen_timeout = 30;
+        controller->storeUIConfig(db.uiConfig);
+    }
 
     lv_i18n_init(lv_i18n_language_pack);
-    setLocale(uiconfig.language);
+    setLocale(db.uiConfig.language);
 
     // now we have set language, continue creating all screens
     if (!screensInitialised)
         init_screens();
 
     // set language
-    setLanguage(uiconfig.language);
+    setLanguage(db.uiConfig.language);
 
     //TODO: set virtual keyboard according language
-    // setKeyboard(uiconfig.language);
+    // setKeyboard(db.uiConfig.language);
 
     // set theme
-    Themes::set(Themes::Theme(uiconfig.theme));
+    Themes::set(Themes::Theme(db.uiConfig.theme));
     Themes::initStyles();
     updateTheme();
 
@@ -150,14 +159,14 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
 
     // set brightness
     if (displaydriver->hasLight())
-        THIS->setBrightness(uiconfig.screen_brightness);
+        THIS->setBrightness(db.uiConfig.screen_brightness);
 
     // set timeout
-    THIS->setTimeout(uiconfig.screen_timeout);
+    THIS->setTimeout(db.uiConfig.screen_timeout);
 
     // set screen/settings lock
     char buf[32];
-    lv_snprintf(buf, 32, _("Lock: %s/%s"), uiconfig.screen_lock ? _("on") : _("off"), uiconfig.settings_lock ? _("on") : _("off"));
+    lv_snprintf(buf, 32, _("Lock: %s/%s"), db.uiConfig.screen_lock ? _("on") : _("off"), db.uiConfig.settings_lock ? _("on") : _("off"));
     lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
 
     // set node filter options
@@ -2659,7 +2668,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eAlertBuzzer: {
-            char buf[32];
             meshtastic_ModuleConfig_ExternalNotificationConfig &config = THIS->db.module_config.external_notification;
             int tone = lv_dropdown_get_selected(objects.settings_ringtone_dropdown) + 1;
 
