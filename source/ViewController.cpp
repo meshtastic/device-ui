@@ -647,6 +647,10 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                         view->updateSessionKeyConfig(cfg);
                         break;
                     }
+                    case meshtastic_Config_device_ui_tag: {
+                        ILOG_DEBUG("skipping meshtastic_Config_device_ui_tag");
+                        break;
+                    }
                     default:
                         ILOG_ERROR("unsupported device config variant: %u", config.which_payload_variant);
                         return false;
