@@ -3014,7 +3014,7 @@ void TFTView_320x240::addMessage(uint32_t requestId, char *msg)
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
     lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(textLabel, std::max(std::min(width + 20, 200), 40));
+    lv_obj_set_width(textLabel, std::max(std::min(width + 20, 200L), 40L));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
@@ -3730,10 +3730,10 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
 
 #if defined(USE_SX127x)
             int p_snr = ((std::max(rx_snr, -19.0f) + 19.0f) / 33.0f) * 100.0f; // range -19..14
-            int p_rssi = ((std::max(rx_rssi, -145) + 145) * 100) / 90;         // range -145..-55
+            int p_rssi = ((std::max(rx_rssi, -145L) + 145) * 100) / 90;         // range -145..-55
 #else
             int p_snr = ((std::max(rx_snr, -18.0f) + 18.0f) / 26.0f) * 100.0f; // range -18..8
-            int p_rssi = ((std::max(rx_rssi, -125) + 125) * 100) / 100;        // range -125..-25
+            int p_rssi = ((std::max(rx_rssi, -125L) + 125) * 100) / 100;        // range -125..-25
 #endif
             sprintf(buf, "%d%%", std::min((p_snr + p_rssi * 2) / 3, 100));
             lv_label_set_text(objects.signal_scanner_start_label, buf);
@@ -4496,7 +4496,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
     lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(msgLabel, std::max(std::min(width + 20, 200), 40));
+    lv_obj_set_width(msgLabel, std::max(std::min(width + 20, 200L), 40L));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT); /// 1
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
