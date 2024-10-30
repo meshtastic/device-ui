@@ -2201,27 +2201,35 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_ENGLISH:
         return 0;
     case meshtastic_Language_FRENCH:
-        return 3;
+        return 4;
     case meshtastic_Language_GERMAN:
         return 1;
     case meshtastic_Language_ITALIAN:
-        return 4;
-    case meshtastic_Language_PORTUGUESE:
-        return 7;
-    case meshtastic_Language_SPANISH:
-        return 2;
-    case meshtastic_Language_SWEDISH:
-        return 9;
-    case meshtastic_Language_FINNISH:
-        return 8;
-    case meshtastic_Language_POLISH:
-        return 6;
-    case meshtastic_Language_TURKISH:
-        return 10;
-#if 0
-    case meshtastic_Language_DUTCH:
         return 5;
-#endif
+    case meshtastic_Language_PORTUGUESE:
+        return 8;
+    case meshtastic_Language_SPANISH:
+        return 3;
+    case meshtastic_Language_SWEDISH:
+        return 12;
+    case meshtastic_Language_FINNISH:
+        return 11;
+    case meshtastic_Language_POLISH:
+        return 7;
+    case meshtastic_Language_TURKISH:
+        return 13;
+    case meshtastic_Language_SERBIAN:
+        return 10;
+    case meshtastic_Language_RUSSIAN:
+        return 9;
+    case meshtastic_Language_DUTCH:
+        return 6;
+    case meshtastic_Language_GREEK:
+        return 2;
+    case meshtastic_Language_SIMPLIFIED_CHINESE:
+        return 14;
+    case meshtastic_Language_TRADITIONAL_CHINESE:
+        return 15;
     default:
         ILOG_WARN("unknown language uiconfig: %d", lang);
     }
@@ -2233,28 +2241,36 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
     switch(val) {
     case 0:
         return meshtastic_Language_ENGLISH;
-    case 3:
+    case 4:
         return meshtastic_Language_FRENCH;
     case 1:
         return meshtastic_Language_GERMAN;
-    case 4:
-        return meshtastic_Language_ITALIAN;
-    case 7:
-        return meshtastic_Language_PORTUGUESE;
-    case 2:
-        return meshtastic_Language_SPANISH;
-    case 9:
-        return meshtastic_Language_SWEDISH;
-    case 8:
-        return meshtastic_Language_FINNISH;
-    case 6:
-        return meshtastic_Language_POLISH;
-    case 10:
-        return meshtastic_Language_TURKISH;
-#if 0
     case 5:
+        return meshtastic_Language_ITALIAN;
+    case 8:
+        return meshtastic_Language_PORTUGUESE;
+    case 3:
+        return meshtastic_Language_SPANISH;
+    case 12:
+        return meshtastic_Language_SWEDISH;
+    case 11:
+        return meshtastic_Language_FINNISH;
+    case 7:
+        return meshtastic_Language_POLISH;
+    case 13:
+        return meshtastic_Language_TURKISH;
+    case 10:
+        return meshtastic_Language_SERBIAN;
+    case 9:
+        return meshtastic_Language_RUSSIAN;
+    case 6:
         return meshtastic_Language_DUTCH;
-#endif
+    case 2:
+        return meshtastic_Language_GREEK;
+    case 14:
+        return meshtastic_Language_SIMPLIFIED_CHINESE;
+    case 15:
+        return meshtastic_Language_TRADITIONAL_CHINESE;
     default:
         ILOG_WARN("unknown language val: %d", val);
     }
@@ -2307,7 +2323,6 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("tr");
         locale = "tr_TR.UTF-8";
         break;
-#if 1
     case meshtastic_Language_SERBIAN:
         lv_i18n_set_locale("sr");
         locale = "sr_RS.UTF-8";
@@ -2324,7 +2339,6 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("gr");
         locale = "el_GR.UTF-8";
         break;
-#endif
     default:
         ILOG_WARN("Language %d not implemented", lang);
         break;
