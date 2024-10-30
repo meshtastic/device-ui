@@ -2339,6 +2339,14 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("gr");
         locale = "el_GR.UTF-8";
         break;
+    case meshtastic_Language_SIMPLIFIED_CHINESE:
+        lv_i18n_set_locale("cn");
+        locale = "zh_CN.UTF-8";
+        break;
+    case meshtastic_Language_TRADITIONAL_CHINESE:
+        lv_i18n_set_locale("tw");
+        locale = "zh_TW.UTF-8";
+        break;
     default:
         ILOG_WARN("Language %d not implemented", lang);
         break;
