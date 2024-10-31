@@ -355,7 +355,7 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
 
     auto applyStyle = [](lv_obj_t *tab_buttons) {
-        for (int i = 0; i < tab_buttons->spec_attr->child_cnt; i++) {
+        for (int i = 0; i < lv_obj_get_child_count(tab_buttons); i++) {
             if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
                 lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_default, LV_STATE_DEFAULT);
                 lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_active, LV_STATE_CHECKED);
