@@ -147,9 +147,7 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
     // setKeyboard(db.uiConfig.language);
 
     // set theme
-    Themes::set(Themes::Theme(db.uiConfig.theme));
-    Themes::initStyles();
-    updateTheme();
+    setTheme(db.uiConfig.theme);
 
     // grey out bell until we got the ringtone (0 = silent)
     Themes::recolorButton(objects.home_bell_button, false);
@@ -2395,11 +2393,12 @@ void TFTView_320x240::setBrightness(uint32_t brightness)
 }
 
 /**
- * @brief Set theme according current dropdown selection
+ * @brief Set theme to new value
  */
 void TFTView_320x240::setTheme(uint32_t value)
 {
     char buf1[10], buf2[30];
+    lv_dropdown_set_selected(objects.settings_theme_dropdown, value);
     lv_dropdown_get_selected_str(objects.settings_theme_dropdown, buf1, sizeof(buf1));
     lv_snprintf(buf2, sizeof(buf2), _("Theme: %s"), buf1);
     lv_label_set_text(objects.basic_settings_theme_label, buf2);
