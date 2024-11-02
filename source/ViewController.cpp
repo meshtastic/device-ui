@@ -11,12 +11,11 @@ const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
  *
  */
 ViewController::ViewController() : view(nullptr), client(nullptr), sendId(1), myNodeNum(0), 
-                                   setupDone(false), requestConfigRequired(true) {}
+                                   lastSetup(0), setupDone(false), requestConfigRequired(true) {}
 
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
     time(&lastrun10);
-    lastrun10 += 10;
     view = gui;
     client = _client;
     if (client) {
@@ -32,7 +31,8 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 void ViewController::runOnce(void)
 {
     if (client) {
-        requestConfig();
+        if (!setupDone || requestConfigRequired)
+            requestConfig();
         receive();
 
         // executed every 10s:
@@ -43,6 +43,10 @@ void ViewController::runOnce(void)
             lastrun10 = curtime;
             if (!client->isConnected())
                 client->connect();
+            if (!setupDone && curtime - lastSetup >= 10) {
+                requestConfigRequired = true;
+                requestConfig();
+            }
         }
     }
 }
@@ -533,6 +537,7 @@ void ViewController::requestConfig(void)
     if (client->isConnected() && requestConfigRequired) {
         client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_want_config_id_tag, .want_config_id = 1});
         requestConfigRequired = false;
+        time(&lastSetup);
     }
 }
 

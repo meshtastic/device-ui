@@ -111,7 +111,6 @@ void TFTView_320x240::init(IClientBase *client)
 
     time(&lastrun60);
     time(&lastrun10);
-    lastrun10 += 10;
     time(&lastrun5);
     time(&lastrun1);
 }
@@ -4108,23 +4107,14 @@ void TFTView_320x240::blankScreen(bool enable)
 
 void TFTView_320x240::screenSaving(bool enabled)
 {
-    if (enabled)
-        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
-    else {
-        if (objects.main_screen)
-            lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        else
-            lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-    }
-
     // TODO: lock screen after e.g. 5 mins blanking
-    // if (THIS->db.config.bluetooth.fixed_pin)
+    // if (THIS->db.uiConfig.screen_lock)
     //     screenLocked |= enabled;
 }
 
 bool TFTView_320x240::isScreenLocked(void)
 {
-    return THIS->db.config.bluetooth.fixed_pin && THIS->screenLocked;
+    return THIS->db.uiConfig.screen_lock && THIS->screenLocked;
 }
 
 void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
