@@ -123,6 +123,10 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
     if (uiconfig.version == 1) {
         ILOG_INFO("setupUIConfig version %d", uiconfig.version);
         db.uiConfig = uiconfig;
+        if (db.uiConfig.screen_timeout == 1) {
+            db.uiConfig.screen_timeout = 30;
+            controller->storeUIConfig(db.uiConfig);
+        }
     }
     else {
         ILOG_WARN("invalid uiconfig version %d, reset UI settings to default", uiconfig.version);
@@ -4107,9 +4111,18 @@ void TFTView_320x240::blankScreen(bool enable)
 
 void TFTView_320x240::screenSaving(bool enabled)
 {
-    // TODO: lock screen after e.g. 5 mins blanking
-    // if (THIS->db.uiConfig.screen_lock)
-    //     screenLocked |= enabled;
+    if (enabled) {
+        // overlay main screen with blank screen to prevent accidentally pressing buttons
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 0, 0, false);
+    }
+    else {
+        if (THIS->db.uiConfig.screen_lock)
+            lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        else if (objects.main_screen)
+            lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        else
+            lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    }
 }
 
 bool TFTView_320x240::isScreenLocked(void)
