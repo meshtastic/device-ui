@@ -534,8 +534,9 @@ bool ViewController::receive(void)
  */
 void ViewController::requestConfig(void)
 {
+    static uint32_t configId = 1;
     if (client->isConnected() && requestConfigRequired) {
-        client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_want_config_id_tag, .want_config_id = 1});
+        client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_want_config_id_tag, .want_config_id = configId++});
         requestConfigRequired = false;
         time(&lastSetup);
     }
