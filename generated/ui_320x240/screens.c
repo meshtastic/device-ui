@@ -1031,7 +1031,7 @@ void create_screen_main_screen() {
                     lv_obj_set_pos(obj, 6, -1);
                     lv_obj_set_size(obj, LV_PCT(85), 25);
                     lv_textarea_set_max_length(obj, 237);
-                    lv_textarea_set_placeholder_text(obj, "Enter Text ...");
+                    lv_textarea_set_placeholder_text(obj, _("Enter Text ..."));
                     lv_textarea_set_one_line(obj, true);
                     lv_textarea_set_password_mode(obj, false);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
