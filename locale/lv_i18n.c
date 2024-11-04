@@ -1042,6 +1042,21 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Resynch ...", "Synkroniserar om ..."},
     {"Rebooting ...", "Startar om ..."},
     {"Shutting down ...", "Stänger av ..."},
+    {"silent", "tyst"},
+    {"WiFi: <not setup>", "WiFi: <ej inställt>"},
+    {"Lock: off/off", "Lås: av/av"},
+    {"LoRa TX off!", "LoRa TX avstängt!"},
+    {"WiFi pre-shared Key", "WiFi Lösenord"},
+    {"Settings Lock", "Inställningslås"},
+    {"Lock: %s/%s", "Lås: %s/%s"},
+    {"Enter Text ...", "Text ..."},
+    {"!Enter Filter ...", "!Filter ..."},
+    {"Enter Filter ...", "Filter ..."},
+    {"<not set>", "<ej inställd>"},
+    {"region unset", "ingen region"},
+    {"Banner & Sound", "Banner & Ljud"},
+    {"Banner only", "Endast Banner"},
+    {"Sound only", "Endast ljud"},
     {NULL, NULL} // End mark
 };
 
