@@ -149,3 +149,21 @@ se:
   Resynch ...: Synkroniserar om ...
   Rebooting ...: Startar om ...
   Shutting down ...: Stänger av ...
+  LoRa 0.0 MHz: ~
+  silent: ~
+  'WiFi: <not setup>': ~
+  'Lock: off/off': ~
+  LoRa TX off!: ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  Settings Lock: ~
+  'Lock: %s/%s': ~
+  Enter Text ...: ~
+  '!Enter Filter ...': ~
+  Enter Filter ...: ~
+  'WiFi: %s': ~
+  <not set>: ~
+  region unset: ~
+  Banner & Sound: ~
+  Banner only: ~
+  Sound only: ~

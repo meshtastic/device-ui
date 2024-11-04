@@ -146,6 +146,13 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Banner & Sound", "Banner & Ton"},
     {"Banner only", "nur Banner"},
     {"Sound only", "nur Ton"},
+    {"Lock: off/off", "Sperre aus/aus"},
+    {"Settings Lock", "Einstellungssperre"},
+    {"Lock: %s/%s", "Sperre: %s/%s"},
+    {"Enter Text ...", "Nachricht ..."},
+    {"!Enter Filter ...", "!Filter Namen..."},
+    {"Enter Filter ...", "Filter Namen..."},
+    {"region unset", "keine Region"},
     {NULL, NULL} // End mark
 };
 
@@ -585,6 +592,20 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Resynch ...", "Hersync ..."},
     {"Rebooting ...", "Herstarten ..."},
     {"Shutting down ...", "Uitschakelen ..."},
+    {"silent", "stil"},
+    {"WiFi: <not setup>", "WiFi: <niet ingesteld>"},
+    {"Lock: off/off", "Slot: uit/uit"},
+    {"LoRa TX off!", "Lora TX uit!"},
+    {"Settings Lock", "Instellingen Slot"},
+    {"Lock: %s/%s", "Slot: %s/%s"},
+    {"Enter Text ...", "Voer Tekst In ..."},
+    {"!Enter Filter ...", "!Naam ..."},
+    {"Enter Filter ...", "Naam ..."},
+    {"<not set>", "<niet ingesteld>"},
+    {"region unset", "regio niet ingesteld"},
+    {"Banner & Sound", "Strook & Geluid"},
+    {"Banner only", "Alleen strook"},
+    {"Sound only", "Alleen geluid"},
     {NULL, NULL} // End mark
 };
 

@@ -55,7 +55,7 @@ de:
   Neighbors: Nachbarn
   Statistics: Paketstatistik
   Packet Log: Paket Historie
-  Settings & Tools: Einstellungen & Funktionen
+  Settings & Tools: Konfiguration & Funktionen
   Node Search: Gerätesuche
   Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
   Screen Lock: Bildschirmsperre
@@ -85,8 +85,8 @@ de:
   Cancel: Abbruch
   'FrequencySlot: %d (%g MHz)': 'Frequenz: %d (%g MHz)'
   'Brightness: %d%%': 'Helligkeit: %d%%'
-  'Timeout: off': 'Timeout: aus'
-  'Timeout: %ds': ~
+  'Timeout: off': 'Display aus: aus'
+  'Timeout: %ds': 'Display aus: %ds'
   Stop: Stopp
   "choose\nnode": |-
     wähle
@@ -105,7 +105,7 @@ de:
   'hops: %d': ~
   unknown: unbekannt
   <no name>: <kein Name>
-  '%d active chat(s)': '%d aktive Chat(s)'
+  '%d active chat(s)': '%d aktive(s) Gespräch(e)'
   "New message from \n%s": |-
     Neue Nachricht von 
     %s
@@ -117,14 +117,16 @@ de:
   '%d new message': '%d Nachricht'
   '%d new messages': '%d Nachrichten'
   'uptime: %02d:%02d:%02d': ~
-  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
   Tools: Funktionen
   Filter: ~
   Highlight: Hervorheben
   choose node: wähle Nachbar
   Primary Channel: Primärkanal
   Secondary Channels: Sekundärkanal
-  "Dark\nLight": "Dunkel\nHell"
+  "Dark\nLight": |-
+    Dunkel
+    Hell
   Resynch ...: Synchronisierung ...
   Rebooting ...: Neustart ...
   Shutting down ...: Herunterfahren ...
@@ -139,3 +141,10 @@ de:
   Banner & Sound: Banner & Ton
   Banner only: nur Banner
   Sound only: nur Ton
+  'Lock: off/off': 'Sperre aus/aus'
+  Settings Lock: Einstellungssperre
+  'Lock: %s/%s': 'Sperre: %s/%s'
+  Enter Text ...: Nachricht ...
+  '!Enter Filter ...': '!Filter Name...'
+  Enter Filter ...: Filter Name...
+  region unset: keine Region
