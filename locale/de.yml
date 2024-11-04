@@ -2,7 +2,7 @@ de:
   'User name: %s': 'Benutzer: %s'
   'Device Role: %s': 'Gerätemodus: %s'
   no new messages: keine Nachrichten
-  1 of 1 nodes online: 1/1 Gerät online
+  1 of 1 nodes online: 1 Gerät online
   DEL: ~
   'User name: ': 'Benutzer: '
   'Modem Preset: LONG FAST': 'Modem: LONG FAST'
@@ -18,8 +18,8 @@ de:
   Reboot / Shutdown: Neustart / Ausschalten
   Group Channels: Gruppen Kanäle
   no messages: keine Nachrichten
-  Settings: Einstellungen
-  Settings (advanced): Erweiterte Einstellungen
+  Settings: Konfiguration
+  Settings (advanced): Erweiterte Konfiguration
   Locations Map: Karte
   no chats: Keine Gespräche
   Node Options: Optionen
@@ -33,7 +33,7 @@ de:
   Keyboard: Tastatur
   Message Alert: Alarm
   "NodeDB Reset\nFactory Reset": |-
-    Datenbank Reset
+    Datenbank leeren
     Werkseinstellungen
   Channel Name: Kanalname
   Pre-shared Key: Schlüssel
@@ -47,7 +47,6 @@ de:
   'Modem Preset: %s': 'Voreinstellung: %s'
   'Channel: %s': 'Gruppen-Kanäle: %s'
   'Language: %s': 'Sprache: %s'
-  'Screen Lock: off': 'Bildschirmsperre: aus'
   'Theme: Dark': 'Farbschema: Dunkel'
   Mesh Detector: Mesh-Detektor
   Signal Scanner: Signalstärke
@@ -55,10 +54,10 @@ de:
   Neighbors: Nachbarn
   Statistics: Paketstatistik
   Packet Log: Paket Historie
-  Settings & Tools: Konfiguration & Funktionen
+  Settings & Tools: Konfiguration & Funktion
   Node Search: Gerätesuche
-  Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  Screen Lock: Bildschirmsperre
+  "Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  Screen Lock: Bildschirm
   Lock PIN: PIN
   Ringtone: Klingelton
   Zone: Gebiet
@@ -76,7 +75,7 @@ de:
   Start: ~
   'Theme: %s': 'Farbschema: %s'
   'uptime 00:00:00': ~
-  'Heap: 0\nLVGL: 0': ~
+  "Heap: 0\nLVGL: 0": ~
   Meshtastic: ~
   Packet Statistics: Paketstatistik
   none: keine
@@ -105,12 +104,16 @@ de:
   'hops: %d': ~
   unknown: unbekannt
   <no name>: <kein Name>
-  '%d active chat(s)': '%d aktive(s) Gespräch(e)'
+  '%d active chat(s)':
+    one: '%d aktives Gespräch'
+    other: '%d aktive Gespräche'
   "New message from \n%s": |-
     Neue Nachricht von 
     %s
   'Input Control: %s/%s': 'Eingabegeräte: %s/%s'
-  '%d of %d nodes online': '%d / %d Geräte online'
+  '%d of %d nodes online': 
+    one: '1 Gerät online'
+    other: '%d / %d Geräte online'
   Filtering ...: Filtern ...
   'Filter: %d of %d nodes': 'Filter: %d / %d Geräte'
   now: jetzt
@@ -123,7 +126,7 @@ de:
   Highlight: Hervorheben
   choose node: wähle Nachbar
   Primary Channel: Primärkanal
-  Secondary Channels: Sekundärkanal
+  Secondary Channels: Sekundärkanäle
   "Dark\nLight": |-
     Dunkel
     Hell
@@ -142,7 +145,7 @@ de:
   Banner only: nur Banner
   Sound only: nur Ton
   'Lock: off/off': 'Sperre aus/aus'
-  Settings Lock: Einstellungssperre
+  Settings Lock: Einstellungen
   'Lock: %s/%s': 'Sperre: %s/%s'
   Enter Text ...: Nachricht ...
   '!Enter Filter ...': '!Filter Name...'

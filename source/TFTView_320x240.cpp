@@ -4640,7 +4640,7 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
 void TFTView_320x240::updateActiveChats(void)
 {
     char buf[40];
-    sprintf(buf, _("%d active chat(s)"), chats.size());
+    sprintf(buf, _p("%d active chat(s)", chats.size()), chats.size());
     lv_label_set_text(objects.top_chats_label, buf);
 }
 
@@ -4910,7 +4910,7 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, l
 void TFTView_320x240::updateNodesStatus(void)
 {
     char buf[40];
-    lv_snprintf(buf, sizeof(buf), _("%d of %d nodes online"), nodesOnline, nodeCount);
+    lv_snprintf(buf, sizeof(buf), _p("%d of %d nodes online", nodesOnline), nodesOnline, nodeCount);
     lv_label_set_text(objects.home_nodes_label, buf);
 
     if (nodesFiltered) {
