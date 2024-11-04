@@ -30,7 +30,8 @@ class DisplayDriverConfig
         HELTEC_TRACKER,
         WT32_SC01_PLUS,
         ESP2432S028RV1,
-        ESP2432S028RV2
+        ESP2432S028RV2,
+        ESP4848S040
     };
 
     struct panel_config_t {

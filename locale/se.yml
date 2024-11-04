@@ -95,7 +95,7 @@ se:
   Resynch...: Synkronisera om...
   OK: ~
   Cancel: Avbryt
-  'FrequencySlot: %d (%.2f MHz)': 'Frekvensplats: %d (%.2f MHz)'
+  'FrequencySlot: %d (%g MHz)': 'Frekvensplats: %d (%g MHz)'
   'Brightness: %d%%': 'Ljusstyrka: %d%%'
   'Timeout: off': 'Timeout: av'
   'Timeout: %ds': ~
@@ -149,3 +149,21 @@ se:
   Resynch ...: Synkroniserar om ...
   Rebooting ...: Startar om ...
   Shutting down ...: Stänger av ...
+  LoRa 0.0 MHz: ~
+  silent: tyst
+  'WiFi: <not setup>': 'WiFi: <ej inställt>'
+  'Lock: off/off': 'Lås: av/av'
+  LoRa TX off!: LoRa TX avstängt!
+  WiFi SSID: ~
+  WiFi pre-shared Key: WiFi Lösenord
+  Settings Lock: Inställningslås
+  'Lock: %s/%s': 'Lås: %s/%s'
+  Enter Text ...: Text ...
+  '!Enter Filter ...': '!Filter ...'
+  Enter Filter ...: Filter ...
+  'WiFi: %s': ~
+  <not set>: <ej inställd>
+  region unset: ingen region
+  Banner & Sound: Banner & Ljud
+  Banner only: Endast Banner
+  Sound only: Endast ljud

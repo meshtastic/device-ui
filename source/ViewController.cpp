@@ -11,12 +11,11 @@ const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
  *
  */
 ViewController::ViewController() : view(nullptr), client(nullptr), sendId(1), myNodeNum(0), 
-                                   setupDone(false), requestConfigRequired(true) {}
+                                   lastSetup(0), setupDone(false), requestConfigRequired(true) {}
 
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
     time(&lastrun10);
-    lastrun10 += 10;
     view = gui;
     client = _client;
     if (client) {
@@ -32,7 +31,8 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 void ViewController::runOnce(void)
 {
     if (client) {
-        requestConfig();
+        if (!setupDone || requestConfigRequired)
+            requestConfig();
         receive();
 
         // executed every 10s:
@@ -43,6 +43,10 @@ void ViewController::runOnce(void)
             lastrun10 = curtime;
             if (!client->isConnected())
                 client->connect();
+            if (!setupDone && curtime - lastSetup >= 10) {
+                requestConfigRequired = true;
+                requestConfig();
+            }
         }
     }
 }
@@ -430,10 +434,9 @@ bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId
 
 void ViewController::traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId)
 {
-    meshtastic_Routing request{.route_request{.route_count = 1, .route{myNodeNum}}};
-
+    meshtastic_RouteDiscovery request{};
     meshtastic_Data_payload_t payload;
-    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_Routing_msg, &request);
+    payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_RouteDiscovery_msg, &request);
     send(to, ch, hopLimit, requestId, meshtastic_PortNum_TRACEROUTE_APP, true, payload.bytes, payload.size);
 }
 
@@ -448,7 +451,7 @@ void ViewController::traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint3
  */
 bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload, bool wantRsp)
 {
-    ILOG_DEBUG("sending meshpacket to radio portnum=%u", portnum);
+    ILOG_DEBUG("sending meshpacket to radio id=0x%08x, to=0x%08x(%u), portnum=%u, len=%u, wantRsp=%d", 0, to, to, portnum, payload.size, wantRsp);
     return client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_packet_tag,
                                            .packet{.to = to,
                                                    .which_payload_variant = meshtastic_MeshPacket_decoded_tag,
@@ -462,8 +465,8 @@ bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtas
 bool ViewController::send(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
                           const unsigned char bytes[237], size_t len)
 {
-    ILOG_DEBUG("sending meshpacket to radio to=0x%08x(%u), ch=%u, id=0x%08x, portnum=%u, len=%u", to, to, (unsigned int)ch,
-               requestId, portnum, len);
+    ILOG_DEBUG("sending meshpacket to radio id=0x%x, to=0x%08x(%u), ch=%u, portnum=%u, len=%u, wantRsp=%d", requestId, to, to, (unsigned int)ch,
+               portnum, len, wantRsp);
     // send requires movable lvalue, i.e. a temporary object
     return client->send(meshtastic_ToRadio{
         .which_payload_variant = meshtastic_ToRadio_packet_tag,
@@ -531,9 +534,11 @@ bool ViewController::receive(void)
  */
 void ViewController::requestConfig(void)
 {
+    static uint32_t configId = 1;
     if (client->isConnected() && requestConfigRequired) {
-        client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_want_config_id_tag, .want_config_id = 1});
+        client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_want_config_id_tag, .want_config_id = configId++});
         requestConfigRequired = false;
+        time(&lastSetup);
     }
 }
 
@@ -646,6 +651,10 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                     case meshtastic_Config_sessionkey_tag: {
                         const meshtastic_Config_SessionkeyConfig &cfg = config.payload_variant.sessionkey;
                         view->updateSessionKeyConfig(cfg);
+                        break;
+                    }
+                    case meshtastic_Config_device_ui_tag: {
+                        ILOG_DEBUG("skipping meshtastic_Config_device_ui_tag");
                         break;
                     }
                     default:
@@ -780,7 +789,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 
 bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 {
-    ILOG_DEBUG("received packet from 0x%08x(%u), portnum=%u", p.from, p.from, p.decoded.portnum);
+    ILOG_DEBUG("received packet from 0x%08x, id=0x%08x, portnum=%u", p.from, p.id, p.decoded.portnum);
     view->packetReceived(p);
 
     // only for direct neighbors print rssi/snr
@@ -793,7 +802,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
-        ILOG_INFO("received text message from 0x%08x(%u): '%s'", p.from, p.from, (const char *)p.decoded.payload.bytes);
+        ILOG_INFO("received text message '%s'", (const char *)p.decoded.payload.bytes);
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes);
         break;
     }

@@ -2,7 +2,7 @@ pl:
   no new messages: Brak wiadomości
   1 of 1 nodes online: 1 z 1 węzłów online
   DEL: ~
-  'User name: ': 'Nazwa'
+  'User name: ': Nazwa
   'Modem Preset: LONG FAST': ''
   'Channel: LongFast': 'Kanał: LongFast'
   'Role: Client': 'Tryb: Client'
@@ -34,7 +34,8 @@ pl:
     Reset do ustawień domyślnych
   Channel Name: Nazwa kanału
   Pre-shared Key: ~
-  "New Message from\n": "Nowa wiadomość od\n"
+  "New Message from\n": |
+    Nowa wiadomość od
   Resynch ...: Resynchronizacja...
   'User name: %s': 'Nazwa: %s'
   'Device Role: %s': 'Typ urządzenia: %s'
@@ -82,11 +83,11 @@ pl:
   "Dark\nLight": |-
     Ciemny
     Jasny
-  none: brak # or 'żaden', depends on the context
+  none: brak
   Default: Domyślny
   OK: ~
   Cancel: Anuluj
-  'FrequencySlot: %d (%.2f MHz)': 'Kanał: %d (%.2f MHz)'
+  'FrequencySlot: %d (%g MHz)': 'Kanał: %d (%g MHz)'
   'Brightness: %d%%': 'Jasność: %d%%'
   'Timeout: off': ~
   'Timeout: %ds': ~
@@ -101,8 +102,8 @@ pl:
   'Screen Timeout: %ds': ~
   'Screen Brightness: %d%%': 'Jasność ekranu: %d%%'
   'Screen Lock: %s': 'Blokada ekranu: %s'
-  'on': 'włączony'
-  'off': 'wyłączony'
+  'on': włączony
+  'off': wyłączony
   'Message Alert: %s': 'Dzwonek alertu: %s'
   Util %0.1f%%  Air %0.1f%%: ~
   'hops: %d': 'Skoki: %d'
@@ -129,3 +130,22 @@ pl:
   Secondary Channels: Kanały dodatkowe
   Rebooting ...: Uruchamiam ponownie ...
   Shutting down ...: Wyłączam ...
+  LoRa 0.0 MHz: ~
+  silent: ~
+  'WiFi: <not setup>': ~
+  'Lock: off/off': ~
+  'Message Alert Buzzer: on': ~
+  LoRa TX off!: ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  Settings Lock: ~
+  'Lock: %s/%s': ~
+  Enter Text ...: ~
+  '!Enter Filter ...': ~
+  Enter Filter ...: ~
+  'WiFi: %s': ~
+  <not set>: ~
+  region unset: ~
+  Banner & Sound: ~
+  Banner only: ~
+  Sound only: ~

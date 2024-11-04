@@ -24,6 +24,9 @@
 #ifdef SENSECAP_INDICATOR
 #include "LGFX_INDICATOR.h"
 #endif
+#ifdef ESP_4848S040
+#include "LGFX_4848S040.h"
+#endif
 #ifdef T_DECK
 #include "LGFX_T_DECK.h"
 #endif
@@ -109,6 +112,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(SENSECAP_INDICATOR)
     case DisplayDriverConfig::device_t::INDICATOR:
         return new LGFXDriver<LGFX_INDICATOR>(cfg.width(), cfg.height());
+        break;
+#elif defined(ESP_4848S040)
+    case DisplayDriverConfig::device_t::ESP4848S040:
+        return new LGFXDriver<LGFX_4848S040>(cfg.width(), cfg.height());
         break;
 #elif defined(PICOMPUTER_S3)
     case DisplayDriverConfig::device_t::BPICOMPUTER_S3:

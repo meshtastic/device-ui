@@ -1,10 +1,10 @@
 pt:
-  no new messages: 'Nenhuma mensagem nova'
-  1 of 1 nodes online: '1 de 1 dispositivos online'
+  no new messages: Nenhuma mensagem nova
+  1 of 1 nodes online: 1 de 1 dispositivos online
   'uptime 00:00:00': 'Tempo ligado 00:00:00'
   "Heap: 0\nLVGL: 0": ~
-  DEL: 'Apagar'
-  'User name: ': 'Nome de Usuário'
+  DEL: Apagar
+  'User name: ': Nome de Usuário
   'Modem Preset: LONG FAST': 'Configuração do modem: LONG FAST'
   'Channel: LongFast': 'Canal: LongFast'
   'Role: Client': 'Função: Cliente'
@@ -16,72 +16,99 @@ pt:
   'Input Control: none/none': 'Controle de entrada: nenhum'
   'Message Alert Buzzer: on': 'Alerta de mensagem sonoro: ligado'
   'Language: English': 'Idioma: Inglês'
-  Configuration Reset: 'Restaurar configuração padrão'
-  Reboot / Shutdown: 'Reiniciar / Desligar'
-  Mesh Detector: 'Detector de Mesh'
-  Signal Scanner: 'Buscador de Sinais'
-  Trace Route: 'Traçar Rota'
-  Neighbors: 'Vizinhos'
-  Statistics: 'Estatísticas'
-  Packet Log: 'Histórico de Pacotes'
-  Meshtastic: 'Meshtastic'
-  Group Channels: 'Grupo de Canais'
-  no messages: 'Sem Mensagens'
-  Settings & Tools: 'Configurações e Ferramentas'
-  Settings (advanced): 'Configurações Avançadas'
-  Locations Map: 'Mapa de Localização'
-  no chats: 'Nenhuma Conversa'
-  Node Search: 'Buscar Dispositivos'
-  Packet Statistics: 'Estatísticas de Pacotes'
-  Node Options: 'Opções do Dispositivo'
-  Short Name: 'Nome Curto'
-  Long Name: 'Nome Longo'
-  <unset>: '<Não Configurado>'
-  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "LONG FAST\nLONG SLOW\n-- desativado --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Cliente\nCliente Mudo\nRoteador\n-- desativado --\nRepetidor\nRastreador\nSensor\nTAK\nCliente Oculto\nAchados e Perdidos\nRastreador TAK"
+  Configuration Reset: Restaurar configuração padrão
+  Reboot / Shutdown: Reiniciar / Desligar
+  Mesh Detector: Detector de Mesh
+  Signal Scanner: Buscador de Sinais
+  Trace Route: Traçar Rota
+  Neighbors: Vizinhos
+  Statistics: Estatísticas
+  Packet Log: Histórico de Pacotes
+  Meshtastic: Meshtastic
+  Group Channels: Grupo de Canais
+  no messages: Sem Mensagens
+  Settings & Tools: Configurações e Ferramentas
+  Settings (advanced): Configurações Avançadas
+  Locations Map: Mapa de Localização
+  no chats: Nenhuma Conversa
+  Node Search: Buscar Dispositivos
+  Packet Statistics: Estatísticas de Pacotes
+  Node Options: Opções do Dispositivo
+  Short Name: Nome Curto
+  Long Name: Nome Longo
+  <unset>: <Não Configurado>
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": |-
+    LONG FAST
+    LONG SLOW
+    -- desativado --
+    MEDIUM SLOW
+    MEDIUM FAST
+    SHORT SLOW
+    SHORT FAST
+    LONG MODERATE
+    SHORT TURBO
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
+    Cliente
+    Cliente Mudo
+    Roteador
+    -- desativado --
+    Repetidor
+    Rastreador
+    Sensor
+    TAK
+    Cliente Oculto
+    Achados e Perdidos
+    Rastreador TAK
   'Brightness: 60%': 'Brilho de Tela: 60%'
-  "Dark\nLight": "Escuro\nClaro"
+  "Dark\nLight": |-
+    Escuro
+    Claro
   'Timeout: 60s': 'Tempo Máximo: 60s'
-  Screen Lock: 'Bloqueio de Tela'
-  Lock PIN: 'PIN de bloqueio'
-  Mouse: 'Mouse'
-  none: 'nenhum'
-  Keyboard: 'Teclado'
-  Message Alert: 'Notificação de Mensagem'
-  Ringtone: 'Alerta Sonoro'
-  Default: 'Padrão'
-  Zone: 'Zona'
-  City: 'Cidade'
-  "NodeDB Reset\nFactory Reset": "Resetar Base de Dados\nConfigurações de Fábrica"
-  Channel Name: 'Nome do Canal'
-  Pre-shared Key: 'Chave pré-compartilhada'
-  Unknown: 'Desconhecido'
-  Offline: 'Offline'
-  Public Key: 'Chave pública'
-  Hops away: 'Saltos'
-  MQTT: 'MQTT'
-  Position: 'Localização'
-  Name: 'Nome'
-  Active Chat: 'Conversas Ativas'
-  Telemetry: 'Telemetria'
-  IAQ: 'Qualidade do Ar'
-  Start: 'Início'
-  "New Message from\n": "Nova Mensagem de\n"
-  Resynch...: 'Resincronizando...'
-  OK: 'OK'
-  Cancel: 'Cancelar'
-  'FrequencySlot: %d (%.2f MHz)': 'Banco de Frequência %d (%.2f MHz)'
+  Screen Lock: Bloqueio de Tela
+  Lock PIN: PIN de bloqueio
+  Mouse: Mouse
+  none: nenhum
+  Keyboard: Teclado
+  Message Alert: Notificação de Mensagem
+  Ringtone: Alerta Sonoro
+  Default: Padrão
+  Zone: Zona
+  City: Cidade
+  "NodeDB Reset\nFactory Reset": |-
+    Resetar Base de Dados
+    Configurações de Fábrica
+  Channel Name: Nome do Canal
+  Pre-shared Key: Chave pré-compartilhada
+  Unknown: Desconhecido
+  Offline: Offline
+  Public Key: Chave pública
+  Hops away: Saltos
+  MQTT: MQTT
+  Position: Localização
+  Name: Nome
+  Active Chat: Conversas Ativas
+  Telemetry: Telemetria
+  IAQ: Qualidade do Ar
+  Start: Início
+  "New Message from\n": |
+    Nova Mensagem de
+  Resynch...: Resincronizando...
+  OK: OK
+  Cancel: Cancelar
+  'FrequencySlot: %d (%g MHz)': Banco de Frequência %d (%g MHz)
   'Brightness: %d%%': 'Brilho de Tela: %d%%'
   'Timeout: off': 'Temporizador de tela: desligado'
   'Timeout: %ds': 'Temporizador de tela: %ds'
   'Screen Calibration: %s': 'Calibração de Tela: %s'
-  done: 'Concluído'
-  default: 'Padrão'
-  Stop: 'Finalizar'
-  "choose\nnode": "Escolher\ndispositivo"
-  choose target node: 'Selecionar dispositivo'
-  'heard: !%08x': 'recebido !%08x'
-  'Packet Log: %d': 'Histórico de Pacotes %d'
+  done: Concluído
+  default: Padrão
+  Stop: Finalizar
+  "choose\nnode": |-
+    Escolher
+    dispositivo
+  choose target node: Selecionar dispositivo
+  'heard: !%08x': recebido !%08x
+  'Packet Log: %d': Histórico de Pacotes %d
   'Language: %s': 'Idioma: %s'
   'Screen Timeout: off': 'Temporizador de tela: desligado'
   'Screen Timeout: %ds': 'Temporizador de tela: %ds'
@@ -93,30 +120,50 @@ pt:
   'Modem Preset: %s': 'Configuração de Modem: %s'
   'Channel: %s': 'Canal: %s'
   'Screen Lock: %s': 'Bloqueio de Tela: %s'
-  'on': 'Ligar'
-  'off': 'Desligar'
+  'on': Ligar
+  'off': Desligar
   'Message Alert: %s': 'Notificações de Mensagem: %s'
-  Util %0.1f%%  Air %0.1f%%: 'Util %0.1f%%  Ar %0.1f%%'
+  Util %0.1f%%  Air %0.1f%%: Util %0.1f%%  Ar %0.1f%%
   'hops: %d': 'saltos: %d'
-  unknown: 'desconhecido'
-  <no name>: '<sem nome>'
+  unknown: desconhecido
+  <no name>: <sem nome>
   '%d active chat(s)': '%d conversas ativas'
-  "New message from \n%s": "Nova mensagem de \n%s"
+  "New message from \n%s": |-
+    Nova mensagem de 
+    %s
   'Input Control: %s/%s': 'Controle de entradas: %s/%s'
   '%d of %d nodes online': '%d de %d dispositivos online'
-  Filtering ...: 'Filtrando...'
+  Filtering ...: Filtrando...
   'Filter: %d of %d nodes': 'Filtro: %d de %d dispositivos'
-  now: 'agora'
+  now: agora
   '%d new message': '%d Nova Mensagem'
   '%d new messages': '%d Novas Mensagens'
   'uptime: %02d:%02d:%02d': 'tempo ligado: %02d:%02d:%02d '
-  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~ 
-  Settings: 'Configurações'
-  Tools: 'Ferramentas'
-  Filter: 'Filtros'
-  Highlight: 'Destaque'
-  Primary Channel: 'Canal Primário'
-  Secondary Channels: 'Canais Secundários'
-  Resynch ...: 'Resincronizando...'
-  Rebooting ...: 'Reiniciando...'
-  Shutting down ...: 'Desligando...'
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
+  Settings: Configurações
+  Tools: Ferramentas
+  Filter: Filtros
+  Highlight: Destaque
+  Primary Channel: Canal Primário
+  Secondary Channels: Canais Secundários
+  Resynch ...: Resincronizando...
+  Rebooting ...: Reiniciando...
+  Shutting down ...: Desligando...
+  LoRa 0.0 MHz: ~
+  silent: ~
+  'WiFi: <not setup>': ~
+  'Lock: off/off': ~
+  LoRa TX off!: ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  Settings Lock: ~
+  'Lock: %s/%s': ~
+  Enter Text ...: ~
+  '!Enter Filter ...': ~
+  Enter Filter ...: ~
+  'WiFi: %s': ~
+  <not set>: ~
+  region unset: ~
+  Banner & Sound: ~
+  Banner only: ~
+  Sound only: ~

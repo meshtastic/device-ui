@@ -2,7 +2,7 @@ ro:
   no new messages: ~
   1 of 1 nodes online: ~
   'uptime 00:00:00': ~
-  'Heap: 0\nLVGL: 0': ~
+  "Heap: 0\nLVGL: 0": ~
   DEL: ~
   'User name: ': ~
   'Modem Preset: LONG FAST': ~
@@ -66,11 +66,11 @@ ro:
   Telemetry: ~
   IAQ: ~
   Start: ~
-  New Message from\n: ~
+  "New Message from\n": ~
   Resynch...: ~
   OK: ~
   Cancel: ~
-  'FrequencySlot: %d (%.2f MHz)': ~
+  'FrequencySlot: %d (%g MHz)': ~
   'Brightness: %d%%': ~
   'Timeout: off': ~
   'Timeout: %ds': ~
@@ -101,7 +101,7 @@ ro:
   unknown: ~
   <no name>: ~
   '%d active chat(s)': ~
-  New message from \n%s: ~
+  "New message from \n%s": ~
   'Input Control: %s/%s': ~
   '%d of %d nodes online': ~
   Filtering ...: ~
@@ -110,7 +110,7 @@ ro:
   '%d new message': ~
   '%d new messages': ~
   'uptime: %02d:%02d:%02d': ~
-  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
   Settings: ~
   Tools: ~
   Filter: ~
@@ -120,3 +120,21 @@ ro:
   Resynch ...: ~
   Rebooting ...: ~
   Shutting down ...: ~
+  LoRa 0.0 MHz: ~
+  silent: ~
+  'WiFi: <not setup>': ~
+  'Lock: off/off': ~
+  LoRa TX off!: ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  Settings Lock: ~
+  'Lock: %s/%s': ~
+  Enter Text ...: ~
+  '!Enter Filter ...': ~
+  Enter Filter ...: ~
+  'WiFi: %s': ~
+  <not set>: ~
+  region unset: ~
+  Banner & Sound: ~
+  Banner only: ~
+  Sound only: ~
