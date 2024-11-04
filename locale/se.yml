@@ -150,20 +150,20 @@ se:
   Rebooting ...: Startar om ...
   Shutting down ...: Stänger av ...
   LoRa 0.0 MHz: ~
-  silent: ~
-  'WiFi: <not setup>': ~
-  'Lock: off/off': ~
-  LoRa TX off!: ~
+  silent: tyst
+  'WiFi: <not setup>': 'WiFi: <ej inställt>'
+  'Lock: off/off': 'Lås: av/av'
+  LoRa TX off!: LoRa TX avstängt!
   WiFi SSID: ~
-  WiFi pre-shared Key: ~
-  Settings Lock: ~
-  'Lock: %s/%s': ~
-  Enter Text ...: ~
-  '!Enter Filter ...': ~
-  Enter Filter ...: ~
+  WiFi pre-shared Key: WiFi Lösenord
+  Settings Lock: Inställningslås
+  'Lock: %s/%s': 'Lås: %s/%s'
+  Enter Text ...: Text ...
+  '!Enter Filter ...': '!Filter ...'
+  Enter Filter ...: Filter ...
   'WiFi: %s': ~
-  <not set>: ~
-  region unset: ~
-  Banner & Sound: ~
-  Banner only: ~
-  Sound only: ~
+  <not set>: <ej inställd>
+  region unset: ingen region
+  Banner & Sound: Banner & Ljud
+  Banner only: Endast Banner
+  Sound only: Endast ljud
