@@ -160,7 +160,7 @@ se:
   'Lock: %s/%s': 'Lås: %s/%s'
   Enter Text ...: Text ...
   '!Enter Filter ...': '!Filter ...'
-  Enter Filter ...: 'Filter ...'
+  Enter Filter ...: Filter ...
   'WiFi: %s': ~
   <not set>: <ej inställd>
   region unset: ingen region
