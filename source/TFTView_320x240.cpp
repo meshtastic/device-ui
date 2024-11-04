@@ -355,6 +355,10 @@ void TFTView_320x240::apply_hotfix(void)
     lv_label_set_text(objects.detector_start_label, _("Start"));
     lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
 
+    lv_textarea_set_placeholder_text(objects.message_input_area, _("Enter Text ..."));
+    lv_textarea_set_placeholder_text(objects.nodes_filter_name_area, _("!Enter Filter ..."));
+    lv_textarea_set_placeholder_text(objects.nodes_hl_name_area, _("Enter Filter ..."));
+
     auto applyStyle = [](lv_obj_t *tab_buttons) {
         for (int i = 0; i < lv_obj_get_child_count(tab_buttons); i++) {
             if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
