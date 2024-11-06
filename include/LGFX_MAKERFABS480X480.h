@@ -87,7 +87,7 @@ class LGFX_MAKERFABS480X480 : public lgfx::LGFX_Device
 
         {
             auto cfg = _light_instance.config();
-            cfg.pin_bl = 45;
+            cfg.pin_bl = 44;
             //cfg.freq = 80;  // higher value decrease brightness
             _light_instance.config(cfg);
         }
