@@ -27,6 +27,9 @@
 #ifdef ESP_4848S040
 #include "LGFX_4848S040.h"
 #endif
+#ifdef MAKERFABS_480X480
+#include "LGFX_MAKERFABS480X480.h"
+#endif
 #ifdef T_DECK
 #include "LGFX_T_DECK.h"
 #endif
@@ -116,6 +119,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(ESP_4848S040)
     case DisplayDriverConfig::device_t::ESP4848S040:
         return new LGFXDriver<LGFX_4848S040>(cfg.width(), cfg.height());
+        break;
+#elif defined(MAKERFABS_480X480)
+    case DisplayDriverConfig::device_t::MAKERFABS480X480:
+        return new LGFXDriver<LGFX_MAKERFABS480X480>(cfg.width(), cfg.height());
         break;
 #elif defined(PICOMPUTER_S3)
     case DisplayDriverConfig::device_t::BPICOMPUTER_S3:
