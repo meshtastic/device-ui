@@ -6,49 +6,7 @@
 #include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
 #include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
 
-#ifdef CUSTOM_TOUCH_DRIVER
-#include <bb_captouch.h>
-
-#define TOUCH_SDA 19
-#define TOUCH_SCL 45
-#define TOUCH_INT -1
-#define TOUCH_RST -1
-
-// avoid lovyanGFX touch driver: 
-// custom class for redirecting getTouch() calls and to alternative implementation
-class LGFX_Touch : public lgfx::LGFX_Device
-{
-  public:
-    bool init_impl(bool use_reset, bool use_clear) override
-    {
-        bool result = LGFX_Device::init_impl(use_reset, use_clear);
-        bbct.init(TOUCH_SDA, TOUCH_SCL);
-        bbct.setOrientation(0, 480, 480);
-        return result;
-    }
-
-    int8_t getTouchInt(void) { return TOUCH_INT; }
-
-    // unfortunately not declared as virtual in base class, need to choose a different name
-    bool getTouchXY(uint16_t* touchX, uint16_t* touchY) {
-        TOUCHINFO ti;
-        if (bbct.getSamples(&ti)) {
-            *touchX = ti.x[0];
-            *touchY = ti.y[0];
-            if (*touchX < 480 && *touchY < 480)
-                return true;
-        }
-        return false; 
-    };
-
-  private:
-    BBCapTouch bbct;
-};
-
-class LGFX_4848S040 : public LGFX_Touch
-#else
 class LGFX_4848S040 : public lgfx::LGFX_Device
-#endif
 {
     lgfx::Panel_ST7701_guition_esp32_4848S040 _panel_instance;
     lgfx::Bus_RGB _bus_instance;
@@ -134,7 +92,7 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
         {
             auto cfg = _light_instance.config();
             cfg.pin_bl = 38;
-            cfg.freq = 2000;
+            cfg.freq = 80;  // higher value decrease brightness
             _light_instance.config(cfg);
         }
         _panel_instance.light(&_light_instance);
@@ -149,17 +107,15 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
             cfg.pin_int = GPIO_NUM_NC;
             cfg.pin_rst = GPIO_NUM_NC;
             cfg.bus_shared = false;
-            cfg.offset_rotation = 0;
+            cfg.offset_rotation = 3;
 
-            cfg.i2c_port = 1;
+            cfg.i2c_port = 0;
             cfg.i2c_addr = 0x5D;
             cfg.pin_sda = 19;
             cfg.pin_scl = 45;
             cfg.freq = 400000;
             _touch_instance.config(cfg);
-#ifndef CUSTOM_TOUCH_DRIVER
             _panel_instance.setTouch(&_touch_instance);
-#endif
         }
 
         setPanel(&_panel_instance);
