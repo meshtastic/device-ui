@@ -1,0 +1,26 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+{
+    "name": "Meshtastic Device-UI Dev",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+
+    // Features to add to the dev container. More info: https://containers.dev/features.
+    "features": {
+        "ghcr.io/trunk-io/devcontainer-feature/trunk:1": {},
+        "ghcr.io/devcontainers/features/node:1": {}
+    },
+
+    // Configure tool-specific properties.
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "Trunk.io",
+                "ms-vscode.cpptools-extension-pack",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    },
+
+    "postCreateCommand": "npm i lv_i18n -g"
+}
