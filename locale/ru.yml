@@ -12,7 +12,7 @@ ru:
   'Input Control: none/none': ~
   'Message Alert Buzzer: on': 'Оповещение: включено'
   'Language: English': 'Язык: Русский'
-  Configuration Reset: 'Сброс настроек'
+  Configuration Reset: Сброс настроек
   Reboot / Shutdown: Перезагрузка / Выкл.
   Group Channels: Групповые каналы
   no messages: нет сообщений
@@ -119,4 +119,4 @@ ru:
   Secondary Channels: Вторичные каналы
   Resynch ...: Ресинхронизация ...
   Rebooting ...: Перезагрузка ...
-  Shutting down ...: 'Выключение ...'
+  Shutting down ...: Выключение ...
