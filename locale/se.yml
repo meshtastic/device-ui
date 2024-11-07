@@ -127,7 +127,9 @@ se:
   'hops: %d': 'hopp: %d'
   unknown: okänd
   <no name>: <inget namn>
-  '%d active chat(s)': '%d aktiva chatt(ar)'
+  '%d active chat(s)':
+    one: 1 aktiv chatt
+    other: '%d aktiva chattar'
   "New message from \n%s": |-
     Nytt meddelande från 
     %s
