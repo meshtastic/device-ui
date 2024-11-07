@@ -11,16 +11,16 @@ plugins:
 # Many linters and tools depend on runtimes - configure them here. (https://docs.trunk.io/runtimes)
 runtimes:
   enabled:
-    - python@3.10.8
     - go@1.21.0
     - node@18.12.1
+    - python@3.10.8
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
-    - trufflehog@3.83.2
+    - trufflehog@3.83.4
     - yamllint@1.35.1
     - bandit@1.7.10
-    - checkov@3.2.277
+    - checkov@3.2.281
     - terrascan@1.19.9
     - trivy@0.56.2
     #- trufflehog@3.63.2-rc0
@@ -30,7 +30,7 @@ lint:
     - markdownlint@0.42.0
     - oxipng@9.1.2
     - svgo@3.3.2
-    - actionlint@1.7.3
+    - actionlint@1.7.4
     - flake8@7.1.1
     - hadolint@2.12.0
     - shfmt@3.6.0
