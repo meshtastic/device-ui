@@ -1,139 +1,143 @@
 it:
-  no new messages: ~
-  1 of 1 nodes online: ~
-  'uptime 00:00:00': ~
-  "Heap: 0\nLVGL: 0": ~
-  DEL: ~
-  'User name: ': ~
-  'Modem Preset: LONG FAST': ~
-  'Channel: LongFast': ~
-  'Role: Client': ~
-  'Screen Timeout: 60s': ~
-  'Screen Lock: off': ~
-  'Screen Brightness: 60%': ~
-  'Theme: Dark': ~
-  'Screen Calibration: default': ~
-  'Input Control: none/none': ~
-  'Message Alert Buzzer: on': ~
-  'Language: English': ~
-  Configuration Reset: ~
-  Reboot / Shutdown: ~
-  Mesh Detector: ~
-  Signal Scanner: ~
-  Trace Route: ~
-  Neighbors: ~
-  Statistics: ~
-  Packet Log: ~
-  Meshtastic: ~
-  Group Channels: ~
-  no messages: ~
-  Settings & Tools: ~
-  Settings (advanced): ~
-  Locations Map: ~
-  no chats: ~
-  Node Search: ~
-  Packet Statistics: ~
-  Node Options: ~
-  Short Name: ~
-  Long Name: ~
-  <unset>: ~
+  no new messages: nessun messaggio
+  1 of 1 nodes online: 1 di 1 nodi online
+  "uptime 00:00:00": "tempo di attività 00:00:00"
+  "Heap: 0\nLVGL: 0": "Heap: 0\nLVGL: 0"
+  DEL: CANC
+  "User name: ": "Nome utente: "
+  "Modem Preset: LONG FAST": "Modem: LONG FAST"
+  "Channel: LongFast": "Canale: LongFast"
+  "Role: Client": "Ruolo: Client"
+  "Screen Timeout: 60s": "Timeout schermo: 60s"
+  "Screen Lock: off": "Blocco schermo: disattivato"
+  "Screen Brightness: 60%": "Luminosità schermo: 60%"
+  "Theme: Dark": "Tema: Scuro"
+  "Screen Calibration: default": "Calibrazione schermo: predefinita"
+  "Input Control: none/none": "Controllo di input: nessuno/nessuno"
+  "Message Alert Buzzer: on": "Avviso messaggio cicalino: attivo"
+  "Language: English": "Lingua: Italiano"
+  Configuration Reset: Ripristino configurazione
+  Reboot / Shutdown: Riavvio / Spegnimento
+  Mesh Detector: Rilevatore Mesh
+  Signal Scanner: Scanner segnale
+  Trace Route: Traccia percorso
+  Neighbors: Vicini
+  Statistics: Statistiche
+  Packet Log: Registro pacchetti
+  Meshtastic: Meshtastic
+  Group Channels: Canali di gruppo
+  no messages: nessun messaggio
+  Settings & Tools: Impostazioni & Strumenti
+  Settings (advanced): Impostazioni (avanzate)
+  Locations Map: Mappa delle posizioni
+  no chats: nessuna chat
+  Node Search: Ricerca nodo
+  Packet Statistics: Statistiche pacchetti
+  Node Options: Opzioni nodo
+  Short Name: Nome breve
+  Long Name: Nome lungo
+  <unset>: <non impostato>
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
-  'Brightness: 60%': ~
-  "Dark\nLight": ~
-  'Timeout: 60s': ~
-  Screen Lock: ~
-  Lock PIN: ~
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Client\nClient Muto\nRouter\n-- deprecato --\nRipetitore\nTracker\nSensore\nTAK\nClient Nascosto\nOggetti Smarriti\nTAK Tracker"
+  "Brightness: 60%": "Luminosità: 60%"
+  "Dark\nLight": "Scuro\nChiaro"
+  "Timeout: 60s": ~
+  Screen Lock: Blocco schermo
+  Lock PIN: Codice PIN
   Mouse: ~
-  none: ~
-  Keyboard: ~
-  Message Alert: ~
-  Ringtone: ~
-  Default: ~
-  Zone: ~
-  City: ~
-  "NodeDB Reset\nFactory Reset": ~
-  Channel Name: ~
-  Pre-shared Key: ~
-  Unknown: ~
+  none: nessuno
+  Keyboard: Tastiera
+  Message Alert: Avviso di messaggio
+  Ringtone: Suoneria
+  Default: Predefinito
+  Zone: Zona
+  City: Città
+  "NodeDB Reset\nFactory Reset": "Ripristino NodeDB\nRipristino di fabbrica"
+  Channel Name: Nome Canale
+  Pre-shared Key: Chiave Precondivisa
+  Unknown: Sconosciuto
   Offline: ~
-  Public Key: ~
-  Hops away: ~
+  Public Key: Chiave Pubblica
+  Hops away: Salti di distanza
   MQTT: ~
-  Position: ~
-  Name: ~
-  Active Chat: ~
-  Telemetry: ~
+  Position: Posizione
+  Name: Nome
+  Active Chat: Chat Attiva
+  Telemetry: Telemetria
   IAQ: ~
   Start: ~
-  "New Message from\n": ~
-  Resynch...: ~
+  "New Message from\n": "Nuovo messaggio da\n"
+  Resynch...: Risinc...
   OK: ~
-  Cancel: ~
-  'FrequencySlot: %d (%g MHz)': ~
-  'Brightness: %d%%': ~
-  'Timeout: off': ~
-  'Timeout: %ds': ~
-  'Screen Calibration: %s': ~
-  done: ~
-  default: ~
+  Cancel: Annulla
+  "FrequencySlot: %d (%g MHz)": "Slot di Frequenza: %d (%g MHz)"
+  "Brightness: %d%%": "Luminosità: %d%%"
+  "Timeout: off": "Timeout: disattivato"
+  "Timeout: %ds": "Timeout: %ds"
+  "Screen Calibration: %s": "Calibrazione Schermo: %s"
+  done: fatto
+  default: predefinito
   Stop: ~
-  "choose\nnode": ~
-  choose target node: ~
-  'heard: !%08x': ~
-  'Packet Log: %d': ~
-  'Language: %s': ~
-  'Screen Timeout: off': ~
-  'Screen Timeout: %ds': ~
-  'Screen Brightness: %d%%': ~
-  'Theme: %s': ~
-  'User name: %s': ~
-  'Device Role: %s': ~
-  'Region: %s': ~
-  'Modem Preset: %s': ~
-  'Channel: %s': ~
-  'Screen Lock: %s': ~
-  'on': ~
-  'off': ~
-  'Message Alert: %s': ~
-  Util %0.1f%%  Air %0.1f%%: ~
-  'hops: %d': ~
-  unknown: ~
-  <no name>: ~
-  '%d active chat(s)': ~
-  "New message from \n%s": ~
-  'Input Control: %s/%s': ~
-  '%d of %d nodes online': ~
-  Filtering ...: ~
-  'Filter: %d of %d nodes': ~
-  now: ~
-  '%d new message': ~
-  '%d new messages': ~
-  'uptime: %02d:%02d:%02d': ~
-  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
-  Settings: ~
-  Tools: ~
-  Filter: ~
-  Highlight: ~
-  Primary Channel: ~
-  Secondary Channels: ~
-  Resynch ...: ~
-  Rebooting ...: ~
-  Shutting down ...: ~
-  silent: ~
-  'WiFi: <not setup>': ~
-  'Lock: off/off': ~
-  LoRa TX off!: ~
-  WiFi SSID: ~
-  WiFi pre-shared Key: ~
-  Settings Lock: ~
-  'Lock: %s/%s': ~
-  Enter Text ...: ~
-  '!Enter Filter ...': ~
-  Enter Filter ...: ~
-  'WiFi: %s': ~
-  <not set>: ~
-  region unset: ~
-  Banner & Sound: ~
-  Banner only: ~
-  Sound only: ~
+  "choose\nnode": "scegli\nnodo"
+  choose target node: scegli nodo di destinazione
+  "heard: !%08x": "sentito: !%08x"
+  "Packet Log: %d": "Registro Pacchetti: %d"
+  "Language: %s": "Lingua: %s"
+  "Screen Timeout: off": "Timeout Schermo: disattivato"
+  "Screen Timeout: %ds": "Timeout Schermo: %ds"
+  "Screen Brightness: %d%%": "Luminosità Schermo: %d%%"
+  "Theme: %s": "Tema: %s"
+  "User name: %s": "Nome Utente: %s"
+  "Device Role: %s": "Ruolo Dispositivo: %s"
+  "Region: %s": "Regione: %s"
+  "Modem Preset: %s": "Preset Modem: %s"
+  "Channel: %s": "Canale: %s"
+  "Screen Lock: %s": "Blocco Schermo: %s"
+  "on": "attivo"
+  "off": "disattivo"
+  "Message Alert: %s": "Avviso di messaggio: %s"
+  Util %0.1f%%  Air %0.1f%%: Utilizzo %0.1f%%  Aria %0.1f%%
+  "hops: %d": "salti: %d"
+  unknown: sconosciuto
+  <no name>: <senza nome>
+  "%d active chat(s)":
+    one: "%d chat attiva"
+    other: "%d chat attive"
+  "New message from \n%s": "Nuovo messaggio da \n%s"
+  "Input Control: %s/%s": "Controllo di Input: %s/%s"
+  "%d of %d nodes online":
+    one: 1 nodo online
+    other: "%d di %d nodi online"
+  Filtering ...: Filtraggio ...
+  "Filter: %d of %d nodes": "Filtro: %d di %d nodi"
+  now: ora
+  "%d new message": "%d nuovo messaggio"
+  "%d new messages": "%d nuovi messaggi"
+  "uptime: %02d:%02d:%02d": "tempo di attività:\n%02d:%02d:%02d"
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": "Heap: %d (%d%%)\nLVGL: %d (%d%%)"
+  Settings: Impostazioni
+  Tools: Strumenti
+  Filter: Filtro
+  Highlight: Evidenzia
+  Primary Channel: Canale Primario
+  Secondary Channels: Canali Secondari
+  Resynch ...: Risinc ...
+  Rebooting ...: Riavvio ...
+  Shutting down ...: Spegnimento ...
+  silent: silenzioso
+  "WiFi: <not setup>": "WiFi: <non configurato>"
+  "Lock: off/off": "Blocco: disattivato/disattivato"
+  LoRa TX off!: LoRa TX disattivato!
+  WiFi SSID: SSID WiFi
+  WiFi pre-shared Key: Chiave Precondivisa WiFi
+  Settings Lock: Blocco Impostazioni
+  "Lock: %s/%s": "Blocco: %s/%s"
+  Enter Text ...: Inserisci Testo ...
+  "!Enter Filter ...": "!Inserisci Filtro ..."
+  Enter Filter ...: Inserisci Filtro ...
+  "WiFi: %s": "WiFi: %s"
+  <not set>: <non impostato>
+  region unset: regione non impostata
+  Banner & Sound: Banner e Suono
+  Banner only: Solo Banner
+  Sound only: Solo Suono

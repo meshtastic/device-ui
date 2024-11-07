@@ -1,0 +1,37 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+  "name": "Meshtastic Device-UI Dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/trunk-io/devcontainer-feature/trunk:1": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Trunk.io",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "trunk.io",
+        "trunk.enableWindows": true,
+        "files.insertFinalNewline": false,
+        "files.trimFinalNewlines": false,
+        "cmake.configureOnOpen": false,
+        "[cpp]": {
+          "editor.defaultFormatter": "trunk.io"
+        }
+      }
+    }
+  },
+
+  "postCreateCommand": "npm install lv_i18n -g --no-fund"
+}
