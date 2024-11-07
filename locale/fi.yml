@@ -1,21 +1,21 @@
-﻿fi:
-  no new messages: "ei uusia viestejä"
+fi:
+  no new messages: ei uusia viestejä
   1 of 1 nodes online: 1/1 nodea verkossa
-  "uptime 00:00:00": "käyttöaika 00:00:00"
+  'uptime 00:00:00': 'käyttöaika 00:00:00'
   'Heap: 0\nLVGL: 0': ~
   DEL: ~
-  "User name: ": "Käyttäjätunnus"
-  "Modem Preset: LONG FAST": "modeemin esiasetus: LONG FAST"
-  "Channel: LongFast": "Kanava: LongFast"
-  "Role: Client": "Rooli: Client"
-  "Screen Timeout: 60s": "Näytön aikakatkaisu: 60s"
-  "Screen Lock: off": "Näytön lukitus: pois"
-  "Screen Brightness: 60%": "Näytön kirklaus: 60%"
-  "Theme: Dark": "Teema: Tumma"
-  "Screen Calibration: default": "Näytön kalibrointi: oletus"
-  "Input Control: none/none": "Tulon ohjaus: ei mitään/ei mitään"
-  "Message Alert Buzzer: on": "Viestihälytyssummeri: päällä"
-  "Language: English": "Kieli: Englanti"
+  'User name: ': Käyttäjätunnus
+  'Modem Preset: LONG FAST': 'modeemin esiasetus: LONG FAST'
+  'Channel: LongFast': 'Kanava: LongFast'
+  'Role: Client': 'Rooli: Client'
+  'Screen Timeout: 60s': 'Näytön aikakatkaisu: 60s'
+  'Screen Lock: off': 'Näytön lukitus: pois'
+  'Screen Brightness: 60%': 'Näytön kirklaus: 60%'
+  'Theme: Dark': 'Teema: Tumma'
+  'Screen Calibration: default': 'Näytön kalibrointi: oletus'
+  'Input Control: none/none': 'Tulon ohjaus: ei mitään/ei mitään'
+  'Message Alert Buzzer: on': 'Viestihälytyssummeri: päällä'
+  'Language: English': 'Kieli: Englanti'
   Configuration Reset: Konfiguraation palautus
   Reboot / Shutdown: Käynn. uudest. / Sammuta
   Mesh Detector: Mesh verkko tunnistin
@@ -39,9 +39,11 @@
   <unset>: <ei asetettu>
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
   "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
-  "Brightness: 60%": "Kirkkaus: 60%"
-  "Dark\nLight": "Tumma\nVaalea"
-  "Timeout: 60s": "Aikakatkaisu: 60s"
+  'Brightness: 60%': 'Kirkkaus: 60%'
+  "Dark\nLight": |-
+    Tumma
+    Vaalea
+  'Timeout: 60s': 'Aikakatkaisu: 60s'
   Screen Lock: Näytön lukitus
   Lock PIN: Pinkoodi
   Mouse: Hiiri
@@ -52,7 +54,9 @@
   Default: Oletus
   Zone: vyöhyke
   City: Kaupunki
-  "NodeDB Reset\nFactory Reset": "NodeDB:n nollaus\nTehdasasetusten palautus"
+  "NodeDB Reset\nFactory Reset": |-
+    NodeDB:n nollaus
+    Tehdasasetusten palautus
   Channel Name: Kanavan nimi
   Pre-shared Key: Esijaettu avain
   Unknown: Tuntematon
@@ -66,50 +70,55 @@
   Telemetry: Telemetria
   IAQ: ~
   Start: Aloita
-  "New Message from\n": "Uusi viesti lähettäjälyä\n"
+  "New Message from\n": |
+    Uusi viesti lähettäjälyä
   Resynch...: ~
   OK: ~
   Cancel: Peruuta
-  "FrequencySlot: %d (%g MHz)": "Taajuuspaikka: %d (%g MHz)"
-  "Brightness: %d%%": "Kirkkaus: %d%%"
-  "Timeout: off": "Aikakatkaisu: pois"
-  "Timeout: %ds": "Aikakatkaisu: %ds"
-  "Screen Calibration: %s": "Näytön kalibrointi: %s"
+  'FrequencySlot: %d (%g MHz)': 'Taajuuspaikka: %d (%g MHz)'
+  'Brightness: %d%%': 'Kirkkaus: %d%%'
+  'Timeout: off': 'Aikakatkaisu: pois'
+  'Timeout: %ds': 'Aikakatkaisu: %ds'
+  'Screen Calibration: %s': 'Näytön kalibrointi: %s'
   done: valmis
   default: oletus
   Stop: Lopeta
-  "choose\nnode": "valitse\nnode"
+  "choose\nnode": |-
+    valitse
+    node
   choose target node: valitse kohde node
-  "heard: !%08x": ~
-  "Packet Log: %d": "Pakettiloki: %d"
-  "Language: %s": "Kieli: %s"
-  "Screen Timeout: off": "Näytön aikakatkaisu: pois päältä"
-  "Screen Timeout: %ds": "Näytön aikakatkaisu: %ds"
-  "Screen Brightness: %d%%": "Näytön kirkkaus: %d%%"
-  "Theme: %s": "Teema: %s"
-  "User name: %s": "Käyttäjätunnus: %s"
-  "Device Role: %s": "Laitteen rooli: %s"
-  "Region: %s": "Alue: %s"
-  "Modem Preset: %s": ~
-  "Channel: %s": "Kanava: %s"
-  "Screen Lock: %s": "Näytön lukitus: %s"
-  "on": päällä
-  "off": pois
-  "Message Alert: %s": "Viestihälytys: %s"
+  'heard: !%08x': ~
+  'Packet Log: %d': 'Pakettiloki: %d'
+  'Language: %s': 'Kieli: %s'
+  'Screen Timeout: off': 'Näytön aikakatkaisu: pois päältä'
+  'Screen Timeout: %ds': 'Näytön aikakatkaisu: %ds'
+  'Screen Brightness: %d%%': 'Näytön kirkkaus: %d%%'
+  'Theme: %s': 'Teema: %s'
+  'User name: %s': 'Käyttäjätunnus: %s'
+  'Device Role: %s': 'Laitteen rooli: %s'
+  'Region: %s': 'Alue: %s'
+  'Modem Preset: %s': ~
+  'Channel: %s': 'Kanava: %s'
+  'Screen Lock: %s': 'Näytön lukitus: %s'
+  'on': päällä
+  'off': pois
+  'Message Alert: %s': 'Viestihälytys: %s'
   Util %0.1f%%  Air %0.1f%%: ~
-  "hops: %d": "hypyt: %d"
+  'hops: %d': 'hypyt: %d'
   unknown: tuntematon
   <no name>: <ei nimeä>
-  "%d active chat(s)": "aktiivisia keskusteluja: %d"
-  "New message from \n%s": "Uusi viesti lähettäjältä\n%s"
-  "Input Control: %s/%s": "Tulon ohjaus: %s/%s"
-  "%d of %d nodes online": "%d/%d nodea verkossa"
+  '%d active chat(s)': 'aktiivisia keskusteluja: %d'
+  "New message from \n%s": |-
+    Uusi viesti lähettäjältä
+    %s
+  'Input Control: %s/%s': 'Tulon ohjaus: %s/%s'
+  '%d of %d nodes online': '%d/%d nodea verkossa'
   Filtering ...: Suodatus ...
-  "Filter: %d of %d nodes": Suodatetaan %d/%d nodea
+  'Filter: %d of %d nodes': Suodatetaan %d/%d nodea
   now: nyt
-  "%d new message": "%d uusi viesti"
-  "%d new messages": "%d uutta viestä"
-  "uptime: %02d:%02d:%02d": "käyttöaika: %02d:%02d:%02d"
+  '%d new message': '%d uusi viesti'
+  '%d new messages': '%d uutta viestä'
+  'uptime: %02d:%02d:%02d': 'käyttöaika: %02d:%02d:%02d'
   'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
   Settings: Asetukset
   Tools: Työkalut
@@ -120,3 +129,21 @@
   Resynch ...: Synkronoi uudelleen ...
   Rebooting ...: Käynnistetään uudelleen ...
   Shutting down ...: Sammutetetaan ...
+  LoRa 0.0 MHz: ~
+  silent: ~
+  'WiFi: <not setup>': ~
+  'Lock: off/off': ~
+  LoRa TX off!: ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  Settings Lock: ~
+  'Lock: %s/%s': ~
+  Enter Text ...: ~
+  '!Enter Filter ...': ~
+  Enter Filter ...: ~
+  'WiFi: %s': ~
+  <not set>: ~
+  region unset: ~
+  Banner & Sound: ~
+  Banner only: ~
+  Sound only: ~

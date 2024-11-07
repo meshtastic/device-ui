@@ -1,6 +1,5 @@
 #include "./lv_i18n.h"
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Define plural operands
 // http://unicode.org/reports/tr35/tr35-numbers.html#Operands
@@ -9,36 +8,59 @@
 
 #define UNUSED(x) (void)(x)
 
-static inline uint32_t op_n(int32_t val) { return (uint32_t)(val < 0 ? -val : val); }
-static inline uint32_t op_i(uint32_t val) { return val; }
+static inline uint32_t op_n(int32_t val)
+{
+    return (uint32_t)(val < 0 ? -val : val);
+}
+static inline uint32_t op_i(uint32_t val)
+{
+    return val;
+}
 // always zero, when decimal part not exists.
-static inline uint32_t op_v(uint32_t val) { UNUSED(val); return 0;}
-static inline uint32_t op_w(uint32_t val) { UNUSED(val); return 0; }
-static inline uint32_t op_f(uint32_t val) { UNUSED(val); return 0; }
-static inline uint32_t op_t(uint32_t val) { UNUSED(val); return 0; }
+static inline uint32_t op_v(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
+static inline uint32_t op_w(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
+static inline uint32_t op_f(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
+static inline uint32_t op_t(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
 
 static uint8_t en_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t en_lang = {
-    .locale_name = "en",
+static const lv_i18n_lang_t en_lang = {.locale_name = "en",
 
-
-    .locale_plural_fn = en_plural_fn
-};
+                                       .locale_plural_fn = en_plural_fn};
 
 static lv_i18n_phrase_t de_singulars[] = {
     {"User name: %s", "Benutzer: %s"},
     {"Device Role: %s", "Gerätemodus: %s"},
     {"no new messages", "keine Nachrichten"},
-    {"1 of 1 nodes online", "1/1 Gerät online"},
+    {"1 of 1 nodes online", "1 Gerät online"},
     {"User name: ", "Benutzer: "},
     {"Modem Preset: LONG FAST", "Modem: LONG FAST"},
     {"Channel: LongFast", "Gruppen-Kanäle: LongFast"},
@@ -53,8 +75,8 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Reboot / Shutdown", "Neustart / Ausschalten"},
     {"Group Channels", "Gruppen Kanäle"},
     {"no messages", "keine Nachrichten"},
-    {"Settings", "Einstellungen"},
-    {"Settings (advanced)", "Erweiterte Einstellungen"},
+    {"Settings", "Konfiguration"},
+    {"Settings (advanced)", "Erweiterte Konfiguration"},
     {"Locations Map", "Karte"},
     {"no chats", "Keine Gespräche"},
     {"Node Options", "Optionen"},
@@ -67,7 +89,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Mouse", "Maus"},
     {"Keyboard", "Tastatur"},
     {"Message Alert", "Alarm"},
-    {"NodeDB Reset\nFactory Reset", "Datenbank Reset\nWerkseinstellungen"},
+    {"NodeDB Reset\nFactory Reset", "Datenbank leeren\nWerkseinstellungen"},
     {"Channel Name", "Kanalname"},
     {"Pre-shared Key", "Schlüssel"},
     {"New Message from\n", "Neue Nachricht von\n"},
@@ -78,7 +100,6 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Modem Preset: %s", "Voreinstellung: %s"},
     {"Channel: %s", "Gruppen-Kanäle: %s"},
     {"Language: %s", "Sprache: %s"},
-    {"Screen Lock: off", "Bildschirmsperre: aus"},
     {"Theme: Dark", "Farbschema: Dunkel"},
     {"Mesh Detector", "Mesh-Detektor"},
     {"Signal Scanner", "Signalstärke"},
@@ -86,9 +107,9 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Neighbors", "Nachbarn"},
     {"Statistics", "Paketstatistik"},
     {"Packet Log", "Paket Historie"},
-    {"Settings & Tools", "Einstellungen & Funktionen"},
+    {"Settings & Tools", "Konfiguration & Funktion"},
     {"Node Search", "Gerätesuche"},
-    {"Screen Lock", "Bildschirmsperre"},
+    {"Screen Lock", "Bildschirm"},
     {"Lock PIN", "PIN"},
     {"Ringtone", "Klingelton"},
     {"Zone", "Gebiet"},
@@ -105,7 +126,8 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Cancel", "Abbruch"},
     {"FrequencySlot: %d (%g MHz)", "Frequenz: %d (%g MHz)"},
     {"Brightness: %d%%", "Helligkeit: %d%%"},
-    {"Timeout: off", "Timeout: aus"},
+    {"Timeout: off", "Display aus: aus"},
+    {"Timeout: %ds", "Display aus: %ds"},
     {"Stop", "Stopp"},
     {"choose\nnode", "wähle\nNachbar"},
     {"choose target node", "wähle Ziel"},
@@ -120,10 +142,8 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Message Alert: %s", "Klingelton: %s"},
     {"unknown", "unbekannt"},
     {"<no name>", "<kein Name>"},
-    {"%d active chat(s)", "%d aktive Chat(s)"},
     {"New message from \n%s", "Neue Nachricht von \n%s"},
     {"Input Control: %s/%s", "Eingabegeräte: %s/%s"},
-    {"%d of %d nodes online", "%d / %d Geräte online"},
     {"Filtering ...", "Filtern ..."},
     {"Filter: %d of %d nodes", "Filter: %d / %d Geräte"},
     {"now", "jetzt"},
@@ -133,7 +153,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Highlight", "Hervorheben"},
     {"choose node", "wähle Nachbar"},
     {"Primary Channel", "Primärkanal"},
-    {"Secondary Channels", "Sekundärkanal"},
+    {"Secondary Channels", "Sekundärkanäle"},
     {"Dark\nLight", "Dunkel\nHell"},
     {"Resynch ...", "Synchronisierung ..."},
     {"Rebooting ...", "Neustart ..."},
@@ -146,43 +166,59 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Banner & Sound", "Banner & Ton"},
     {"Banner only", "nur Banner"},
     {"Sound only", "nur Ton"},
+    {"Lock: off/off", "Sperre aus/aus"},
+    {"Settings Lock", "Einstellungen"},
+    {"Lock: %s/%s", "Sperre: %s/%s"},
+    {"Enter Text ...", "Nachricht ..."},
+    {"!Enter Filter ...", "!Filter Name..."},
+    {"Enter Filter ...", "Filter Name..."},
+    {"region unset", "keine Region"},
     {NULL, NULL} // End mark
 };
 
+static lv_i18n_phrase_t de_plurals_one[] = {
+    {"%d active chat(s)", "%d aktives Gespräch"}, {"%d of %d nodes online", "1 Gerät online"}, {NULL, NULL} // End mark
+};
 
+static lv_i18n_phrase_t de_plurals_other[] = {
+    {"%d active chat(s)", "%d aktive Gespräche"}, {"%d of %d nodes online", "%d / %d Geräte online"}, {NULL, NULL} // End mark
+};
 
 static uint8_t de_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t de_lang = {
-    .locale_name = "de",
-    .singulars = de_singulars,
-
-    .locale_plural_fn = de_plural_fn
-};
+static const lv_i18n_lang_t de_lang = {.locale_name = "de",
+                                       .singulars = de_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = de_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = de_plurals_other,
+                                       .locale_plural_fn = de_plural_fn};
 
 static lv_i18n_phrase_t es_singulars[] = {
-    {"no new messages", "sin mensajes nuevos"},
+    {"no new messages", "Sin mensajes nuevos"},
     {"1 of 1 nodes online", "1 de 1 nodos activos"},
     {"DEL", "BOR"},
     {"User name: ", "Nomb. Usua:"},
     {"Channel: LongFast", "Canal: LongFast"},
     {"Role: Client", "Rol: Cliente"},
-    {"Screen Timeout: 60s", "Apag. Panta: 60s"},
-    {"Screen Brightness: 60%", "Brillo Pantalla: 60%"},
+    {"Screen Timeout: 60s", "Apagado pantalla: 60s"},
+    {"Screen Brightness: 60%", "Brillo pantalla: 60%"},
     {"Screen Calibration: default", "Calibración Pantalla: predet."},
     {"Message Alert Buzzer: on", "Zumbador en mensaje: on"},
     {"Language: English", "Idioma: Español"},
     {"Configuration Reset", "Reiniciar Configuración"},
     {"Reboot / Shutdown", "Reiniciar / Apagar"},
-    {"Group Channels", "Canales Grupales"},
+    {"Group Channels", "Canales grupales"},
     {"no messages", "sin mensajes"},
     {"Settings", "Configuración"},
     {"Settings (advanced)", "Configur. avanzada"},
@@ -195,7 +231,7 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"Brightness: 60%", "Brillo: 60%"},
     {"Mouse", "Ratón"},
     {"Keyboard", "Teclado"},
-    {"Message Alert", "Alertar mensaje"},
+    {"Message Alert", "Alerta mensaje"},
     {"NodeDB Reset\nFactory Reset", "Borrar NodeDB\nReini. Fábrica"},
     {"Channel Name", "Nombre Canal"},
     {"Pre-shared Key", "Clave Precomp."},
@@ -234,8 +270,10 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"Start", "Iniciar"},
     {"Theme: %s", "Tema: %s"},
     {"Packet Statistics", "Estadísticas"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Client\nClient Mute\nRouter\n-- obsoleto --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- obsoleto --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
     {"Dark\nLight", "Oscuro\nClaro"},
     {"Cancel", "Cancelar"},
     {"Brightness: %d%%", "Brillo : %d%%"},
@@ -244,10 +282,12 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"choose target node", "escoge nodo de destino"},
     {"heard: !%08x", "oído: !%08x"},
     {"Packet Log: %d", "Reg. Paquetes: %d"},
-    {"Screen Timeout: off", "Apag. Pantalla: off"},
-    {"Screen Timeout: %ds", "Apag. Pantalla: %ds"},
+    {"Screen Timeout: off", "Apag. pantalla: off"},
+    {"Screen Timeout: %ds", "Apag. pantalla: %ds"},
     {"Screen Brightness: %d%%", "Brillo pantalla: %d%%"},
-    {"Screen Lock: %s", "Bloq. Pantalla: %s"},
+    {"Screen Lock: %s", "Bloq. pantalla: %s"},
+    {"on", "activo"},
+    {"off", "inactivo"},
     {"Message Alert: %s", "Alertar mensaje: %s"},
     {"Util %0.1f%%  Air %0.1f%%", "Util %0.1f%%  Aire %0.1f%%"},
     {"hops: %d", "saltos: %d"},
@@ -279,26 +319,30 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"Banner & Sound", "Visual y sonora"},
     {"Banner only", "Solo visual"},
     {"Sound only", "Solo Sonora"},
+    {"Lock: off/off", "Bloqueo: no/no"},
+    {"Settings Lock", "Bloqueo config"},
+    {"Lock: %s/%s", "Bloqueo: %s/%s"},
+    {"Enter Text ...", "Escribe un mensaje..."},
+    {"!Enter Filter ...", "!Introduce filtro..."},
+    {"Enter Filter ...", "Introduce filtro ..."},
+    {"region unset", "región no configurada"},
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t es_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t n = op_n(num);
+    UNUSED(n);
 
-
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t es_lang = {
-    .locale_name = "es",
-    .singulars = es_singulars,
+static const lv_i18n_lang_t es_lang = {.locale_name = "es",
+                                       .singulars = es_singulars,
 
-    .locale_plural_fn = es_plural_fn
-};
+                                       .locale_plural_fn = es_plural_fn};
 
 static lv_i18n_phrase_t fi_singulars[] = {
     {"no new messages", "ei uusia viestejä"},
@@ -411,57 +455,201 @@ static lv_i18n_phrase_t fi_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t fi_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t fi_lang = {
-    .locale_name = "fi",
-    .singulars = fi_singulars,
+static const lv_i18n_lang_t fi_lang = {.locale_name = "fi",
+                                       .singulars = fi_singulars,
 
-    .locale_plural_fn = fi_plural_fn
-};
+                                       .locale_plural_fn = fi_plural_fn};
 
 static uint8_t fr_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
 
-    if ((((i == 0) || (i == 1)))) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((((i == 0) || (i == 1))))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t fr_lang = {
-    .locale_name = "fr",
+static const lv_i18n_lang_t fr_lang = {.locale_name = "fr",
 
+                                       .locale_plural_fn = fr_plural_fn};
 
-    .locale_plural_fn = fr_plural_fn
+static lv_i18n_phrase_t it_singulars[] = {
+    {"no new messages", "nessun messaggio"},
+    {"1 of 1 nodes online", "1 di 1 nodi online"},
+    {"uptime 00:00:00", "tempo di attività 00:00:00"},
+    {"Heap: 0\nLVGL: 0", "Heap: 0\nLVGL: 0"},
+    {"DEL", "CANC"},
+    {"User name: ", "Nome utente: "},
+    {"Modem Preset: LONG FAST", "Modem: LONG FAST"},
+    {"Channel: LongFast", "Canale: LongFast"},
+    {"Role: Client", "Ruolo: Client"},
+    {"Screen Timeout: 60s", "Timeout schermo: 60s"},
+    {"Screen Lock: off", "Blocco schermo: disattivato"},
+    {"Screen Brightness: 60%", "Luminosità schermo: 60%"},
+    {"Theme: Dark", "Tema: Scuro"},
+    {"Screen Calibration: default", "Calibrazione schermo: predefinita"},
+    {"Input Control: none/none", "Controllo di input: nessuno/nessuno"},
+    {"Message Alert Buzzer: on", "Avviso messaggio cicalino: attivo"},
+    {"Language: English", "Lingua: Italiano"},
+    {"Configuration Reset", "Ripristino configurazione"},
+    {"Reboot / Shutdown", "Riavvio / Spegnimento"},
+    {"Mesh Detector", "Rilevatore Mesh"},
+    {"Signal Scanner", "Scanner segnale"},
+    {"Trace Route", "Traccia percorso"},
+    {"Neighbors", "Vicini"},
+    {"Statistics", "Statistiche"},
+    {"Packet Log", "Registro pacchetti"},
+    {"Meshtastic", "Meshtastic"},
+    {"Group Channels", "Canali di gruppo"},
+    {"no messages", "nessun messaggio"},
+    {"Settings & Tools", "Impostazioni & strumenti"},
+    {"Settings (advanced)", "Impostazioni (avanzate)"},
+    {"Locations Map", "Mappa delle posizioni"},
+    {"no chats", "nessuna chat"},
+    {"Node Search", "Ricerca nodo"},
+    {"Packet Statistics", "Statistiche pacchetti"},
+    {"Node Options", "Opzioni nodo"},
+    {"Short Name", "Nome breve"},
+    {"Long Name", "Nome lungo"},
+    {"<unset>", "<non impostato>"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Muto\nRouter\n-- deprecato --\nRipetitore\nTracker\nSensore\nTAK\nClient Nascosto\nOggetti Smarriti\nTAK "
+     "Tracker"},
+    {"Brightness: 60%", "Luminosità: 60%"},
+    {"Dark\nLight", "Scuro\nChiaro"},
+    {"Screen Lock", "Blocco schermo"},
+    {"Lock PIN", "Codice PIN"},
+    {"none", "nessuno"},
+    {"Keyboard", "Tastiera"},
+    {"Message Alert", "Avviso di messaggio"},
+    {"Ringtone", "Suoneria"},
+    {"Default", "Predefinito"},
+    {"Zone", "Zona"},
+    {"City", "Città"},
+    {"NodeDB Reset\nFactory Reset", "Ripristino NodeDB\nRipristino di fabbrica"},
+    {"Channel Name", "Nome Canale"},
+    {"Pre-shared Key", "Chiave Precondivisa"},
+    {"Unknown", "Sconosciuto"},
+    {"Public Key", "Chiave Pubblica"},
+    {"Hops away", "Salti di distanza"},
+    {"Position", "Posizione"},
+    {"Name", "Nome"},
+    {"Active Chat", "Chat Attiva"},
+    {"Telemetry", "Telemetria"},
+    {"New Message from\n", "Nuovo messaggio da\n"},
+    {"Resynch...", "Risinc..."},
+    {"Cancel", "Annulla"},
+    {"FrequencySlot: %d (%g MHz)", "Slot di Frequenza: %d (%g MHz)"},
+    {"Brightness: %d%%", "Luminosità: %d%%"},
+    {"Timeout: off", "Timeout: disattivato"},
+    {"Timeout: %ds", "Timeout: %ds"},
+    {"Screen Calibration: %s", "Calibrazione Schermo: %s"},
+    {"done", "fatto"},
+    {"default", "predefinito"},
+    {"choose\nnode", "scegli\nnodo"},
+    {"choose target node", "scegli nodo di destinazione"},
+    {"heard: !%08x", "sentito: !%08x"},
+    {"Packet Log: %d", "Registro Pacchetti: %d"},
+    {"Language: %s", "Lingua: %s"},
+    {"Screen Timeout: off", "Timeout Schermo: disattivato"},
+    {"Screen Timeout: %ds", "Timeout Schermo: %ds"},
+    {"Screen Brightness: %d%%", "Luminosità Schermo: %d%%"},
+    {"Theme: %s", "Tema: %s"},
+    {"User name: %s", "Nome Utente: %s"},
+    {"Device Role: %s", "Ruolo Dispositivo: %s"},
+    {"Region: %s", "Regione: %s"},
+    {"Modem Preset: %s", "Preset Modem: %s"},
+    {"Channel: %s", "Canale: %s"},
+    {"Screen Lock: %s", "Blocco Schermo: %s"},
+    {"on", "attivo"},
+    {"off", "disattivo"},
+    {"Message Alert: %s", "Avviso di messaggio: %s"},
+    {"Util %0.1f%%  Air %0.1f%%", "Utilizzo %0.1f%%  Aria %0.1f%%"},
+    {"hops: %d", "salti: %d"},
+    {"unknown", "sconosciuto"},
+    {"<no name>", "<senza nome>"},
+    {"New message from \n%s", "Nuovo messaggio da \n%s"},
+    {"Input Control: %s/%s", "Controllo di Input: %s/%s"},
+    {"Filtering ...", "Filtraggio ..."},
+    {"Filter: %d of %d nodes", "Filtro: %d di %d nodi"},
+    {"now", "ora"},
+    {"%d new message", "%d nuovo messaggio"},
+    {"%d new messages", "%d nuovi messaggi"},
+    {"uptime: %02d:%02d:%02d", "tempo di attività:\n%02d:%02d:%02d"},
+    {"Heap: %d (%d%%)\nLVGL: %d (%d%%)", "Heap: %d (%d%%)\nLVGL: %d (%d%%)"},
+    {"Settings", "Impostazioni"},
+    {"Tools", "Strumenti"},
+    {"Filter", "Filtro"},
+    {"Highlight", "Evidenzia"},
+    {"Primary Channel", "Canale Primario"},
+    {"Secondary Channels", "Canali Secondari"},
+    {"Resynch ...", "Risinc ..."},
+    {"Rebooting ...", "Riavvio ..."},
+    {"Shutting down ...", "Spegnimento ..."},
+    {"silent", "silenzioso"},
+    {"WiFi: <not setup>", "WiFi: <non configurato>"},
+    {"Lock: off/off", "Blocco: disattivato/disattivato"},
+    {"LoRa TX off!", "LoRa TX disattivato!"},
+    {"WiFi SSID", "SSID WiFi"},
+    {"WiFi pre-shared Key", "Chiave Precondivisa WiFi"},
+    {"Settings Lock", "Blocco Impostazioni"},
+    {"Lock: %s/%s", "Blocco: %s/%s"},
+    {"Enter Text ...", "Inserisci Testo ..."},
+    {"!Enter Filter ...", "!Inserisci Filtro ..."},
+    {"Enter Filter ...", "Inserisci Filtro ..."},
+    {"WiFi: %s", "WiFi: %s"},
+    {"<not set>", "<non impostato>"},
+    {"region unset", "regione non impostata"},
+    {"Banner & Sound", "Banner e Suono"},
+    {"Banner only", "Solo Banner"},
+    {"Sound only", "Solo Suono"},
+    {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t it_plurals_one[] = {
+    {"%d active chat(s)", "%d chat attiva"}, {"%d of %d nodes online", "1 nodo online"}, {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t it_plurals_other[] = {
+    {"%d active chat(s)", "%d chat attive"}, {"%d of %d nodes online", "%d di %d nodi online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t it_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t it_lang = {
-    .locale_name = "it",
-
-
-    .locale_plural_fn = it_plural_fn
-};
+static const lv_i18n_lang_t it_lang = {.locale_name = "it",
+                                       .singulars = it_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = it_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = it_plurals_other,
+                                       .locale_plural_fn = it_plural_fn};
 
 static lv_i18n_phrase_t nl_singulars[] = {
     {"no new messages", "0 nieuwe berichten"},
@@ -502,8 +690,10 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Short Name", "Korte Naam"},
     {"Long Name", "Lange Naam"},
     {"<unset>", "<niet ingesteld>"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
     {"Brightness: 60%", "Helderheid: 60%"},
     {"Dark\nLight", "Donker\nLicht"},
     {"Timeout: 60s", "Timeout: 60s"},
@@ -585,27 +775,41 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Resynch ...", "Hersync ..."},
     {"Rebooting ...", "Herstarten ..."},
     {"Shutting down ...", "Uitschakelen ..."},
+    {"silent", "stil"},
+    {"WiFi: <not setup>", "WiFi: <niet ingesteld>"},
+    {"Lock: off/off", "Slot: uit/uit"},
+    {"LoRa TX off!", "Lora TX uit!"},
+    {"Settings Lock", "Instellingen Slot"},
+    {"Lock: %s/%s", "Slot: %s/%s"},
+    {"Enter Text ...", "Voer Tekst In ..."},
+    {"!Enter Filter ...", "!Naam ..."},
+    {"Enter Filter ...", "Naam ..."},
+    {"<not set>", "<niet ingesteld>"},
+    {"region unset", "regio niet ingesteld"},
+    {"Banner & Sound", "Strook & Geluid"},
+    {"Banner only", "Alleen strook"},
+    {"Sound only", "Alleen geluid"},
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t nl_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t nl_lang = {
-    .locale_name = "nl",
-    .singulars = nl_singulars,
+static const lv_i18n_lang_t nl_lang = {.locale_name = "nl",
+                                       .singulars = nl_singulars,
 
-    .locale_plural_fn = nl_plural_fn
-};
+                                       .locale_plural_fn = nl_plural_fn};
 
 static lv_i18n_phrase_t pl_singulars[] = {
     {"no new messages", "Brak wiadomości"},
@@ -711,27 +915,30 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t pl_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
     uint32_t i10 = i % 10;
     uint32_t i100 = i % 100;
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14)))) return LV_I18N_PLURAL_TYPE_FEW;
-    if ((v == 0 && i != 1 && (0 <= i10 && i10 <= 1)) || (v == 0 && (5 <= i10 && i10 <= 9)) || (v == 0 && (12 <= i100 && i100 <= 14))) return LV_I18N_PLURAL_TYPE_MANY;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))))
+        return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i != 1 && (0 <= i10 && i10 <= 1)) || (v == 0 && (5 <= i10 && i10 <= 9)) ||
+        (v == 0 && (12 <= i100 && i100 <= 14)))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t pl_lang = {
-    .locale_name = "pl",
-    .singulars = pl_singulars,
+static const lv_i18n_lang_t pl_lang = {.locale_name = "pl",
+                                       .singulars = pl_singulars,
 
-    .locale_plural_fn = pl_plural_fn
-};
+                                       .locale_plural_fn = pl_plural_fn};
 
 static lv_i18n_phrase_t pt_singulars[] = {
     {"no new messages", "Nenhuma mensagem nova"},
@@ -771,8 +978,11 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"Short Name", "Nome Curto"},
     {"Long Name", "Nome Longo"},
     {"<unset>", "<Não Configurado>"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- desativado --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Cliente\nCliente Mudo\nRoteador\n-- desativado --\nRepetidor\nRastreador\nSensor\nTAK\nCliente Oculto\nAchados e Perdidos\nRastreador TAK"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- desativado --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Cliente\nCliente Mudo\nRoteador\n-- desativado --\nRepetidor\nRastreador\nSensor\nTAK\nCliente Oculto\nAchados e "
+     "Perdidos\nRastreador TAK"},
     {"Brightness: 60%", "Brilho de Tela: 60%"},
     {"Dark\nLight", "Escuro\nClaro"},
     {"Timeout: 60s", "Tempo Máximo: 60s"},
@@ -856,41 +1066,42 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t pt_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
 
-    if (((0 <= i && i <= 1))) return LV_I18N_PLURAL_TYPE_ONE;
+    if (((0 <= i && i <= 1)))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t pt_lang = {
-    .locale_name = "pt",
-    .singulars = pt_singulars,
+static const lv_i18n_lang_t pt_lang = {.locale_name = "pt",
+                                       .singulars = pt_singulars,
 
-    .locale_plural_fn = pt_plural_fn
-};
+                                       .locale_plural_fn = pt_plural_fn};
 
 static uint8_t ro_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
     uint32_t n100 = n % 100;
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v != 0) || (n == 0) || (n != 1 && (1 <= n100 && n100 <= 19))) return LV_I18N_PLURAL_TYPE_FEW;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v != 0) || (n == 0) || (n != 1 && (1 <= n100 && n100 <= 19)))
+        return LV_I18N_PLURAL_TYPE_FEW;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t ro_lang = {
-    .locale_name = "ro",
+static const lv_i18n_lang_t ro_lang = {.locale_name = "ro",
 
-
-    .locale_plural_fn = ro_plural_fn
-};
+                                       .locale_plural_fn = ro_plural_fn};
 
 static lv_i18n_phrase_t se_singulars[] = {
     {"no new messages", "inga nya meddelanden"},
@@ -928,8 +1139,12 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Short Name", "Kort Namn"},
     {"Long Name", "Lånt Namn"},
     {"<unset>", "<ej inställt>"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium Räckvidd / Långsam\nMedium räckvidd / Snabb\nKort räckvidd / Långsam\nKort räckvidd / Snabb\nLång räckvidd / Måttlig\nKort räckvidd / Turbo"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Klient\nKlient Stum\nRouter\n-- utfasad --\nRelästation\nSpårare\nSensor\nTAK\nKlient Gömd\nFörlorad & hittad\nTAK Spårare"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium Räckvidd / Långsam\nMedium räckvidd / Snabb\nKort "
+     "räckvidd / Långsam\nKort räckvidd / Snabb\nLång räckvidd / Måttlig\nKort räckvidd / Turbo"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Klient\nKlient Stum\nRouter\n-- utfasad --\nRelästation\nSpårare\nSensor\nTAK\nKlient Gömd\nFörlorad & hittad\nTAK "
+     "Spårare"},
     {"Brightness: 60%", "Ljusstyrka: 60%"},
     {"Dark\nLight", "Mörkt\nLjust"},
     {"Screen Lock", "Bildskärms Lås"},
@@ -1003,27 +1218,40 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Resynch ...", "Synkroniserar om ..."},
     {"Rebooting ...", "Startar om ..."},
     {"Shutting down ...", "Stänger av ..."},
+    {"silent", "tyst"},
+    {"WiFi: <not setup>", "WiFi: <ej inställt>"},
+    {"Lock: off/off", "Lås: av/av"},
+    {"LoRa TX off!", "LoRa TX avstängt!"},
+    {"WiFi pre-shared Key", "WiFi Lösenord"},
+    {"Settings Lock", "Inställningslås"},
+    {"Lock: %s/%s", "Lås: %s/%s"},
+    {"Enter Text ...", "Text ..."},
+    {"!Enter Filter ...", "!Filter ..."},
+    {"Enter Filter ...", "Filter ..."},
+    {"<not set>", "<ej inställd>"},
+    {"region unset", "ingen region"},
+    {"Banner & Sound", "Banner & Ljud"},
+    {"Banner only", "Endast Banner"},
+    {"Sound only", "Endast ljud"},
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t se_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t n = op_n(num);
+    UNUSED(n);
 
-
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((n == 2)) return LV_I18N_PLURAL_TYPE_TWO;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 2))
+        return LV_I18N_PLURAL_TYPE_TWO;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t se_lang = {
-    .locale_name = "se",
-    .singulars = se_singulars,
+static const lv_i18n_lang_t se_lang = {.locale_name = "se",
+                                       .singulars = se_singulars,
 
-    .locale_plural_fn = se_plural_fn
-};
+                                       .locale_plural_fn = se_plural_fn};
 
 static lv_i18n_phrase_t sr_singulars[] = {
     {"no new messages", "nema novih poruka"},
@@ -1152,70 +1380,58 @@ static lv_i18n_phrase_t sr_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t sr_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t v = op_v(n); UNUSED(v);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t f = op_f(n); UNUSED(f);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t f = op_f(n);
+    UNUSED(f);
     uint32_t i10 = i % 10;
     uint32_t i100 = i % 100;
     uint32_t f10 = f % 10;
     uint32_t f100 = f % 100;
-    if ((v == 0 && i10 == 1 && i100 != 11) || (f10 == 1 && f100 != 11)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))) || ((2 <= f10 && f10 <= 4) && (!(12 <= f100 && f100 <= 14)))) return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i10 == 1 && i100 != 11) || (f10 == 1 && f100 != 11))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))) ||
+        ((2 <= f10 && f10 <= 4) && (!(12 <= f100 && f100 <= 14))))
+        return LV_I18N_PLURAL_TYPE_FEW;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t sr_lang = {
-    .locale_name = "sr",
-    .singulars = sr_singulars,
+static const lv_i18n_lang_t sr_lang = {.locale_name = "sr",
+                                       .singulars = sr_singulars,
 
-    .locale_plural_fn = sr_plural_fn
-};
+                                       .locale_plural_fn = sr_plural_fn};
 
 static uint8_t tr_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t n = op_n(num);
+    UNUSED(n);
 
-
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t tr_lang = {
-    .locale_name = "tr",
+static const lv_i18n_lang_t tr_lang = {.locale_name = "tr",
 
-
-    .locale_plural_fn = tr_plural_fn
-};
+                                       .locale_plural_fn = tr_plural_fn};
 
 const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
-    &en_lang,
-    &de_lang,
-    &es_lang,
-    &fi_lang,
-    &fr_lang,
-    &it_lang,
-    &nl_lang,
-    &pl_lang,
-    &pt_lang,
-    &ro_lang,
-    &se_lang,
-    &sr_lang,
-    &tr_lang,
+    &en_lang, &de_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang,
+    &pl_lang, &pt_lang, &ro_lang, &se_lang, &sr_lang, &tr_lang,
     NULL // End mark
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
 // Internal state
-static const lv_i18n_language_pack_t * current_lang_pack;
-static const lv_i18n_lang_t * current_lang;
-
+static const lv_i18n_language_pack_t *current_lang_pack;
+static const lv_i18n_lang_t *current_lang;
 
 /**
  * Reset internal state. For testing.
@@ -1230,13 +1446,15 @@ void __lv_i18n_reset(void)
  * Set the languages for internationalization
  * @param langs pointer to the array of languages. (Last element has to be `NULL`)
  */
-int lv_i18n_init(const lv_i18n_language_pack_t * langs)
+int lv_i18n_init(const lv_i18n_language_pack_t *langs)
 {
-    if(langs == NULL) return -1;
-    if(langs[0] == NULL) return -1;
+    if (langs == NULL)
+        return -1;
+    if (langs[0] == NULL)
+        return -1;
 
     current_lang_pack = langs;
-    current_lang = langs[0];     /*Automatically select the first language*/
+    current_lang = langs[0]; /*Automatically select the first language*/
     return 0;
 }
 
@@ -1244,15 +1462,16 @@ int lv_i18n_init(const lv_i18n_language_pack_t * langs)
  * Change the localization (language)
  * @param l_name name of the translation locale to use. E.g. "en-GB"
  */
-int lv_i18n_set_locale(const char * l_name)
+int lv_i18n_set_locale(const char *l_name)
 {
-    if(current_lang_pack == NULL) return -1;
+    if (current_lang_pack == NULL)
+        return -1;
 
     uint16_t i;
 
-    for(i = 0; current_lang_pack[i] != NULL; i++) {
+    for (i = 0; current_lang_pack[i] != NULL; i++) {
         // Found -> finish
-        if(strcmp(current_lang_pack[i]->locale_name, l_name) == 0) {
+        if (strcmp(current_lang_pack[i]->locale_name, l_name) == 0) {
             current_lang = current_lang_pack[i];
             return 0;
         }
@@ -1261,47 +1480,50 @@ int lv_i18n_set_locale(const char * l_name)
     return -1;
 }
 
-
-static const char * __lv_i18n_get_text_core(lv_i18n_phrase_t * trans, const char * msg_id)
+static const char *__lv_i18n_get_text_core(lv_i18n_phrase_t *trans, const char *msg_id)
 {
     uint16_t i;
-    for(i = 0; trans[i].msg_id != NULL; i++) {
-        if(strcmp(trans[i].msg_id, msg_id) == 0) {
+    for (i = 0; trans[i].msg_id != NULL; i++) {
+        if (strcmp(trans[i].msg_id, msg_id) == 0) {
             /*The msg_id has found. Check the translation*/
-            if(trans[i].translation) return trans[i].translation;
+            if (trans[i].translation)
+                return trans[i].translation;
         }
     }
 
     return NULL;
 }
 
-
 /**
  * Get the translation from a message ID
  * @param msg_id message ID
  * @return the translation of `msg_id` on the set local
  */
-const char * lv_i18n_get_text(const char * msg_id)
+const char *lv_i18n_get_text(const char *msg_id)
 {
-    if(current_lang == NULL) return msg_id;
+    if (current_lang == NULL)
+        return msg_id;
 
-    const lv_i18n_lang_t * lang = current_lang;
-    const void * txt;
+    const lv_i18n_lang_t *lang = current_lang;
+    const void *txt;
 
     // Search in current locale
-    if(lang->singulars != NULL) {
+    if (lang->singulars != NULL) {
         txt = __lv_i18n_get_text_core(lang->singulars, msg_id);
-        if (txt != NULL) return txt;
+        if (txt != NULL)
+            return txt;
     }
 
     // Try to fallback
-    if(lang == current_lang_pack[0]) return msg_id;
+    if (lang == current_lang_pack[0])
+        return msg_id;
     lang = current_lang_pack[0];
 
     // Repeat search for default locale
-    if(lang->singulars != NULL) {
+    if (lang->singulars != NULL) {
         txt = __lv_i18n_get_text_core(lang->singulars, msg_id);
-        if (txt != NULL) return txt;
+        if (txt != NULL)
+            return txt;
     }
 
     return msg_id;
@@ -1313,35 +1535,39 @@ const char * lv_i18n_get_text(const char * msg_id)
  * @param num an integer to select the correct plural form
  * @return the translation of `msg_id` on the set local
  */
-const char * lv_i18n_get_text_plural(const char * msg_id, int32_t num)
+const char *lv_i18n_get_text_plural(const char *msg_id, int32_t num)
 {
-    if(current_lang == NULL) return msg_id;
+    if (current_lang == NULL)
+        return msg_id;
 
-    const lv_i18n_lang_t * lang = current_lang;
-    const void * txt;
+    const lv_i18n_lang_t *lang = current_lang;
+    const void *txt;
     lv_i18n_plural_type_t ptype;
 
     // Search in current locale
-    if(lang->locale_plural_fn != NULL) {
+    if (lang->locale_plural_fn != NULL) {
         ptype = lang->locale_plural_fn(num);
 
-        if(lang->plurals[ptype] != NULL) {
+        if (lang->plurals[ptype] != NULL) {
             txt = __lv_i18n_get_text_core(lang->plurals[ptype], msg_id);
-            if (txt != NULL) return txt;
+            if (txt != NULL)
+                return txt;
         }
     }
 
     // Try to fallback
-    if(lang == current_lang_pack[0]) return msg_id;
+    if (lang == current_lang_pack[0])
+        return msg_id;
     lang = current_lang_pack[0];
 
     // Repeat search for default locale
-    if(lang->locale_plural_fn != NULL) {
+    if (lang->locale_plural_fn != NULL) {
         ptype = lang->locale_plural_fn(num);
 
-        if(lang->plurals[ptype] != NULL) {
+        if (lang->plurals[ptype] != NULL) {
             txt = __lv_i18n_get_text_core(lang->plurals[ptype], msg_id);
-            if (txt != NULL) return txt;
+            if (txt != NULL)
+                return txt;
         }
     }
 
@@ -1352,8 +1578,9 @@ const char * lv_i18n_get_text_plural(const char * msg_id, int32_t num)
  * Get the name of the currently used locale.
  * @return name of the currently used locale. E.g. "en-GB"
  */
-const char * lv_i18n_get_current_locale(void)
+const char *lv_i18n_get_current_locale(void)
 {
-    if(!current_lang) return NULL;
+    if (!current_lang)
+        return NULL;
     return current_lang->locale_name;
 }

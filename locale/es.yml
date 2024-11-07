@@ -1,20 +1,20 @@
 es:
-  no new messages: sin mensajes nuevos
+  no new messages: Sin mensajes nuevos
   1 of 1 nodes online: 1 de 1 nodos activos
   DEL: BOR
   'User name: ': 'Nomb. Usua:'
   'Modem Preset: LONG FAST': ~
   'Channel: LongFast': 'Canal: LongFast'
   'Role: Client': 'Rol: Cliente'
-  'Screen Timeout: 60s': 'Apag. Panta: 60s'
-  'Screen Brightness: 60%': 'Brillo Pantalla: 60%'
+  'Screen Timeout: 60s': 'Apagado pantalla: 60s'
+  'Screen Brightness: 60%': 'Brillo pantalla: 60%'
   'Screen Calibration: default': 'Calibración Pantalla: predet.'
   'Input Control: none/none': ~
   'Message Alert Buzzer: on': 'Zumbador en mensaje: on'
   'Language: English': 'Idioma: Español'
   Configuration Reset: Reiniciar Configuración
   Reboot / Shutdown: Reiniciar / Apagar
-  Group Channels: Canales Grupales
+  Group Channels: Canales grupales
   no messages: sin mensajes
   Settings: Configuración
   Settings (advanced): Configur. avanzada
@@ -29,7 +29,7 @@ es:
   'Timeout: 60s': ~
   Mouse: Ratón
   Keyboard: Teclado
-  Message Alert: Alertar mensaje
+  Message Alert: Alerta mensaje
   "NodeDB Reset\nFactory Reset": "Borrar NodeDB\nReini. Fábrica"
   Channel Name: Nombre Canal
   Pre-shared Key: Clave Precomp.
@@ -90,12 +90,12 @@ es:
   choose target node: escoge nodo de destino
   'heard: !%08x': 'oído: !%08x'
   'Packet Log: %d': 'Reg. Paquetes: %d'
-  'Screen Timeout: off': 'Apag. Pantalla: off'
-  'Screen Timeout: %ds': 'Apag. Pantalla: %ds'
+  'Screen Timeout: off': 'Apag. pantalla: off'
+  'Screen Timeout: %ds': 'Apag. pantalla: %ds'
   'Screen Brightness: %d%%': 'Brillo pantalla: %d%%'
-  'Screen Lock: %s': 'Bloq. Pantalla: %s'
-  'on': ~
-  'off': ~
+  'Screen Lock: %s': 'Bloq. pantalla: %s'
+  'on': activo
+  'off': inactivo
   'Message Alert: %s': 'Alertar mensaje: %s'
   Util %0.1f%%  Air %0.1f%%: Util %0.1f%%  Aire %0.1f%%
   'hops: %d': 'saltos: %d'
@@ -131,3 +131,10 @@ es:
   Banner & Sound: Visual y sonora
   Banner only: Solo visual
   Sound only: Solo Sonora
+  'Lock: off/off': 'Bloqueo: no/no'
+  Settings Lock: Bloqueo config
+  'Lock: %s/%s': 'Bloqueo: %s/%s'
+  Enter Text ...: 'Escribe un mensaje...'
+  '!Enter Filter ...': '!Introduce filtro...'
+  Enter Filter ...: Introduce filtro ...
+  region unset: región no configurada

@@ -111,7 +111,6 @@ void TFTView_320x240::init(IClientBase *client)
 
     time(&lastrun60);
     time(&lastrun10);
-    lastrun10 += 10;
     time(&lastrun5);
     time(&lastrun1);
 }
@@ -124,6 +123,10 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
     if (uiconfig.version == 1) {
         ILOG_INFO("setupUIConfig version %d", uiconfig.version);
         db.uiConfig = uiconfig;
+        if (db.uiConfig.screen_timeout == 1) {
+            db.uiConfig.screen_timeout = 30;
+            controller->storeUIConfig(db.uiConfig);
+        }
     }
     else {
         ILOG_WARN("invalid uiconfig version %d, reset UI settings to default", uiconfig.version);
@@ -147,9 +150,7 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig)
     // setKeyboard(db.uiConfig.language);
 
     // set theme
-    Themes::set(Themes::Theme(db.uiConfig.theme));
-    Themes::initStyles();
-    updateTheme();
+    setTheme(db.uiConfig.theme);
 
     // grey out bell until we got the ringtone (0 = silent)
     Themes::recolorButton(objects.home_bell_button, false);
@@ -354,8 +355,12 @@ void TFTView_320x240::apply_hotfix(void)
     lv_label_set_text(objects.detector_start_label, _("Start"));
     lv_obj_clear_flag(objects.detector_start_button_panel, LV_OBJ_FLAG_HIDDEN);
 
+    lv_textarea_set_placeholder_text(objects.message_input_area, _("Enter Text ..."));
+    lv_textarea_set_placeholder_text(objects.nodes_filter_name_area, _("!Enter Filter ..."));
+    lv_textarea_set_placeholder_text(objects.nodes_hl_name_area, _("Enter Filter ..."));
+
     auto applyStyle = [](lv_obj_t *tab_buttons) {
-        for (int i = 0; i < tab_buttons->spec_attr->child_cnt; i++) {
+        for (int i = 0; i < lv_obj_get_child_count(tab_buttons); i++) {
             if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
                 lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_default, LV_STATE_DEFAULT);
                 lv_obj_add_style(tab_buttons->spec_attr->children[i], &style_btn_active, LV_STATE_CHECKED);
@@ -2206,27 +2211,35 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_ENGLISH:
         return 0;
     case meshtastic_Language_FRENCH:
-        return 3;
+        return 4;
     case meshtastic_Language_GERMAN:
         return 1;
     case meshtastic_Language_ITALIAN:
-        return 4;
-    case meshtastic_Language_PORTUGUESE:
-        return 7;
-    case meshtastic_Language_SPANISH:
-        return 2;
-    case meshtastic_Language_SWEDISH:
-        return 9;
-    case meshtastic_Language_FINNISH:
-        return 8;
-    case meshtastic_Language_POLISH:
-        return 6;
-    case meshtastic_Language_TURKISH:
-        return 10;
-#if 0
-    case meshtastic_Language_DUTCH:
         return 5;
-#endif
+    case meshtastic_Language_PORTUGUESE:
+        return 8;
+    case meshtastic_Language_SPANISH:
+        return 3;
+    case meshtastic_Language_SWEDISH:
+        return 12;
+    case meshtastic_Language_FINNISH:
+        return 11;
+    case meshtastic_Language_POLISH:
+        return 7;
+    case meshtastic_Language_TURKISH:
+        return 13;
+    case meshtastic_Language_SERBIAN:
+        return 10;
+    case meshtastic_Language_RUSSIAN:
+        return 9;
+    case meshtastic_Language_DUTCH:
+        return 6;
+    case meshtastic_Language_GREEK:
+        return 2;
+    case meshtastic_Language_SIMPLIFIED_CHINESE:
+        return 14;
+    case meshtastic_Language_TRADITIONAL_CHINESE:
+        return 15;
     default:
         ILOG_WARN("unknown language uiconfig: %d", lang);
     }
@@ -2238,28 +2251,36 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
     switch(val) {
     case 0:
         return meshtastic_Language_ENGLISH;
-    case 3:
+    case 4:
         return meshtastic_Language_FRENCH;
     case 1:
         return meshtastic_Language_GERMAN;
-    case 4:
-        return meshtastic_Language_ITALIAN;
-    case 7:
-        return meshtastic_Language_PORTUGUESE;
-    case 2:
-        return meshtastic_Language_SPANISH;
-    case 9:
-        return meshtastic_Language_SWEDISH;
-    case 8:
-        return meshtastic_Language_FINNISH;
-    case 6:
-        return meshtastic_Language_POLISH;
-    case 10:
-        return meshtastic_Language_TURKISH;
-#if 0
     case 5:
+        return meshtastic_Language_ITALIAN;
+    case 8:
+        return meshtastic_Language_PORTUGUESE;
+    case 3:
+        return meshtastic_Language_SPANISH;
+    case 12:
+        return meshtastic_Language_SWEDISH;
+    case 11:
+        return meshtastic_Language_FINNISH;
+    case 7:
+        return meshtastic_Language_POLISH;
+    case 13:
+        return meshtastic_Language_TURKISH;
+    case 10:
+        return meshtastic_Language_SERBIAN;
+    case 9:
+        return meshtastic_Language_RUSSIAN;
+    case 6:
         return meshtastic_Language_DUTCH;
-#endif
+    case 2:
+        return meshtastic_Language_GREEK;
+    case 14:
+        return meshtastic_Language_SIMPLIFIED_CHINESE;
+    case 15:
+        return meshtastic_Language_TRADITIONAL_CHINESE;
     default:
         ILOG_WARN("unknown language val: %d", val);
     }
@@ -2312,7 +2333,6 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("tr");
         locale = "tr_TR.UTF-8";
         break;
-#if 1
     case meshtastic_Language_SERBIAN:
         lv_i18n_set_locale("sr");
         locale = "sr_RS.UTF-8";
@@ -2329,7 +2349,14 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("gr");
         locale = "el_GR.UTF-8";
         break;
-#endif
+    case meshtastic_Language_SIMPLIFIED_CHINESE:
+        lv_i18n_set_locale("cn");
+        locale = "zh_CN.UTF-8";
+        break;
+    case meshtastic_Language_TRADITIONAL_CHINESE:
+        lv_i18n_set_locale("tw");
+        locale = "zh_TW.UTF-8";
+        break;
     default:
         ILOG_WARN("Language %d not implemented", lang);
         break;
@@ -2378,11 +2405,12 @@ void TFTView_320x240::setBrightness(uint32_t brightness)
 }
 
 /**
- * @brief Set theme according current dropdown selection
+ * @brief Set theme to new value
  */
 void TFTView_320x240::setTheme(uint32_t value)
 {
     char buf1[10], buf2[30];
+    lv_dropdown_set_selected(objects.settings_theme_dropdown, value);
     lv_dropdown_get_selected_str(objects.settings_theme_dropdown, buf1, sizeof(buf1));
     lv_snprintf(buf2, sizeof(buf2), _("Theme: %s"), buf1);
     lv_label_set_text(objects.basic_settings_theme_label, buf2);
@@ -3019,7 +3047,7 @@ void TFTView_320x240::addMessage(uint32_t requestId, char *msg)
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
     lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(textLabel, std::max(std::min(width + 20, 200), 40));
+    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(width + 20, 200), 40));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
@@ -3734,13 +3762,13 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
             lv_slider_set_value(objects.rssi_slider, rx_rssi, LV_ANIM_ON);
 
 #if defined(USE_SX127x)
-            int p_snr = ((std::max(rx_snr, -19.0f) + 19.0f) / 33.0f) * 100.0f; // range -19..14
-            int p_rssi = ((std::max(rx_rssi, -145) + 145) * 100) / 90;         // range -145..-55
+            int p_snr = ((std::max<int32_t>(rx_snr, -19.0f) + 19.0f) / 33.0f) * 100.0f; // range -19..14
+            int p_rssi = ((std::max<int32_t>(rx_rssi, -145L) + 145) * 100) / 90;         // range -145..-55
 #else
-            int p_snr = ((std::max(rx_snr, -18.0f) + 18.0f) / 26.0f) * 100.0f; // range -18..8
-            int p_rssi = ((std::max(rx_rssi, -125) + 125) * 100) / 100;        // range -125..-25
+            int p_snr = ((std::max<int32_t>(rx_snr, -18.0f) + 18.0f) / 26.0f) * 100.0f; // range -18..8
+            int p_rssi = ((std::max<int32_t>(rx_rssi, -125) + 125) * 100) / 100;        // range -125..-25
 #endif
-            sprintf(buf, "%d%%", std::min((p_snr + p_rssi * 2) / 3, 100));
+            sprintf(buf, "%d%%", std::min<int32_t>((p_snr + p_rssi * 2) / 3, 100));
             lv_label_set_text(objects.signal_scanner_start_label, buf);
         }
     } else {
@@ -4095,23 +4123,23 @@ void TFTView_320x240::blankScreen(bool enable)
 
 void TFTView_320x240::screenSaving(bool enabled)
 {
-    if (enabled)
-        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
+    if (enabled) {
+        // overlay main screen with blank screen to prevent accidentally pressing buttons
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 0, 0, false);
+    }
     else {
-        if (objects.main_screen)
+        if (THIS->db.uiConfig.screen_lock)
+            lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        else if (objects.main_screen)
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         else
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
     }
-
-    // TODO: lock screen after e.g. 5 mins blanking
-    // if (THIS->db.config.bluetooth.fixed_pin)
-    //     screenLocked |= enabled;
 }
 
 bool TFTView_320x240::isScreenLocked(void)
 {
-    return THIS->db.config.bluetooth.fixed_pin && THIS->screenLocked;
+    return THIS->db.uiConfig.screen_lock && THIS->screenLocked;
 }
 
 void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
@@ -4245,8 +4273,11 @@ void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
     float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num);
     if (frequency > 1.0 && frequency < 10000.0) {
         sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
-        lv_label_set_text(objects.home_lora_label, loraFreq);
     }
+    else {
+        strcpy(loraFreq, _("region unset"));
+    }
+    lv_label_set_text(objects.home_lora_label, loraFreq);
     Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
     Themes::recolorText(objects.home_lora_label, cfg.tx_enabled);
     if (!cfg.tx_enabled) {
@@ -4504,7 +4535,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
     lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(msgLabel, std::max(std::min(width + 20, 200), 40));
+    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width) + 20, 200), 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT); /// 1
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
@@ -4617,7 +4648,7 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
 void TFTView_320x240::updateActiveChats(void)
 {
     char buf[40];
-    sprintf(buf, _("%d active chat(s)"), chats.size());
+    sprintf(buf, _p("%d active chat(s)", chats.size()), chats.size());
     lv_label_set_text(objects.top_chats_label, buf);
 }
 
@@ -4887,7 +4918,7 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, l
 void TFTView_320x240::updateNodesStatus(void)
 {
     char buf[40];
-    lv_snprintf(buf, sizeof(buf), _("%d of %d nodes online"), nodesOnline, nodeCount);
+    lv_snprintf(buf, sizeof(buf), _p("%d of %d nodes online", nodesOnline), nodesOnline, nodeCount);
     lv_label_set_text(objects.home_nodes_label, buf);
 
     if (nodesFiltered) {

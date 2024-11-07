@@ -97,6 +97,7 @@ class ViewController
     uint32_t sendId;
     uint32_t myNodeNum;
     time_t lastrun10;
+    time_t lastSetup;
     bool setupDone;
     bool requestConfigRequired;
 };

@@ -156,6 +156,10 @@
 #define LGFX_TOUCH_INT -1
 #endif
 
+#ifndef LGFX_TOUCH_RST
+#define LGFX_TOUCH_RST -1
+#endif
+
 #ifndef LGFX_TOUCH_ROTATION
 #define LGFX_TOUCH_ROTATION 0
 #endif
@@ -290,6 +294,7 @@ class LGFX_GENERIC : public lgfx::LGFX_Device
             cfg.y_min = LGFX_TOUCH_Y_MIN;
             cfg.y_max = LGFX_TOUCH_Y_MAX;
             cfg.pin_int = LGFX_TOUCH_INT;
+            cfg.pin_rst = LGFX_TOUCH_RST;
             cfg.offset_rotation = LGFX_TOUCH_ROTATION;
 
 #ifdef LGFX_TOUCH_I2C_ADDR

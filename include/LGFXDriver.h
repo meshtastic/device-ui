@@ -102,7 +102,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     }
                 }
                 if (powerSaving) {
-                    int pin_int = 0;
+                    int pin_int = -1;
                     if (hasTouch()) {
 #ifndef CUSTOM_TOUCH_DRIVER
                         pin_int = lgfx->touch()->config().pin_int;
@@ -115,7 +115,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         pin_int = BUTTON_PIN;
 #endif
                     }
-                    if (DisplayDriver::view->sleep(pin_int) ||
+                    if ((pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
                         (screenTimeout > lv_display_get_inactive_time(NULL) &&
                          ((DisplayDriver::view->isScreenLocked() &&
                            lv_display_get_inactive_time(NULL) < defaultScreenLockTimeout) ||

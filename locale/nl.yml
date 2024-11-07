@@ -37,10 +37,32 @@ nl:
   Short Name: Korte Naam
   Long Name: Lange Naam
   <unset>: <niet ingesteld>
-  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": |-
+    LONG FAST
+    LONG SLOW
+    -- deprecated --
+    MEDIUM SLOW
+    MEDIUM FAST
+    SHORT SLOW
+    SHORT FAST
+    LONG MODERATE
+    SHORT TURBO
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
+    Client
+    Client Mute
+    Router
+    -- deprecated --
+    Repeater
+    Tracker
+    Sensor
+    TAK
+    Client Hidden
+    Lost & Found
+    TAK Tracker
   'Brightness: 60%': 'Helderheid: 60%'
-  "Dark\nLight": "Donker\nLicht"
+  "Dark\nLight": |-
+    Donker
+    Licht
   'Timeout: 60s': 'Timeout: 60s'
   Screen Lock: Vergrendeling
   Lock PIN: PIN
@@ -52,7 +74,9 @@ nl:
   Default: Standaard
   Zone: Zone
   City: Stad
-  "NodeDB Reset\nFactory Reset": "NodeDB herstellen\nFabrieksinstellingen herstellen"
+  "NodeDB Reset\nFactory Reset": |-
+    NodeDB herstellen
+    Fabrieksinstellingen herstellen
   Channel Name: Kanaal Naam
   Pre-shared Key: Pre-shared Key
   Unknown: Onbekend
@@ -66,7 +90,8 @@ nl:
   Telemetry: Telemetrie
   IAQ: IAQ
   Start: Start
-  "New Message from\n": "Nieuw bericht van\n"
+  "New Message from\n": |
+    Nieuw bericht van
   Resynch...: Hersync...
   OK: OK
   Cancel: Annuleer
@@ -78,7 +103,9 @@ nl:
   done: gereed
   default: standaard
   Stop: Stop
-  "choose\nnode": "kies\nnode"
+  "choose\nnode": |-
+    kies
+    node
   choose target node: kies doelnode
   'heard: !%08x': 'gehoord: !%08x'
   'Packet Log: %d': 'Packet Log: %d'
@@ -93,15 +120,17 @@ nl:
   'Modem Preset: %s': 'Modem Preset: %s'
   'Channel: %s': 'Kanaal: %s'
   'Screen Lock: %s': 'Schermvergrendeling: %s'
-  'on': 'aan'
-  'off': 'uit'
+  'on': aan
+  'off': uit
   'Message Alert: %s': 'Bericht Notificatie: %s'
   Util %0.1f%%  Air %0.1f%%: Util %0.1f%%  Air %0.1f%%
   'hops: %d': 'hops: %d'
   unknown: onbekend
   <no name>: <geen naam>
   '%d active chat(s)': '%d actieve chat(s)'
-  "New message from \n%s": "Nieuw bericht van \n%s"
+  "New message from \n%s": |-
+    Nieuw bericht van 
+    %s
   'Input Control: %s/%s': 'Input Control: %s/%s'
   '%d of %d nodes online': '%d van %d nodes online'
   Filtering ...: Filteren ...
@@ -120,3 +149,21 @@ nl:
   Resynch ...: Hersync ...
   Rebooting ...: Herstarten ...
   Shutting down ...: Uitschakelen ...
+  LoRa 0.0 MHz: ~
+  silent: stil
+  'WiFi: <not setup>': 'WiFi: <niet ingesteld>'
+  'Lock: off/off': 'Slot: uit/uit'
+  LoRa TX off!: Lora TX uit!
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  Settings Lock: Instellingen Slot
+  'Lock: %s/%s': 'Slot: %s/%s'
+  Enter Text ...: Voer Tekst In ...
+  '!Enter Filter ...': '!Naam ...'
+  Enter Filter ...:  'Naam ...'
+  'WiFi: %s': ~
+  <not set>: <niet ingesteld>
+  region unset: regio niet ingesteld
+  Banner & Sound: Strook & Geluid
+  Banner only: Alleen strook
+  Sound only: Alleen geluid

@@ -1,4 +1,3 @@
-
 #pragma once
 #define LGFX_USE_V1
 
@@ -6,12 +5,12 @@
 #include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
 #include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
 
-class LGFX_4848S040 : public lgfx::LGFX_Device
+class LGFX_MAKERFABS480X480 : public lgfx::LGFX_Device
 {
-    lgfx::Panel_ST7701_guition_esp32_4848S040 _panel_instance;
+    lgfx::Panel_ST7701 _panel_instance;
     lgfx::Bus_RGB _bus_instance;
     lgfx::Light_PWM _light_instance;
-    lgfx::Touch_GT911 _touch_instance;
+    lgfx::Touch_GT911  _touch_instance;
 
   public:
     const uint16_t screenWidth = 480;
@@ -19,7 +18,7 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
 
     bool hasButton(void) { return false; }
 
-    LGFX_4848S040(void)
+    LGFX_MAKERFABS480X480(void)
     {
         {
             auto cfg = _panel_instance.config();
@@ -35,9 +34,9 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
 
         {
             auto cfg = _panel_instance.config_detail();
-            cfg.pin_cs = 39;
-            cfg.pin_sclk = 48;
-            cfg.pin_mosi = 47;
+            cfg.pin_cs = 1;
+            cfg.pin_sclk = 12;
+            cfg.pin_mosi = 11;
             cfg.use_psram = 1;
             _panel_instance.config_detail(cfg);
         }
@@ -45,45 +44,42 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
         {
             auto cfg = _bus_instance.config();
             cfg.panel = &_panel_instance;
+            cfg.pin_d0  = GPIO_NUM_6;  // B0
+            cfg.pin_d1  = GPIO_NUM_7;  // B1
+            cfg.pin_d2  = GPIO_NUM_15; // B2
+            cfg.pin_d3  = GPIO_NUM_16; // B3
+            cfg.pin_d4  = GPIO_NUM_8;  // B4
+            cfg.pin_d5  = GPIO_NUM_0;  // G0
+            cfg.pin_d6  = GPIO_NUM_9;  // G1
+            cfg.pin_d7  = GPIO_NUM_14; // G2
+            cfg.pin_d8  = GPIO_NUM_47; // G3
+            cfg.pin_d9  = GPIO_NUM_48; // G4
+            cfg.pin_d10 = GPIO_NUM_3;  // G5
+            cfg.pin_d11 = GPIO_NUM_39; // R0
+            cfg.pin_d12 = GPIO_NUM_40; // R1
+            cfg.pin_d13 = GPIO_NUM_41; // R2
+            cfg.pin_d14 = GPIO_NUM_42; // R3
+            cfg.pin_d15 = GPIO_NUM_2; // R4
 
-            cfg.pin_d0 = GPIO_NUM_4;   // DB1(B)
-            cfg.pin_d1 = GPIO_NUM_5;   // DB2(B)
-            cfg.pin_d2 = GPIO_NUM_6;   // DB3(B)
-            cfg.pin_d3 = GPIO_NUM_7;   // DB4(B)
-            cfg.pin_d4 = GPIO_NUM_15;  // DB5(B)
+            cfg.pin_henable = GPIO_NUM_45;
+            cfg.pin_vsync   = GPIO_NUM_4;
+            cfg.pin_hsync   = GPIO_NUM_5;
+            cfg.pin_pclk    = GPIO_NUM_21;
+            cfg.freq_write  = 14000000;
 
-            cfg.pin_d5 = GPIO_NUM_8;   // DB6(G)
-            cfg.pin_d6 = GPIO_NUM_20;  // DB7(G)
-            cfg.pin_d7 = GPIO_NUM_3;   // DB8(G)
-            cfg.pin_d8 = GPIO_NUM_46;  // DB9(G)
-            cfg.pin_d9 = GPIO_NUM_9;   // DB10(G)
-            cfg.pin_d10 = GPIO_NUM_10; // DB11(G)
-
-            cfg.pin_d11 = GPIO_NUM_11; // DB13(R)
-            cfg.pin_d12 = GPIO_NUM_12; // DB14(R)
-            cfg.pin_d13 = GPIO_NUM_13; // DB15(R)
-            cfg.pin_d14 = GPIO_NUM_14; // DB16(R)
-            cfg.pin_d15 = GPIO_NUM_0;  // DB17(R)
-
-            cfg.pin_henable = GPIO_NUM_18;
-            cfg.pin_vsync = GPIO_NUM_17;
-            cfg.pin_hsync = GPIO_NUM_16;
-            cfg.pin_pclk = GPIO_NUM_21;
-            cfg.freq_write = 12000000;
-
-            cfg.hsync_polarity = 1;
+            cfg.hsync_polarity    = 0;
             cfg.hsync_front_porch = 10;
             cfg.hsync_pulse_width = 8;
-            cfg.hsync_back_porch = 50;
+            cfg.hsync_back_porch  = 50;
 
-            cfg.vsync_polarity = 1;
+            cfg.vsync_polarity    = 0;
             cfg.vsync_front_porch = 10;
             cfg.vsync_pulse_width = 8;
-            cfg.vsync_back_porch = 20;
+            cfg.vsync_back_porch  = 20;
 
-            cfg.pclk_active_neg = 1;
-            cfg.de_idle_high = 0;
-            cfg.pclk_idle_high = 0;
+            cfg.pclk_active_neg   = 0;
+            cfg.pclk_idle_high    = 0;
+            cfg.de_idle_high      = 1;
 
             _bus_instance.config(cfg);
         }
@@ -91,8 +87,8 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
 
         {
             auto cfg = _light_instance.config();
-            cfg.pin_bl = 38;
-            cfg.freq = 80;  // higher value decrease brightness
+            cfg.pin_bl = 44;
+            //cfg.freq = 80;  // higher value decrease brightness
             _light_instance.config(cfg);
         }
         _panel_instance.light(&_light_instance);
@@ -104,18 +100,20 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
             cfg.x_max = 479;
             cfg.y_min = 0;
             cfg.y_max = 479;
-            cfg.pin_int = GPIO_NUM_NC;
-            cfg.pin_rst = GPIO_NUM_NC;
             cfg.bus_shared = false;
-            cfg.offset_rotation = 3;
+            cfg.offset_rotation = 0;
 
-            cfg.i2c_port = 0;
+            cfg.i2c_port = 1;
             cfg.i2c_addr = 0x5D;
-            cfg.pin_sda = 19;
-            cfg.pin_scl = 45;
+            cfg.pin_int = GPIO_NUM_NC;
+            cfg.pin_sda = GPIO_NUM_17;
+            cfg.pin_scl = GPIO_NUM_18;
+            cfg.pin_rst = GPIO_NUM_38;
+
             cfg.freq = 400000;
             _touch_instance.config(cfg);
             _panel_instance.setTouch(&_touch_instance);
+
         }
 
         setPanel(&_panel_instance);

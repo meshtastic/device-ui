@@ -114,7 +114,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             cfg.pin_vsync = GPIO_NUM_17;
             cfg.pin_hsync = GPIO_NUM_16;
             cfg.pin_pclk = GPIO_NUM_21;
-            cfg.freq_write = 12000000;
+            cfg.freq_write = 6000000;
 
             cfg.hsync_polarity = 0;
             cfg.hsync_front_porch = 10;
