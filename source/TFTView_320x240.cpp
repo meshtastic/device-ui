@@ -382,6 +382,11 @@ void TFTView_320x240::apply_hotfix(void)
         }
     }
 
+    // resize keyboard
+    if (v >= 480) {
+        lv_obj_set_size(objects.keyboard, LV_PCT(100), LV_PCT(50));
+    }
+
     // add event callback to to apply custom drawing for statistics table
     lv_obj_add_event_cb(objects.statistics_table, ui_event_statistics_table, LV_EVENT_DRAW_TASK_ADDED, NULL);
     lv_obj_add_flag(objects.statistics_table, LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS);
@@ -4061,6 +4066,9 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
 void TFTView_320x240::notifyResync(bool show)
 {
     messageAlert(_("Resynch ..."), show);
+    if (!show) {
+        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    }
 }
 
 void TFTView_320x240::notifyReboot(bool show)
