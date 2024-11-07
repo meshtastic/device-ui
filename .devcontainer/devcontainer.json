@@ -22,5 +22,5 @@
         }
     },
 
-    "postCreateCommand": "npm i lv_i18n -g"
+    "postCreateCommand": "npm install lv_i18n -g --no-fund"
 }
