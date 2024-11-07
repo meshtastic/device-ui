@@ -132,7 +132,9 @@ se:
     Nytt meddelande från 
     %s
   'Input Control: %s/%s': 'Inmatningsmetod: %s/%s'
-  '%d of %d nodes online': '%d av %d noder online'
+  '%d of %d nodes online':
+    one: 1 nod online
+    other: '%d av %d noder online'
   Filtering ...: Filtrerar ...
   'Filter: %d of %d nodes': 'Filter: %d av %d noder'
   now: nu
