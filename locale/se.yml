@@ -1,7 +1,7 @@
 se:
   no new messages: inga nya meddelanden
   1 of 1 nodes online: 1 av 1 noder online
-  'uptime 00:00:00': 'upptid 00:00:00'
+  'uptime 00:00:00': upptid 00:00:00
   'Heap: 0\nLVGL: 0': ~
   DEL: ~
   'User name: ': 'Användarnamn: '
@@ -35,9 +35,10 @@ se:
   Packet Statistics: Paket Statistik
   Node Options: Nod alternativ
   Short Name: Kort Namn
-  Long Name: Lånt Namn
+  Long Name: Långt Namn
   <unset>: <ej inställt>
-  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": |-
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO":
+    |-
     Lång räckvidd / Snabb
     Lång räckvidd / Långsam
     -- utfasad --
@@ -47,7 +48,8 @@ se:
     Kort räckvidd / Snabb
     Lång räckvidd / Måttlig
     Kort räckvidd / Turbo
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker":
+    |-
     Klient
     Klient Stum
     Router
