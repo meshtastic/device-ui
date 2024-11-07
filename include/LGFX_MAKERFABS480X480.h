@@ -16,7 +16,7 @@ class LGFX_MAKERFABS480X480 : public lgfx::LGFX_Device
     const uint16_t screenWidth = 480;
     const uint16_t screenHeight = 480;
 
-    bool hasButton(void) { return true; }
+    bool hasButton(void) { return false; }
 
     LGFX_MAKERFABS480X480(void)
     {
