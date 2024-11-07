@@ -37,8 +37,7 @@ se:
   Short Name: Kort Namn
   Long Name: Långt Namn
   <unset>: <ej inställt>
-  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO":
-    |-
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": |-
     Lång räckvidd / Snabb
     Lång räckvidd / Långsam
     -- utfasad --
@@ -48,8 +47,7 @@ se:
     Kort räckvidd / Snabb
     Lång räckvidd / Måttlig
     Kort räckvidd / Turbo
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker":
-    |-
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
     Klient
     Klient Stum
     Router
