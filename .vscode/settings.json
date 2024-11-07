@@ -1,13 +1,13 @@
 {
-    // See https://code.visualstudio.com/docs/getstarted/settings#_settings-json-file
-    // for the documentation about the settings.json format.
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "trunk.io",
-    "trunk.enableWindows": true,
-    "files.insertFinalNewline": false,
-    "files.trimFinalNewlines": false,
-    "cmake.configureOnOpen": false,
-    "[cpp]": {
-        "editor.defaultFormatter": "trunk.io"
-    }
+  // See https://code.visualstudio.com/docs/getstarted/settings#_settings-json-file
+  // for the documentation about the settings.json format.
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "trunk.io",
+  "trunk.enableWindows": true,
+  "files.insertFinalNewline": false,
+  "files.trimFinalNewlines": false,
+  "cmake.configureOnOpen": false,
+  "[cpp]": {
+    "editor.defaultFormatter": "trunk.io"
+  }
 }
