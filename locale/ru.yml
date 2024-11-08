@@ -94,8 +94,8 @@ ru:
   'Screen Timeout: %ds': 'Таймаут экрана: %ds'
   'Screen Brightness: %d%%': 'Яркость экрана: %d%%'
   'Screen Lock: %s': 'Блокировка экрана: %s'
-  'on': ~
-  'off': ~
+  'on': вкл
+  'off': выкл
   'Message Alert: %s': 'Оповещение: %s'
   Util %0.1f%%  Air %0.1f%%: ~
   'hops: %d': 'переходов: %d'
@@ -121,20 +121,20 @@ ru:
   Rebooting ...: Перезагрузка ...
   Shutting down ...: Выключение ...
   LoRa 0.0 MHz: ~
-  silent: ~
-  'WiFi: <not setup>': ~
-  'Lock: off/off': ~
-  LoRa TX off!: ~
-  WiFi SSID: ~
+  silent: тихий режим
+  'WiFi: <not setup>': 'WiFi: <не настроен>'
+  'Lock: off/off': 'Блокировка: выкл/выкл'
+  LoRa TX off!: LoRa TX выкл.!
+  WiFi SSID: Имя сети WiFi
   WiFi pre-shared Key: ~
-  Settings Lock: ~
-  'Lock: %s/%s': ~
-  Enter Text ...: ~
-  '!Enter Filter ...': ~
-  Enter Filter ...: ~
-  'WiFi: %s': ~
-  <not set>: ~
-  region unset: ~
-  Banner & Sound: ~
-  Banner only: ~
-  Sound only: ~
+  Settings Lock: Блокировка настроек
+  'Lock: %s/%s': 'Блокировка: %s/%s'
+  Enter Text ...: Введите сообщение ...
+  '!Enter Filter ...': '!Введите фильтр ...'
+  Enter Filter ...: Введите фильтр ...
+  'WiFi: %s': 'WiFi: %s'
+  <not set>: <не настроено>
+  region unset: регион не установлен
+  Banner & Sound: Баннер и звук
+  Banner only: Только баннер
+  Sound only: Только звук
