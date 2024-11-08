@@ -402,10 +402,10 @@
 #define LV_FONT_MONTSERRAT_8  0
 #define LV_FONT_MONTSERRAT_10 0
 #define LV_FONT_MONTSERRAT_12 0
-#define LV_FONT_MONTSERRAT_14 1  // needed for osd keyboard unless having figured out to add the missing glyphs
-#define LV_FONT_MONTSERRAT_16 0
+#define LV_FONT_MONTSERRAT_14 0
+#define LV_FONT_MONTSERRAT_16 1 // used for keyboard only
 #define LV_FONT_MONTSERRAT_18 0
-#define LV_FONT_MONTSERRAT_20 1  // only used for title
+#define LV_FONT_MONTSERRAT_20 0
 #define LV_FONT_MONTSERRAT_22 0
 #define LV_FONT_MONTSERRAT_24 0
 #define LV_FONT_MONTSERRAT_26 0
@@ -433,7 +433,7 @@
 /*Optionally declare custom fonts here.
  *You can use these fonts as default font too and they will be available globally.
  *E.g. #define LV_FONT_CUSTOM_DECLARE   LV_FONT_DECLARE(my_font_1) LV_FONT_DECLARE(my_font_2)*/
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(ui_font_montserrat_14)
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(ui_font_montserrat_12) LV_FONT_DECLARE(ui_font_montserrat_14) LV_FONT_DECLARE(ui_font_montserrat_16) LV_FONT_DECLARE(ui_font_montserrat_20)
 
 /*Always set a default font*/
 #define LV_FONT_DEFAULT &ui_font_montserrat_14
