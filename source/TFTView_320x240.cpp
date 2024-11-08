@@ -165,8 +165,8 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     THIS->setTimeout(db.uiConfig.screen_timeout);
 
     // set screen/settings lock
-    char buf[32];
-    lv_snprintf(buf, 32, _("Lock: %s/%s"), db.uiConfig.screen_lock ? _("on") : _("off"),
+    char buf[40];
+    lv_snprintf(buf, 40, _("Lock: %s/%s"), db.uiConfig.screen_lock ? _("on") : _("off"),
                 db.uiConfig.settings_lock ? _("on") : _("off"));
     lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
 
@@ -2615,8 +2615,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->controller->storeUIConfig(THIS->db.uiConfig);
             }
 
-            char buf[32];
-            lv_snprintf(buf, 32, _("Lock: %s/%s"), screenLock ? _("on") : _("off"), settingsLock ? _("on") : _("off"));
+            char buf[40];
+            lv_snprintf(buf, 40, _("Lock: %s/%s"), screenLock ? _("on") : _("off"), settingsLock ? _("on") : _("off"));
             lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
             lv_obj_add_flag(objects.settings_screen_lock_panel, LV_OBJ_FLAG_HIDDEN);
 
