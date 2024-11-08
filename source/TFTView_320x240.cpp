@@ -2211,35 +2211,34 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_ENGLISH:
         return 0;
     case meshtastic_Language_FRENCH:
-        return 4;
+        return 3;
     case meshtastic_Language_GERMAN:
         return 1;
     case meshtastic_Language_ITALIAN:
-        return 5;
+        return 4;
     case meshtastic_Language_PORTUGUESE:
-        return 8;
-    case meshtastic_Language_SPANISH:
-        return 3;
-    case meshtastic_Language_SWEDISH:
-        return 12;
-    case meshtastic_Language_FINNISH:
-        return 11;
-    case meshtastic_Language_POLISH:
         return 7;
-    case meshtastic_Language_TURKISH:
-        return 13;
-    case meshtastic_Language_SERBIAN:
-        return 10;
-    case meshtastic_Language_RUSSIAN:
-        return 9;
-    case meshtastic_Language_DUTCH:
-        return 6;
-    case meshtastic_Language_GREEK:
+    case meshtastic_Language_SPANISH:
         return 2;
+    case meshtastic_Language_SWEDISH:
+        return 11;
+    case meshtastic_Language_FINNISH:
+        return 10;
+    case meshtastic_Language_POLISH:
+        return 6;
+    case meshtastic_Language_TURKISH:
+        return 12;
+    case meshtastic_Language_SERBIAN:
+        return 9;
+    case meshtastic_Language_RUSSIAN:
+        return 8;
+    case meshtastic_Language_DUTCH:
+        return 5;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
-        return 14;
+        return 13;
     case meshtastic_Language_TRADITIONAL_CHINESE:
-        return 15;
+        return 14;
+    case meshtastic_Language_GREEK:
     default:
         ILOG_WARN("unknown language uiconfig: %d", lang);
     }
@@ -2251,35 +2250,35 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
     switch(val) {
     case 0:
         return meshtastic_Language_ENGLISH;
-    case 4:
+    case 3:
         return meshtastic_Language_FRENCH;
     case 1:
         return meshtastic_Language_GERMAN;
-    case 5:
+    case 4:
         return meshtastic_Language_ITALIAN;
-    case 8:
-        return meshtastic_Language_PORTUGUESE;
-    case 3:
-        return meshtastic_Language_SPANISH;
-    case 12:
-        return meshtastic_Language_SWEDISH;
-    case 11:
-        return meshtastic_Language_FINNISH;
     case 7:
-        return meshtastic_Language_POLISH;
-    case 13:
-        return meshtastic_Language_TURKISH;
-    case 10:
-        return meshtastic_Language_SERBIAN;
-    case 9:
-        return meshtastic_Language_RUSSIAN;
-    case 6:
-        return meshtastic_Language_DUTCH;
+        return meshtastic_Language_PORTUGUESE;
     case 2:
-        return meshtastic_Language_GREEK;
-    case 14:
+        return meshtastic_Language_SPANISH;
+    case 11:
+        return meshtastic_Language_SWEDISH;
+    case 10:
+        return meshtastic_Language_FINNISH;
+    case 6:
+        return meshtastic_Language_POLISH;
+    case 12:
+        return meshtastic_Language_TURKISH;
+    case 9:
+        return meshtastic_Language_SERBIAN;
+    case 8:
+        return meshtastic_Language_RUSSIAN;
+    case 5:
+        return meshtastic_Language_DUTCH;
+//    case 2:
+//        return meshtastic_Language_GREEK;
+    case 13:
         return meshtastic_Language_SIMPLIFIED_CHINESE;
-    case 15:
+    case 14:
         return meshtastic_Language_TRADITIONAL_CHINESE;
     default:
         ILOG_WARN("unknown language val: %d", val);
@@ -5070,7 +5069,7 @@ void TFTView_320x240::updateFreeMem(void)
     if (activePanel == objects.home_panel && (unsigned long)objects.home_memory_button->user_data) {
         char buf[64];
         uint32_t freeHeap = 0;
-        uint32_t freeHeap_pct = 100;
+        uint32_t freeHeap_pct = 0;
 
         lv_mem_monitor_t mon;
         lv_mem_monitor(&mon);
@@ -5081,8 +5080,10 @@ void TFTView_320x240::updateFreeMem(void)
         sprintf(buf, _("Heap: %d (%d%%)\nLVGL: %d (%d%%)"), freeHeap, freeHeap_pct, mon.free_size, 100 - mon.used_pct);
 #elif defined(ARCH_PORTDUINO)
         static uint32_t totalMem = LinuxHelper::getTotalMem();
-        freeHeap = LinuxHelper::getAvailableMem();
-        freeHeap_pct = 100 * freeHeap / totalMem;
+        if (totalMem != 0) {
+            freeHeap = LinuxHelper::getAvailableMem();
+            freeHeap_pct = 100 * freeHeap / totalMem;
+        }
         sprintf(buf, _("Heap: %d (%d%%)\nLVGL: %d (%d%%)"), freeHeap, freeHeap_pct, mon.free_size / 1024, 100 - mon.used_pct);
 #else
         buf[0] = '\0';
