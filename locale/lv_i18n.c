@@ -1284,7 +1284,7 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Packet Statistics", "Paket Statistik"},
     {"Node Options", "Nod alternativ"},
     {"Short Name", "Kort Namn"},
-    {"Long Name", "Lånt Namn"},
+    {"Long Name", "Långt Namn"},
     {"<unset>", "<ej inställt>"},
     {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
      "Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium Räckvidd / Långsam\nMedium räckvidd / Snabb\nKort "
@@ -1347,10 +1347,8 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"hops: %d", "hopp: %d"},
     {"unknown", "okänd"},
     {"<no name>", "<inget namn>"},
-    {"%d active chat(s)", "%d aktiva chatt(ar)"},
     {"New message from \n%s", "Nytt meddelande från \n%s"},
     {"Input Control: %s/%s", "Inmatningsmetod: %s/%s"},
-    {"%d of %d nodes online", "%d av %d noder online"},
     {"Filtering ...", "Filtrerar ..."},
     {"Filter: %d of %d nodes", "Filter: %d av %d noder"},
     {"now", "nu"},
@@ -1383,6 +1381,14 @@ static lv_i18n_phrase_t se_singulars[] = {
     {NULL, NULL} // End mark
 };
 
+static lv_i18n_phrase_t se_plurals_one[] = {
+    {"%d active chat(s)", "1 aktiv chatt"}, {"%d of %d nodes online", "1 nod online"}, {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t se_plurals_other[] = {
+    {"%d active chat(s)", "%d aktiva chattar"}, {"%d of %d nodes online", "%d av %d noder online"}, {NULL, NULL} // End mark
+};
+
 static uint8_t se_plural_fn(int32_t num)
 {
     uint32_t n = op_n(num);
@@ -1397,7 +1403,8 @@ static uint8_t se_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t se_lang = {.locale_name = "se",
                                        .singulars = se_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = se_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = se_plurals_other,
                                        .locale_plural_fn = se_plural_fn};
 
 static lv_i18n_phrase_t sr_singulars[] = {
