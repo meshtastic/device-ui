@@ -1,7 +1,7 @@
 se:
   no new messages: inga nya meddelanden
   1 of 1 nodes online: 1 av 1 noder online
-  'uptime 00:00:00': 'upptid 00:00:00'
+  'uptime 00:00:00': upptid 00:00:00
   'Heap: 0\nLVGL: 0': ~
   DEL: ~
   'User name: ': 'Användarnamn: '
@@ -35,7 +35,7 @@ se:
   Packet Statistics: Paket Statistik
   Node Options: Nod alternativ
   Short Name: Kort Namn
-  Long Name: Lånt Namn
+  Long Name: Långt Namn
   <unset>: <ej inställt>
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": |-
     Lång räckvidd / Snabb
@@ -127,12 +127,16 @@ se:
   'hops: %d': 'hopp: %d'
   unknown: okänd
   <no name>: <inget namn>
-  '%d active chat(s)': '%d aktiva chatt(ar)'
+  '%d active chat(s)':
+    one: 1 aktiv chatt
+    other: '%d aktiva chattar'
   "New message from \n%s": |-
     Nytt meddelande från 
     %s
   'Input Control: %s/%s': 'Inmatningsmetod: %s/%s'
-  '%d of %d nodes online': '%d av %d noder online'
+  '%d of %d nodes online':
+    one: 1 nod online
+    other: '%d av %d noder online'
   Filtering ...: Filtrerar ...
   'Filter: %d of %d nodes': 'Filter: %d av %d noder'
   now: nu
