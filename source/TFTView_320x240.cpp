@@ -165,8 +165,8 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     THIS->setTimeout(db.uiConfig.screen_timeout);
 
     // set screen/settings lock
-    char buf[32];
-    lv_snprintf(buf, 32, _("Lock: %s/%s"), db.uiConfig.screen_lock ? _("on") : _("off"),
+    char buf[40];
+    lv_snprintf(buf, 40, _("Lock: %s/%s"), db.uiConfig.screen_lock ? _("on") : _("off"),
                 db.uiConfig.settings_lock ? _("on") : _("off"));
     lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
 
@@ -2400,7 +2400,7 @@ void TFTView_320x240::setBrightness(uint32_t brightness)
  */
 void TFTView_320x240::setTheme(uint32_t value)
 {
-    char buf1[10], buf2[30];
+    char buf1[30], buf2[30];
     lv_dropdown_set_selected(objects.settings_theme_dropdown, value);
     lv_dropdown_get_selected_str(objects.settings_theme_dropdown, buf1, sizeof(buf1));
     lv_snprintf(buf2, sizeof(buf2), _("Theme: %s"), buf1);
@@ -2615,8 +2615,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->controller->storeUIConfig(THIS->db.uiConfig);
             }
 
-            char buf[32];
-            lv_snprintf(buf, 32, _("Lock: %s/%s"), screenLock ? _("on") : _("off"), settingsLock ? _("on") : _("off"));
+            char buf[40];
+            lv_snprintf(buf, 40, _("Lock: %s/%s"), screenLock ? _("on") : _("off"), settingsLock ? _("on") : _("off"));
             lv_label_set_text(objects.basic_settings_screen_lock_label, buf);
             lv_obj_add_flag(objects.settings_screen_lock_panel, LV_OBJ_FLAG_HIDDEN);
 
