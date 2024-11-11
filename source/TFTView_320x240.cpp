@@ -3006,7 +3006,9 @@ void TFTView_320x240::handleAddMessage(char *msg)
         to = channelOrNode;
         requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to);
         // trial: hoplimit optimization for direct text messages
-        uint8_t hopsAway = (unsigned long)nodes[channelOrNode]->LV_OBJ_IDX(node_sig_idx)->user_data;
+        int8_t hopsAway = (signed long)nodes[channelOrNode]->LV_OBJ_IDX(node_sig_idx)->user_data;
+        if (hopsAway < 0)
+            hopsAway = db.config.lora.hop_limit;
         hopLimit = (hopsAway < db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
     }
 
@@ -3762,7 +3764,7 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
             lv_label_set_text(objects.signal_scanner_start_label, buf);
         }
     } else {
-        ILOG_ERROR("handlePositionResponse: got a reply with not matching request 0x%08x", request_id);
+        ILOG_DEBUG("handlePositionResponse: drop reply with not matching request 0x%08x", request_id);
     }
 }
 
