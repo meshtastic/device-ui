@@ -99,6 +99,7 @@ void remove_style_alert_panel_style(lv_obj_t *obj);
 
 // Style: MainScreenStyle
 lv_style_t *get_style_main_screen_style_MAIN_DEFAULT();
+lv_style_t *get_style_main_screen_style_MAIN_PRESSED();
 void add_style_main_screen_style(lv_obj_t *obj);
 void remove_style_main_screen_style(lv_obj_t *obj);
 
