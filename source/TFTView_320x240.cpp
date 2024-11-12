@@ -28,6 +28,10 @@
 #include "LinuxHelper.h"
 #endif
 
+#ifndef MAX_NUM_NODES_VIEW
+#define MAX_NUM_NODES_VIEW 200
+#endif
+
 #ifndef PACKET_LOGS_MAX
 #define PACKET_LOGS_MAX 200
 #endif
@@ -3077,6 +3081,12 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // [10]: lbl telemetry 2       | iaq
     // panel user_data: ch
 
+#if 0 // purge not yet working
+    while (nodeCount >= MAX_NUM_NODES_VIEW) {
+        purgeNode();
+    }
+#endif
+
     lv_obj_t *p = lv_obj_create(objects.nodes_panel);
     lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
 
@@ -3874,6 +3884,55 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
             lv_obj_set_style_align(label, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
+    }
+}
+
+/**
+ * @brief purge oldest node from node list (and all its memory)
+ */
+void TFTView_320x240::purgeNode(void)
+{
+    lv_obj_t *p = nullptr;
+    uint32_t oldest = 0;
+    time_t oldestTime = 0;
+    if (nodeCount <= 1)
+        return;
+    for (auto &it : nodes) {
+        time_t lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
+        if (lastHeard > 0 && lastHeard < oldestTime && it.first != ownNode) {
+            oldestTime = lastHeard;
+            oldest = it.first;
+            p = it.second;
+        }
+    }
+    if (oldest == 0) {
+        for (auto &it : nodes) {
+            if (it.first != ownNode) {
+                oldest = it.first;
+                p = it.second;
+            }
+        }
+    }
+    time_t curtime;
+    time(&curtime);
+    uint32_t lastHeard = (unsigned long)p->LV_OBJ_IDX(node_lh_idx)->user_data;
+    if (lastHeard > 0 && (curtime - lastHeard <= secs_until_offline))
+        nodesOnline--;
+    nodeCount--;
+    updateNodesStatus();
+    ILOG_DEBUG("removing oldest node 0x%08x", oldest);
+    // lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
+    // lv_ll_remove(lv_group_ll, p->LV_OBJ_IDX(node_btn_idx)->user_data);
+    // lv_obj_delete(p);
+    {
+        auto it = messages.find(oldest);
+        if (it != messages.end())
+            lv_obj_delete(it->second);
+    }
+    {
+        auto it = chats.find(oldest);
+        if (it != chats.end())
+            lv_obj_delete(it->second);
     }
 }
 

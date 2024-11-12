@@ -200,6 +200,7 @@ class TFTView_320x240 : public MeshtasticView
     void scanSignal(uint32_t scanNo);
     void handleTraceRouteResponse(const meshtastic_Routing &routing);
     void addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel);
+    void purgeNode(void);
     void removeSpinner(void);
     void packetDetected(const meshtastic_MeshPacket &p);
     void writePacketLog(const meshtastic_MeshPacket &p);
