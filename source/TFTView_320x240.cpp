@@ -421,6 +421,11 @@ void TFTView_320x240::apply_hotfix(void)
     lv_table_set_cell_value(objects.statistics_table, 0, 4, "Trc");
     lv_table_set_cell_value(objects.statistics_table, 0, 5, "Nbr");
     lv_table_set_cell_value(objects.statistics_table, 0, 6, "All");
+
+    // tweak keyboard size
+    if (v > 320) {
+        lv_obj_set_size(objects.keyboard, LV_PCT(100), LV_PCT(45));
+    }
 }
 
 void TFTView_320x240::updateTheme(void)
