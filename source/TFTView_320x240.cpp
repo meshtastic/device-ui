@@ -2366,7 +2366,7 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
     }
 
 #ifdef ARCH_PORTDUINO
-    std::locale::global(std::locale(locale));
+    // std::locale::global(std::locale(locale));
 #endif
 }
 
