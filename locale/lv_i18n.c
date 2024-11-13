@@ -519,7 +519,7 @@ static lv_i18n_phrase_t it_singulars[] = {
     {"Meshtastic", "Meshtastic"},
     {"Group Channels", "Canali di gruppo"},
     {"no messages", "nessun messaggio"},
-    {"Settings & Tools", "Impostazioni & strumenti"},
+    {"Settings & Tools", "Impostazioni & Strumenti"},
     {"Settings (advanced)", "Impostazioni (avanzate)"},
     {"Locations Map", "Mappa delle posizioni"},
     {"no chats", "nessuna chat"},
@@ -941,9 +941,9 @@ static const lv_i18n_lang_t pl_lang = {.locale_name = "pl",
                                        .locale_plural_fn = pl_plural_fn};
 
 static lv_i18n_phrase_t pt_singulars[] = {
-    {"no new messages", "Nenhuma mensagem nova"},
-    {"1 of 1 nodes online", "1 de 1 dispositivos online"},
-    {"uptime 00:00:00", "Tempo ligado 00:00:00"},
+    {"no new messages", "Nenhuma mensagem"},
+    {"1 of 1 nodes online", "1 dispositivo online"},
+    {"uptime 00:00:00", "Tempo ligado\n00:00:00"},
     {"DEL", "Apagar"},
     {"User name: ", "Nome de Usuário"},
     {"Modem Preset: LONG FAST", "Configuração do modem: LONG FAST"},
@@ -1047,13 +1047,12 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"%d active chat(s)", "%d conversas ativas"},
     {"New message from \n%s", "Nova mensagem de \n%s"},
     {"Input Control: %s/%s", "Controle de entradas: %s/%s"},
-    {"%d of %d nodes online", "%d de %d dispositivos online"},
     {"Filtering ...", "Filtrando..."},
-    {"Filter: %d of %d nodes", "Filtro: %d de %d dispositivos"},
+    {"Filter: %d of %d nodes", "Filtro: %d/%d dispositivos"},
     {"now", "agora"},
     {"%d new message", "%d Nova Mensagem"},
     {"%d new messages", "%d Novas Mensagens"},
-    {"uptime: %02d:%02d:%02d", "tempo ligado: %02d:%02d:%02d "},
+    {"uptime: %02d:%02d:%02d", "tempo ligado:\n%02d:%02d:%02d"},
     {"Settings", "Configurações"},
     {"Tools", "Ferramentas"},
     {"Filter", "Filtros"},
@@ -1064,6 +1063,14 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"Rebooting ...", "Reiniciando..."},
     {"Shutting down ...", "Desligando..."},
     {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t pt_plurals_one[] = {
+    {"%d of %d nodes online", "1 dispositivo online"}, {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t pt_plurals_other[] = {
+    {"%d of %d nodes online", "%d/%d dispositivos online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t pt_plural_fn(int32_t num)
@@ -1080,7 +1087,8 @@ static uint8_t pt_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t pt_lang = {.locale_name = "pt",
                                        .singulars = pt_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = pt_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = pt_plurals_other,
                                        .locale_plural_fn = pt_plural_fn};
 
 static uint8_t ro_plural_fn(int32_t num)
@@ -1102,6 +1110,153 @@ static uint8_t ro_plural_fn(int32_t num)
 static const lv_i18n_lang_t ro_lang = {.locale_name = "ro",
 
                                        .locale_plural_fn = ro_plural_fn};
+
+static lv_i18n_phrase_t ru_singulars[] = {
+    {"no new messages", "нет новых сообщений"},
+    {"1 of 1 nodes online", "1 из 1 узлов онлайн"},
+    {"DEL", "DEL"},
+    {"User name: ", "Имя пользователя:"},
+    {"Channel: LongFast", "Канал: LongFast"},
+    {"Role: Client", "Роль: Клиент"},
+    {"Screen Timeout: 60s", "Таймаут экрана: 60с"},
+    {"Screen Brightness: 60%", "Яркость экрана: 60%"},
+    {"Screen Calibration: default", "Калибровка экрана: по умолчанию"},
+    {"Message Alert Buzzer: on", "Оповещение: включено"},
+    {"Language: English", "Язык: Русский"},
+    {"Configuration Reset", "Сброс настроек"},
+    {"Reboot / Shutdown", "Перезагрузка / Выкл."},
+    {"Group Channels", "Групповые каналы"},
+    {"no messages", "нет сообщений"},
+    {"Settings", "Настройки"},
+    {"Settings (advanced)", "Расширенные настройки"},
+    {"Locations Map", "Карта локаций"},
+    {"no chats", "нет чатов"},
+    {"Node Options", "Опции узлов"},
+    {"Short Name", "Краткое имя"},
+    {"Long Name", "Полное имя"},
+    {"<unset>", "<пусто>"},
+    {"Brightness: 60%", "Яркость: 60%"},
+    {"Mouse", "Мышка"},
+    {"Keyboard", "Клавиатура"},
+    {"Message Alert", "Оповещение"},
+    {"NodeDB Reset\nFactory Reset", "Сброс NodeDB\nСброс настроек"},
+    {"Channel Name", "Имя канала"},
+    {"New Message from\\n", "Новое сообщение от\\n"},
+    {"User name: %s", "Имя: %s"},
+    {"Device Role: %s", "Роль устройства: %s"},
+    {"Screen Calibration: %s", "Калибровка экрана: %s"},
+    {"done", "готово"},
+    {"default", "по умолчанию"},
+    {"Region: %s", "Регион: %s"},
+    {"Channel: %s", "Канал: %s"},
+    {"Language: %s", "Язык: %s"},
+    {"Screen Lock: off", "Блокировка экрана: off"},
+    {"Theme: Dark", "Тема: Тёмная"},
+    {"Mesh Detector", "Детектор Mesh"},
+    {"Signal Scanner", "Сканер сигнала"},
+    {"Trace Route", "Маршрут"},
+    {"Neighbors", "Соседи"},
+    {"Statistics", "Статистика"},
+    {"Packet Log", "Лог пакетов"},
+    {"Settings & Tools", "Настройки и инструменты"},
+    {"Node Search", "Поиск узла"},
+    {"Screen Lock", "Блокировка экрана"},
+    {"Lock PIN", "PIN-код"},
+    {"Ringtone", "Рингтон"},
+    {"Zone", "Зона"},
+    {"City", "Город"},
+    {"Unknown", "Неизвестно"},
+    {"Offline", "Не в сети"},
+    {"Public Key", "Открытый ключ"},
+    {"Hops away", "Переходы"},
+    {"Position", "Позиция"},
+    {"Name", "Имя"},
+    {"Active Chat", "Активный чат"},
+    {"Telemetry", "Телеметрия"},
+    {"Start", "Начать"},
+    {"Theme: %s", "Тема: %s"},
+    {"Packet Statistics", "Статистика пакетов"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- устарело --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- устарело --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"Dark\nLight", "Тёмная\nСветлая"},
+    {"Cancel", "Отмена"},
+    {"Brightness: %d%%", "Яркость: %d%%"},
+    {"Stop", "Стоп"},
+    {"choose\nnode", "выбрать\nузел"},
+    {"choose target node", "выбрать узел назначения"},
+    {"heard: !%08x", "услышано: !%08x"},
+    {"Packet Log: %d", "Журнал пакетов: %d"},
+    {"Screen Timeout: off", "Таймаут экрана: выкл"},
+    {"Screen Timeout: %ds", "Таймаут экрана: %ds"},
+    {"Screen Brightness: %d%%", "Яркость экрана: %d%%"},
+    {"Screen Lock: %s", "Блокировка экрана: %s"},
+    {"on", "вкл"},
+    {"off", "выкл"},
+    {"Message Alert: %s", "Оповещение: %s"},
+    {"hops: %d", "переходов: %d"},
+    {"unknown", "неизвестно"},
+    {"<no name>", "<без имени>"},
+    {"%d active chat(s)", "%d активных чатов"},
+    {"New message from \n%s", "Новое сообщение от:\n%s"},
+    {"%d of %d nodes online", "%d из %d узлов онлайн"},
+    {"Filtering ...", "Фильтрация ..."},
+    {"Filter: %d of %d nodes", "Фильтр: %d из %d узлов"},
+    {"now", "сейчас"},
+    {"%d new message", "%d новое сообщение"},
+    {"%d new messages", "%d новых сообщений"},
+    {"uptime: %02d:%02d:%02d", "время работы:\n%02d:%02d:%02d"},
+    {"Tools", "Инструменты"},
+    {"Filter", "Фильтр"},
+    {"Highlight", "Выделить"},
+    {"Primary Channel", "Основной канал"},
+    {"Secondary Channels", "Вторичные каналы"},
+    {"Resynch ...", "Ресинхронизация ..."},
+    {"Rebooting ...", "Перезагрузка ..."},
+    {"Shutting down ...", "Выключение ..."},
+    {"silent", "тихий режим"},
+    {"WiFi: <not setup>", "WiFi: <не настроен>"},
+    {"Lock: off/off", "Блокировка: выкл/выкл"},
+    {"LoRa TX off!", "LoRa TX выкл.!"},
+    {"WiFi SSID", "Имя сети WiFi"},
+    {"Settings Lock", "Блокировка настроек"},
+    {"Lock: %s/%s", "Блокировка: %s/%s"},
+    {"Enter Text ...", "Введите сообщение ..."},
+    {"!Enter Filter ...", "!Введите фильтр ..."},
+    {"Enter Filter ...", "Введите фильтр ..."},
+    {"WiFi: %s", "WiFi: %s"},
+    {"<not set>", "<не настроено>"},
+    {"region unset", "регион не установлен"},
+    {"Banner & Sound", "Баннер и звук"},
+    {"Banner only", "Только баннер"},
+    {"Sound only", "Только звук"},
+    {NULL, NULL} // End mark
+};
+
+static uint8_t ru_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t i10 = i % 10;
+    uint32_t i100 = i % 100;
+    if ((v == 0 && i10 == 1 && i100 != 11))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))))
+        return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i10 == 0) || (v == 0 && (5 <= i10 && i10 <= 9)) || (v == 0 && (11 <= i100 && i100 <= 14)))
+        return LV_I18N_PLURAL_TYPE_MANY;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t ru_lang = {.locale_name = "ru",
+                                       .singulars = ru_singulars,
+
+                                       .locale_plural_fn = ru_plural_fn};
 
 static lv_i18n_phrase_t se_singulars[] = {
     {"no new messages", "inga nya meddelanden"},
@@ -1137,7 +1292,7 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Packet Statistics", "Paket Statistik"},
     {"Node Options", "Nod alternativ"},
     {"Short Name", "Kort Namn"},
-    {"Long Name", "Lånt Namn"},
+    {"Long Name", "Långt Namn"},
     {"<unset>", "<ej inställt>"},
     {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
      "Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium Räckvidd / Långsam\nMedium räckvidd / Snabb\nKort "
@@ -1200,10 +1355,8 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"hops: %d", "hopp: %d"},
     {"unknown", "okänd"},
     {"<no name>", "<inget namn>"},
-    {"%d active chat(s)", "%d aktiva chatt(ar)"},
     {"New message from \n%s", "Nytt meddelande från \n%s"},
     {"Input Control: %s/%s", "Inmatningsmetod: %s/%s"},
-    {"%d of %d nodes online", "%d av %d noder online"},
     {"Filtering ...", "Filtrerar ..."},
     {"Filter: %d of %d nodes", "Filter: %d av %d noder"},
     {"now", "nu"},
@@ -1236,6 +1389,14 @@ static lv_i18n_phrase_t se_singulars[] = {
     {NULL, NULL} // End mark
 };
 
+static lv_i18n_phrase_t se_plurals_one[] = {
+    {"%d active chat(s)", "1 aktiv chatt"}, {"%d of %d nodes online", "1 nod online"}, {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t se_plurals_other[] = {
+    {"%d active chat(s)", "%d aktiva chattar"}, {"%d of %d nodes online", "%d av %d noder online"}, {NULL, NULL} // End mark
+};
+
 static uint8_t se_plural_fn(int32_t num)
 {
     uint32_t n = op_n(num);
@@ -1250,7 +1411,8 @@ static uint8_t se_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t se_lang = {.locale_name = "se",
                                        .singulars = se_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = se_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = se_plurals_other,
                                        .locale_plural_fn = se_plural_fn};
 
 static lv_i18n_phrase_t sr_singulars[] = {
@@ -1423,7 +1585,7 @@ static const lv_i18n_lang_t tr_lang = {.locale_name = "tr",
 
 const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
     &en_lang, &de_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang,
-    &pl_lang, &pt_lang, &ro_lang, &se_lang, &sr_lang, &tr_lang,
+    &pl_lang, &pt_lang, &ro_lang, &ru_lang, &se_lang, &sr_lang, &tr_lang,
     NULL // End mark
 };
 

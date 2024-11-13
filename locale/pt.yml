@@ -1,7 +1,7 @@
 pt:
-  no new messages: Nenhuma mensagem nova
-  1 of 1 nodes online: 1 de 1 dispositivos online
-  'uptime 00:00:00': 'Tempo ligado 00:00:00'
+  no new messages: Nenhuma mensagem
+  1 of 1 nodes online: 1 dispositivo online
+  'uptime 00:00:00': "Tempo ligado\n00:00:00"
   "Heap: 0\nLVGL: 0": ~
   DEL: Apagar
   'User name: ': Nome de Usuário
@@ -132,13 +132,15 @@ pt:
     Nova mensagem de 
     %s
   'Input Control: %s/%s': 'Controle de entradas: %s/%s'
-  '%d of %d nodes online': '%d de %d dispositivos online'
+  '%d of %d nodes online':
+    one: '1 dispositivo online'
+    other: '%d/%d dispositivos online'
   Filtering ...: Filtrando...
-  'Filter: %d of %d nodes': 'Filtro: %d de %d dispositivos'
+  'Filter: %d of %d nodes': 'Filtro: %d/%d dispositivos'
   now: agora
   '%d new message': '%d Nova Mensagem'
   '%d new messages': '%d Novas Mensagens'
-  'uptime: %02d:%02d:%02d': 'tempo ligado: %02d:%02d:%02d '
+  'uptime: %02d:%02d:%02d': "tempo ligado:\n%02d:%02d:%02d"
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
   Settings: Configurações
   Tools: Ferramentas

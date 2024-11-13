@@ -13,7 +13,7 @@ class TFTView_320x240 : public MeshtasticView
 {
   public:
     void init(IClientBase *client) override;
-    void setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig) override;
+    void setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) override;
     void task_handler(void) override;
 
     // methods to update view
@@ -123,7 +123,7 @@ class TFTView_320x240 : public MeshtasticView
 
     // initialize all ui screens
     virtual void init_screens(void);
-    // update custom display string on boot screen 
+    // update custom display string on boot screen
     virtual void updateBootMessage(void);
     // update node counter display (online and filtered)
     virtual void updateNodesStatus(void);
@@ -200,6 +200,7 @@ class TFTView_320x240 : public MeshtasticView
     void scanSignal(uint32_t scanNo);
     void handleTraceRouteResponse(const meshtastic_Routing &routing);
     void addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel);
+    void purgeNode(void);
     void removeSpinner(void);
     void packetDetected(const meshtastic_MeshPacket &p);
     void writePacketLog(const meshtastic_MeshPacket &p);
@@ -346,8 +347,8 @@ class TFTView_320x240 : public MeshtasticView
 
     // additional local ui data
     struct meshtastic_DeviceProfile_full : meshtastic_DeviceProfile_ext {
-        uint16_t ringtoneId;         // index into ringtone preset
-        bool silent;                 // sound silenced
+        uint16_t ringtoneId; // index into ringtone preset
+        bool silent;         // sound silenced
     };
 
     meshtastic_DeviceProfile_full db; // full copy of the node's configuration db (except nodeinfos) plus ui data
