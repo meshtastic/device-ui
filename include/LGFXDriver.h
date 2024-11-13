@@ -22,6 +22,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     bool hasButton(void) override { return lgfx->hasButton(); }
     bool hasLight(void) override { return lgfx->light(); }
     bool isPowersaving(void) override { return powerSaving; }
+    void printConfig(void) override;
     void task_handler(void) override;
 
     uint8_t getBrightness(void) override { return lgfx->getBrightness(); }
@@ -109,8 +110,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 #else
                         pin_int = lgfx->getTouchInt();
 #endif
-                    }
-                    else if (hasButton()) {
+                    } else if (hasButton()) {
 #ifdef BUTTON_PIN // only relevant for CYD scenario
                         pin_int = BUTTON_PIN;
 #endif
@@ -202,7 +202,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         data->point.x = touchX;
         data->point.y = touchY;
 
-        //ILOG_DEBUG("Touch(%hd/%hd)", touchX, touchY);
+        // ILOG_DEBUG("Touch(%hd/%hd)", touchX, touchY);
     }
 }
 
@@ -365,4 +365,83 @@ template <class LGFX> void LGFXDriver<LGFX>::setBrightness(uint8_t brightness)
 {
     lgfx->setBrightness(brightness);
     lastBrightness = brightness;
+}
+
+template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
+{
+    if (lgfx->panel()) {
+        auto p = lgfx->panel();
+        auto cfg = p->config();
+        uint32_t id1 = p->readCommand(0x04);
+        uint32_t id2 = p->readCommand(0x70);
+        uint32_t id = id1 ? id1 : id2;
+        ILOG_DEBUG("Panel id=%d (%dx%d): rst:%d, busy:%d, offX:%d, offY:%d invert:%d, RGB:%d, rotation:%d, offR:%d, read:%d, "
+                   "readP:%d, readB:%d, dlen:%d, colordepth:%d",
+                   id, p->width(), p->height(), cfg.pin_rst, cfg.pin_busy, cfg.offset_x, cfg.offset_y, p->getInvert(),
+                   cfg.rgb_order, (int)p->getRotation(), cfg.offset_rotation, cfg.readable, cfg.dummy_read_pixel,
+                   cfg.dummy_read_bits, cfg.dlen_16bit, LV_COLOR_DEPTH);
+    }
+    if (lgfx->panel() && lgfx->panel()->getBus()) {
+        auto p = lgfx->panel();
+        lgfx::v1::bus_type_t type = lgfx->panel()->getBus()->busType();
+        switch (type) {
+        case lgfx::v1::bus_unknown:
+            ILOG_DEBUG("Bus (unknown)");
+            break;
+        case lgfx::v1::bus_spi: {
+            auto cfg = static_cast<lgfx::Bus_SPI *>(lgfx->panel()->getBus())->config();
+#ifdef ARCH_PORTDUINO
+            ILOG_DEBUG("Bus_SPI(%d): cs:%d, clk:%d, miso:%d, mosi:%d, dc:%d", cfg.spi_host, p->config().pin_cs, cfg.pin_sclk,
+                       cfg.pin_miso, cfg.pin_mosi, cfg.pin_dc);
+#else
+            ILOG_DEBUG("Bus_SPI(%d): clk:%d, miso:%d, mosi:%d, dc:%d, 3wire:%d, dma:%d", cfg.spi_host, cfg.pin_sclk, cfg.pin_miso,
+                       cfg.pin_mosi, cfg.pin_dc, cfg.spi_3wire, cfg.dma_channel);
+#endif
+            break;
+        }
+        case lgfx::v1::bus_i2c: {
+            // auto bus = static_cast<lgfx::Bus_I2C*>(lgfx->panel()->getBus());
+            ILOG_DEBUG("Bus_I2C");
+            break;
+        }
+#ifndef ARCH_PORTDUINO
+        case lgfx::v1::bus_parallel8: {
+            auto bus = static_cast<lgfx::v1::Bus_Parallel8 *>(lgfx->panel()->getBus());
+            ILOG_DEBUG("Bus_Parallel8");
+            break;
+        }
+        case lgfx::v1::bus_parallel16: {
+            auto bus = static_cast<lgfx::v1::Bus_Parallel16 *>(lgfx->panel()->getBus());
+            ILOG_DEBUG("Bus_Parallel16");
+            break;
+        }
+#endif
+        case lgfx::v1::bus_stream:
+            ILOG_DEBUG("Bus (Stream)");
+            break;
+        case lgfx::v1::bus_image_push:
+            ILOG_DEBUG("Bus (ImagePush)");
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (lgfx->touch()) {
+        auto cfg = lgfx->touch()->config();
+        ILOG_DEBUG("Touch int:%d, rst:%d, rotation:%d, (%d/%d)-(%d/%d) ", cfg.pin_int, cfg.pin_rst, cfg.offset_rotation,
+                   cfg.x_min, cfg.y_min, cfg.x_max, cfg.y_max);
+        if (cfg.pin_cs != -1) {
+            ILOG_DEBUG("Touch SPI(%d): cs:%d, clk:%d, mosi:%d, miso:%d ", (int)cfg.spi_host, cfg.pin_cs, cfg.pin_sclk,
+                       cfg.pin_mosi, cfg.pin_miso);
+        }
+        if (cfg.i2c_port >= 0) {
+            ILOG_DEBUG("Touch I2C(%d:0x%02): SCL:%d, SCA:%d, freq:%d ", (int)cfg.i2c_port, cfg.i2c_addr, cfg.pin_scl, cfg.pin_sda,
+                       cfg.freq);
+        }
+    }
+    if (lgfx->light()) {
+        auto cfg = lgfx->light();
+        ILOG_DEBUG("BL pin assigned");
+    }
 }

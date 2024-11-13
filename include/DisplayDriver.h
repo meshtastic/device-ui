@@ -20,6 +20,7 @@ class DisplayDriver
     virtual bool hasLight(void) { return false; }
     virtual void task_handler(void) { lv_timer_handler(); };
     virtual bool isPowersaving() { return false; }
+    virtual void printConfig(void) {}
     virtual ~DisplayDriver() {}
 
     virtual uint8_t getBrightness() { return 255; }

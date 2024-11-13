@@ -70,9 +70,7 @@ void DeviceGUI::init(IClientBase *client)
     if (inputdriver)
         inputdriver->init();
 
-    // we need to call this from the view
-    //ILOG_DEBUG("ui_init...");
-    //ui_init();
+    displaydriver->printConfig();
 }
 
 void DeviceGUI::task_handler(void)
