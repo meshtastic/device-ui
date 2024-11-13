@@ -941,9 +941,9 @@ static const lv_i18n_lang_t pl_lang = {.locale_name = "pl",
                                        .locale_plural_fn = pl_plural_fn};
 
 static lv_i18n_phrase_t pt_singulars[] = {
-    {"no new messages", "Nenhuma mensagem nova"},
-    {"1 of 1 nodes online", "1 de 1 dispositivos online"},
-    {"uptime 00:00:00", "Tempo ligado 00:00:00"},
+    {"no new messages", "Nenhuma mensagem"},
+    {"1 of 1 nodes online", "1 dispositivo online"},
+    {"uptime 00:00:00", "Tempo ligado\n00:00:00"},
     {"DEL", "Apagar"},
     {"User name: ", "Nome de Usuário"},
     {"Modem Preset: LONG FAST", "Configuração do modem: LONG FAST"},
@@ -1047,13 +1047,12 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"%d active chat(s)", "%d conversas ativas"},
     {"New message from \n%s", "Nova mensagem de \n%s"},
     {"Input Control: %s/%s", "Controle de entradas: %s/%s"},
-    {"%d of %d nodes online", "%d de %d dispositivos online"},
     {"Filtering ...", "Filtrando..."},
-    {"Filter: %d of %d nodes", "Filtro: %d de %d dispositivos"},
+    {"Filter: %d of %d nodes", "Filtro: %d/%d dispositivos"},
     {"now", "agora"},
     {"%d new message", "%d Nova Mensagem"},
     {"%d new messages", "%d Novas Mensagens"},
-    {"uptime: %02d:%02d:%02d", "tempo ligado: %02d:%02d:%02d "},
+    {"uptime: %02d:%02d:%02d", "tempo ligado:\n%02d:%02d:%02d"},
     {"Settings", "Configurações"},
     {"Tools", "Ferramentas"},
     {"Filter", "Filtros"},
@@ -1064,6 +1063,14 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"Rebooting ...", "Reiniciando..."},
     {"Shutting down ...", "Desligando..."},
     {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t pt_plurals_one[] = {
+    {"%d of %d nodes online", "1 dispositivo online"}, {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t pt_plurals_other[] = {
+    {"%d of %d nodes online", "%d/%d dispositivos online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t pt_plural_fn(int32_t num)
@@ -1080,7 +1087,8 @@ static uint8_t pt_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t pt_lang = {.locale_name = "pt",
                                        .singulars = pt_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = pt_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = pt_plurals_other,
                                        .locale_plural_fn = pt_plural_fn};
 
 static uint8_t ro_plural_fn(int32_t num)
