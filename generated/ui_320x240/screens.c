@@ -162,7 +162,6 @@ void create_screen_main_screen() {
             lv_obj_set_size(obj, LV_PCT(12), LV_PCT(100));
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM);
             add_style_button_panel_style(obj);
-            lv_obj_set_style_max_height(obj, 480, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -599,7 +598,7 @@ void create_screen_main_screen() {
             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_flex_grow(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_row(obj, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_row(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
                 {
@@ -607,10 +606,12 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
                     objects.node_panel = obj;
                     lv_obj_set_pos(obj, LV_PCT(0), 0);
-                    lv_obj_set_size(obj, LV_PCT(100), 52);
+                    lv_obj_set_size(obj, LV_PCT(100), 53);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                     add_style_node_panel_style(obj);
                     lv_obj_set_style_radius(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xfffffff4), LV_PART_MAIN | LV_STATE_PRESSED);
                     {
                         lv_obj_t *parent_obj = obj;
@@ -618,7 +619,7 @@ void create_screen_main_screen() {
                             // NodeImage
                             lv_obj_t *obj = lv_img_create(parent_obj);
                             objects.node_image = obj;
-                            lv_obj_set_pos(obj, -5, -10);
+                            lv_obj_set_pos(obj, -5, 3);
                             lv_obj_set_size(obj, 32, 32);
                             lv_img_set_src(obj, &img_node_client_image);
                             lv_img_set_pivot(obj, 0, 0);
@@ -648,7 +649,7 @@ void create_screen_main_screen() {
                             // UserNameLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.user_name_label = obj;
-                            lv_obj_set_pos(obj, -6, 22);
+                            lv_obj_set_pos(obj, -6, 35);
                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL);
                             lv_label_set_text(obj, "Meshtastic");
@@ -658,7 +659,7 @@ void create_screen_main_screen() {
                             // UserNameShortLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.user_name_short_label = obj;
-                            lv_obj_set_pos(obj, 30, -3);
+                            lv_obj_set_pos(obj, 30, 10);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                             lv_label_set_text(obj, "ABCD");
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
@@ -669,7 +670,7 @@ void create_screen_main_screen() {
                             // BatteryLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.battery_label = obj;
-                            lv_obj_set_pos(obj, 8, 4);
+                            lv_obj_set_pos(obj, 8, 17);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                             lv_label_set_text(obj, "");
@@ -681,7 +682,7 @@ void create_screen_main_screen() {
                             // LastHeardLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.last_heard_label = obj;
-                            lv_obj_set_pos(obj, 8, 20);
+                            lv_obj_set_pos(obj, 8, 33);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                             lv_label_set_text(obj, "");
@@ -693,7 +694,7 @@ void create_screen_main_screen() {
                             // SignalLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.signal_label = obj;
-                            lv_obj_set_pos(obj, 8, -12);
+                            lv_obj_set_pos(obj, 8, 1);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                             lv_label_set_text(obj, "");
@@ -705,7 +706,7 @@ void create_screen_main_screen() {
                             // PositionLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.position_label = obj;
-                            lv_obj_set_pos(obj, -5, 36);
+                            lv_obj_set_pos(obj, -5, 49);
                             lv_obj_set_size(obj, 120, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                             lv_label_set_text(obj, "");
@@ -717,7 +718,7 @@ void create_screen_main_screen() {
                             // Position2Label
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.position2_label = obj;
-                            lv_obj_set_pos(obj, -5, 50);
+                            lv_obj_set_pos(obj, -5, 63);
                             lv_obj_set_size(obj, 108, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL);
                             lv_label_set_text(obj, "");
@@ -728,7 +729,7 @@ void create_screen_main_screen() {
                             // Telemetry1Label
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.telemetry1_label = obj;
-                            lv_obj_set_pos(obj, 8, 36);
+                            lv_obj_set_pos(obj, 8, 49);
                             lv_obj_set_size(obj, 130, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                             lv_label_set_text(obj, "");
@@ -740,7 +741,7 @@ void create_screen_main_screen() {
                             // Telemetry2Label
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.telemetry2_label = obj;
-                            lv_obj_set_pos(obj, 8, 50);
+                            lv_obj_set_pos(obj, 8, 63);
                             lv_obj_set_size(obj, 130, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                             lv_label_set_text(obj, "");
@@ -1280,7 +1281,7 @@ void create_screen_main_screen() {
                                             objects.basic_settings_modem_preset_label = obj;
                                             lv_obj_set_pos(obj, 0, 0);
                                             lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
-                                            lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
+                                            lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
                                             lv_label_set_text(obj, _("Modem Preset: LONG FAST"));
                                             lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                                         }
@@ -3010,7 +3011,7 @@ void create_screen_main_screen() {
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.settings_modem_preset_panel = obj;
             lv_obj_set_pos(obj, LV_PCT(3), LV_PCT(20));
-            lv_obj_set_size(obj, 220, 160);
+            lv_obj_set_size(obj, 225, 160);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             add_style_settings_panel_style(obj);
@@ -3417,8 +3418,8 @@ void create_screen_main_screen() {
             // SettingsScreenLockPanel
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.settings_screen_lock_panel = obj;
-            lv_obj_set_pos(obj, LV_PCT(5), LV_PCT(17));
-            lv_obj_set_size(obj, 220, 168);
+            lv_obj_set_pos(obj, LV_PCT(5), LV_PCT(12));
+            lv_obj_set_size(obj, 228, 178);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             add_style_settings_panel_style(obj);
@@ -3428,6 +3429,7 @@ void create_screen_main_screen() {
             lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_layout(obj, LV_LAYOUT_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_left(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
                 {
@@ -5529,6 +5531,10 @@ void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIn
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_grid_row_align(obj, LV_GRID_ALIGN_SPACE_EVENLY, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(obj, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_left(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_flex_main_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
                 {

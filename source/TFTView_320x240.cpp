@@ -352,6 +352,30 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
  */
 void TFTView_320x240::apply_hotfix(void)
 {
+    // adapt screens to custom display resolution
+    uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
+    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
+
+    lv_obj_set_size(objects.boot_screen, h, v);
+    lv_obj_set_size(objects.main_screen, h, v);
+    lv_obj_set_size(objects.blank_screen, h, v);
+    lv_obj_set_size(objects.lock_screen, h, v);
+    lv_obj_set_size(objects.calibration_screen, h, v);
+
+    // resize buttons on larger display (assuming 480x480)
+    if (h > 320 && v > 320) {
+        lv_obj_t *button[] = {objects.home_button,     objects.nodes_button, objects.groups_button,
+                              objects.messages_button, objects.map_button,   objects.settings_button};
+        for (int i = 0; i < 6; i++) {
+            lv_obj_set_size(button[i], 72, 72);
+        }
+    }
+
+    // keyboard size limit
+    if (v >= 480) {
+        lv_obj_set_size(objects.keyboard, LV_PCT(100), LV_PCT(45));
+    }
+
     lv_obj_move_foreground(objects.keyboard);
     lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
@@ -378,22 +402,6 @@ void TFTView_320x240::apply_hotfix(void)
     applyStyle(tab_buttons);
     tab_buttons = lv_tabview_get_tab_bar(ui_SettingsTabView);
     applyStyle(tab_buttons);
-
-    uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
-    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
-    // resize buttons on larger display (assuming 480x480)
-    if (h > 320 && v > 320) {
-        lv_obj_t *button[] = {objects.home_button,     objects.nodes_button, objects.groups_button,
-                              objects.messages_button, objects.map_button,   objects.settings_button};
-        for (int i = 0; i < 6; i++) {
-            lv_obj_set_size(button[i], 72, 72);
-        }
-    }
-
-    // resize keyboard
-    if (v >= 480) {
-        lv_obj_set_size(objects.keyboard, LV_PCT(100), LV_PCT(50));
-    }
 
     // add event callback to to apply custom drawing for statistics table
     lv_obj_add_event_cb(objects.statistics_table, ui_event_statistics_table, LV_EVENT_DRAW_TASK_ADDED, NULL);
@@ -425,11 +433,6 @@ void TFTView_320x240::apply_hotfix(void)
     lv_table_set_cell_value(objects.statistics_table, 0, 4, "Trc");
     lv_table_set_cell_value(objects.statistics_table, 0, 5, "Nbr");
     lv_table_set_cell_value(objects.statistics_table, 0, 6, "All");
-
-    // tweak keyboard size
-    if (v > 320) {
-        lv_obj_set_size(objects.keyboard, LV_PCT(100), LV_PCT(45));
-    }
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -668,7 +671,7 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             int32_t height = lv_obj_get_height(currentPanel);
             lv_anim_init(&a);
             lv_anim_set_var(&a, currentPanel);
-            lv_anim_set_values(&a, height, 132 - height);
+            lv_anim_set_values(&a, height, 136 - height);
             lv_anim_set_duration(&a, 200);
             lv_anim_set_exec_cb(&a, ui_anim_node_panel_cb);
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
@@ -680,7 +683,7 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             int32_t height = lv_obj_get_height(panel);
             lv_anim_init(&a);
             lv_anim_set_var(&a, panel);
-            lv_anim_set_values(&a, height, 132 - height);
+            lv_anim_set_values(&a, height, 136 - height);
             lv_anim_set_duration(&a, 200);
             lv_anim_set_exec_cb(&a, ui_anim_node_panel_cb);
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
@@ -3061,6 +3064,7 @@ void TFTView_320x240::addMessage(uint32_t requestId, char *msg)
     add_style_chat_message_style(textLabel);
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
+    lv_obj_move_foreground(objects.message_input_area);
 }
 
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
@@ -3096,8 +3100,10 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     // NodePanel
     lv_obj_set_pos(p, LV_PCT(0), 0);
-    lv_obj_set_size(p, LV_PCT(100), 52);
+    lv_obj_set_size(p, LV_PCT(100), 53);
     lv_obj_set_align(p, LV_ALIGN_CENTER);
+    lv_obj_set_style_pad_top(p, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(p, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_remove_flag(p, lv_obj_flag_t(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE |
                                         LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE));
     add_style_node_panel_style(p);
@@ -3105,7 +3111,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // NodeImage
     lv_obj_t *img = lv_img_create(p);
     setNodeImage(nodeNum, role, viaMqtt, img);
-    lv_obj_set_pos(img, -5, -10);
+    lv_obj_set_pos(img, -5, 3);
     lv_obj_set_size(img, 32, 32);
     lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_radius(img, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3131,7 +3137,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     // UserNameLabel
     lv_obj_t *ln_lbl = lv_label_create(p);
-    lv_obj_set_pos(ln_lbl, -5, 22);
+    lv_obj_set_pos(ln_lbl, -5, 35);
     lv_obj_set_size(ln_lbl, LV_PCT(80), LV_SIZE_CONTENT);
     lv_label_set_long_mode(ln_lbl, LV_LABEL_LONG_SCROLL);
     lv_label_set_text(ln_lbl, userLong);
@@ -3140,7 +3146,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     // UserNameShortLabel
     lv_obj_t *sn_lbl = lv_label_create(p);
-    lv_obj_set_pos(sn_lbl, 30, -3);
+    lv_obj_set_pos(sn_lbl, 30, 10);
     lv_obj_set_size(sn_lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_label_set_long_mode(sn_lbl, LV_LABEL_LONG_WRAP);
     lv_label_set_text(sn_lbl, userShort);
@@ -3162,14 +3168,14 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     //  BatteryLabel
     lv_obj_t *ui_BatteryLabel = lv_label_create(p);
-    lv_obj_set_pos(ui_BatteryLabel, 8, 4);
+    lv_obj_set_pos(ui_BatteryLabel, 8, 17);
     lv_obj_set_size(ui_BatteryLabel, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_align(ui_BatteryLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_BatteryLabel, "");
     lv_obj_set_style_text_align(ui_BatteryLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
     // LastHeardLabel
     lv_obj_t *ui_lastHeardLabel = lv_label_create(p);
-    lv_obj_set_pos(ui_lastHeardLabel, 8, 20);
+    lv_obj_set_pos(ui_lastHeardLabel, 8, 33);
     lv_obj_set_size(ui_lastHeardLabel, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_align(ui_lastHeardLabel, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_label_set_long_mode(ui_lastHeardLabel, LV_LABEL_LONG_CLIP);
@@ -3196,13 +3202,13 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_SignalLabel = lv_label_create(p);
     lv_obj_set_width(ui_SignalLabel, LV_SIZE_CONTENT);
     lv_obj_set_height(ui_SignalLabel, LV_SIZE_CONTENT);
-    lv_obj_set_pos(ui_SignalLabel, 8, -12);
+    lv_obj_set_pos(ui_SignalLabel, 8, 1);
     lv_obj_set_align(ui_SignalLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_SignalLabel, "");
     ui_SignalLabel->user_data = (void *)-1; // TODO viaMqtt; // used for filtering (applyNodesFilter)
     // PositionLabel
     lv_obj_t *ui_PositionLabel = lv_label_create(p);
-    lv_obj_set_pos(ui_PositionLabel, -5, 36);
+    lv_obj_set_pos(ui_PositionLabel, -5, 49);
     lv_obj_set_size(ui_PositionLabel, 120, LV_SIZE_CONTENT);
     lv_label_set_long_mode(ui_PositionLabel, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_PositionLabel, "");
@@ -3211,7 +3217,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     ui_PositionLabel->user_data = 0; // store latitude
     // Position2Label
     lv_obj_t *ui_Position2Label = lv_label_create(p);
-    lv_obj_set_pos(ui_Position2Label, -5, 50);
+    lv_obj_set_pos(ui_Position2Label, -5, 63);
     lv_obj_set_size(ui_Position2Label, 108, LV_SIZE_CONTENT);
     lv_label_set_long_mode(ui_Position2Label, LV_LABEL_LONG_SCROLL);
     lv_label_set_text(ui_Position2Label, "");
@@ -3219,7 +3225,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     ui_Position2Label->user_data = 0; // store longitude
     // Telemetry1Label
     lv_obj_t *ui_Telemetry1Label = lv_label_create(p);
-    lv_obj_set_pos(ui_Telemetry1Label, 8, 36);
+    lv_obj_set_pos(ui_Telemetry1Label, 8, 49);
     lv_obj_set_size(ui_Telemetry1Label, 130, LV_SIZE_CONTENT);
     lv_label_set_long_mode(ui_Telemetry1Label, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_Telemetry1Label, "");
@@ -3227,7 +3233,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_text_align(ui_Telemetry1Label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
     // Telemetry2Label
     lv_obj_t *ui_Telemetry2Label = lv_label_create(p);
-    lv_obj_set_pos(ui_Telemetry2Label, 8, 50);
+    lv_obj_set_pos(ui_Telemetry2Label, 8, 63);
     lv_obj_set_size(ui_Telemetry2Label, 130, LV_SIZE_CONTENT);
     lv_label_set_long_mode(ui_Telemetry2Label, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_Telemetry2Label, "");
@@ -4593,6 +4599,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     add_style_new_message_style(msgLabel);
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
+    lv_obj_move_foreground(objects.message_input_area);
 }
 
 /**
