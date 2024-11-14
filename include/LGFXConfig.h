@@ -50,6 +50,8 @@ class LGFXConfig : public lgfx::LGFX_Device
                 _panel_instance = new lgfx::Panel_ILI9488;
             else if (strcasecmp(config._panel.type, "HX8357D") == 0)
                 _panel_instance = new lgfx::Panel_HX8357D;
+            else if (strcasecmp(config._panel.type, "HX8357B") == 0)
+                _panel_instance = new lgfx::Panel_HX8357B;
             else {
                 ILOG_ERROR("Device panel support not yet implemented for '%s'", config._panel.type);
                 return;
