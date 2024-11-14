@@ -431,13 +431,17 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
         auto cfg = lgfx->touch()->config();
         ILOG_DEBUG("Touch int:%d, rst:%d, rotation:%d, (%d/%d)-(%d/%d) ", cfg.pin_int, cfg.pin_rst, cfg.offset_rotation,
                    cfg.x_min, cfg.y_min, cfg.x_max, cfg.y_max);
-        if (cfg.pin_cs != -1) {
-            ILOG_DEBUG("Touch SPI(%d): cs:%d, clk:%d, mosi:%d, miso:%d ", (int)cfg.spi_host, cfg.pin_cs, cfg.pin_sclk,
-                       cfg.pin_mosi, cfg.pin_miso);
-        }
-        if (cfg.i2c_port >= 0) {
-            ILOG_DEBUG("Touch I2C(%d:0x%02): SCL:%d, SCA:%d, freq:%d ", (int)cfg.i2c_port, cfg.i2c_addr, cfg.pin_scl, cfg.pin_sda,
-                       cfg.freq);
+        if (cfg.i2c_addr > 0 && cfg.pin_cs == -1) {
+            ILOG_DEBUG("Touch I2C(%d:0x%02x): SCL:%d, SCA:%d, freq:%d ", (int)cfg.i2c_port, cfg.i2c_addr, cfg.pin_scl,
+                       cfg.pin_sda, cfg.freq);
+        } else {
+            if (cfg.pin_cs == -1) {
+                ILOG_DEBUG("Touch SPI(spidev%d.%d), clk:%d, mosi:%d, miso:%d ", (int)(cfg.spi_host & 0x0f),
+                           (int)((cfg.spi_host & 0xf0) >> 4), cfg.pin_cs, cfg.pin_sclk, cfg.pin_mosi, cfg.pin_miso);
+            } else {
+                ILOG_DEBUG("Touch SPI(%d): cs:%d, clk:%d, mosi:%d, miso:%d ", (int)cfg.spi_host, cfg.pin_cs, cfg.pin_sclk,
+                           cfg.pin_mosi, cfg.pin_miso);
+            }
         }
     }
     if (lgfx->light()) {
