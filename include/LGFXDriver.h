@@ -258,8 +258,8 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 
     lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
 
-    ILOG_DEBUG("Set display resolution: %dx%d", lgfx->screenWidth, lgfx->screenHeight);
 #if defined(DISPLAY_SET_RESOLUTION)
+    ILOG_DEBUG("Set display resolution: %dx%d", lgfx->screenWidth, lgfx->screenHeight);
     lv_display_set_resolution(this->display, lgfx->screenWidth, lgfx->screenHeight);
 #endif
     // lv_display_set_physical_resolution(this->display, this->screenWidth, this->screenHeight);
