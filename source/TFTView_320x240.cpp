@@ -356,12 +356,6 @@ void TFTView_320x240::apply_hotfix(void)
     uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
-    lv_obj_set_size(objects.boot_screen, h, v);
-    lv_obj_set_size(objects.main_screen, h, v);
-    lv_obj_set_size(objects.blank_screen, h, v);
-    lv_obj_set_size(objects.lock_screen, h, v);
-    lv_obj_set_size(objects.calibration_screen, h, v);
-
     // resize buttons on larger display (assuming 480x480)
     if (h > 320 && v > 320) {
         lv_obj_t *button[] = {objects.home_button,     objects.nodes_button, objects.groups_button,
