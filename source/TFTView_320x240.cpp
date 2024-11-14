@@ -3432,7 +3432,7 @@ void TFTView_320x240::updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon)
     // we used the userShort label to add the distance, so re-arrange a bit the position
     lv_obj_t *userShort = nodes[nodeNum]->LV_OBJ_IDX(node_lbs_idx);
     lv_label_set_text(userShort, buf);
-    lv_obj_set_pos(userShort, 30, 0);
+    lv_obj_set_pos(userShort, 30, -1);
 }
 
 /**
