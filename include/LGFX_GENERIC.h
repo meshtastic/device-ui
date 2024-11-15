@@ -132,6 +132,10 @@
 #define LGFX_TOUCH_SPI_HOST 3
 #endif
 
+#ifndef LGFX_TOUCH_SPI_FREQ
+#define LGFX_TOUCH_SPI_FREQ 1000000
+#endif
+
 #ifndef LGFX_TOUCH_CS
 #define LGFX_TOUCH_CS -1
 #endif
@@ -282,6 +286,7 @@ class LGFX_GENERIC : public lgfx::LGFX_Device
 
 #if LGFX_TOUCH_CS > 0
             cfg.spi_host = LGFX_TOUCH_SPI_HOST;
+            cfg.freq = LGFX_TOUCH_SPI_FREQ;
             cfg.pin_cs = LGFX_TOUCH_CS;
             cfg.pin_sclk = LGFX_TOUCH_CLK;
             cfg.pin_mosi = LGFX_TOUCH_DIN;
