@@ -4243,6 +4243,14 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
         lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+        // rename chat
+        auto it = chats.find(ch.index);
+        if (it != chats.end()) {
+            char buf[64];
+            sprintf(buf, "%d: %s", (int)ch.index, ch.settings.name);
+            lv_label_set_text(it->second->spec_attr->children[0], buf);
+        }
     } else {
         char buf[10];
         lv_snprintf(buf, sizeof(buf), "%d", ch.index);
