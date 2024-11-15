@@ -2459,17 +2459,19 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             char buf[30];
             const char *userShort = lv_textarea_get_text(objects.settings_user_short_textarea);
             const char *userLong = lv_textarea_get_text(objects.settings_user_long_textarea);
-            lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
-            lv_label_set_text(objects.basic_settings_user_label, buf);
-            lv_label_set_text(objects.user_name_short_label, userShort);
-            lv_label_set_text(objects.user_name_label, userLong);
-            strcpy(THIS->db.short_name, userShort);
-            strcpy(THIS->db.long_name, userLong);
-            meshtastic_User user{}; // TODO: don't overwrite is_licensed
-            strcpy(user.short_name, userShort);
-            strcpy(user.long_name, userLong);
-            THIS->controller->sendConfig(user, THIS->ownNode);
-            THIS->notifyReboot(true);
+            if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
+                lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
+                lv_label_set_text(objects.basic_settings_user_label, buf);
+                lv_label_set_text(objects.user_name_short_label, userShort);
+                lv_label_set_text(objects.user_name_label, userLong);
+                strcpy(THIS->db.short_name, userShort);
+                strcpy(THIS->db.long_name, userLong);
+                meshtastic_User user{}; // TODO: don't overwrite is_licensed
+                strcpy(user.short_name, userShort);
+                strcpy(user.long_name, userLong);
+                THIS->controller->sendConfig(user, THIS->ownNode);
+                THIS->notifyReboot(true);
+            }
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_user_button);
             break;
