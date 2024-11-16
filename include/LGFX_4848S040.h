@@ -17,7 +17,7 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
     const uint16_t screenWidth = 480;
     const uint16_t screenHeight = 480;
 
-    bool hasButton(void) { return false; }
+    bool hasButton(void) { return true; }
 
     LGFX_4848S040(void)
     {
@@ -107,7 +107,7 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
             cfg.pin_int = GPIO_NUM_NC;
             cfg.pin_rst = GPIO_NUM_NC;
             cfg.bus_shared = false;
-            cfg.offset_rotation = 3;
+            cfg.offset_rotation = 0;
 
             cfg.i2c_port = 0;
             cfg.i2c_addr = 0x5D;
