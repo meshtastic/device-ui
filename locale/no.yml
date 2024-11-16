@@ -1,5 +1,5 @@
 no:
-  no new messages: ingen nye meldinger
+  no new messages: Ingen nye meldinger
   1 of 1 nodes online: 1 av 1 noder online
   'uptime 00:00:00': oppetid 00:00:00
   'Heap: 0\nLVGL: 0': ~
@@ -64,8 +64,8 @@ no:
     Mørk
     Lyst
   'Timeout: 60s': 'Tidsavbrudd: 60s'
-  Screen Lock: Låseskjerm
-  Lock PIN: Lås PIN
+  Screen Lock: Skjermlås
+  Lock PIN: PIN
   Mouse: Mus
   none: ingen
   Keyboard: Tastatur
