@@ -74,6 +74,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [x] Spanish translation
       - [x] Portuguese translation
       - [x] Swedish translation
+      - [x] Norwegian translation
       - [x] Finnish translation
       - [x] Polish translation
       - [x] Portuguese translation
