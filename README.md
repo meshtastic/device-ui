@@ -60,7 +60,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [x] Logging interface
       - [x] Add lvgl compatible input driver interface
       - [ ] Add interface for persistency
-        - [ ] Screen calibration data
+        - [X] Screen calibration data
         - [x] Device settings (General)
         - [ ] Message storage
         - [ ] Serial connection config
@@ -80,10 +80,10 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [x] Portuguese translation
       - [x] Netherlands translation
       - [x] Dutch translation
+      - [X] Italian translation
       - [ ] French translation
-      - [ ] Italian translation
       - [ ] Turkish translation
-      - [ ] Optional: other languages with latin or cyrillic characters)
+      - [ ] Greek translation
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
     - [ ] Allow co-existence of generated files/views by different eez-studio projects
@@ -154,7 +154,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [x] Status bar with battery symbol
     - [x] UI Keyboard navigation & control
     - [x] Latin supplemental fonts
-    - [ ] Cyrillic font glyphs
+    - [X] Cyrillic font glyphs
 
 ### :pager: T-Deck (also covered: unPhone)
 
@@ -199,7 +199,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
 ### :iphone: Stand-alone Device
 
     - [x] Dedicated device-ui project
-    - [ ] Sunton/EstarDyn CYD support (320x240) Note: no longer working due to insufficient memory 
+    - [ ] Sunton/EstarDyn CYD support (320x240) Note: no longer working due to insufficient memory
     - [x] LilyGo T-HMI support (320x240)
     - [X] WT32-SC01 (Plus) support (480x320)
       - [x] Display driver
@@ -220,4 +220,4 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
 
 ## Stats
 
-![Alt](https://repobeats.axiom.co/api/embed/13969b386b951b28cd1eb19ec1bbcf364318ddf7.svg "Repobeats analytics image")
+![Alt](https://repobeats.axiom.co/api/embed/13969b386b951b28cd1eb19ec1bbcf364318ddf7.svg 'Repobeats analytics image')

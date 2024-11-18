@@ -14,7 +14,7 @@ class DisplayDriver
   public:
     DisplayDriver(uint16_t width, uint16_t height);
     virtual void init(DeviceGUI *gui);
-    virtual bool calibrate(void) { return false; }
+    virtual bool calibrate(uint16_t parameters[8]) { return false; }
     virtual bool hasTouch(void) { return false; }
     virtual bool hasButton(void) { return false; }
     virtual bool hasLight(void) { return false; }

@@ -17,7 +17,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     LGFXDriver(uint16_t width, uint16_t height);
     LGFXDriver(const DisplayDriverConfig &cfg);
     void init(DeviceGUI *gui) override;
-    bool calibrate(void) override;
+    bool calibrate(uint16_t parameters[8]) override;
     bool hasTouch(void) override;
     bool hasButton(void) override { return lgfx->hasButton(); }
     bool hasLight(void) override { return lgfx->light(); }
@@ -36,8 +36,6 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
     static uint32_t my_tick_get_cb(void) { return millis(); }
-
-    virtual bool calibrate(uint16_t parameters[8]);
 
     uint32_t screenTimeout;
     uint32_t lastBrightness;
@@ -333,29 +331,27 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
     }
 }
 
-template <class LGFX> bool LGFXDriver<LGFX>::calibrate(void)
-{
-    uint16_t parameters[8];
-    return calibrate(parameters);
-};
-
 template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
 {
-    calibrating = true;
-    std::uint16_t fg = TFT_BLUE;
-    std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
-    lgfx->clearDisplay();
-    lgfx->fillScreen(LGFX::color565(0x67, 0xEA, 0x94));
-    lgfx->setTextSize(1);
-    lgfx->setTextDatum(textdatum_t::middle_center);
-    lgfx->setTextColor(fg, bg);
-    lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
-    lgfx->setTextDatum(textdatum_t::top_left);
-    if (lgfx->isEPD())
-        std::swap(fg, bg);
-    lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
-    calibrating = false;
-
+    if (parameters[0] || parameters[7]) {
+        ILOG_DEBUG("setting touch screen calibration data");
+        lgfx->setTouchCalibrate(parameters);
+    } else {
+        calibrating = true;
+        std::uint16_t fg = TFT_BLUE;
+        std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
+        lgfx->clearDisplay();
+        lgfx->fillScreen(LGFX::color565(0x67, 0xEA, 0x94));
+        lgfx->setTextSize(1);
+        lgfx->setTextDatum(textdatum_t::middle_center);
+        lgfx->setTextColor(fg, bg);
+        lgfx->drawString("Tap the tip of the arrow marker.", lgfx->width() >> 1, lgfx->height() >> 1);
+        lgfx->setTextDatum(textdatum_t::top_left);
+        if (lgfx->isEPD())
+            std::swap(fg, bg);
+        lgfx->calibrateTouch(parameters, fg, bg, std::max(lgfx->width(), lgfx->height()) >> 3);
+        calibrating = false;
+    }
     ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}", parameters[0], parameters[1],
                parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
     return true;

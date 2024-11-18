@@ -345,10 +345,9 @@ class TFTView_320x240 : public MeshtasticView
         meshtastic_DeviceUIConfig uiConfig;         // storage of persistent UI data
     };
 
-    // additional local ui data
+    // additional local ui data (non-persistent)
     struct meshtastic_DeviceProfile_full : meshtastic_DeviceProfile_ext {
-        uint16_t ringtoneId; // index into ringtone preset
-        bool silent;         // sound silenced
+        bool silent; // sound silenced
     };
 
     meshtastic_DeviceProfile_full db; // full copy of the node's configuration db (except nodeinfos) plus ui data

@@ -196,6 +196,12 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     if (ownNode && objects.node_panel)
         nodes[ownNode] = objects.node_panel;
 
+    // touch screen calibration data
+    uint16_t *parameters = (uint16_t *)db.uiConfig.calibration_data.bytes;
+    if (db.uiConfig.calibration_data.size == 16 && (parameters[0] || parameters[7])) {
+        displaydriver->calibrate(parameters);
+    }
+
     lv_disp_trig_activity(NULL);
 }
 
@@ -247,7 +253,7 @@ void TFTView_320x240::init_screens(void)
 
 #if defined(USE_I2S_BUZZER) || defined(USE_PIN_BUZZER)
     lv_obj_clear_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
-    db.ringtoneId = 0;
+    db.uiConfig.ring_tone_id = 0;
 #else
     lv_obj_add_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
 #endif
@@ -912,21 +918,21 @@ void TFTView_320x240::ui_event_BellButton(lv_event_t *e)
         }
         // set banner and sound on
         if (THIS->db.silent && (bool)objects.home_bell_button->user_data) {
-            if (THIS->db.ringtoneId == 0) {
-                THIS->db.ringtoneId = 1;
+            if (THIS->db.uiConfig.ring_tone_id == 0) {
+                THIS->db.uiConfig.ring_tone_id = 1;
             }
             THIS->db.silent = false;
             THIS->db.uiConfig.alert_enabled = true;
-            THIS->controller->sendConfig(ringtone[THIS->db.ringtoneId].rtttl, THIS->ownNode);
+            THIS->controller->sendConfig(ringtone[THIS->db.uiConfig.ring_tone_id].rtttl, THIS->ownNode);
             objects.home_bell_button->user_data = (void *)false;
         }
         // toggle sound only
         else if (THIS->db.uiConfig.alert_enabled && !THIS->db.silent) {
-            if (THIS->db.ringtoneId == 0) {
-                THIS->db.ringtoneId = 1;
+            if (THIS->db.uiConfig.ring_tone_id == 0) {
+                THIS->db.uiConfig.ring_tone_id = 1;
             }
             THIS->db.uiConfig.alert_enabled = false;
-            THIS->controller->sendConfig(ringtone[THIS->db.ringtoneId].rtttl, THIS->ownNode);
+            THIS->controller->sendConfig(ringtone[THIS->db.uiConfig.ring_tone_id].rtttl, THIS->ownNode);
         }
         // toggle banner only
         else if (!THIS->db.uiConfig.alert_enabled && !THIS->db.silent) {
@@ -936,24 +942,24 @@ void TFTView_320x240::ui_event_BellButton(lv_event_t *e)
         }
         // toggle banner & sound
         else {
-            if (THIS->db.ringtoneId == 0) {
-                THIS->db.ringtoneId = 1;
+            if (THIS->db.uiConfig.ring_tone_id == 0) {
+                THIS->db.uiConfig.ring_tone_id = 1;
             }
             THIS->db.silent = false;
             THIS->db.uiConfig.alert_enabled = true;
-            THIS->controller->sendConfig(ringtone[THIS->db.ringtoneId].rtttl, THIS->ownNode);
+            THIS->controller->sendConfig(ringtone[THIS->db.uiConfig.ring_tone_id].rtttl, THIS->ownNode);
         }
         THIS->setBellText(THIS->db.uiConfig.alert_enabled, !THIS->db.silent);
         THIS->controller->storeUIConfig(THIS->db.uiConfig);
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         ignoreClicked = true;
         if ((bool)objects.home_bell_button->user_data) {
-            if (THIS->db.ringtoneId == 0) {
-                THIS->db.ringtoneId = 1;
+            if (THIS->db.uiConfig.ring_tone_id == 0) {
+                THIS->db.uiConfig.ring_tone_id = 1;
             }
             THIS->db.silent = false;
             THIS->db.uiConfig.alert_enabled = true;
-            THIS->controller->sendConfig(ringtone[THIS->db.ringtoneId].rtttl, THIS->ownNode);
+            THIS->controller->sendConfig(ringtone[THIS->db.uiConfig.ring_tone_id].rtttl, THIS->ownNode);
             objects.home_bell_button->user_data = (void *)false;
         } else {
             THIS->db.silent = true;
@@ -1415,7 +1421,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
             }
         }
 
-        lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.ringtoneId - 1);
+        lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.uiConfig.ring_tone_id - 1);
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_alert_buzzer_switch);
         THIS->disablePanel(objects.controller_panel);
@@ -1557,11 +1563,15 @@ void TFTView_320x240::ui_event_delete_channel(lv_event_t *e)
 
 void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
 {
-    bool done = THIS->displaydriver->calibrate();
+    uint16_t *parameters = (uint16_t *)THIS->db.uiConfig.calibration_data.bytes;
+    memset(parameters, 0, 8); // clear all calibration data
+    bool done = THIS->displaydriver->calibrate(parameters);
+    THIS->db.uiConfig.calibration_data.size = 16;
     char buf[32];
     lv_snprintf(buf, sizeof(buf), _("Screen Calibration: %s"), done ? _("done") : _("default"));
     lv_label_set_text(objects.basic_settings_calibration_label, buf);
     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
+    THIS->controller->storeUIConfig(THIS->db.uiConfig);
 }
 
 void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
@@ -2737,7 +2747,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
 
             THIS->controller->sendConfig(ringtone[silent ? 0 : tone].rtttl, THIS->ownNode);
-            THIS->db.ringtoneId = tone;
+            THIS->db.uiConfig.ring_tone_id = tone;
             THIS->db.silent = silent;
             THIS->db.uiConfig.alert_enabled = !silent;
             THIS->setBellText(THIS->db.uiConfig.alert_enabled, !silent);
@@ -4378,7 +4388,7 @@ void TFTView_320x240::setBellText(bool banner, bool sound)
     char buf[40];
     lv_snprintf(buf, sizeof(buf), _("Message Alert: %s"),
                 db.module_config.external_notification.alert_message_buzzer
-                    ? (!sound ? _("silent") : ringtone[db.ringtoneId].name)
+                    ? (!sound ? _("silent") : ringtone[db.uiConfig.ring_tone_id].name)
                     : "off");
     lv_label_set_text(objects.basic_settings_alert_label, buf);
 
@@ -4444,9 +4454,9 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
         }
     }
     if (rtIndex != 0)
-        db.ringtoneId = rtIndex;
-    if (db.ringtoneId == 0)
-        db.ringtoneId = 1;
+        db.uiConfig.ring_tone_id = rtIndex;
+    if (db.uiConfig.ring_tone_id == 0)
+        db.uiConfig.ring_tone_id = 1;
     db.silent = rtIndex == 0;
 
     //    char buf[32];
