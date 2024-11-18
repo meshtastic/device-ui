@@ -3364,6 +3364,15 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), lv_color_hex(0xffff5555),
                                           LV_PART_MAIN | LV_STATE_DEFAULT);
         }
+
+        // update chat name
+        auto ct = chats.find(it->first);
+        if (ct != chats.end()) {
+            char buf[64];
+            lv_snprintf(buf, sizeof(buf), "%s: %s", lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)),
+                        lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
+            lv_label_set_text(ct->second->spec_attr->children[0], buf);
+        }
     }
 }
 
