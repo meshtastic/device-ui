@@ -1001,33 +1001,28 @@ void TFTView_320x240::ui_event_LocationButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_WLANButton(lv_event_t *e)
 {
-    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
-#if 0
-    if (event_code == LV_EVENT_CLICKED && THIS->db.config.has_network && THIS->activeSettings == eNone) {
-        if (ignoreClicked) { // prevent long press to enter this setting
-            ignoreClicked = false;
-            return;
-        }
-        lv_textarea_set_text(objects.settings_wifi_ssid_textarea, THIS->db.config.network.wifi_ssid);
-        lv_textarea_set_text(objects.settings_wifi_password_textarea, THIS->db.config.network.wifi_psk);
-        lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
-        lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
-        THIS->disablePanel(objects.home_panel);
-        THIS->activeSettings = eWifi;
-    }
-    else
-#endif
     if (event_code == LV_EVENT_LONG_PRESSED && THIS->db.config.has_network) {
-        // toggle WLAN on/off
-        ignoreClicked = true;
-        uint32_t toggle = (unsigned long)objects.home_wlan_button->user_data;
-        objects.home_wlan_button->user_data = (void *)(1 - toggle);
-        meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
-        network.wifi_enabled = !network.wifi_enabled;
-        Themes::recolorButton(objects.home_wlan_button, network.wifi_enabled);
-        THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
-        THIS->notifyReboot(true);
+        if ((THIS->db.config.network.wifi_ssid[0] == '\0' || THIS->db.config.network.wifi_psk[0] == '\0') &&
+            !THIS->db.connectionStatus.wifi.status.is_connected &&
+            !THIS->db.config.network.eth_enabled) { // TODO: this is a workaround for bug in portduino layer
+            // open settings dialog
+            lv_textarea_set_text(objects.settings_wifi_ssid_textarea, THIS->db.config.network.wifi_ssid);
+            lv_textarea_set_text(objects.settings_wifi_password_textarea, THIS->db.config.network.wifi_psk);
+            lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
+            THIS->disablePanel(objects.home_panel);
+            THIS->activeSettings = eWifi;
+        } else {
+            // toggle WLAN on/off
+            uint32_t toggle = (unsigned long)objects.home_wlan_button->user_data;
+            objects.home_wlan_button->user_data = (void *)(1 - toggle);
+            meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
+            network.wifi_enabled = !network.wifi_enabled;
+            Themes::recolorButton(objects.home_wlan_button, network.wifi_enabled);
+            THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
+            THIS->notifyReboot(true);
+        }
     }
 }
 
@@ -3621,6 +3616,7 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
 
 void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
 {
+    db.connectionStatus = status;
     if (status.has_wifi) {
         if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
             if (status.wifi.has_status) {
