@@ -199,7 +199,10 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     // touch screen calibration data
     uint16_t *parameters = (uint16_t *)db.uiConfig.calibration_data.bytes;
     if (db.uiConfig.calibration_data.size == 16 && (parameters[0] || parameters[7])) {
-        displaydriver->calibrate(parameters);
+        bool done = displaydriver->calibrate(parameters);
+        char buf[32];
+        lv_snprintf(buf, sizeof(buf), _("Screen Calibration: %s"), done ? _("done") : _("default"));
+        lv_label_set_text(objects.basic_settings_calibration_label, buf);
     }
 
     lv_disp_trig_activity(NULL);
