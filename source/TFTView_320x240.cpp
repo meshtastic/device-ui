@@ -5009,7 +5009,7 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, l
 void TFTView_320x240::updateNodesStatus(void)
 {
     char buf[40];
-    lv_snprintf(buf, sizeof(buf), _p("%d of %d nodes online", nodesOnline), nodesOnline, nodeCount);
+    lv_snprintf(buf, sizeof(buf), _p("%d of %d nodes online", nodeCount), nodesOnline, nodeCount);
     lv_label_set_text(objects.home_nodes_label, buf);
 
     if (nodesFiltered) {
