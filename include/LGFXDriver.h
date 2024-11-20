@@ -108,7 +108,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 #else
                         pin_int = lgfx->getTouchInt();
 #endif
-                    } 
+                    }
                     if (hasButton()) {
 #ifdef BUTTON_PIN // only relevant for CYD scenario
                         pin_int = BUTTON_PIN;
@@ -152,11 +152,6 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
     }
 
     if (!calibrating) {
-#ifdef HAS_FREE_RTOS
-        lv_tick_set_cb(xTaskGetTickCount);
-#else
-        lv_tick_set_cb(my_tick_get_cb);
-#endif
         DisplayDriver::task_handler();
     }
 }
@@ -379,7 +374,6 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
                    cfg.dummy_read_bits, cfg.dlen_16bit, LV_COLOR_DEPTH);
     }
     if (lgfx->panel() && lgfx->panel()->getBus()) {
-        auto p = lgfx->panel();
         lgfx::v1::bus_type_t type = lgfx->panel()->getBus()->busType();
         switch (type) {
         case lgfx::v1::bus_unknown:
@@ -388,6 +382,7 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
         case lgfx::v1::bus_spi: {
             auto cfg = static_cast<lgfx::Bus_SPI *>(lgfx->panel()->getBus())->config();
 #ifdef ARCH_PORTDUINO
+            auto p = lgfx->panel();
             ILOG_DEBUG("Bus_SPI(%d): cs:%d, clk:%d, miso:%d, mosi:%d, dc:%d", cfg.spi_host, p->config().pin_cs, cfg.pin_sclk,
                        cfg.pin_miso, cfg.pin_mosi, cfg.pin_dc);
 #else
@@ -403,12 +398,12 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
         }
 #ifndef ARCH_PORTDUINO
         case lgfx::v1::bus_parallel8: {
-            auto bus = static_cast<lgfx::v1::Bus_Parallel8 *>(lgfx->panel()->getBus());
+            // auto bus = static_cast<lgfx::v1::Bus_Parallel8 *>(lgfx->panel()->getBus());
             ILOG_DEBUG("Bus_Parallel8");
             break;
         }
         case lgfx::v1::bus_parallel16: {
-            auto bus = static_cast<lgfx::v1::Bus_Parallel16 *>(lgfx->panel()->getBus());
+            // auto bus = static_cast<lgfx::v1::Bus_Parallel16 *>(lgfx->panel()->getBus());
             ILOG_DEBUG("Bus_Parallel16");
             break;
         }
@@ -442,7 +437,7 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
         }
     }
     if (lgfx->light()) {
-        auto cfg = lgfx->light();
+        // auto cfg = lgfx->light();
         ILOG_DEBUG("BL pin assigned");
     }
 }

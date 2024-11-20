@@ -19,4 +19,15 @@ template <class TFT> TFTDriver<TFT>::TFTDriver(TFT *tft, uint16_t width, uint16_
 template <class TFT> void TFTDriver<TFT>::init(DeviceGUI *gui)
 {
     DisplayDriver::init(gui);
+
+#ifdef ARCH_ESP32
+    // Create esp timer to call lvgl lv_tick_inc()
+    const esp_timer_create_args_t lvgl_tick_timer_args = {.callback = [](void *arg) { lv_tick_inc(1); }, .name = "lvgl_tick"};
+    esp_timer_handle_t lvgl_tick_timer = nullptr;
+    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, 1000));
+#elif defined(ARCH_PORTDUINO)
+    auto tick_get_cb = []() -> uint32_t { return millis(); };
+    lv_tick_set_cb(tick_get_cb);
+#endif
 }
