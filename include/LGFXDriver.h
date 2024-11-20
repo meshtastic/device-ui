@@ -35,7 +35,6 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     // lvgl callbacks have to be static cause it's a C library, not C++
     static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
-    static uint32_t my_tick_get_cb(void) { return millis(); }
 
     uint32_t screenTimeout;
     uint32_t lastBrightness;
