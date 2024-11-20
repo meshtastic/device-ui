@@ -220,7 +220,7 @@
 
 /*Enable the log module*/
 #ifndef LV_USE_LOG
-#define LV_USE_LOG 1
+#define LV_USE_LOG 0
 #endif
 #if LV_USE_LOG
 
@@ -761,7 +761,7 @@
 
 /*1: Enable system monitor component*/
 #ifndef LV_USE_SYSMON
-#define LV_USE_SYSMON   1
+#define LV_USE_SYSMON   0
 #endif
 
 #if LV_USE_SYSMON
@@ -771,7 +771,7 @@
     /*1: Show CPU usage and FPS count
      * Requires `LV_USE_SYSMON = 1`*/
     #ifndef LV_USE_PERF_MONITOR
-    #define LV_USE_PERF_MONITOR 1
+    #define LV_USE_PERF_MONITOR 0
     #endif
     #if LV_USE_PERF_MONITOR
         #define LV_USE_PERF_MONITOR_POS LV_ALIGN_BOTTOM_RIGHT
@@ -784,7 +784,7 @@
      * Requires `LV_USE_STDLIB_MALLOC = LV_STDLIB_BUILTIN`
      * Requires `LV_USE_SYSMON = 1`*/
     #ifndef LV_USE_MEM_MONITOR
-    #define LV_USE_MEM_MONITOR 1
+    #define LV_USE_MEM_MONITOR 0
     #endif
     #if LV_USE_MEM_MONITOR
         #define LV_USE_MEM_MONITOR_POS LV_ALIGN_BOTTOM_LEFT
@@ -794,7 +794,7 @@
 
 /*1: Enable the runtime performance profiler*/
 #ifndef LV_USE_PROFILER
-#define LV_USE_PROFILER 1
+#define LV_USE_PROFILER 0
 #endif
 #if LV_USE_PROFILER
     /*1: Enable the built-in profiler*/
