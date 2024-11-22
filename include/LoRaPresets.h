@@ -10,7 +10,6 @@ class LoRaPresets
         const char *region;
         float freqStart;
         float freqEnd;
-        uint16_t defaultSlot;
     };
 
     static const char *loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region);

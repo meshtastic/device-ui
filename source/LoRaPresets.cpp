@@ -1,20 +1,21 @@
 #include "LoRaPresets.h"
 
+/**
+ * LoRa Presets
+ * Note: keep order the same as in meshtastic_Config_LoRaConfig_RegionCode and as in settings_region_dropdown
+ */
 LoRaPresets::RegionInfo LoRaPresets::regionInfo[] = {
-    {"UNSET", 902.0f, 928.0f, 20},   {"US", 902.0f, 928.0f, 20},       {"EU_433", 433.0f, 434.0f, 4},
-    {"EU_868", 869.4f, 869.65f, 1},  {"CN", 470.0f, 510.0f, 36},       {"JP", 920.8f, 927.8f, 20},
-    {"ANZ", 915.0f, 928.0f, 20},     {"KR", 920.0f, 923.0f, 12},       {"TW", 920.0f, 925.0f, 16},
-    {"RU", 868.7f, 869.2f, 2},       {"IN", 865.0f, 867.0f, 4},        {"NZ_865", 864.0f, 868.0f, 4},
-    {"TH", 920.0f, 925.0f, 16},      {"LORA_24", 2400.0f, 2483.5f, 6}, {"UA_433", 433.0f, 434.7f, 6},  
-    {"UA_868", 868.0f, 868.6f, 2},   {"MY_433", 433.0f, 435.0f, 4},    {"MY_919", 919.0f, 924.0f, 16}, 
-    {"SG_923", 917.0f, 925.0f, 4}
-    };
+    {"UNSET", 902.0f, 928.0f},  {"US", 902.0f, 928.0f},        {"EU_433", 433.0f, 434.0f}, {"EU_868", 869.4f, 869.65f},
+    {"CN", 470.0f, 510.0f},     {"JP", 920.8f, 927.8f},        {"ANZ", 915.0f, 928.0f},    {"KR", 920.0f, 923.0f},
+    {"TW", 920.0f, 925.0f},     {"RU", 868.7f, 869.2f},        {"IN", 865.0f, 867.0f},     {"NZ_865", 864.0f, 868.0f},
+    {"TH", 920.0f, 925.0f},     {"LORA_24", 2400.0f, 2483.5f}, {"UA_433", 433.0f, 434.7f}, {"UA_868", 868.0f, 868.6f},
+    {"MY_433", 433.0f, 435.0f}, {"MY_919", 919.0f, 924.0f},    {"SG_923", 917.0f, 925.0f}, {"PH_433", 433.0f, 434.7f},
+    {"PH_868", 868.0f, 869.4f}, {"PH_915", 915.0f, 918.0f}};
 
-LoRaPresets::ModemPreset LoRaPresets::modemPreset[] = {{"LongFast", "250", .250f},    {"LongSlow", "125", .125f},
-                                                       {"VLongSlow", "62.5", .0625f}, {"MediumSlow", "250", .250f},
-                                                       {"MediumFast", "250", .250f},  {"ShortSlow", "250", .250f},
-                                                       {"ShortFast", "250", .250f},   {"LongMod", "125", .125f},
-                                                       {"ShortTurbo", "500", .500f}};
+LoRaPresets::ModemPreset LoRaPresets::modemPreset[] = {
+    {"LongFast", "250", .250f},   {"LongSlow", "125", .125f},   {"VLongSlow", "62.5", .0625f},
+    {"MediumSlow", "250", .250f}, {"MediumFast", "250", .250f}, {"ShortSlow", "250", .250f},
+    {"ShortFast", "250", .250f},  {"LongMod", "125", .125f},    {"ShortTurbo", "500", .500f}};
 
 const char *LoRaPresets::loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region)
 {
