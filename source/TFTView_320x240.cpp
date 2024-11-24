@@ -2621,10 +2621,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
 
             int8_t ch = (signed long)THIS->ch_label[0]->user_data;
-            char buf[32];
-            lv_snprintf(buf, sizeof(buf), _("Channel: %s"), THIS->db.channel[ch].settings.name);
-            lv_label_set_text(objects.basic_settings_channel_label, buf);
-
+            THIS->setChannelName(THIS->db.channel[ch]);
             lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
             lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_channel_button);
@@ -2823,11 +2820,13 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->activeSettings = eChannel;
             }
 
-            if (strlen(base64) != 0 && base64[strlen(base64) - 1] != '=')
+            int paddings = (4 - strlen(base64) % 4) % 4;
+            while (paddings-- > 0) {
                 lv_textarea_add_text(objects.settings_modify_channel_psk_textarea, "=");
+            }
 
             if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk)) {
-                if (strlen(name) != 0) {
+                if (strlen(name) || psk.size) {
                     // TODO: fill temp storage -> user data
                     lv_label_set_text(THIS->ch_label[btn_id], name);
                     strcpy(THIS->channel_scratch[ch].settings.name, name);
