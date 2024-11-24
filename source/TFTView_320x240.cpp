@@ -23,6 +23,7 @@
 #include <functional>
 #include <list>
 #include <locale>
+#include <random>
 
 #ifdef ARCH_PORTDUINO
 #include "LinuxHelper.h"
@@ -83,7 +84,8 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), processingFilter(false),
       packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0), hasPosition(false),
-      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), db{}
+      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
+      db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -608,6 +610,9 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_channel7_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)7);
     // delete channel button
     lv_obj_add_event_cb(objects.settings_modify_trash_button, ui_event_delete_channel, LV_EVENT_CLICKED, NULL);
+    // generate PSK
+    lv_obj_add_event_cb(objects.settings_modify_channel_key_generate_button, ui_event_generate_psk, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.settings_modify_channel_qr_button, ui_event_qr_code, LV_EVENT_CLICKED, NULL);
 
     // screen
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
@@ -1551,6 +1556,45 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
             lv_label_set_text(THIS->ch_label[btn_id], THIS->channel_scratch[primary_id].settings.name);
         }
     }
+}
+
+void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
+{
+    std::string base64 = lv_textarea_get_text(objects.settings_modify_channel_psk_textarea);
+    if (base64.size() == 0 || THIS->qr) {
+        meshtastic_ChannelSettings_psk_t psk{.size = 32};
+        std::mt19937 generator(millis() + psk.bytes[7]); // Mersenne Twister number generator
+        for (int i = 0; i < 8; i++) {
+            int r = generator();
+            memcpy(&psk.bytes[i * 4], &r, 4);
+        }
+        base64 = THIS->pskToBase64(psk);
+        lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
+    }
+
+    std::string base64Https = base64;
+    for (char &c : base64Https) {
+        if (c == '+')
+            c = '-';
+        else if (c == '/')
+            c = '_';
+        else if (c == '=')
+            c = '\0'; // remove paddings at the end of the url
+    }
+    std::string qr = "https://meshtastic.org/e/#" + base64Https;
+    lv_obj_remove_flag(objects.settings_modify_channel_qr_panel, LV_OBJ_FLAG_HIDDEN);
+    THIS->qr = THIS->showQrCode(objects.settings_modify_channel_qr_panel, qr.c_str());
+    lv_obj_add_state(objects.keyboard_button_3, LV_STATE_DISABLED);
+    lv_obj_add_state(objects.keyboard_button_4, LV_STATE_DISABLED);
+}
+
+void TFTView_320x240::ui_event_qr_code(lv_event_t *e)
+{
+    lv_obj_remove_state(objects.keyboard_button_3, LV_STATE_DISABLED);
+    lv_obj_remove_state(objects.keyboard_button_4, LV_STATE_DISABLED);
+    lv_obj_add_flag(objects.settings_modify_channel_qr_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_delete(THIS->qr);
+    THIS->qr = nullptr;
 }
 
 void TFTView_320x240::ui_event_delete_channel(lv_event_t *e)
@@ -4237,15 +4281,7 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
     db.channel[ch.index] = ch;
 
     if (ch.role != meshtastic_Channel_Role_DISABLED) {
-        if (ch.role == meshtastic_Channel_Role_PRIMARY) {
-            char buf[32];
-            lv_snprintf(buf, sizeof(buf), _("Channel: %s"), strlen(ch.settings.name) ? ch.settings.name : _("<no name>"));
-            lv_label_set_text(objects.basic_settings_channel_label, buf);
-            lv_snprintf(buf, sizeof(buf), "*%s", strlen(ch.settings.name) ? ch.settings.name : _("<no name>"));
-            lv_label_set_text(channel[ch.index], buf);
-        } else {
-            lv_label_set_text(channel[ch.index], ch.settings.name);
-        }
+        setChannelName(ch);
 
         lv_obj_set_width(btn[ch.index], lv_pct(70));
         lv_obj_set_style_pad_left(btn[ch.index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4347,7 +4383,7 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
     lv_label_set_text(objects.basic_settings_region_label, region);
 
-    char buf1[16], buf2[32];
+    char buf1[20], buf2[32];
     lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
     lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
     lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
@@ -4360,6 +4396,15 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
         db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset);
     }
     lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
+
+    if (db.config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
+        // update primary channel name if region is known
+        for (int i = 0; i < c_max_channels; i++) {
+            if (db.channel[i].has_settings && db.channel[i].role == meshtastic_Channel_Role_PRIMARY) {
+                setChannelName(db.channel[i]);
+            }
+        }
+    }
 }
 
 void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
@@ -4402,6 +4447,30 @@ void TFTView_320x240::setBellText(bool banner, bool sound)
 
     Themes::recolorButton(objects.home_bell_button, banner || sound);
     Themes::recolorText(objects.home_bell_label, banner || sound);
+}
+
+/**
+ * auto set primary channel name (based on region)
+ */
+void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
+{
+    if (ch.role == meshtastic_Channel_Role_PRIMARY) {
+        char buf[40];
+        sprintf(buf, _("Channel: %s"),
+                strlen(ch.settings.name) ? ch.settings.name
+                : db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
+                    ? ("<unset>")
+                    : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
+        lv_label_set_text(objects.basic_settings_channel_label, buf);
+        sprintf(buf, "*%s",
+                strlen(ch.settings.name) ? ch.settings.name
+                : db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
+                    ? ("<unset>")
+                    : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
+        lv_label_set_text(channel[ch.index], buf);
+    } else {
+        lv_label_set_text(channel[ch.index], ch.settings.name);
+    }
 }
 
 void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg)
@@ -4857,6 +4926,22 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     }
 
     lv_keyboard_set_textarea(objects.keyboard, textArea);
+}
+
+lv_obj_t *TFTView_320x240::showQrCode(lv_obj_t *parent, const char *data)
+{
+    lv_color_t bg_color = lv_color_hex(0x67EA94);
+    lv_color_t fg_color = lv_palette_darken(LV_PALETTE_BLUE, 4);
+    qr = lv_qrcode_create(parent);
+    int32_t size = std::min<int32_t>(lv_obj_get_width(parent), lv_obj_get_height(parent)) - 8;
+    lv_qrcode_set_size(qr, size);
+    lv_qrcode_set_dark_color(qr, fg_color);
+    lv_qrcode_set_light_color(qr, bg_color);
+    lv_qrcode_update(qr, data, strlen(data));
+    lv_obj_center(qr);
+    lv_obj_set_style_border_color(qr, fg_color, 0);
+    lv_obj_set_style_border_width(qr, 4, 0);
+    return qr;
 }
 
 /**

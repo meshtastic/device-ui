@@ -386,12 +386,15 @@ typedef struct _objects_t {
     lv_obj_t *keyboard_button_3;
     lv_obj_t *obj18;
     lv_obj_t *settings_modify_channel_psk_textarea;
+    lv_obj_t *settings_modify_channel_key_generate_button;
     lv_obj_t *keyboard_button_4;
     lv_obj_t *settings_modify_trash_button;
     lv_obj_t *obj19;
     lv_obj_t *obj19__ok_cancel_panel_w;
     lv_obj_t *obj19__ok_button_w;
     lv_obj_t *obj19__cancel_button_w;
+    lv_obj_t *settings_modify_channel_qr_panel;
+    lv_obj_t *settings_modify_channel_qr_button;
     lv_obj_t *node_options_panel;
     lv_obj_t *node_options_tab_view;
     lv_obj_t *tab_page_filter;

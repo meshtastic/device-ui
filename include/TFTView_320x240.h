@@ -190,6 +190,7 @@ class TFTView_320x240 : public MeshtasticView
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
+    lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
 
     void enablePanel(lv_obj_t *panel);
     void disablePanel(lv_obj_t *panel);
@@ -216,6 +217,7 @@ class TFTView_320x240 : public MeshtasticView
     void storeNodeOptions(void);
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);
+    void setChannelName(const meshtastic_Channel &ch);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);
@@ -269,6 +271,8 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_shutdown_button(lv_event_t *e);
     static void ui_event_modify_channel(lv_event_t *e);
     static void ui_event_delete_channel(lv_event_t *e);
+    static void ui_event_generate_psk(lv_event_t *e);
+    static void ui_event_qr_code(lv_event_t *e);
 
     static void ui_event_screen_timeout_slider(lv_event_t *e);
     static void ui_event_brightness_slider(lv_event_t *e);
@@ -338,6 +342,7 @@ class TFTView_320x240 : public MeshtasticView
     char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
     meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db
+    lv_obj_t *qr;                                    // qr code
 
     // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
