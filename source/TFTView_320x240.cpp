@@ -263,6 +263,11 @@ void TFTView_320x240::init_screens(void)
     lv_obj_add_flag(objects.basic_settings_alert_button, LV_OBJ_FLAG_HIDDEN);
 #endif
 
+#ifndef USE_ROUTER_ROLE
+    lv_dropdown_set_options(objects.settings_device_role_dropdown,
+                            _("Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"));
+#endif
+
     // signal scanner scale
 #if defined(USE_SX127x)
     lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120\n-130\n-140\n-150");
@@ -562,7 +567,6 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.frequency_slot_slider, ui_event_frequency_slot_slider, LV_EVENT_VALUE_CHANGED, NULL);
 
     // dropdown
-    lv_obj_add_event_cb(objects.settings_device_role_dropdown, ui_event_device_role_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.settings_modem_preset_dropdown, ui_event_modem_preset_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // OK / Cancel widget for basic settings dialog
@@ -1190,7 +1194,7 @@ void TFTView_320x240::ui_event_role_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_device) {
-        lv_dropdown_set_selected(objects.settings_device_role_dropdown, THIS->db.config.device.role);
+        lv_dropdown_set_selected(objects.settings_device_role_dropdown, THIS->role2val(THIS->db.config.device.role));
         lv_obj_clear_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_device_role_dropdown);
         THIS->disablePanel(objects.controller_panel);
@@ -2256,7 +2260,82 @@ void TFTView_320x240::ui_event_statistics_table(lv_event_t *e)
 }
 
 /**
- * Translate proto enum value to (alphabetical) position in dropdown menu
+ * Translate proto role enum value to numerical position in dropdown menu
+ */
+uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
+{
+    int offset = 0;
+#ifndef USE_ROUTER_ROLE
+    // skipping
+    offset = -2;
+#endif
+
+    switch (role) {
+    case meshtastic_Config_DeviceConfig_Role_CLIENT:
+        return 0;
+    case meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE:
+        return 1;
+    case meshtastic_Config_DeviceConfig_Role_ROUTER:
+        return 2;
+    case meshtastic_Config_DeviceConfig_Role_REPEATER:
+        return 3;
+    case meshtastic_Config_DeviceConfig_Role_TRACKER:
+        return 4 + offset;
+    case meshtastic_Config_DeviceConfig_Role_SENSOR:
+        return 5 + offset;
+    case meshtastic_Config_DeviceConfig_Role_TAK:
+        return 6 + offset;
+    case meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN:
+        return 7 + offset;
+    case meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND:
+        return 8 + offset;
+    case meshtastic_Config_DeviceConfig_Role_TAK_TRACKER:
+        return 9 + offset;
+    default:
+        ILOG_ERROR("unsupported device role: %d", role);
+        return 0;
+    }
+}
+
+/**
+ * Translate value from dropdown menu to role proto enum
+ */
+meshtastic_Config_DeviceConfig_Role TFTView_320x240::val2role(uint32_t val)
+{
+    int offset = 0;
+#ifndef USE_ROUTER_ROLE
+    // skipping
+    offset = -2;
+#endif
+    switch (val) {
+    case 0:
+        return meshtastic_Config_DeviceConfig_Role_CLIENT;
+    case 1:
+        return meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE;
+    case 2:
+        return meshtastic_Config_DeviceConfig_Role_ROUTER;
+    case 3:
+        return meshtastic_Config_DeviceConfig_Role_REPEATER;
+    case 4:
+        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TRACKER - offset);
+    case 5:
+        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_SENSOR - offset);
+    case 6:
+        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TAK - offset);
+    case 7:
+        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN - offset);
+    case 8:
+        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND - offset);
+    case 9:
+        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TAK_TRACKER - offset);
+    default:
+        ILOG_WARN("unknown role value: %d", val);
+    }
+    return meshtastic_Config_DeviceConfig_Role_CLIENT;
+}
+
+/**
+ * Translate language proto enum value to (alphabetical) position in dropdown menu
  */
 uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
 {
@@ -2301,7 +2380,7 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
 }
 
 /**
- * Translate value from dropdown menu to proto enum
+ * Translate value from dropdown menu to language proto enum
  */
 meshtastic_Language TFTView_320x240::val2language(uint32_t val)
 {
@@ -2545,7 +2624,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         case eDeviceRole: {
             meshtastic_Config_DeviceConfig &device = THIS->db.config.device;
             meshtastic_Config_DeviceConfig_Role role =
-                (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(objects.settings_device_role_dropdown);
+                THIS->val2role(lv_dropdown_get_selected(objects.settings_device_role_dropdown));
 
             if (role != device.role) {
                 char buf1[30], buf2[40];
@@ -3018,17 +3097,6 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
     lv_label_set_text(objects.frequency_slot_label, buf);
 }
 
-void TFTView_320x240::ui_event_device_role_dropdown(lv_event_t *e)
-{
-    lv_obj_t *dropdown = lv_event_get_target_obj(e);
-    meshtastic_Config_DeviceConfig_Role role = (meshtastic_Config_DeviceConfig_Role)lv_dropdown_get_selected(dropdown);
-    if (role == meshtastic_Config_DeviceConfig_Role_ROUTER_CLIENT) {
-        // role deprecated, revert
-        lv_dropdown_set_selected(dropdown, THIS->db.config.device.role);
-        return;
-    }
-}
-
 // animations
 void TFTView_320x240::ui_anim_node_panel_cb(void *var, int32_t v)
 {
@@ -3368,7 +3436,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
             lv_label_set_text(objects.basic_settings_user_label, buf);
 
             char buf1[30], buf2[40];
-            lv_dropdown_set_selected(objects.settings_device_role_dropdown, role);
+            lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(meshtastic_Config_DeviceConfig_Role(role)));
             lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
             lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
             lv_label_set_text(objects.basic_settings_role_label, buf2);
@@ -4336,7 +4404,7 @@ void TFTView_320x240::updateDeviceConfig(const meshtastic_Config_DeviceConfig &c
     db.config.has_device = true;
 
     char buf1[30], buf2[40];
-    lv_dropdown_set_selected(objects.settings_device_role_dropdown, cfg.role);
+    lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(cfg.role));
     lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
     lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
     lv_label_set_text(objects.basic_settings_role_label, buf2);

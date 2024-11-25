@@ -207,6 +207,8 @@ class TFTView_320x240 : public MeshtasticView
     void writePacketLog(const meshtastic_MeshPacket &p);
     void updateStatistics(const meshtastic_MeshPacket &p);
 
+    uint32_t role2val(meshtastic_Config_DeviceConfig_Role role);
+    meshtastic_Config_DeviceConfig_Role val2role(uint32_t val);
     uint32_t language2val(meshtastic_Language lang);
     meshtastic_Language val2language(uint32_t val);
     void setLocale(meshtastic_Language lang);
@@ -278,7 +280,6 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_brightness_slider(lv_event_t *e);
     static void ui_event_frequency_slot_slider(lv_event_t *e);
     static void ui_event_modem_preset_dropdown(lv_event_t *e);
-    static void ui_event_device_role_dropdown(lv_event_t *e);
 
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 

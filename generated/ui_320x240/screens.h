@@ -495,7 +495,6 @@ enum ScreensEnum {
     SCREEN_ID_BLANK_SCREEN = 3,
     SCREEN_ID_LOCK_SCREEN = 4,
     SCREEN_ID_CALIBRATION_SCREEN = 5,
-    SCREEN_ID_OK_CANCEL_WIDGET = 6,
 };
 
 void create_screen_boot_screen();

@@ -2,8 +2,8 @@
 #include "DisplayDriver.h"
 #include "ILog.h"
 #include "ViewController.h"
-#include "ui.h"
 #include "lv_i18n.h"
+#include "ui.h"
 #include <cstdio>
 
 MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *driver, ViewController *_controller)
@@ -14,7 +14,7 @@ MeshtasticView::MeshtasticView(const DisplayDriverConfig *cfg, DisplayDriver *dr
 void MeshtasticView::init(IClientBase *client)
 {
     DeviceGUI::init(client);
-    //lv_label_set_text(objects.firmware_label, firmware_version);
+    // lv_label_set_text(objects.firmware_label, firmware_version);
     controller->init(this, client);
 }
 
@@ -193,7 +193,7 @@ const char *MeshtasticView::deviceRoleToString(enum eRole role)
     case tak_tracker:
         return "TAK Tracker";
     default:
-        ILOG_ERROR("Invalid device role");
+        ILOG_ERROR("Invalid device role: %d", role);
         return "<unknown>";
     };
 }
