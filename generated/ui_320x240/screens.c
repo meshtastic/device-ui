@@ -1033,7 +1033,7 @@ void create_screen_main_screen() {
                     objects.message_input_area = obj;
                     lv_obj_set_pos(obj, 6, -1);
                     lv_obj_set_size(obj, LV_PCT(85), 25);
-                    lv_textarea_set_max_length(obj, 237);
+                    lv_textarea_set_max_length(obj, 220);
                     lv_textarea_set_placeholder_text(obj, "Enter Text ...");
                     lv_textarea_set_one_line(obj, true);
                     lv_textarea_set_password_mode(obj, false);
