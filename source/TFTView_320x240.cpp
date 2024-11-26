@@ -3152,8 +3152,8 @@ void TFTView_320x240::handleAddMessage(char *msg)
             hopsAway = db.config.lora.hop_limit;
         hopLimit = (hopsAway < db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
     }
-
-    controller->sendTextMessage(to, ch, hopLimit, requestId, msg);
+    bool usePkc = to < UINT32_MAX;
+    controller->sendTextMessage(to, ch, hopLimit, requestId, usePkc, msg);
     addMessage(requestId, msg);
 }
 
