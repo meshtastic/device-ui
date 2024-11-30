@@ -470,7 +470,7 @@ bool ViewController::send(uint32_t to, meshtastic_PortNum portnum, const meshtas
  * generic send method for sending meshpackets with encoded payload
  */
 bool ViewController::send(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, meshtastic_PortNum portnum, bool wantRsp,
-                          bool usePkc, const unsigned char bytes[237], size_t len)
+                          bool usePkc, const unsigned char bytes[meshtastic_Constants_DATA_PAYLOAD_LEN], size_t len)
 {
     ILOG_DEBUG("sending meshpacket to radio id=0x%x, to=0x%08x(%u), ch=%u, portnum=%u, len=%u, wantRsp=%d", requestId, to, to,
                (unsigned int)ch, portnum, len, wantRsp);
@@ -513,7 +513,7 @@ bool ViewController::send(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t re
                                    bytes[208], bytes[209], bytes[210], bytes[211], bytes[212], bytes[213], bytes[214], bytes[215],
                                    bytes[216], bytes[217], bytes[218], bytes[219], bytes[220], bytes[221], bytes[222], bytes[223],
                                    bytes[224], bytes[225], bytes[226], bytes[227], bytes[228], bytes[229], bytes[230], bytes[231],
-                                   bytes[232], bytes[233], bytes[234], bytes[235], bytes[236]}},
+                                   bytes[232]}},
                 .want_response = wantRsp}, // FIXME: traceRoute, requestPosition, remote config: true
             .id = requestId,
             .hop_limit = hopLimit,
