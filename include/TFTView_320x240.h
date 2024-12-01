@@ -246,6 +246,9 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_MQTTButton(lv_event_t *e);
     static void ui_event_MemoryButton(lv_event_t *e);
 
+    // blank screen
+    static void ui_event_BlankScreenButton(lv_event_t *e);
+
     static void ui_event_KeyboardButton(lv_event_t *e);
     static void ui_event_Keyboard(lv_event_t *e);
 
@@ -337,6 +340,7 @@ class TFTView_320x240 : public MeshtasticView
     static time_t startTime;                         // time when start button was pressed
     static uint32_t pinKeys;                         // number of keys pressed (lock screen)
     static bool screenLocked;                        // screen lock active
+    static bool screenUnlockRequest;                 // screen unlock request (via button)
     uint32_t selectedHops;                           // remember selected choice
     bool chooseNodeSignalScanner;                    // chose a target node for signal scanner
     bool chooseNodeTraceRoute;                       // chose a target node for trace route

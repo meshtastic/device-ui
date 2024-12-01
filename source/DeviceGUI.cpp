@@ -18,6 +18,10 @@ static EncoderInputDriver *encoderDriver = nullptr;
 #include "KeyMatrixInputDriver.h"
 static KeyMatrixInputDriver *keyMatrixDriver = nullptr;
 #endif
+#if defined(INPUTDRIVER_BUTTON_TYPE)
+#include "ButtonInputDriver.h"
+static ButtonInputDriver *buttonDriver = nullptr;
+#endif
 #endif
 #include "ILog.h"
 #include "lvgl.h"
@@ -39,6 +43,9 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 #endif
 #if defined(INPUTDRIVER_MATRIX_TYPE)
     keyMatrixDriver = new KeyMatrixInputDriver;
+#endif
+#if defined(INPUTDRIVER_BUTTON_TYPE)
+    buttonDriver = new ButtonInputDriver;
 #endif
 #endif
     if (!inputdriver)
@@ -66,6 +73,10 @@ void DeviceGUI::init(IClientBase *client)
 #if defined(INPUTDRIVER_MATRIX_TYPE)
     if (keyMatrixDriver)
         keyMatrixDriver->init();
+#endif
+#if defined(INPUTDRIVER_BUTTON_TYPE)
+    if (buttonDriver)
+        buttonDriver->init();
 #endif
     if (inputdriver)
         inputdriver->init();

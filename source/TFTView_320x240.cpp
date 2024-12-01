@@ -64,6 +64,7 @@ uint32_t TFTView_320x240::currentNode = 0;
 time_t TFTView_320x240::startTime = 0;
 uint32_t TFTView_320x240::pinKeys = 0;
 bool TFTView_320x240::screenLocked = false;
+bool TFTView_320x240::screenUnlockRequest = false;
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -501,10 +502,11 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_time_button, this->ui_event_TimeButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_lora_button, this->ui_event_LoRaButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_bell_button, this->ui_event_BellButton, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.blank_screen_button, this->ui_event_BlankScreenButton, LV_EVENT_ALL, NULL);
 
     // node and channel buttons
     lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
@@ -763,9 +765,14 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
 {
+    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     static bool advancedMode = false;
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
         if (THIS->db.uiConfig.settings_lock) {
             lv_obj_add_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
             THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
@@ -774,13 +781,10 @@ void TFTView_320x240::ui_event_SettingsButton(lv_event_t *e)
             THIS->ui_set_active(objects.settings_button, objects.controller_panel, objects.top_settings_panel);
         }
     } else if (event_code == LV_EVENT_LONG_PRESSED && !advancedMode && THIS->activeSettings == eNone) {
-        if (lv_obj_has_state(objects.settings_screen_lock_switch, LV_STATE_CHECKED)) {
-            screenLocked = true;
-            if (THIS->db.config.bluetooth.fixed_pin != 0) {
-                lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-            } else
-                lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
-        }
+        ILOG_DEBUG("screen locked");
+        screenLocked = true;
+        screenUnlockRequest = false;
+        ignoreClicked = true;
     } else if (event_code == LV_EVENT_LONG_PRESSED && advancedMode && THIS->activeSettings == eNone) {
         advancedMode = !advancedMode;
         THIS->ui_set_active(objects.settings_button, ui_AdvancedSettingsPanel, objects.top_advanced_settings_panel);
@@ -1066,6 +1070,25 @@ void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
         if ((unsigned long)objects.home_memory_button->user_data) {
             THIS->updateFreeMem();
         }
+    }
+}
+
+void TFTView_320x240::ui_event_BlankScreenButton(lv_event_t *e)
+{
+    static bool ignoreClicked = false;
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+        ILOG_DEBUG("screen unlocked by button");
+        screenUnlockRequest = true;
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        // currently button is disabled, see LGFXDriver.h
+        ILOG_DEBUG("screen locked by button");
+        screenLocked = true;
+        ignoreClicked = true;
     }
 }
 
@@ -3250,8 +3273,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     if (!hasKey) {
         lv_obj_set_style_border_color(img, lv_color_hex(0xffff5555), LV_PART_MAIN | LV_STATE_DEFAULT);
     }
-
     img->user_data = (void *)role;
+
     // NodeButton
     lv_obj_t *nodeButton = lv_btn_create(p);
     lv_obj_set_pos(nodeButton, 0, 0);
@@ -4310,6 +4333,7 @@ void TFTView_320x240::notifyShutdown(void)
 
 void TFTView_320x240::blankScreen(bool enable)
 {
+    ILOG_DEBUG("%s screen (%s)", enable ? "blank" : "unblank", screenLocked ? "locked" : "timeout");
     if (enable)
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
     else {
@@ -4325,19 +4349,26 @@ void TFTView_320x240::screenSaving(bool enabled)
     if (enabled) {
         // overlay main screen with blank screen to prevent accidentally pressing buttons
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 0, 0, false);
+        lv_group_focus_obj(objects.blank_screen_button);
+        screenLocked = true;
+        screenUnlockRequest = false;
     } else {
-        if (THIS->db.uiConfig.screen_lock)
+        if (THIS->db.uiConfig.screen_lock) {
+            ILOG_DEBUG("showing lock screen");
             lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        else if (objects.main_screen)
+        } else if (objects.main_screen) {
+            ILOG_DEBUG("showing main screen");
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        else
+        } else {
+            ILOG_DEBUG("showing boot screen");
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        }
     }
 }
 
 bool TFTView_320x240::isScreenLocked(void)
 {
-    return THIS->db.uiConfig.screen_lock && THIS->screenLocked;
+    return screenLocked && !screenUnlockRequest;
 }
 
 void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)

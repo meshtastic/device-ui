@@ -8,6 +8,7 @@
 #define V_NORM_PX(v_scr_percent) ((int16_t)((screenHeight / 100.0) * (v_scr_percent)))
 
 typedef lv_display_t LVGLDisplay;
+typedef lv_indev_t LVGLTouch;
 
 class DisplayDriver
 {
@@ -37,6 +38,7 @@ class DisplayDriver
   protected:
     LVGLGraphics lvgl;
     LVGLDisplay *display;
+    LVGLTouch *touch;
     DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;

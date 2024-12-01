@@ -2,7 +2,7 @@
 #include "ILog.h"
 
 DisplayDriver::DisplayDriver(uint16_t width, uint16_t height)
-    : lvgl(width, height), display(nullptr), view(nullptr), screenWidth(width), screenHeight(height)
+    : lvgl(width, height), display(nullptr), touch(nullptr), view(nullptr), screenWidth(width), screenHeight(height)
 {
 }
 

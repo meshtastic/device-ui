@@ -36,10 +36,12 @@ class InputDriver
     virtual bool hasKeyboardDevice(void) { return keyboard != nullptr; }
     virtual bool hasPointerDevice(void) { return pointer != nullptr; }
     virtual bool hasEncoderDevice(void) { return encoder != nullptr; }
+    virtual bool hasButtonDevice(void) { return button != nullptr; }
 
     virtual lv_indev_t *getKeyboard(void) { return keyboard; }
     virtual lv_indev_t *getPointer(void) { return pointer; }
     virtual lv_indev_t *getEncoder(void) { return encoder; }
+    virtual lv_indev_t *getButton(void) { return button; }
 
     static lv_group_t *getInputGroup(void) { return inputGroup; }
 
@@ -49,6 +51,7 @@ class InputDriver
     static lv_indev_t *keyboard;
     static lv_indev_t *pointer;
     static lv_indev_t *encoder;
+    static lv_indev_t *button;
     static lv_group_t *inputGroup;
 
     // used for linux hot plugging and unplugging

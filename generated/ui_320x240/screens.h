@@ -483,6 +483,7 @@ typedef struct _objects_t {
     lv_obj_t *msg_popup_label;
     lv_obj_t *alert_panel;
     lv_obj_t *alert_label;
+    lv_obj_t *blank_screen_button;
     lv_obj_t *screen_lock_button_matrix;
     lv_obj_t *lock_screen_digits_label;
 } objects_t;
