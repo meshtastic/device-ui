@@ -498,7 +498,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // home buttons
     lv_obj_add_event_cb(objects.home_mail_button, this->ui_event_EnvelopeButton, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(objects.home_nodes_button, this->ui_event_OnlineNodesButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_nodes_button, this->ui_event_OnlineNodesButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_time_button, this->ui_event_TimeButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_lora_button, this->ui_event_LoRaButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_bell_button, this->ui_event_BellButton, LV_EVENT_ALL, NULL);
@@ -891,12 +891,28 @@ void TFTView_320x240::ui_event_EnvelopeButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_OnlineNodesButton(lv_event_t *e)
 {
+    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->configComplete) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
         lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, true);
         THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
         THIS->updateNodesFiltered(true);
-        THIS->updateNodesStatus();
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        // reset all filters
+        lv_obj_set_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED, false);
+        lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, false);
+        lv_obj_set_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED, false);
+        lv_obj_set_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED, false);
+        lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, 0);
+        lv_textarea_set_text(objects.nodes_filter_name_area, "");
+        THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+        THIS->updateNodesFiltered(true);
+        THIS->storeNodeOptions();
+        ignoreClicked = true;
     }
 }
 
