@@ -4548,7 +4548,7 @@ void TFTView_320x240::setBellText(bool banner, bool sound)
 }
 
 /**
- * auto set primary channel name (based on region)
+ * auto set primary(secondary) channel name (based on region)
  */
 void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
 {
@@ -4567,7 +4567,13 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
                     : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
         lv_label_set_text(channel[ch.index], buf);
     } else {
-        lv_label_set_text(channel[ch.index], ch.settings.name);
+        if (ch.settings.name[0] == '\0' && ch.settings.psk.size == 1 && ch.settings.psk.bytes[0] == 0x01) {
+            char buf[40];
+            sprintf(buf, "%s", LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
+            lv_label_set_text(channel[ch.index], buf);
+        } else {
+            lv_label_set_text(channel[ch.index], ch.settings.name);
+        }
     }
 }
 
