@@ -1308,13 +1308,18 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
         // primary channel is not necessarily channel[0], setup ui with primary on top
         int pos = 1;
         for (int i = 0; i < c_max_channels; i++) {
-            if (THIS->db.channel[i].has_settings && THIS->db.channel[i].role != meshtastic_Channel_Role_DISABLED) {
-                if (THIS->db.channel[i].role == meshtastic_Channel_Role_PRIMARY) {
+            meshtastic_Channel &ch = THIS->db.channel[i];
+            if (ch.has_settings && ch.role != meshtastic_Channel_Role_DISABLED) {
+                const char *channelName = ch.settings.name;
+                if (ch.settings.name[0] == '\0' && ch.settings.psk.size == 1 && ch.settings.psk.bytes[0] == 0x01) {
+                    channelName = LoRaPresets::modemPresetToString(THIS->db.config.lora.modem_preset);
+                }
+                if (ch.role == meshtastic_Channel_Role_PRIMARY) {
                     THIS->ch_label[0]->user_data = (void *)i;
-                    lv_label_set_text(THIS->ch_label[0], THIS->db.channel[i].settings.name);
+                    lv_label_set_text(THIS->ch_label[0], channelName);
                 } else {
                     THIS->ch_label[pos]->user_data = (void *)i;
-                    lv_label_set_text(THIS->ch_label[pos++], THIS->db.channel[i].settings.name);
+                    lv_label_set_text(THIS->ch_label[pos++], channelName);
                 }
             }
         }
@@ -4425,15 +4430,8 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
         lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-        // rename chat
-        auto it = chats.find(ch.index);
-        if (it != chats.end()) {
-            char buf[64];
-            sprintf(buf, "%d: %s", (int)ch.index, ch.settings.name);
-            lv_label_set_text(it->second->spec_attr->children[0], buf);
-        }
     } else {
+        // display smaller button with just the channel number
         char buf[10];
         lv_snprintf(buf, sizeof(buf), "%d", ch.index);
         lv_label_set_text(channel[ch.index], buf);
@@ -4512,9 +4510,9 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
 
     if (db.config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
-        // update primary channel name if region is known
+        // update channel names again now that region is known
         for (int i = 0; i < c_max_channels; i++) {
-            if (db.channel[i].has_settings && db.channel[i].role == meshtastic_Channel_Role_PRIMARY) {
+            if (db.channel[i].has_settings && db.channel[i].role != meshtastic_Channel_Role_DISABLED) {
                 setChannelName(db.channel[i]);
             }
         }
@@ -4568,28 +4566,36 @@ void TFTView_320x240::setBellText(bool banner, bool sound)
  */
 void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
 {
+    char buf[40];
     if (ch.role == meshtastic_Channel_Role_PRIMARY) {
-        char buf[40];
         sprintf(buf, _("Channel: %s"),
                 strlen(ch.settings.name) ? ch.settings.name
                 : db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
                     ? ("<unset>")
                     : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
         lv_label_set_text(objects.basic_settings_channel_label, buf);
+
         sprintf(buf, "*%s",
                 strlen(ch.settings.name) ? ch.settings.name
                 : db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
                     ? ("<unset>")
                     : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
-        lv_label_set_text(channel[ch.index], buf);
     } else {
         if (ch.settings.name[0] == '\0' && ch.settings.psk.size == 1 && ch.settings.psk.bytes[0] == 0x01) {
-            char buf[40];
             sprintf(buf, "%s", LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
-            lv_label_set_text(channel[ch.index], buf);
         } else {
-            lv_label_set_text(channel[ch.index], ch.settings.name);
+            strcpy(buf, ch.settings.name);
         }
+    }
+
+    lv_label_set_text(channel[ch.index], buf);
+
+    // rename chat
+    auto it = chats.find(ch.index);
+    if (it != chats.end()) {
+        char buf2[64];
+        sprintf(buf2, "%d: %s", (int)ch.index, buf);
+        lv_label_set_text(it->second->spec_attr->children[0], buf2);
     }
 }
 
