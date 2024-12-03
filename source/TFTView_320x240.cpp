@@ -84,7 +84,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), processingFilter(false),
-      packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0), hasPosition(false),
+      packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false),
       topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
       db{}
 {
@@ -2304,6 +2304,43 @@ void TFTView_320x240::ui_event_statistics_table(lv_event_t *e)
 }
 
 /**
+ * update signal strength text and image for home screen
+ */
+void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
+{
+    // remember time we last heard a node
+    time(&lastHeard);
+
+    if (rssi != 0 || snr != 0.0) {
+        char buf[40];
+        sprintf(buf, "SNR: %.1f\nRSSI: %" PRId32, snr, rssi);
+        lv_label_set_text(objects.home_signal_label, buf);
+
+        uint32_t pct = signalStrength2Percent(rssi, snr);
+        sprintf(buf, "(%d%%)", pct);
+        lv_label_set_text(objects.home_signal_pct_label, buf);
+        if (pct > 80) {
+            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_signal_button_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else if (pct > 60) {
+            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_strong_signal_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else if (pct > 40) {
+            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_good_signal_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else if (pct > 20) {
+            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_fair_signal_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else if (pct > 1) {
+            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_weak_signal_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else {
+            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+    }
+}
+
+/**
  * Translate proto role enum value to numerical position in dropdown menu
  */
 uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
@@ -3742,13 +3779,16 @@ void TFTView_320x240::updatePowerMetrics(uint32_t nodeNum, const meshtastic_Powe
     }
 }
 
+/**
+ * update signal strength for direct neighbors
+ */
 void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr)
 {
     if (nodeNum != ownNode) {
         auto it = nodes.find(nodeNum);
         if (it != nodes.end()) {
             char buf[32];
-            if (rssi == 0.0 && snr == 0.0) {
+            if (rssi == 0 && snr == 0.0) {
                 buf[0] = '\0';
             } else {
                 sprintf(buf, "rssi: %d snr: %.1f", rssi, snr);
@@ -3956,15 +3996,7 @@ void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id,
             lv_label_set_text(objects.signal_scanner_rssi_label, buf);
             lv_slider_set_value(objects.snr_slider, rx_snr, LV_ANIM_ON);
             lv_slider_set_value(objects.rssi_slider, rx_rssi, LV_ANIM_ON);
-
-#if defined(USE_SX127x)
-            int p_snr = ((std::max<int32_t>(rx_snr, -19.0f) + 19.0f) / 33.0f) * 100.0f; // range -19..14
-            int p_rssi = ((std::max<int32_t>(rx_rssi, -145L) + 145) * 100) / 90;        // range -145..-55
-#else
-            int p_snr = ((std::max<int32_t>(rx_snr, -18.0f) + 18.0f) / 26.0f) * 100.0f; // range -18..8
-            int p_rssi = ((std::max<int32_t>(rx_rssi, -125) + 125) * 100) / 100;        // range -125..-25
-#endif
-            sprintf(buf, "%d%%", std::min<int32_t>((p_snr + p_rssi * 2) / 3, 100));
+            sprintf(buf, "%d%%", signalStrength2Percent(rx_rssi, rx_snr));
             lv_label_set_text(objects.signal_scanner_start_label, buf);
         }
     } else {
@@ -4331,6 +4363,9 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     if (packetLogEnabled) {
         writePacketLog(p);
     }
+    if (p.from != ownNode) {
+        updateSignalStrength(p.rx_rssi, p.rx_snr);
+    }
     updateStatistics(p);
 }
 
@@ -4414,13 +4449,13 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         uint32_t recolor = 0;
 
         if (memcmp(ch.settings.psk.bytes, "\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
-            lv_img_set_src(lockImage, &img_groups_key_image);
+            lv_image_set_src(lockImage, &img_groups_key_image);
             recolor = 0xF2E459; // yellow
         } else if (memcmp(ch.settings.psk.bytes, "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", 16) == 0) {
-            lv_img_set_src(lockImage, &img_groups_unlock_image);
+            lv_image_set_src(lockImage, &img_groups_unlock_image);
             recolor = 0xF72B2B; // reddish
         } else {
-            lv_img_set_src(lockImage, &img_groups_lock_image);
+            lv_image_set_src(lockImage, &img_groups_lock_image);
             recolor = 0x1EC174; // green
         }
         lv_obj_set_width(lockImage, LV_SIZE_CONTENT);  /// 1
@@ -4597,6 +4632,22 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
         sprintf(buf2, "%d: %s", (int)ch.index, buf);
         lv_label_set_text(it->second->spec_attr->children[0], buf2);
     }
+}
+
+/**
+ * calculate percentage value from rssi and snr
+ * Note: ranges are based on the axis values of the signal scanner
+ */
+int32_t TFTView_320x240::signalStrength2Percent(int32_t rx_rssi, float rx_snr)
+{
+#if defined(USE_SX127x)
+    int p_snr = ((std::max<int32_t>(rx_snr, -19.0f) + 19.0f) / 33.0f) * 100.0f; // range -19..14
+    int p_rssi = ((std::max<int32_t>(rx_rssi, -145L) + 145) * 100) / 90;        // range -145..-55
+#else
+    int p_snr = ((std::max<int32_t>(rx_snr, -18.0f) + 18.0f) / 26.0f) * 100.0f; // range -18..8
+    int p_rssi = ((std::max<int32_t>(rx_rssi, -125) + 125) * 100) / 100;        // range -125..-25
+#endif
+    return std::min<int32_t>((p_snr + p_rssi * 2) / 3, 100);
 }
 
 void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg)
@@ -5179,7 +5230,7 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, l
     uint32_t bgColor, fgColor;
     std::tie(bgColor, fgColor) = nodeColor(nodeNum);
     // if (viaMqtt) {
-    //     lv_img_set_src(img, &//TODO );
+    //     lv_image_set_src(img, &//TODO );
     // }
     // else
     switch (role) {
@@ -5187,31 +5238,31 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, l
     case client_mute:
     case client_hidden:
     case tak: {
-        lv_img_set_src(img, &img_node_client_image);
+        lv_image_set_src(img, &img_node_client_image);
         break;
     }
     case router_client: {
-        lv_img_set_src(img, &img_top_nodes_image);
+        lv_image_set_src(img, &img_top_nodes_image);
         break;
     }
     case repeater:
     case router: {
-        lv_img_set_src(img, &img_node_router_image);
+        lv_image_set_src(img, &img_node_router_image);
         break;
     }
     case tracker:
     case sensor:
     case lost_and_found:
     case tak_tracker: {
-        lv_img_set_src(img, &img_node_sensor_image);
+        lv_image_set_src(img, &img_node_sensor_image);
         break;
     }
     case unknown: {
-        lv_img_set_src(img, &img_circle_question_image);
+        lv_image_set_src(img, &img_circle_question_image);
         break;
     }
     default:
-        lv_img_set_src(img, &img_node_client_image);
+        lv_image_set_src(img, &img_node_client_image);
         break;
     }
 
@@ -5443,6 +5494,14 @@ void TFTView_320x240::task_handler(void)
 
             if (detectorRunning) {
                 controller->sendPing();
+            }
+
+            // if we didn't hear any node for 15 mins assume we have no signal
+            if (curtime - lastHeard > 900) {
+                lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
+                                              LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_label_set_text(objects.home_signal_label, _("no signal"));
+                lv_label_set_text(objects.home_signal_pct_label, "");
             }
         }
 
