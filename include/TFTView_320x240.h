@@ -206,6 +206,8 @@ class TFTView_320x240 : public MeshtasticView
     void packetDetected(const meshtastic_MeshPacket &p);
     void writePacketLog(const meshtastic_MeshPacket &p);
     void updateStatistics(const meshtastic_MeshPacket &p);
+    void updateSignalStrength(int32_t rssi, float snr);
+    int32_t signalStrength2Percent(int32_t rx_rssi, float rx_snr);
 
     uint32_t role2val(meshtastic_Config_DeviceConfig_Role role);
     meshtastic_Config_DeviceConfig_Role val2role(uint32_t val);
@@ -328,7 +330,7 @@ class TFTView_320x240 : public MeshtasticView
     uint16_t statisticTableRows;                     // number of rows in statistics table
     uint16_t packetCounter;                          // number of packets in packet log
     time_t lastrun60, lastrun10, lastrun5, lastrun1; // timers for task loop
-    time_t actTime, uptime;                          // actual time and uptime;
+    time_t actTime, uptime, lastHeard;               // actual time and uptime; time last heard a node
     bool hasPosition;                                // if our position is known
     int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
     void *topNodeLL;                                 // pointer to topmost button in group ll
