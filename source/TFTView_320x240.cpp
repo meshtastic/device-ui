@@ -4343,7 +4343,7 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
         if (requestId == id) {
             // now give the textlabel border another color
             lv_obj_t *textLabel = panel->spec_attr->children[0];
-            lv_obj_set_style_border_color(textLabel, ack ? lv_color_hex(0x67EA94) : lv_color_hex(0xDBD251),
+            lv_obj_set_style_border_color(textLabel, ack ? lv_color_hex(0x05f6cb) : lv_color_hex(0xDBD251),
                                           LV_PART_MAIN | LV_STATE_DEFAULT);
             break;
         }
