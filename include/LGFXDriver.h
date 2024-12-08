@@ -8,9 +8,11 @@
 #include "lvgl_private.h"
 #include <functional>
 
-const uint32_t defaultScreenTimeout = 60 * 1000;
-const uint32_t defaultScreenLockTimeout = 5 * 1000;
-const uint32_t defaultBrightness = 153;
+constexpr uint32_t defaultLongPressTime = 600; // ms until long press is detected (lvgl default is 400)
+constexpr uint32_t defaultGestureLimit = 10;   // x/y diff pixel until a swipe gesture is detected (lvgl default is 50)
+
+constexpr uint32_t defaultScreenTimeout = 30 * 1000;
+constexpr uint32_t defaultBrightness = 153;
 
 template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 {
@@ -284,10 +286,11 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 
     if (hasTouch()) {
         DisplayDriver::touch = lv_indev_create();
-        DisplayDriver::touch->gesture_limit = 10;
+        DisplayDriver::touch->gesture_limit = defaultGestureLimit;
         lv_indev_set_type(DisplayDriver::touch, LV_INDEV_TYPE_POINTER);
         lv_indev_set_read_cb(DisplayDriver::touch, touchpad_read);
         lv_indev_set_display(DisplayDriver::touch, this->display);
+        lv_indev_set_long_press_time(DisplayDriver::touch, defaultLongPressTime);
     }
 }
 

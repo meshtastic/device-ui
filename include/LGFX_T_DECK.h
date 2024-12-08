@@ -15,7 +15,7 @@
 #define TOUCH_INT 16
 #define TOUCH_RST -1
 
-// avoid lovyanGFX touch driver: 
+// avoid lovyanGFX touch driver:
 // custom class for redirecting getTouch() calls and to alternative implementation
 class LGFX_Touch : public lgfx::LGFX_Device
 {
@@ -31,14 +31,15 @@ class LGFX_Touch : public lgfx::LGFX_Device
     int8_t getTouchInt(void) { return TOUCH_INT; }
 
     // unfortunately not declared as virtual in base class, need to choose a different name
-    bool getTouchXY(uint16_t* touchX, uint16_t* touchY) {
+    bool getTouchXY(uint16_t *touchX, uint16_t *touchY)
+    {
         TOUCHINFO ti;
-//      if (!digitalRead(TOUCH_INT)) // commented out; makes the display very "touchy"
-        if (bbct.getSamples(&ti)) {
-            *touchX = ti.x[0];
-            *touchY = ti.y[0] -90;
-            return true;
-        }
+        if (!digitalRead(TOUCH_INT))
+            if (bbct.getSamples(&ti)) {
+                *touchX = ti.x[0];
+                *touchY = ti.y[0] - 90;
+                return true;
+            }
         return false;
     };
 
