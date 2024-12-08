@@ -40,6 +40,23 @@
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
 #define THIS TFTView_320x240::instance() // need to use this in all static methods
 
+#define LV_COLOR_HEX(C)                                                                                                          \
+    {                                                                                                                            \
+        .blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff                                               \
+    }
+
+constexpr lv_color_t colorRed = LV_COLOR_HEX(0xff5555);
+constexpr lv_color_t colorDarkRed = LV_COLOR_HEX(0xa70a0a);
+constexpr lv_color_t colorOrange = LV_COLOR_HEX(0xff8c04);
+constexpr lv_color_t colorYellow = LV_COLOR_HEX(0xdbd251);
+constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x05f6cb);
+constexpr lv_color_t colorBlue = LV_COLOR_HEX(0x436C70);
+constexpr lv_color_t colorGray = LV_COLOR_HEX(0x757575);
+constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xAAFBFF);
+constexpr lv_color_t colorMidGray = LV_COLOR_HEX(0x808080);
+constexpr lv_color_t colorDarkGray = LV_COLOR_HEX(0x303030);
+constexpr lv_color_t colorMesh = LV_COLOR_HEX(0x67ea94);
+
 // children index of nodepanel lv objects (see addNode)
 enum NodePanelIdx {
     node_img_idx,
@@ -162,7 +179,7 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     Themes::recolorButton(objects.home_bell_button, false);
     Themes::recolorText(objects.home_bell_label, false);
 
-    lv_obj_set_style_bg_img_recolor(objects.home_button, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor(objects.home_button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     // set brightness
     if (displaydriver->hasLight())
@@ -323,10 +340,10 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
         lv_obj_set_style_border_width(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
         if (Themes::get() == Themes::eDark)
             lv_obj_set_style_bg_img_recolor_opa(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_img_recolor(activeButton, lv_color_hex(0x757575), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_img_recolor(activeButton, colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
     lv_obj_set_style_border_width(b, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor(b, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor(b, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(b, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     if (activePanel) {
@@ -808,7 +825,7 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
             ignoreClicked = false;
             return;
         }
-        lv_obj_set_style_border_color(target, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(target, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
 
         uint32_t channelOrNode = (unsigned long)e->user_data;
         if (channelOrNode < c_max_channels) {
@@ -2870,7 +2887,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->setTheme(value);
                 THIS->db.uiConfig.theme = meshtastic_Theme(value);
                 THIS->controller->storeUIConfig(THIS->db.uiConfig);
-                lv_obj_set_style_bg_img_recolor(objects.settings_button, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_img_recolor(objects.settings_button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
             }
 
             lv_obj_add_flag(objects.settings_theme_panel, LV_OBJ_FLAG_HIDDEN);
@@ -3204,7 +3221,7 @@ void TFTView_320x240::showUserWidget(UserWidgetFunc createWidget)
     lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
     lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(obj, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     activeWidget = obj;
@@ -3331,7 +3348,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
     if (!hasKey) {
-        lv_obj_set_style_border_color(img, lv_color_hex(0xffff5555), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(img, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
     img->user_data = (void *)role;
 
@@ -3426,7 +3443,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_label_set_long_mode(ui_PositionLabel, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_PositionLabel, "");
     lv_obj_set_style_align(ui_PositionLabel, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui_PositionLabel, lv_color_hex(0xff05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui_PositionLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
     ui_PositionLabel->user_data = 0; // store latitude
     // Position2Label
     lv_obj_t *ui_Position2Label = lv_label_create(p);
@@ -3554,8 +3571,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
             lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color, LV_PART_MAIN | LV_STATE_DEFAULT);
         } else {
-            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), lv_color_hex(0xffff5555),
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
 
         // update chat name
@@ -3865,8 +3881,7 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
             if (status.bluetooth.is_connected) {
                 char buf[20];
                 uint32_t mac = ownNode;
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, lv_color_hex(0xAAFBFF),
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
                 sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff, (mac & 0xff00) >> 8, (mac & 0xff0000) >> 16,
                         (mac & 0xff000000) >> 24);
                 lv_label_set_text(objects.home_bluetooth_label, buf);
@@ -3874,14 +3889,13 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                 lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
                                             LV_PART_MAIN | LV_STATE_DEFAULT);
             } else {
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, lv_color_hex(0x808080),
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
                                             LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
             }
         } else {
-            lv_obj_set_style_text_color(objects.home_bluetooth_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_off_button_image,
                                         LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -3897,11 +3911,11 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
             uint32_t mac = ownNode;
             sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
             lv_label_set_text(objects.home_ethernet_label, buf);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, lv_color_hex(0xAAFBFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(objects.home_ethernet_label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_opa(objects.home_ethernet_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
         } else {
             lv_obj_set_style_bg_img_recolor_opa(objects.home_ethernet_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(objects.home_ethernet_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     } else {
         lv_obj_add_flag(objects.home_ethernet_label, LV_OBJ_FLAG_HIDDEN);
@@ -3935,7 +3949,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             } else if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, ack);
+                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false);
             } else if (req.type == ResponseHandler::PositionRequest) {
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             }
@@ -3947,6 +3961,10 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
             if (req.type == ResponseHandler::PositionRequest) {
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
+            }
+        } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL) {
+            if (req.type == ResponseHandler::TextMessageRequest) {
+                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
             }
         } else {
             ILOG_DEBUG("got Routing_Error %d", routing.error_reason);
@@ -4065,7 +4083,7 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
     lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_ofs_y(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(btn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(btn, lv_color_hex(0xff808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(btn, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
     {
         {
             lv_obj_t *img = lv_img_create(btn);
@@ -4244,19 +4262,19 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         if (lv_obj_has_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED)) {
             auto it = chats.find(nodeNum);
             if (it != nodes.end()) {
-                lv_obj_set_style_border_color(panel, lv_color_hex(0xffff8c04), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_border_color(panel, colorOrange, LV_PART_MAIN | LV_STATE_DEFAULT);
                 highlight = true;
             }
         }
         if (lv_obj_has_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] != '\0') {
-                lv_obj_set_style_border_color(panel, lv_color_hex(0xff05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_border_color(panel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
                 highlight = true;
             }
         }
         if (lv_obj_has_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm1_idx))[0] != '\0') {
-                lv_obj_set_style_border_color(panel, lv_color_hex(0xff436C70), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_border_color(panel, colorBlue, LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_obj_set_style_border_width(panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
                 highlight = true;
             }
@@ -4297,13 +4315,13 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         if (name[0] != '\0') {
             if (strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) ||
                 strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), name)) {
-                lv_obj_set_style_border_color(panel, lv_color_hex(0x67EA94), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_border_color(panel, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
                 highlight = true;
             }
         }
     }
     if (!highlight) {
-        lv_obj_set_style_border_color(panel, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(panel, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_border_width(panel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
     return hide; // TODO || filter.active;
@@ -4325,7 +4343,7 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
  * @param id
  * @param ack
  */
-void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack)
+void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
 {
     lv_obj_t *msgContainer;
     if (channelOrNode < c_max_channels) {
@@ -4346,7 +4364,10 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
         if (requestId == id) {
             // now give the textlabel border another color
             lv_obj_t *textLabel = panel->spec_attr->children[0];
-            lv_obj_set_style_border_color(textLabel, ack ? lv_color_hex(0x05f6cb) : lv_color_hex(0xDBD251),
+            lv_obj_set_style_border_color(textLabel,
+                                          err   ? colorRed
+                                          : ack ? colorBlueGreen
+                                                : colorYellow,
                                           LV_PART_MAIN | LV_STATE_DEFAULT);
             break;
         }
@@ -4912,7 +4933,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_SCROLLABLE);
     add_style_home_button_style(chatBtn);
     lv_obj_set_style_align(chatBtn, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(chatBtn, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(chatBtn, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_ofs_x(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_ofs_y(chatBtn, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4953,7 +4974,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
             lv_obj_set_size(obj, 40, 23);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_color(obj, lv_color_hex(0xffa70a0a), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(obj, colorDarkRed, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             {
                 lv_obj_t *parent_obj = obj;
@@ -4984,7 +5005,7 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
     auto it = chats.find(index);
     if (it != chats.end()) {
         // mark chat in color
-        lv_obj_set_style_border_color(it->second, lv_color_hex(0xFF8C04), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(it->second, colorOrange, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
 }
 
@@ -5110,7 +5131,7 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
 
 lv_obj_t *TFTView_320x240::showQrCode(lv_obj_t *parent, const char *data)
 {
-    lv_color_t bg_color = lv_color_hex(0x67EA94);
+    lv_color_t bg_color = colorMesh;
     lv_color_t fg_color = lv_palette_darken(LV_PALETTE_BLUE, 4);
     qr = lv_qrcode_create(parent);
     int32_t size = std::min<int32_t>(lv_obj_get_width(parent), lv_obj_get_height(parent)) - 8;
@@ -5473,8 +5494,7 @@ void TFTView_320x240::task_handler(void)
             if (startTime) {
                 if (curtime - startTime > 30) {
                     lv_label_set_text(objects.trace_route_start_label, _("Start"));
-                    lv_obj_set_style_outline_color(objects.trace_route_start_button, lv_color_hex(0xff67ea94),
-                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_outline_color(objects.trace_route_start_button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
                     removeSpinner();
                 } else {
                     char buf[16];

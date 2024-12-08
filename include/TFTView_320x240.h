@@ -156,7 +156,7 @@ class TFTView_320x240 : public MeshtasticView
     // display message alert popup
     virtual void messageAlert(const char *alert, bool show);
     // mark sent message as received
-    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack);
+    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err);
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, lv_obj_t *img);
     // apply filter and count number of filtered nodes
