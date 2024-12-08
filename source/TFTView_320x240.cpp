@@ -3220,20 +3220,21 @@ void TFTView_320x240::handleAddMessage(char *msg)
     uint8_t hopLimit = db.config.lora.hop_limit;
     uint32_t requestId;
     uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+    bool usePkc = false;
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
         requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
+        usePkc = (unsigned long)nodes[to]->LV_OBJ_IDX(node_bat_idx)->user_data; // hasKey
         requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to);
         // trial: hoplimit optimization for direct text messages
-        int8_t hopsAway = (signed long)nodes[channelOrNode]->LV_OBJ_IDX(node_sig_idx)->user_data;
+        int8_t hopsAway = (signed long)nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
         if (hopsAway < 0)
             hopsAway = db.config.lora.hop_limit;
         hopLimit = (hopsAway < db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
     }
-    bool usePkc = to < UINT32_MAX;
     controller->sendTextMessage(to, ch, hopLimit, requestId, usePkc, msg);
     addMessage(requestId, msg);
 }
@@ -3286,7 +3287,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // [1]: btn                    | ll group
     // [2]: lbl user long          | strlen(userLong)
     // [3]: lbl user short         | userShort (4 chars)
-    // [4]: lbl battery            |
+    // [4]: lbl battery            | hasKey
     // [5]: lbl lastHeard          | lastHeard / curtime
     // [6]: lbl signal (or hops)   | hops away
     // [7]: lbl position 1         | lat
@@ -3295,6 +3296,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // [10]: lbl telemetry 2       | iaq
     // panel user_data: ch
 
+    ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s)", nodeCount, nodeNum, lastHeard, userLong, userShort);
 #if 0 // purge not yet working
     while (nodeCount >= MAX_NUM_NODES_VIEW) {
         purgeNode();
@@ -3383,6 +3385,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_align(ui_BatteryLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_BatteryLabel, "");
     lv_obj_set_style_text_align(ui_BatteryLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_BatteryLabel->user_data = (void *)hasKey;
     // LastHeardLabel
     lv_obj_t *ui_lastHeardLabel = lv_label_create(p);
     lv_obj_set_pos(ui_lastHeardLabel, 8, 33);
