@@ -134,7 +134,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                             lv_indev_enable(DisplayDriver::touch, true);
                             lv_indev_enable(InputDriver::instance()->getButton(), false);
                         }
-                        lv_disp_trig_activity(NULL);
+                        lv_display_trigger_activity(NULL);
                     } else {
                         // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
                         // continue with processing loop and enter sleep() again next round
