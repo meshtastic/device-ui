@@ -47,12 +47,12 @@ fr:
   Mouse: Souris
   none: ~
   Keyboard: Clavier
-  "Message Alert"": "Message d'alerte"
+  "Message Alert"": "Alerte des messages"
   Ringtone: Sonnerie
   Default: défaut
   Zone: Zone
   City: Ville
-  "NodeDB Reset\nFactory Reset": "Reini. NodeDB\nReini. Usine"
+  "NodeDB Reset\nFactory Reset": "Reinit. NodeDB\nReinit. Usine"
   Channel Name: Nom du Canal
   Pre-shared Key: Clé pré-partagée
   Unknown: Inconnu
