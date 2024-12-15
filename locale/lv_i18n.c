@@ -603,6 +603,14 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {NULL, NULL} // End mark
 };
 
+static lv_i18n_phrase_t fr_plurals_one[] = {
+    {"%d active chat(s)", "%d chat actif"}, {"%d sur %d nodes online", "1 noeud connecté"}, {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t fr_plurals_other[] = {
+    {"%d active chat(s)", "%d chats actifs"}, {"%d of %d nodes online", "%d/%d noeuds connectés"}, {NULL, NULL} // End mark
+};
+
 static uint8_t fr_plural_fn(int32_t num)
 {
     uint32_t n = op_n(num);
@@ -617,6 +625,8 @@ static uint8_t fr_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t fr_lang = {.locale_name = "fr",
                                         .singulars = fr_singulars,
+                                        .plurals[LV_I18N_PLURAL_TYPE_ONE] = fr_plurals_one,
+                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = fr_plurals_other,
                                         .locale_plural_fn = fr_plural_fn};
 
 static lv_i18n_phrase_t it_singulars[] = {
