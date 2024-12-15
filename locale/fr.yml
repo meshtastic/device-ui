@@ -1,140 +1,140 @@
 fr:
-  no new messages: ~
-  1 of 1 nodes online: ~
-  'uptime 00:00:00': ~
+  no new messages: 0 nouveau message
+  1 of 1 nodes online: 1 sur 1 noeud actif
+  'uptime 00:00:00': 'Activité: 00:00:00'
   "Heap: 0\nLVGL: 0": ~
-  DEL: ~
-  'User name: ': ~
-  'Modem Preset: LONG FAST': ~
-  'Channel: LongFast': ~
-  'Role: Client': ~
-  'Screen Timeout: 60s': ~
-  'Screen Lock: off': ~
+  DEL: DEL
+  'User name: ': 'Nom:'
+  'Modem Preset: LONG FAST': 'Préréglages: LONG FAST'
+  'Channel: LongFast': 'Canal: LongFast'
+  'Role: Client': 'Rôle: Client'
+  'Screen Timeout: 60s': 'Extinction Écran: 60s'
+  'Screen Lock: off': 'Verr. écran: off'
   'Screen Brightness: 60%': ~
-  'Theme: Dark': ~
-  'Screen Calibration: default': ~
+  'Theme: Dark': 'Thème: Sombre'
+  "Screen Calibration: default": "Calibr. d'écran: défaut"
   'Input Control: none/none': ~
-  'Message Alert Buzzer: on': ~
-  'Language: English': ~
-  Configuration Reset: ~
-  Reboot / Shutdown: ~
-  Mesh Detector: ~
-  Signal Scanner: ~
-  Trace Route: ~
-  Neighbors: ~
-  Statistics: ~
-  Packet Log: ~
+  'Message Alert Buzzer: on': 'Sonnerie: on'
+  'Language: English': 'Langue: Français'
+  Configuration Reset: Réinitialisation
+  Reboot / Shutdown: Redémarrer / Arrêter
+  Mesh Detector: Détecteur de Mesh
+  Signal Scanner: Qualité du Signal
+  Trace Route: Trace route
+  Neighbors: Voisins
+  Statistics: Statistiques
+  Packet Log: Journaux de paquets
   Meshtastic: ~
-  Group Channels: ~
-  no messages: ~
-  Settings & Tools: ~
-  Settings (advanced): ~
-  Locations Map: ~
-  no chats: ~
-  Node Search: ~
-  Packet Statistics: ~
-  Node Options: ~
-  Short Name: ~
-  Long Name: ~
-  <unset>: ~
+  Group Channels: Canaux de groupes
+  no messages: aucun message
+  Settings & Tools: Outils et Configuration
+  Settings (advanced): Configur. avancée
+  'Locations Map': 'Carte / Localisations'
+  no chats: Aucune conversation
+  Node Search: Recherche noeud
+  Packet Statistics: Statistiques des paquets
+  Node Options: Options Noeud
+  Short Name: Nom court
+  Long Name: Nom complet
+  '<unset>': '<non défini>'
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
   "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
-  'Brightness: 60%': ~
-  "Dark\nLight": ~
+  'Brightness: 60%': 'Luminosité: 60%'
+  "Dark\nLight": "Sombre\nLumineux"
   'Timeout: 60s': ~
-  Screen Lock: ~
-  Lock PIN: ~
-  Mouse: ~
+  Screen Lock: Verrou. PIN
+  Lock PIN: Code PIN
+  Mouse: Souris
   none: ~
-  Keyboard: ~
-  Message Alert: ~
-  Ringtone: ~
-  Default: ~
-  Zone: ~
-  City: ~
-  "NodeDB Reset\nFactory Reset": ~
-  Channel Name: ~
-  Pre-shared Key: ~
-  Unknown: ~
-  Offline: ~
-  Public Key: ~
-  Hops away: ~
-  MQTT: ~
-  Position: ~
-  Name: ~
-  Active Chat: ~
-  Telemetry: ~
+  Keyboard: Clavier
+  "Message Alert"": "Message d'alerte"
+  Ringtone: Sonnerie
+  Default: défaut
+  Zone: Zone
+  City: Ville
+  "NodeDB Reset\nFactory Reset": "Reini. NodeDB\nReini. Usine"
+  Channel Name: Nom du Canal
+  Pre-shared Key: Clé pré-partagée
+  Unknown: Inconnu
+  Offline: Hors ligne
+  Public Key: Clé Publique
+  Hops away: Sauts
+  MQTT: MQTT
+  Position: Position
+  Name: Nom
+  Active Chat: Chat Actif
+  Telemetry: Télémétrie
   IAQ: ~
-  Start: ~
-  "New Message from\n": ~
+  Start: Marche
+  "New Message from\n": "Nouveau message de\\n"
   Resynch...: ~
   OK: ~
-  Cancel: ~
+  Cancel: Annuler
   'FrequencySlot: %d (%g MHz)': ~
-  'Brightness: %d%%': ~
-  'Timeout: off': ~
+  'Brightness: %d%%': 'Luminosité : %d%%'
+  'Timeout: off': 'Timeout: désactivé'
   'Timeout: %ds': ~
-  'Screen Calibration: %s': ~
-  done: ~
-  default: ~
-  Stop: ~
-  "choose\nnode": ~
-  choose target node: ~
-  'heard: !%08x': ~
-  'Packet Log: %d': ~
-  'Language: %s': ~
-  'Screen Timeout: off': ~
-  'Screen Timeout: %ds': ~
-  'Screen Brightness: %d%%': ~
-  'Theme: %s': ~
-  'User name: %s': ~
-  'Device Role: %s': ~
-  'Region: %s': ~
-  'Modem Preset: %s': ~
-  'Channel: %s': ~
-  'Screen Lock: %s': ~
-  'on': ~
-  'off': ~
-  'Message Alert: %s': ~
+  "Screen Calibration: %s": "Calibration d'écran: %s"
+  done: fait
+  default: défaut
+  Stop: Arrêt
+  "choose\nnode": "choix du\nnoeud"
+  choose target node: Choix du noeud cible
+  'heard: !%08x': 'Vu: !%08x'
+  'Packet Log: %d': 'Journaux des paquets: %d'
+  'Language: %s': 'Langue: %s'
+  'Screen Timeout: off': "Extin. d'écran: off"
+  'Screen Timeout: %ds': "Écran allumé: %ds"
+  'Screen Brightness: %d%%': "Luminosité d'écran: %d%%"
+  'Theme: %s': 'Thème: %s'
+  'User name: %s': 'Nom: %s'
+  'Device Role: %s': 'Rôle: %s'
+  'Region: %s': 'Region: %s'
+  'Modem Preset: %s': 'Préréglages: %s'
+  'Channel: %s': 'Canal: %s'
+  'Screen Lock: %s': 'Verrou. PIN: %s'
+  'on': 'On'
+  'off': 'Off'
+  'Message Alert: %s': "Message d'alerte: %s"
   Util %0.1f%%  Air %0.1f%%: ~
-  'hops: %d': ~
-  unknown: ~
-  <no name>: ~
-  '%d active chat(s)': ~
-  "New message from \n%s": ~
+  'hops: %d': "sauts: %d"
+  unknown: inconnu
+  '<no name>': '<sans nom>'
+  '%d active chat(s)': "%d chat(s) actif(s)"
+  "New message from \n%s": "Nouveau message de:\n%s"
   'Input Control: %s/%s': ~
-  '%d of %d nodes online': ~
-  Filtering ...: ~
-  'Filter: %d of %d nodes': ~
-  now: ~
-  '%d new message': ~
-  '%d new messages': ~
-  'uptime: %02d:%02d:%02d': ~
+  '%d of %d nodes online': "%d sur %d noeuds actifs"
+  Filtering ...: Filtrage ...
+  'Filter: %d of %d nodes': 'Filtre: %d sur %d noeuds'
+  now: maintenant
+  '%d new message': '%d nouveau message'
+  '%d new messages': '%d nouveaux messages'
+  'uptime: %02d:%02d:%02d': 'Activité: %02d:%02d:%02d'
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
-  Settings: ~
-  Tools: ~
-  Filter: ~
-  Highlight: ~
-  Primary Channel: ~
-  Secondary Channels: ~
+  Settings: Configuration
+  Tools: Outils
+  Filter: Filtrer
+  Highlight: Surbrillance
+  Primary Channel: Canal Primaire
+  Secondary Channels: Canaux Secondaires
   Resynch ...: ~
-  Rebooting ...: ~
-  Shutting down ...: ~
+  Rebooting ...: Redémarrage ...
+  Shutting down ...: Arrêt...
   LoRa 0.0 MHz: ~
-  silent: ~
-  'WiFi: <not setup>': ~
-  'Lock: off/off': ~
-  LoRa TX off!: ~
-  WiFi SSID: ~
-  WiFi pre-shared Key: ~
-  Settings Lock: ~
-  'Lock: %s/%s': ~
-  Enter Text ...: ~
-  '!Enter Filter ...': ~
-  Enter Filter ...: ~
-  'WiFi: %s': ~
-  <not set>: ~
-  region unset: ~
-  Banner & Sound: ~
-  Banner only: ~
-  Sound only: ~
+  silent: silencieux
+  'WiFi: <not setup>': 'WiFi: <non configuré>'
+  'Lock: off/off': 'Verrouillage: non/non'
+  LoRa TX off!: LoRa TX off!
+  WiFi SSID: SSID WiFi
+  WiFi pre-shared Key: Clé WiFi
+  Settings Lock: Verr. des param.
+  'Lock: %s/%s': 'Verrouillage: %s/%s'
+  Enter Text ...: Écrire votre message...
+  '!Enter Filter ...': '!Filtrer...'
+  Enter Filter ...: Filtrer...
+  'WiFi: %s': 'WiFi: %s'
+  '<not set>': '<non défini>'
+  region unset: Région non configurée
+  Banner & Sound: Visuelle et sonore
+  Banner only: Alerte Visuelle
+  Sound only: Sonnerie Seule
