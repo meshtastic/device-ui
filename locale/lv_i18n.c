@@ -474,7 +474,6 @@ static const lv_i18n_lang_t fi_lang = {.locale_name = "fi",
 
                                        .locale_plural_fn = fi_plural_fn};
 
-
 static lv_i18n_phrase_t fr_singulars[] = {
     {"no new messages", "0 nouveau message"},
     {"1 of 1 nodes online", "1 sur 1 noeud actif"},
@@ -504,8 +503,8 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Brightness: 60%", "Luminosité: 60%"},
     {"Mouse", "Souris"},
     {"Keyboard", "Clavier"},
-    {"Message Alert", "Message d'alerte"},
-    {"NodeDB Reset\nFactory Reset", "Reset NodeDB\nReini. Usine"},
+    {"Message Alert", "Alerte des messages"},
+    {"NodeDB Reset\nFactory Reset", "Reinit. NodeDB\nReinit. Usine"},
     {"Channel Name", "Nom du Canal"},
     {"Pre-shared Key", "Clé pré-partagée"},
     {"New Message from\\n", "Nouveau message de\\n"},
@@ -561,7 +560,7 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Screen Lock: %s", "Verrou. PIN: %s"},
     {"on", "On"},
     {"off", "Off"},
-    {"Message Alert: %s", "Message d'alerte: %s"},
+    {"Message Alert: %s", "Alerte des messages: %s"},
     {"Util %0.1f%%  Air %0.1f%%", "Util %0.1f%%  Air %0.1f%%"},
     {"hops: %d", "sauts: %d"},
     {"unknown", "inconnu"},
@@ -617,8 +616,8 @@ static uint8_t fr_plural_fn(int32_t num)
 }
 
 static const lv_i18n_lang_t fr_lang = {.locale_name = "fr",
-
-                                       .locale_plural_fn = fr_plural_fn};
+                                        .singulars = fr_singulars,
+                                        .locale_plural_fn = fr_plural_fn};
 
 static lv_i18n_phrase_t it_singulars[] = {
     {"no new messages", "nessun messaggio"},
