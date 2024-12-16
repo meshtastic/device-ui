@@ -81,7 +81,8 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [x] Netherlands translation
       - [x] Dutch translation
       - [X] Italian translation
-      - [ ] French translation
+      - [X] French translation
+      - [X] Russian translation
       - [ ] Turkish translation
       - [ ] Greek translation
     - [ ] Support dynamic OLED / Color(TFT) selection
@@ -115,7 +116,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [ ] LastHeard & time source handling improvements
       - [ ] Remote Node configuration
       - [x] Filter (offline, unknown, public key, position, hops away, by name)
-      - [x] Highlight (position, telemetry, , by name)
+      - [x] Highlight (position, telemetry, IAQ, by name)
     - [x] Group channel panel
     - [x] Chat panel
       - [x] Scroll container and messages display
@@ -162,7 +163,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [ ] T-Deck UI
       - [x] 320x240 scalable view
       - [x] GPS position
-      - [ ] Radio frequency display
+      - [x] Radio frequency display
       - [ ] Offline map display
     - [x] I2C keyboard input handling
     - [x] Trackball support (e.g. fast scrolling list views)
@@ -201,6 +202,9 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [x] Dedicated device-ui project
     - [ ] Sunton/EstarDyn CYD support (320x240) Note: no longer working due to insufficient memory
     - [x] LilyGo T-HMI support (320x240)
+    - [x] Replicator support (esp32 + nrf52 radio)
+      - [x] Display driver
+      - [X] 480x480 view -> scaled 320x240
     - [X] WT32-SC01 (Plus) support (480x320)
       - [x] Display driver
       - [X] 480x320 view -> scaled 320x240
