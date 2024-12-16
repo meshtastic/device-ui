@@ -600,6 +600,7 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"!Enter Filter ...", "!Filtrer ..."},
     {"Enter Filter ...", "Filtrer ..."},
     {"region unset", "Région non configurée"},
+    {"no signal", "aucun signal"},
     {NULL, NULL} // End mark
 };
 
