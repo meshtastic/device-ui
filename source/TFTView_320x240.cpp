@@ -219,10 +219,12 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     // touch screen calibration data
     uint16_t *parameters = (uint16_t *)db.uiConfig.calibration_data.bytes;
     if (db.uiConfig.calibration_data.size == 16 && (parameters[0] || parameters[7])) {
+#ifndef IGNORE_CALIBRATION_DATA
         bool done = displaydriver->calibrate(parameters);
         char buf[32];
         lv_snprintf(buf, sizeof(buf), _("Screen Calibration: %s"), done ? _("done") : _("default"));
         lv_label_set_text(objects.basic_settings_calibration_label, buf);
+#endif
     }
 
     lv_disp_trig_activity(NULL);
@@ -243,6 +245,7 @@ void TFTView_320x240::updateBootMessage(void)
  */
 void TFTView_320x240::init_screens(void)
 {
+    ILOG_DEBUG("init screens...");
     ui_init();
     apply_hotfix();
 
@@ -523,6 +526,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
+
+    // blank screen
     lv_obj_add_event_cb(objects.blank_screen_button, this->ui_event_BlankScreenButton, LV_EVENT_ALL, NULL);
 
     // node and channel buttons
@@ -859,6 +864,7 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
             lv_obj_del(THIS->channelGroup[ch]);
             THIS->channelGroup[ch] = nullptr;
             THIS->chats.erase(ch);
+            THIS->controller->removeTextMessages(THIS->ownNode, UINT32_MAX, ch);
         } else {
             uint32_t nodeNum = channelOrNode;
             lv_obj_delete_delayed(THIS->chats[nodeNum], 500);
@@ -866,9 +872,14 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
             THIS->messages.erase(nodeNum);
             THIS->chats.erase(nodeNum);
             THIS->applyNodesFilter(nodeNum);
+            THIS->controller->removeTextMessages(THIS->ownNode, nodeNum, 0);
         }
         THIS->activeMsgContainer = objects.messages_container;
         THIS->updateActiveChats();
+        if (THIS->chats.empty()) {
+            // last chat was deleted, now we can get rid of all logs :)
+            THIS->controller->removeTextMessages(0, 0, 0);
+        }
     }
 }
 
@@ -1108,20 +1119,10 @@ void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_BlankScreenButton(lv_event_t *e)
 {
-    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        if (ignoreClicked) { // prevent long press to enter this setting
-            ignoreClicked = false;
-            return;
-        }
         ILOG_DEBUG("screen unlocked by button");
         screenUnlockRequest = true;
-    } else if (event_code == LV_EVENT_LONG_PRESSED) {
-        // currently button is disabled, see LGFXDriver.h
-        ILOG_DEBUG("screen locked by button");
-        screenLocked = true;
-        ignoreClicked = true;
     }
 }
 
@@ -1671,7 +1672,7 @@ void TFTView_320x240::ui_event_delete_channel(lv_event_t *e)
 void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
 {
     uint16_t *parameters = (uint16_t *)THIS->db.uiConfig.calibration_data.bytes;
-    memset(parameters, 0, 8); // clear all calibration data
+    memset(parameters, 0, 16); // clear all calibration data
     bool done = THIS->displaydriver->calibrate(parameters);
     THIS->db.uiConfig.calibration_data.size = 16;
     char buf[32];
@@ -3238,30 +3239,42 @@ void TFTView_320x240::handleAddMessage(char *msg)
     uint32_t requestId;
     uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
     bool usePkc = false;
+
+    auto callback = [this](const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t pass) {
+        this->onTextMessageCallback(req, evt, pass);
+    };
+
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
-        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest);
+        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, nullptr, callback);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
         usePkc = (unsigned long)nodes[to]->LV_OBJ_IDX(node_bat_idx)->user_data; // hasKey
-        requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to);
+        requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to, callback);
         // trial: hoplimit optimization for direct text messages
         int8_t hopsAway = (signed long)nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
         if (hopsAway < 0)
             hopsAway = db.config.lora.hop_limit;
         hopLimit = (hopsAway < db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
     }
+
+    // tweak to allow multiple lines in single line text area
+    for (int i = 0; i < strlen(msg); i++)
+        if (msg[i] == CR_REPLACEMENT)
+            msg[i] = '\n';
+
     controller->sendTextMessage(to, ch, hopLimit, requestId, usePkc, msg);
-    addMessage(requestId, msg);
+    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eDefault);
 }
 
 /**
  * display message that has just been written and sent out
  */
-void TFTView_320x240::addMessage(uint32_t requestId, char *msg)
+void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
+                                 LogMessage::MsgStatus status)
 {
-    lv_obj_t *hiddenPanel = lv_obj_create(activeMsgContainer);
+    lv_obj_t *hiddenPanel = lv_obj_create(container);
     lv_obj_set_width(hiddenPanel, lv_pct(100));
     lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT);
     lv_obj_set_align(hiddenPanel, LV_ALIGN_CENTER);
@@ -3284,15 +3297,36 @@ void TFTView_320x240::addMessage(uint32_t requestId, char *msg)
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
 
-    // tweak to allow multiple lines in single line text area
-    for (int i = 0; i < strlen(msg); i++)
-        if (msg[i] == CR_REPLACEMENT)
-            msg[i] = '\n';
-    lv_label_set_text(textLabel, msg);
+    size_t len = 0;
+    if (msgTime > 1000000) {
+        time_t time = msgTime;
+        tm *curr_tm = localtime(&time);
+        char buf[284]; // 237 + 4 + 40 + 2 + 1
+        len = strftime(buf, 40, "%R", curr_tm);
+        sprintf(&buf[len], "\n%s", msg);
+        lv_label_set_text(textLabel, buf);
+    } else {
+        lv_label_set_text(textLabel, msg);
+    }
+
     add_style_chat_message_style(textLabel);
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);
+
+    switch (status) {
+    case LogMessage::eHeard:
+        lv_obj_set_style_border_color(textLabel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+        break;
+    case LogMessage::eAcked:
+        lv_obj_set_style_border_color(textLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+        break;
+    case LogMessage::eFailed:
+        lv_obj_set_style_border_color(textLabel, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
+        break;
+    default:
+        break;
+    }
 }
 
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
@@ -3923,6 +3957,24 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
     }
 }
 
+// ResponseHandler callbacks
+
+void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t result)
+{
+    ILOG_DEBUG("onTextMessageCallback: %d %d", evt, result);
+    if (evt == ResponseHandler::found) {
+        handleTextMessageResponse((unsigned long)req.cookie, req.id, false, result);
+    } else if (evt == ResponseHandler::removed) {
+        handleTextMessageResponse((unsigned long)req.cookie, req.id, true, result);
+    } else {
+        ILOG_DEBUG("onTextMessageCallback: timeout!");
+    }
+}
+
+void TFTView_320x240::onPositionCallback(const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t) {}
+
+void TFTView_320x240::onTracerouteCallback(const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t) {}
+
 /**
  * handle response from routing
  */
@@ -4337,7 +4389,7 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
 }
 
 /**
- * @brief mark the sent message as either heard or acknowledged
+ * @brief mark the sent message as either heard or acknowledged or failed
  *
  * @param channelOrNode
  * @param id
@@ -4369,6 +4421,8 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
                                           : ack ? colorBlueGreen
                                                 : colorYellow,
                                           LV_PART_MAIN | LV_STATE_DEFAULT);
+
+            // TODO: store message
             break;
         }
     }
@@ -4439,9 +4493,11 @@ void TFTView_320x240::screenSaving(bool enabled)
         } else if (objects.main_screen) {
             ILOG_DEBUG("showing main screen");
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            screenLocked = false;
         } else {
             ILOG_DEBUG("showing boot screen");
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            screenLocked = false;
         }
     }
 }
@@ -4812,12 +4868,17 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
 /**
  * @brief insert a mew message that arrived into a <channel group> or <from node> container
  *
- * @param nodeNum
- * @param ch
- * @param msg
+ * @param from source node
+ * @param to destination node
+ * @param ch channel
+ * @param size length of msg
+ * @param msg text message
+ * @param time in/out: message time (maybe overwritten when 0)
+ * @param restore if restoring then skip banners and highlight
  */
-void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg)
+void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore)
 {
+    ILOG_DEBUG("newMessage: from:0x%08x, to:0x%08x, ch:%d, time:%d", from, to, ch, msgTime);
     char buf[284]; // 237 + 4 + 40 + 2 + 1
     char *message = (char *)msg;
     lv_obj_t *container = nullptr;
@@ -4830,15 +4891,18 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
             pos++;
         }
 
-        // add current time
-        time_t curr_time;
+        // overwrite message time if we have actual time
+        time_t time = actTime;
+        if (msgTime == 0) {
 #ifdef ARCH_PORTDUINO
-        time(&curr_time);
+            time(&time);
+            msgTime = time;
 #else
-        curr_time = actTime;
+            msgTime = actTime;
 #endif
-        if (curr_time > 1000000) {
-            tm *curr_tm = localtime(&curr_time);
+        }
+        if (msgTime > 1000000 && msgTime < UINT32_MAX) {
+            tm *curr_tm = localtime(&time);
             size_t len = strftime(&buf[pos], 40, " %R", curr_tm);
             pos += len;
         } else {
@@ -4849,6 +4913,12 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         message = buf;
         container = channelGroup[ch];
     } else { // message for us
+        if (msgTime > 1000000 && msgTime < UINT32_MAX) {
+            time_t time = msgTime;
+            tm *curr_tm = localtime(&time);
+            size_t len = strftime(buf, 40, "%R", curr_tm);
+            sprintf(&buf[len], "\n%s", msg);
+        }
         container = messages[from];
     }
 
@@ -4860,17 +4930,22 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     // place new message into container
     newMessage(from, container, ch, message);
 
-    // display msg popup if not already viewing the messages
-    if (container != activeMsgContainer || activePanel != objects.messages_panel) {
-        unreadMessages++;
-        updateUnreadMessages();
-        if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
-            showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
+    if (!restore) {
+        // display msg popup if not already viewing the messages
+        if (container != activeMsgContainer || activePanel != objects.messages_panel) {
+            unreadMessages++;
+            updateUnreadMessages();
+            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
+                showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
+            }
+            lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
         }
-        lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
+        if (container != activeMsgContainer)
+            highlightChat(from, to, ch);
+    } else {
+        if (container != activeMsgContainer)
+            lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
     }
-
-    highlightChat(from, to, ch);
 }
 
 /**
@@ -4898,14 +4973,61 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
     lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width) + 20, 200), 40));
-    lv_obj_set_height(msgLabel, LV_SIZE_CONTENT); /// 1
+    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width) + 30, 200), 60));
+    lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
     add_style_new_message_style(msgLabel);
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);
+}
+
+/**
+ * restored messages from persistent log
+ */
+void TFTView_320x240::restoreMessage(const LogMessage &msg)
+{
+    ((uint8_t *)msg.bytes)[msg._size] = 0;
+    ILOG_DEBUG("restoring msg from:0x%08x, to:0x%08x, ch:%d, time:%d, status:%d, trash:%d, size:%d, '%s'", msg.from, msg.to,
+               msg.ch, msg.time, (int)msg.status, msg.trashFlag, msg._size, msg.bytes);
+
+    if (msg.from == ownNode) {
+        lv_obj_t *container = nullptr;
+        if (msg.to == UINT32_MAX) {
+            if (msg.trashFlag && chats.find(msg.ch) != chats.end()) {
+                ILOG_DEBUG("trashFlag set for channel %d", msg.ch);
+                lv_obj_delete(chats[msg.ch]);
+                lv_obj_del(channelGroup[msg.ch]);
+                channelGroup[msg.ch] = nullptr;
+                chats.erase(msg.ch);
+                return;
+            } else {
+                container = newMessageContainer(msg.from, msg.to, msg.ch);
+            }
+        } else {
+            if (nodes.find(msg.to) != nodes.end()) {
+                if (msg.trashFlag && chats.find(msg.to) != chats.end()) {
+                    lv_obj_delete(chats[msg.to]);
+                    lv_obj_del(messages[msg.to]);
+                    messages.erase(msg.to);
+                    chats.erase(msg.to);
+                    return;
+                } else {
+                    container = newMessageContainer(msg.to, msg.from, msg.ch);
+                }
+            }
+        }
+        if (container) {
+            if (container != activeMsgContainer)
+                lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
+            addMessage(container, msg.time, 0, (char *)msg.bytes, msg.status);
+        }
+    } else if (nodes.find(msg.from) != nodes.end()) {
+        uint32_t time = msg.time ? msg.time : UINT32_MAX; // don't overwrite 0 with actual time
+        newMessage(msg.from, msg.to, msg.ch, (const char *)msg.bytes, time);
+    }
+    ILOG_DEBUG("restore message done.");
 }
 
 /**
@@ -5014,6 +5136,28 @@ void TFTView_320x240::updateActiveChats(void)
     char buf[40];
     sprintf(buf, _p("%d active chat(s)", chats.size()), chats.size());
     lv_label_set_text(objects.top_chats_label, buf);
+}
+
+/**
+ * @brief Display banner showing to be patient while restoring messages
+ */
+void TFTView_320x240::notifyRestoreMessages(int32_t percentage)
+{
+    if (percentage >= 0) {
+        static char buf[64];
+        lv_snprintf(buf, sizeof(buf), _("Restoring messages %d%%\n...please wait..."), percentage);
+        lv_label_set_text(objects.msg_popup_label, buf);
+        lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.msg_popup_button);
+    } else {
+        lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+void TFTView_320x240::notifyMessagesRestored(void)
+{
+    updateActiveChats();
+    updateNodesFiltered(true);
 }
 
 /**

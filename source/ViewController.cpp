@@ -1,17 +1,26 @@
 #include "ViewController.h"
 #include "ILog.h"
+#include "LogMessage.h"
 #include "MeshtasticView.h"
 #include "assert.h"
 #include <algorithm>
 
+#if defined(ARCH_PORTDUINO)
+#include "PortduinoFS.h"
+#else
+#include "LittleFS.h"
+#endif
+
 const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
+constexpr const char *logDir = "/messages";
 
 /**
  * @brief mediate between GUI view and client interface
  *
  */
 ViewController::ViewController()
-    : view(nullptr), client(nullptr), sendId(1), myNodeNum(0), lastSetup(0), setupDone(false), requestConfigRequired(true)
+    : view(nullptr), log(LittleFS, logDir, sizeof(LogMessage)), client(nullptr), sendId(1), myNodeNum(0), lastSetup(0),
+      setupDone(false), configCompleted(false), messagesRestored(false), requestConfigRequired(true)
 {
 }
 
@@ -24,6 +33,7 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
         client->init();
         client->connect();
     }
+    // log.init();
 }
 
 /**
@@ -36,6 +46,9 @@ void ViewController::runOnce(void)
         if (!setupDone || requestConfigRequired)
             requestConfig();
         receive();
+
+        if (configCompleted && !messagesRestored)
+            restoreTextMessages();
 
         // executed every 10s:
         time_t curtime;
@@ -415,9 +428,10 @@ void ViewController::setConfigRequested(bool required)
 void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, bool usePkc,
                                      const char *textmsg)
 {
-    assert(strlen(textmsg) <= (size_t)DATA_PAYLOAD_LEN);
-    send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg,
-         strlen(textmsg));
+    size_t msgLen = strlen(textmsg);
+    assert(msgLen <= (size_t)DATA_PAYLOAD_LEN);
+    log.write(LogMessageEnv(myNodeNum, to, ch, 0L, LogMessage::eDefault, false, msgLen, (const uint8_t *)textmsg));
+    send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen);
 }
 
 bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId)
@@ -558,6 +572,43 @@ void ViewController::requestConfig(void)
 void ViewController::requestAdditionalConfig(void)
 {
     requestRingtone(myNodeNum);
+}
+
+/**
+ * recover all messages from persistent log (could take a while!)
+ */
+void ViewController::beginRestoreTextMessages(void)
+{
+    configCompleted = true;
+    restoreTimer = millis();
+    ILOG_DEBUG("loading persistent messages...");
+}
+
+/**
+ * incrementally recover messages from persistent log (could take a while!)
+ */
+void ViewController::restoreTextMessages(void)
+{
+    LogMessageEnv msg;
+    if (log.read(msg)) {
+        view->restoreMessage(msg);
+    } else {
+        ILOG_DEBUG("restoring log messages completed in %dms.", millis() - restoreTimer);
+        messagesRestored = true;
+        view->notifyMessagesRestored();
+    }
+}
+/**
+ * write a flag into message log that chat has been deleted
+ * The call removeTextMessages(0,0,0) removes all logs.
+ */
+void ViewController::removeTextMessages(uint32_t from, uint32_t to, uint8_t ch)
+{
+    if (!from && !to && !ch) {
+        log.clear();
+    } else {
+        log.write(LogMessageEnv(from, to, ch, 0L, LogMessage::eDefault, true, 0, nullptr));
+    }
 }
 
 /**
@@ -764,6 +815,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                 break;
             }
             case meshtastic_FromRadio_config_complete_id_tag: {
+                beginRestoreTextMessages();
                 view->configCompleted();
                 requestAdditionalConfig();
                 view->notifyResync(false);
@@ -810,7 +862,36 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
         ILOG_INFO("received text message '%s'", (const char *)p.decoded.payload.bytes);
-        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes);
+        if (!messagesRestored && log.count() > 0) {
+            // houston we have a problem! Haven't finished restoring messages incrementally while new ones come in
+            // enforce loading all at once which may take a while so display some banner if it'll take longer
+            if (!configCompleted) {
+                ILOG_ERROR("cannot handle received message NOW");
+                return false; // the only way out
+            }
+
+            ILOG_DEBUG("loading all logs at once");
+            int32_t percentage = log.current() * 100 / log.count();
+            bool showPercentage = false;
+            if (log.count() > 10 && percentage < 50) { // TODO: was 10
+                showPercentage = true;
+                view->notifyRestoreMessages(percentage);
+            }
+            uint32_t count = 0;
+            LogMessageEnv msg;
+            while (log.read(msg)) {
+                view->restoreMessage(msg);
+                if (showPercentage && (count++ % 10) == 0) {
+                    view->notifyRestoreMessages(log.current() * 100 / log.count());
+                }
+            }
+            messagesRestored = true;
+            view->notifyRestoreMessages(-1);
+        }
+        uint32_t time = p.rx_time;
+        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
+        log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
+                                (const uint8_t *)p.decoded.payload.bytes));
         break;
     }
     case meshtastic_PortNum_POSITION_APP: {
