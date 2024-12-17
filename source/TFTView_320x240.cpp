@@ -4422,7 +4422,7 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
                                                 : colorYellow,
                                           LV_PART_MAIN | LV_STATE_DEFAULT);
 
-            // TODO: store message
+            // store message
             break;
         }
     }
@@ -5027,7 +5027,6 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         uint32_t time = msg.time ? msg.time : UINT32_MAX; // don't overwrite 0 with actual time
         newMessage(msg.from, msg.to, msg.ch, (const char *)msg.bytes, time);
     }
-    ILOG_DEBUG("restore message done.");
 }
 
 /**
@@ -5143,6 +5142,7 @@ void TFTView_320x240::updateActiveChats(void)
  */
 void TFTView_320x240::notifyRestoreMessages(int32_t percentage)
 {
+    ILOG_DEBUG("notifyRestoreMessages: %d%", percentage); // TODO
     if (percentage >= 0) {
         static char buf[64];
         lv_snprintf(buf, sizeof(buf), _("Restoring messages %d%%\n...please wait..."), percentage);
@@ -5151,6 +5151,7 @@ void TFTView_320x240::notifyRestoreMessages(int32_t percentage)
         lv_group_focus_obj(objects.msg_popup_button);
     } else {
         lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+        ILOG_DEBUG("notifyRestoreMessages finished");
     }
 }
 

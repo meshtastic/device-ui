@@ -873,7 +873,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             ILOG_DEBUG("loading all logs at once");
             int32_t percentage = log.current() * 100 / log.count();
             bool showPercentage = false;
-            if (log.count() > 10 && percentage < 50) { // TODO: was 10
+            if (log.count() > 2 && percentage < 50) { // TODO: was 10
                 showPercentage = true;
                 view->notifyRestoreMessages(percentage);
             }
