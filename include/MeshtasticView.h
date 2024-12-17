@@ -2,6 +2,7 @@
 
 #include "DeviceGUI.h"
 #include "DisplayDriverConfig.h"
+#include "LogMessage.h"
 #include "ResponseHandler.h"
 #include "lvgl.h"
 #include "mesh-pb-constants.h"
@@ -47,7 +48,7 @@ class MeshtasticView : public DeviceGUI
     };
 
     // methods to update view
-    virtual void setupUIConfig(const meshtastic_DeviceUIConfig& uiconfig) {}
+    virtual void setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) {}
     virtual void setMyInfo(uint32_t nodeNum);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                    bool can_shutdown);
@@ -57,7 +58,7 @@ class MeshtasticView : public DeviceGUI
     virtual void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
                          eRole role, bool hasKey, bool viaMqtt);
     virtual void updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                            eRole role,  bool hasKey, bool viaMqtt);
+                            eRole role, bool hasKey, bool viaMqtt);
     virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision);
     virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
     virtual void updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics) {}
@@ -102,7 +103,10 @@ class MeshtasticView : public DeviceGUI
     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) {}
     virtual void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) {}
     virtual void packetReceived(const meshtastic_MeshPacket &p);
-    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg);
+    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) {}
+    virtual void restoreMessage(const LogMessage &msg) {}
+    virtual void notifyRestoreMessages(int32_t percentage) {}
+    virtual void notifyMessagesRestored(void) {}
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);
