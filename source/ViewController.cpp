@@ -7,8 +7,10 @@
 
 #if defined(ARCH_PORTDUINO)
 #include "PortduinoFS.h"
+fs::FS& persistentFS = PortduinoFS;
 #else
 #include "LittleFS.h"
+fs::FS& persistentFS = LittleFS;
 #endif
 
 const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
@@ -19,7 +21,7 @@ constexpr const char *logDir = "/messages";
  *
  */
 ViewController::ViewController()
-    : view(nullptr), log(LittleFS, logDir, sizeof(LogMessage)), client(nullptr), sendId(1), myNodeNum(0), lastSetup(0),
+    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), client(nullptr), sendId(1), myNodeNum(0), lastSetup(0), 
       setupDone(false), configCompleted(false), messagesRestored(false), requestConfigRequired(true)
 {
 }

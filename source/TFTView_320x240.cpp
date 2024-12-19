@@ -4892,17 +4892,17 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         }
 
         // overwrite message time if we have actual time
-        time_t time = actTime;
+        time_t now = actTime;
         if (msgTime == 0) {
 #ifdef ARCH_PORTDUINO
-            time(&time);
-            msgTime = time;
+            time(&now);
+            msgTime = now;
 #else
             msgTime = actTime;
 #endif
         }
         if (msgTime > 1000000 && msgTime < UINT32_MAX) {
-            tm *curr_tm = localtime(&time);
+            tm *curr_tm = localtime(&now);
             size_t len = strftime(&buf[pos], 40, " %R", curr_tm);
             pos += len;
         } else {
