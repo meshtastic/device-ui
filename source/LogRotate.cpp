@@ -8,7 +8,7 @@ LogRotate::LogRotate(fs::FS &fs, const char *logDir, uint32_t maxLen, uint32_t m
     : _fs(fs), numFiles(0), minLogNum(0), currentLogNum(0), currentSize(0), currentCount(0), totalSize(0), rootDirName(logDir),
       c_maxLen(maxLen), c_maxSize(maxSize), c_maxFiles(maxFiles), c_maxFileSize(maxFileSize)
 {
-    init();
+    //init();
 }
 
 void LogRotate::init(void)
@@ -28,14 +28,15 @@ void LogRotate::init(void)
             currentSize = 0;
         }
     }
+
+    ILOG_INFO("LogRotate: found %d log files using %d bytes (%d%%).", numFiles, totalSize, (totalSize * 100) / c_maxSize);
     if (minLogNum == 0) {
         numFiles = 1;
         minLogNum = 1;
         currentLogNum = 1;
     }
     currentLogName = logFileName(currentLogNum);
-    ILOG_INFO("LogRotate: found %d log files using %d bytes (%d%%). Logging to %s", numFiles - 1, totalSize,
-              (totalSize * 100) / c_maxSize, currentLogName.c_str());
+    ILOG_INFO("Logging to %s", currentLogName.c_str());
 }
 
 /**
@@ -87,7 +88,7 @@ bool LogRotate::write(const ILogEntry &entry)
     }
 
     // elegant way to let the logentry do its work it knows best and pass just a temporary function for writing
-    File file = _fs.open(currentLogName, FILE_APPEND, true);
+    File file = _fs.open(currentLogName, FILE_APPEND);
     entry.serialize([&file](const uint8_t *buf, size_t size) { return file.write(buf, size); });
     file.close();
 
@@ -201,19 +202,21 @@ void LogRotate::scanLogDir(uint32_t &num, uint32_t &minLog, uint32_t &maxLog, ui
     if (!rootDir)
         rootDir = _fs.open(rootDirName);
     File file = rootDir.openNextFile();
-    while (file && !file.isDirectory()) {
-        num++;
-        size_t size = file.size();
-        total += size;
-        ILOG_DEBUG(" %s(%d bytes)", file.name(), size);
-        uint32_t logNum = 0;
-        if (sscanf(file.name(), FILE_PREFIX "%u", &logNum) > 0 && logNum > 0) {
-            if (logNum < minLog) {
-                minLog = logNum;
-            }
-            if (logNum > maxLog) {
-                maxLog = logNum;
-                logSize = size;
+    while (file) {
+        if (!file.isDirectory()) {
+            num++;
+            size_t size = file.size();
+            total += size;
+            ILOG_DEBUG(" %s(%d bytes)", file.name(), size);
+            uint32_t logNum = 0;
+            if (sscanf(file.name(), "%*s" FILE_PREFIX "%u.log", &logNum) > 0 && logNum > 0) {
+                if (logNum < minLog) {
+                    minLog = logNum;
+                }
+                if (logNum > maxLog) {
+                    maxLog = logNum;
+                    logSize = size;
+                }
             }
         }
         file = rootDir.openNextFile();

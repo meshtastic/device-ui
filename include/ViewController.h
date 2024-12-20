@@ -61,7 +61,7 @@ class ViewController
     virtual bool sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCounter, uint32_t nodeId = 0);
 
     virtual bool sendConfig(const char ringtone[231], uint32_t nodeId = 0);
-    virtual void sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, bool usePkc, const char *textmsg);
+    virtual void sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t msgTime, uint32_t requestId, bool usePkc, const char *textmsg);
     virtual void removeTextMessages(uint32_t from, uint32_t to, uint8_t ch);
     virtual bool requestPosition(uint32_t to, uint8_t ch, uint32_t requestId);
     virtual void traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId);

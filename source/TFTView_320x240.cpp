@@ -3264,7 +3264,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
         if (msg[i] == CR_REPLACEMENT)
             msg[i] = '\n';
 
-    controller->sendTextMessage(to, ch, hopLimit, requestId, usePkc, msg);
+    controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
     addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eDefault);
 }
 

@@ -35,7 +35,7 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
         client->init();
         client->connect();
     }
-    // log.init();
+    log.init();
 }
 
 /**
@@ -427,13 +427,16 @@ void ViewController::setConfigRequested(bool required)
     requestConfigRequired = required;
 }
 
-void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, bool usePkc,
+void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t msgTime, uint32_t requestId, bool usePkc,
                                      const char *textmsg)
 {
     size_t msgLen = strlen(textmsg);
     assert(msgLen <= (size_t)DATA_PAYLOAD_LEN);
-    log.write(LogMessageEnv(myNodeNum, to, ch, 0L, LogMessage::eDefault, false, msgLen, (const uint8_t *)textmsg));
-    send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen);
+
+    if (send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen)) {
+        ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);
+        log.write(LogMessageEnv(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen, (const uint8_t *)textmsg));
+    }
 }
 
 bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId)
