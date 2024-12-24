@@ -45,6 +45,8 @@
         .blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff                                               \
     }
 
+#define VALID_TIME(T) (T > 1000000)
+
 constexpr lv_color_t colorRed = LV_COLOR_HEX(0xff5555);
 constexpr lv_color_t colorDarkRed = LV_COLOR_HEX(0xa70a0a);
 constexpr lv_color_t colorOrange = LV_COLOR_HEX(0xff8c04);
@@ -2050,7 +2052,7 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
     curr_time = actTime;
 #endif
     tm *curr_tm = localtime(&curr_time);
-    if (curr_time > 1000000) {
+    if (VALID_TIME(curr_time)) {
         strftime(timebuf, 16, "%T", curr_tm);
     } else {
         strcpy(timebuf, "??:??:??");
@@ -3234,7 +3236,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
 {
     // retrieve nodeNum + channel from activeMsgContainer
     uint32_t to = UINT32_MAX;
-    uint8_t ch;
+    uint8_t ch = 0;
     uint8_t hopLimit = db.config.lora.hop_limit;
     uint32_t requestId;
     uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
@@ -3298,7 +3300,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
 
     size_t len = 0;
-    if (msgTime > 1000000) {
+    if (VALID_TIME(msgTime)) {
         time_t time = msgTime;
         tm *curr_tm = localtime(&time);
         char buf[284]; // 237 + 4 + 40 + 2 + 1
@@ -3563,7 +3565,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
                                  eRole role, bool hasKey, bool viaMqtt)
 {
     auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
+    if (it != nodes.end() && it->second) {
         if (it->first == ownNode) {
             // update related settings buttons and store role in image user data
             char buf[30];
@@ -3995,6 +3997,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
     } else {
         ILOG_DEBUG("handleResponse request id 0x%08x", id);
     }
+    ILOG_DEBUG("routing tag variant: %d, error: %d", routing.which_variant, routing.error_reason);
     switch (routing.which_variant) {
     case meshtastic_Routing_error_reason_tag: {
         if (routing.error_reason == meshtastic_Routing_Error_NONE) {
@@ -4010,6 +4013,9 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             }
+            else if (req.type == ResponseHandler::TextMessageRequest) {
+                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+            }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
             if (req.type == ResponseHandler::PositionRequest) {
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
@@ -4017,6 +4023,15 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL) {
             if (req.type == ResponseHandler::TextMessageRequest) {
                 handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+                // we probably have a wrong key; mark it as bad and don't use in future
+                if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
+                    ILOG_DEBUG("public key mismatch");
+                    nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void*)2;
+                    lv_obj_set_style_border_color(nodes[from]->LV_OBJ_IDX(node_img_idx), colorRed, 
+                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_slash_image,
+                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                }
             }
         } else {
             ILOG_DEBUG("got Routing_Error %d", routing.error_reason);
@@ -4255,9 +4270,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
                 hide = true;
         }
         if (lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED)) {
-            lv_color_t color1 = lv_obj_get_style_bg_color(panel->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_color_t color2 = lv_obj_get_style_border_color(panel->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
-            bool hasKey = color1.blue == color2.blue && color1.red == color2.red && color1.green == color2.green;
+            bool hasKey = (unsigned long)panel->LV_OBJ_IDX(node_bat_idx)->user_data == 1;
             if (!hasKey)
                 hide = true;
         }
@@ -4827,8 +4840,9 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
         if (channelGroup[ch] != nullptr)
             return channelGroup[ch];
     } else {
-        if (messages[from] != nullptr)
-            return messages[from];
+        auto it = messages.find(from);
+        if (it != messages.end() && it->second)
+            return it->second;
     }
 
     // create container for new messages
@@ -4901,7 +4915,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
             msgTime = actTime;
 #endif
         }
-        if (msgTime > 1000000 && msgTime < UINT32_MAX) {
+        if (VALID_TIME(msgTime) && msgTime < UINT32_MAX) {
             tm *curr_tm = localtime(&now);
             size_t len = strftime(&buf[pos], 40, " %R", curr_tm);
             pos += len;
@@ -4913,7 +4927,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         message = buf;
         container = channelGroup[ch];
     } else { // message for us
-        if (msgTime > 1000000 && msgTime < UINT32_MAX) {
+        if (VALID_TIME(msgTime) && msgTime < UINT32_MAX) {
             time_t time = msgTime;
             tm *curr_tm = localtime(&time);
             size_t len = strftime(buf, 40, "%R", curr_tm);
@@ -5008,6 +5022,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         } else {
             if (nodes.find(msg.to) != nodes.end()) {
                 if (msg.trashFlag && chats.find(msg.to) != chats.end()) {
+                    ILOG_DEBUG("trashFlag set for node %08x", msg.to);
                     lv_obj_delete(chats[msg.to]);
                     lv_obj_del(messages[msg.to]);
                     messages.erase(msg.to);
@@ -5016,6 +5031,10 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 } else {
                     container = newMessageContainer(msg.to, msg.from, msg.ch);
                 }
+            }
+            else {
+                LOG_DEBUG("to node 0x%08x not in db", msg.to);
+                MeshtasticView::addOrUpdateNode(msg.to, msg.ch, 0, eRole::unknown, false, false);
             }
         }
         if (container) {
@@ -5026,6 +5045,27 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
     } else if (nodes.find(msg.from) != nodes.end()) {
         uint32_t time = msg.time ? msg.time : UINT32_MAX; // don't overwrite 0 with actual time
         newMessage(msg.from, msg.to, msg.ch, (const char *)msg.bytes, time);
+    }
+    else {
+        // from node not in db
+        LOG_DEBUG("from node 0x%08x not in db", msg.from);
+        MeshtasticView::addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
+
+        char buf[284]; // 237 + 4 + 40 + 2 + 1
+        if (VALID_TIME(msg.time)) {
+            time_t time = msg.time;
+            tm *curr_tm = localtime(&time);
+            uint32_t len = strftime(buf, 40, "%R", curr_tm);
+            snprintf(&buf[len], msg.size(), "\n%s", msg.bytes);
+        }
+        else {
+            memcpy(buf, msg.bytes, msg.size()+1);
+            buf[msg.size()] = 0;
+        }
+
+        lv_obj_t *container = newMessageContainer(msg.from, msg.to, msg.ch);
+        lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
+        newMessage(msg.from, container, msg.ch, buf);
     }
 }
 
@@ -5070,8 +5110,14 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     if (to == UINT32_MAX || from == 0) {
         sprintf(buf, "%d: %s", (int)ch, lv_label_get_text(channel[ch]));
     } else {
-        sprintf(buf, "%s: %s", lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbs_idx)),
-                lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
+        auto it = nodes.find(from);
+        if (it != nodes.end()) {
+          sprintf(buf, "%s: %s", lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)),
+                  lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
+        }
+        else {
+            sprintf(buf, "!%08x", from);
+        }
     }
 
     {
@@ -5113,8 +5159,10 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
 
     chats[index] = chatBtn;
     updateActiveChats();
-    if (index > c_max_channels)
-        applyNodesFilter(index);
+    if (index > c_max_channels) {
+        if (nodes.find(index) != nodes.end())
+            applyNodesFilter(index);
+    }
 
     lv_obj_add_event_cb(chatBtn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
     lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
@@ -5230,15 +5278,19 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     if (p) {
         lv_label_set_text(objects.top_messages_node_label, lv_label_get_text(p->LV_OBJ_IDX(node_lbl_idx)));
         ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
-        lv_color_t color1 = lv_obj_get_style_bg_color(p->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_color_t color2 = lv_obj_get_style_border_color(p->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
-        bool hasKey = color1.blue == color2.blue && color1.red == color2.red && color1.green == color2.green;
-        if (hasKey) {
-            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_secure_image,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
-        } else {
+        switch ((unsigned long)p->LV_OBJ_IDX(node_bat_idx)->user_data) {
+        case 0:
             lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_channel_image,
                                           LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case 1:
+            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_secure_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        default:
+            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_slash_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
         }
         unreadMessages = 0; // TODO: not all messages may be actually read
         updateUnreadMessages();
@@ -5493,7 +5545,7 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
     time_t curtime;
     time(&curtime);
     auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
+    if (it != nodes.end() && it->second) {
         time_t lastHeard = (time_t)it->second->LV_OBJ_IDX(node_lh_idx)->user_data;
         it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)curtime;
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), _("now"));
@@ -5523,7 +5575,7 @@ void TFTView_320x240::updateAllLastHeard(void)
 {
     uint16_t online = 0;
     time_t lastHeard;
-    for (auto &it : nodes) {
+    for (auto it : nodes) {
         char buf[32];
         if (it.first == ownNode) { // own node is always now, so do update
             time_t curtime;
@@ -5575,7 +5627,7 @@ void TFTView_320x240::updateTime(void)
     tm *curr_tm = localtime(&curr_time);
 
     int len = 0;
-    if (curr_time > 1000000 && (unsigned long)objects.home_time_button->user_data == 0) {
+    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0) {
         len = strftime(buf, 40, "%T %Z\n%a %d-%b-%g", curr_tm);
     } else {
         uint32_t uptime = millis() / 1000;
