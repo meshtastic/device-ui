@@ -1,0 +1,152 @@
+sl:
+  no new messages: ni novih sporočil
+  1 of 1 nodes online: 1 od 1 vozlišč povezanih
+  'uptime 00:00:00': 'prižgan 00:00:00'
+  "Heap: 0\nLVGL: 0": |-
+    Kopica: 0
+    LVGL: 0
+  DEL: Zbriši
+  'User name: ': 'Uporabniško ime: '
+  'Modem Preset: LONG FAST': 'Modem: LONG FAST'
+  'Channel: LongFast': 'Kanal: LongFast'
+  'Role: Client': 'Vloga: Odjemalec'
+  'Screen Timeout: 60s': 'Izklop zaslona po: 60s'
+  'Screen Lock: off': 'Zaklepanje zaslona: izključeno'
+  'Screen Brightness: 60%': 'Svetlost zaslona: 60%'
+  'Theme: Dark': 'Tema: Temna'
+  'Screen Calibration: default': 'Kalibracija zaslona: privzeto'
+  'Input Control: none/none': 'Nadzor vnosa: nič/nič'
+  'Message Alert Buzzer: on': 'Opozorila za sporočila: vključeno'
+  'Language: English': 'Jezik: '
+  Configuration Reset: Ponastavi nastavitve
+  Reboot / Shutdown: Ponovni zagon / Izklop
+  Mesh Detector: Detektor mreže
+  Signal Scanner: Skener signala
+  Trace Route: Iskanje poti
+  Neighbors: Sosedi
+  Statistics: Statistika
+  Packet Log: Dnevnik paketov
+  Meshtastic: ~
+  Group Channels: Skupinski kanali
+  no messages: ni sporočil
+  Settings & Tools: Nastavitve in orodja
+  Settings (advanced): Nastavitve (napredno)
+  Locations Map: Zemljevid lokacij
+  no chats: ni pogovorov
+  Node Search: Iskanje vozlišč
+  Packet Statistics: Statistika paketov
+  Node Options: Možnosti vozlišč
+  Short Name: Kratko ime
+  Long Name: Dolgo ime
+  <unset>: <prazno>
+  "LONG FAST\nLONG SLOW\n-- zastarelo --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "LONG FAST\nLONG SLOW\n-- zastarelo --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
+  "Odjemalec\nNemi odjemalec\nUsmerjevalnik\n-- zastarelo --\nRepetitor\nSledilnik\nSenzor\nTAK\nSkriti odjemalec\nIzgubljeno - najdeno\nTAK sledilnik": ~
+  'Brightness: 60%': 'Svetlost: 60%'
+  "Dark\nLight": Temna\nSvetla
+  'Timeout: 60s': 'Izklop zaslona po: 60s'
+  Screen Lock: Zaklepanje zaslona
+  Lock PIN: PIN koda za zaklep
+  Mouse: Miš
+  none: nič
+  Keyboard: Tipkovnica
+  Message Alert: Opozorila za sporočila
+  Ringtone: Zvonenje
+  Default: Privzeto
+  Zone: Območje
+  City: Mesto
+  "NodeDB Reset\nFactory Reset": |-
+    Ponastavitev NodeDB
+    Tovarniška ponastavitev
+  Channel Name: Ime kanala
+  Pre-shared Key: PSK ključ
+  Unknown: Neznano
+  Offline: Ni povezave
+  Public Key: Javni ključ
+  Hops away: Skoki
+  MQTT: MQTT
+  Position: Pozicija
+  Name: Ime
+  Active Chat: Aktiven pogovor
+  Telemetry: Telemetrija
+  IAQ: ~
+  Start: Start
+  New Message from\n: |-
+    Novo sporočilo od
+    :
+  Resynch...: Sinhronizacija...
+  OK: OK
+  Cancel: Prekliči
+  'FrequencySlot: %d (%g MHz)': 'Frekvenčno okno: %d (%g MHz)'
+  'Brightness: %d%%': 'Svetlost: %d%%'
+  'Timeout: off': 'Izklop zaslona po: izključeno'
+  'Timeout: %ds': 'Izklop zaslona po: %ds'
+  'Screen Calibration: %s': Kalibracija zaslona %s
+  done: končano
+  default: privzeto
+  Stop: Stop
+  "choose\nnode": |-
+    izberi
+    vozlišče
+  choose target node: izberi ciljno vozlišče
+  'heard: !%08x': 'slišano: !%08x'
+  'Packet Log: %d': 'Dnevnik paketa: %d'
+  'Language: %s': 'Jezik: %s'
+  'Screen Timeout: off': 'Izklop zaslona po: izključeno'
+  'Screen Timeout: %ds': 'Izklop zaslona po: %ds'
+  'Screen Brightness: %d%%': 'Svetlost: %d%%'
+  'Theme: %s': 'Tema: %s'
+  'User name: %s': 'Uporabniško ime: %s'
+  'Device Role: %s': Vloga naprave
+  'Region: %s': 'Regija: %s'
+  'Modem Preset: %s': 'Modem: %s'
+  'Channel: %s': 'Ime kanala: %s'
+  'Screen Lock: %s': 'Zaklepanje zaslona: %s'
+  'on': vključeno
+  'off': izključeno
+  'Message Alert: %s': 'Opozorila za sporočila: %s'
+  Util %0.1f%%  Air %0.1f%%: ~
+  'hops: %d': 'skoki: %d'
+  unknown: neznano
+  <no name>: <brez imena>
+  '%d active chat(s)': '%d aktivnih pogovorov'
+  New message from \n%s: |-
+    Novo sporočilo od 
+    %s
+  'Input Control: %s/%s': 'Nadzor vnosa: %s/%s'
+  '%d of %d nodes online': '%d od %d vozlišč povezanih'
+  Filtering ...: Filtriranje...
+  'Filter: %d of %d nodes': 'Filter: %d od %d vozlišč'
+  now: zdaj
+  '%d new message': '%d novih sporočil'
+  '%d new messages': '%d novih sporočil'
+  'uptime: %02d:%02d:%02d': 'prižgan %02d:%02d:%02d'
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": |-
+    Kopica: %d (%d%%)
+    LVGL: %d (%d%%)
+  Settings: Nastavitve
+  Tools: Orodja
+  Filter: Filter
+  Highlight: Označeno
+  Primary Channel: Primarni kanal
+  Secondary Channels: Sekundarni kanal
+  Resynch ...: Sinhronizacija ...
+  Rebooting ...: Ponovni zagon ...
+  Shutting down ...: Ugašanje ...
+  LoRa 0.0 MHz: ~
+  silent: tihi način
+  'WiFi: <not setup>': 'WiFi: <ni nastavljen>'
+  LoRa TX off!: LoRa TX ugasnjen!
+  WiFi SSID: ~
+  WiFi pre-shared Key: WiFi PSK ključ
+  'WiFi: %s': ~
+  <not set>: <ni nastavljen>
+  Banner & Sound: Pasica in zvok
+  Banner only: Samo pasica
+  Sound only: Samo zvok
+  'Lock: off/off': 'Zaklep: izključeno/izključeno'
+  Settings Lock: Zaklep nastavitev
+  'Lock: %s/%s': 'Zaklep: %s/%s'
+  Enter Text ...: Vnesi besedilo ...
+  '!Enter Filter ...': '!Vnesi filter ...'
+  Enter Filter ...: Vnesi filter ...
+  region unset: regija ni nastavljena
