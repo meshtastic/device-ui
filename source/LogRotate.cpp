@@ -113,13 +113,19 @@ bool LogRotate::clear(void)
     bool error = false;
     File file = root.openNextFile();
     while (file) {
-        String name = file.name();
-        if (!file.isDirectory() && _fs.remove(name)) {
-            count++;
-            ILOG_DEBUG("removed %s", name.c_str());
-        } else {
-            ILOG_ERROR("failed to remove %s!", name.c_str());
-            error = true;
+        String name = rootDirName + '/' + file.name();
+        if (!file.isDirectory()) {
+            file.close();
+            if (_fs.remove(name)) {
+                count++;
+                ILOG_DEBUG("removed %s", name.c_str());
+            } else {
+                ILOG_ERROR("failed to remove %s!", name.c_str());
+                error = true;
+            }
+        }
+        else {
+            file.close();
         }
         file = root.openNextFile();
     }
@@ -219,6 +225,7 @@ void LogRotate::scanLogDir(uint32_t &num, uint32_t &minLog, uint32_t &maxLog, ui
                 }
             }
         }
+        file.close();
         file = rootDir.openNextFile();
     }
     rootDir.close();
