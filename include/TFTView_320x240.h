@@ -74,6 +74,7 @@ class TFTView_320x240 : public MeshtasticView
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;
+    void notifyConfigReboot(bool show);
     void blankScreen(bool enable) override;
     void screenSaving(bool enabled) override;
     bool isScreenLocked(void) override;
@@ -191,6 +192,8 @@ class TFTView_320x240 : public MeshtasticView
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
     lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
+    void configTransactionOpen();
+    void checkForConfigTransactionClose();
 
     void enablePanel(lv_obj_t *panel);
     void disablePanel(lv_obj_t *panel);
@@ -256,6 +259,7 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_message_ready(lv_event_t *e);
 
+    static void ui_event_apply_button(lv_event_t *e);
     static void ui_event_user_button(lv_event_t *e);
     static void ui_event_role_button(lv_event_t *e);
     static void ui_event_region_button(lv_event_t *e);
@@ -350,6 +354,7 @@ class TFTView_320x240 : public MeshtasticView
     std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
     meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db
     lv_obj_t *qr;                                    // qr code
+    bool configRebootRequired;                       // set when AdminModule will reboot if settings are applied
 
     // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {

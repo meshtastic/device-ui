@@ -489,6 +489,9 @@ typedef struct _objects_t {
     lv_obj_t *blank_screen_button;
     lv_obj_t *screen_lock_button_matrix;
     lv_obj_t *lock_screen_digits_label;
+    lv_obj_t *basic_settings_apply_button;
+    lv_obj_t *basic_settings_apply_label;
+    lv_obj_t *top_basic_settings_unsaved_label;
 } objects_t;
 
 extern objects_t objects;

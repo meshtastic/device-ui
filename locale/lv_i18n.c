@@ -158,6 +158,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Resynch ...", "Synchronisierung ..."},
     {"Rebooting ...", "Neustart ..."},
     {"Shutting down ...", "Herunterfahren ..."},
+    {"Config changed!\nRebooting ...", "Konfiguration geändert!\nNeustart ..."},
     {"silent", "stumm"},
     {"WiFi: <not setup>", "WiFi: <kein Passwort>"},
     {"LoRa TX off!", "LoRa TX ausgeschaltet!"},
@@ -173,6 +174,8 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"!Enter Filter ...", "!Filter Name..."},
     {"Enter Filter ...", "Filter Name..."},
     {"region unset", "keine Region"},
+    {"Unsaved changes ...", "Nicht gespeichert ..."},
+    {"Apply & Reboot", "Anwenden & neu starten"},
     {NULL, NULL} // End mark
 };
 
@@ -310,6 +313,7 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"Resynch ...", "Resincronizando ..."},
     {"Rebooting ...", "Reiniciando ..."},
     {"Shutting down ...", "Apagando ..."},
+    {"Config changed!\nRebooting ...", "¡Config. cambiada!\nReiniciando ..."},
     {"silent", "silenciado"},
     {"WiFi: <not setup>", "WiFi: <no configurada>"},
     {"LoRa TX off!", "LoRa TX apagado!"},
@@ -326,6 +330,8 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"!Enter Filter ...", "!Introduce filtro..."},
     {"Enter Filter ...", "Introduce filtro ..."},
     {"region unset", "región no configurada"},
+    {"Unsaved changes ...", "Cambios no guardados ..."},
+    {"Apply & Reboot", "Aplicar & reiniciar"},
     {NULL, NULL} // End mark
 };
 
@@ -452,6 +458,9 @@ static lv_i18n_phrase_t fi_singulars[] = {
     {"Resynch ...", "Synkronoi uudelleen ..."},
     {"Rebooting ...", "Käynnistetään uudelleen ..."},
     {"Shutting down ...", "Sammutetetaan ..."},
+    {"Config changed!\nRebooting ...", "Konfiguraatio muuttunut!\nKäynnistetään uudelleen ..."},
+    {"Unsaved changes ...", "Ei tallennettu ..."},
+    {"Apply & Reboot", "Käyttää & käynnistä uudelleen"},
     {NULL, NULL} // End mark
 };
 
@@ -583,6 +592,7 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Resynch ...", "Resynch ..."},
     {"Rebooting ...", "Redémarrage ..."},
     {"Shutting down ...", "Arrêt..."},
+    {"Config changed!\nRebooting ...", "Configuration modifiée!\nRedémarrage ..."},
     {"silent", "silencieux"},
     {"WiFi: <not setup>", "WiFi: <non configuré>"},
     {"WiFi: %s", "WiFi: %s"},
@@ -601,6 +611,8 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Enter Filter ...", "Filtrer ..."},
     {"region unset", "Région non configurée"},
     {"no signal", "aucun signal"},
+    {"Unsaved changes ...", "Modif. non enregistrées ..."},
+    {"Apply & Reboot", "Appliquer et redémarrer"},
     {NULL, NULL} // End mark
 };
 
@@ -743,6 +755,7 @@ static lv_i18n_phrase_t it_singulars[] = {
     {"Resynch ...", "Risinc ..."},
     {"Rebooting ...", "Riavvio ..."},
     {"Shutting down ...", "Spegnimento ..."},
+    {"Config changed!\nRebooting ...", "Config. modificata!\nRiavvio ..."},
     {"silent", "silenzioso"},
     {"WiFi: <not setup>", "WiFi: <non configurato>"},
     {"Lock: off/off", "Blocco: disattivato/disattivato"},
@@ -760,6 +773,8 @@ static lv_i18n_phrase_t it_singulars[] = {
     {"Banner & Sound", "Banner e Suono"},
     {"Banner only", "Solo Banner"},
     {"Sound only", "Solo Suono"},
+    {"Unsaved changes ...", "Modifiche non salvate ..."},
+    {"Apply & Reboot", "Applica & riavvia"},
     {NULL, NULL} // End mark
 };
 
@@ -915,6 +930,7 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Resynch ...", "Hersync ..."},
     {"Rebooting ...", "Herstarten ..."},
     {"Shutting down ...", "Uitschakelen ..."},
+    {"Config changed!\nRebooting ...", "Config gewijzigd!\nHerstarten ..."},
     {"silent", "stil"},
     {"WiFi: <not setup>", "WiFi: <niet ingesteld>"},
     {"Lock: off/off", "Slot: uit/uit"},
@@ -929,6 +945,8 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Banner & Sound", "Strook & Geluid"},
     {"Banner only", "Alleen strook"},
     {"Sound only", "Alleen geluid"},
+    {"Unsaved changes ...", "Niet opgeslagen ..."},
+    {"Apply & Reboot", "Toepassen & herstarten"},
     {NULL, NULL} // End mark
 };
 
@@ -1064,6 +1082,7 @@ static lv_i18n_phrase_t no_singulars[] = {
     {"Resynch ...", "Synkroniserer ..."},
     {"Rebooting ...", "Starter på nytt ..."},
     {"Shutting down ...", "Skrur av ..."},
+    {"Config changed!\nRebooting ...", "Konfig endret!\nStarter på nytt ..."},
     {"silent", "stille"},
     {"WiFi: <not setup>", "WiFi: <ingen innstilling>"},
     {"Lock: off/off", "Lås: av/av"},
@@ -1079,6 +1098,8 @@ static lv_i18n_phrase_t no_singulars[] = {
     {"Banner & Sound", "Banner & Lyd"},
     {"Banner only", "Bare banner"},
     {"Sound only", "Bare lyd"},
+    {"Unsaved changes ...", "Ulagrede endringer ..."},
+    {"Apply & Reboot", "Bruk og start på nytt"},
     {NULL, NULL} // End mark
 };
 
@@ -1207,6 +1228,9 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Secondary Channels", "Kanały dodatkowe"},
     {"Rebooting ...", "Uruchamiam ponownie ..."},
     {"Shutting down ...", "Wyłączam ..."},
+    {"Config changed!\nRebooting ...", "Konfiguracja zmieniona!\nUruchamiam ponownie ..."},
+    {"Unsaved changes ...", "Niezapisane zmiany ..."},
+    {"Apply & Reboot", "Zastosuj & uruchom ponownie"},
     {NULL, NULL} // End mark
 };
 
@@ -1357,6 +1381,9 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"Resynch ...", "Resincronizando..."},
     {"Rebooting ...", "Reiniciando..."},
     {"Shutting down ...", "Desligando..."},
+    {"Config changed!\nRebooting ...", "Configuração alterada!\nReiniciando..."},
+    {"Unsaved changes ...", "Alter. não guardadas ..."},
+    {"Apply & Reboot", "Aplicar & reiniciar"},
     {NULL, NULL} // End mark
 };
 
@@ -1510,6 +1537,7 @@ static lv_i18n_phrase_t ru_singulars[] = {
     {"Resynch ...", "Ресинхронизация ..."},
     {"Rebooting ...", "Перезагрузка ..."},
     {"Shutting down ...", "Выключение ..."},
+    {"Config changed!\nRebooting ...", "Конфигурация изменена!\nПерезагрузка ..."},
     {"silent", "тихий режим"},
     {"WiFi: <not setup>", "WiFi: <не настроен>"},
     {"Lock: off/off", "Блокировка: выкл/выкл"},
@@ -1526,6 +1554,8 @@ static lv_i18n_phrase_t ru_singulars[] = {
     {"Banner & Sound", "Баннер и звук"},
     {"Banner only", "Только баннер"},
     {"Sound only", "Только звук"},
+    {"Unsaved changes ...", "Несохраненные изменения ..."},
+    {"Apply & Reboot", "Применить & перезагрузить"},
     {NULL, NULL} // End mark
 };
 
@@ -1666,6 +1696,7 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Resynch ...", "Synkroniserar om ..."},
     {"Rebooting ...", "Startar om ..."},
     {"Shutting down ...", "Stänger av ..."},
+    {"Config changed!\nRebooting ...", "Konfiguration ändrad!\nStartar om ..."},
     {"silent", "tyst"},
     {"WiFi: <not setup>", "WiFi: <ej inställt>"},
     {"Lock: off/off", "Lås: av/av"},
@@ -1681,6 +1712,8 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Banner & Sound", "Banner & Ljud"},
     {"Banner only", "Endast Banner"},
     {"Sound only", "Endast ljud"},
+    {"Unsaved changes ...", "Osparade ändringar ..."},
+    {"Apply & Reboot", "Applicera & starta om"},
     {NULL, NULL} // End mark
 };
 
@@ -1826,6 +1859,7 @@ static lv_i18n_phrase_t sr_singulars[] = {
     {"Resynch ...", "Sinhronizacija ..."},
     {"Rebooting ...", "Resetovanje ..."},
     {"Shutting down ...", "Gašenje ..."},
+    {"Config changed!\nRebooting ...", "Konfiguracija promenjena!\nResetovanje ..."},
     {"silent", "bez zvuka"},
     {"WiFi: <not setup>", "WiFi: <nije podešen>"},
     {"LoRa TX off!", "LoRa TX ugašen!"},
@@ -1834,6 +1868,8 @@ static lv_i18n_phrase_t sr_singulars[] = {
     {"Banner & Sound", "Baner i zvuk"},
     {"Banner only", "Samo baner"},
     {"Sound only", "Samo zvuk"},
+    {"Unsaved changes ...", "Nesačuvane promene ..."},
+    {"Apply & Reboot", "Primeni & resetuj"},
     {NULL, NULL} // End mark
 };
 
