@@ -45,7 +45,7 @@
         .blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff                                               \
     }
 
-#define VALID_TIME(T) (T > 1000000)
+#define VALID_TIME(T) (T > 1000000 && T < UINT32_MAX)
 
 constexpr lv_color_t colorRed = LV_COLOR_HEX(0xff5555);
 constexpr lv_color_t colorDarkRed = LV_COLOR_HEX(0xa70a0a);
@@ -3267,7 +3267,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
             msg[i] = '\n';
 
     controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
-    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eDefault);
+    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
 }
 
 /**
@@ -3299,17 +3299,10 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
 
-    size_t len = 0;
-    if (VALID_TIME(msgTime)) {
-        time_t time = msgTime;
-        tm *curr_tm = localtime(&time);
-        char buf[284]; // 237 + 4 + 40 + 2 + 1
-        len = strftime(buf, 40, "%R", curr_tm);
-        sprintf(&buf[len], "\n%s", msg);
-        lv_label_set_text(textLabel, buf);
-    } else {
-        lv_label_set_text(textLabel, msg);
-    }
+    char buf[284]; // 237 + 4 + 40 + 2 + 1
+    size_t len = timestamp(buf, msgTime, status == LogMessage::eNone);
+    strcat(&buf[len], msg);
+    lv_label_set_text(textLabel, buf);
 
     add_style_chat_message_style(textLabel);
 
@@ -3422,14 +3415,14 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     if (userData[0] == 0x00)
         userData[0] = ' ';
     userData[1] = userShort[1];
-    if (userData[0] == 0x00)
-        userData[0] = ' ';
+    if (userData[1] == 0x00)
+        userData[1] = ' ';
     userData[2] = userShort[2];
-    if (userData[0] == 0x00)
-        userData[0] = ' ';
+    if (userData[2] == 0x00)
+        userData[2] = ' ';
     userData[3] = userShort[3];
-    if (userData[0] == 0x00)
-        userData[0] = ' ';
+    if (userData[3] == 0x00)
+        userData[3] = ' ';
 
     //  BatteryLabel
     lv_obj_t *ui_BatteryLabel = lv_label_create(p);
@@ -3591,14 +3584,14 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
         if (userData[0] == 0x00)
             userData[0] = ' ';
         userData[1] = userShort[1];
-        if (userData[0] == 0x00)
-            userData[0] = ' ';
+        if (userData[1] == 0x00)
+            userData[1] = ' ';
         userData[2] = userShort[2];
-        if (userData[0] == 0x00)
-            userData[0] = ' ';
+        if (userData[2] == 0x00)
+            userData[2] = ' ';
         userData[3] = userShort[3];
-        if (userData[0] == 0x00)
-            userData[0] = ' ';
+        if (userData[3] == 0x00)
+            userData[3] = ' ';
 
         setNodeImage(nodeNum, role, viaMqtt, it->second->LV_OBJ_IDX(node_img_idx));
 
@@ -4728,6 +4721,32 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
 }
 
 /**
+ * @brief write local time stamp into buffer
+ * 
+ * @param buf allocated buffer
+ * @param update update with actual time, otherwise using time from parameter 'time'
+ * @return length of time string
+ */
+uint32_t TFTView_320x240::timestamp(char* buf, uint32_t datetime, bool update)
+{
+    time_t local = datetime;
+    if (update) {
+#ifdef ARCH_PORTDUINO
+        time(&local);
+#else
+    if (VALID_TIME(actTime))
+        local = actTime;
+#endif
+    }
+    if (VALID_TIME(local)) {
+        tm *curr_tm = localtime(&local);
+        return strftime(buf, 20, "%R:\n", curr_tm);
+    }
+    else
+        return 0;
+}
+
+/**
  * calculate percentage value from rssi and snr
  * Note: ranges are based on the axis values of the signal scanner
  */
@@ -4893,46 +4912,19 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
 void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore)
 {
     ILOG_DEBUG("newMessage: from:0x%08x, to:0x%08x, ch:%d, time:%d", from, to, ch, msgTime);
+    int pos = 0;
     char buf[284]; // 237 + 4 + 40 + 2 + 1
-    char *message = (char *)msg;
     lv_obj_t *container = nullptr;
     if (to == UINT32_MAX) { // message for group, prepend short name to msg
         // original short name is held in userData, extract it and add msg
         char *userData = (char *)&(nodes[from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-        int pos = 0;
         while (pos < 4 && userData[pos] != 0) {
             buf[pos] = userData[pos];
             pos++;
         }
-
-        // overwrite message time if we have actual time
-        time_t now = actTime;
-        if (msgTime == 0) {
-#ifdef ARCH_PORTDUINO
-            time(&now);
-            msgTime = now;
-#else
-            msgTime = actTime;
-#endif
-        }
-        if (VALID_TIME(msgTime) && msgTime < UINT32_MAX) {
-            tm *curr_tm = localtime(&now);
-            size_t len = strftime(&buf[pos], 40, " %R", curr_tm);
-            pos += len;
-        } else {
-            buf[pos++] = ':';
-        }
-
-        sprintf(&buf[pos], "\n%s", msg);
-        message = buf;
+        buf[pos++] = ' ';
         container = channelGroup[ch];
     } else { // message for us
-        if (VALID_TIME(msgTime) && msgTime < UINT32_MAX) {
-            time_t time = msgTime;
-            tm *curr_tm = localtime(&time);
-            size_t len = strftime(buf, 40, "%R", curr_tm);
-            sprintf(&buf[len], "\n%s", msg);
-        }
         container = messages[from];
     }
 
@@ -4941,8 +4933,11 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         container = newMessageContainer(from, to, ch);
     }
 
-    // place new message into container
-    newMessage(from, container, ch, message);
+    pos += timestamp(&buf[pos], msgTime, !restore);
+    sprintf(&buf[pos], "%s", msg);
+
+    // place message into container
+    newMessage(from, container, ch, buf);
 
     if (!restore) {
         // display msg popup if not already viewing the messages
@@ -5052,16 +5047,9 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         MeshtasticView::addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
 
         char buf[284]; // 237 + 4 + 40 + 2 + 1
-        if (VALID_TIME(msg.time)) {
-            time_t time = msg.time;
-            tm *curr_tm = localtime(&time);
-            uint32_t len = strftime(buf, 40, "%R", curr_tm);
-            snprintf(&buf[len], msg.size(), "\n%s", msg.bytes);
-        }
-        else {
-            memcpy(buf, msg.bytes, msg.size()+1);
-            buf[msg.size()] = 0;
-        }
+        uint32_t len = timestamp(buf, msg.time, false);
+        memcpy(buf + len, msg.bytes, msg.size());
+        buf[len + msg.size()] = 0;
 
         lv_obj_t *container = newMessageContainer(msg.from, msg.to, msg.ch);
         lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);

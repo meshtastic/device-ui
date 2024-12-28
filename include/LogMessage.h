@@ -17,7 +17,7 @@ struct LogMessageHeader : public ILogEntry {
     uint32_t from;
     uint32_t to;
     uint8_t ch;
-    enum MsgStatus : uint8_t { eDefault, eHeard, eNoResponse, eAcked, eFailed, eDeleted, eUnread } status;
+    enum MsgStatus : uint8_t { eNone, eDefault, eHeard, eNoResponse, eAcked, eFailed, eDeleted, eUnread } status;
     bool trashFlag;
     uint32_t reserved;
 };

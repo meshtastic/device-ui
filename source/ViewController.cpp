@@ -595,7 +595,7 @@ void ViewController::beginRestoreTextMessages(void)
 void ViewController::restoreTextMessages(void)
 {
     LogMessageEnv msg;
-    if (log.read(msg)) {
+    if (log.readNext(msg)) {
         view->restoreMessage(msg);
     } else {
         ILOG_DEBUG("restoring log messages completed in %dms.", millis() - restoreTimer);
@@ -884,7 +884,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             }
             uint32_t count = 0;
             LogMessageEnv msg;
-            while (log.read(msg)) {
+            while (log.readNext(msg)) {
                 view->restoreMessage(msg);
                 if (showPercentage && (count++ % 10) == 0) {
                     view->notifyRestoreMessages(log.current() * 100 / log.count());
