@@ -43,6 +43,8 @@ class ViewController
     virtual bool sendConfig(meshtastic_Config_BluetoothConfig &&bluetooth, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_SecurityConfig &&security, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Channel &channel, uint32_t nodeId = 0);
+    virtual bool  openConfigTransaction(uint32_t nodeId = 0);
+    virtual bool closeConfigTransaction(uint32_t nodeId = 0);
 
     // module config
     virtual bool sendConfig(meshtastic_ModuleConfig_MQTTConfig &&mqtt, uint32_t nodeId = 0);

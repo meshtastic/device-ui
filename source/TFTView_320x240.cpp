@@ -100,10 +100,25 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 }
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
-    : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), processingFilter(false),
-      packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false),
-      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
-      db{}
+    : MeshtasticView(cfg, driver, new ViewController)
+    , screensInitialised(false)
+    , nodesFiltered(0)
+    , processingFilter(false)
+    , packetLogEnabled(false)
+    , detectorRunning(false)
+    , packetCounter(0)
+    , actTime(0)
+    , uptime(0)
+    , lastHeard(0)
+    , hasPosition(false)
+    , topNodeLL(nullptr)
+    , scans(0)
+    , selectedHops(0)
+    , chooseNodeSignalScanner(false)
+    , chooseNodeTraceRoute(false)
+    , qr(nullptr)
+    , configRebootRequired(false)
+    , db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -321,6 +336,8 @@ void TFTView_320x240::init_screens(void)
     objects.home_wlan_button->user_data = (void *)0;
     objects.home_memory_button->user_data = (void *)0;
 
+    lv_obj_set_state(objects.basic_settings_apply_button, LV_STATE_DISABLED, true);
+
     updateFreeMem();
 
     screensInitialised = true;
@@ -496,9 +513,11 @@ void TFTView_320x240::ui_events_init(void)
     auto ui_event_HomeButton = [](lv_event_t *e) {
         lv_event_code_t event_code = lv_event_get_code(e);
         if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+            THIS->checkForConfigTransactionClose();
             TFTView_320x240 &view = *static_cast<TFTView_320x240 *>(e->user_data);
             view.ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
         } else if (event_code == LV_EVENT_LONG_PRESSED) {
+            THIS->checkForConfigTransactionClose();
             // force re-sync with node
             THIS->controller->setConfigRequested(true);
             THIS->notifyResync(true);
@@ -560,6 +579,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_apply_button, ui_event_apply_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_role_button, ui_event_role_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_region_button, ui_event_region_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_modem_preset_button, ui_event_preset_button, LV_EVENT_CLICKED, NULL);
@@ -675,6 +695,7 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
             ignoreClicked = false;
             return;
         }
+        THIS->checkForConfigTransactionClose();
         THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
         if (filterNeedsUpdate) {
             THIS->updateNodesFiltered(true);
@@ -682,6 +703,7 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
             filterNeedsUpdate = false;
         }
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        THIS->checkForConfigTransactionClose();
         filterNeedsUpdate = true;
         ignoreClicked = true;
         THIS->ui_set_active(objects.nodes_button, objects.node_options_panel, objects.top_node_options_panel);
@@ -744,10 +766,30 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::configTransactionOpen()
+{
+    if (!THIS->configRebootRequired) {
+        lv_obj_remove_state(objects.basic_settings_apply_button, LV_STATE_DISABLED);
+        lv_obj_add_flag(objects.top_basic_settings_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(objects.top_basic_settings_unsaved_label, LV_OBJ_FLAG_HIDDEN);
+        THIS->configRebootRequired = true;
+        THIS->controller->openConfigTransaction();
+    }
+}
+
+void TFTView_320x240::checkForConfigTransactionClose()
+{
+    if (THIS->configRebootRequired) {
+        THIS->notifyConfigReboot(true);
+        THIS->controller->closeConfigTransaction();
+    }
+}
+
 void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->checkForConfigTransactionClose();
         THIS->ui_set_active(objects.groups_button, objects.groups_panel, objects.top_groups_panel);
     }
 }
@@ -756,6 +798,7 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->checkForConfigTransactionClose();
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
         if (THIS->db.channel[ch].role != meshtastic_Channel_Role_DISABLED)
             THIS->showMessages(ch);
@@ -768,6 +811,7 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->checkForConfigTransactionClose();
         THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
     }
 }
@@ -776,6 +820,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->checkForConfigTransactionClose();
         THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
     }
 }
@@ -1069,8 +1114,8 @@ void TFTView_320x240::ui_event_WLANButton(lv_event_t *e)
             meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
             network.wifi_enabled = !network.wifi_enabled;
             Themes::recolorButton(objects.home_wlan_button, network.wifi_enabled);
+            THIS->configTransactionOpen();
             THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
-            THIS->notifyReboot(true);
         }
     }
 }
@@ -1232,6 +1277,14 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 }
 
 // basic settings buttons
+
+void TFTView_320x240::ui_event_apply_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        THIS->checkForConfigTransactionClose();
+    }
+}
 
 void TFTView_320x240::ui_event_user_button(lv_event_t *e)
 {
@@ -1526,6 +1579,7 @@ void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
+        THIS->controller->closeConfigTransaction();
         THIS->controller->requestReboot(5, THIS->ownNode);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
@@ -1536,6 +1590,7 @@ void TFTView_320x240::ui_event_device_shutdown_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
+        THIS->controller->closeConfigTransaction();
         THIS->controller->requestShutdown(5, THIS->ownNode);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
@@ -2712,8 +2767,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 meshtastic_User user{}; // TODO: don't overwrite is_licensed
                 strcpy(user.short_name, userShort);
                 strcpy(user.long_name, userLong);
+                THIS->configTransactionOpen();
                 THIS->controller->sendConfig(user, THIS->ownNode);
-                THIS->notifyReboot(true);
             }
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_user_button);
@@ -2731,8 +2786,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_label_set_text(objects.basic_settings_role_label, buf2);
 
                 device.role = role;
+                THIS->configTransactionOpen();
                 THIS->controller->sendConfig(meshtastic_Config_DeviceConfig{device}, THIS->ownNode);
-                THIS->notifyReboot(true);
             }
             lv_obj_add_flag(objects.settings_device_role_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_role_button);
@@ -2759,8 +2814,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset);
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
+                THIS->configTransactionOpen();
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
-                THIS->notifyReboot(true);
             }
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_region_button);
@@ -2780,8 +2835,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lora.use_preset = true;
                 lora.modem_preset = preset;
                 lora.channel_num = channelNum;
+                THIS->configTransactionOpen();
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
-                THIS->notifyReboot(true);
             }
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_modem_preset_button);
@@ -2814,8 +2869,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             if (strcmp(THIS->db.config.network.wifi_ssid, ssid) != 0 || strcmp(THIS->db.config.network.wifi_psk, psk) != 0) {
                 strcpy(THIS->db.config.network.wifi_ssid, ssid);
                 strcpy(THIS->db.config.network.wifi_psk, psk);
+                THIS->configTransactionOpen();
                 THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{THIS->db.config.network}, THIS->ownNode);
-                THIS->notifyReboot(true);
             }
             // THIS->enablePanel(objects.home_panel);
             lv_obj_add_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
@@ -2827,9 +2882,10 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             meshtastic_Language lang = THIS->val2language(value);
             if (lang != THIS->db.uiConfig.language) {
                 THIS->db.uiConfig.language = lang;
+                THIS->configTransactionOpen();
                 THIS->controller->storeUIConfig(THIS->db.uiConfig);
+                THIS->checkForConfigTransactionClose();
                 THIS->controller->requestReboot(3, THIS->ownNode);
-                THIS->notifyReboot(true);
             }
 
             lv_obj_add_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
@@ -2956,7 +3012,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     config.use_pwm = false;
 #endif
                 }
-                THIS->notifyReboot(true);
+                THIS->configTransactionOpen();
                 THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
             } else if (config.alert_message_buzzer && !alert_message) {
                 silent = true;
@@ -2975,7 +3031,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eReset: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
-            THIS->notifyReboot(true);
+            THIS->controller->closeConfigTransaction();
             THIS->controller->requestReset(option, THIS->ownNode);
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_reset_button);
@@ -4411,6 +4467,11 @@ void TFTView_320x240::notifyShutdown(void)
     messageAlert(_("Shutting down ..."), true);
 }
 
+void TFTView_320x240::notifyConfigReboot(bool show)
+{
+    messageAlert(_("Config changed!\nRebooting ..."), show);
+}
+
 void TFTView_320x240::blankScreen(bool enable)
 {
     ILOG_DEBUG("%s screen (%s)", enable ? "blank" : "unblank", screenLocked ? "locked" : "timeout");
@@ -5158,7 +5219,10 @@ void TFTView_320x240::enablePanel(lv_obj_t *panel)
 
     auto enableButtons = [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
         if (obj->class_p == &lv_button_class) {
-            lv_obj_clear_state(obj, LV_STATE_DISABLED);
+             // don't automatically enable the apply button if no settings were changed
+            if (obj != objects.basic_settings_apply_button || THIS->configRebootRequired) {
+                lv_obj_clear_state(obj, LV_STATE_DISABLED);
+            }
         }
         return LV_OBJ_TREE_WALK_NEXT;
     };
@@ -5207,7 +5271,7 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
     } else if (panel == objects.settings_screen_lock_panel) {
         lv_group_focus_obj(objects.screen_lock_button_matrix);
     } else if (panel == objects.controller_panel) {
-        lv_group_focus_obj(objects.basic_settings_user_button);
+        lv_group_focus_obj(objects.basic_settings_apply_button);
     } else {
         for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
             if (panel->spec_attr->children[i]->class_p == &lv_button_class) {

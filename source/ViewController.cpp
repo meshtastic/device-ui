@@ -370,6 +370,20 @@ bool ViewController::sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCo
         nodeId ? nodeId : myNodeNum);
 }
 
+bool ViewController::openConfigTransaction(uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_begin_edit_settings_tag},
+        nodeId ? nodeId : myNodeNum);
+}
+
+bool ViewController::closeConfigTransaction(uint32_t nodeId)
+{
+    return sendAdminMessage(
+        meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_commit_edit_settings_tag},
+        nodeId ? nodeId : myNodeNum);
+}
+
 /**
  * @brief Generic admin message (takes lvalue)
  *
