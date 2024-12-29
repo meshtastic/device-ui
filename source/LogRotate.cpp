@@ -222,14 +222,17 @@ void LogRotate::scanLogDir(uint32_t &num, uint32_t &minLog, uint32_t &maxLog, ui
             size_t size = file.size();
             total += size;
             ILOG_DEBUG(" %s(%d bytes)", file.name(), size);
+
+            String format;
+            if (file.name()[0] == '/') {
+                format = rootDirName + '/' + String(FILE_PREFIX) + String("%u.log");
+            }
+            else {
+                format = String(FILE_PREFIX) + String("%u.log");
+            }
+
             uint32_t logNum = 0;
-#ifdef ARCH_PORTDUINO
-            String format = rootDirName + '/' + FILE_PREFIX + "%u.log";
-            ILOG_DEBUG("format: %s", format.c_str());
             if (sscanf(file.name(), format.c_str(), &logNum) > 0 && logNum > 0) {
-#else
-            if (sscanf(file.name(), FILE_PREFIX "%u.log", &logNum) > 0 && logNum > 0) {
-#endif
                 if (logNum < minLog) {
                     minLog = logNum;
                 }
