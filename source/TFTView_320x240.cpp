@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <ctime>
+#include <time.h>
 #include <functional>
 #include <list>
 #include <locale>
@@ -3291,17 +3291,19 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_style_pad_bottom(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     hiddenPanel->user_data = (void *)requestId;
 
+    // add timestamp
+    char buf[284]; // 237 + 4 + 40 + 2 + 1
+    buf[0] = '\0';
+    uint32_t len = timestamp(buf, msgTime, status == LogMessage::eNone);
+    strcat(&buf[len], msg);
+
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(width + 20, 200), 40));
+    lv_coord_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
+    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(width, 200) + 10, 40));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
-
-    char buf[284]; // 237 + 4 + 40 + 2 + 1
-    size_t len = timestamp(buf, msgTime, status == LogMessage::eNone);
-    strcat(&buf[len], msg);
     lv_label_set_text(textLabel, buf);
 
     add_style_chat_message_style(textLabel);
@@ -4722,8 +4724,11 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
 
 /**
  * @brief write local time stamp into buffer
+ *        if date is not current also add day/month
+ *        Note: time string ends with linefeed
  * 
  * @param buf allocated buffer
+ * @param datetime date/time to write
  * @param update update with actual time, otherwise using time from parameter 'time'
  * @return length of time string
  */
@@ -4734,13 +4739,17 @@ uint32_t TFTView_320x240::timestamp(char* buf, uint32_t datetime, bool update)
 #ifdef ARCH_PORTDUINO
         time(&local);
 #else
-    if (VALID_TIME(actTime))
-        local = actTime;
+        if (VALID_TIME(actTime))
+            local = actTime;
 #endif
     }
     if (VALID_TIME(local)) {
-        tm *curr_tm = localtime(&local);
-        return strftime(buf, 20, "%R:\n", curr_tm);
+        std::tm date_tm{};
+        localtime_r(&local, &date_tm);
+        if (!update)
+            return strftime(buf, 20, "%y/%m/%d %R\n", &date_tm);
+        else
+            return strftime(buf, 20, "%R\n", &date_tm);
     }
     else
         return 0;
@@ -4982,7 +4991,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
     lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width) + 30, 200), 60));
+    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 200), 30));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
