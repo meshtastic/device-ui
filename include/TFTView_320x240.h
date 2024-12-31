@@ -71,13 +71,16 @@ class TFTView_320x240 : public MeshtasticView
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing, const meshtastic_MeshPacket &p) override;
     void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) override;
     void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) override;
+    void notifyRestoreMessages(int32_t percentage) override;
+    void notifyMessagesRestored(void) override;
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;
     void blankScreen(bool enable) override;
     void screenSaving(bool enabled) override;
     bool isScreenLocked(void) override;
-    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg) override;
+    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true) override;
+    void restoreMessage(const LogMessage &msg) override;
     void removeNode(uint32_t nodeNum) override;
 
     enum BasicSettings {
@@ -146,7 +149,7 @@ class TFTView_320x240 : public MeshtasticView
     // own chat message
     virtual void handleAddMessage(char *msg);
     // add own message to current chat
-    virtual void addMessage(uint32_t requestId, char *msg);
+    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status);
     // add new message to container
     virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
     // create empty message container for node or group channel
@@ -222,6 +225,12 @@ class TFTView_320x240 : public MeshtasticView
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);
     void setChannelName(const meshtastic_Channel &ch);
+    uint32_t timestamp(char* buf, uint32_t time, bool update);
+
+    // response callbacks
+    void onTextMessageCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
+    void onPositionCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
+    void onTracerouteCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
 
     // lvgl event callbacks
     // static void ui_event_HomeButton(lv_event_t * e);

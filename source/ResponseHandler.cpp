@@ -2,7 +2,6 @@
 #include "Arduino.h"
 #include "ILog.h"
 
-
 uint32_t ResponseHandler::rollingPacketId = 0;
 
 /**
@@ -10,34 +9,40 @@ uint32_t ResponseHandler::rollingPacketId = 0;
  *
  * @param timeout
  */
-ResponseHandler::ResponseHandler(uint32_t timeout) : requestIdCounter(0), maxTime(timeout) {
+ResponseHandler::ResponseHandler(uint32_t timeout) : requestIdCounter(0), maxTime(timeout)
+{
     rollingPacketId = random(UINT32_MAX & 0x7fffffff);
 }
 
-uint32_t ResponseHandler::addRequest(uint32_t id, RequestType type, void *cookie)
+uint32_t ResponseHandler::addRequest(uint32_t id, RequestType type, void *cookie, Callback cb)
 {
     requestIdCounter++;
     uint32_t requestId = generatePacketId();
-    pendingRequest[requestId] = Request{.id = id, .cookie = cookie, .type = type, .timestamp = millis()};
+    pendingRequest[requestId] = Request{.id = id, .timestamp = millis(), .type = type, .cookie = cookie, .cb = cb};
     return requestId;
 }
 
-ResponseHandler::Request ResponseHandler::findRequest(uint32_t requestId)
+ResponseHandler::Request ResponseHandler::findRequest(uint32_t requestId, RequestType match, int32_t pass)
 {
     const auto it = pendingRequest.find(requestId);
     if (it != pendingRequest.end()) {
-        return it->second;
+        Request &req = it->second;
+        if (req.cb && pass != -1 && (match == anyRequest || match == req.type))
+            req.cb(req, found, pass);
+        return req;
     }
     return Request{};
 }
 
-ResponseHandler::Request ResponseHandler::removeRequest(uint32_t requestId)
+ResponseHandler::Request ResponseHandler::removeRequest(uint32_t requestId, RequestType match, int32_t pass)
 {
     Request req{};
     const auto it = pendingRequest.find(requestId);
     if (it != pendingRequest.end()) {
         req = it->second;
         ILOG_DEBUG("removing request %08x", it->first);
+        if (req.cb && pass != -1 && (match == anyRequest || match == req.type))
+            req.cb(req, removed, pass);
         pendingRequest.erase(it);
     }
     return req;
@@ -45,7 +50,7 @@ ResponseHandler::Request ResponseHandler::removeRequest(uint32_t requestId)
 
 /**
  * @brief: Generate a unique packet id
- * 
+ *
  */
 uint32_t ResponseHandler::generatePacketId(void)
 {
@@ -65,8 +70,11 @@ void ResponseHandler::task_handler(void)
         ILOG_DEBUG("ResponseHandler has %d pending request(s)", pendingRequest.size());
     auto it = pendingRequest.begin();
     while (it != pendingRequest.end()) {
-        if (it->second.timestamp + maxTime < millis()) {
+        Request &req = it->second;
+        if (req.timestamp + maxTime < millis()) {
             ILOG_DEBUG("removing timed out request %08x", it->first);
+            if (req.cb)
+                req.cb(req, timeout, 0);
             it = pendingRequest.erase(it);
         } else {
             it++;

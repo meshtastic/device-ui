@@ -116,8 +116,6 @@ void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
     }
 }
 
-void MeshtasticView::newMessage(uint32_t from, uint32_t to, uint8_t channel, const char *msg) {}
-
 void MeshtasticView::removeNode(uint32_t nodeNum) {}
 
 // -------- helpers --------
