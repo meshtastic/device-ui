@@ -2695,6 +2695,27 @@ void TFTView_320x240::storeNodeOptions(void)
 }
 
 /**
+ * @brief clears all (persistent) chat messages
+ */
+void TFTView_320x240::clearChatHistory(void) {
+    for (auto &it : chats) {
+        lv_obj_delete(it.second);
+        if (it.first < c_max_channels) {
+            lv_obj_delete(channelGroup[it.first]);
+            channelGroup[it.first] = nullptr;
+        }
+        else {
+            lv_obj_delete(messages[it.first]);
+        }
+    }
+    chats.clear();
+    messages.clear();
+    updateActiveChats();
+    updateNodesFiltered(true);
+    controller->removeTextMessages(0, 0, 0);
+}
+
+/**
  * @brief User widget OK button handling
  *
  * @param e
@@ -2981,8 +3002,13 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eReset: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
-            THIS->notifyReboot(true);
-            THIS->controller->requestReset(option, THIS->ownNode);
+            if (option == 2) {
+                THIS->clearChatHistory();
+            }
+            else {
+                THIS->notifyReboot(true);
+                THIS->controller->requestReset(option, THIS->ownNode);
+            }
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_reset_button);
             break;
