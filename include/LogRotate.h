@@ -22,8 +22,8 @@ class LogRotate
 {
   public:
     LogRotate(fs::FS &fs, const char *logDir, uint32_t maxLen,
-              //               uint32_t maxSize = 204800, uint32_t maxFiles = 50, uint32_t maxFileSize = 4000);
-              uint32_t maxSize = 1000, uint32_t maxFiles = 10, uint32_t maxFileSize = 300);
+              uint32_t maxSize = 102400, uint32_t maxFiles = 25, uint32_t maxFileSize = 4000);
+              //uint32_t maxSize = 4096, uint32_t maxFiles = 10, uint32_t maxFileSize = 400);
 
     // initialize the log directory
     void init(void);
