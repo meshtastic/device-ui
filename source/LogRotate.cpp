@@ -121,7 +121,11 @@ bool LogRotate::clear(void)
     bool error = false;
     File file = root.openNextFile();
     while (file) {
-        String name = rootDirName + '/' + file.name();
+        String name;
+        if (file.name()[0] != '/')
+            name = rootDirName + '/' + file.name();
+        else
+            name = file.name();
         if (!file.isDirectory()) {
             file.close();
             if (_fs.remove(name)) {
