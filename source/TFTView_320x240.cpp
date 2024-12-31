@@ -201,6 +201,7 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     lv_obj_set_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED, filter.unknown_switch);
     lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, filter.offline_switch);
     lv_obj_set_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED, filter.public_key_switch);
+    //lv_dropdown_set_selected(objects.nodes_filter_channel_dropdown, filter.channel);
     lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, filter.hops_away);
     // lv_obj_set_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED, filter.mqtt_switch);
     lv_obj_set_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED, filter.position_switch);
@@ -937,6 +938,7 @@ void TFTView_320x240::ui_event_OnlineNodesButton(lv_event_t *e)
         lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, false);
         lv_obj_set_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED, false);
         lv_obj_set_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED, false);
+        lv_dropdown_set_selected(objects.nodes_filter_channel_dropdown, 0);
         lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, 0);
         lv_textarea_set_text(objects.nodes_filter_name_area, "");
         THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
@@ -2674,6 +2676,7 @@ void TFTView_320x240::storeNodeOptions(void)
     filter.unknown_switch = lv_obj_has_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED);
     filter.offline_switch = lv_obj_has_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED);
     filter.public_key_switch = lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED);
+    //filter.channel = lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown);
     filter.hops_away = lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown);
     // filter.mqtt_switch = lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED);
     filter.position_switch = lv_obj_has_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED);
@@ -4268,6 +4271,14 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
             bool hasKey = (unsigned long)panel->LV_OBJ_IDX(node_bat_idx)->user_data == 1;
             if (!hasKey)
                 hide = true;
+        }
+        if (lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown) != 0) {
+            int selected = lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown);
+            if (selected != 0) {
+                uint8_t ch = (uint8_t)(unsigned long)panel->user_data;
+                if (selected != ch)
+                    hide = true;
+            }
         }
         if (lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown) != 0) {
             int32_t hopsAway = (signed long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
