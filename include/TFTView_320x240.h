@@ -222,6 +222,7 @@ class TFTView_320x240 : public MeshtasticView
     void setBrightness(uint32_t brightness);
     void setTheme(uint32_t theme);
     void storeNodeOptions(void);
+    void eraseChat(uint32_t channelOrNode);
     void clearChatHistory(void);
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);

@@ -862,20 +862,12 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
 
         uint32_t channelOrNode = (unsigned long)e->user_data;
         if (channelOrNode < c_max_channels) {
-            uint8_t ch = (uint8_t)channelOrNode;
-            lv_obj_delete_delayed(THIS->chats[ch], 500);
-            lv_obj_del(THIS->channelGroup[ch]);
-            THIS->channelGroup[ch] = nullptr;
-            THIS->chats.erase(ch);
-            THIS->controller->removeTextMessages(THIS->ownNode, UINT32_MAX, ch);
+            THIS->eraseChat(channelOrNode);
+            THIS->controller->removeTextMessages(THIS->ownNode, UINT32_MAX, channelOrNode);
         } else {
-            uint32_t nodeNum = channelOrNode;
-            lv_obj_delete_delayed(THIS->chats[nodeNum], 500);
-            lv_obj_del(THIS->messages[nodeNum]);
-            THIS->messages.erase(nodeNum);
-            THIS->chats.erase(nodeNum);
-            THIS->applyNodesFilter(nodeNum);
-            THIS->controller->removeTextMessages(THIS->ownNode, nodeNum, 0);
+            THIS->eraseChat(channelOrNode);
+            THIS->applyNodesFilter(channelOrNode);
+            THIS->controller->removeTextMessages(THIS->ownNode, channelOrNode, 0);
         }
         THIS->activeMsgContainer = objects.messages_container;
         THIS->updateActiveChats();
@@ -2692,6 +2684,27 @@ void TFTView_320x240::storeNodeOptions(void)
     strncpy(highlight.node_name, lv_textarea_get_text(objects.nodes_hl_name_area), sizeof(highlight.node_name));
 
     controller->storeUIConfig(db.uiConfig);
+}
+
+/**
+ * @brief erase chat and all its resources
+ */
+void TFTView_320x240::eraseChat(uint32_t channelOrNode)
+{
+    if (channelOrNode < c_max_channels) {
+        uint8_t ch = (uint8_t)channelOrNode;
+        lv_obj_delete_delayed(chats[ch], 500);
+        lv_obj_del(channelGroup[ch]);
+        channelGroup[ch] = nullptr;
+        chats.erase(ch);
+    } 
+    else {
+        uint32_t nodeNum = channelOrNode;
+        lv_obj_delete_delayed(chats[nodeNum], 500);
+        lv_obj_del(messages[nodeNum]);
+        messages.erase(nodeNum);
+        chats.erase(nodeNum);
+    }
 }
 
 /**
@@ -5052,10 +5065,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         if (msg.to == UINT32_MAX) {
             if (msg.trashFlag && chats.find(msg.ch) != chats.end()) {
                 ILOG_DEBUG("trashFlag set for channel %d", msg.ch);
-                lv_obj_delete(chats[msg.ch]);
-                lv_obj_del(channelGroup[msg.ch]);
-                channelGroup[msg.ch] = nullptr;
-                chats.erase(msg.ch);
+                eraseChat(msg.ch);
                 return;
             } else {
                 container = newMessageContainer(msg.from, msg.to, msg.ch);
@@ -5064,10 +5074,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
             if (nodes.find(msg.to) != nodes.end()) {
                 if (msg.trashFlag && chats.find(msg.to) != chats.end()) {
                     ILOG_DEBUG("trashFlag set for node %08x", msg.to);
-                    lv_obj_delete(chats[msg.to]);
-                    lv_obj_del(messages[msg.to]);
-                    messages.erase(msg.to);
-                    chats.erase(msg.to);
+                    eraseChat(msg.to);
                     return;
                 } else {
                     container = newMessageContainer(msg.to, msg.from, msg.ch);
@@ -5083,9 +5090,16 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
             addMessage(container, msg.time, 0, (char *)msg.bytes, msg.status);
         }
-    } else if (nodes.find(msg.from) != nodes.end()) {
-        uint32_t time = msg.time ? msg.time : UINT32_MAX; // don't overwrite 0 with actual time
-        newMessage(msg.from, msg.to, msg.ch, (const char *)msg.bytes, time);
+    } 
+    else if (nodes.find(msg.from) != nodes.end()) {
+        if (msg.trashFlag && chats.find(msg.from) != chats.end()) {
+            ILOG_DEBUG("trashFlag set for node %08x", msg.from);
+            eraseChat(msg.from);
+            return;
+        } else {
+            uint32_t time = msg.time ? msg.time : UINT32_MAX; // don't overwrite 0 with actual time
+            newMessage(msg.from, msg.to, msg.ch, (const char *)msg.bytes, time);
+        }
     }
     else {
         // from node not in db
