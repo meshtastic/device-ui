@@ -4315,7 +4315,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
             int selected = lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown);
             if (selected != 0) {
                 uint8_t ch = (uint8_t)(unsigned long)panel->user_data;
-                if (selected != ch)
+                if (selected - 1 != ch)
                     hide = true;
             }
         }
