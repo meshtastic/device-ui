@@ -19,11 +19,11 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <time.h>
 #include <functional>
 #include <list>
 #include <locale>
 #include <random>
+#include <time.h>
 
 #ifdef ARCH_PORTDUINO
 #include "LinuxHelper.h"
@@ -201,7 +201,7 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     lv_obj_set_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED, filter.unknown_switch);
     lv_obj_set_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED, filter.offline_switch);
     lv_obj_set_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED, filter.public_key_switch);
-    //lv_dropdown_set_selected(objects.nodes_filter_channel_dropdown, filter.channel);
+    // lv_dropdown_set_selected(objects.nodes_filter_channel_dropdown, filter.channel);
     lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, filter.hops_away);
     // lv_obj_set_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED, filter.mqtt_switch);
     lv_obj_set_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED, filter.position_switch);
@@ -2668,7 +2668,7 @@ void TFTView_320x240::storeNodeOptions(void)
     filter.unknown_switch = lv_obj_has_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED);
     filter.offline_switch = lv_obj_has_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED);
     filter.public_key_switch = lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED);
-    //filter.channel = lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown);
+    // filter.channel = lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown);
     filter.hops_away = lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown);
     // filter.mqtt_switch = lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED);
     filter.position_switch = lv_obj_has_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED);
@@ -2697,8 +2697,7 @@ void TFTView_320x240::eraseChat(uint32_t channelOrNode)
         lv_obj_del(channelGroup[ch]);
         channelGroup[ch] = nullptr;
         chats.erase(ch);
-    } 
-    else {
+    } else {
         uint32_t nodeNum = channelOrNode;
         lv_obj_delete_delayed(chats[nodeNum], 500);
         lv_obj_del(messages[nodeNum]);
@@ -2710,14 +2709,14 @@ void TFTView_320x240::eraseChat(uint32_t channelOrNode)
 /**
  * @brief clears all (persistent) chat messages
  */
-void TFTView_320x240::clearChatHistory(void) {
+void TFTView_320x240::clearChatHistory(void)
+{
     for (auto &it : chats) {
         lv_obj_delete(it.second);
         if (it.first < c_max_channels) {
             lv_obj_delete(channelGroup[it.first]);
             channelGroup[it.first] = nullptr;
-        }
-        else {
+        } else {
             lv_obj_delete(messages[it.first]);
         }
     }
@@ -3017,8 +3016,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
             if (option == 2) {
                 THIS->clearChatHistory();
-            }
-            else {
+            } else {
                 THIS->notifyReboot(true);
                 THIS->controller->requestReset(option, THIS->ownNode);
             }
@@ -4049,8 +4047,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             ResponseHandler::Request req = requests.removeRequest(id);
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
-            }
-            else if (req.type == ResponseHandler::TextMessageRequest) {
+            } else if (req.type == ResponseHandler::TextMessageRequest) {
                 handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
@@ -4063,8 +4060,8 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
                 // we probably have a wrong key; mark it as bad and don't use in future
                 if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
                     ILOG_DEBUG("public key mismatch");
-                    nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void*)2;
-                    lv_obj_set_style_border_color(nodes[from]->LV_OBJ_IDX(node_img_idx), colorRed, 
+                    nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
+                    lv_obj_set_style_border_color(nodes[from]->LV_OBJ_IDX(node_img_idx), colorRed,
                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_slash_image,
                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4776,13 +4773,13 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
  * @brief write local time stamp into buffer
  *        if date is not current also add day/month
  *        Note: time string ends with linefeed
- * 
+ *
  * @param buf allocated buffer
  * @param datetime date/time to write
  * @param update update with actual time, otherwise using time from parameter 'time'
  * @return length of time string
  */
-uint32_t TFTView_320x240::timestamp(char* buf, uint32_t datetime, bool update)
+uint32_t TFTView_320x240::timestamp(char *buf, uint32_t datetime, bool update)
 {
     time_t local = datetime;
     if (update) {
@@ -4800,8 +4797,7 @@ uint32_t TFTView_320x240::timestamp(char* buf, uint32_t datetime, bool update)
             return strftime(buf, 20, "%y/%m/%d %R\n", &date_tm);
         else
             return strftime(buf, 20, "%R\n", &date_tm);
-    }
-    else
+    } else
         return 0;
 }
 
@@ -5079,9 +5075,8 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 } else {
                     container = newMessageContainer(msg.to, msg.from, msg.ch);
                 }
-            }
-            else {
-                LOG_DEBUG("to node 0x%08x not in db", msg.to);
+            } else {
+                ILOG_DEBUG("to node 0x%08x not in db", msg.to);
                 MeshtasticView::addOrUpdateNode(msg.to, msg.ch, 0, eRole::unknown, false, false);
             }
         }
@@ -5090,8 +5085,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
             addMessage(container, msg.time, 0, (char *)msg.bytes, msg.status);
         }
-    } 
-    else if (nodes.find(msg.from) != nodes.end()) {
+    } else if (nodes.find(msg.from) != nodes.end()) {
         if (msg.trashFlag && chats.find(msg.from) != chats.end()) {
             ILOG_DEBUG("trashFlag set for node %08x", msg.from);
             eraseChat(msg.from);
@@ -5100,10 +5094,9 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
             uint32_t time = msg.time ? msg.time : UINT32_MAX; // don't overwrite 0 with actual time
             newMessage(msg.from, msg.to, msg.ch, (const char *)msg.bytes, time);
         }
-    }
-    else {
+    } else {
         // from node not in db
-        LOG_DEBUG("from node 0x%08x not in db", msg.from);
+        ILOG_DEBUG("from node 0x%08x not in db", msg.from);
         MeshtasticView::addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
 
         char buf[284]; // 237 + 4 + 40 + 2 + 1
@@ -5160,10 +5153,9 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     } else {
         auto it = nodes.find(from);
         if (it != nodes.end()) {
-          sprintf(buf, "%s: %s", lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)),
-                  lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
-        }
-        else {
+            sprintf(buf, "%s: %s", lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)),
+                    lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
+        } else {
             sprintf(buf, "!%08x", from);
         }
     }
