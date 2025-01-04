@@ -30,7 +30,7 @@
 #endif
 
 #ifndef MAX_NUM_NODES_VIEW
-#define MAX_NUM_NODES_VIEW 200
+#define MAX_NUM_NODES_VIEW 250
 #endif
 
 #ifndef PACKET_LOGS_MAX
@@ -2254,14 +2254,21 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
     char buf[10];
     int row = 1;
     bool move = false;
+
     for (auto it2 : stats) {
         if (it2.id == p.from || move) {
-            char *userData = (char *)&(nodes[it2.id]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-            buf[0] = userData[0];
-            buf[1] = userData[1];
-            buf[2] = userData[2];
-            buf[3] = userData[3];
-            buf[4] = '\0';
+            buf[0] = '\0';
+            auto it = nodes.find(it2.id);  // node may have been removed from nodes, so check if still there
+            if (it != nodes.end() && it->second) {
+                char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
+                if (userData) {
+                    buf[0] = userData[0];
+                    buf[1] = userData[1];
+                    buf[2] = userData[2];
+                    buf[3] = userData[3];
+                    buf[4] = '\0';
+                }
+            }
 
             // if name is empty or using glyphs then replace with short id
             uint32_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
@@ -3385,11 +3392,9 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // panel user_data: ch
 
     ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s)", nodeCount, nodeNum, lastHeard, userLong, userShort);
-#if 0 // purge not yet working
     while (nodeCount >= MAX_NUM_NODES_VIEW) {
         purgeNode();
     }
-#endif
 
     lv_obj_t *p = lv_obj_create(objects.nodes_panel);
     lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
@@ -4242,13 +4247,13 @@ void TFTView_320x240::purgeNode(void)
         return;
     for (auto &it : nodes) {
         time_t lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
-        if (lastHeard > 0 && lastHeard < oldestTime && it.first != ownNode) {
+        if (lastHeard > 0 && lastHeard < oldestTime && it.first != ownNode && it.first != 0) {
             oldestTime = lastHeard;
             oldest = it.first;
             p = it.second;
         }
     }
-    if (oldest == 0) {
+    if (p == nullptr) {
         for (auto &it : nodes) {
             if (it.first != ownNode) {
                 oldest = it.first;
@@ -4256,17 +4261,17 @@ void TFTView_320x240::purgeNode(void)
             }
         }
     }
+
     time_t curtime;
     time(&curtime);
     uint32_t lastHeard = (unsigned long)p->LV_OBJ_IDX(node_lh_idx)->user_data;
     if (lastHeard > 0 && (curtime - lastHeard <= secs_until_offline))
         nodesOnline--;
-    nodeCount--;
-    updateNodesStatus();
-    ILOG_DEBUG("removing oldest node 0x%08x", oldest);
-    // lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
-    // lv_ll_remove(lv_group_ll, p->LV_OBJ_IDX(node_btn_idx)->user_data);
-    // lv_obj_delete(p);
+    
+    ILOG_INFO("removing oldest node 0x%08x", oldest);
+    lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
+    lv_ll_remove(lv_group_ll, p->LV_OBJ_IDX(node_btn_idx)->user_data);
+    lv_obj_delete(p);
     {
         auto it = messages.find(oldest);
         if (it != messages.end())
@@ -4277,6 +4282,10 @@ void TFTView_320x240::purgeNode(void)
         if (it != chats.end())
             lv_obj_delete(it->second);
     }
+    nodes.erase(oldest);
+    nodeCount--;
+    updateActiveChats();
+    updateNodesStatus();
 }
 
 /**
