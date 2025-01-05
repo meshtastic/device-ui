@@ -308,7 +308,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
         ILOG_INFO("Calibrating touch...");
 #ifdef T_DECK
         // FIXME: read calibration data from persistent storage using lfs_file_read
-        uint16_t parameters[8] = {11, 19, 6, 314, 218, 15, 229, 313};
+        uint16_t parameters[8] = {0, 2, 0, 314, 223, 5, 224, 314};
 #elif defined(WT32_SC01)
         uint16_t parameters[8] = {0, 2, 0, 479, 319, 0, 319, 479};
 #elif defined(T_HMI)
@@ -324,7 +324,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 #elif defined(SENSECAP_INDICATOR)
         uint16_t parameters[8] = {23, 3, 0, 479, 476, 2, 475, 479};
 #else
-        uint16_t parameters[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+        uint16_t parameters[8] = {0, 0, 0, 319, 239, 0, 239, 319};
         ILOG_WARN("Touch screen has no calibration data!!!");
 #endif
 

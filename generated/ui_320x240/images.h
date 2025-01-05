@@ -75,6 +75,7 @@ extern const lv_img_dsc_t img_home_weak_signal_image;
 extern const lv_img_dsc_t img_home_fair_signal_image;
 extern const lv_img_dsc_t img_home_strong_signal_image;
 extern const lv_img_dsc_t img_home_good_signal_image;
+extern const lv_img_dsc_t img_lock_slash_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -84,7 +85,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[68];
+extern const ext_img_desc_t images[69];
 
 
 #ifdef __cplusplus

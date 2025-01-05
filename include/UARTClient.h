@@ -16,7 +16,7 @@ class UARTClient : public SerialClient
     virtual ~UARTClient();
 
     bool isActive(void) const;
-    const char* getConnectionInfo(void) const;
+    const char *getConnectionInfo(void) const;
 
   protected:
     // low-level send method to write the buffer to serial

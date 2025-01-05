@@ -3870,7 +3870,7 @@ void create_screen_main_screen() {
                     objects.settings_reset_dropdown = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 150, 30);
-                    lv_dropdown_set_options(obj, _("NodeDB Reset\nFactory Reset"));
+                    lv_dropdown_set_options(obj, _("NodeDB Reset\nFactory Reset\nClear Chat History"));
                     add_style_drop_down_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4206,6 +4206,35 @@ void create_screen_main_screen() {
                                             lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_KNOB | LV_STATE_DEFAULT);
                                             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff67ea94), LV_PART_INDICATOR | LV_STATE_CHECKED);
                                             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff67ea94), LV_PART_INDICATOR | LV_STATE_PRESSED);
+                                        }
+                                    }
+                                }
+                                {
+                                    // NodesFilterChannelLabel
+                                    lv_obj_t *obj = lv_label_create(parent_obj);
+                                    objects.nodes_filter_channel_label = obj;
+                                    lv_obj_set_pos(obj, 10, 0);
+                                    lv_obj_set_size(obj, LV_PCT(98), 30);
+                                    lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
+                                    lv_label_set_text(obj, _("Channel"));
+                                    add_style_settings_label_style(obj);
+                                    lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_obj_set_style_pad_top(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_obj_set_style_pad_left(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_obj_set_style_radius(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    {
+                                        lv_obj_t *parent_obj = obj;
+                                        {
+                                            // NodesFilterChannelDropdown
+                                            lv_obj_t *obj = lv_dropdown_create(parent_obj);
+                                            objects.nodes_filter_channel_dropdown = obj;
+                                            lv_obj_set_pos(obj, -8, -2);
+                                            lv_obj_set_size(obj, 65, 25);
+                                            lv_dropdown_set_options(obj, "ALL\n0\n1\n2\n3\n4\n5\n6\n7");
+                                            add_style_drop_down_style(obj);
+                                            lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_border_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_pad_top(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
                                         }
                                     }
                                 }

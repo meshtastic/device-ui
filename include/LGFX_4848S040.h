@@ -46,11 +46,11 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
             auto cfg = _bus_instance.config();
             cfg.panel = &_panel_instance;
 
-            cfg.pin_d0 = GPIO_NUM_4;   // DB1(B)
-            cfg.pin_d1 = GPIO_NUM_5;   // DB2(B)
-            cfg.pin_d2 = GPIO_NUM_6;   // DB3(B)
-            cfg.pin_d3 = GPIO_NUM_7;   // DB4(B)
-            cfg.pin_d4 = GPIO_NUM_15;  // DB5(B)
+            cfg.pin_d0 = GPIO_NUM_4;  // DB1(B)
+            cfg.pin_d1 = GPIO_NUM_5;  // DB2(B)
+            cfg.pin_d2 = GPIO_NUM_6;  // DB3(B)
+            cfg.pin_d3 = GPIO_NUM_7;  // DB4(B)
+            cfg.pin_d4 = GPIO_NUM_15; // DB5(B)
 
             cfg.pin_d5 = GPIO_NUM_8;   // DB6(G)
             cfg.pin_d6 = GPIO_NUM_20;  // DB7(G)
@@ -92,7 +92,7 @@ class LGFX_4848S040 : public lgfx::LGFX_Device
         {
             auto cfg = _light_instance.config();
             cfg.pin_bl = 38;
-            cfg.freq = 80;  // higher value decrease brightness
+            cfg.freq = 80; // higher value decrease brightness
             _light_instance.config(cfg);
         }
         _panel_instance.light(&_light_instance);

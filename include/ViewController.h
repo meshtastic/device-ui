@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IClientBase.h"
+#include "LogRotate.h"
 #include <time.h>
 
 class MeshtasticView;
@@ -60,7 +61,9 @@ class ViewController
     virtual bool sendConfig(meshtastic_ModuleConfig_PaxcounterConfig &&paxCounter, uint32_t nodeId = 0);
 
     virtual bool sendConfig(const char ringtone[231], uint32_t nodeId = 0);
-    virtual void sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId, bool usePkc, const char *textmsg);
+    virtual void sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t msgTime, uint32_t requestId, bool usePkc,
+                                 const char *textmsg);
+    virtual void removeTextMessages(uint32_t from, uint32_t to, uint8_t ch);
     virtual bool requestPosition(uint32_t to, uint8_t ch, uint32_t requestId);
     virtual void traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId);
 
@@ -87,17 +90,25 @@ class ViewController
     virtual void requestAdditionalConfig(void);
     // request specific config
     virtual uint32_t requestConfig(meshtastic_AdminMessage_ConfigType type, uint32_t nodeId = 0);
+    // begin loading persistent messages
+    virtual void beginRestoreTextMessages(void);
+    // incrementally load persistent messages
+    virtual void restoreTextMessages(void);
     // handle received packet and update view
     bool handleFromRadio(const meshtastic_FromRadio &from);
     // handle meshPacket
     bool packetReceived(const meshtastic_MeshPacket &p);
 
     MeshtasticView *view;
+    LogRotate log;
     IClientBase *client;
     uint32_t sendId;
     uint32_t myNodeNum;
     time_t lastrun10;
     time_t lastSetup;
-    bool setupDone;
-    bool requestConfigRequired;
+    time_t restoreTimer;
+    bool setupDone;             // true if ui config has been loaded and screens are setup in the view
+    bool configCompleted;       // true if all data from node has been received
+    bool messagesRestored;      // true if log messages have been restored
+    bool requestConfigRequired; // true if config needs to be reloaded from the node
 };

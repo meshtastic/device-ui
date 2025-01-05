@@ -407,6 +407,8 @@ typedef struct _objects_t {
     lv_obj_t *nodes_filter_offline_switch;
     lv_obj_t *nodes_filter_public_key_label;
     lv_obj_t *nodes_filter_public_key_switch;
+    lv_obj_t *nodes_filter_channel_label;
+    lv_obj_t *nodes_filter_channel_dropdown;
     lv_obj_t *nodes_filter_hops_away_label;
     lv_obj_t *nodes_filter_hops_dropdown;
     lv_obj_t *nodes_filter_mqtt_label;
