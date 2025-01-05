@@ -103,13 +103,13 @@ UARTClient::~UARTClient(){
 // --- convenience interface ---
 
 bool UARTClient::isActive(void) const
-{ 
+{
     time_t now;
     time(&now);
     return lastReceived > 0 && now - lastReceived < 60;
 }
 
-const char* UARTClient::getConnectionInfo(void) const
+const char *UARTClient::getConnectionInfo(void) const
 {
     static char connectionInfo[32];
 #ifdef SERIAL_RX

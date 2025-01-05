@@ -227,7 +227,7 @@ class TFTView_320x240 : public MeshtasticView
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);
     void setChannelName(const meshtastic_Channel &ch);
-    uint32_t timestamp(char* buf, uint32_t time, bool update);
+    uint32_t timestamp(char *buf, uint32_t time, bool update);
 
     // response callbacks
     void onTextMessageCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);

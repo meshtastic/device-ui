@@ -102,10 +102,10 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 }
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
-    : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true), processingFilter(false),
-      packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false),
-      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
-      db{}
+    : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
+      processingFilter(false), packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0),
+      lastHeard(0), hasPosition(false), topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false),
+      chooseNodeTraceRoute(false), qr(nullptr), db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -2258,7 +2258,7 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
     for (auto it2 : stats) {
         if (it2.id == p.from || move) {
             buf[0] = '\0';
-            auto it = nodes.find(it2.id);  // node may have been removed from nodes, so check if still there
+            auto it = nodes.find(it2.id); // node may have been removed from nodes, so check if still there
             if (it != nodes.end() && it->second) {
                 char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
                 if (userData) {
@@ -4269,7 +4269,7 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
     uint32_t lastHeard = (unsigned long)p->LV_OBJ_IDX(node_lh_idx)->user_data;
     if (lastHeard > 0 && (curtime - lastHeard <= secs_until_offline))
         nodesOnline--;
-    
+
     ILOG_INFO("removing oldest node 0x%08x", oldest);
     lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
     lv_ll_remove(lv_group_ll, p->LV_OBJ_IDX(node_btn_idx)->user_data);
@@ -5556,7 +5556,7 @@ void TFTView_320x240::updateNodesStatus(void)
 
     if (processingFilter)
         lv_snprintf(buf, sizeof(buf), _("Filtering ..."));
-    else if (nodesFiltered) 
+    else if (nodesFiltered)
         lv_snprintf(buf, sizeof(buf), _("Filter: %d of %d nodes"), nodeCount - nodesFiltered, nodeCount);
     lv_label_set_text(objects.top_nodes_online_label, buf);
 }

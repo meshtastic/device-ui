@@ -7,7 +7,7 @@
 LogRotate::LogRotate(fs::FS &fs, const char *logDir, uint32_t maxLen, uint32_t maxSize, uint32_t maxFiles, uint32_t maxFileSize)
     : c_maxLen(maxLen), c_maxSize(maxSize), c_maxFiles(maxFiles), c_maxFileSize(maxFileSize), _fs(fs), rootDirName(logDir),
       numFiles(0), minLogNum(0), maxLogNum(0), currentLogRead(0), currentLogWrite(0), currentSize(0), totalSize(0)
-      
+
 {
 }
 
@@ -135,8 +135,7 @@ bool LogRotate::clear(void)
                 ILOG_ERROR("failed to remove %s!", name.c_str());
                 error = true;
             }
-        }
-        else {
+        } else {
             file.close();
         }
         file = root.openNextFile();
@@ -230,8 +229,7 @@ void LogRotate::scanLogDir(uint32_t &num, uint32_t &minLog, uint32_t &maxLog, ui
             String format;
             if (file.name()[0] == '/') {
                 format = rootDirName + '/' + String(FILE_PREFIX) + String("%u.log");
-            }
-            else {
+            } else {
                 format = String(FILE_PREFIX) + String("%u.log");
             }
 
@@ -244,8 +242,7 @@ void LogRotate::scanLogDir(uint32_t &num, uint32_t &minLog, uint32_t &maxLog, ui
                     maxLog = logNum;
                     logSize = size;
                 }
-            }
-            else {
+            } else {
                 ILOG_ERROR("sscanf() failed for %s", file.name());
             }
         }
