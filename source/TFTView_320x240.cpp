@@ -102,7 +102,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 }
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
-    : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), processingFilter(false),
+    : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true), processingFilter(false),
       packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false),
       topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
       db{}
@@ -3393,7 +3393,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s)", nodeCount, nodeNum, lastHeard, userLong, userShort);
     while (nodeCount >= MAX_NUM_NODES_VIEW) {
-        purgeNode();
+        purgeNode(nodeNum);
     }
 
     lv_obj_t *p = lv_obj_create(objects.nodes_panel);
@@ -3548,8 +3548,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     lv_obj_add_event_cb(nodeButton, ui_event_NodeButton, LV_EVENT_ALL, (void *)nodeNum);
 
-    applyNodesFilter(nodeNum);
-
     // move node into new position within nodePanel
     if (lastHeard) {
         lv_obj_t **children = objects.nodes_panel->spec_attr->children;
@@ -3567,7 +3565,10 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
         }
     }
 
-    updateNodesStatus();
+    if (!nodesChanged) {
+        applyNodesFilter(nodeNum);
+        updateNodesStatus();
+    }
 }
 
 void TFTView_320x240::setMyInfo(uint32_t nodeNum)
@@ -4237,8 +4238,9 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
 
 /**
  * @brief purge oldest node from node list (and all its memory)
+ * @param nodeNum node that is being added and already contained in nodes[], so don't remove it!
  */
-void TFTView_320x240::purgeNode(void)
+void TFTView_320x240::purgeNode(uint32_t nodeNum)
 {
     lv_obj_t *p = nullptr;
     uint32_t oldest = 0;
@@ -4247,7 +4249,7 @@ void TFTView_320x240::purgeNode(void)
         return;
     for (auto &it : nodes) {
         time_t lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
-        if (lastHeard > 0 && lastHeard < oldestTime && it.first != ownNode && it.first != 0) {
+        if (lastHeard > 0 && lastHeard < oldestTime && it.first != ownNode && it.first != nodeNum && it.first != 0) {
             oldestTime = lastHeard;
             oldest = it.first;
             p = it.second;
@@ -4255,7 +4257,7 @@ void TFTView_320x240::purgeNode(void)
     }
     if (p == nullptr) {
         for (auto &it : nodes) {
-            if (it.first != ownNode) {
+            if (it.first != ownNode && it.first != nodeNum) {
                 oldest = it.first;
                 p = it.second;
             }
@@ -4279,13 +4281,14 @@ void TFTView_320x240::purgeNode(void)
     }
     {
         auto it = chats.find(oldest);
-        if (it != chats.end())
+        if (it != chats.end()) {
             lv_obj_delete(it->second);
+            updateActiveChats();
+        }
     }
     nodes.erase(oldest);
     nodeCount--;
-    updateActiveChats();
-    updateNodesStatus();
+    nodesChanged = true; // flag to force re-apply node filter
 }
 
 /**
@@ -4980,6 +4983,10 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     char buf[284]; // 237 + 4 + 40 + 2 + 1
     lv_obj_t *container = nullptr;
     if (to == UINT32_MAX) { // message for group, prepend short name to msg
+        if (nodes.find(from) == nodes.end()) {
+            ILOG_ERROR("newMessage: node 0x%08x not in nodes[]", from);
+            return;
+        }
         // original short name is held in userData, extract it and add msg
         char *userData = (char *)&(nodes[from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
         while (pos < 4 && userData[pos] != 0) {
@@ -5239,7 +5246,7 @@ void TFTView_320x240::updateActiveChats(void)
  */
 void TFTView_320x240::notifyRestoreMessages(int32_t percentage)
 {
-    ILOG_DEBUG("notifyRestoreMessages: %d%", percentage); // TODO
+    ILOG_DEBUG("notifyRestoreMessages: %d%%", percentage); // TODO
     if (percentage >= 0) {
         static char buf[64];
         lv_snprintf(buf, sizeof(buf), _("Restoring messages %d%%\n...please wait..."), percentage);
@@ -5547,12 +5554,10 @@ void TFTView_320x240::updateNodesStatus(void)
     lv_snprintf(buf, sizeof(buf), _p("%d of %d nodes online", nodeCount), nodesOnline, nodeCount);
     lv_label_set_text(objects.home_nodes_label, buf);
 
-    if (nodesFiltered) {
-        if (processingFilter)
-            lv_snprintf(buf, sizeof(buf), _("Filtering ..."));
-        else
-            lv_snprintf(buf, sizeof(buf), _("Filter: %d of %d nodes"), nodeCount - nodesFiltered, nodeCount);
-    }
+    if (processingFilter)
+        lv_snprintf(buf, sizeof(buf), _("Filtering ..."));
+    else if (nodesFiltered) 
+        lv_snprintf(buf, sizeof(buf), _("Filter: %d of %d nodes"), nodeCount - nodesFiltered, nodeCount);
     lv_label_set_text(objects.top_nodes_online_label, buf);
 }
 
@@ -5560,15 +5565,16 @@ void TFTView_320x240::updateNodesStatus(void)
  * @brief Dynamically update all nodes filter and highlight
  *        Because the update can take quite some time (tens of ms) it is done in smaller
  *        chunks of 10 nodes per invocation, so it must be periodically called
- *        TODO: check for side effects if new nodes are inserted during filter processing
+ *        TODO: check for side effects if new nodes are inserted or removed during filter processing
  * @param reset indicates to start update from beginning of node list otherwise
  *        continue with iterator position or skip if done
  */
 void TFTView_320x240::updateNodesFiltered(bool reset)
 {
     static auto it = nodes.begin();
-    if (reset) {
+    if (reset || nodesChanged) {
         nodesFiltered = 0;
+        nodesChanged = false;
         processingFilter = true;
         it = nodes.begin();
     }
@@ -5580,8 +5586,8 @@ void TFTView_320x240::updateNodesFiltered(bool reset)
 
     if (it == nodes.end()) {
         processingFilter = false;
-        updateNodesStatus();
     }
+    updateNodesStatus();
 }
 
 /**
@@ -5599,7 +5605,7 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
         it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)curtime;
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), _("now"));
         if (it->first != ownNode) {
-            if (curtime - lastHeard + 10 >= 900) {
+            if (curtime - lastHeard + 10 >= secs_until_offline) {
                 nodesOnline++;
                 applyNodesFilter(nodeNum);
                 updateNodesStatus();
@@ -5765,8 +5771,8 @@ void TFTView_320x240::task_handler(void)
                 controller->sendPing();
             }
 
-            // if we didn't hear any node for 15 mins assume we have no signal
-            if (curtime - lastHeard > 900) {
+            // if we didn't hear any node for 1h assume we have no signal
+            if (curtime - lastHeard > secs_until_offline) {
                 lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
                                               LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_label_set_text(objects.home_signal_label, _("no signal"));
@@ -5774,8 +5780,8 @@ void TFTView_320x240::task_handler(void)
             }
         }
 
-        if (processingFilter) {
-            updateNodesFiltered(false);
+        if (processingFilter || nodesChanged) {
+            updateNodesFiltered(nodesChanged);
         }
     } else {
         updateBootMessage();

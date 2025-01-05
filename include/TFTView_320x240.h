@@ -204,7 +204,7 @@ class TFTView_320x240 : public MeshtasticView
     void scanSignal(uint32_t scanNo);
     void handleTraceRouteResponse(const meshtastic_Routing &routing);
     void addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel);
-    void purgeNode(void);
+    void purgeNode(uint32_t nodeNum);
     void removeSpinner(void);
     void packetDetected(const meshtastic_MeshPacket &p);
     void writePacketLog(const meshtastic_MeshPacket &p);
@@ -335,6 +335,7 @@ class TFTView_320x240 : public MeshtasticView
     static TFTView_320x240 *gui;                     // singleton pattern
     bool screensInitialised;                         // true if init_screens is completed
     uint32_t nodesFiltered;                          // no. hidden nodes in node list
+    bool nodesChanged;                               // true if nodes changed (added or purged)
     bool processingFilter;                           // indicates that filtering is ongoing
     bool packetLogEnabled;                           // display received packets
     bool detectorRunning;                            // meshDetector is active
