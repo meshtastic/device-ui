@@ -3419,11 +3419,12 @@ void create_screen_main_screen() {
                     // SettingsScreenTimeoutLabel
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     objects.settings_screen_timeout_label = obj;
-                    lv_obj_set_pos(obj, LV_PCT(0), 0);
+                    lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL);
+                    lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                     lv_label_set_text(obj, _("Timeout: 60s"));
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_min_width(obj, 180, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // ScreenTimeoutSlider
