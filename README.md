@@ -59,10 +59,10 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
         - [x] protobuf encoding/decoding
       - [x] Logging interface
       - [x] Add lvgl compatible input driver interface
-      - [ ] Add interface for persistency
-        - [X] Screen calibration data
+      - [x] Add interface for persistency
+        - [x] Screen calibration data
         - [x] Device settings (General)
-        - [ ] Message storage
+        - [x] Message storage
         - [ ] Serial connection config
     - [x] Dynamic behavior
       - [x] Startup config
@@ -83,22 +83,24 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [X] Italian translation
       - [X] French translation
       - [X] Russian translation
+      - [X] Slovenian translation
       - [ ] Turkish translation
       - [ ] Greek translation
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
     - [ ] Allow co-existence of generated files/views by different eez-studio projects
     - [ ] Fix PSRAM draw buffer issue and do buffer size optimization
-    - [ ] Test native lvgl driver support
+    - [ ] Native lvgl driver support
       - [ ] TFT drivers
       - [ ] OLED drivers
-    - [ ] Check lvgl native driver DMA double-buffering
+    - [ ] lvgl native driver DMA double-buffering
     - [ ] E-Ink support
     - [ ] RP2040 support
 
 ### Meshtastic UI (general)
 
-    - [x] Boot Screen
+    - [x] Boot screen
+    - [ ] Customizable boot screen
     - [x] Home Screen
       - [x] Messages info
       - [x] Nodes info
@@ -115,7 +117,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [ ] Repeater support (manual insertion)
       - [ ] LastHeard & time source handling improvements
       - [ ] Remote Node configuration
-      - [x] Filter (offline, unknown, public key, position, hops away, by name)
+      - [x] Filter (offline, unknown, channel, public key, position, hops away, by name)
       - [x] Highlight (position, telemetry, IAQ, by name)
     - [x] Group channel panel
     - [x] Chat panel
@@ -139,6 +141,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
         - [x] Device Role
         - [x] Screen Timeout
         - [x] Screen Calibration
+        - [x] Screen Lock
         - [x] Brightness
         - [x] Input Control
         - [x] Message Alert / Ringtones
@@ -169,6 +172,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [x] Trackball support (e.g. fast scrolling list views)
     - [ ] SD card support, mainly for offline maps or import/export (config & chat history)
     - [ ] load custom fonts from SD card
+    - [ ] disable screen to temporarily allow other connection (USB serial, BT) to the device 
     - [ ] (Optional): allow bluetooth connection (-> PhoneAPI queue re-design)
     - [ ] I2S Audio support
 
