@@ -375,10 +375,8 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
     if (lgfx->panel()) {
         auto p = lgfx->panel();
         auto cfg = p->config();
-        uint32_t id1 = p->readCommand(0x04);
-        uint32_t id2 = p->readCommand(0x70);
-        uint32_t id = id1 ? id1 : id2;
-        ILOG_DEBUG("Panel id=%d (%dx%d): rst:%d, busy:%d, offX:%d, offY:%d invert:%d, RGB:%d, rotation:%d, offR:%d, read:%d, "
+        uint32_t id = p->readCommand(0x04, 0, 4);
+        ILOG_DEBUG("Panel id=0x%08x (%dx%d): rst:%d, busy:%d, offX:%d, offY:%d invert:%d, RGB:%d, rotation:%d, offR:%d, read:%d, "
                    "readP:%d, readB:%d, dlen:%d, colordepth:%d",
                    id, p->width(), p->height(), cfg.pin_rst, cfg.pin_busy, cfg.offset_x, cfg.offset_y, p->getInvert(),
                    cfg.rgb_order, (int)p->getRotation(), cfg.offset_rotation, cfg.readable, cfg.dummy_read_pixel,
