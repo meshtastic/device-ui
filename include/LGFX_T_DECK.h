@@ -7,6 +7,22 @@
 #define SPI_FREQUENCY 80000000
 #endif
 
+class Panel_TDeck : public lgfx::Panel_ST7789
+{
+  protected:
+    const uint8_t* getInitCommands(uint8_t listno) const override
+    {
+      static uint8_t list[] = {
+          CMD_GAMMASET, 1, 0x01,  // Gamma set, curve 1
+          0xFF,0xFF
+      };
+
+      if (listno == 1) return list;
+      return Panel_ST7789::getInitCommands(listno);
+    }
+};
+
+
 #ifdef CUSTOM_TOUCH_DRIVER
 #include <bb_captouch.h>
 
@@ -52,7 +68,7 @@ class LGFX_TDECK : public LGFX_Touch
 class LGFX_TDECK : public lgfx::LGFX_Device
 #endif
 {
-    lgfx::Panel_ST7789 _panel_instance;
+    Panel_TDeck _panel_instance;
     lgfx::Bus_SPI _bus_instance;
     lgfx::Light_PWM _light_instance;
     lgfx::Touch_GT911 _touch_instance;

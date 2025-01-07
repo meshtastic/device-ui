@@ -365,17 +365,18 @@ void apply_style_positive_image_style(void)
     lv_style_t *style = get_style_positive_image_style_MAIN_DEFAULT();
     lv_style_set_image_recolor(style, lv_color_hex(THEME(ePositiveImageRecolor)));
 };
-void apply_style_statistics_table_style_MAIN_DEFAULT(void) {
+void apply_style_statistics_table_style_MAIN_DEFAULT(void)
+{
     lv_style_t *style = get_style_statistics_table_style_MAIN_DEFAULT();
     lv_style_set_border_color(style, lv_color_hex(THEME(eTableBorder)));
 };
-void apply_style_statistics_table_style_ITEMS_DEFAULT(void) {
+void apply_style_statistics_table_style_ITEMS_DEFAULT(void)
+{
     lv_style_t *style = get_style_statistics_table_style_ITEMS_DEFAULT();
     lv_style_set_bg_color(style, lv_color_hex(THEME(eTableItemBg)));
     lv_style_set_text_color(style, lv_color_hex(THEME(eTableItemText)));
     lv_style_set_border_color(style, lv_color_hex(THEME(eTableCellBorder)));
 };
-
 }
 
 void Themes::set(enum Theme th)
@@ -494,12 +495,11 @@ void Themes::recolorTopLabel(lv_obj_t *obj, bool alert)
     lv_obj_set_style_text_color(obj, color, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
-void Themes::recolorTableRow(lv_draw_fill_dsc_t* fill_draw_dsc, bool odd)
+void Themes::recolorTableRow(lv_draw_fill_dsc_t *fill_draw_dsc, bool odd)
 {
     if (odd) {
         fill_draw_dsc->color = lv_color_hex(THEME(eTableItemBg));
-    }
-    else {
+    } else {
         fill_draw_dsc->color = lv_color_hex(THEME(eTableItemDarkBg));
     }
 }
