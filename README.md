@@ -176,6 +176,25 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [ ] (Optional): allow bluetooth connection (-> PhoneAPI queue re-design)
     - [ ] I2S Audio support
 
+### :pager: DIY Mesh-Tab (see <a href="[https://github.com/valzzu/Mesh-Tab]" target="_blank">https://github.com/valzzu/Mesh-Tab</a>)
+    - [x] Mesh-Tab firmware support (320x240 and 320x480)
+      - [x] Generic LGFX Display driver
+      - [x] platformio.ini integration
+    - [x] XPT2046 touch driver
+    - [x] FT6236 touch driver
+    - [x] 320x240 landscape view
+      - [x] 3.2" TN TFT ST7789 display + XPT2046 touch driver (resistive)
+      - [x] 3.2" IPS TFT ILI9341 display + XPT2046 touch driver (resistive)
+      - [ ] 3.2" IPS TFT ILI9341 display + FT6236 touch driver (capacitive)
+    - [x] 240x480 portrait view (scaled)
+      - [x] 3.5" TN TFT ST7789 display + XPT2046 touch driver (resistive)
+      - [x] 3.5" IPS TFT ILI9341 display + XPT2046 touch driver (resistive)
+      - [ ] 3.5" IPS TFT ILI9488 display + FT6236 touch driver (capacitive)
+      - [x] 4.0" IPS TFT ILI9488 display + FT6236 touch driver (capacitive)
+    - [x] PWM buzzer
+    - [ ] SD card support (resistive displays)
+    - [ ] SD card support (capacitive displays)
+    
 ### :watch: T-Watch
 
     - [ ] T-Watch UI
@@ -209,9 +228,9 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
     - [x] Replicator support (esp32 + nrf52 radio)
       - [x] Display driver
       - [X] 480x480 view -> scaled 320x240
-    - [X] WT32-SC01 (Plus) support (480x320)
+    - [x] WT32-SC01 (Plus) support (480x320)
       - [x] Display driver
-      - [X] 480x320 view -> scaled 320x240
+      - [x] 480x320 view -> scaled 320x240
     - [ ] image size reduction
     - [ ] Fix/Workaround serial light sleep UART reading issue (-> firmware)
     - [ ] Heartbeat timer improvements
