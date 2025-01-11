@@ -912,7 +912,7 @@
     #endif
 
     /*Header to include for the profiler*/
-    #define LV_PROFILER_INCLUDE "lvgl/src/misc/lv_profiler_builtin.h"
+    #define LV_PROFILER_INCLUDE "src/misc/lv_profiler_builtin.h"
 
     /*Profiler start point function*/
     #define LV_PROFILER_BEGIN    LV_PROFILER_BUILTIN_BEGIN
@@ -925,6 +925,36 @@
 
     /*Profiler end point function with custom tag*/
     #define LV_PROFILER_END_TAG   LV_PROFILER_BUILTIN_END_TAG
+
+    /*Enable layout profiler*/
+    #define LV_PROFILER_LAYOUT 0
+
+    /*Enable disp refr profiler*/
+    #define LV_PROFILER_REFR 0
+
+    /*Enable draw profiler*/
+    #define LV_PROFILER_DRAW 0
+
+    /*Enable indev profiler*/
+    #define LV_PROFILER_INDEV 1
+
+    /*Enable decoder profiler*/
+    #define LV_PROFILER_DECODER 0
+
+    /*Enable font profiler*/
+    #define LV_PROFILER_FONT 0
+
+    /*Enable fs profiler*/
+    #define LV_PROFILER_FS 0
+
+    /*Enable style profiler*/
+    #define LV_PROFILER_STYLE 0
+
+    /*Enable timer profiler*/
+    #define LV_PROFILER_TIMER 0
+
+    /*Enable cache profiler*/
+    #define LV_PROFILER_CACHE 0
 #endif
 
 /*1: Enable Monkey test*/
