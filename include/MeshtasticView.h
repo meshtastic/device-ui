@@ -137,4 +137,5 @@ class MeshtasticView : public DeviceGUI
     uint32_t unreadMessages = 0;                          // messages
     bool configComplete = false;                          // config request finishe
     time_t lastrun20 = 0;                                 // 20s task
+    time_t curtime = 0;                                   // current system time
 };

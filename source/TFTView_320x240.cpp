@@ -3496,8 +3496,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     // TODO: devices without actual time will report all nodes as lastseen = now
     if (lastHeard) {
-        time_t curtime;
-        time(&curtime);
         lastHeard = std::min(curtime, (time_t)lastHeard); // adapt values too large
 
         char buf[20];
@@ -4272,8 +4270,6 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
         }
     }
 
-    time_t curtime;
-    time(&curtime);
     uint32_t lastHeard = (unsigned long)p->LV_OBJ_IDX(node_lh_idx)->user_data;
     if (lastHeard > 0 && (curtime - lastHeard <= secs_until_offline))
         nodesOnline--;
@@ -4318,8 +4314,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
             }
         }
         if (lv_obj_has_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED)) {
-            time_t curtime, lastHeard = (time_t)panel->LV_OBJ_IDX(node_lh_idx)->user_data;
-            time(&curtime);
+            time_t lastHeard = (time_t)panel->LV_OBJ_IDX(node_lh_idx)->user_data;
             if (lastHeard == 0 || curtime - lastHeard > secs_until_offline)
                 hide = true;
         }
@@ -5605,8 +5600,6 @@ void TFTView_320x240::updateNodesFiltered(bool reset)
  */
 void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
 {
-    time_t curtime;
-    time(&curtime);
     auto it = nodes.find(nodeNum);
     if (it != nodes.end() && it->second) {
         time_t lastHeard = (time_t)it->second->LV_OBJ_IDX(node_lh_idx)->user_data;
@@ -5641,8 +5634,6 @@ void TFTView_320x240::updateAllLastHeard(void)
     for (auto it : nodes) {
         char buf[32];
         if (it.first == ownNode) { // own node is always now, so do update
-            time_t curtime;
-            time(&curtime);
             lastHeard = curtime;
             it.second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)lastHeard;
         } else {
@@ -5738,61 +5729,63 @@ void TFTView_320x240::task_handler(void)
     MeshtasticView::task_handler();
 
     if (screensInitialised) {
-        time_t curtime;
-        time(&curtime);
         if (curtime - lastrun1 >= 1) { // call every 1s
             lastrun1 = curtime;
             actTime++;
             updateTime();
-        }
-        if (curtime - lastrun5 >= 5) { // call every 5s
-            lastrun5 = curtime;
-            if (scans > 0 && activePanel == objects.signal_scanner_panel) {
-                scanSignal(scans);
-                scans--;
+
+            if (curtime - lastrun5 >= 5) { // call every 5s
+                lastrun5 = curtime;
+                if (scans > 0 && activePanel == objects.signal_scanner_panel) {
+                    scanSignal(scans);
+                    scans--;
+                }
+                if (startTime) {
+                    if (curtime - startTime > 30) {
+                        lv_label_set_text(objects.trace_route_start_label, _("Start"));
+                        lv_obj_set_style_outline_color(objects.trace_route_start_button, colorMesh,
+                                                       LV_PART_MAIN | LV_STATE_DEFAULT);
+                        removeSpinner();
+                    } else {
+                        char buf[16];
+                        sprintf(buf, "%ds", ((35 - (curtime - startTime)) / 5) * 5);
+                        lv_label_set_text(objects.trace_route_start_label, buf);
+                    }
+                }
             }
-            if (startTime) {
-                if (curtime - startTime > 30) {
-                    lv_label_set_text(objects.trace_route_start_label, _("Start"));
-                    lv_obj_set_style_outline_color(objects.trace_route_start_button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    removeSpinner();
-                } else {
-                    char buf[16];
-                    sprintf(buf, "%ds", ((35 - (curtime - startTime)) / 5) * 5);
-                    lv_label_set_text(objects.trace_route_start_label, buf);
+            if (curtime - lastrun10 >= 10) { // call every 10s
+                lastrun10 = curtime;
+                updateFreeMem();
+
+                if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
+                    controller->requestDeviceConnectionStatus();
+                }
+            }
+            if (curtime - lastrun60 >= 60) { // call every 60s
+                lastrun60 = curtime;
+                updateAllLastHeard();
+
+                if (detectorRunning) {
+                    controller->sendPing();
+                }
+
+                // if we didn't hear any node for 1h assume we have no signal
+                if (curtime - lastHeard > secs_until_offline) {
+                    lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
+                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_label_set_text(objects.home_signal_label, _("no signal"));
+                    lv_label_set_text(objects.home_signal_pct_label, "");
                 }
             }
         }
-        if (curtime - lastrun10 >= 10) { // call every 10s
-            lastrun10 = curtime;
-            updateFreeMem();
-
-            if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
-                controller->requestDeviceConnectionStatus();
-            }
-        }
-        if (curtime - lastrun60 >= 60) { // call every 60s
-            lastrun60 = curtime;
-            updateAllLastHeard();
-
-            if (detectorRunning) {
-                controller->sendPing();
-            }
-
-            // if we didn't hear any node for 1h assume we have no signal
-            if (curtime - lastHeard > secs_until_offline) {
-                lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
-                                              LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_label_set_text(objects.home_signal_label, _("no signal"));
-                lv_label_set_text(objects.home_signal_pct_label, "");
-            }
-        }
-
         if (processingFilter || nodesChanged) {
             updateNodesFiltered(nodesChanged);
         }
     } else {
-        updateBootMessage();
+        if (curtime - lastrun1 >= 1) { // call every 1s
+            lastrun1 = curtime;
+            updateBootMessage();
+        }
     }
 }
 

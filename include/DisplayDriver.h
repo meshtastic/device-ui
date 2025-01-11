@@ -19,7 +19,7 @@ class DisplayDriver
     virtual bool hasTouch(void) { return false; }
     virtual bool hasButton(void) { return false; }
     virtual bool hasLight(void) { return false; }
-    virtual void task_handler(void) { lv_timer_handler(); };
+    virtual void task_handler(void) { lv_timer_periodic_handler(); };
     virtual bool isPowersaving() { return false; }
     virtual void printConfig(void) {}
     virtual ~DisplayDriver() {}

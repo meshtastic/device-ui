@@ -23,7 +23,6 @@ void MeshtasticView::task_handler(void)
     DeviceGUI::task_handler();
     controller->runOnce();
 
-    time_t curtime;
     time(&curtime);
     if (curtime - lastrun20 >= 20) {
         lastrun20 = curtime;
