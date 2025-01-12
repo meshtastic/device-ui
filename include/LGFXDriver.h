@@ -293,6 +293,14 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         lv_indev_set_read_cb(DisplayDriver::touch, touchpad_read);
         lv_indev_set_display(DisplayDriver::touch, this->display);
         lv_indev_set_long_press_time(DisplayDriver::touch, defaultLongPressTime);
+#ifdef USE_TOUCH_EVENTS
+        if (lgfx->touch()->config()->pin_int > 0) {
+            lv_indev_set_mode(DisplayDriver::touch, LV_INDEV_MODE_EVENT);
+        }
+#else
+        lv_timer_t *timer = lv_indev_get_read_timer(DisplayDriver::touch);
+        lv_timer_set_period(timer, 10); // 100Hz as I2C touch controllers support
+#endif
     }
 }
 
