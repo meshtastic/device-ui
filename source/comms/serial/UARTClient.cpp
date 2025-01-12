@@ -1,7 +1,7 @@
 
-#include "UARTClient.h"
+#include "comms/UARTClient.h"
 #include "Arduino.h"
-#include "ILog.h"
+#include "util/ILog.h"
 
 #ifndef SERIAL_BAUD
 #define SERIAL_BAUD 38400

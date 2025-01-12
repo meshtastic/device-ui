@@ -1,6 +1,6 @@
-#include "SerialClient.h"
-#include "ILog.h"
-#include "MeshEnvelope.h"
+#include "comms/SerialClient.h"
+#include "comms/MeshEnvelope.h"
+#include "util/ILog.h"
 #include <time.h>
 #ifdef ARCH_ESP32
 #include "driver/uart.h"
