@@ -5557,9 +5557,7 @@ void TFTView_320x240::updateNodesStatus(void)
     lv_snprintf(buf, sizeof(buf), _p("%d of %d nodes online", nodeCount), nodesOnline, nodeCount);
     lv_label_set_text(objects.home_nodes_label, buf);
 
-    if (processingFilter)
-        lv_snprintf(buf, sizeof(buf), _("Filtering ..."));
-    else if (nodesFiltered)
+    if (nodesFiltered)
         lv_snprintf(buf, sizeof(buf), _("Filter: %d of %d nodes"), nodeCount - nodesFiltered, nodeCount);
     lv_label_set_text(objects.top_nodes_online_label, buf);
 }
