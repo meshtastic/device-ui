@@ -99,6 +99,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         DisplayDriver::view->screenSaving(true);
                         if (hasTouch() && hasButton()) {
                             ILOG_DEBUG("disable touch, enable button input");
+                            lgfx->touch()->sleep();
                             lv_indev_enable(DisplayDriver::touch, false);
                             lv_indev_enable(InputDriver::instance()->getButton(), true);
                         }
@@ -133,6 +134,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         DisplayDriver::view->screenSaving(false);
                         if (hasTouch() && hasButton()) {
                             ILOG_DEBUG("enable touch, disable button input");
+                            lgfx->touch()->wakeup();
                             lv_indev_enable(DisplayDriver::touch, true);
                             lv_indev_enable(InputDriver::instance()->getButton(), false);
                         }
