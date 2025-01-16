@@ -1,13 +1,13 @@
 tr:
   no new messages: Yeni mesaj bulunmamakta
   1 of 1 nodes online: 1/1 düğüm aktif
-  'uptime 00:00:00': Çalışma süresi %s
+  'uptime 00:00:00': 'Çalışma süresi %s'
   "Heap: 0\nLVGL: 0": ~
   DEL: Kapat
-  'User name: ': Kullanıcı adı
-  'Modem Preset: LONG FAST': "Modem ön ayarı: LONG FAST'
+  'User name: ': 'Kullanıcı adı'
+  'Modem Preset: LONG FAST': 'Modem ön ayarı: LONG FAST'
   'Channel: LongFast': 'Kanal: LongFast'
-  'Role: Client': 'Rol: Müşter'
+  'Role: Client': 'Rol: Müşteri'
   'Screen Timeout: 60s': 'Ekran süresi: 60 saniye'
   'Screen Lock: off': 'Ekran kilidi: kapalı'
   'Screen Brightness: 60%': 'Ekran parlaklığı: 60%
@@ -17,12 +17,12 @@ tr:
   'Message Alert Buzzer: on': 'Mesaj Uyarı Sesi: açık'
   'Language: English': 'Dil: İngizce'
   Configuration Reset: Yapılandırma sıfırlaması
-  Reboot / Shutdown: Yeniden başlat / Kapa
+  Reboot / Shutdown: Yeniden başlat / Kapat
   Mesh Detector: Mesh dedektörü
   Signal Scanner: Sinyal tarayıcısı
   Trace Route: ~
   Neighbors: Komşular
-  Statistics: İstatistik
+  Statistics: İstatistikler
   Packet Log: Paket kaydı
   Meshtastic: ~
   Group Channels: Grup kanalları
@@ -40,7 +40,7 @@ tr:
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
   "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
   'Brightness: 60%': 'Parlaklık: 60%'
-  "Dark\nLight": Karanlık\nAçık
+  "Dark\nLight": "Karanlık\nAçık"
   'Timeout: 60s': 'Zaman aşımı: 60s'
   Screen Lock: Ekran kilidi
   Lock PIN: PIN kodunu kitle
@@ -50,9 +50,9 @@ tr:
   Message Alert: Mesaj uyarısı
   Ringtone: Zil ses
   Default: Varsayılan
-  Zone: Bölge
+  Zone: Alan
   City: Şehir
-  "NodeDB Reset\nFactory Reset": NodeDB Sıfırlaması\nFabrika sıfırlaması
+  "NodeDB Reset\nFactory Reset": "NodeDB Sıfırlaması\nFabrika sıfırlaması"
   Channel Name: Kanal adı
   Pre-shared Key: Önceden paylaşılan anahtar
   Unknown: Bilinmeyen
@@ -66,8 +66,8 @@ tr:
   Telemetry: Telemetri
   IAQ: ~
   Start: Başla
-  "New Message from\n": "Yeni mesaj 
-  Resynch...: ~
+  "New Message from\n": "Yeni mesaj"
+  Resynch...: Yeniden senkronize et
   OK: Tamam
   Cancel: İptal
   'FrequencySlot: %d (%g MHz)': ~
@@ -92,7 +92,7 @@ tr:
   'Region: %s': 'Bölge: %s'
   'Modem Preset: %s': 'Modem Ön Ayarı: %s'
   'Channel: %s': 'Kanal: %s'
-  'Screen Lock: %s': 'Ekran kilidi
+  'Screen Lock: %s': 'Ekran kilidi: %s'
   'on': 'Açık'
   'off': 'Kapalı'
   'Message Alert: %s': 'Mesaj Uyarısı: %s'
@@ -101,11 +101,11 @@ tr:
   unknown: Bilinmeyen
   <no name>: <ad yok>
   '%d active chat(s)': '%d aktif sohbet(ler)'
-  "New message from \n%s": '%s Yeni mesaj'
-  'Input Control: %s/%s': ~
-  '%d of %d nodes online': '%d 
-  Filtering ...: Filtreleniyor ...
-  'Filter: %d of %d nodes': ~
+  "New message from \n%s": "%s Yeni mesaj"
+  'Input Control: %s/%s': 'Giriş kontrolü: %s/%s'
+  '%d of %d nodes online': '%d düğümden %d düğüm çevrimiçi'
+  'Filtering ...': 'Filtreleniyor ...'
+  'Filter: %d of %d nodes': 'Filtre: %d düğümden %d'
   now: Şimdi
   '%d new message': 'Yeni %d mesaj'
   '%d new messages': 'Yeni %d mesajlar'
@@ -123,10 +123,10 @@ tr:
   LoRa 0.0 MHz: ~
   silent: Sessiz
   'WiFi: <not setup>': 'WiFi: <kurulmamış>'
-  'Lock: off/off': Lock: kapalı/açık
+  'Lock: off/off': 'Lock: kapalı/kapalı'
   LoRa TX off!: LoRa TX kapalı!
   WiFi SSID: WiFi SSID
-  WiFi pre-shared Key: ~
+  WiFi pre-shared Key: WiFi önceden paylaşılmış anahtar
   Settings Lock: Ayarlar kilidi
   'Lock: %s/%s': 'Kilit: %s/%s'
   Enter Text ...: Metin gir...
