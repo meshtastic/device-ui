@@ -10,7 +10,7 @@ tr:
   'Role: Client': 'Rol: Müşteri'
   'Screen Timeout: 60s': 'Ekran süresi: 60 saniye'
   'Screen Lock: off': 'Ekran kilidi: kapalı'
-  'Screen Brightness: 60%': 'Ekran parlaklığı: 60%
+  'Screen Brightness: 60%': 'Ekran parlaklığı: 60%'
   'Theme: Dark': 'Tema: Karanlık'
   'Screen Calibration: default': 'Ekran kalibrasyonu: varsayılan'
   'Input Control: none/none': 'Giriş kontrolü: yok/yok'
@@ -101,7 +101,7 @@ tr:
   unknown: Bilinmeyen
   <no name>: <ad yok>
   '%d active chat(s)': '%d aktif sohbet(ler)'
-  "New message from \n%s": "%s Yeni mesaj"
+  "New message from \n%s": "Yeni mesaj: \n%s'den"
   'Input Control: %s/%s': 'Giriş kontrolü: %s/%s'
   '%d of %d nodes online': '%d düğümden %d düğüm çevrimiçi'
   'Filtering ...': 'Filtreleniyor ...'
@@ -130,7 +130,7 @@ tr:
   Settings Lock: Ayarlar kilidi
   'Lock: %s/%s': 'Kilit: %s/%s'
   Enter Text ...: Metin gir...
-  '!Enter Filter ...': !Filtre gir ...
+  '!Enter Filter ...': '!Filtre girin ...'
   Enter Filter ...: Filtre gir ...
   'WiFi: %s': ~
   <not set>: <ayarlanmamış>
