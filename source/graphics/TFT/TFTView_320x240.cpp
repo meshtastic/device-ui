@@ -4248,25 +4248,39 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
  */
 void TFTView_320x240::purgeNode(uint32_t nodeNum)
 {
-    lv_obj_t *p = nullptr;
-    uint32_t oldest = 0;
-    time_t oldestTime = 0;
     if (nodeCount <= 1)
         return;
+
+    lv_obj_t *p = nullptr;
+    uint32_t oldest = 0;
+    lv_obj_t **children = objects.nodes_panel->spec_attr->children;
+    int last = objects.nodes_panel->spec_attr->child_cnt - 1;
+    int i = last;
+
+#ifndef ALWAYS_PURGE_OLDEST_NODE
+    time_t curr_time;
+#ifdef ARCH_PORTDUINO
+    time(&curr_time);
+#else
+    curr_time = actTime;
+#endif
+    // prefer purging older unknown nodes first (but not the brand new ones)
+    while ((eRole)(long)(children[i]->LV_OBJ_IDX(node_img_idx)->user_data) != eRole::unknown ||
+           curr_time <
+               (time_t)(children[i]->LV_OBJ_IDX(node_lh_idx)->user_data) + 120) { // allow node to tell us its name for 2 mins
+        if (i < (last + 1) / 5) { // keep 80% named nodes and 20% unknown (not fresh) nodes
+            i = last;
+            break;
+        }
+        i--;
+    }
+#endif
+    // TODO: should use index to find node from panel
     for (auto &it : nodes) {
-        time_t lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
-        if (lastHeard > 0 && lastHeard < oldestTime && it.first != ownNode && it.first != nodeNum && it.first != 0) {
-            oldestTime = lastHeard;
+        if (it.second == children[i]) {
             oldest = it.first;
             p = it.second;
-        }
-    }
-    if (p == nullptr) {
-        for (auto &it : nodes) {
-            if (it.first != ownNode && it.first != nodeNum) {
-                oldest = it.first;
-                p = it.second;
-            }
+            break;
         }
     }
 
