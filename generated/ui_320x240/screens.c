@@ -636,7 +636,7 @@ void create_screen_main_screen() {
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
+            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
             add_style_panel_style(obj);
             lv_obj_set_style_pad_top(obj, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_left(obj, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -809,7 +809,7 @@ void create_screen_main_screen() {
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
+            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
             add_style_panel_style(obj);
             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1043,7 +1043,7 @@ void create_screen_main_screen() {
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_ACTIVE);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
+            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
             add_style_panel_style(obj);
             lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1087,7 +1087,7 @@ void create_screen_main_screen() {
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-                    lv_obj_set_scroll_snap_x(obj, LV_DIR_HOR);
+                    lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_top(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1215,7 +1215,7 @@ void create_screen_main_screen() {
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SNAPPABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
+            lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
             add_style_panel_style(obj);
             lv_obj_set_style_layout(obj, LV_LAYOUT_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1233,7 +1233,7 @@ void create_screen_main_screen() {
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, LV_PCT(100), LV_PCT(100));
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-                    lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
+                    lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
                     add_style_tab_view_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1244,7 +1244,7 @@ void create_screen_main_screen() {
                             lv_obj_t *obj = lv_tabview_add_tab(parent_obj, _("Settings"));
                             objects.tab_page_basic_settings = obj;
                             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_ACTIVE);
-                            lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
+                            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
                             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_top(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1698,7 +1698,7 @@ void create_screen_main_screen() {
                             lv_obj_t *obj = lv_tabview_add_tab(parent_obj, _("Tools"));
                             objects.tab_page_tools = obj;
                             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_ACTIVE);
-                            lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
+                            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
                             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_flex_flow(obj, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_top(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1896,7 +1896,7 @@ void create_screen_main_screen() {
             lv_obj_set_pos(obj, LV_PCT(12), 0);
             lv_obj_set_size(obj, LV_PCT(80), LV_PCT(10));
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
+            lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
             add_style_top_panel_style(obj);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
@@ -2706,7 +2706,7 @@ void create_screen_main_screen() {
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
+            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
             add_style_settings_panel_style(obj);
             lv_obj_set_style_border_width(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_radius(obj, 12, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4359,7 +4359,7 @@ void create_screen_main_screen() {
                                             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
                                             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-                                            lv_obj_set_scroll_snap_x(obj, LV_DIR_HOR);
+                                            lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
                                             lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
                                             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                                             lv_obj_set_style_pad_top(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4551,7 +4551,7 @@ void create_screen_main_screen() {
                                             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
                                             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-                                            lv_obj_set_scroll_snap_x(obj, LV_DIR_HOR);
+                                            lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
                                             lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
                                             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                                             lv_obj_set_style_pad_top(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4590,7 +4590,7 @@ void create_screen_main_screen() {
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
+            lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
             add_style_panel_style(obj);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_left(obj, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4613,7 +4613,7 @@ void create_screen_main_screen() {
                     lv_obj_set_size(obj, 202, 202);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-                    lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
+                    lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
                     add_style_panel_style(obj);
                     lv_obj_set_style_bg_opa(obj, 200, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4867,8 +4867,9 @@ void create_screen_main_screen() {
             lv_obj_set_pos(obj, 17, 12);
             lv_obj_set_size(obj, LV_PCT(85), 210);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
+            lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
             add_style_panel_style(obj);
             lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4929,6 +4930,7 @@ void create_screen_main_screen() {
                             lv_label_set_text(obj, _("choose\nnode"));
                             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_text_line_space(obj, -2, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                     }
                 }
@@ -5408,7 +5410,7 @@ void create_screen_main_screen() {
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_ACTIVE);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_VER);
+            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
             add_style_panel_style(obj);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_left(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -5666,7 +5668,7 @@ void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIn
             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ONE);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-            lv_obj_set_scroll_snap_x(obj, LV_DIR_NONE);
+            lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
             add_style_panel_style(obj);
             lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);

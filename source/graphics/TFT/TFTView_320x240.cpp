@@ -305,7 +305,7 @@ void TFTView_320x240::init_screens(void)
     lv_slider_set_range(objects.rssi_slider, -125, -25);
     lv_label_set_text(objects.signal_scanner_snr_scale_label,
                       "8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0\n-18.0");
-    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_slider_set_range(objects.snr_slider, -20, 9);
 #endif
 
