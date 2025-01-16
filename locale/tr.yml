@@ -43,7 +43,7 @@ tr:
   "Dark\nLight": "Karanlık\nAçık"
   'Timeout: 60s': 'Zaman aşımı: 60s'
   Screen Lock: Ekran kilidi
-  Lock PIN: PIN kodunu kitle
+  Lock PIN: PIN kodunu \n kitle
   Mouse: Fare
   none: Yok
   Keyboard: Klavye
@@ -70,7 +70,7 @@ tr:
   Resynch...: Yeniden senkronize et
   OK: Tamam
   Cancel: İptal
-  'FrequencySlot: %d (%g MHz)': ~
+  'FrequencySlot: %d (%g MHz)': 'Frekans Slotu: %d (%g MHz)'
   'Brightness: %d%%': 'Parlaklık: %d%%'
   'Timeout: off': 'Zaman aşımı: kapalı'
   'Timeout: %ds': 'Zaman aşımı: %ds'
@@ -103,9 +103,11 @@ tr:
   '%d active chat(s)': '%d aktif sohbet(ler)'
   "New message from \n%s": "Yeni mesaj: \n%s'den"
   'Input Control: %s/%s': 'Giriş kontrolü: %s/%s'
-  '%d of %d nodes online': '%d düğümden %d düğüm çevrimiçi'
+  '%d of %d nodes online':
+    one: '1 düğüm çevrimiçi'
+    other: '%d / %d düğümler çevrimiçi'
   'Filtering ...': 'Filtreleniyor ...'
-  'Filter: %d of %d nodes': 'Filtre: %d düğümden %d'
+  'Filter: %d of %d nodes': 'Filtre: %d/%d'
   now: Şimdi
   '%d new message': 'Yeni %d mesaj'
   '%d new messages': 'Yeni %d mesajlar'
