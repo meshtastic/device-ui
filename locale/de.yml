@@ -111,7 +111,7 @@ de:
     Neue Nachricht von 
     %s
   'Input Control: %s/%s': 'Eingabegeräte: %s/%s'
-  '%d of %d nodes online': 
+  '%d of %d nodes online':
     one: '1 Gerät online'
     other: '%d / %d Geräte online'
   Filtering ...: Filtern ...
@@ -151,3 +151,4 @@ de:
   '!Enter Filter ...': '!Filter Name...'
   Enter Filter ...: Filter Name...
   region unset: keine Region
+  no signal: kein Signal

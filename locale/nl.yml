@@ -160,10 +160,11 @@ nl:
   'Lock: %s/%s': 'Slot: %s/%s'
   Enter Text ...: Voer Tekst In ...
   '!Enter Filter ...': '!Naam ...'
-  Enter Filter ...:  'Naam ...'
+  Enter Filter ...: 'Naam ...'
   'WiFi: %s': ~
   <not set>: <niet ingesteld>
   region unset: regio niet ingesteld
   Banner & Sound: Strook & Geluid
   Banner only: Alleen strook
   Sound only: Alleen geluid
+  no signal: ~
