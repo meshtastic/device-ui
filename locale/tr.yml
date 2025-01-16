@@ -1,5 +1,5 @@
 tr:
-  no new messages: Yeni mesaj bulunmamakta
+  no new messages: Yeni mesaj yok
   1 of 1 nodes online: 1/1 düğüm aktif
   'uptime 00:00:00': 'Çalışma süresi %s'
   "Heap: 0\nLVGL: 0": ~
@@ -88,7 +88,7 @@ tr:
   'Screen Brightness: %d%%': 'Ekran parlaklığı: %d%%'
   'Theme: %s': 'Tema: %s'
   'User name: %s': 'Kullanıcı adı: %s'
-  'Device Role: %s': "Cihaz rolü: %s'
+  'Device Role: %s': 'Cihaz rolü: %s'
   'Region: %s': 'Bölge: %s'
   'Modem Preset: %s': 'Modem Ön Ayarı: %s'
   'Channel: %s': 'Kanal: %s'
