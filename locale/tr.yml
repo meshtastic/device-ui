@@ -1,141 +1,143 @@
 tr:
-  no new messages: ~
-  1 of 1 nodes online: ~
-  'uptime 00:00:00': ~
+  no new messages: Yeni mesaj yok
+  1 of 1 nodes online: 1/1 düğüm aktif
+  'uptime 00:00:00': 'Çalışma süresi %s'
   "Heap: 0\nLVGL: 0": ~
-  DEL: ~
-  'User name: ': ~
-  'Modem Preset: LONG FAST': ~
-  'Channel: LongFast': ~
-  'Role: Client': ~
-  'Screen Timeout: 60s': ~
-  'Screen Lock: off': ~
-  'Screen Brightness: 60%': ~
-  'Theme: Dark': ~
-  'Screen Calibration: default': ~
-  'Input Control: none/none': ~
-  'Message Alert Buzzer: on': ~
-  'Language: English': ~
-  Configuration Reset: ~
-  Reboot / Shutdown: ~
-  Mesh Detector: ~
-  Signal Scanner: ~
+  DEL: Kapat
+  'User name: ': 'Kullanıcı adı'
+  'Modem Preset: LONG FAST': 'Modem ön ayarı: LONG FAST'
+  'Channel: LongFast': 'Kanal: LongFast'
+  'Role: Client': 'Rol: Müşteri'
+  'Screen Timeout: 60s': 'Ekran süresi: 60 saniye'
+  'Screen Lock: off': 'Ekran kilidi: kapalı'
+  'Screen Brightness: 60%': 'Ekran parlaklığı: 60%'
+  'Theme: Dark': 'Tema: Karanlık'
+  'Screen Calibration: default': 'Ekran kalibrasyonu: varsayılan'
+  'Input Control: none/none': 'Giriş kontrolü: yok/yok'
+  'Message Alert Buzzer: on': 'Mesaj Uyarı Sesi: açık'
+  'Language: English': 'Dil: İngizce'
+  Configuration Reset: Yapılandırma sıfırlaması
+  Reboot / Shutdown: Yeniden başlat / Kapat
+  Mesh Detector: Mesh dedektörü
+  Signal Scanner: Sinyal tarayıcısı
   Trace Route: ~
-  Neighbors: ~
-  Statistics: ~
-  Packet Log: ~
+  Neighbors: Komşular
+  Statistics: İstatistikler
+  Packet Log: Paket kaydı
   Meshtastic: ~
-  Group Channels: ~
-  no messages: ~
-  Settings & Tools: ~
-  Settings (advanced): ~
-  Locations Map: ~
-  no chats: ~
-  Node Search: ~
-  Packet Statistics: ~
-  Node Options: ~
-  Short Name: ~
-  Long Name: ~
-  <unset>: ~
+  Group Channels: Grup kanalları
+  no messages: Mesaj yok
+  Settings & Tools: Ayarlar & Araçlar
+  Settings (advanced): Gelişmiş ayarlar
+  Locations Map: Harita lokasyonları
+  no chats: Sohbet yok
+  Node Search: Düğüm araması
+  Packet Statistics: Paket İstatistiği
+  Node Options: Düğüm seçenekleri
+  Short Name: Cihaz kısa ad
+  Long Name: Cihaz uzun ad
+  <unset>: <ayarlanmamış>
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
   "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
-  'Brightness: 60%': ~
-  "Dark\nLight": ~
-  'Timeout: 60s': ~
-  Screen Lock: ~
-  Lock PIN: ~
-  Mouse: ~
-  none: ~
-  Keyboard: ~
-  Message Alert: ~
-  Ringtone: ~
-  Default: ~
-  Zone: ~
-  City: ~
-  "NodeDB Reset\nFactory Reset": ~
-  Channel Name: ~
-  Pre-shared Key: ~
-  Unknown: ~
-  Offline: ~
-  Public Key: ~
+  'Brightness: 60%': 'Parlaklık: 60%'
+  "Dark\nLight": "Karanlık\nAçık"
+  'Timeout: 60s': 'Zaman aşımı: 60s'
+  Screen Lock: Ekran kilidi
+  Lock PIN: PIN kodunu \n kitle
+  Mouse: Fare
+  none: Yok
+  Keyboard: Klavye
+  Message Alert: Mesaj uyarısı
+  Ringtone: Zil ses
+  Default: Varsayılan
+  Zone: Alan
+  City: Şehir
+  "NodeDB Reset\nFactory Reset": "NodeDB Sıfırlaması\nFabrika sıfırlaması"
+  Channel Name: Kanal adı
+  Pre-shared Key: Önceden paylaşılan anahtar
+  Unknown: Bilinmeyen
+  Offline: 'Çevrimdışı'
+  Public Key: 'Açık Anahtar'
   Hops away: ~
   MQTT: ~
-  Position: ~
-  Name: ~
-  Active Chat: ~
-  Telemetry: ~
+  Position: Pozisyon
+  Name: Ad
+  Active Chat: Aktif sohbet
+  Telemetry: Telemetri
   IAQ: ~
-  Start: ~
-  "New Message from\n": ~
-  Resynch...: ~
-  OK: ~
-  Cancel: ~
-  'FrequencySlot: %d (%g MHz)': ~
-  'Brightness: %d%%': ~
-  'Timeout: off': ~
-  'Timeout: %ds': ~
-  'Screen Calibration: %s': ~
-  done: ~
-  default: ~
-  Stop: ~
-  "choose\nnode": ~
-  choose target node: ~
+  Start: Başla
+  "New Message from\n": "Yeni mesaj"
+  Resynch...: Yeniden senkronize et
+  OK: Tamam
+  Cancel: İptal
+  'FrequencySlot: %d (%g MHz)': 'Frekans Slotu: %d (%g MHz)'
+  'Brightness: %d%%': 'Parlaklık: %d%%'
+  'Timeout: off': 'Zaman aşımı: kapalı'
+  'Timeout: %ds': 'Zaman aşımı: %ds'
+  'Screen Calibration: %s': 'Ekran kalibrasyonu: %s'
+  done: Bitti
+  default: Varsayılan
+  Stop: Dur
+  "choose\nnode": "Düğüm\nseç"
+  choose target node: Hedef düğüm seç
   'heard: !%08x': ~
-  'Packet Log: %d': ~
-  'Language: %s': ~
-  'Screen Timeout: off': ~
-  'Screen Timeout: %ds': ~
-  'Screen Brightness: %d%%': ~
-  'Theme: %s': ~
-  'User name: %s': ~
-  'Device Role: %s': ~
-  'Region: %s': ~
-  'Modem Preset: %s': ~
-  'Channel: %s': ~
-  'Screen Lock: %s': ~
-  'on': ~
-  'off': ~
-  'Message Alert: %s': ~
+  'Packet Log: %d': 'Paket kaydı: %d'
+  'Language: %s': 'Dil: %s'
+  'Screen Timeout: off': 'Ekran Zaman Aşımı: kapalı'
+  'Screen Timeout: %ds': 'Ekran Zaman Aşımı: %ds'
+  'Screen Brightness: %d%%': 'Ekran parlaklığı: %d%%'
+  'Theme: %s': 'Tema: %s'
+  'User name: %s': 'Kullanıcı adı: %s'
+  'Device Role: %s': 'Cihaz rolü: %s'
+  'Region: %s': 'Bölge: %s'
+  'Modem Preset: %s': 'Modem Ön Ayarı: %s'
+  'Channel: %s': 'Kanal: %s'
+  'Screen Lock: %s': 'Ekran kilidi: %s'
+  'on': 'Açık'
+  'off': 'Kapalı'
+  'Message Alert: %s': 'Mesaj Uyarısı: %s'
   Util %0.1f%%  Air %0.1f%%: ~
   'hops: %d': ~
-  unknown: ~
-  <no name>: ~
-  '%d active chat(s)': ~
-  "New message from \n%s": ~
-  'Input Control: %s/%s': ~
-  '%d of %d nodes online': ~
-  Filtering ...: ~
-  'Filter: %d of %d nodes': ~
-  now: ~
-  '%d new message': ~
-  '%d new messages': ~
-  'uptime: %02d:%02d:%02d': ~
+  unknown: Bilinmeyen
+  <no name>: <ad yok>
+  '%d active chat(s)': '%d aktif sohbet(ler)'
+  "New message from \n%s": "Yeni mesaj: \n%s'den"
+  'Input Control: %s/%s': 'Giriş kontrolü: %s/%s'
+  '%d of %d nodes online':
+    one: '1 düğüm çevrimiçi'
+    other: '%d / %d düğümler çevrimiçi'
+  'Filtering ...': 'Filtreleniyor ...'
+  'Filter: %d of %d nodes': 'Filtre: %d/%d'
+  now: Şimdi
+  '%d new message': 'Yeni %d mesaj'
+  '%d new messages': 'Yeni %d mesajlar'
+  'uptime: %02d:%02d:%02d': 'Çalışma süresi: %02d:%02d:%02d'
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
-  Settings: ~
-  Tools: ~
-  Filter: ~
-  Highlight: ~
-  Primary Channel: ~
-  Secondary Channels: ~
-  Resynch ...: ~
-  Rebooting ...: ~
-  Shutting down ...: ~
+  Settings: Ayarlar
+  Tools: Araçlar
+  Filter: Filtre
+  Highlight: Vurgu
+  Primary Channel: Birinci kanallar
+  Secondary Channels: İkinci kanallar
+  Resynch ...: Yeniden senkronize et
+  Rebooting ...: Yeniden başlatılıyor ...
+  Shutting down ...: Kapatılıyor ...
   LoRa 0.0 MHz: ~
-  silent: ~
-  'WiFi: <not setup>': ~
-  'Lock: off/off': ~
-  LoRa TX off!: ~
-  WiFi SSID: ~
-  WiFi pre-shared Key: ~
-  Settings Lock: ~
-  'Lock: %s/%s': ~
-  Enter Text ...: ~
-  '!Enter Filter ...': ~
-  Enter Filter ...: ~
+  silent: Sessiz
+  'WiFi: <not setup>': 'WiFi: <kurulmamış>'
+  'Lock: off/off': 'Lock: kapalı/kapalı'
+  LoRa TX off!: LoRa TX kapalı!
+  WiFi SSID: WiFi SSID
+  WiFi pre-shared Key: WiFi önceden paylaşılmış anahtar
+  Settings Lock: Ayarlar kilidi
+  'Lock: %s/%s': 'Kilit: %s/%s'
+  Enter Text ...: Metin gir...
+  '!Enter Filter ...': '!Filtre girin ...'
+  Enter Filter ...: Filtre gir ...
   'WiFi: %s': ~
-  <not set>: ~
-  region unset: ~
-  Banner & Sound: ~
-  Banner only: ~
-  Sound only: ~
-  no signal: ~
+  <not set>: <ayarlanmamış>
+  region unset: Bölge ayarlanmamış
+  Banner & Sound: Afiş & ses
+  Banner only: Sadece afiş
+  Sound only: Sadece ses
+  no signal: Sinyal yok
