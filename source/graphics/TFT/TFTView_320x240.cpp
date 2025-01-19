@@ -562,6 +562,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_7, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)7);
     lv_obj_add_event_cb(objects.keyboard_button_8, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)8);
     lv_obj_add_event_cb(objects.keyboard_button_9, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)9);
+    lv_obj_add_event_cb(objects.keyboard_button_10, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)10);
+    lv_obj_add_event_cb(objects.keyboard_button_11, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)11);
 
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
@@ -595,6 +597,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // dropdown
     lv_obj_add_event_cb(objects.settings_modem_preset_dropdown, ui_event_modem_preset_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.setup_region_dropdown, ui_event_setup_region_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // OK / Cancel widget for basic settings dialog
     lv_obj_add_event_cb(objects.obj2__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
@@ -629,6 +632,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj16__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj19__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj19__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj25__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj25__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -653,7 +658,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.tools_signal_scanner_button, ui_event_signal_scanner, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.tools_trace_route_button, ui_event_trace_route, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.tools_neighbors_button, ui_event_neighbors, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.tools_neighbors_button, ui_event_node_details, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.tools_statistics_button, ui_event_statistics, LV_EVENT_ALL, 0);
     lv_obj_add_event_cb(objects.tools_packet_log_button, ui_event_packet_log, LV_EVENT_ALL, 0);
     // tools
@@ -1952,9 +1957,9 @@ void TFTView_320x240::removeSpinner(void)
     }
 }
 
-void TFTView_320x240::ui_event_neighbors(lv_event_t *e)
+void TFTView_320x240::ui_event_node_details(lv_event_t *e)
 {
-    THIS->ui_set_active(objects.settings_button, objects.tools_neighbors_panel, objects.top_neighbors_panel);
+    THIS->ui_set_active(objects.settings_button, objects.details_panel, objects.top_nodes_panel);
 }
 
 void TFTView_320x240::ui_event_statistics(lv_event_t *e)
@@ -2322,6 +2327,16 @@ void TFTView_320x240::ui_event_statistics_table(lv_event_t *e)
             }
         }
     }
+}
+
+void TFTView_320x240::requestSetup(void)
+{
+    ui_set_active(objects.settings_button, objects.initial_setup_panel, objects.top_setup_panel);
+    lv_dropdown_set_selected(objects.setup_region_dropdown, 0);
+    lv_obj_clear_flag(objects.initial_setup_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_group_focus_obj(objects.setup_region_dropdown);
+    THIS->disablePanel(objects.controller_panel);
+    THIS->activeSettings = eSetup;
 }
 
 /**
@@ -2752,6 +2767,51 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
         switch (THIS->activeSettings) {
+        case eSetup: {
+            meshtastic_Config_LoRaConfig_RegionCode region =
+                (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.setup_region_dropdown) + 1);
+
+            uint32_t numChannels = LoRaPresets::getNumChannels(region, THIS->db.config.lora.modem_preset);
+            // if (numChannels == 0) {
+            //     // region not possible for selected preset, revert
+            //     lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
+            //     return;
+            // }
+
+            if (region != THIS->db.config.lora.region) {
+                char buf1[10], buf2[30];
+                lv_dropdown_get_selected_str(objects.setup_region_dropdown, buf1, sizeof(buf1));
+                lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
+                lv_label_set_text(objects.basic_settings_region_label, buf2);
+
+                meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
+                uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset);
+                lora.region = region;
+                lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
+                THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
+            }
+
+            char buf[30];
+            const char *userShort = lv_textarea_get_text(objects.setup_user_short_textarea);
+            const char *userLong = lv_textarea_get_text(objects.setup_user_long_textarea);
+            if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
+                lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
+                lv_label_set_text(objects.basic_settings_user_label, buf);
+                lv_label_set_text(objects.user_name_short_label, userShort);
+                lv_label_set_text(objects.user_name_label, userLong);
+                strcpy(THIS->db.short_name, userShort);
+                strcpy(THIS->db.long_name, userLong);
+                meshtastic_User user{}; // TODO: don't overwrite is_licensed
+                strcpy(user.short_name, userShort);
+                strcpy(user.long_name, userLong);
+                THIS->controller->sendConfig(user, THIS->ownNode);
+            }
+            THIS->notifyReboot(true);
+
+            lv_obj_add_flag(objects.initial_setup_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.home_button);
+            break;
+        }
         case eUsername: {
             char buf[30];
             const char *userShort = lv_textarea_get_text(objects.settings_user_short_textarea);
@@ -3097,6 +3157,12 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
         switch (THIS->activeSettings) {
+        case TFTView_320x240::eSetup: {
+            THIS->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
+            // lv_obj_add_flag(objects.initial_setup_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.home_button);
+            break;
+        }
         case TFTView_320x240::eUsername: {
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_user_button);
@@ -3253,6 +3319,8 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
     lv_label_set_text(objects.frequency_slot_label, buf);
 }
 
+void TFTView_320x240::ui_event_setup_region_dropdown(lv_event_t *e) {}
+
 // animations
 void TFTView_320x240::ui_anim_node_panel_cb(void *var, int32_t v)
 {
@@ -3388,7 +3456,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // ==================================================
     // [0]: img                    | role
     // [1]: btn                    | ll group
-    // [2]: lbl user long          | strlen(userLong)
+    // [2]: lbl user long          | nodeNum
     // [3]: lbl user short         | userShort (4 chars)
     // [4]: lbl battery            | hasKey
     // [5]: lbl lastHeard          | lastHeard / curtime
@@ -3399,7 +3467,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     // [10]: lbl telemetry 2       | iaq
     // panel user_data: ch
 
-    ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s)", nodeCount, nodeNum, lastHeard, userLong, userShort);
+    ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s), role=%d", nodeCount, nodeNum, lastHeard, userLong, userShort,
+               role);
     while (nodeCount >= MAX_NUM_NODES_VIEW) {
         purgeNode(nodeNum);
     }
@@ -3454,7 +3523,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_size(ln_lbl, LV_PCT(80), LV_SIZE_CONTENT);
     lv_label_set_long_mode(ln_lbl, LV_LABEL_LONG_SCROLL);
     lv_label_set_text(ln_lbl, userLong);
-    ln_lbl->user_data = (void *)strlen(userLong);
+    ln_lbl->user_data = (void *)nodeNum;
     lv_obj_set_style_align(ln_lbl, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     // UserNameShortLabel
@@ -3631,7 +3700,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
             db.config.device.role = (meshtastic_Config_DeviceConfig_Role)role;
         }
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), userLong);
-        it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)strlen(userLong);
+        it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)nodeNum;
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
         char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
         userData[0] = userShort[0];
@@ -4251,8 +4320,6 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
     if (nodeCount <= 1)
         return;
 
-    lv_obj_t *p = nullptr;
-    uint32_t oldest = 0;
     lv_obj_t **children = objects.nodes_panel->spec_attr->children;
     int last = objects.nodes_panel->spec_attr->child_cnt - 1;
     int i = last;
@@ -4266,8 +4333,9 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
 #endif
     // prefer purging older unknown nodes first (but not the brand new ones)
     while ((eRole)(long)(children[i]->LV_OBJ_IDX(node_img_idx)->user_data) != eRole::unknown ||
-           curr_time <
-               (time_t)(children[i]->LV_OBJ_IDX(node_lh_idx)->user_data) + 120) { // allow node to tell us its name for 2 mins
+           curr_time < (time_t)(children[i]->LV_OBJ_IDX(node_lh_idx)->user_data) + 120 ||
+           (unsigned long)(children[i]->LV_OBJ_IDX(node_lbl_idx)->user_data) == nodeNum ||
+           chats.find((unsigned long)(children[i]->LV_OBJ_IDX(node_lbl_idx)->user_data)) != chats.end()) {
         if (i < (last + 1) / 5) { // keep 80% named nodes and 20% unknown (not fresh) nodes
             i = last;
             break;
@@ -4275,14 +4343,8 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
         i--;
     }
 #endif
-    // TODO: should use index to find node from panel
-    for (auto &it : nodes) {
-        if (it.second == children[i]) {
-            oldest = it.first;
-            p = it.second;
-            break;
-        }
-    }
+    lv_obj_t *p = children[i];
+    uint32_t oldest = (unsigned long)(p->LV_OBJ_IDX(node_lbl_idx)->user_data);
 
     uint32_t lastHeard = (unsigned long)p->LV_OBJ_IDX(node_lh_idx)->user_data;
     if (lastHeard > 0 && (curtime - lastHeard <= secs_until_offline))
@@ -4297,6 +4359,7 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
         if (it != messages.end())
             lv_obj_delete(it->second);
     }
+
     {
         auto it = chats.find(oldest);
         if (it != chats.end()) {
@@ -4715,6 +4778,8 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
                 setChannelName(db.channel[i]);
             }
         }
+    } else {
+        requestSetup();
     }
 }
 
@@ -5001,14 +5066,14 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     lv_obj_t *container = nullptr;
     if (to == UINT32_MAX) { // message for group, prepend short name to msg
         if (nodes.find(from) == nodes.end()) {
-            ILOG_ERROR("newMessage: node 0x%08x not in nodes[]", from);
-            return;
-        }
-        // original short name is held in userData, extract it and add msg
-        char *userData = (char *)&(nodes[from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-        while (pos < 4 && userData[pos] != 0) {
-            buf[pos] = userData[pos];
-            pos++;
+            pos += sprintf(buf, "%04x ", from & 0xffff);
+        } else {
+            // original short name is held in userData, extract it and add msg
+            char *userData = (char *)&(nodes[from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
+            while (pos < 4 && userData[pos] != 0) {
+                buf[pos] = userData[pos];
+                pos++;
+            }
         }
         buf[pos++] = ' ';
         container = channelGroup[ch];
@@ -5070,7 +5135,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
     lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 200), 30));
+    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
@@ -5128,14 +5193,19 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
             newMessage(msg.from, msg.to, msg.ch, (const char *)msg.bytes, time);
         }
     } else {
-        // from node not in db
-        ILOG_DEBUG("from node 0x%08x not in db", msg.from);
-        MeshtasticView::addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
-
+        int pos = 0;
         char buf[284]; // 237 + 4 + 40 + 2 + 1
-        uint32_t len = timestamp(buf, msg.time, false);
-        memcpy(buf + len, msg.bytes, msg.size());
-        buf[len + msg.size()] = 0;
+        if (msg.to != UINT32_MAX) {
+            // from node not in db
+            ILOG_DEBUG("from node 0x%08x not in db", msg.from);
+            MeshtasticView::addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
+        } else {
+            ILOG_DEBUG("from node 0x%08x not in db and no need to insert", msg.from);
+            pos += sprintf(buf, "%04x ", msg.from & 0xffff);
+        }
+        uint32_t len = timestamp(buf + pos, msg.time, false);
+        memcpy(buf + pos + len, msg.bytes, msg.size());
+        buf[pos + len + msg.size()] = 0;
 
         lv_obj_t *container = newMessageContainer(msg.from, msg.to, msg.ch);
         lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);

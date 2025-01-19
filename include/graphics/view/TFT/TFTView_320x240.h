@@ -85,6 +85,7 @@ class TFTView_320x240 : public MeshtasticView
 
     enum BasicSettings {
         eNone,
+        eSetup,
         eUsername,
         eDeviceRole,
         eRegion,
@@ -128,6 +129,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void init_screens(void);
     // update custom display string on boot screen
     virtual void updateBootMessage(void);
+    // show initial setup panel to configure region and name
+    virtual void requestSetup(void);
     // update node counter display (online and filtered)
     virtual void updateNodesStatus(void);
     // display message popup
@@ -296,6 +299,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_brightness_slider(lv_event_t *e);
     static void ui_event_frequency_slot_slider(lv_event_t *e);
     static void ui_event_modem_preset_dropdown(lv_event_t *e);
+    static void ui_event_setup_region_dropdown(lv_event_t *e);
 
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 
@@ -308,7 +312,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_trace_route_to(lv_event_t *e);
     static void ui_event_trace_route_start(lv_event_t *e);
     static void ui_event_trace_route_node(lv_event_t *e);
-    static void ui_event_neighbors(lv_event_t *e);
+    static void ui_event_node_details(lv_event_t *e);
     static void ui_event_statistics(lv_event_t *e);
     static void ui_event_packet_log(lv_event_t *e);
 
