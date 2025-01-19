@@ -919,6 +919,7 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Banner & Sound", "Strook & Geluid"},
     {"Banner only", "Alleen strook"},
     {"Sound only", "Alleen geluid"},
+    {"no signal", "geen signaal"},
     {NULL, NULL} // End mark
 };
 
