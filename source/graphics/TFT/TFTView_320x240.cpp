@@ -4345,25 +4345,25 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
 #endif
     lv_obj_t *p = children[i];
     uint32_t oldest = (unsigned long)(p->LV_OBJ_IDX(node_lbl_idx)->user_data);
-
     uint32_t lastHeard = (unsigned long)p->LV_OBJ_IDX(node_lh_idx)->user_data;
     if (lastHeard > 0 && (curtime - lastHeard <= secs_until_offline))
         nodesOnline--;
 
     ILOG_INFO("removing oldest node 0x%08x", oldest);
-    lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
-    lv_ll_remove(lv_group_ll, p->LV_OBJ_IDX(node_btn_idx)->user_data);
     lv_obj_delete(p);
     {
         auto it = messages.find(oldest);
-        if (it != messages.end())
+        if (it != messages.end()) {
             lv_obj_delete(it->second);
+            messages.erase(oldest);
+        }
     }
 
     {
         auto it = chats.find(oldest);
         if (it != chats.end()) {
             lv_obj_delete(it->second);
+            chats.erase(oldest);
             updateActiveChats();
         }
     }
