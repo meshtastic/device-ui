@@ -80,11 +80,11 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [x] Portuguese translation
       - [x] Netherlands translation
       - [x] Dutch translation
-      - [X] Italian translation
-      - [X] French translation
-      - [X] Russian translation
-      - [X] Slovenian translation
-      - [ ] Turkish translation
+      - [x] Italian translation
+      - [x] French translation
+      - [x] Russian translation
+      - [x] Slovenian translation
+      - [x] Turkish translation
       - [ ] Greek translation
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
