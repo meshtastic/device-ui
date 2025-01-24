@@ -1173,6 +1173,14 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
             THIS->showKeyboard(objects.settings_wifi_password_textarea);
             lv_group_focus_obj(objects.settings_wifi_password_textarea);
             break;
+        case 10:
+            THIS->showKeyboard(objects.setup_user_short_textarea);
+            lv_group_focus_obj(objects.setup_user_short_textarea);
+            break;
+        case 11:
+            THIS->showKeyboard(objects.setup_user_long_textarea);
+            lv_group_focus_obj(objects.setup_user_long_textarea);
+            break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment");
         }
