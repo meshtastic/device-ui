@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef LGFX_DRIVER
 #include "LovyanGFX.h"
 #include "graphics/driver/DisplayDriverConfig.h"
 #include "graphics/driver/TFTDriver.h"
@@ -460,3 +461,5 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
         ILOG_DEBUG("BL pin assigned");
     }
 }
+
+#endif
