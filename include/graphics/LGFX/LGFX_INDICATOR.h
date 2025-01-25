@@ -36,7 +36,7 @@ class LGFX_Touch : public lgfx::LGFX_Device
     bool getTouchXY(uint16_t *touchX, uint16_t *touchY)
     {
         TOUCHINFO ti;
-        if (bbct.getSamples(&ti)) {
+        if (bbct.getSamples(&ti) && (*touchX || *touchY)) {
             *touchX = ti.x[0];
             *touchY = ti.y[0];
             if (*touchX < 480 && *touchY < 480)
@@ -63,7 +63,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
     const uint16_t screenWidth = 480;
     const uint16_t screenHeight = 480;
 
-    bool hasButton(void) { return true; }
+    bool hasButton(void) { return false; }
 
     LGFX_INDICATOR(void)
     {
