@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdint.h"
+#include "lvgl.h"
 
 /**
  * Base class for all implemented display device drivers

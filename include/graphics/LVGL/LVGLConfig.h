@@ -5,6 +5,7 @@
 #include "graphics/driver/DisplayDriverConfig.h"
 #include "strings.h"
 #include "util/ILog.h"
+#include "lvgl.h"
 
 class DisplayDeviceDriver;
 
