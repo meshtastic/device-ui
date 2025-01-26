@@ -53,7 +53,7 @@ DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 #elif defined(LGFX_DRIVER)
     return new LGFXDriver<LGFX_DRIVER>(width, height);
 #elif defined(LVGL_DRIVER)
-    return new LVGL_DRIVER();
+    return new LVGLDriver<LVGL_DRIVER>(width, height);
 #endif
     ILOG_CRIT("DisplayDriverFactory: missing or wrong configuration");
     assert(false);
@@ -107,7 +107,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #if defined(LGFX_DRIVER)
     return new LGFXDriver<LGFX_DRIVER>(cfg.width(), cfg.height());
 #elif defined(LVGL_DRIVER)
-    return new LVGL_DRIVER(cfg);
+    return new LVGLDriver<LVGLConfig>(cfg.width(), cfg.height());
 #endif
 #endif
     ILOG_CRIT("DisplayDriverFactory: missing or wrong GFX configuration for device %d", static_cast<int>(cfg._device));
