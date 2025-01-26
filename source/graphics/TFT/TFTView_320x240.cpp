@@ -5348,6 +5348,7 @@ void TFTView_320x240::notifyRestoreMessages(int32_t percentage)
         lv_label_set_text(objects.msg_popup_label, buf);
         lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.msg_popup_button);
+        lv_task_handler();
     } else {
         lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
         ILOG_DEBUG("notifyRestoreMessages finished");
