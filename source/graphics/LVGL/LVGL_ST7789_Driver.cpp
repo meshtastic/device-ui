@@ -1,3 +1,5 @@
+#if defined(LV_USE_ST7789) && LV_USE_ST7789 == 1
+
 #include "graphics/LVGL/LVGL_ST7789_Driver.h"
 #include "util/ILog.h"
 
@@ -48,3 +50,5 @@ void LVGL_ST7789_Driver::lcd_send_color_cb(lv_display_t *disp, const uint8_t *cm
                                            size_t param_size)
 {
 }
+
+#endif
