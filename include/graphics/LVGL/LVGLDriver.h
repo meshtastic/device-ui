@@ -36,9 +36,10 @@ template <class LVGL> class LVGLDriver : public TFTDriver<LVGL>
 
   protected:
     void init_lvgl(void);
-    virtual lv_display_t *create(uint32_t hor_res, uint32_t ver_res) = 0;
-    static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data) {} // TODO
-    // static uint32_t my_tick_get_cb(void) { return millis(); }
+    static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
+    {
+        return lvgldriver->touchpad_read(indev_driver, data);
+    }
 
     uint32_t screenTimeout;
     uint32_t lastBrightness;
@@ -71,13 +72,13 @@ LVGLDriver<LVGL>::LVGLDriver(const DisplayDriverConfig &cfg)
 
 template <class LVGL> void LVGLDriver<LVGL>::init(DeviceGUI *gui)
 {
-    ILOG_DEBUG("LVGLDriver<LVGL>::init...\n");
+    ILOG_DEBUG("LVGLDriver<LVGL>::init...");
     init_lvgl();
     TFTDriver<LVGL>::init(gui);
 
     // LVGL: setup display device driver
-    ILOG_DEBUG("LVGL display driver create...\n");
-    display = create(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
+    ILOG_DEBUG("LVGL display driver create...");
+    display = lvgldriver->create(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
 
     std::pair<lv_color_t *, lv_color_t *> draw_buffers = {nullptr, nullptr};
     const auto buffer_size =

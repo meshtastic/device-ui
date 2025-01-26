@@ -46,7 +46,7 @@ DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 #elif defined(LGFX_DRIVER)
     return new LGFXDriver<LGFX_DRIVER>(width, height);
 #elif defined(LVGL_DRIVER)
-    return new LVGL_DRIVER();
+    return new LVGLDriver<LVGL_DRIVER>(width, height);
 #endif
     ILOG_CRIT("DisplayDriverFactory: missing or wrong configuration");
     assert(false);
@@ -60,8 +60,8 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 {
 #if defined(ARCH_PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_TFT) {
-        if (strcasecmp(cfg._panel.type, "ST7789") == 0)
-            return new LVGLConfig(cfg);
+        if (cfg._panel.driver == DisplayDriverConfig::driver_t::LVGL && strcasecmp(cfg._panel.type, "ST7789") == 0)
+            return new LVGLDriver<LVGLConfig>(cfg);
         else
             return new LGFXDriver<LGFXConfig>(cfg);
     }
@@ -91,8 +91,9 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #if defined(LGFX_DRIVER)
     return new LGFXDriver<LGFX_DRIVER>(cfg.width(), cfg.height());
 #elif defined(LVGL_DRIVER)
-    return new LVGL_DRIVER(cfg);
+    return new LVGLDriver<LVGLConfig>(cfg.width(), cfg.height());
 #endif
 #endif
+    ILOG_CRIT("DisplayDriverFactory: unsupported or missing device type");
     return nullptr;
 }

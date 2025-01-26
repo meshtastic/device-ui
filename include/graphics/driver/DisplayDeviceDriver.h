@@ -8,13 +8,10 @@
 class DisplayDeviceDriver
 {
   public:
-    DisplayDeviceDriver(){};
+    DisplayDeviceDriver(uint16_t width, uint16_t height) : screenWidth(width), screenHeight(height){};
+
     virtual void init(void) {}
-    virtual bool hasTouch(void) { return false; }
-    virtual bool hasButton(void) { return false; }
-    virtual bool hasLight(void) { return false; }
-    virtual bool isPowersaving(void) { return false; }
-    // virtual void task_handler(void) {};
+    virtual lv_display_t *create(uint32_t hor_res, uint32_t ver_res) = 0;
 
     virtual uint8_t getBrightness(void) const { return 128; }
     virtual void setBrightness(uint8_t brightness) {}
@@ -23,6 +20,10 @@ class DisplayDeviceDriver
     virtual void setScreenTimeout(uint16_t timeout) {}
 
     virtual ~DisplayDeviceDriver() = default;
+
+  protected:
+    const uint16_t screenWidth;
+    const uint16_t screenHeight;
 
   private:
     DisplayDeviceDriver(const DisplayDeviceDriver &) = delete;
