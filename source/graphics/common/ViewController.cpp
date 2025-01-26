@@ -586,7 +586,7 @@ void ViewController::beginRestoreTextMessages(void)
 {
     configCompleted = true;
     restoreTimer = millis();
-    ILOG_DEBUG("loading persistent messages...");
+    ILOG_INFO("loading persistent messages...");
 }
 
 /**
@@ -594,15 +594,19 @@ void ViewController::beginRestoreTextMessages(void)
  */
 void ViewController::restoreTextMessages(void)
 {
+    static uint32_t msgCounter = 0;
     LogMessageEnv msg;
     if (log.readNext(msg)) {
         view->restoreMessage(msg);
+        msgCounter++;
     } else {
-        ILOG_DEBUG("restoring log messages completed in %dms.", millis() - restoreTimer);
+        ILOG_INFO("restoring %d messages completed in %dms.", msgCounter, millis() - restoreTimer);
+        msgCounter = 0;
         messagesRestored = true;
         view->notifyMessagesRestored();
     }
 }
+
 /**
  * write a flag into message log that chat has been deleted
  * The call removeTextMessages(0,0,0) removes all logs.
