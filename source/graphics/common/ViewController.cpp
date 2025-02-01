@@ -47,10 +47,11 @@ void ViewController::runOnce(void)
     if (client) {
         if (!setupDone || requestConfigRequired)
             requestConfig();
-        receive();
 
         if (configCompleted && !messagesRestored)
             restoreTextMessages();
+        else
+            receive();
 
         // executed every 10s:
         time_t curtime;
