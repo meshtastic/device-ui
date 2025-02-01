@@ -4586,10 +4586,11 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
 void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
 {
     MeshtasticView::packetReceived(p);
-    // update time from packet
-    if (p.rx_time > actTime) {
-        actTime = p.rx_time;
-    }
+
+    // try update time from packet
+    if (!VALID_TIME(actTime) && VALID_TIME(p.rx_time))
+        updateTime(p.rx_time);
+
     if (detectorRunning) {
         packetDetected(p);
     }
@@ -4996,10 +4997,22 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
     objects.home_bell_button->user_data = (void *)off;
 }
 
-void TFTView_320x240::updateTime(uint32_t time)
+void TFTView_320x240::updateTime(uint32_t timeVal)
 {
-    if (time > actTime) {
-        actTime = time;
+    time_t localtime;
+    time(&localtime);
+
+    if (VALID_TIME(localtime)) {
+        if (actTime != localtime) {
+            ILOG_DEBUG("update (local)time: %d -> %d", actTime, localtime);
+            actTime = localtime;
+        }
+    }
+    else {
+        if (timeVal > actTime) {
+            ILOG_DEBUG("update (act)time: %d -> %d", actTime, timeVal);
+            actTime = timeVal;
+        }
     }
 }
 
