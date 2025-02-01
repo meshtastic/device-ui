@@ -106,7 +106,7 @@ class MeshtasticView : public DeviceGUI
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) {}
     virtual void restoreMessage(const LogMessage &msg) {}
     virtual void notifyRestoreMessages(int32_t percentage) {}
-    virtual void notifyMessagesRestored(void) {}
+    virtual void notifyMessagesRestored(void);
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);
@@ -136,6 +136,7 @@ class MeshtasticView : public DeviceGUI
     uint32_t nodeCount = 1, nodesOnline = 1, ownNode = 0; // node info
     uint32_t unreadMessages = 0;                          // messages
     bool configComplete = false;                          // config request finishe
+    bool messagesRestored = false;                        // message restoration process finished
     time_t lastrun20 = 0;                                 // 20s task
     time_t curtime = 0;                                   // current system time
 };

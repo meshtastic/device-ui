@@ -154,7 +154,15 @@ bool LogRotate::clear(void)
 /**
  * Return number of log files
  */
-uint32_t LogRotate::count(void)
+uint32_t LogRotate::size(void) const
+{
+    return totalSize;
+}
+
+/**
+ * Return number of log files
+ */
+uint32_t LogRotate::count(void) const
 {
     return numFiles;
 }
@@ -162,7 +170,7 @@ uint32_t LogRotate::count(void)
 /**
  * Return current log number that is processed for reading
  */
-uint32_t LogRotate::current(void)
+uint32_t LogRotate::current(void) const
 {
     return currentLogRead;
 }

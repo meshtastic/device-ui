@@ -230,6 +230,13 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
 #endif
     }
 
+    // update home panel bell text
+    setBellText(db.uiConfig.alert_enabled, !db.silent);
+    bool off = !db.uiConfig.alert_enabled && db.silent;
+    Themes::recolorButton(objects.home_bell_button, !off);
+    Themes::recolorText(objects.home_bell_label, !off);
+    objects.home_bell_button->user_data = (void *)off;
+
     lv_disp_trig_activity(NULL);
 }
 
@@ -781,7 +788,13 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+        if (THIS->messagesRestored) {
+            THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+        }
+        else {
+            lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.msg_popup_button);
+        }
     }
 }
 
@@ -891,6 +904,11 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
 {
     lv_obj_t *target = lv_event_get_target_obj(e);
     lv_event_code_t event_code = lv_event_get_code(e);
+
+    if (!THIS->messagesRestored) {
+        lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+        return;
+    }
     if (target == objects.msg_popup_panel) {
         if (event_code == LV_EVENT_PRESSED) {
             THIS->hideMessagePopup();
@@ -913,6 +931,10 @@ void TFTView_320x240::ui_event_EnvelopeButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->configComplete) {
+        if (!THIS->messagesRestored) {
+            lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+            return;
+        }
         THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
     }
 }
@@ -4983,12 +5005,6 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
         db.uiConfig.ring_tone_id = 1;
     db.silent = rtIndex == 0;
 
-    //    char buf[32];
-    //    lv_snprintf(buf, sizeof(buf), _("Message Alert: %s"),
-    //        db.module_config.external_notification.alert_message_buzzer ? (rtIndex == 0 ? _("silent") : ringtone[rtIndex].name)
-    //        : "off");
-    //    lv_label_set_text(objects.basic_settings_alert_label, buf);
-
     // update home panel bell text
     setBellText(db.uiConfig.alert_enabled, !db.silent);
     bool off = !db.uiConfig.alert_enabled && db.silent;
@@ -5167,7 +5183,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 }
 
 /**
- * restored messages from persistent log
+ * restore messages from persistent log
  */
 void TFTView_320x240::restoreMessage(const LogMessage &msg)
 {
@@ -5354,22 +5370,15 @@ void TFTView_320x240::updateActiveChats(void)
  */
 void TFTView_320x240::notifyRestoreMessages(int32_t percentage)
 {
-    ILOG_DEBUG("notifyRestoreMessages: %d%%", percentage); // TODO
-    if (percentage >= 0) {
-        static char buf[64];
-        lv_snprintf(buf, sizeof(buf), _("Restoring messages %d%%\n...please wait..."), percentage);
-        lv_label_set_text(objects.msg_popup_label, buf);
-        lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
-        lv_group_focus_obj(objects.msg_popup_button);
-        lv_task_handler();
-    } else {
-        lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
-        ILOG_DEBUG("notifyRestoreMessages finished");
-    }
+    char buf[64];
+    lv_snprintf(buf, sizeof(buf), _("Restoring messages %d%%\n...please wait..."), percentage);
+    lv_label_set_text(objects.msg_popup_label, buf);
 }
 
 void TFTView_320x240::notifyMessagesRestored(void)
 {
+    MeshtasticView::notifyMessagesRestored();
+    lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
     updateActiveChats();
     updateNodesFiltered(true);
 }
@@ -5413,6 +5422,13 @@ void TFTView_320x240::hideMessagePopup(void)
  */
 void TFTView_320x240::showMessages(uint8_t ch)
 {
+    if (!messagesRestored) {
+        // display message restoration progress banner
+        lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.msg_popup_button);
+        return;
+    }
+
     lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     activeMsgContainer = channelGroup[ch];
     if (!activeMsgContainer) {

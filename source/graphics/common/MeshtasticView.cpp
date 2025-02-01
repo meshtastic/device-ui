@@ -88,6 +88,10 @@ void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float v
 
 void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {}
 
+void MeshtasticView::notifyMessagesRestored(void) {
+    messagesRestored = true;
+}
+
 void MeshtasticView::notifyResync(bool show) {}
 
 void MeshtasticView::notifyReboot(bool show) {}

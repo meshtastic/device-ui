@@ -596,13 +596,18 @@ void ViewController::beginRestoreTextMessages(void)
 void ViewController::restoreTextMessages(void)
 {
     static uint32_t msgCounter = 0;
+    static uint32_t msgTotalSize = 0;
     LogMessageEnv msg;
+
     if (log.readNext(msg)) {
-        view->restoreMessage(msg);
         msgCounter++;
+        msgTotalSize += msg.size();
+        view->restoreMessage(msg);
+        view->notifyRestoreMessages(msgTotalSize * 100 / log.size());
     } else {
         ILOG_INFO("restoring %d messages completed in %dms.", msgCounter, millis() - restoreTimer);
         msgCounter = 0;
+        msgTotalSize = 0;
         messagesRestored = true;
         view->notifyMessagesRestored();
     }
@@ -874,29 +879,14 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
         ILOG_INFO("received text message '%s'", (const char *)p.decoded.payload.bytes);
         if (!messagesRestored && log.count() > 0) {
             // houston we have a problem! Haven't finished restoring messages incrementally while new ones come in
-            // enforce loading all at once which may take a while so display some banner if it'll take longer
             if (!configCompleted) {
                 ILOG_ERROR("cannot handle received message NOW");
                 return false; // the only way out
             }
-
-            ILOG_DEBUG("loading all logs at once");
-            int32_t percentage = log.current() * 100 / log.count();
-            bool showPercentage = false;
-            if (log.count() > 3 && percentage < 80) {
-                showPercentage = true;
-                view->notifyRestoreMessages(percentage);
+            else {
+                // let's hope for the best...
+                ILOG_ERROR("WTF!? how did we get here??");
             }
-            uint32_t count = 0;
-            LogMessageEnv msg;
-            while (log.readNext(msg)) {
-                view->restoreMessage(msg);
-                if (showPercentage && (count++ % 10) == 0) {
-                    view->notifyRestoreMessages(log.current() * 100 / log.count());
-                }
-            }
-            messagesRestored = true;
-            view->notifyRestoreMessages(-1);
         }
         uint32_t time = p.rx_time;
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
