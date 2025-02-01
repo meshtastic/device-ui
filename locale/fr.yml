@@ -12,7 +12,7 @@ fr:
   'Screen Lock: off': 'Verr. écran: off'
   'Screen Brightness: 60%': ~
   'Theme: Dark': 'Thème: Sombre'
-  "Screen Calibration: default": "Calibr. d'écran: défaut"
+  'Screen Calibration: default': "Calibr. d'écran: défaut"
   'Input Control: none/none': ~
   'Message Alert Buzzer: on': 'Sonnerie: on'
   'Language: English': 'Langue: Français'
@@ -47,7 +47,7 @@ fr:
   Mouse: Souris
   none: ~
   Keyboard: Clavier
-  "Message Alert": "Notifications"
+  'Message Alert': 'Notifications'
   Ringtone: Sonnerie
   Default: défaut
   Zone: Zone
@@ -74,7 +74,7 @@ fr:
   'Brightness: %d%%': 'Luminosité : %d%%'
   'Timeout: off': 'Timeout: désactivé'
   'Timeout: %ds': ~
-  "Screen Calibration: %s": "Calibration d'écran: %s"
+  'Screen Calibration: %s': "Calibration d'écran: %s"
   done: fait
   default: défaut
   Stop: Arrêt
@@ -84,7 +84,7 @@ fr:
   'Packet Log: %d': 'Journaux des paquets: %d'
   'Language: %s': 'Langue: %s'
   'Screen Timeout: off': "Extin. d'écran: off"
-  'Screen Timeout: %ds': "Écran allumé: %ds"
+  'Screen Timeout: %ds': 'Écran allumé: %ds'
   'Screen Brightness: %d%%': "Luminosité d'écran: %d%%"
   'Theme: %s': 'Thème: %s'
   'User name: %s': 'Nom: %s'
@@ -97,13 +97,13 @@ fr:
   'off': 'Off'
   'Message Alert: %s': 'Notifications: %s'
   Util %0.1f%%  Air %0.1f%%: ~
-  'hops: %d': "sauts: %d"
+  'hops: %d': 'sauts: %d'
   unknown: inconnu
   '<no name>': '<sans nom>'
-  '%d active chat(s)': "%d chat(s) actif(s)"
+  '%d active chat(s)': '%d chat(s) actif(s)'
   "New message from \n%s": "Nouveau message de:\n%s"
   'Input Control: %s/%s': ~
-  '%d of %d nodes online': "%d sur %d noeuds actifs"
+  '%d of %d nodes online': '%d sur %d noeuds actifs'
   Filtering ...: Filtrage ...
   'Filter: %d of %d nodes': 'Filtre: %d sur %d noeuds'
   now: maintenant
@@ -139,3 +139,4 @@ fr:
   Banner only: Alerte Visuelle
   Sound only: Sonnerie Seule
   no signal: aucun signal
+  Restoring messages ...: ~

@@ -553,9 +553,10 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.channel_button6, ui_event_ChannelButton, LV_EVENT_ALL, (void *)6);
     lv_obj_add_event_cb(objects.channel_button7, ui_event_ChannelButton, LV_EVENT_ALL, (void *)7);
 
-    // new message popup
+    // message popup
     lv_obj_add_event_cb(objects.msg_popup_button, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.msg_popup_panel, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.msg_restore_button, this->ui_event_MsgRestoreButton, LV_EVENT_CLICKED, NULL);
 
     // keyboard
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
@@ -790,10 +791,9 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         if (THIS->messagesRestored) {
             THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
-        }
-        else {
-            lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
-            lv_group_focus_obj(objects.msg_popup_button);
+        } else {
+            lv_obj_clear_flag(objects.msg_restore_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.msg_restore_button);
         }
     }
 }
@@ -905,12 +905,8 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
     lv_obj_t *target = lv_event_get_target_obj(e);
     lv_event_code_t event_code = lv_event_get_code(e);
 
-    if (!THIS->messagesRestored) {
-        lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
-        return;
-    }
     if (target == objects.msg_popup_panel) {
-        if (event_code == LV_EVENT_PRESSED) {
+        if (event_code == LV_EVENT_CLICKED) {
             THIS->hideMessagePopup();
         }
     } else { // msg button was clicked
@@ -927,15 +923,25 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
     }
 }
 
+/**
+ * @brief hide msgRestorePanel on touch
+ *
+ */
+void TFTView_320x240::ui_event_MsgRestoreButton(lv_event_t *e)
+{
+    lv_obj_add_flag(objects.msg_restore_panel, LV_OBJ_FLAG_HIDDEN);
+}
+
 void TFTView_320x240::ui_event_EnvelopeButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && THIS->configComplete) {
+    if (event_code == LV_EVENT_CLICKED) {
         if (!THIS->messagesRestored) {
-            lv_obj_clear_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(objects.msg_restore_panel, LV_OBJ_FLAG_HIDDEN);
             return;
         }
-        THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+        if (THIS->configComplete)
+            THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
     }
 }
 
@@ -5023,8 +5029,7 @@ void TFTView_320x240::updateTime(uint32_t timeVal)
             ILOG_DEBUG("update (local)time: %d -> %d", actTime, localtime);
             actTime = localtime;
         }
-    }
-    else {
+    } else {
         if (timeVal > actTime) {
             ILOG_DEBUG("update (act)time: %d -> %d", actTime, timeVal);
             actTime = timeVal;
@@ -5370,15 +5375,13 @@ void TFTView_320x240::updateActiveChats(void)
  */
 void TFTView_320x240::notifyRestoreMessages(int32_t percentage)
 {
-    char buf[64];
-    lv_snprintf(buf, sizeof(buf), _("Restoring messages %d%%\n...please wait..."), percentage);
-    lv_label_set_text(objects.msg_popup_label, buf);
+    lv_bar_set_value(objects.message_restore_bar, percentage, LV_ANIM_OFF);
 }
 
 void TFTView_320x240::notifyMessagesRestored(void)
 {
     MeshtasticView::notifyMessagesRestored();
-    lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.msg_restore_panel, LV_OBJ_FLAG_HIDDEN);
     updateActiveChats();
     updateNodesFiltered(true);
 }

@@ -484,6 +484,10 @@ typedef struct _objects_t {
     lv_obj_t *msg_popup_panel;
     lv_obj_t *msg_popup_button;
     lv_obj_t *msg_popup_label;
+    lv_obj_t *msg_restore_panel;
+    lv_obj_t *msg_restore_button;
+    lv_obj_t *msg_restore_label;
+    lv_obj_t *message_restore_bar;
     lv_obj_t *alert_panel;
     lv_obj_t *alert_label;
     lv_obj_t *top_setup_panel;
