@@ -557,6 +557,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.msg_popup_button, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.msg_popup_panel, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.msg_restore_button, this->ui_event_MsgRestoreButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.msg_restore_panel, this->ui_event_MsgRestoreButton, LV_EVENT_CLICKED, NULL);
 
     // keyboard
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
@@ -912,19 +913,15 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
 
     if (target == objects.msg_popup_panel) {
-        if (event_code == LV_EVENT_CLICKED) {
-            THIS->hideMessagePopup();
-        }
+        THIS->hideMessagePopup();
     } else { // msg button was clicked
-        if (event_code == LV_EVENT_CLICKED) {
-            uint32_t channelOrNode = (unsigned long)objects.msg_popup_button->user_data;
-            if (channelOrNode < c_max_channels) {
-                uint8_t ch = (uint8_t)channelOrNode;
-                THIS->showMessages(ch);
-            } else {
-                uint32_t nodeNum = channelOrNode;
-                THIS->showMessages(nodeNum);
-            }
+        uint32_t channelOrNode = (unsigned long)objects.msg_popup_button->user_data;
+        if (channelOrNode < c_max_channels) {
+            uint8_t ch = (uint8_t)channelOrNode;
+            THIS->showMessages(ch);
+        } else {
+            uint32_t nodeNum = channelOrNode;
+            THIS->showMessages(nodeNum);
         }
     }
 }
