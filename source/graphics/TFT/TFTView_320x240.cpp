@@ -778,8 +778,14 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        if (THIS->db.channel[ch].role != meshtastic_Channel_Role_DISABLED)
-            THIS->showMessages(ch);
+        if (THIS->db.channel[ch].role != meshtastic_Channel_Role_DISABLED) {
+            if (THIS->messagesRestored) {
+                THIS->showMessages(ch);
+            } else {
+                lv_obj_clear_flag(objects.msg_restore_panel, LV_OBJ_FLAG_HIDDEN);
+                lv_group_focus_obj(objects.msg_restore_button);
+            }
+        }
     } else {
         // TODO: click on unset channel should popup config screen
     }
