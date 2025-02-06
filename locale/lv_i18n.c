@@ -2330,9 +2330,26 @@ static const lv_i18n_lang_t zh_cn_lang = {.locale_name = "zh-CN",
 
                                           .locale_plural_fn = zh_cn_plural_fn};
 
+static uint8_t el_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t el_lang = {.locale_name = "el",
+                                        .locale_plural_fn = el_plural_fn};
+
 const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
-    &en_lang, &de_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang, &no_lang,    &pl_lang,
-    &pt_lang, &ro_lang, &ru_lang, &se_lang, &sl_lang, &sr_lang, &tr_lang, &zh_cn_lang,
+    &en_lang, &de_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang, &no_lang, &pl_lang,
+    &pt_lang, &ro_lang, &ru_lang, &se_lang, &sl_lang, &sr_lang, &tr_lang, &zh_cn_lang, &el_lang
     NULL // End mark
 };
 
