@@ -206,6 +206,155 @@ static const lv_i18n_lang_t de_lang = {.locale_name = "de",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = de_plurals_other,
                                        .locale_plural_fn = de_plural_fn};
 
+static lv_i18n_phrase_t el_singulars[] = {
+    {"User name: %s", "Όνομα χρήστη: %s"},
+    {"Device Role: %s", "Ρόλος συσκευής: %s"},
+    {"no new messages", "κανένα νέο μήνυμα"},
+    {"1 of 1 nodes online", "1 από 1 συσκευές συνδεδεμένη"},
+    {"User name: ", "Όνομα χρήστη: "},
+    {"Modem Preset: LONG FAST", "Modem Προεπιλογή: LONG FAST"},
+    {"Channel: LongFast", "Κανάλι: LongFast"},
+    {"Role: Client", "Ρόλος: Client"},
+    {"Screen Timeout: 60s", "Απενεργοποίηση οθόνης: 60s"},
+    {"Screen Brightness: 60%", "Φωτεινότητα οθόνης: 60%"},
+    {"Screen Calibration: default", "Βαθμονόμηση: Προεπιλογή"},
+    {"Input Control: none/none", "Είσοδος: καμία/καμία"},
+    {"Message Alert Buzzer: on", "Ηχητική ειδοποίηση: ενεργή"},
+    {"Language: English", "Γλώσσα: Ελληνικά"},
+    {"Configuration Reset", "Επαναφορά ρυθμίσεων"},
+    {"Reboot / Shutdown", "Επανεκκίνηση / Τερματισμός"},
+    {"Group Channels", "Κανάλια ομάδας"},
+    {"no messages", "κανένα μήνυμα"},
+    {"Settings", "Ρυθμίσεις"},
+    {"Settings (advanced)", "Ρυθμίσεις (για προχωρημένους)"},
+    {"Locations Map", "Χάρτης"},
+    {"no chats", "Καμία συζήτηση"},
+    {"Node Options", "Επιλογές κόμβου"},
+    {"Short Name", "Σύντομο όνομα"},
+    {"Long Name", "Πλήρες όνομα"},
+    {"<unset>", "<μη ορισμένο>"},
+    {"FrequencySlot: 1 (902.0MHz)", "Συχνότητα: 1 (902.0MHz)"},
+    {"Brightness: 60%", "Φωτεινότητα: 60%"},
+    {"Timeout: 60s", "Απενεργοποίηση οθόνης: 60s"},
+    {"Mouse", "Ποντίκι"},
+    {"Keyboard", "Πληκτρολόγιο"},
+    {"Message Alert", "Ειδοποίηση Μηνύματος"},
+    {"Channel Name", "Όνομα καναλιού"},
+    {"New Message from\n", "Νέο μήνυμα από\n"},
+    {"Resynch...", "Επανασυγχρονισμός..."},
+    {"Screen Calibration: %s", "Βαθμονόμηση: %s"},
+    {"done", "ολοκληρώθηκε"},
+    {"default", "Προεπιλογή"},
+    {"Modem Preset: %s", "Προκαθορισμός: %s"},
+    {"Channel: %s", "Κανάλι: %s"},
+    {"Language: %s", "Γλώσσα: %s"},
+    {"Screen Lock: off", "Κλείδωμα οθόνης: αενεργό"},
+    {"Theme: Dark", "Θέμα: Σκούρο"},
+    {"Mesh Detector", "Ανιχνευτής Mesh"},
+    {"Signal Scanner", "Σάρωση σήματος"},
+    {"Trace Route", "Ανίχνευση διαδρομής"},
+    {"Neighbors", "Γείτονες"},
+    {"Statistics", "Στατιστικά"},
+    {"Packet Log", "Ιστορικό πακέτων"},
+    {"Settings & Tools", "Ρυθμίσεις & Εργαλεία"},
+    {"Node Search", "Αναζήτηση κόμβων"},
+    {"Light\\nDark", "Ανοιχτό\\nΣκούρο"},
+    {"Screen Lock", "Κλείδωμα οθόνης"},
+    {"Lock PIN", "Κλείδωμα PIN"},
+    {"Ringtone", "Ήχος ειδοποιήσης"},
+    {"Zone", "Ζώνη"},
+    {"City", "Πόλη"},
+    {"Unknown", "Άγνωστο"},
+    {"Offline", "Εκτός σύνδεσης"},
+    {"Public Key", "Δημόσιο κλειδί"},
+    {"Active Chat", "Ενεργή συζήτηση"},
+    {"Telemetry", "Τηλεμετρία"},
+    {"Start", "Έναρξη"},
+    {"Theme: %s", "Θέμα: %s"},
+    {"Packet Statistics", "Στατιστικά πακέτων"},
+    {"none", "κανένα"},
+    {"Default", "Προεπιλογή"},
+    {"Cancel", "Ακύρωση"},
+    {"FrequencySlot: %d (%g MHz)", "Συχνότητα: %d (%g MHz)"},
+    {"Brightness: %d%%", "Φωτεινότητα: %d%%"},
+    {"Timeout: off", "Απενεργοποίηση οθόνης: ανενεργό"},
+    {"Timeout: %ds", "Απενεργοποίηση οθόνης: %ds"},
+    {"Stop", "Σταμάτα"},
+    {"choose\nnode", "επιλογή\\nκόμβου"},
+    {"choose target node", "επιλογή στόχου"},
+    {"heard: !%08x", "Ακούστηκε: !%08x"},
+    {"Packet Log: %d", "Ιστορικό πακέτων: %d"},
+    {"Screen Timeout: off", "Απενεργοποίηση οθόνης: ανενεργό"},
+    {"Screen Timeout: %ds", "Απενεργοποίηση οθόνης: %ds"},
+    {"Screen Brightness: %d%%", "Φωτεινότητα οθόνης: %d%%"},
+    {"Screen Lock: %s", "Κλείδωμα οθόνης: %s"},
+    {"on", "ενεργό"},
+    {"off", "ανενεργό"},
+    {"Message Alert: %s", "Ειδοποίηση: %s"},
+    {"unknown", "άγνωστο"},
+    {"<no name>", "<δίχως όνομα>"},
+    {"New message from \n%s", "Νέο μήνυμα από \n%s"},
+    {"Input Control: %s/%s", "Έλεγχος εισόδου: %s/%s"},
+    {"Filtering ...", "Φιλτράρισμα ..."},
+    {"Filter: %d of %d nodes", "Φίλτρο: %d από %d συσκευές"},
+    {"now", "τώρα"},
+    {"%d new message", "%d νέο μήνυμα"},
+    {"%d new messages", "%d νέα μηνύματα"},
+    {"Tools", "Εργαλεία"},
+    {"Filter", "Φίλτρο"},
+    {"Highlight", "Επισήμανση"},
+    {"choose node", "επιλογή κόμβου"},
+    {"Primary Channel", "Κύριο Κανάλι"},
+    {"Secondary Channels", "Δευτερεύοντα Κανάλια"},
+    {"Dark\nLight", "Σκούρο\nΑνοιχτό"},
+    {"Resynch ...", "Συγχρονισμός ..."},
+    {"Rebooting ...", "Επανεκκίνηση ..."},
+    {"Shutting down ...", "Τερματισμός ..."},
+    {"silent", "σίγαση"},
+    {"WiFi: <not setup>", "WiFi: <χωρίς ρύθμιση>"},
+    {"LoRa TX off!", "LoRa TX ανενεργό!"},
+    {"<not set>", "<χωρίς ρύθμιση>"},
+    {"Banner & Sound", "Πλαίσιο & ήχος"},
+    {"Banner only", "Μόνο πλαίσιο"},
+    {"Sound only", "Μόνο ήχος"},
+    {"Lock: off/off", "Κλείδωμα: ανενεργό/ανενεργό"},
+    {"Settings Lock", "Κλείδωμα ρυθμίσεων"},
+    {"Lock: %s/%s", "Κλείδωμα: %s/%s"},
+    {"Enter Text ...", "Εισαγωγή κειμένου ..."},
+    {"!Enter Filter ...", "!Εισαγωγή φίλτρου..."},
+    {"Enter Filter ...", "Εισαγωγή φίλτρου..."},
+    {"region unset", "περιοχή αόριστη"},
+    {"no signal", "δίχως σήμα"},
+    {"Restoring messages ...", "Επαναφορά μηνυμάτων..."},
+    {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t el_plurals_one[] = {
+    {"%d active chat(s)", "%d ενεργή συζήτηση"}, {"%d of %d nodes online", "1 συσκευή συνδεδεμένη"}, {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t el_plurals_other[] = {
+    {"%d active chat(s)", "%d ενεργές συζητήσεις"},
+    {"%d of %d nodes online", "%d / %d συσκευές συνδεδεμένες"},
+    {NULL, NULL} // End mark
+};
+
+static uint8_t el_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num);
+    UNUSED(n);
+
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t el_lang = {.locale_name = "el",
+                                       .singulars = el_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = el_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = el_plurals_other,
+                                       .locale_plural_fn = el_plural_fn};
+
 static lv_i18n_phrase_t es_singulars[] = {
     {"no new messages", "Sin mensajes nuevos"},
     {"1 of 1 nodes online", "1 de 1 nodos activos"},
@@ -2330,26 +2479,9 @@ static const lv_i18n_lang_t zh_cn_lang = {.locale_name = "zh-CN",
 
                                           .locale_plural_fn = zh_cn_plural_fn};
 
-static uint8_t el_plural_fn(int32_t num)
-{
-    uint32_t n = op_n(num);
-    UNUSED(n);
-    uint32_t i = op_i(n);
-    UNUSED(i);
-    uint32_t v = op_v(n);
-    UNUSED(v);
-
-    if ((i == 1 && v == 0))
-        return LV_I18N_PLURAL_TYPE_ONE;
-    return LV_I18N_PLURAL_TYPE_OTHER;
-}
-
-static const lv_i18n_lang_t el_lang = {.locale_name = "el",
-                                        .locale_plural_fn = el_plural_fn};
-
 const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
-    &en_lang, &de_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang, &no_lang, &pl_lang,
-    &pt_lang, &ro_lang, &ru_lang, &se_lang, &sl_lang, &sr_lang, &tr_lang, &zh_cn_lang, &el_lang
+    &en_lang, &de_lang, &el_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang, &no_lang,
+    &pl_lang, &pt_lang, &ro_lang, &ru_lang, &se_lang, &sl_lang, &sr_lang, &tr_lang, &zh_cn_lang,
     NULL // End mark
 };
 
