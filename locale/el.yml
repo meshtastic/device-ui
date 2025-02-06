@@ -1,0 +1,153 @@
+el:
+  'User name: %s': 'Όνομα χρήστη: %s'
+  'Device Role: %s': 'Ρόλος συσκευής: %s'
+  no new messages: κανένα νέο μήνυμα
+  1 of 1 nodes online: 1 από 1 συσκευές συνδεδεμένη
+  DEL: ~
+  'User name: ': 'Όνομα χρήστη: '
+  'Modem Preset: LONG FAST': 'Modem Προεπιλογή: LONG FAST'
+  'Channel: LongFast': 'Κανάλι: LongFast'
+  'Role: Client': 'Ρόλος: Client'
+  'Screen Timeout: 60s': 'Απενεργοποίηση οθόνης: 60s'
+  'Screen Brightness: 60%': 'Φωτεινότητα οθόνης: 60%'
+  'Screen Calibration: default': 'Βαθμονόμηση: Προεπιλογή'
+  'Input Control: none/none': 'Είσοδος: καμία/καμία'
+  'Message Alert Buzzer: on': 'Ηχητική ειδοποίηση: ενεργή'
+  'Language: English': 'Γλώσσα: Ελληνικά'
+  Configuration Reset: Επαναφορά ρυθμίσεων
+  Reboot / Shutdown: Επανεκκίνηση / Τερματισμός
+  Group Channels: Κανάλια ομάδας
+  no messages: κανένα μήνυμα
+  Settings: Ρυθμίσεις
+  Settings (advanced): Ρυθμίσεις (για προχωρημένους)
+  Locations Map: Χάρτης
+  no chats: Καμία συζήτηση
+  Node Options: Επιλογές κόμβου
+  Short Name: Σύντομο όνομα
+  Long Name: Πλήρες όνομα
+  <unset>: <μη ορισμένο>
+  LONG FAST\nLONG SLOW\nVERY LONG SLOW\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE: ~
+  'FrequencySlot: 1 (902.0MHz)': 'Συχνότητα: 1 (902.0MHz)'
+  Client\nClient Mute\nRouter\nRouter Client\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
+  'Brightness: 60%': 'Φωτεινότητα: 60%'
+  'Timeout: 60s': 'Απενεργοποίηση οθόνης: 60s'
+  Mouse: Ποντίκι
+  Keyboard: Πληκτρολόγιο
+  Message Alert: Ειδοποίηση Μηνύματος
+  "NodeDB Reset\nFactory Reset": ~
+  Channel Name: Όνομα καναλιού
+  Pre-shared Key: ~
+  "New Message from\n": "Νέο μήνυμα από\n"
+  Resynch...: Επανασυγχρονισμός...
+  'Screen Calibration: %s': 'Βαθμονόμηση: %s'
+  done: ολοκληρώθηκε
+  default: Προεπιλογή
+  'Region: %s': ~
+  'Modem Preset: %s': 'Προκαθορισμός: %s'
+  'Channel: %s': 'Κανάλι: %s'
+  'Language: %s': 'Γλώσσα: %s'
+  'Screen Lock: off': 'Κλείδωμα οθόνης: αενεργό'
+  'Theme: Dark': 'Θέμα: Σκούρο'
+  Mesh Detector: Ανιχνευτής Mesh
+  Signal Scanner: Σάρωση σήματος
+  Trace Route: Ανίχνευση διαδρομής
+  Neighbors: Γείτονες
+  Statistics: Στατιστικά
+  Packet Log: Ιστορικό πακέτων
+  Settings & Tools: Ρυθμίσεις & Εργαλεία
+  Node Search: Αναζήτηση κόμβων
+  Neigbors: ~
+  "Client\nClient Mute\n-- deprecated --\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  Light\nDark: Ανοιχτό\nΣκούρο
+  Screen Lock: Κλείδωμα οθόνης
+  Lock PIN: Κλείδωμα PIN
+  Ringtone: Ήχος ειδοποιήσης
+  Zone: Ζώνη
+  City: Πόλη
+  NodeDB Reset\nFactory Reset: ~
+  Unknown: Άγνωστο
+  Offline: Εκτός σύνδεσης
+  Public Key: Δημόσιο κλειδί
+  Hops away: ~
+  <= 7\n<= 6\n<= 5\n<= 4\n<= 3\n<= 2\n<= 1\n0\n>= 1\n>= 2\n>= 3\n>= 4\n>= 5\n>= 6\n>= 7: ~
+  MQTT: ~
+  Position: ~
+  Name: ~
+  Active Chat: Ενεργή συζήτηση
+  Telemetry: Τηλεμετρία
+  IAQ: ~
+  Start: Έναρξη
+  'Theme: %s': 'Θέμα: %s'
+  'uptime 00:00:00': ~
+  "Heap: 0\nLVGL: 0": ~
+  Meshtastic: ~
+  Packet Statistics: Στατιστικά πακέτων
+  none: κανένα
+  Default: Προεπιλογή
+  OK: ~
+  Cancel: Ακύρωση
+  'FrequencySlot: %d (%g MHz)': 'Συχνότητα: %d (%g MHz)'
+  'Brightness: %d%%': 'Φωτεινότητα: %d%%'
+  'Timeout: off': 'Απενεργοποίηση οθόνης: ανενεργό'
+  'Timeout: %ds': 'Απενεργοποίηση οθόνης: %ds'
+  Stop: Σταμάτα
+  "choose\nnode": επιλογή\nκόμβου
+  choose target node: επιλογή στόχου
+  'heard: !%08x': 'Ακούστηκε: !%08x'
+  'Packet Log: %d': 'Ιστορικό πακέτων: %d'
+  'Screen Timeout: off': 'Απενεργοποίηση οθόνης: ανενεργό'
+  'Screen Timeout: %ds': 'Απενεργοποίηση οθόνης: %ds'
+  'Screen Brightness: %d%%': 'Φωτεινότητα οθόνης: %d%%'
+  'Screen Lock: %s': 'Κλείδωμα οθόνης: %s'
+  'on': ενεργό
+  'off': ανενεργό
+  'Message Alert: %s': 'Ειδοποίηση: %s'
+  Util %0.1f%%  Air %0.1f%%: ~
+  'hops: %d': ~
+  unknown: άγνωστο
+  <no name>: <δίχως όνομα>
+  '%d active chat(s)':
+    one: '%d ενεργή συζήτηση'
+    other: '%d ενεργές συζητήσεις'
+  "New message from \n%s": "Νέο μήνυμα από \n%s"
+  'Input Control: %s/%s': 'Έλεγχος εισόδου: %s/%s'
+  '%d of %d nodes online':
+    one: '1 συσκευή συνδεδεμένη'
+    other: '%d / %d συσκευές συνδεδεμένες'
+  Filtering ...: Φιλτράρισμα ...
+  'Filter: %d of %d nodes': 'Φίλτρο: %d από %d συσκευές'
+  now: τώρα
+  '%d new message': '%d νέο μήνυμα'
+  '%d new messages': '%d νέα μηνύματα'
+  'uptime: %02d:%02d:%02d': ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
+  Tools: Εργαλεία
+  Filter: Φίλτρο
+  Highlight: Επισήμανση
+  choose node: επιλογή κόμβου
+  Primary Channel: Κύριο Κανάλι
+  Secondary Channels: Δευτερεύοντα Κανάλια
+  "Dark\nLight": "Σκούρο\nΑνοιχτό"
+  Resynch ...: Συγχρονισμός ...
+  Rebooting ...: Επανεκκίνηση ...
+  Shutting down ...: Τερματισμός ...
+  LoRa 0.0 MHz: ~
+  silent: σίγαση
+  'WiFi: <not setup>': 'WiFi: <χωρίς ρύθμιση>'
+  LoRa TX off!: LoRa TX ανενεργό!
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  'WiFi: %s': ~
+  <not set>: <χωρίς ρύθμιση>
+  Banner & Sound: Πλαίσιο & ήχος
+  Banner only: Μόνο πλαίσιο
+  Sound only: Μόνο ήχος
+  'Lock: off/off': 'Κλείδωμα: ανενεργό/ανενεργό'
+  Settings Lock: Κλείδωμα ρυθμίσεων
+  'Lock: %s/%s': 'Κλείδωμα: %s/%s'
+  Enter Text ...: Εισαγωγή κειμένου ...
+  '!Enter Filter ...': '!Εισαγωγή φίλτρου...'
+  Enter Filter ...: Εισαγωγή φίλτρου...
+  region unset: περιοχή αόριστη
+  no signal: δίχως σήμα
+  Restoring messages ...: Επαναφορά μηνυμάτων...
