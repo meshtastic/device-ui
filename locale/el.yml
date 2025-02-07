@@ -54,7 +54,7 @@ el:
   Packet Log: Καταγραφή Πακέτων
   Settings & Tools: Ρυθμίσεις & Εργαλεία
   Node Search: Αναζήτηση Κόμβων
-  Screen Lock: Κλείδωμα οθόνης
+  Screen Lock: Κλείδωμα Οθόνης
   Lock PIN: PIN
   Ringtone: Ήχος ειδοποιήσης
   Zone: Ζώνη
@@ -136,7 +136,7 @@ el:
   Banner only: Πλαίσιο μόνο
   Sound only: Ήχος μόνο
   'Lock: off/off': 'Κλείδωμα: off/off'
-  Settings Lock: Κλείδ. Ρυθμ.
+  Settings Lock: Κλείδ. Ρυθμίσεων
   'Lock: %s/%s': 'Κλείδ.: %s/%s'
   Enter Text ...: Εισάγ. Κείμενο ...
   '!Enter Filter ...': '!Εισάγ. φίλτρο...'
