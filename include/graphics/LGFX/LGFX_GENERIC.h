@@ -12,6 +12,7 @@
  * build_flags =
  *  -D LGFX_DRIVER_TEMPLATE
  *  -D LGFX_DRIVER=LGFX_GENERIC
+ *  -D GFX_DRIVER_INC=\"graphics/LGFX/LGFX_GENERIC.h\"
  *  -D LGFX_PANEL=ST7789
  *  -D LGFX_TOUCH=XPT2046
  *  -D LGFX_INVERT_COLOR=true
@@ -30,6 +31,8 @@
  */
 
 #define LGFX_USE_V1
+#include "hal/gpio_types.h"
+#include "util/ILog.h"
 #include <LovyanGFX.hpp>
 
 #ifndef SPI_FREQUENCY
@@ -205,6 +208,20 @@ class LGFX_GENERIC : public lgfx::LGFX_Device
     const uint32_t screenHeight = LGFX_SCREEN_HEIGHT;
 
     bool hasButton(void) { return false; }
+
+    bool init_impl(bool use_reset, bool use_clear) override
+    {
+        // increase output power to SPI GPIOs to be able to run with higher frequency
+        if (LGFX_PIN_SCK >= 0) {
+            gpio_set_direction((gpio_num_t)LGFX_PIN_SCK, GPIO_MODE_OUTPUT);
+            gpio_set_drive_capability((gpio_num_t)LGFX_PIN_SCK, GPIO_DRIVE_CAP_3);
+        }
+        if (LGFX_PIN_MOSI >= 0) {
+            gpio_set_direction((gpio_num_t)LGFX_PIN_SCK, GPIO_MODE_OUTPUT);
+            gpio_set_drive_capability((gpio_num_t)LGFX_PIN_MOSI, GPIO_DRIVE_CAP_3);
+        }
+        return lgfx::LGFX_Device::init_impl(use_reset, use_clear);
+    }
 
     LGFX_GENERIC(void)
     {
