@@ -85,7 +85,7 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [x] Russian translation
       - [x] Slovenian translation
       - [x] Turkish translation
-      - [ ] Greek translation
+      - [x] Greek translation
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
     - [ ] Allow co-existence of generated files/views by different eez-studio projects
