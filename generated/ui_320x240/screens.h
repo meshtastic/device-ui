@@ -538,8 +538,10 @@ void tick_screen_calibration_screen();
 void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIndex);
 void tick_user_widget_ok_cancel_widget(int startWidgetIndex);
 
-void create_screens();
+void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);
+
+void create_screens();
 
 
 #ifdef __cplusplus
