@@ -83,7 +83,7 @@ el:
   OK: ~
   Cancel: Ακύρωση
   'FrequencySlot: %d (%g MHz)': 'Συχνότητα: %d (%g MHz)'
-  'Brightness: %d%%': 'Φωτεινότητα: %d%%'
+  'Brightness: %d%%': 'Ένταση: %d%%'
   'Timeout: off': 'Λήξη: off'
   'Timeout: %ds': 'Λήξη: %ds'
   Stop: Διακοπή
@@ -94,7 +94,7 @@ el:
   'Screen Timeout: off': 'Αναμονής Οθόνης: off'
   'Screen Timeout: %ds': 'Αναμονή Oθόνης: %ds'
   'Screen Brightness: %d%%': 'Φωτεινότητα Oθόνης: %d%%'
-  'Screen Lock: %s': 'Κλείδωμα οθόνης: %s'
+  'Screen Lock: %s': 'Κλείδωμα Οθόνης: %s'
   'on': ενεργ.
   'off': απενεργ.
   'Message Alert: %s': 'Ειδοπ. Μηνύματος: %s'
