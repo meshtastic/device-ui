@@ -174,6 +174,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Enter Filter ...", "Filter Name..."},
     {"region unset", "keine Region"},
     {"no signal", "kein Signal"},
+    {"Restoring messages ...", "Lade Nachrichten..."},
     {NULL, NULL} // End mark
 };
 
@@ -2154,6 +2155,7 @@ static lv_i18n_phrase_t tr_singulars[] = {
     {"Banner only", "Sadece afiş"},
     {"Sound only", "Sadece ses"},
     {"no signal", "Sinyal yok"},
+    {"Restoring messages ...", "Mesajlar kurtarılıyor..."},
     {NULL, NULL} // End mark
 };
 

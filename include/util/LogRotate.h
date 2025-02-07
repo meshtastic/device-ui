@@ -33,10 +33,13 @@ class LogRotate
     bool readNext(ILogEntry &entry);
     // remove all logs from fs
     bool clear(void);
+
+    // request total size of logs
+    uint32_t size(void) const;
     // request log count
-    uint32_t count(void);
+    uint32_t count(void) const;
     // request current log number
-    uint32_t current(void);
+    uint32_t current(void) const;
 
   private:
     LogRotate(const LogRotate &) = delete;

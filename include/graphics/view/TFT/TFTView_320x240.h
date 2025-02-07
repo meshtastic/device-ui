@@ -250,6 +250,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ChatButton(lv_event_t *e);
     static void ui_event_ChatDelButton(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
+    static void ui_event_MsgRestoreButton(lv_event_t *e);
 
     // Home screen
     static void ui_event_EnvelopeButton(lv_event_t *e);
