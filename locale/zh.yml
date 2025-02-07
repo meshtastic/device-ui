@@ -1,4 +1,6 @@
-zh-CN:
+zh:
+  'User name: %s': '用户名：%s'
+  'Device Role: %s': ~
   no new messages: 暂无新消息
   1 of 1 nodes online: 1/1 个节点在线
   DEL: 删除
@@ -33,6 +35,16 @@ zh-CN:
   "NodeDB Reset\nFactory Reset": "节点数据库重置\n恢复出厂设置"
   Channel Name: 信道名称
   Pre-shared Key: 预共享密钥
+  "New Message from\n": ~
+  Resynch...: ~
+  'Screen Calibration: %s': ~
+  done: ~
+  default: ~
+  'Region: %s': ~
+  'Modem Preset: %s': ~
+  'Channel: %s': ~
+  'Language: %s': '语言：%s'
+  'Screen Lock: off': ~
   Unknown: 未知
   Offline: 离线
   Public Key: 公钥

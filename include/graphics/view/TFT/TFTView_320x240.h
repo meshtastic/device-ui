@@ -127,6 +127,8 @@ class TFTView_320x240 : public MeshtasticView
 
     // initialize all ui screens
     virtual void init_screens(void);
+    // localization -> chinese fonts
+    void setChineseFont(void);
     // update custom display string on boot screen
     virtual void updateBootMessage(void);
     // show initial setup panel to configure region and name
