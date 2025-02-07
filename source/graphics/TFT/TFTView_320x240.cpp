@@ -2499,7 +2499,7 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_ENGLISH:
         return 0;
     case meshtastic_Language_FRENCH:
-        return 3;
+        return 4;
     case meshtastic_Language_GERMAN:
         return 1;
     case meshtastic_Language_ITALIAN:
@@ -2507,7 +2507,7 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_PORTUGUESE:
         return 9;
     case meshtastic_Language_SPANISH:
-        return 2;
+        return 3;
     case meshtastic_Language_SWEDISH:
         return 14;
     case meshtastic_Language_FINNISH:
@@ -2523,7 +2523,7 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_DUTCH:
         return 6;
     case meshtastic_Language_GREEK:
-        return 4;
+        return 2;
     case meshtastic_Language_NORWEGIAN:
         return 7;
     case meshtastic_Language_SLOVENIAN:
@@ -2546,7 +2546,7 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
     switch (val) {
     case 0:
         return meshtastic_Language_ENGLISH;
-    case 3:
+    case 4:
         return meshtastic_Language_FRENCH;
     case 1:
         return meshtastic_Language_GERMAN;
@@ -2554,7 +2554,7 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
         return meshtastic_Language_ITALIAN;
     case 9:
         return meshtastic_Language_PORTUGUESE;
-    case 2:
+    case 3:
         return meshtastic_Language_SPANISH;
     case 14:
         return meshtastic_Language_SWEDISH;
@@ -2570,7 +2570,7 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
         return meshtastic_Language_RUSSIAN;
     case 6:
         return meshtastic_Language_DUTCH;
-    case 4:
+    case 2:
         return meshtastic_Language_GREEK;
     case 7:
         return meshtastic_Language_NORWEGIAN;
