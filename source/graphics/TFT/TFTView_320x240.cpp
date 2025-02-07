@@ -170,6 +170,8 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
 
     // set language
     setLanguage(db.uiConfig.language);
+    if (db.uiConfig.language == meshtastic_Language_SIMPLIFIED_CHINESE)
+        setChineseFont();
 
     // TODO: set virtual keyboard according language
     //  setKeyboard(db.uiConfig.language);
@@ -238,6 +240,20 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     objects.home_bell_button->user_data = (void *)off;
 
     lv_disp_trig_activity(NULL);
+}
+
+void TFTView_320x240::setChineseFont(void)
+{
+    lv_style_set_text_font(get_style_home_container_style_MAIN_DEFAULT(), &ui_font_simsun_16);  // 16
+    lv_style_set_text_font(get_style_node_panel_style_MAIN_DEFAULT(), &ui_font_simsun_tech_14); // 12
+
+    lv_obj_set_style_text_font(objects.user_name_short_label, &ui_font_simsun_16, LV_PART_MAIN | LV_STATE_DEFAULT);         // 14
+    lv_obj_set_style_text_font(objects.top_nodes_online_label, &ui_font_simsun_16, LV_PART_MAIN | LV_STATE_DEFAULT);        // 16
+    lv_obj_set_style_text_font(objects.top_user_group_label, &ui_font_simsun_16, LV_PART_MAIN | LV_STATE_DEFAULT);          // 16
+    lv_obj_set_style_text_font(objects.top_group_chat_label, &ui_font_simsun_16, LV_PART_MAIN | LV_STATE_DEFAULT);          // 16
+    lv_obj_set_style_text_font(objects.top_lora_tx_label, &ui_font_simsun_16, LV_PART_MAIN | LV_STATE_DEFAULT);             // 16
+    lv_obj_set_style_text_font(objects.node_details_name_short_label, &ui_font_simsun_16, LV_PART_MAIN | LV_STATE_DEFAULT); // 14
+    lv_obj_set_style_text_font(objects.alert_label, &ui_font_simsun_16, LV_PART_MAIN | LV_STATE_DEFAULT);                   // 20
 }
 
 /**
@@ -2657,7 +2673,7 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         locale = "sl_SI.UTF-8";
         break;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
-        lv_i18n_set_locale("cn");
+        lv_i18n_set_locale("zh");
         locale = "zh_CN.UTF-8";
         break;
     case meshtastic_Language_TRADITIONAL_CHINESE:
@@ -3462,7 +3478,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
+    lv_coord_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_simsun_16, 0);
     lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(width, 200) + 10, 40));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
@@ -3573,7 +3589,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_label_set_long_mode(sn_lbl, LV_LABEL_LONG_WRAP);
     lv_label_set_text(sn_lbl, userShort);
     lv_obj_set_style_align(sn_lbl, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(sn_lbl, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(sn_lbl, &ui_font_simsun_tech_14, LV_PART_MAIN | LV_STATE_DEFAULT);
     char *userData = (char *)&(sn_lbl->user_data);
     userData[0] = userShort[0];
     if (userData[0] == 0x00)
@@ -5180,12 +5196,13 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
+    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_simsun_16, 0);
     lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
     add_style_new_message_style(msgLabel);
+    lv_obj_set_style_text_font(msgLabel, &ui_font_simsun_16, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);

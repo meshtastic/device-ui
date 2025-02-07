@@ -522,10 +522,10 @@
 /*Optionally declare custom fonts here.
  *You can use these fonts as default font too and they will be available globally.
  *E.g. #define LV_FONT_CUSTOM_DECLARE   LV_FONT_DECLARE(my_font_1) LV_FONT_DECLARE(my_font_2)*/
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(ui_font_montserrat_12) LV_FONT_DECLARE(ui_font_montserrat_14) LV_FONT_DECLARE(ui_font_montserrat_16) LV_FONT_DECLARE(ui_font_montserrat_20)
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(ui_font_montserrat_12) LV_FONT_DECLARE(ui_font_montserrat_14) LV_FONT_DECLARE(ui_font_montserrat_16) LV_FONT_DECLARE(ui_font_montserrat_20) LV_FONT_DECLARE(ui_font_simsun_16) LV_FONT_DECLARE(ui_font_simsun_tech_14)
 
 /*Always set a default font*/
-#define LV_FONT_DEFAULT &ui_font_montserrat_14
+#define LV_FONT_DEFAULT &ui_font_simsun_16
 
 /*Enable handling large font and/or fonts with a lot of characters.
  *The limit depends on the font size, font face and bpp.
@@ -536,7 +536,7 @@
 #define LV_USE_FONT_COMPRESSED 0
 
 /*Enable drawing placeholders when glyph dsc is not found*/
-#define LV_USE_FONT_PLACEHOLDER 0
+#define LV_USE_FONT_PLACEHOLDER 1
 
 /*=================
  *  TEXT SETTINGS
