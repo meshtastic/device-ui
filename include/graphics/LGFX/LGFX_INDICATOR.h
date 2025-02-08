@@ -30,20 +30,23 @@ class LGFX_Touch : public lgfx::LGFX_Device
         return result;
     }
 
+    LGFX_Touch *touch(void) { return this; }
+
     int8_t getTouchInt(void) { return TOUCH_INT; }
 
-    // unfortunately not declared as virtual in base class, need to choose a different name
     bool getTouchXY(uint16_t *touchX, uint16_t *touchY)
     {
         TOUCHINFO ti;
-        if (bbct.getSamples(&ti) && (*touchX || *touchY)) {
+        if (bbct.getSamples(&ti) && (ti.x[0] || ti.y[0]) && ti.x[0] < 480 && ti.y[0] < 480) {
             *touchX = ti.x[0];
             *touchY = ti.y[0];
-            if (*touchX < 480 && *touchY < 480)
-                return true;
+            return true;
         }
         return false;
     };
+
+    void wakeup(void) {}
+    void sleep(void) {}
 
   private:
     BBCapTouch bbct;
@@ -63,7 +66,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
     const uint16_t screenWidth = 480;
     const uint16_t screenHeight = 480;
 
-    bool hasButton(void) { return false; }
+    bool hasButton(void) { return true; }
 
     LGFX_INDICATOR(void)
     {
@@ -142,6 +145,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
         }
         _panel_instance.light(&_light_instance);
 
+#ifndef CUSTOM_TOUCH_DRIVER
         {
             auto cfg = _touch_instance.config();
             cfg.pin_cs = GPIO_NUM_NC;
@@ -160,10 +164,9 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             cfg.pin_scl = 40;
             cfg.freq = 400000;
             _touch_instance.config(cfg);
-#ifndef CUSTOM_TOUCH_DRIVER
             _panel_instance.setTouch(&_touch_instance);
-#endif
         }
+#endif
 
         setPanel(&_panel_instance);
     }

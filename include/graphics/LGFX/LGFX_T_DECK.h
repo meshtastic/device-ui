@@ -42,6 +42,8 @@ class LGFX_Touch : public lgfx::LGFX_Device
         return result;
     }
 
+    LGFX_Touch *touch(void) { return this; }
+
     int8_t getTouchInt(void) { return TOUCH_INT; }
 
     // unfortunately not declared as virtual in base class, need to choose a different name
@@ -56,6 +58,9 @@ class LGFX_Touch : public lgfx::LGFX_Device
             }
         return false;
     };
+
+    void wakeup(void) {}
+    void sleep(void) {}
 
   private:
     BBCapTouch bbct;
