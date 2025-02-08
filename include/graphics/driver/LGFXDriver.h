@@ -438,6 +438,7 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
         }
     }
 
+#ifndef CUSTOM_TOUCH_DRIVER
     if (lgfx->touch()) {
         auto cfg = lgfx->touch()->config();
         ILOG_DEBUG("Touch int:%d, rst:%d, rotation:%d, (%d/%d)-(%d/%d) ", cfg.pin_int, cfg.pin_rst, cfg.offset_rotation,
@@ -455,6 +456,7 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
             }
         }
     }
+#endif
     if (lgfx->light()) {
         // auto cfg = lgfx->light();
         ILOG_DEBUG("BL pin assigned");
