@@ -27,6 +27,8 @@
 
 #ifdef ARCH_PORTDUINO
 #include "util/LinuxHelper.h"
+#else
+#include "SD.h"
 #endif
 
 #ifndef MAX_NUM_NODES_VIEW
@@ -236,6 +238,9 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     Themes::recolorButton(objects.home_bell_button, !off);
     Themes::recolorText(objects.home_bell_label, !off);
     objects.home_bell_button->user_data = (void *)off;
+
+    // check SD card
+    updateSDCard();
 
     lv_disp_trig_activity(NULL);
 }
@@ -5820,6 +5825,36 @@ void TFTView_320x240::updateTime(void)
         sprintf(&buf[len], _("uptime: %02d:%02d:%02d"), hours, minutes, seconds);
     }
     lv_label_set_text(objects.home_time_label, buf);
+}
+
+void TFTView_320x240::updateSDCard(void)
+{
+#ifndef ARCH_PORTDUINO
+    char buf[64];
+    uint8_t cardType = SD.cardType();
+    if (cardType == CARD_NONE) {
+        lv_snprintf(buf, sizeof(buf), _("no SD card detected"));
+        Themes::recolorButton(objects.home_sd_card_button, false);
+        Themes::recolorText(objects.home_sd_card_label, false);
+    } else {
+        uint32_t usedSpace = SD.usedBytes() / (1024 * 1024);
+        uint32_t totalSpace = SD.cardSize() / (1024 * 1024);
+        uint32_t totalSpaceGB = totalSpace + 511 / 1024;
+
+        lv_snprintf(buf, sizeof(buf), _("%s (%d)\nUsed: %d MB (%d%%)"),
+                    cardType == CARD_MMC    ? "MMC"
+                    : cardType == CARD_SD   ? "SDSC"
+                    : cardType == CARD_SDHC ? "SDHC"
+                                            : "Unknown",
+                    totalSpaceGB, usedSpace, usedSpace * 100 / totalSpace);
+        Themes::recolorButton(objects.home_sd_card_button, true);
+        Themes::recolorText(objects.home_sd_card_label, true);
+    }
+    lv_label_set_text(objects.home_sd_card_label, buf);
+#else
+    lv_obj_add_flag(objects.home_sd_card_button, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.home_sd_card_label, LV_OBJ_FLAG_HIDDEN);
+#endif
 }
 
 void TFTView_320x240::updateFreeMem(void)
