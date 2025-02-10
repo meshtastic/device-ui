@@ -5829,7 +5829,7 @@ void TFTView_320x240::updateTime(void)
 
 void TFTView_320x240::updateSDCard(void)
 {
-#ifndef ARCH_PORTDUINO
+#ifndef ARCH_PORTDUINO &&HAS_SDCARD
     char buf[64];
     uint8_t cardType = SD.cardType();
     if (cardType == CARD_NONE) {
@@ -5839,14 +5839,14 @@ void TFTView_320x240::updateSDCard(void)
     } else {
         uint32_t usedSpace = SD.usedBytes() / (1024 * 1024);
         uint32_t totalSpace = SD.cardSize() / (1024 * 1024);
-        uint32_t totalSpaceGB = totalSpace + 511 / 1024;
+        float totalSpaceGB = totalSpace / 1024.0f;
 
-        lv_snprintf(buf, sizeof(buf), _("%s (%d)\nUsed: %d MB (%d%%)"),
-                    cardType == CARD_MMC    ? "MMC"
-                    : cardType == CARD_SD   ? "SDSC"
-                    : cardType == CARD_SDHC ? "SDHC"
-                                            : "Unknown",
-                    totalSpaceGB, usedSpace, usedSpace * 100 / totalSpace);
+        sprintf(buf, _("%s (%0.1f GB)\nUsed: %d MB (%d%%)"),
+                cardType == CARD_MMC    ? "MMC"
+                : cardType == CARD_SD   ? "SDSC"
+                : cardType == CARD_SDHC ? "SDHC"
+                                        : "Unknown",
+                totalSpaceGB, usedSpace, ((usedSpace * 100) + totalSpace / 2) / totalSpace);
         Themes::recolorButton(objects.home_sd_card_button, true);
         Themes::recolorText(objects.home_sd_card_label, true);
     }
