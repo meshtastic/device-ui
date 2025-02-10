@@ -5738,7 +5738,7 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
         it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)curtime;
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), _("now"));
         if (it->first != ownNode) {
-            if (curtime - lastHeard + 10 >= secs_until_offline) {
+            if (lastHeard > 0 && curtime - lastHeard >= secs_until_offline) {
                 nodesOnline++;
                 applyNodesFilter(nodeNum);
                 updateNodesStatus();
