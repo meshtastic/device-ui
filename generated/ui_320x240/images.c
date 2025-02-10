@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[71] = {
+const ext_img_desc_t images[72] = {
     { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
     { "settings_button_image", &img_settings_button_image },
     { "map_button_image", &img_map_button_image },
@@ -72,4 +72,5 @@ const ext_img_desc_t images[71] = {
     { "lock_slash_image", &img_lock_slash_image },
     { "user_question_image", &img_user_question_image },
     { "hourgalss_start_image", &img_hourgalss_start_image },
+    { "home_sd_card_image", &img_home_sd_card_image },
 };

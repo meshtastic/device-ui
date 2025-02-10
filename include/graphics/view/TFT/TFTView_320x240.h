@@ -175,7 +175,9 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateUnreadMessages(void);
     // update time display on home screen
     virtual void updateTime(void);
-    // update free memory display on home screen
+    // update SD card slot info
+    virtual void updateSDCard(void);
+    // update time display on home screen
     virtual void updateFreeMem(void);
     // update distance to other node
     virtual void updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon);
