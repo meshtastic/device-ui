@@ -5829,7 +5829,7 @@ void TFTView_320x240::updateTime(void)
 
 void TFTView_320x240::updateSDCard(void)
 {
-#ifndef ARCH_PORTDUINO &&HAS_SDCARD
+#if !defined(ARCH_PORTDUINO) && HAS_SDCARD
     char buf[64];
     uint8_t cardType = SD.cardType();
     if (cardType == CARD_NONE) {
