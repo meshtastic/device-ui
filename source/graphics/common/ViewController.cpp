@@ -29,6 +29,8 @@ ViewController::ViewController()
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
     time(&lastrun10);
+    lastrun10 -= 5; // start in 5s
+
     view = gui;
     client = _client;
     if (client) {
@@ -45,13 +47,13 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 void ViewController::runOnce(void)
 {
     if (client) {
-        if (!setupDone || requestConfigRequired)
-            requestConfig();
-
         if (configCompleted && !messagesRestored)
             restoreTextMessages();
-        else
-            receive();
+        else {
+            if (myNodeNum == 0 ||
+                (view->getState() != MeshtasticView::eHoldingBootLogo && view->getState() != MeshtasticView::eProgrammingMode))
+                receive();
+        }
 
         // executed every 10s:
         time_t curtime;
@@ -61,7 +63,7 @@ void ViewController::runOnce(void)
             lastrun10 = curtime;
             if (!client->isConnected())
                 client->connect();
-            if (!setupDone && curtime - lastSetup >= 10) {
+            if (curtime - lastSetup >= 10 && view->getState() != MeshtasticView::eProgrammingMode && !setupDone) {
                 requestConfigRequired = true;
                 requestConfig();
             }
@@ -639,16 +641,19 @@ bool ViewController::requestDeviceConnectionStatus(void)
 
 bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 {
-    ILOG_DEBUG("handleFromRadio variant %u", from.which_payload_variant);
+    if (view->getState() == MeshtasticView::eProgrammingMode)
+        return false;
+
+    ILOG_DEBUG("handleFromRadio variant %u, id=%d", from.which_payload_variant, from.id);
     if (from.which_payload_variant == meshtastic_FromRadio_deviceuiConfig_tag) {
-        view->setupUIConfig(from.deviceuiConfig);
-        setupDone = true;
+        setupDone = view->setupUIConfig(from.deviceuiConfig);
     } else if (from.which_payload_variant == meshtastic_FromRadio_my_info_tag) {
         const meshtastic_MyNodeInfo &info = from.my_info;
         view->setMyInfo(info.my_node_num);
         myNodeNum = info.my_node_num;
     } else {
-        if (setupDone) {
+        if (setupDone || (from.which_payload_variant == meshtastic_FromRadio_config_tag &&
+                          from.config.which_payload_variant == meshtastic_Config_bluetooth_tag)) {
             switch (from.which_payload_variant) {
             case meshtastic_FromRadio_packet_tag: {
                 const meshtastic_MeshPacket &p = from.packet;
@@ -714,7 +719,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                 }
                 case meshtastic_Config_bluetooth_tag: {
                     const meshtastic_Config_BluetoothConfig &cfg = config.payload_variant.bluetooth;
-                    view->updateBluetoothConfig(cfg);
+                    view->updateBluetoothConfig(cfg, from.id); // PacketAPI provides our nodeId here
                     break;
                 }
                 case meshtastic_Config_security_tag: {
@@ -882,8 +887,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             if (!configCompleted) {
                 ILOG_ERROR("cannot handle received message NOW");
                 return false; // the only way out
-            }
-            else {
+            } else {
                 // let's hope for the best...
                 ILOG_ERROR("WTF!? how did we get here??");
             }

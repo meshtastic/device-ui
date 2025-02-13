@@ -141,12 +141,15 @@ void TFTView_320x240::init(IClientBase *client)
     time(&lastrun10);
     time(&lastrun5);
     time(&lastrun1);
+
+    lv_obj_add_event_cb(objects.boot_logo_button, ui_event_LogoButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.blank_screen_button, ui_event_BlankScreenButton, LV_EVENT_ALL, NULL);
 }
 
 /**
  * @brief initialize UI with persistent data
  */
-void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
+bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
 {
     if (uiconfig.version == 1) {
         ILOG_INFO("setupUIConfig version %d", uiconfig.version);
@@ -165,6 +168,13 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
 
     lv_i18n_init(lv_i18n_language_pack);
     setLocale(db.uiConfig.language);
+
+    if (state == MeshtasticView::eEnterProgrammingMode || state == MeshtasticView::eProgrammingMode) {
+        enterProgrammingMode();
+        return false;
+    }
+
+    state = MeshtasticView::eSetupUIConfig;
 
     // now we have set language, continue creating all screens
     if (!screensInitialised)
@@ -243,6 +253,7 @@ void TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     updateSDCard();
 
     lv_disp_trig_activity(NULL);
+    return true;
 }
 
 /**
@@ -261,6 +272,7 @@ void TFTView_320x240::updateBootMessage(void)
 void TFTView_320x240::init_screens(void)
 {
     ILOG_DEBUG("init screens...");
+    state = MeshtasticView::eInitScreens;
     ui_init();
     apply_hotfix();
 
@@ -398,6 +410,37 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
+void TFTView_320x240::enterProgrammingMode(void)
+{
+    if (state == eEnterProgrammingMode && !db.config.bluetooth.enabled) {
+        ILOG_INFO("rebooting into programming mode");
+        lv_label_set_text(objects.meshtastic_url, _("Rebooting ..."));
+
+        if (ownNode) {
+            meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
+            bluetooth.mode = meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
+            bluetooth.fixed_pin = random(100000, 999999);
+            bluetooth.enabled = true;
+            THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, ownNode);
+            state = MeshtasticView::eWaitingForReboot;
+        }
+    } else {
+        state = MeshtasticView::eProgrammingMode;
+        lv_label_set_text(objects.meshtastic_url, _(">> Programming mode <<"));
+        lv_label_set_text_fmt(objects.firmware_label, "%06d", db.config.bluetooth.fixed_pin);
+        lv_obj_set_style_text_font(objects.firmware_label, &ui_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_add_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_event_cb(objects.bluetooth_button, ui_event_BluetoothButton, LV_EVENT_LONG_PRESSED, NULL);
+        ILOG_INFO("### MUI programming mode entered (nodeId=!%08x) ###", ownNode);
+    }
+    //    lv_obj_set_style_bg_color(objects.boot_screen, lv_color_hex(0x00), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //    lv_obj_set_style_image_recolor_opa(objects.boot_logo_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    //    lv_obj_set_style_image_recolor(objects.boot_logo_button, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_remove_event_cb(objects.boot_logo_button, ui_event_LogoButton);
+    //    lv_obj_set_style_text_color(objects.meshtastic_url, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
 /**
  * @brief fix quirks in the generated ui
  *
@@ -420,6 +463,10 @@ void TFTView_320x240::apply_hotfix(void)
     // keyboard size limit
     if (v >= 480) {
         lv_obj_set_size(objects.keyboard, LV_PCT(100), LV_PCT(45));
+
+        if (h == 480) {
+            lv_img_set_zoom(objects.world_image, 460);
+        }
     }
 
     lv_obj_move_foreground(objects.keyboard);
@@ -541,9 +588,6 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
-
-    // blank screen
-    lv_obj_add_event_cb(objects.blank_screen_button, this->ui_event_BlankScreenButton, LV_EVENT_ALL, NULL);
 
     // node and channel buttons
     lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
@@ -691,6 +735,56 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
     }
 }
 #endif
+
+void TFTView_320x240::ui_event_LogoButton(lv_event_t *e)
+{
+
+    static uint32_t start = 0;
+    static lv_anim_t anim;
+    static auto animCB = [](void *var, int32_t v) { lv_arc_set_bg_end_angle((lv_obj_t *)var, v); };
+
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        lv_anim_del(&objects.boot_logo_arc, animCB);
+        lv_obj_add_flag(objects.boot_logo_arc, LV_OBJ_FLAG_HIDDEN);
+        if (millis() - start > 800) {
+            THIS->state = MeshtasticView::eEnterProgrammingMode;
+            THIS->enterProgrammingMode();
+        } else {
+            THIS->state = MeshtasticView::eBooting;
+        }
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        if (THIS->state != MeshtasticView::eHoldingBootLogo) {
+            THIS->state = MeshtasticView::eHoldingBootLogo;
+            start = millis();
+
+            lv_obj_clear_flag(objects.boot_logo_arc, LV_OBJ_FLAG_HIDDEN);
+            lv_anim_init(&anim);
+            lv_anim_set_var(&anim, objects.boot_logo_arc);
+            lv_anim_set_values(&anim, 0, 360);
+            lv_anim_set_duration(&anim, 800);
+            lv_anim_set_exec_cb(&anim, animCB);
+            lv_anim_set_path_cb(&anim, lv_anim_path_linear);
+            lv_anim_start(&anim);
+        }
+    }
+}
+
+void TFTView_320x240::ui_event_BluetoothButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_LONG_PRESSED) {
+        ILOG_INFO("leaving programming mode");
+        lv_label_set_text(objects.meshtastic_url, _("Rebooting ..."));
+        lv_label_set_text(objects.firmware_label, "");
+        lv_obj_remove_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
+
+        meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
+        bluetooth.enabled = false;
+        THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
+    }
+}
 
 void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 {
@@ -1560,6 +1654,9 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        lv_obj_remove_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.boot_logo_arc, LV_OBJ_FLAG_HIDDEN);
         lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_FADE_IN, 1000, 0, false);
         lv_obj_clear_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.cancel_reboot_button);
@@ -4957,10 +5054,18 @@ int32_t TFTView_320x240::signalStrength2Percent(int32_t rx_rssi, float rx_snr)
     return std::min<int32_t>((p_snr + p_rssi * 2) / 3, 100);
 }
 
-void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg)
+void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg, uint32_t id)
 {
     db.config.bluetooth = cfg;
     db.config.has_bluetooth = true;
+
+    if (ownNode == 0) {
+        ownNode = id;
+    }
+
+    if (state <= MeshtasticView::eProgrammingMode && state != MeshtasticView::eWaitingForReboot) {
+        enterProgrammingMode();
+    }
 }
 
 void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg)
@@ -5943,10 +6048,12 @@ void TFTView_320x240::task_handler(void)
         if (processingFilter || nodesChanged) {
             updateNodesFiltered(nodesChanged);
         }
-    } else {
-        if (curtime - lastrun1 >= 1) { // call every 1s
-            lastrun1 = curtime;
-            updateBootMessage();
+    } else { // CYD scenario only
+        if (state == MeshtasticView::eBooting) {
+            if (curtime - lastrun1 >= 1) { // call every 1s
+                lastrun1 = curtime;
+                updateBootMessage();
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ class TFTView_320x240 : public MeshtasticView
 {
   public:
     void init(IClientBase *client) override;
-    void setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) override;
+    bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) override;
     void task_handler(void) override;
 
     // methods to update view
@@ -43,7 +43,7 @@ class TFTView_320x240 : public MeshtasticView
     void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg) override;
     void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) override;
     void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) override;
-    void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) override;
+    void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg, uint32_t id = 0) override;
     void updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg) override;
     void updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg) override;
 
@@ -193,6 +193,7 @@ class TFTView_320x240 : public MeshtasticView
     TFTView_320x240();
     TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
+    void enterProgrammingMode(void);
     void apply_hotfix(void);
     void updateTheme(void);
     void ui_events_init(void);
@@ -240,6 +241,9 @@ class TFTView_320x240 : public MeshtasticView
     void onTracerouteCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
 
     // lvgl event callbacks
+    static void ui_event_LogoButton(lv_event_t *e);
+    static void ui_event_BluetoothButton(lv_event_t *e);
+
     // static void ui_event_HomeButton(lv_event_t * e);
     static void ui_event_NodesButton(lv_event_t *e);
     static void ui_event_GroupsButton(lv_event_t *e);

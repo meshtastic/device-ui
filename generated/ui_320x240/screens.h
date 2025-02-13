@@ -71,9 +71,11 @@ typedef struct _objects_t {
     lv_obj_t *blank_screen;
     lv_obj_t *lock_screen;
     lv_obj_t *calibration_screen;
-    lv_obj_t *meshtastic_logo;
+    lv_obj_t *boot_logo_arc;
+    lv_obj_t *boot_logo_button;
     lv_obj_t *meshtastic_url;
     lv_obj_t *firmware_label;
+    lv_obj_t *bluetooth_button;
     lv_obj_t *reboot_panel;
     lv_obj_t *cancel_reboot_button;
     lv_obj_t *reboot_button;
@@ -155,6 +157,7 @@ typedef struct _objects_t {
     lv_obj_t *chat_del_button;
     lv_obj_t *del_label;
     lv_obj_t *map_panel;
+    lv_obj_t *world_image;
     lv_obj_t *obj1;
     lv_obj_t *controller_panel;
     lv_obj_t *controller_tab_view;
