@@ -262,7 +262,6 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
  */
 void TFTView_320x240::updateBootMessage(void)
 {
-    LOG_DEBUG("updateBootMessage");
     lv_label_set_text(objects.firmware_label, firmware_version);
 }
 
