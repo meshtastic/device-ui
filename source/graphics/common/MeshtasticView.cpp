@@ -16,6 +16,7 @@ void MeshtasticView::init(IClientBase *client)
     DeviceGUI::init(client);
     // lv_label_set_text(objects.firmware_label, firmware_version);
     controller->init(this, client);
+    time(&lastrun20);
 }
 
 void MeshtasticView::task_handler(void)
@@ -27,7 +28,7 @@ void MeshtasticView::task_handler(void)
     if (curtime - lastrun20 >= 20) {
         lastrun20 = curtime;
         // send heartbeat to server every 20s
-        if (!displaydriver->isPowersaving()) {
+        if (!displaydriver->isPowersaving() || state == eProgrammingMode) {
             controller->sendHeartbeat();
         }
 
@@ -88,7 +89,8 @@ void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float v
 
 void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {}
 
-void MeshtasticView::notifyMessagesRestored(void) {
+void MeshtasticView::notifyMessagesRestored(void)
+{
     messagesRestored = true;
 }
 
