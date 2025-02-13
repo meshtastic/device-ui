@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[72] = {
+const ext_img_desc_t images[73] = {
     { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
     { "settings_button_image", &img_settings_button_image },
     { "map_button_image", &img_map_button_image },
@@ -45,7 +45,6 @@ const ext_img_desc_t images[72] = {
     { "shutdown_image", &img_shutdown_image },
     { "home_clock_image", &img_home_clock_image },
     { "home_ethernet_button_image", &img_home_ethernet_button_image },
-    { "top_trace_route_image", &img_top_trace_route_image },
     { "top_node_detector_image", &img_top_node_detector_image },
     { "battery_empty_image", &img_battery_empty_image },
     { "signal_slider_image", &img_signal_slider_image },
@@ -73,4 +72,6 @@ const ext_img_desc_t images[72] = {
     { "user_question_image", &img_user_question_image },
     { "hourgalss_start_image", &img_hourgalss_start_image },
     { "home_sd_card_image", &img_home_sd_card_image },
+    { "bluetooth_on_image", &img_bluetooth_on_image },
+    { "top_loop_image", &img_top_loop_image },
 };

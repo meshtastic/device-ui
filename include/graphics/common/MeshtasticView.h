@@ -30,7 +30,24 @@ class MeshtasticView : public DeviceGUI
     virtual void triggerHeartbeat(void);
     virtual bool sleep(int16_t pin);
 
-    uint32_t getMyNodeNum(void) { return ownNode; }
+    uint32_t getMyNodeNum(void) const { return ownNode; }
+
+    enum State {
+        eBooting = 1,
+        eHoldingBootLogo,
+        eEnterProgrammingMode,
+        eProgrammingMode,
+        eWaitingForReboot,
+        eScreenSavingBoot,
+        eInitDone,
+        eSetupUIConfig,
+        eInitScreens,
+        eConfigComplete,
+        eMessagesRestored,
+        eRunning,
+        eScreenSaving,
+        eRebooting
+    };
 
     enum eRole {
         client,
@@ -47,8 +64,10 @@ class MeshtasticView : public DeviceGUI
         unknown
     };
 
+    State getState(void) const { return state; }
+
     // methods to update view
-    virtual void setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) {}
+    virtual bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) { return true; }
     virtual void setMyInfo(uint32_t nodeNum);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                    bool can_shutdown);
@@ -76,7 +95,7 @@ class MeshtasticView : public DeviceGUI
     virtual void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg) {}
     virtual void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) {}
     virtual void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) {}
-    virtual void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg) {}
+    virtual void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg, uint32_t id = 0) {}
     virtual void updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg) {}
     virtual void updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg) {}
 
@@ -97,7 +116,11 @@ class MeshtasticView : public DeviceGUI
     virtual void updateFileinfo(const meshtastic_FileInfo &fileinfo) {}
     virtual void updateRingtone(const char rtttl[231]) {}
 
-    virtual void configCompleted(void) { configComplete = true; }
+    virtual void configCompleted(void)
+    {
+        configComplete = true;
+        state = eConfigComplete;
+    }
 
     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing, const meshtastic_MeshPacket &p) {}
     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) {}
@@ -135,6 +158,7 @@ class MeshtasticView : public DeviceGUI
     std::array<lv_obj_t *, c_max_channels> channelGroup;  // message containers for channel group
     uint32_t nodeCount = 1, nodesOnline = 1, ownNode = 0; // node info
     uint32_t unreadMessages = 0;                          // messages
+    State state = eBooting;                               // states of startup phase
     bool configComplete = false;                          // config request finishe
     bool messagesRestored = false;                        // message restoration process finished
     time_t lastrun20 = 0;                                 // 20s task
