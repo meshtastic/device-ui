@@ -144,6 +144,8 @@ void TFTView_320x240::init(IClientBase *client)
 
     lv_obj_add_event_cb(objects.boot_logo_button, ui_event_LogoButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.blank_screen_button, ui_event_BlankScreenButton, LV_EVENT_ALL, NULL);
+
+    lv_timer_create(timer_event_programming_mode, 3000, NULL); // timer for programming mode button active
 }
 
 /**
@@ -169,7 +171,8 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     lv_i18n_init(lv_i18n_language_pack);
     setLocale(db.uiConfig.language);
 
-    if (state == MeshtasticView::eEnterProgrammingMode || state == MeshtasticView::eProgrammingMode) {
+    if (state == MeshtasticView::eEnterProgrammingMode || state == MeshtasticView::eProgrammingMode ||
+        state == MeshtasticView::eWaitingForReboot) {
         enterProgrammingMode();
         return false;
     }
@@ -289,7 +292,7 @@ void TFTView_320x240::init_screens(void)
     ui_events_init();
 
     // load main screen
-    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 300, 2000, false);
+    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 300, 0, false);
 
     // re-configuration based on capabilities
     if (!displaydriver->hasLight())
@@ -354,6 +357,7 @@ void TFTView_320x240::init_screens(void)
     updateFreeMem();
 
     screensInitialised = true;
+    state = MeshtasticView::eInitDone;
     ILOG_DEBUG("TFTView_320x240 init done.");
 }
 
@@ -434,11 +438,6 @@ void TFTView_320x240::enterProgrammingMode(void)
         lv_obj_add_event_cb(objects.bluetooth_button, ui_event_BluetoothButton, LV_EVENT_LONG_PRESSED, NULL);
         ILOG_INFO("### MUI programming mode entered (nodeId=!%08x) ###", ownNode);
     }
-    //    lv_obj_set_style_bg_color(objects.boot_screen, lv_color_hex(0x00), LV_PART_MAIN | LV_STATE_DEFAULT);
-    //    lv_obj_set_style_image_recolor_opa(objects.boot_logo_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    //    lv_obj_set_style_image_recolor(objects.boot_logo_button, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_remove_event_cb(objects.boot_logo_button, ui_event_LogoButton);
-    //    lv_obj_set_style_text_color(objects.meshtastic_url, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
 /**
@@ -736,6 +735,13 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
 }
 #endif
 
+void TFTView_320x240::timer_event_programming_mode(lv_timer_t *timer)
+{
+    if (THIS->state == eBooting)
+        THIS->state = MeshtasticView::eBootScreenDone;
+    lv_obj_remove_event_cb(objects.boot_logo_button, ui_event_LogoButton);
+}
+
 void TFTView_320x240::ui_event_LogoButton(lv_event_t *e)
 {
 
@@ -751,7 +757,7 @@ void TFTView_320x240::ui_event_LogoButton(lv_event_t *e)
             THIS->state = MeshtasticView::eEnterProgrammingMode;
             THIS->enterProgrammingMode();
         } else {
-            THIS->state = MeshtasticView::eBooting;
+            THIS->state = MeshtasticView::eBootScreenDone;
         }
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         if (THIS->state != MeshtasticView::eHoldingBootLogo) {
@@ -4403,6 +4409,8 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
     lv_obj_set_size(btn, LV_PCT(100), 38);
     add_style_settings_button_style(btn);
     lv_obj_set_style_align(btn, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_radius(btn, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_ofs_y(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4417,7 +4425,7 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
             } else {
                 setNodeImage(0, eRole::unknown, false, img);
             }
-            lv_obj_set_pos(img, -5, -7);
+            lv_obj_set_pos(img, -5, 3);
             lv_obj_set_size(img, 32, 32);
             lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4429,13 +4437,15 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
         {
             // TraceRouteToButtonLabel
             lv_obj_t *label = lv_label_create(btn);
-            lv_obj_set_pos(label, 40, 0);
+            lv_obj_set_pos(label, 35, 10);
             lv_obj_set_size(label, LV_PCT(80), LV_SIZE_CONTENT);
             lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
             if (nodePanel) {
                 if (nodeNum != ownNode) {
                     lv_obj_add_event_cb(btn, ui_event_trace_route_node, LV_EVENT_CLICKED, nodePanel);
                     lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbs_idx)));
+                    if (strlen(lv_label_get_text(label)) >= 5)
+                        lv_obj_set_pos(label, 35, -1);
                 } else {
                     lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbl_idx)));
                 }

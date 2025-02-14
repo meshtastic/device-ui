@@ -39,6 +39,7 @@ class MeshtasticView : public DeviceGUI
         eProgrammingMode,
         eWaitingForReboot,
         eScreenSavingBoot,
+        eBootScreenDone,
         eInitDone,
         eSetupUIConfig,
         eInitScreens,
