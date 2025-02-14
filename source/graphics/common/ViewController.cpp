@@ -21,16 +21,14 @@ constexpr const char *logDir = "/messages";
  *
  */
 ViewController::ViewController()
-    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), client(nullptr), sendId(1), myNodeNum(0), lastSetup(0),
-      setupDone(false), configCompleted(false), messagesRestored(false), requestConfigRequired(true)
+    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), client(nullptr), sendId(1), myNodeNum(0), setupDone(false),
+      configCompleted(false), messagesRestored(false), requestConfigRequired(true)
 {
 }
 
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
     time(&lastrun10);
-    lastrun10 -= 5; // start in 5s
-
     view = gui;
     client = _client;
     if (client) {
@@ -47,11 +45,13 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 void ViewController::runOnce(void)
 {
     if (client) {
+        if (view->getState() == MeshtasticView::eEnterProgrammingMode || view->getState() == MeshtasticView::eBootScreenDone)
+            requestConfig();
+
         if (configCompleted && !messagesRestored)
             restoreTextMessages();
         else {
-            if (myNodeNum == 0 ||
-                (view->getState() != MeshtasticView::eHoldingBootLogo && view->getState() != MeshtasticView::eProgrammingMode))
+            if (myNodeNum == 0 || view->getState() != MeshtasticView::eProgrammingMode)
                 receive();
         }
 
@@ -63,7 +63,7 @@ void ViewController::runOnce(void)
             lastrun10 = curtime;
             if (!client->isConnected())
                 client->connect();
-            if (curtime - lastSetup >= 10 && view->getState() != MeshtasticView::eProgrammingMode && !setupDone) {
+            if (view->getState() != MeshtasticView::eProgrammingMode && view->getState() < MeshtasticView::eConfigComplete) {
                 requestConfigRequired = true;
                 requestConfig();
             }
@@ -569,7 +569,6 @@ void ViewController::requestConfig(void)
         client->send(
             meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_want_config_id_tag, .want_config_id = configId++});
         requestConfigRequired = false;
-        time(&lastSetup);
     }
 }
 

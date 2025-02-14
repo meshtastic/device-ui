@@ -240,6 +240,9 @@ class TFTView_320x240 : public MeshtasticView
     void onPositionCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
     void onTracerouteCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
 
+    // lvgl timer callbacks
+    static void timer_event_programming_mode(lv_timer_t *timer);
+
     // lvgl event callbacks
     static void ui_event_LogoButton(lv_event_t *e);
     static void ui_event_BluetoothButton(lv_event_t *e);
