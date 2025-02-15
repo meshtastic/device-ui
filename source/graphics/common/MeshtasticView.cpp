@@ -203,16 +203,16 @@ const char *MeshtasticView::deviceRoleToString(enum eRole role)
 
 #include "util/macaron_Base64.h"
 #include <cstring>
-std::string MeshtasticView::pskToBase64(const meshtastic_ChannelSettings_psk_t &psk)
+std::string MeshtasticView::pskToBase64(uint8_t *bytes, uint32_t size)
 {
-    if (psk.size > 0) {
-        return macaron::Base64::Encode(&psk.bytes[0], psk.size);
+    if (size > 0) {
+        return macaron::Base64::Encode(bytes, size);
     } else {
         return "";
     }
 }
 
-bool MeshtasticView::base64ToPsk(const std::string &base64, meshtastic_ChannelSettings_psk_t &psk)
+bool MeshtasticView::base64ToPsk(const std::string &base64, uint8_t *bytes, uint16_t &size)
 {
     std::string out;
     auto error = macaron::Base64::Decode(base64, out);
@@ -220,8 +220,8 @@ bool MeshtasticView::base64ToPsk(const std::string &base64, meshtastic_ChannelSe
         ILOG_ERROR("Cannot decode '%s'", base64);
         return false;
     } else {
-        memcpy((char *)&psk.bytes[0], out.data(), out.size());
-        psk.size = out.size();
+        memcpy((char *)bytes, out.data(), out.size());
+        size = out.size();
     }
     return true;
 }
