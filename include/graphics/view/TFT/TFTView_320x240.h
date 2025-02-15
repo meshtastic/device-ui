@@ -99,6 +99,7 @@ class TFTView_320x240 : public MeshtasticView
         eTheme,
         eInputControl,
         eAlertBuzzer,
+        eBackupRestore,
         eReset,
         eReboot,
         eModifyChannel
@@ -176,7 +177,7 @@ class TFTView_320x240 : public MeshtasticView
     // update time display on home screen
     virtual void updateTime(void);
     // update SD card slot info
-    virtual void updateSDCard(void);
+    virtual bool updateSDCard(void);
     // update time display on home screen
     virtual void updateFreeMem(void);
     // update distance to other node
@@ -206,6 +207,9 @@ class TFTView_320x240 : public MeshtasticView
     void setGroupFocus(lv_obj_t *panel);
     void setInputGroup(void);
     void setInputButtonLabel(void);
+
+    void backup(uint32_t option);
+    void restore(uint32_t option);
 
     void scanSignal(uint32_t scanNo);
     void handleTraceRouteResponse(const meshtastic_Routing &routing);
@@ -260,6 +264,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ChatDelButton(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
     static void ui_event_MsgRestoreButton(lv_event_t *e);
+    static void ui_event_AlertButton(lv_event_t *e);
 
     // Home screen
     static void ui_event_EnvelopeButton(lv_event_t *e);
@@ -270,6 +275,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_LocationButton(lv_event_t *e);
     static void ui_event_WLANButton(lv_event_t *e);
     static void ui_event_MQTTButton(lv_event_t *e);
+    static void ui_event_SDCardButton(lv_event_t *e);
     static void ui_event_MemoryButton(lv_event_t *e);
 
     // blank screen
@@ -294,6 +300,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_screen_lock_button(lv_event_t *e);
     static void ui_event_input_button(lv_event_t *e);
     static void ui_event_alert_button(lv_event_t *e);
+    static void ui_event_backup_button(lv_event_t *e);
     static void ui_event_reset_button(lv_event_t *e);
     static void ui_event_reboot_button(lv_event_t *e);
     static void ui_event_device_reboot_button(lv_event_t *e);
@@ -331,6 +338,7 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);
+    static void ui_event_backup_restore_radio_button(lv_event_t *e);
 
     // animations
     static void ui_anim_node_panel_cb(void *var, int32_t v);

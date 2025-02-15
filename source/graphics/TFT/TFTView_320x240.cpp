@@ -20,13 +20,17 @@
 #include <cmath>
 #include <cstdio>
 #include <functional>
+#include <iomanip>
 #include <list>
 #include <locale>
 #include <random>
+#include <sstream>
 #include <time.h>
 
 #ifdef ARCH_PORTDUINO
+#include "PortduinoFS.h"
 #include "util/LinuxHelper.h"
+fs::FS &SD = PortduinoFS;
 #else
 #include "SD.h"
 #endif
@@ -319,6 +323,12 @@ void TFTView_320x240::init_screens(void)
                             _("Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"));
 #endif
 
+#ifdef HAS_SDCARD
+#if HAS_SDCARD
+    lv_obj_clear_flag(objects.basic_settings_backup_restore_button, LV_OBJ_FLAG_HIDDEN);
+#endif
+#endif
+
     // signal scanner scale
 #if defined(USE_SX127x)
     lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120\n-130\n-140\n-150");
@@ -525,6 +535,14 @@ void TFTView_320x240::apply_hotfix(void)
     lv_table_set_cell_value(objects.statistics_table, 0, 4, "Trc");
     lv_table_set_cell_value(objects.statistics_table, 0, 5, "Nbr");
     lv_table_set_cell_value(objects.statistics_table, 0, 6, "All");
+
+    // transform checkbox into radio button
+    static lv_style_t style_radio;
+    lv_style_init(&style_radio);
+    lv_style_set_radius(&style_radio, LV_RADIUS_CIRCLE);
+
+    lv_obj_add_style(objects.settings_backup_checkbox, &style_radio, LV_PART_INDICATOR);
+    lv_obj_add_style(objects.settings_restore_checkbox, &style_radio, LV_PART_INDICATOR);
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -586,6 +604,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.home_sd_card_button, this->ui_event_SDCardButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
 
     // node and channel buttons
@@ -606,6 +625,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.msg_popup_panel, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.msg_restore_button, this->ui_event_MsgRestoreButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.msg_restore_panel, this->ui_event_MsgRestoreButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.alert_panel, this->ui_event_AlertButton, LV_EVENT_CLICKED, NULL);
 
     // keyboard
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
@@ -640,6 +660,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_calibration_button, ui_event_calibration_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_input_button, ui_event_input_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_alert_button, ui_event_alert_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_backup_restore_button, ui_event_backup_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
 
@@ -687,10 +708,12 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj15__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj16__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj16__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj19__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj19__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj25__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj25__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj17__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj17__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj20__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj20__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj26__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj26__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -710,6 +733,9 @@ void TFTView_320x240::ui_events_init(void)
     // screen
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
     lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button, LV_EVENT_ALL, 0);
+
+    lv_obj_add_event_cb(objects.settings_backup_checkbox, ui_event_backup_restore_radio_button, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.settings_restore_checkbox, ui_event_backup_restore_radio_button, LV_EVENT_ALL, NULL);
 
     // tools buttons
     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
@@ -1015,8 +1041,6 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
 void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
 {
     lv_obj_t *target = lv_event_get_target_obj(e);
-    lv_event_code_t event_code = lv_event_get_code(e);
-
     if (target == objects.msg_popup_panel) {
         THIS->hideMessagePopup();
     } else { // msg button was clicked
@@ -1051,6 +1075,11 @@ void TFTView_320x240::ui_event_EnvelopeButton(lv_event_t *e)
         if (THIS->configComplete)
             THIS->ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
     }
+}
+
+void TFTView_320x240::ui_event_AlertButton(lv_event_t *e)
+{
+    lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
 void TFTView_320x240::ui_event_OnlineNodesButton(lv_event_t *e)
@@ -1236,6 +1265,14 @@ void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
         Themes::recolorButton(objects.home_mqtt_button, mqtt.enabled);
         THIS->controller->sendConfig(meshtastic_ModuleConfig_MQTTConfig{mqtt});
         THIS->notifyReboot(true);
+    }
+}
+
+void TFTView_320x240::ui_event_SDCardButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        THIS->updateSDCard();
     }
 }
 
@@ -1643,6 +1680,18 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
     }
 }
 
+// backup & restore
+void TFTView_320x240::ui_event_backup_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        lv_obj_clear_flag(objects.settings_backup_restore_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_backup_restore_dropdown);
+        THIS->disablePanel(objects.controller_panel);
+        THIS->activeSettings = eBackupRestore;
+    }
+}
+
 // configuration reset
 void TFTView_320x240::ui_event_reset_button(lv_event_t *e)
 {
@@ -1716,7 +1765,7 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
         int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
         if (ch != -1) {
             meshtastic_ChannelSettings_psk_t &psk = THIS->channel_scratch[ch].settings.psk;
-            std::string base64 = THIS->pskToBase64(psk);
+            std::string base64 = THIS->pskToBase64(psk.bytes, psk.size);
             lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
             lv_textarea_set_text(objects.settings_modify_channel_name_textarea, THIS->channel_scratch[ch].settings.name);
             objects.settings_modify_channel_name_textarea->user_data = (void *)btn_id;
@@ -1782,7 +1831,7 @@ void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
             int r = generator();
             memcpy(&psk.bytes[i * 4], &r, 4);
         }
-        base64 = THIS->pskToBase64(psk);
+        base64 = THIS->pskToBase64(psk.bytes, psk.size);
         lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
     }
 
@@ -1888,6 +1937,16 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
         default:
             break;
         }
+    }
+}
+
+void TFTView_320x240::ui_event_backup_restore_radio_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        lv_obj_remove_state(objects.settings_backup_checkbox, LV_STATE_CHECKED);
+        lv_obj_remove_state(objects.settings_restore_checkbox, LV_STATE_CHECKED);
+        lv_obj_add_state(lv_event_get_target_obj(e), LV_STATE_CHECKED);
     }
 }
 
@@ -3235,6 +3294,17 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_group_focus_obj(objects.basic_settings_alert_button);
             break;
         }
+        case eBackupRestore: {
+            uint32_t option = lv_dropdown_get_selected(objects.settings_backup_restore_dropdown);
+            if (lv_obj_has_state(objects.settings_backup_checkbox, LV_STATE_CHECKED)) {
+                THIS->backup(option);
+            } else if (lv_obj_has_state(objects.settings_restore_checkbox, LV_STATE_CHECKED)) {
+                THIS->restore(option);
+            }
+            lv_obj_add_flag(objects.settings_backup_restore_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_backup_restore_button);
+            break;
+        }
         case eReset: {
             uint32_t option = lv_dropdown_get_selected(objects.settings_reset_dropdown);
             if (option == 2) {
@@ -3268,7 +3338,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_textarea_add_text(objects.settings_modify_channel_psk_textarea, "=");
             }
 
-            if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk)) {
+            if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk.bytes, psk.size)) {
                 if (strlen(name) || psk.size) {
                     // TODO: fill temp storage -> user data
                     lv_label_set_text(THIS->ch_label[btn_id], name);
@@ -3380,6 +3450,11 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         case TFTView_320x240::eAlertBuzzer: {
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_alert_button);
+            break;
+        }
+        case TFTView_320x240::eBackupRestore: {
+            lv_obj_add_flag(objects.settings_backup_restore_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_backup_restore_button);
             break;
         }
         case TFTView_320x240::eReset: {
@@ -5016,6 +5091,68 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
     }
 }
 
+void TFTView_320x240::backup(uint32_t option)
+{
+    meshtastic_Config_SecurityConfig_public_key_t &pubkey = db.config.security.public_key;
+    meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
+
+    std::stringstream path;
+    path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+    SD.mkdir("/keys");
+    File sd = SD.open(path.str().c_str(), FILE_WRITE);
+    if (sd) {
+        sd.println("config:");
+        sd.println("  security:");
+        sd.print("      privateKey: base64: ");
+        sd.println(pskToBase64(privkey.bytes, privkey.size).c_str());
+        sd.print("      publicKey: base64: ");
+        sd.println(pskToBase64(pubkey.bytes, pubkey.size).c_str());
+        ILOG_INFO("backup pub/priv keys done.");
+    } else {
+        ILOG_ERROR("open file %s for backup failed", path.str().c_str());
+        messageAlert(_("Failed to write keys!"), true);
+    }
+    sd.close();
+}
+
+void TFTView_320x240::restore(uint32_t option)
+{
+    meshtastic_Config_SecurityConfig_public_key_t &pubkey = db.config.security.public_key;
+    meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
+
+    std::stringstream path;
+    path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+    File sd = SD.open(path.str().c_str(), FILE_READ);
+    if (sd) {
+        // TODO: improve parsing file contents
+        sd.readStringUntil('\n');                  // config:
+        sd.readStringUntil('\n');                  // security:
+        String privKey = sd.readStringUntil('\n'); // privateKey: base64:
+        String pubKey = sd.readStringUntil('\n');  // publicKey: base64:
+        if (privKey.indexOf("privateKey:") > 0 && pubKey.indexOf("publicKey:") > 0) {
+            String b64priv = privKey.substring(privKey.lastIndexOf(":") + 1);
+            String b64pub = pubKey.substring(pubKey.lastIndexOf(":") + 1);
+            b64priv.trim();
+            b64pub.trim();
+            if (base64ToPsk(b64priv.c_str(), pubkey.bytes, privkey.size) &&
+                base64ToPsk(b64pub.c_str(), privkey.bytes, pubkey.size) &&
+                controller->sendConfig(meshtastic_Config_SecurityConfig{db.config.security})) {
+                ILOG_INFO("restore pub/priv keys sent to radio");
+            } else {
+                ILOG_ERROR("decoding keys failed");
+                messageAlert(_("Failed to restore keys!"), true);
+            }
+        } else {
+            ILOG_ERROR("file %s contents don't match backup", path.str().c_str());
+            messageAlert(_("Failed to parse keys!"), true);
+        }
+    } else {
+        ILOG_ERROR("open file %s for backup failed", path.str().c_str());
+        messageAlert(_("Failed to retrieve keys!"), true);
+    }
+    sd.close();
+}
+
 /**
  * @brief write local time stamp into buffer
  *        if date is not current also add day/month
@@ -5942,8 +6079,9 @@ void TFTView_320x240::updateTime(void)
     lv_label_set_text(objects.home_time_label, buf);
 }
 
-void TFTView_320x240::updateSDCard(void)
+bool TFTView_320x240::updateSDCard(void)
 {
+    bool cardDetected = false;
 #if !defined(ARCH_PORTDUINO) && HAS_SDCARD
     char buf[64];
     uint8_t cardType = SD.cardType();
@@ -5951,6 +6089,8 @@ void TFTView_320x240::updateSDCard(void)
         lv_snprintf(buf, sizeof(buf), _("no SD card detected"));
         Themes::recolorButton(objects.home_sd_card_button, false);
         Themes::recolorText(objects.home_sd_card_label, false);
+        // allow backup/restore only if there is an SD card detected
+        lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
     } else {
         uint32_t usedSpace = SD.usedBytes() / (1024 * 1024);
         uint32_t totalSpace = SD.cardSize() / (1024 * 1024);
@@ -5964,12 +6104,14 @@ void TFTView_320x240::updateSDCard(void)
                 totalSpaceGB, usedSpace, ((usedSpace * 100) + totalSpace / 2) / totalSpace);
         Themes::recolorButton(objects.home_sd_card_button, true);
         Themes::recolorText(objects.home_sd_card_label, true);
+        cardDetected = true;
     }
     lv_label_set_text(objects.home_sd_card_label, buf);
 #else
     lv_obj_add_flag(objects.home_sd_card_button, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.home_sd_card_label, LV_OBJ_FLAG_HIDDEN);
 #endif
+    return cardDetected;
 }
 
 void TFTView_320x240::updateFreeMem(void)
