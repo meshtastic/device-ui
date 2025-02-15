@@ -37,6 +37,11 @@ static inline uint32_t op_t(uint32_t val)
     UNUSED(val);
     return 0;
 }
+static inline uint32_t op_e(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
 
 static uint8_t en_plural_fn(int32_t num)
 {
@@ -56,7 +61,7 @@ static const lv_i18n_lang_t en_lang = {.locale_name = "en",
 
                                        .locale_plural_fn = en_plural_fn};
 
-static lv_i18n_phrase_t de_singulars[] = {
+static const lv_i18n_phrase_t de_singulars[] = {
     {"User name: %s", "Benutzer: %s"},
     {"Device Role: %s", "Gerätemodus: %s"},
     {"no new messages", "keine Nachrichten"},
@@ -178,11 +183,11 @@ static lv_i18n_phrase_t de_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t de_plurals_one[] = {
+static const lv_i18n_phrase_t de_plurals_one[] = {
     {"%d active chat(s)", "%d aktives Gespräch"}, {"%d of %d nodes online", "1 Gerät online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t de_plurals_other[] = {
+static const lv_i18n_phrase_t de_plurals_other[] = {
     {"%d active chat(s)", "%d aktive Gespräche"}, {"%d of %d nodes online", "%d / %d Geräte online"}, {NULL, NULL} // End mark
 };
 
@@ -206,7 +211,7 @@ static const lv_i18n_lang_t de_lang = {.locale_name = "de",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = de_plurals_other,
                                        .locale_plural_fn = de_plural_fn};
 
-static lv_i18n_phrase_t el_singulars[] = {
+static const lv_i18n_phrase_t el_singulars[] = {
     {"no new messages", "κανένα νέο μήνυμα"},
     {"1 of 1 nodes online", "1 Κόμβος online"},
     {"uptime 00:00:00", "Χρόν.λειτ. 00:00:00"},
@@ -250,10 +255,12 @@ static lv_i18n_phrase_t el_singulars[] = {
     {"Primary Channel", "Κύριο Κανάλι"},
     {"<unset>", "<αόριστο>"},
     {"Secondary Channels", "Δευτερεύοντα Κανάλια"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
-     "LONG FAST\nLONG SLOW\n-- Καταργήθηκε --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"LONG FAST\\nLONG SLOW\\n-- deprecated --\\nMEDIUM SLOW\\nMEDIUM FAST\\nSHORT SLOW\\nSHORT FAST\\nLONG MODERATE\\nSHORT "
+     "TURBO",
+     "LONG FAST\\nLONG SLOW\\n-- Καταργήθηκε --\\nMEDIUM SLOW\\nMEDIUM FAST\\nSHORT SLOW\\nSHORT FAST\\nLONG MODERATE\\nSHORT "
+     "TURBO"},
     {"Brightness: 60%", "Ένταση: 60%"},
-    {"Dark\nLight", "Σκούρο\nΑνοιχτό"},
+    {"Dark\\nLight", "Σκούρο\\nΑνοιχτό"},
     {"Timeout: 60s", "Λήξη: 60s"},
     {"Screen Lock", "Κλείδ. Οθόνης"},
     {"Settings Lock", "Κλείδ. Ρυθμίσεων"},
@@ -266,7 +273,7 @@ static lv_i18n_phrase_t el_singulars[] = {
     {"Default", "Προεπιλογή"},
     {"Zone", "Ζώνη"},
     {"City", "Πόλη"},
-    {"NodeDB Reset\nFactory Reset\nClear Chat History", "Καθαρ. NodeDB\nΕπαν.Εργοσ. Ρυθμίσεων\nΚαθαρ.Ιστ. Συνομιλιών"},
+    {"NodeDB Reset\\nFactory Reset\\nClear Chat History", "Καθαρ. NodeDB\\nΕπαν.Εργοσ. Ρυθμίσεων\\nΚαθαρ.Ιστ. Συνομιλιών"},
     {"Channel Name", "Όνομα Καναλιού"},
     {"Filter", "Φίλτρο"},
     {"Unknown", "Άγνωστες"},
@@ -280,9 +287,9 @@ static lv_i18n_phrase_t el_singulars[] = {
     {"Telemetry", "Τηλεμετρία"},
     {"IAQ", "Ποιότητα Αέρα (ΠΑΕΧ)"},
     {"Start", "Έναρξη"},
-    {"choose\nnode", "επιλογή κόμβου"},
+    {"choose\\nnode", "επιλογή κόμβου"},
     {"choose target node", "επιλογή στόχου"},
-    {"New Message from\n", "Νέο μήνυμα από\n"},
+    {"New Message from\\n", "Νέο μήνυμα από\\n"},
     {"Restoring messages ...", "Επαναφορά μηνυμάτων..."},
     {"Resynch ...", "Συγχρονισμός ..."},
     {"Please set region and name", "Ορίστε περιοχή και όνομα"},
@@ -323,21 +330,21 @@ static lv_i18n_phrase_t el_singulars[] = {
     {"Sound only", "Ήχος μόνο"},
     {"Message Alert: %s", "Ειδοποιήσεις: %s"},
     {"Channel: %s", "Κύριο Κανάλι: %s"},
-    {"New message from \n%s", "Νέο μήνυμα από \n%s"},
+    {"New message from \\n%s", "Νέο μήνυμα από \\n%s"},
     {"Input Control: %s/%s", "Έλεγχος Εισόδου: %s/%s"},
     {"Filter: %d of %d nodes", "Φίλτρο: %d από %d κόμβοι"},
     {"%d new message", "%d νέο μήνυμα"},
     {"%d new messages", "%d νέα μηνύματα"},
     {"uptime: %02d:%02d:%02d", "Χρόνος Λειτ.: %02d:%02d:%02d"},
-    {"%s (%0.1f GB)\nUsed: %d MB (%d%%)", "%s (%d)\nΧρήση: %d MB (%d%%)"},
+    {"%s (%0.1f GB)\\nUsed: %d MB (%d%%)", "%s (%d)\\nΧρήση: %d MB (%d%%)"},
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t el_plurals_one[] = {
+static const lv_i18n_phrase_t el_plurals_one[] = {
     {"%d active chat(s)", "%d ενεργ. συνομιλία"}, {"%d of %d nodes online", "1 Κόμβος online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t el_plurals_other[] = {
+static const lv_i18n_phrase_t el_plurals_other[] = {
     {"%d active chat(s)", "%d ενεργ. συνομιλίες"}, {"%d of %d nodes online", "%d / %d Κόμβοι online"}, {NULL, NULL} // End mark
 };
 
@@ -357,7 +364,7 @@ static const lv_i18n_lang_t el_lang = {.locale_name = "el",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = el_plurals_other,
                                        .locale_plural_fn = el_plural_fn};
 
-static lv_i18n_phrase_t es_singulars[] = {
+static const lv_i18n_phrase_t es_singulars[] = {
     {"no new messages", "Sin mensajes nuevos"},
     {"1 of 1 nodes online", "1 de 1 nodos activos"},
     {"DEL", "BOR"},
@@ -487,9 +494,17 @@ static uint8_t es_plural_fn(int32_t num)
 {
     uint32_t n = op_n(num);
     UNUSED(n);
-
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i1000000 = i % 1000000;
     if ((n == 1))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
@@ -498,7 +513,7 @@ static const lv_i18n_lang_t es_lang = {.locale_name = "es",
 
                                        .locale_plural_fn = es_plural_fn};
 
-static lv_i18n_phrase_t fi_singulars[] = {
+static const lv_i18n_phrase_t fi_singulars[] = {
     {"no new messages", "ei uusia viestejä"},
     {"1 of 1 nodes online", "1/1 nodea verkossa"},
     {"uptime 00:00:00", "käyttöaika 00:00:00"},
@@ -628,7 +643,7 @@ static const lv_i18n_lang_t fi_lang = {.locale_name = "fi",
 
                                        .locale_plural_fn = fi_plural_fn};
 
-static lv_i18n_phrase_t fr_singulars[] = {
+static const lv_i18n_phrase_t fr_singulars[] = {
     {"no new messages", "0 nouveau message"},
     {"1 of 1 nodes online", "1 sur 1 noeud actif"},
     {"uptime 00:00:00", "Activité: 00:00:00"},
@@ -760,9 +775,15 @@ static uint8_t fr_plural_fn(int32_t num)
     UNUSED(n);
     uint32_t i = op_i(n);
     UNUSED(i);
-
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i1000000 = i % 1000000;
     if ((((i == 0) || (i == 1))))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
@@ -771,7 +792,7 @@ static const lv_i18n_lang_t fr_lang = {.locale_name = "fr",
 
                                        .locale_plural_fn = fr_plural_fn};
 
-static lv_i18n_phrase_t it_singulars[] = {
+static const lv_i18n_phrase_t it_singulars[] = {
     {"no new messages", "nessun messaggio"},
     {"1 of 1 nodes online", "1 di 1 nodi online"},
     {"uptime 00:00:00", "tempo di attività 00:00:00"},
@@ -905,11 +926,11 @@ static lv_i18n_phrase_t it_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t it_plurals_one[] = {
+static const lv_i18n_phrase_t it_plurals_one[] = {
     {"%d active chat(s)", "%d chat attiva"}, {"%d of %d nodes online", "1 nodo online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t it_plurals_other[] = {
+static const lv_i18n_phrase_t it_plurals_other[] = {
     {"%d active chat(s)", "%d chat attive"}, {"%d of %d nodes online", "%d di %d nodi online"}, {NULL, NULL} // End mark
 };
 
@@ -921,9 +942,13 @@ static uint8_t it_plural_fn(int32_t num)
     UNUSED(i);
     uint32_t v = op_v(n);
     UNUSED(v);
-
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t i1000000 = i % 1000000;
     if ((i == 1 && v == 0))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
@@ -933,7 +958,7 @@ static const lv_i18n_lang_t it_lang = {.locale_name = "it",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = it_plurals_other,
                                        .locale_plural_fn = it_plural_fn};
 
-static lv_i18n_phrase_t nl_singulars[] = {
+static const lv_i18n_phrase_t nl_singulars[] = {
     {"no new messages", "0 nieuwe berichten"},
     {"1 of 1 nodes online", "1 van 1 nodes online"},
     {"uptime 00:00:00", "uptime 00:00:00"},
@@ -1094,7 +1119,7 @@ static const lv_i18n_lang_t nl_lang = {.locale_name = "nl",
 
                                        .locale_plural_fn = nl_plural_fn};
 
-static lv_i18n_phrase_t no_singulars[] = {
+static const lv_i18n_phrase_t no_singulars[] = {
     {"no new messages", "Ingen nye meldinger"},
     {"1 of 1 nodes online", "1 av 1 noder online"},
     {"uptime 00:00:00", "oppetid 00:00:00"},
@@ -1226,11 +1251,11 @@ static lv_i18n_phrase_t no_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t no_plurals_one[] = {
+static const lv_i18n_phrase_t no_plurals_one[] = {
     {"%d active chat(s)", "1 aktiv chat"}, {"%d of %d nodes online", "1 node online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t no_plurals_other[] = {
+static const lv_i18n_phrase_t no_plurals_other[] = {
     {"%d active chat(s)", "%d aktive chat"}, {"%d of %d nodes online", "%d av %d noder online"}, {NULL, NULL} // End mark
 };
 
@@ -1250,7 +1275,7 @@ static const lv_i18n_lang_t no_lang = {.locale_name = "no",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = no_plurals_other,
                                        .locale_plural_fn = no_plural_fn};
 
-static lv_i18n_phrase_t pl_singulars[] = {
+static const lv_i18n_phrase_t pl_singulars[] = {
     {"no new messages", "Brak wiadomości"},
     {"1 of 1 nodes online", "1 z 1 węzłów online"},
     {"User name: ", "Nazwa"},
@@ -1379,7 +1404,7 @@ static const lv_i18n_lang_t pl_lang = {.locale_name = "pl",
 
                                        .locale_plural_fn = pl_plural_fn};
 
-static lv_i18n_phrase_t pt_singulars[] = {
+static const lv_i18n_phrase_t pt_singulars[] = {
     {"no new messages", "Nenhuma mensagem"},
     {"1 of 1 nodes online", "1 dispositivo online"},
     {"uptime 00:00:00", "Tempo ligado\n00:00:00"},
@@ -1504,11 +1529,11 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t pt_plurals_one[] = {
+static const lv_i18n_phrase_t pt_plurals_one[] = {
     {"%d of %d nodes online", "1 dispositivo online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t pt_plurals_other[] = {
+static const lv_i18n_phrase_t pt_plurals_other[] = {
     {"%d of %d nodes online", "%d/%d dispositivos online"}, {NULL, NULL} // End mark
 };
 
@@ -1518,9 +1543,15 @@ static uint8_t pt_plural_fn(int32_t num)
     UNUSED(n);
     uint32_t i = op_i(n);
     UNUSED(i);
-
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i1000000 = i % 1000000;
     if (((0 <= i && i <= 1)))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
@@ -1550,7 +1581,7 @@ static const lv_i18n_lang_t ro_lang = {.locale_name = "ro",
 
                                        .locale_plural_fn = ro_plural_fn};
 
-static lv_i18n_phrase_t ru_singulars[] = {
+static const lv_i18n_phrase_t ru_singulars[] = {
     {"no new messages", "нет новых сообщений"},
     {"1 of 1 nodes online", "1 из 1 узлов онлайн"},
     {"DEL", "DEL"},
@@ -1697,7 +1728,7 @@ static const lv_i18n_lang_t ru_lang = {.locale_name = "ru",
 
                                        .locale_plural_fn = ru_plural_fn};
 
-static lv_i18n_phrase_t se_singulars[] = {
+static const lv_i18n_phrase_t se_singulars[] = {
     {"no new messages", "inga nya meddelanden"},
     {"1 of 1 nodes online", "1 av 1 noder online"},
     {"uptime 00:00:00", "upptid 00:00:00"},
@@ -1828,11 +1859,11 @@ static lv_i18n_phrase_t se_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t se_plurals_one[] = {
+static const lv_i18n_phrase_t se_plurals_one[] = {
     {"%d active chat(s)", "1 aktiv chatt"}, {"%d of %d nodes online", "1 nod online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t se_plurals_other[] = {
+static const lv_i18n_phrase_t se_plurals_other[] = {
     {"%d active chat(s)", "%d aktiva chattar"}, {"%d of %d nodes online", "%d av %d noder online"}, {NULL, NULL} // End mark
 };
 
@@ -1854,7 +1885,7 @@ static const lv_i18n_lang_t se_lang = {.locale_name = "se",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = se_plurals_other,
                                        .locale_plural_fn = se_plural_fn};
 
-static lv_i18n_phrase_t sl_singulars[] = {
+static const lv_i18n_phrase_t sl_singulars[] = {
     {"User name: %s", "Uporabniško ime: %s"},
     {"Device Role: %s", "Vloga: %s"},
     {"no new messages", "ni novih sporočil"},
@@ -1994,11 +2025,11 @@ static lv_i18n_phrase_t sl_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t sl_plurals_one[] = {
+static const lv_i18n_phrase_t sl_plurals_one[] = {
     {"%d of %d nodes online", "1 vozlišč povezano"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t sl_plurals_other[] = {
+static const lv_i18n_phrase_t sl_plurals_other[] = {
     {"%d of %d nodes online", "%d / %d vozl. povezanih"}, {NULL, NULL} // End mark
 };
 
@@ -2026,7 +2057,7 @@ static const lv_i18n_lang_t sl_lang = {.locale_name = "sl",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = sl_plurals_other,
                                        .locale_plural_fn = sl_plural_fn};
 
-static lv_i18n_phrase_t sr_singulars[] = {
+static const lv_i18n_phrase_t sr_singulars[] = {
     {"no new messages", "nema novih poruka"},
     {"1 of 1 nodes online", "1 od 1 nodova online"},
     {"uptime 00:00:00", "uključen pre 00:00:00"},
@@ -2180,7 +2211,7 @@ static const lv_i18n_lang_t sr_lang = {.locale_name = "sr",
 
                                        .locale_plural_fn = sr_plural_fn};
 
-static lv_i18n_phrase_t tr_singulars[] = {
+static const lv_i18n_phrase_t tr_singulars[] = {
     {"no new messages", "Yeni mesaj yok"},
     {"1 of 1 nodes online", "1/1 düğüm aktif"},
     {"uptime 00:00:00", "Çalışma süresi %s"},
@@ -2310,11 +2341,11 @@ static lv_i18n_phrase_t tr_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t tr_plurals_one[] = {
+static const lv_i18n_phrase_t tr_plurals_one[] = {
     {"%d of %d nodes online", "1 düğüm çevrimiçi"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t tr_plurals_other[] = {
+static const lv_i18n_phrase_t tr_plurals_other[] = {
     {"%d of %d nodes online", "%d / %d düğümler çevrimiçi"}, {NULL, NULL} // End mark
 };
 
@@ -2334,7 +2365,7 @@ static const lv_i18n_lang_t tr_lang = {.locale_name = "tr",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = tr_plurals_other,
                                        .locale_plural_fn = tr_plural_fn};
 
-static lv_i18n_phrase_t zh_cn_singulars[] = {
+static const lv_i18n_phrase_t zh_cn_singulars[] = {
     {"no new messages", "暂无新消息"},
     {"1 of 1 nodes online", "1/1 个节点在线"},
     {"DEL", "删除"},
@@ -2519,6 +2550,14 @@ int lv_i18n_init(const lv_i18n_language_pack_t *langs)
 }
 
 /**
+ * Sugar for simplified `lv_i18n_init` call
+ */
+int lv_i18n_init_default(void)
+{
+    return lv_i18n_init(lv_i18n_language_pack);
+}
+
+/**
  * Change the localization (language)
  * @param l_name name of the translation locale to use. E.g. "en-GB"
  */
@@ -2540,12 +2579,12 @@ int lv_i18n_set_locale(const char *l_name)
     return -1;
 }
 
-static const char *__lv_i18n_get_text_core(lv_i18n_phrase_t *trans, const char *msg_id)
+static const char *__lv_i18n_get_text_core(const lv_i18n_phrase_t *trans, const char *msg_id)
 {
     uint16_t i;
     for (i = 0; trans[i].msg_id != NULL; i++) {
         if (strcmp(trans[i].msg_id, msg_id) == 0) {
-            /*The msg_id has found. Check the translation*/
+            /*The msg_id has been found. Check the translation*/
             if (trans[i].translation)
                 return trans[i].translation;
         }

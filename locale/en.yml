@@ -1,145 +1,148 @@
 en:
-  'User name: %s': ~
-  'Device Role: %s': ~
   no new messages: ~
   1 of 1 nodes online: ~
+  uptime 00:00:00: ~
+  LoRa 0.0 MHz: ~
+  no signal: ~
+  silent: ~
+  no SD card detected: ~
+  "Heap: 0\nLVGL: 0": ~
   DEL: ~
+  Settings: ~
   'User name: ': ~
   'Modem Preset: LONG FAST': ~
   'Channel: LongFast': ~
   'Role: Client': ~
+  'WiFi: <not setup>': ~
   'Screen Timeout: 60s': ~
+  'Lock: off/off': ~
   'Screen Brightness: 60%': ~
+  'Theme: Dark': ~
   'Screen Calibration: default': ~
   'Input Control: none/none': ~
   'Message Alert Buzzer: on': ~
   'Language: English': ~
-  Configuration  Reset: ~
+  Configuration Reset: ~
   Reboot / Shutdown: ~
-  Group Channels: ~
-  no messages: ~
-  Settings: ~
-  Settings (advanced): ~
-  Locations Map: ~
-  no chats: ~
-  Node Options: ~
-  Short Name: ~
-  Long Name: ~
-  <unset>: ~
-  'FrequencySlot: 1 (902.0MHz)': ~
-  'Brightness: 60%': ~
-  'Timeout: 60s': ~
-  Mouse: ~
-  Keyboard: ~
-  Message Alert: ~
-  "NodeDB Reset\nFactory Reset": ~
-  Channel Name: ~
-  Pre-shared Key: ~
-  "New Message from\n": ~
-  Resynch...: ~
-  'Screen Calibration: %s': ~
-  done: ~
-  default: ~
-  'Region: %s': ~
-  'Modem Preset: %s': ~
-  'Channel: %s': ~
-  'Language: %s': ~
-  'Screen Lock: off': ~
-  'Theme: Dark': ~
+  Tools: ~
   Mesh Detector: ~
   Signal Scanner: ~
   Trace Route: ~
   Neighbors: ~
   Statistics: ~
   Packet Log: ~
+  Meshtastic: ~
+  Group Channels: ~
+  no messages: ~
   Settings & Tools: ~
+  Settings (advanced): ~
+  Locations Map: ~
+  no chats: ~
   Node Search: ~
+  Packet Statistics: ~
+  Node Options: ~
+  LoRa TX off!: ~
+  Short Name: ~
+  Long Name: ~
+  Primary Channel: ~
+  <unset>: ~
+  Secondary Channels: ~
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  'Brightness: 60%': ~
+  "Dark\nLight": ~
+  'Timeout: 60s': ~
   Screen Lock: ~
+  Settings Lock: ~
   Lock PIN: ~
+  Mouse: ~
+  none: ~
+  Keyboard: ~
+  Message Alert: ~
   Ringtone: ~
+  Default: ~
   Zone: ~
   City: ~
+  "NodeDB Reset\nFactory Reset\nClear Chat History": ~
+  Channel Name: ~
+  Pre-shared Key: ~
+  Filter: ~
   Unknown: ~
   Offline: ~
   Public Key: ~
+  Channel: ~
   Hops away: ~
   MQTT: ~
   Position: ~
   Name: ~
+  Highlight: ~
   Active Chat: ~
   Telemetry: ~
   IAQ: ~
   Start: ~
-  'Theme: %s': ~
-  'uptime 00:00:00': ~
-  "Heap: 0\nLVGL: 0": ~
-  Meshtastic: ~
-  Packet Statistics: ~
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: ~
-  Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: ~
-  "Dark\nLight": ~
-  none: ~
-  Default: ~
+  "choose\nnode": ~
+  choose target node: ~
+  "New Message from\n": ~
+  Restoring messages ...: ~
+  Resynch ...: ~
+  Please set region and name: ~
+  Region: ~
   OK: ~
   Cancel: ~
+  now: ~
+  'Lock: %s/%s': ~
+  'on': ~
+  'off': ~
+  'Screen Calibration: %s': ~
+  done: ~
+  default: ~
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  Rebooting ...: ~
+  '>> Programming mode <<': ~
+  Enter Text ...: ~
+  '!Enter Filter ...': ~
+  Enter Filter ...: ~
   'FrequencySlot: %d (%g MHz)': ~
   'Brightness: %d%%': ~
   'Timeout: off': ~
   'Timeout: %ds': ~
   Stop: ~
-  "choose\nnode": ~
-  choose target node: ~
   'heard: !%08x': ~
   'Packet Log: %d': ~
+  'Language: %s': ~
   'Screen Timeout: off': ~
   'Screen Timeout: %ds': ~
   'Screen Brightness: %d%%': ~
-  'Screen Lock: %s': ~
-  'on': ~
-  'off': ~
-  'Message Alert: %s': ~
+  'Theme: %s': ~
+  'Region: %s': ~
+  'User name: %s': ~
+  'Device Role: %s': ~
+  'Modem Preset: %s': ~
+  'WiFi: %s': ~
+  <not set>: ~
   Util %0.1f%%  Air %0.1f%%: ~
   'hops: %d': ~
   unknown: ~
-  <no name>: ~
-  '%d active chat(s)': ~
-  "New message from \n%s": ~
-  'Input Control: %s/%s': ~
-  '%d of %d nodes online': ~
-  Filtering ...: ~
-  'Filter: %d of %d nodes': ~
-  now: ~
-  '%d new message': ~
-  '%d new messages': ~
-  'uptime: %02d:%02d:%02d': ~
-  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
-  Configuration Reset: ~
-  Tools: ~
-  Filter: ~
-  Highlight: ~
-  choose node: ~
-  Primary Channel: ~
-  Secondary Channels: ~
-  Resynch ...: ~
-  Rebooting ...: ~
   Shutting down ...: ~
-  LoRa 0.0 MHz: ~
-  silent: ~
-  'WiFi: <not setup>': ~
-  LoRa TX off!: ~
-  WiFi SSID: ~
-  WiFi pre-shared Key: ~
-  'WiFi: %s': ~
-  <not set>: ~
+  region unset: ~
   Banner & Sound: ~
   Banner only: ~
   Sound only: ~
-  'Lock: off/off': ~
-  Settings Lock: ~
-  'Lock: %s/%s': ~
-  Enter Text ...: ~
-  '!Enter Filter ...': ~
-  Enter Filter ...: ~
-  region unset: ~
-  no signal: ~
-  Restoring messages ...: ~
+  'Message Alert: %s': ~
+  'Channel: %s': ~
+  '%d active chat(s)':
+    one: ~
+    other: ~
+  "New message from \n%s": ~
+  'Input Control: %s/%s': ~
+  '%d of %d nodes online':
+    one: ~
+    other: ~
+  'Filter: %d of %d nodes': ~
+  '%d new message': ~
+  '%d new messages': ~
+  'uptime: %02d:%02d:%02d': ~
+  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
