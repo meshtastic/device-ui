@@ -1,7 +1,6 @@
 #pragma once
 #define LGFX_USE_V1
 
-#include "ILog.h"
 #include <LovyanGFX.hpp>
 
 #ifdef UNPHONE
