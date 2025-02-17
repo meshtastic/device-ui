@@ -3,6 +3,13 @@
 #include "graphics/common/ViewFactory.h"
 #include "util/ILog.h"
 
+#if defined(ARDUINO_ARCH_ESP32)
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
+static SemaphoreHandle_t xSemaphore = nullptr;
+#endif
+
 DeviceScreen &DeviceScreen::create(void)
 {
     return *new DeviceScreen(nullptr);
@@ -25,6 +32,11 @@ DeviceScreen::DeviceScreen(const DisplayDriverConfig *cfg)
     } else {
         gui = ViewFactory::create();
     }
+#if defined(ARDUINO_ARCH_ESP32)
+    xSemaphore = xSemaphoreCreateMutex();
+    if (!xSemaphore)
+        ILOG_ERROR("DeviceScreen: xSemaphoreCreateMutex() failed");
+#endif
 }
 
 DeviceScreen::DeviceScreen(DisplayDriverConfig &&cfg)
@@ -52,4 +64,34 @@ void DeviceScreen::init(IClientBase *client)
 void DeviceScreen::task_handler(void)
 {
     gui->task_handler();
+}
+
+#if defined(ARDUINO_ARCH_ESP32)
+int DeviceScreen::prepareSleep(void *)
+{
+    if (xSemaphore)
+        return xSemaphoreTake(xSemaphore, pdMS_TO_TICKS(1000)) == pdTRUE ? 0 : 1;
+    else
+        return 1;
+}
+
+int DeviceScreen::wakeUp(esp_sleep_wakeup_cause_t cause)
+{
+    if (xSemaphore)
+        return xSemaphoreGive(xSemaphore) == pdTRUE ? 0 : 1;
+    else
+        return 1;
+}
+#endif
+
+/**
+ * @brief synchronisation point: here we sleep after prepareSleep() was called
+ */
+void DeviceScreen::sleep(void)
+{
+#if defined(ARDUINO_ARCH_ESP32)
+    if (xSemaphore && xSemaphoreTake(xSemaphore, portMAX_DELAY) == pdTRUE)
+        xSemaphoreGive(xSemaphore);
+#endif
+    delay(5);
 }
