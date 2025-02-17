@@ -26,7 +26,7 @@ class DeviceScreen
     int prepareSleep(void *);
     int wakeUp(esp_sleep_wakeup_cause_t cause);
 #endif
-    void sleep(void);
+    void sleep(uint32_t time = 5);
 
   private:
     DeviceScreen(const DisplayDriverConfig *cfg);
