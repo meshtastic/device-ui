@@ -37,7 +37,8 @@ This C++ library is intended to support the following scenarios with enhanced sc
 <img src="docs/T-Deck.jpg" alt="scenario 1" width="205" height="150"><img src="docs/CYD.png" alt="scenario 2" width="220" height="150"><img src="docs/Pi400-TFT.jpg" alt="scenario 3" width="170" height="150"><img src="docs/X11.png" alt="scenario 4" width="230" height="150">
 
 <p align="center">
-Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo</a>
+Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo</a><br>
+Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 </p>
 
 ## :pencil: TODOs
@@ -126,8 +127,8 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [x] Message acknowledgement
       - [x] Delete chat
     - [ ] Map
-      - [ ] Tiles dynamic loading
-        - [ ] SD card
+      - [x] Tiles dynamic loading
+        - [x] SD card
         - [ ] WLAN
       - [ ] Pan & Zoom
       - [ ] Node locations
@@ -170,9 +171,9 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
       - [ ] Offline map display
     - [x] I2C keyboard input handling
     - [x] Trackball support (e.g. fast scrolling list views)
-    - [ ] SD card support, mainly for offline maps or import/export (config & chat history)
+    - [ ] SD card support, mainly for offline maps or import/export (keys and channels)
     - [ ] load custom fonts from SD card
-    - [ ] disable screen to temporarily allow other connection (USB serial, BT) to the device
+    - [x] disable screen to temporarily allow other connection (USB serial, BT) to the device
     - [ ] (Optional): allow bluetooth connection (-> PhoneAPI queue re-design)
     - [ ] I2S Audio support
 
