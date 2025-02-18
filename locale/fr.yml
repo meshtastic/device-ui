@@ -101,11 +101,11 @@ fr:
   unknown: inconnu
   '<no name>': '<sans nom>'
   '%d active chat(s)': '%d chat(s) actif(s)'
-    one: ~
-    other: ~
+#    one: ~
+#    other: ~
   '%d of %d nodes online': '%d sur %d noeuds actifs'
-    one: ~
-    other: ~
+#    one: ~
+#    other: ~
   "New message from \n%s": "Nouveau message de:\n%s"
   'Input Control: %s/%s': ~
   Filtering ...: Filtrage ...
