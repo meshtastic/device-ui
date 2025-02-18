@@ -149,7 +149,7 @@ fr:
   "NodeDB Reset\nFactory Reset\nClear Chat History": "NodeDB\nD'usine\nMessages"
   Restoring messages ...: Restauration des messages
   Please set region and name: Renseignez votre Nom et Région
-  '>> Programming mode <<': '>>Mode de Programmation<<'
+  '>> Programming mode <<': '>>Mode Programmation<<'
   Failed to write keys!: Écriture impossible!
   Failed to restore keys!: Restauration Impossible!
   Failed to parse keys!: Erreur de lecture!
