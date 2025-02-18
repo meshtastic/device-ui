@@ -679,7 +679,7 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Name", "Nom"},
     {"Active Chat", "Chat Actif"},
     {"Telemetry", "Télémétrie"},
-    {"Start", "Démarrer"},
+    {"Start", "Marche"},
     {"New Message from\n", "Nouveau message de\\n"},
     {"Cancel", "Annuler"},
     {"FrequencySlot: %d (%g MHz)", "Slot: %d (%g MHz)"},
