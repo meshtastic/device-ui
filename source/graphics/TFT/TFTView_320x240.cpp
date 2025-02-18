@@ -31,6 +31,9 @@
 #include "PortduinoFS.h"
 #include "util/LinuxHelper.h"
 fs::FS &SD = PortduinoFS;
+#elif defined(HAS_SD_MMC)
+#include "SD_MMC.h"
+fs::SDMMCFS &SD = SD_MMC;
 #else
 #include "SD.h"
 #endif
