@@ -45,8 +45,8 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 void ViewController::runOnce(void)
 {
     if (client) {
-        if (requestConfigRequired || view->getState() == MeshtasticView::eEnterProgrammingMode ||
-            view->getState() == MeshtasticView::eBootScreenDone)
+        if (view->getState() == MeshtasticView::eEnterProgrammingMode ||
+            (view->getState() >= MeshtasticView::eBootScreenDone && requestConfigRequired))
             requestConfig();
 
         if (configCompleted && !messagesRestored)
