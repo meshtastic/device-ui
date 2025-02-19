@@ -100,12 +100,12 @@ fr:
   'hops: %d': 'sauts: %d'
   unknown: inconnu
   '<no name>': '<sans nom>'
-  '%d active chat(s)': '%d chat(s) actif(s)'
-#    one: ~
-#    other: ~
-  '%d of %d nodes online': '%d sur %d noeuds actifs'
-#    one: ~
-#    other: ~
+  '%d active chat(s)':
+    one: '%d chats actif'
+    other: '%d chats actifs'
+  '%d of %d nodes online':
+    one: '%d sur %d noeud actif'
+    other: '%d sur %d noeuds actifs'
   "New message from \n%s": "Nouveau message de:\n%s"
   'Input Control: %s/%s': ~
   Filtering ...: Filtrage ...
