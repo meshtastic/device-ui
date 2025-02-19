@@ -101,7 +101,7 @@ fr:
   unknown: inconnu
   '<no name>': '<sans nom>'
   '%d active chat(s)':
-    one: '%d chats actif'
+    one: '%d chat actif'
     other: '%d chats actifs'
   '%d of %d nodes online':
     one: '%d sur %d noeud actif'
