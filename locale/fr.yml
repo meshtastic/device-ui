@@ -49,7 +49,7 @@ fr:
   Keyboard: Clavier
   'Message Alert': 'Notifications'
   Ringtone: Sonnerie
-  Default: défaut
+  Default: Par Défaut
   Zone: Zone
   City: Ville
   "NodeDB Reset\nFactory Reset": "Reinit. NodeDB\nReinit. Usine"
@@ -58,7 +58,7 @@ fr:
   Unknown: Inconnu
   Offline: Hors ligne
   Public Key: Clé Publique
-  Hops away: Sauts
+  Hops away: Sauts parcourus
   MQTT: MQTT
   Position: Position
   Name: Nom
@@ -70,13 +70,13 @@ fr:
   Resynch...: ~
   OK: ~
   Cancel: Annuler
-  'FrequencySlot: %d (%g MHz)': ~
+  'FrequencySlot: %d (%g MHz)': 'Slot: %d (%g MHz)'
   'Brightness: %d%%': 'Luminosité : %d%%'
   'Timeout: off': 'Timeout: désactivé'
   'Timeout: %ds': ~
   'Screen Calibration: %s': "Calibration d'écran: %s"
-  done: fait
-  default: défaut
+  done: terminé
+  default: par défaut
   Stop: Arrêt
   "choose\nnode": "choix du\nnoeud"
   choose target node: Choix du noeud cible
@@ -100,16 +100,19 @@ fr:
   'hops: %d': 'sauts: %d'
   unknown: inconnu
   '<no name>': '<sans nom>'
-  '%d active chat(s)': '%d chat(s) actif(s)'
+  '%d active chat(s)':
+    one: '%d chat actif'
+    other: '%d chats actifs'
+  '%d of %d nodes online':
+    one: '%d sur %d noeud actif'
+    other: '%d sur %d noeuds actifs'
   "New message from \n%s": "Nouveau message de:\n%s"
   'Input Control: %s/%s': ~
-  '%d of %d nodes online': '%d sur %d noeuds actifs'
   Filtering ...: Filtrage ...
   'Filter: %d of %d nodes': 'Filtre: %d sur %d noeuds'
   now: maintenant
   '%d new message': '%d nouveau message'
   '%d new messages': '%d nouveaux messages'
-  'uptime: %02d:%02d:%02d': 'Activité: %02d:%02d:%02d'
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
   Settings: Configuration
   Tools: Outils
@@ -117,7 +120,6 @@ fr:
   Highlight: Surbrillance
   Primary Channel: Canal Primaire
   Secondary Channels: Canaux Secondaires
-  Resynch ...: ~
   Rebooting ...: Redémarrage ...
   Shutting down ...: Arrêt...
   LoRa 0.0 MHz: ~
@@ -138,5 +140,18 @@ fr:
   Banner & Sound: Visuelle et sonore
   Banner only: Alerte Visuelle
   Sound only: Sonnerie Seule
-  no signal: aucun signal
-  Restoring messages ...: ~
+  no signal: Aucun signal
+  no SD card detected: 'Aucune Carte SD'
+  Backup & Restore: 'Sauvegarde/Restauration'
+  Backup: Sauvegarde
+  Restore: Restauration
+  Public/Private Key: Clé Publique/Privée
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "NodeDB\nD'usine\nMessages"
+  Restoring messages ...: Restauration des messages
+  Please set region and name: Renseignez votre Nom et Région
+  '>> Programming mode <<': '>>Mode Programmation<<'
+  Failed to write keys!: Écriture impossible!
+  Failed to restore keys!: Restauration Impossible!
+  Failed to parse keys!: Erreur de lecture!
+  Failed to retrieve keys!: Erreur de lecture!
+  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nUtilisé: %d MB (%d%%)"
