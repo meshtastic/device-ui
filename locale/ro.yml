@@ -67,7 +67,7 @@ ro:
   IAQ: ~
   Start: ~
   "New Message from\n": ~
-  Resynch...: ~
+  Resync...: ~
   OK: ~
   Cancel: ~
   'FrequencySlot: %d (%g MHz)': ~
@@ -117,7 +117,7 @@ ro:
   Highlight: ~
   Primary Channel: ~
   Secondary Channels: ~
-  Resynch ...: ~
+  Resync ...: ~
   Rebooting ...: ~
   Shutting down ...: ~
   LoRa 0.0 MHz: ~
