@@ -36,7 +36,7 @@ pl:
   Pre-shared Key: ~
   "New Message from\n": |
     Nowa wiadomość od
-  Resynch ...: Resynchronizacja...
+  Resync ...: Resyncronizacja...
   'User name: %s': 'Nazwa: %s'
   'Device Role: %s': 'Typ urządzenia: %s'
   'Screen Calibration: %s': 'Kalibracja ekranu: %s'

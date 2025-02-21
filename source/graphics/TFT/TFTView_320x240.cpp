@@ -4829,7 +4829,7 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
 
 void TFTView_320x240::notifyResync(bool show)
 {
-    messageAlert(_("Resynch ..."), show);
+    messageAlert(_("Resync ..."), show);
     if (!show) {
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
     }
