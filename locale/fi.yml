@@ -72,7 +72,7 @@ fi:
   Start: Aloita
   "New Message from\n": |
     Uusi viesti lähettäjälyä
-  Resynch...: ~
+  Resync...: ~
   OK: ~
   Cancel: Peruuta
   'FrequencySlot: %d (%g MHz)': 'Taajuuspaikka: %d (%g MHz)'
@@ -126,7 +126,7 @@ fi:
   Highlight: Korosta
   Primary Channel: Ensisijainen kanava
   Secondary Channels: Toissijaiset kanavat
-  Resynch ...: Synkronoi uudelleen ...
+  Resync ...: Synkronoi uudelleen ...
   Rebooting ...: Käynnistetään uudelleen ...
   Shutting down ...: Sammutetetaan ...
   LoRa 0.0 MHz: ~

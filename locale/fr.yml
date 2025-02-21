@@ -67,7 +67,7 @@ fr:
   IAQ: ~
   Start: Marche
   "New Message from\n": "Nouveau message de\\n"
-  Resynch...: ~
+  Resync...: ~
   OK: ~
   Cancel: Annuler
   'FrequencySlot: %d (%g MHz)': ~
@@ -117,7 +117,7 @@ fr:
   Highlight: Surbrillance
   Primary Channel: Canal Primaire
   Secondary Channels: Canaux Secondaires
-  Resynch ...: ~
+  Resync ...: ~
   Rebooting ...: Redémarrage ...
   Shutting down ...: Arrêt...
   LoRa 0.0 MHz: ~
