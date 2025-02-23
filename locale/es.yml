@@ -115,7 +115,7 @@ es:
   '%d new message': '%d mensaje nuevo'
   '%d new messages': '%d mensajes nuevos'
   'uptime: %02d:%02d:%02d': 'encendido: %02d:%02d:%02d'
-  "Heap: %d (%d%%)\nLVGL: %d (%d%%)"": ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
   Tools: Herramientas
   Filter: Filtro
   Highlight: Resalte

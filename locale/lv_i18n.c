@@ -401,7 +401,7 @@ static const lv_i18n_phrase_t es_singulars[] = {
     {"NodeDB Reset\nFactory Reset", "Borrar NodeDB\nReini. Fábrica"},
     {"Channel Name", "Nombre Canal"},
     {"Pre-shared Key", "Clave Precomp."},
-    {"New Message from\\n", "Nuevo msg de\\n"},
+    {"New Message from\n", "Nuevo msg de\n"},
     {"User name: %s", "Nombre: %s"},
     {"Device Role: %s", "Rol Dispo.: %s"},
     {"Screen Calibration: %s", "Calibración pant.: %s"},
@@ -497,7 +497,7 @@ static const lv_i18n_phrase_t es_singulars[] = {
     {"Backup", "Salvar"},
     {"Restore", "Restaurar"},
     {"Public/Private Key", "Clave Pub/Privada"},
-    {"NodeDB Reset\\nFactory Reset\\nClear Chat History", "Borrar NodeDB\\nReini. Fábrica\\nBorrar Histórico Mensajes"},
+    {"NodeDB Reset\nFactory Reset\nClear Chat History", "Borrar NodeDB\nReini. Fábrica\nBorrar Histórico Mensajes"},
     {"Channel", "Canal"},
     {"Please set region and name", "Por favor, escoge nombre y región"},
     {"Region", "Región"},
@@ -506,7 +506,7 @@ static const lv_i18n_phrase_t es_singulars[] = {
     {"Failed to restore keys!", "Fallo al restaurar!"},
     {"Failed to parse keys!", "Error procesando claves!"},
     {"Failed to retrieve keys!", "Error obteniendo ficheros!"},
-    {"%s (%0.1f GB)\\nUsed: %d MB (%d%%)", "%s (%0.1f GB)\nUsado: %d MB (%d%%)"},
+    {"%s (%0.1f GB)\nUsed: %d MB (%d%%)", "%s (%0.1f GB)\nUsado: %d MB (%d%%)"},
     {NULL, NULL} // End mark
 };
 
