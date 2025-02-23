@@ -459,9 +459,7 @@ static const lv_i18n_phrase_t es_singulars[] = {
     {"hops: %d", "saltos: %d"},
     {"unknown", "desconocido"},
     {"<no name>", "<sin nombre>"},
-    {"%d active chat(s)", "%d chat(s) activos"},
     {"New message from \n%s", "Nuevo mensaje de:\n%s"},
-    {"%d of %d nodes online", "%d de %d nodos activos"},
     {"Filtering ...", "Filtrando ..."},
     {"Filter: %d of %d nodes", "Filtro: %d de %d nodos"},
     {"now", "ahora"},
@@ -473,12 +471,12 @@ static const lv_i18n_phrase_t es_singulars[] = {
     {"Highlight", "Resalte"},
     {"Primary Channel", "Canal Primario"},
     {"Secondary Channels", "Canal Secundario"},
-    {"Resync ...", "Resincronizando ..."},
+    {"Resynch ...", "Resincronizando ..."},
     {"Rebooting ...", "Reiniciando ..."},
     {"Shutting down ...", "Apagando ..."},
     {"silent", "silenciado"},
     {"WiFi: <not setup>", "WiFi: <no configurada>"},
-    {"LoRa TX off!", "LoRa TX apagado!"},
+    {"LoRa TX off!", "LoRa TX apagada!"},
     {"WiFi SSID", "Nombre de la WiFi"},
     {"WiFi pre-shared Key", "Clave de la WiFi"},
     {"<not set>", "<vacío>"},
@@ -493,7 +491,31 @@ static const lv_i18n_phrase_t es_singulars[] = {
     {"Enter Filter ...", "Introduce filtro ..."},
     {"region unset", "región no configurada"},
     {"no signal", "sin señal"},
+    {"Restoring messages ...", "Restaurando mensajes"},
+    {"no SD card detected", "SD no detectada"},
+    {"Backup & Restore", "Salvar y Restaurar"},
+    {"Backup", "Salvar"},
+    {"Restore", "Restaurar"},
+    {"Public/Private Key", "Clave Pub/Privada"},
+    {"NodeDB Reset\\nFactory Reset\\nClear Chat History", "Borrar NodeDB\\nReini. Fábrica\\nBorrar Histórico Mensajes"},
+    {"Channel", "Canal"},
+    {"Please set region and name", "Por favor, escoge nombre y región"},
+    {"Region", "Región"},
+    {">> Programming mode <<", ">> Modo Programación <<"},
+    {"Failed to write keys!", "Fallo al salvar!"},
+    {"Failed to restore keys!", "Fallo al restaurar!"},
+    {"Failed to parse keys!", "Error procesando claves!"},
+    {"Failed to retrieve keys!", "Error obteniendo ficheros!"},
+    {"%s (%0.1f GB)\\nUsed: %d MB (%d%%)", "%s (%0.1f GB)\nUsado: %d MB (%d%%)"},
     {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t es_plurals_one[] = {
+    {"%d active chat(s)", "1 chat activo"}, {"%d of %d nodes online", "1 nodo activo"}, {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t es_plurals_other[] = {
+    {"%d active chat(s)", "%d chat activos"}, {"%d of %d nodes online", "%d de %d nodos activos"}, {NULL, NULL} // End mark
 };
 
 static uint8_t es_plural_fn(int32_t num)
@@ -516,7 +538,8 @@ static uint8_t es_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t es_lang = {.locale_name = "es",
                                        .singulars = es_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = es_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = es_plurals_other,
                                        .locale_plural_fn = es_plural_fn};
 
 static const lv_i18n_phrase_t fi_singulars[] = {

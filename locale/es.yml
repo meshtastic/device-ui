@@ -33,7 +33,7 @@ es:
   "NodeDB Reset\nFactory Reset": "Borrar NodeDB\nReini. Fábrica"
   Channel Name: Nombre Canal
   Pre-shared Key: Clave Precomp.
-  New Message from\n: Nuevo msg de\n
+  "New Message from\n": "Nuevo msg de\n"
   'User name: %s': 'Nombre: %s'
   'Device Role: %s': 'Rol Dispo.: %s'
   'Screen Calibration: %s': 'Calibración pant.: %s'
@@ -71,7 +71,7 @@ es:
   Start: Iniciar
   'Theme: %s': 'Tema: %s'
   'uptime 00:00:00': ~
-  'Heap: 0\nLVGL: 0': ~
+  "Heap: 0\nLVGL: 0": ~
   Meshtastic: ~
   Packet Statistics: Estadísticas
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
@@ -101,29 +101,33 @@ es:
   'hops: %d': 'saltos: %d'
   unknown: desconocido
   <no name>: <sin nombre>
-  '%d active chat(s)': '%d chat(s) activos'
+  '%d active chat(s)':
+    one: 1 chat activo
+    other: '%d chat activos'
   "New message from \n%s": "Nuevo mensaje de:\n%s"
   'Input Control: %s/%s': ~
-  '%d of %d nodes online': '%d de %d nodos activos'
+  '%d of %d nodes online':
+    one: 1 nodo activo
+    other: '%d de %d nodos activos'
   Filtering ...: Filtrando ...
   'Filter: %d of %d nodes': 'Filtro: %d de %d nodos'
   now: ahora
   '%d new message': '%d mensaje nuevo'
   '%d new messages': '%d mensajes nuevos'
   'uptime: %02d:%02d:%02d': 'encendido: %02d:%02d:%02d'
-  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)"": ~
   Tools: Herramientas
   Filter: Filtro
   Highlight: Resalte
   Primary Channel: Canal Primario
   Secondary Channels: Canal Secundario
-  Resync ...: Resincronizando ...
+  Resynch ...: Resincronizando ...
   Rebooting ...: Reiniciando ...
   Shutting down ...: Apagando ...
   LoRa 0.0 MHz: ~
   silent: silenciado
   'WiFi: <not setup>': 'WiFi: <no configurada>'
-  LoRa TX off!: LoRa TX apagado!
+  LoRa TX off!: LoRa TX apagada!
   WiFi SSID: Nombre de la WiFi
   WiFi pre-shared Key: Clave de la WiFi
   'WiFi: %s': ~
@@ -134,9 +138,26 @@ es:
   'Lock: off/off': 'Bloqueo: no/no'
   Settings Lock: Bloqueo config
   'Lock: %s/%s': 'Bloqueo: %s/%s'
-  Enter Text ...: 'Escribe un mensaje...'
+  Enter Text ...: Escribe un mensaje...
   '!Enter Filter ...': '!Introduce filtro...'
   Enter Filter ...: Introduce filtro ...
   region unset: región no configurada
   no signal: sin señal
-  Restoring messages ...: ~
+  Restoring messages ...: Restaurando mensajes
+  no SD card detected: SD no detectada
+  Backup & Restore: Salvar y Restaurar
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  Backup: Salvar
+  Restore: Restaurar
+  Public/Private Key: Clave Pub/Privada
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "Borrar NodeDB\nReini. Fábrica\nBorrar Histórico Mensajes"
+  Channel: Canal
+  Please set region and name: Por favor, escoge nombre y región
+  Region: Región
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  '>> Programming mode <<': '>> Modo Programación <<'
+  'Failed to write keys!': Fallo al salvar!
+  'Failed to restore keys!': Fallo al restaurar!
+  'Failed to parse keys!': Error procesando claves!
+  'Failed to retrieve keys!': Error obteniendo ficheros!
+  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nUsado: %d MB (%d%%)"
