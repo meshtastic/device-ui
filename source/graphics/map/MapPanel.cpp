@@ -113,8 +113,8 @@ void MapPanel::drawObject(const MapObject &obj)
         auto tileIt = tiles.find(obj.point.xTile << 16 | obj.point.yTile);
         if (tileIt != tiles.end()) {
             MapTile &tile = *tileIt->second;
-            obj.draw(obj.id, tile.getX() + obj.point.xPos, tile.getY() + obj.point.yPos, MapTileSettings::getZoomLevel());
             objectsOnMap++; // FIXME: counts also objects that are clipped away
+            obj.draw(obj.id, tile.getX() + obj.point.xPos, tile.getY() + obj.point.yPos, MapTileSettings::getZoomLevel());
         } else {
             obj.draw(obj.id, 0, 0, 0); // hide object
         }
