@@ -126,12 +126,12 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
       - [x] Virtual keyboard
       - [x] Message acknowledgement
       - [x] Delete chat
-    - [ ] Map
+    - [x] Map
       - [x] Tiles dynamic loading
         - [x] SD card
         - [ ] WLAN
-      - [ ] Pan & Zoom
-      - [ ] Node locations
+      - [x] Pan & Zoom
+      - [x] Node locations
       - [ ] Location precision
     - [ ] Settings
       - [ ] Basic Settings
@@ -164,17 +164,17 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 ### :pager: T-Deck (also covered: unPhone)
 
     - [x] Firmware project integration
-    - [ ] T-Deck UI
+    - [x] T-Deck UI
       - [x] 320x240 scalable view
       - [x] GPS position
       - [x] Radio frequency display
-      - [ ] Offline map display
+      - [x] Offline map display
     - [x] I2C keyboard input handling
     - [x] Trackball support (e.g. fast scrolling list views)
-    - [ ] SD card support, mainly for offline maps or import/export (keys and channels)
+    - [x] SD card support, mainly for offline maps or import/export (keys and channels)
     - [ ] load custom fonts from SD card
     - [x] disable screen to temporarily allow other connection (USB serial, BT) to the device
-    - [ ] (Optional): allow bluetooth connection (-> PhoneAPI queue re-design)
+    - [x] allow bluetooth connection via 'Programming Mode'
     - [ ] I2S Audio support
 
 ### :pager: DIY Mesh-Tab (see <a href="[https://github.com/valzzu/Mesh-Tab]" target="_blank">https://github.com/valzzu/Mesh-Tab</a>)
