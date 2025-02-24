@@ -30,6 +30,7 @@ no:
   Settings & Tools: Innstillinger & Verktøy
   Settings (advanced): Innstillinger (Avansert)
   Locations Map: Kart
+  'Locations Map (%d/%d)': 'Kart (%d/%d)'
   no chats: ingen chats
   Node Search: Søk node
   Packet Statistics: Statistikk på pakker

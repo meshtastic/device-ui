@@ -30,6 +30,7 @@ fi:
   Settings & Tools: Asetukset ja Työkalut
   Settings (advanced): lisäasetukset
   Locations Map: Sijaintikartta
+  'Locations Map (%d/%d)': 'Sijaintikartta (%d/%d)'
   no chats: ei keskusteluja
   Node Search: Node haku
   Packet Statistics: Pakettitilastot

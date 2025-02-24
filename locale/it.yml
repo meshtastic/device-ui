@@ -30,6 +30,7 @@ it:
   Settings & Tools: Impostazioni & Strumenti
   Settings (advanced): Impostazioni (avanzate)
   Locations Map: Mappa delle posizioni
+  'Locations Map (%d/%d)': 'Mappa delle posizioni %d/%d'
   no chats: nessuna chat
   Node Search: Ricerca nodo
   Packet Statistics: Statistiche pacchetti
