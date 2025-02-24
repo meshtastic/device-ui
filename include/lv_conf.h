@@ -772,7 +772,7 @@
 
 /*API for Arduino Sd. */
 #ifndef LV_USE_FS_ARDUINO_SD
-#define LV_USE_FS_ARDUINO_SD 1
+#define LV_USE_FS_ARDUINO_SD 0
 #endif
 #if LV_USE_FS_ARDUINO_SD
     #define LV_FS_ARDUINO_SD_LETTER 'S'     /*Set an upper cased letter on which the drive will accessible (e.g. 'A')*/
