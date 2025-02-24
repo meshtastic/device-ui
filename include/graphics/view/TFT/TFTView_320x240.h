@@ -3,6 +3,8 @@
 #include "graphics/common/MeshtasticView.h"
 #include "meshtastic/clientonly.pb.h"
 
+class MapPanel;
+
 /**
  * @brief GUI view for e.g. T-Deck
  * Handles creation of display driver and controller.
@@ -132,6 +134,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateBootMessage(void);
     // show initial setup panel to configure region and name
     virtual void requestSetup(void);
+    // patch widgets on generated screens
+    virtual void apply_hotfix(void);
     // update node counter display (online and filtered)
     virtual void updateNodesStatus(void);
     // display message popup
@@ -182,6 +186,16 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateFreeMem(void);
     // update distance to other node
     virtual void updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon);
+    // show map and load tiles
+    virtual void loadMap(void);
+    // check what maps and formats are available on SD
+    virtual void checkMapSD(void);
+    // add objects on map
+    virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
+    // remove objects from map
+    virtual void removeFromMap(uint32_t nodeNum);
+
+    std::function<void(uint32_t id, uint16_t x, uint16_t y, uint8_t)> drawObjectCB;
 
     NodeFilter filter;
     NodeHighlight highlight;
@@ -195,7 +209,6 @@ class TFTView_320x240 : public MeshtasticView
     TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
     void enterProgrammingMode(void);
-    void apply_hotfix(void);
     void updateTheme(void);
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
@@ -238,6 +251,7 @@ class TFTView_320x240 : public MeshtasticView
     void setBellText(bool banner, bool sound);
     void setChannelName(const meshtastic_Channel &ch);
     uint32_t timestamp(char *buf, uint32_t time, bool update);
+    void updateLocationMap(uint32_t objects);
 
     // response callbacks
     void onTextMessageCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
@@ -340,6 +354,17 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_cancel(lv_event_t *e);
     static void ui_event_backup_restore_radio_button(lv_event_t *e);
 
+    // map navigation
+    static void ui_event_arrow(lv_event_t *e);
+    static void ui_event_navHome(lv_event_t *e);
+    static void ui_event_zoomSlider(lv_event_t *e);
+    static void ui_event_zoomIn(lv_event_t *e);
+    static void ui_event_zoomOut(lv_event_t *e);
+    static void ui_event_lockGps(lv_event_t *e);
+    static void ui_event_mapBrightnessSlider(lv_event_t *e);
+    static void ui_event_mapContrastSlider(lv_event_t *e);
+    static void ui_event_mapNodeButton(lv_event_t *e);
+
     // animations
     static void ui_anim_node_panel_cb(void *var, int32_t v);
     static void ui_anim_radar_cb(void *var, int32_t r);
@@ -354,37 +379,38 @@ class TFTView_320x240 : public MeshtasticView
 
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
-    static TFTView_320x240 *gui;                     // singleton pattern
-    bool screensInitialised;                         // true if init_screens is completed
-    uint32_t nodesFiltered;                          // no. hidden nodes in node list
-    bool nodesChanged;                               // true if nodes changed (added or purged)
-    bool processingFilter;                           // indicates that filtering is ongoing
-    bool packetLogEnabled;                           // display received packets
-    bool detectorRunning;                            // meshDetector is active
-    uint16_t statisticTableRows;                     // number of rows in statistics table
-    uint16_t packetCounter;                          // number of packets in packet log
-    time_t lastrun60, lastrun10, lastrun5, lastrun1; // timers for task loop
-    time_t actTime, uptime, lastHeard;               // actual time and uptime; time last heard a node
-    bool hasPosition;                                // if our position is known
-    int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
-    void *topNodeLL;                                 // pointer to topmost button in group ll
-    uint32_t scans;                                  // scanner counter
-    lv_anim_t radar;                                 // radar animation
-    static uint32_t currentNode;                     // current selected node
-    static lv_obj_t *currentPanel;                   // current selected node panel
-    static lv_obj_t *spinnerButton;                  // start button animation
-    static time_t startTime;                         // time when start button was pressed
-    static uint32_t pinKeys;                         // number of keys pressed (lock screen)
-    static bool screenLocked;                        // screen lock active
-    static bool screenUnlockRequest;                 // screen unlock request (via button)
-    uint32_t selectedHops;                           // remember selected choice
-    bool chooseNodeSignalScanner;                    // chose a target node for signal scanner
-    bool chooseNodeTraceRoute;                       // chose a target node for trace route
-    char old_val1_scratch[64], old_val2_scratch[64]; // temporary scratch buffers for settings strings
-    std::array<lv_obj_t *, c_max_channels> ch_label; // indexable label list for settings
-    meshtastic_Channel *channel_scratch;             // temporary scratch copy of channel db
-    lv_obj_t *qr;                                    // qr code
-
+    static TFTView_320x240 *gui;                          // singleton pattern
+    bool screensInitialised;                              // true if init_screens is completed
+    uint32_t nodesFiltered;                               // no. hidden nodes in node list
+    bool nodesChanged;                                    // true if nodes changed (added or purged)
+    bool processingFilter;                                // indicates that filtering is ongoing
+    bool packetLogEnabled;                                // display received packets
+    bool detectorRunning;                                 // meshDetector is active
+    uint16_t statisticTableRows;                          // number of rows in statistics table
+    uint16_t packetCounter;                               // number of packets in packet log
+    time_t lastrun60, lastrun10, lastrun5, lastrun1;      // timers for task loop
+    time_t actTime, uptime, lastHeard;                    // actual time and uptime; time last heard a node
+    bool hasPosition;                                     // if our position is known
+    int32_t myLatitude, myLongitude;                      // our current position as reported by firmware
+    void *topNodeLL;                                      // pointer to topmost button in group ll
+    uint32_t scans;                                       // scanner counter
+    lv_anim_t radar;                                      // radar animation
+    static uint32_t currentNode;                          // current selected node
+    static lv_obj_t *currentPanel;                        // current selected node panel
+    static lv_obj_t *spinnerButton;                       // start button animation
+    static time_t startTime;                              // time when start button was pressed
+    static uint32_t pinKeys;                              // number of keys pressed (lock screen)
+    static bool screenLocked;                             // screen lock active
+    static bool screenUnlockRequest;                      // screen unlock request (via button)
+    uint32_t selectedHops;                                // remember selected choice
+    bool chooseNodeSignalScanner;                         // chose a target node for signal scanner
+    bool chooseNodeTraceRoute;                            // chose a target node for trace route
+    char old_val1_scratch[64], old_val2_scratch[64];      // temporary scratch buffers for settings strings
+    std::array<lv_obj_t *, c_max_channels> ch_label;      // indexable label list for settings
+    meshtastic_Channel *channel_scratch;                  // temporary scratch copy of channel db
+    lv_obj_t *qr;                                         // qr code
+    MapPanel *map = nullptr;                              // map
+    std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
     // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
         meshtastic_Channel channel[c_max_channels]; // storage of channel info

@@ -64,7 +64,7 @@ void ViewController::runOnce(void)
             lastrun10 = curtime;
             if (!client->isConnected())
                 client->connect();
-            if (view->getState() != MeshtasticView::eProgrammingMode && view->getState() < MeshtasticView::eConfigComplete) {
+            if (view->getState() == MeshtasticView::eBootScreenDone) {
                 requestConfigRequired = true;
                 requestConfig();
             }
