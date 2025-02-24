@@ -2253,7 +2253,7 @@ void TFTView_320x240::loadMap(void)
 
 void TFTView_320x240::updateLocationMap(uint32_t num)
 {
-    lv_label_set_text_fmt(objects.top_map_label, _("Location Map (%d/%d)"), num, nodeCount);
+    lv_label_set_text_fmt(objects.top_map_label, _("Locations Map (%d/%d)"), num, nodeCount);
 }
 
 void TFTView_320x240::checkMapSD(void) {}

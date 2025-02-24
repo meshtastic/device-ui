@@ -38,6 +38,7 @@ el:
   Settings & Tools: Ρυθμίσεις & Εργαλεία
   Settings (advanced): Ρυθμίσεις (προχωρ.)
   Locations Map: Χάρτης Τοποθεσιών
+  'Locations Map (%d/%d)': 'Χάρτης Τοποθεσιών (%d/%d)'
   no chats: Κανένας διάλογος
   Node Search: Αναζήτηση Κόμβων
   Packet Statistics: Στατιστικά Πακέτων
