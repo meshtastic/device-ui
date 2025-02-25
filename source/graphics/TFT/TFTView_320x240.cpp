@@ -2862,12 +2862,6 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
                 }
             }
 
-            // if name is empty or using glyphs then replace with short id
-            uint32_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
-            if (!width) {
-                sprintf(buf, "%04x", it2.id & 0xffff);
-            }
-
             lv_table_set_cell_value(objects.statistics_table, row, 0, buf);
             sprintf(buf, "%d", it2.tel);
             lv_table_set_cell_value(objects.statistics_table, row, 1, buf);
@@ -4135,20 +4129,28 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_pos(sn_lbl, 30, 10);
     lv_obj_set_size(sn_lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_label_set_long_mode(sn_lbl, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(sn_lbl, userShort);
     lv_obj_set_style_align(sn_lbl, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(sn_lbl, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+    // if short name contains only non-printable glyphs replace with short id
+    if (lv_txt_get_width(userShort, strlen(userShort), &ui_font_montserrat_14, 0) <= 4) {
+        lv_label_set_text_fmt(sn_lbl, "%04x", nodeNum & 0xffff);
+    } else {
+        lv_label_set_text(sn_lbl, userShort);
+    }
+    char *modUserShort = lv_label_get_text(sn_lbl);
+
+    // keep a copy of the (4-byte) short name for use in many other widgets
     char *userData = (char *)&(sn_lbl->user_data);
-    userData[0] = userShort[0];
+    userData[0] = modUserShort[0];
     if (userData[0] == 0x00)
         userData[0] = ' ';
-    userData[1] = userShort[1];
+    userData[1] = modUserShort[1];
     if (userData[1] == 0x00)
         userData[1] = ' ';
-    userData[2] = userShort[2];
+    userData[2] = modUserShort[2];
     if (userData[2] == 0x00)
         userData[2] = ' ';
-    userData[3] = userShort[3];
+    userData[3] = modUserShort[3];
     if (userData[3] == 0x00)
         userData[3] = ' ';
 
