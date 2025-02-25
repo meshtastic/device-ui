@@ -2073,7 +2073,10 @@ void TFTView_320x240::ui_event_zoomOut(lv_event_t *e)
 
 void TFTView_320x240::ui_event_lockGps(lv_event_t *e)
 {
-    THIS->map->setLocked(lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED));
+    bool gpsLocked = lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED);
+    THIS->map->setLocked(gpsLocked);
+    THIS->db.uiConfig.map_data.follow_gps = gpsLocked;
+    THIS->controller->storeUIConfig(THIS->db.uiConfig);
 }
 
 void TFTView_320x240::ui_event_mapBrightnessSlider(lv_event_t *e)
@@ -2246,6 +2249,12 @@ void TFTView_320x240::loadMap(void)
             // use default location @theBigBentern
             map->setZoom(3);
         }
+
+        if (db.uiConfig.map_data.follow_gps) {
+            lv_obj_set_state(objects.gps_lock_button, LV_STATE_CHECKED, true);
+            map->setLocked(true);
+        }
+
         // finally add all node images to the map
         if (!nodeObjects.empty()) {
             for (auto it : nodeObjects) {
