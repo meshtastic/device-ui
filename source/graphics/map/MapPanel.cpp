@@ -96,6 +96,10 @@ void MapPanel::drawLocation(void)
     lv_obj_move_foreground(objects.map_location_label);
 }
 
+/**
+ * draw all added objects onto map
+ * TODO: allow incremental drawing via task_handler
+ */
 void MapPanel::drawObjects(void)
 {
     objectsOnMap = 0;
@@ -215,7 +219,7 @@ void MapPanel::setLocked(bool lock)
 }
 
 /**
- * move map in direction x/y -1, 0, 1 by fraction but not more than tile size
+ * move map in direction x/y -1, 0, 1 by fraction of panel width but not more than tile size
  */
 void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
 {
@@ -232,6 +236,14 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
         scrollY = deltaY * size;
     else
         scrollY = deltaY * heightPixel / fraction;
+
+    // first check if we are already at the edge of the world tile map
+    // TODO: allow sub-tile movement to the exact border (adapt scrollX/scrollY)
+    if ((xStart == 0 && scrollX > 0) || (yStart == 0 && scrollY > 0) ||
+        (xStart + tilesX > (uint32_t)pow(2, MapTileSettings::getZoomLevel()) && scrollX < 0) ||
+        (yStart + tilesY > (uint32_t)pow(2, MapTileSettings::getZoomLevel()) && scrollY < 0)) {
+        return;
+    }
 
     // check if the scrolling requires new tiles at the beginning row or column
     auto sit = tiles.find((xStart << 16) | yStart);
@@ -268,6 +280,7 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
         return;
     }
 
+    // calculate new x/y offset of the first entirely visible tile
     xOffset += scrollX;
     yOffset += scrollY;
 
@@ -294,7 +307,7 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
         for (int y = 0; y < tilesY; y++) {
             uint32_t hash = ((xStart + x) << 16) | (yStart + y);
             if (tiles.find(hash) == tiles.end()) {
-                // create new tiles
+                // create new tiles at panel pos x/y
                 int16_t xpos = x * size + xOffset;
                 int16_t ypos = y * size + yOffset;
                 if ((x == 0 && xpos >= 0) || (x == tilesX - 1 && xpos >= widthPixel)) {
@@ -331,6 +344,7 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
         }
     }
 
+    // correct x/y offset of the first entirely visible tile
     if (xOffset <= -size)
         xOffset += size;
     if (yOffset <= -size)
