@@ -9,8 +9,12 @@
 #include <unordered_map>
 
 /**
- * Size independent map for x/y/z raster tiles
+ * Size independent map panel for x/y/z raster tiles
  * Draws the tiles and objects to the provided lvgl panel.
+ * Stores three positions:
+ *   - home
+ *   - GPS (current)
+ *   - scrolled (manual)
  */
 class MapPanel
 {
