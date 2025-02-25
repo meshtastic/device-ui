@@ -2158,7 +2158,15 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
         THIS->map->moveHome();
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         ignoreClicked = true;
+        float lat, lon;
         THIS->map->setHomePosition();
+        THIS->map->getHomeLocation(lat, lon);
+        THIS->db.uiConfig.has_map_data = true;
+        THIS->db.uiConfig.map_data.has_home = true;
+        THIS->db.uiConfig.map_data.home.latitude = lat * 1e7;
+        THIS->db.uiConfig.map_data.home.longitude = lon * 1e7;
+        THIS->db.uiConfig.map_data.home.zoom = MapTileSettings::getZoomLevel();
+        THIS->controller->storeUIConfig(THIS->db.uiConfig);
     }
 }
 
@@ -2178,6 +2186,7 @@ void TFTView_320x240::loadMap(void)
         }
         map->setHomeLocationImage(objects.home_location_image);
 
+        // center map to GPS > home > other nodes > default location
         if (db.config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
             map->setGpsPositionImage(objects.gps_position_image);
             lv_obj_clear_flag(objects.gps_position_image, LV_OBJ_FLAG_HIDDEN);
@@ -2186,13 +2195,16 @@ void TFTView_320x240::loadMap(void)
         }
         if (hasPosition) {
             map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
-            // TODO: replace when we have a stored persistent home location
-            map->setHomeLocation(myLatitude * 1e-7, myLongitude * 1e-7);
-            map->setZoom(13 /* db.uiConfig.map.zoom */);
-        } else if (0 /* db.uiConfig.map */) {
-            // TODO: replace by setLocation when we have persistent home location
-            map->setHomeLocation(myLatitude * 1e-7, myLongitude * 1e-7);
-            map->setZoom(13 /* db.uiConfig.map.zoom */);
+            if (db.uiConfig.map_data.has_home) {
+                map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
+                map->setZoom(db.uiConfig.map_data.home.zoom);
+            } else {
+                map->setHomeLocation(myLatitude * 1e-7, myLongitude * 1e-7);
+                map->setZoom(13);
+            }
+        } else if (db.uiConfig.map_data.has_home) {
+            map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
+            map->setZoom(db.uiConfig.map_data.home.zoom);
         } else if (nodeObjects.size() >= 1) {
             // no gps, no saved position then center the home location among other available nodes
             std::vector<int32_t> sortedLat;
