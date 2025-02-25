@@ -1040,6 +1040,7 @@ static const lv_i18n_phrase_t nl_singulars[] = {
     {"Settings & Tools", "Instellingen en Tools"},
     {"Settings (advanced)", "Instellingen (geavanceerd)"},
     {"Locations Map", "Lokaties Kaart"},
+    {"Locations Map (%d/%d)", "Lokaties Kaart (%d/%d)"},
     {"no chats", "geen chats"},
     {"Node Search", "Node zoeken"},
     {"Packet Statistics", "Packet Statistieken"},
@@ -1064,7 +1065,6 @@ static const lv_i18n_phrase_t nl_singulars[] = {
     {"Default", "Standaard"},
     {"Zone", "Zone"},
     {"City", "Stad"},
-    {"NodeDB Reset\nFactory Reset", "NodeDB herstellen\nFabrieksinstellingen herstellen"},
     {"Channel Name", "Kanaal Naam"},
     {"Pre-shared Key", "Pre-shared Key"},
     {"Unknown", "Onbekend"},
@@ -1079,7 +1079,7 @@ static const lv_i18n_phrase_t nl_singulars[] = {
     {"IAQ", "IAQ"},
     {"Start", "Start"},
     {"New Message from\n", "Nieuw bericht van\n"},
-    {"Resync...", "Hersync..."},
+    {"Resynch...", "Hersync..."},
     {"OK", "OK"},
     {"Cancel", "Annuleer"},
     {"FrequencySlot: %d (%g MHz)", "FrequencySlot: %d (%g MHz)"},
@@ -1112,10 +1112,8 @@ static const lv_i18n_phrase_t nl_singulars[] = {
     {"hops: %d", "hops: %d"},
     {"unknown", "onbekend"},
     {"<no name>", "<geen naam>"},
-    {"%d active chat(s)", "%d actieve chat(s)"},
     {"New message from \n%s", "Nieuw bericht van \n%s"},
     {"Input Control: %s/%s", "Input Control: %s/%s"},
-    {"%d of %d nodes online", "%d van %d nodes online"},
     {"Filtering ...", "Filteren ..."},
     {"Filter: %d of %d nodes", "Filter: %d van %d nodes"},
     {"now", "nu"},
@@ -1129,7 +1127,7 @@ static const lv_i18n_phrase_t nl_singulars[] = {
     {"Highlight", "Highlight"},
     {"Primary Channel", "Primair Kanaal"},
     {"Secondary Channels", "Secundaire Kanalen"},
-    {"Resync ...", "Hersync ..."},
+    {"Resynch ...", "Hersync ..."},
     {"Rebooting ...", "Herstarten ..."},
     {"Shutting down ...", "Uitschakelen ..."},
     {"silent", "stil"},
@@ -1147,7 +1145,33 @@ static const lv_i18n_phrase_t nl_singulars[] = {
     {"Banner only", "Alleen strook"},
     {"Sound only", "Alleen geluid"},
     {"no signal", "geen signaal"},
+    {"Restoring messages ...", "Berichten herstellen ..."},
+    {"no SD card detected", "geen SD kaart gevonden"},
+    {"Backup & Restore", "Backup & Herstel"},
+    {"Backup", "Backup"},
+    {"Restore", "Herstel"},
+    {"Public/Private Key", "Public/Private Key"},
+    {"NodeDB Reset\nFactory Reset\nClear Chat History",
+     "NodeDB herstellen\nFabrieksinstellingen herstellen\nWis Chat Geschiedenis"},
+    {"Channel", "Kanaal"},
+    {"Please set region and name", "Stel regio en naam in a.u.b."},
+    {"Region", "Regio"},
+    {"Resync ...", "Hersynchroniseer ..."},
+    {">> Programming mode <<", ">> Programmeer mode <<"},
+    {"Failed to write keys!", "Keys schrijven mislukt!"},
+    {"Failed to restore keys!", "Keys herstellen mislukt!"},
+    {"Failed to parse keys!", "Keys verwerken mislukt!"},
+    {"Failed to retrieve keys!", "Keys ophalen mislukt!"},
+    {"%s (%0.1f GB)\nUsed: %d MB (%d%%)", "%s (%0.1f GB)\nGebruikt: %d MB (%d%%)"},
     {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t nl_plurals_one[] = {
+    {"%d active chat(s)", "%d actieve chats"}, {"%d of %d nodes online", "1 node online"}, {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t nl_plurals_other[] = {
+    {"%d active chat(s)", "%d actieve chats"}, {"%d of %d nodes online", "%d van %d nodes online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t nl_plural_fn(int32_t num)
@@ -1166,7 +1190,8 @@ static uint8_t nl_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t nl_lang = {.locale_name = "nl",
                                        .singulars = nl_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = nl_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = nl_plurals_other,
                                        .locale_plural_fn = nl_plural_fn};
 
 static const lv_i18n_phrase_t no_singulars[] = {
