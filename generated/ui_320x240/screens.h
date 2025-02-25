@@ -164,6 +164,7 @@ typedef struct _objects_t {
     lv_obj_t *map_osd_panel;
     lv_obj_t *map_brightness_slider;
     lv_obj_t *map_contrast_slider;
+    lv_obj_t *map_style_dropdown;
     lv_obj_t *map_location_label;
     lv_obj_t *controller_panel;
     lv_obj_t *controller_tab_view;
