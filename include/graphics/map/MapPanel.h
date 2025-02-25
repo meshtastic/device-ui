@@ -82,7 +82,7 @@ class MapPanel
 
     GeoPoint home;     // home location
     GeoPoint current;  // current (GPS) location
-    GeoPoint scrolled; // current scrolled location (lat/lon in visible tile)
+    GeoPoint scrolled; // current scrolled location, lat/lon always centered to the panel
 
     lv_obj_t *panel;                   // lvgl parent panel object
     lv_obj_t *homeLocationImage;       // lvgl image of home position
