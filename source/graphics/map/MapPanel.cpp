@@ -250,7 +250,7 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
             tilesY++;
         }
     } else {
-        ILOG_ERROR("scroll: start tile %d/%d", xStart, yStart);
+        ILOG_ERROR("scroll: start tile %d/%d missing", xStart, yStart);
         return;
     }
     // check if scrolling requires new tiles at the ending row or column
