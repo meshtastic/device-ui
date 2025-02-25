@@ -30,6 +30,7 @@ nl:
   Settings & Tools: Instellingen en Tools
   Settings (advanced): Instellingen (geavanceerd)
   Locations Map: Lokaties Kaart
+  Locations Map (%d/%d): Lokaties Kaart (%d/%d)
   no chats: geen chats
   Node Search: Node zoeken
   Packet Statistics: Packet Statistieken
@@ -74,9 +75,6 @@ nl:
   Default: Standaard
   Zone: Zone
   City: Stad
-  "NodeDB Reset\nFactory Reset": |-
-    NodeDB herstellen
-    Fabrieksinstellingen herstellen
   Channel Name: Kanaal Naam
   Pre-shared Key: Pre-shared Key
   Unknown: Onbekend
@@ -92,7 +90,7 @@ nl:
   Start: Start
   "New Message from\n": |
     Nieuw bericht van
-  Resync...: Hersync...
+  Resynch...: Hersync...
   OK: OK
   Cancel: Annuleer
   'FrequencySlot: %d (%g MHz)': 'FrequencySlot: %d (%g MHz)'
@@ -127,12 +125,16 @@ nl:
   'hops: %d': 'hops: %d'
   unknown: onbekend
   <no name>: <geen naam>
-  '%d active chat(s)': '%d actieve chat(s)'
+  '%d active chat(s)':
+    one: '%d actieve chats'
+    other: '%d actieve chats'
   "New message from \n%s": |-
     Nieuw bericht van 
     %s
   'Input Control: %s/%s': 'Input Control: %s/%s'
-  '%d of %d nodes online': '%d van %d nodes online'
+  '%d of %d nodes online':
+    one: 1 node online
+    other: '%d van %d nodes online'
   Filtering ...: Filteren ...
   'Filter: %d of %d nodes': 'Filter: %d van %d nodes'
   now: nu
@@ -146,7 +148,7 @@ nl:
   Highlight: Highlight
   Primary Channel: Primair Kanaal
   Secondary Channels: Secundaire Kanalen
-  Resync ...: Hersync ...
+  Resynch ...: Hersync ...
   Rebooting ...: Herstarten ...
   Shutting down ...: Uitschakelen ...
   LoRa 0.0 MHz: ~
@@ -160,7 +162,7 @@ nl:
   'Lock: %s/%s': 'Slot: %s/%s'
   Enter Text ...: Voer Tekst In ...
   '!Enter Filter ...': '!Naam ...'
-  Enter Filter ...: 'Naam ...'
+  Enter Filter ...: Naam ...
   'WiFi: %s': ~
   <not set>: <niet ingesteld>
   region unset: regio niet ingesteld
@@ -168,4 +170,20 @@ nl:
   Banner only: Alleen strook
   Sound only: Alleen geluid
   no signal: geen signaal
-  Restoring messages ...: ~
+  Restoring messages ...: Berichten herstellen ...
+  no SD card detected: geen SD kaart gevonden
+  Backup & Restore: Backup & Herstel
+  Backup: Backup
+  Restore: Herstel
+  Public/Private Key: Public/Private Key
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "NodeDB herstellen\nFabrieksinstellingen herstellen\nWis Chat Geschiedenis"
+  Channel: Kanaal
+  Please set region and name: Stel regio en naam in a.u.b.
+  Region: Regio
+  Resync ...: Hersynchroniseer ...
+  '>> Programming mode <<': '>> Programmeer mode <<'
+  Failed to write keys!: Keys schrijven mislukt!
+  Failed to restore keys!: Keys herstellen mislukt!
+  Failed to parse keys!: Keys verwerken mislukt!
+  Failed to retrieve keys!: Keys ophalen mislukt!
+  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nGebruikt: %d MB (%d%%)"
