@@ -2258,6 +2258,7 @@ void TFTView_320x240::loadMap(void)
             lv_obj_clear_flag(objects.gps_position_image, LV_OBJ_FLAG_HIDDEN);
         } else {
             lv_obj_add_flag(objects.gps_position_image, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
         }
         if (hasPosition) {
             map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
