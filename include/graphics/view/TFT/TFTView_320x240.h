@@ -2,6 +2,7 @@
 
 #include "graphics/common/MeshtasticView.h"
 #include "meshtastic/clientonly.pb.h"
+#include <set>
 
 class MapPanel;
 
@@ -189,7 +190,7 @@ class TFTView_320x240 : public MeshtasticView
     // show map and load tiles
     virtual void loadMap(void);
     // check what maps and formats are available on SD
-    virtual void checkMapSD(void);
+    virtual std::set<std::string> loadMapStyles(void);
     // add objects on map
     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
     // remove objects from map
@@ -331,6 +332,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_frequency_slot_slider(lv_event_t *e);
     static void ui_event_modem_preset_dropdown(lv_event_t *e);
     static void ui_event_setup_region_dropdown(lv_event_t *e);
+    static void ui_event_map_style_dropdown(lv_event_t *e);
 
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 
