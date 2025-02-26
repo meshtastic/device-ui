@@ -726,6 +726,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
 
     lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.shutdown_button, ui_event_device_shutdown_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.cancel_reboot_button, ui_event_device_cancel_button, LV_EVENT_CLICKED, NULL);
 
@@ -1847,6 +1848,15 @@ void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
     }
+}
+
+void TFTView_320x240::ui_event_device_progmode_button(lv_event_t *e)
+{
+    meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
+    bluetooth.enabled = true;
+    THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
+    lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
+    lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
 void TFTView_320x240::ui_event_device_shutdown_button(lv_event_t *e)

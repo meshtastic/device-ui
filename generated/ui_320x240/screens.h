@@ -535,6 +535,7 @@ typedef struct _objects_t {
     lv_obj_t *reboot_panel;
     lv_obj_t *cancel_reboot_button;
     lv_obj_t *reboot_button;
+    lv_obj_t *progmode_button;
     lv_obj_t *shutdown_button;
     lv_obj_t *obj25;
     lv_obj_t *blank_screen_button;

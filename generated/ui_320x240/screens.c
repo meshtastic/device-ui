@@ -6173,7 +6173,7 @@ void create_screen_boot_screen() {
                     // RebootButton
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.reboot_button = obj;
-                    lv_obj_set_pos(obj, LV_PCT(25), LV_PCT(-10));
+                    lv_obj_set_pos(obj, LV_PCT(18), LV_PCT(-10));
                     lv_obj_set_size(obj, 55, 55);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xff229c00), LV_PART_MAIN | LV_STATE_CHECKED);
                     lv_obj_set_style_bg_image_src(obj, &img_reboot_image, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -6186,10 +6186,28 @@ void create_screen_boot_screen() {
                     lv_obj_set_style_shadow_color(obj, lv_color_hex(0xff606060), LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
+                    // progmodeButton
+                    lv_obj_t *obj = lv_btn_create(parent_obj);
+                    objects.progmode_button = obj;
+                    lv_obj_set_pos(obj, LV_PCT(0), LV_PCT(-10));
+                    lv_obj_set_size(obj, 55, 55);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff229c00), LV_PART_MAIN | LV_STATE_CHECKED);
+                    lv_obj_set_style_bg_image_src(obj, &img_reboot_bt_on_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_radius(obj, 12, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_shadow_width(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_shadow_ofs_x(obj, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_shadow_ofs_y(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_shadow_color(obj, lv_color_hex(0xff606060), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff2d2ff5), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                }
+                {
                     // ShutdownButton
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.shutdown_button = obj;
-                    lv_obj_set_pos(obj, LV_PCT(-25), LV_PCT(-10));
+                    lv_obj_set_pos(obj, LV_PCT(-18), LV_PCT(-10));
                     lv_obj_set_size(obj, 55, 55);
                     lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_CHECKED);
                     lv_obj_set_style_bg_image_src(obj, &img_shutdown_image, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -6204,7 +6222,7 @@ void create_screen_boot_screen() {
                 {
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     objects.obj25 = obj;
-                    lv_obj_set_pos(obj, 0, LV_PCT(-15));
+                    lv_obj_set_pos(obj, 0, LV_PCT(-25));
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, " www.meshtastic.org");
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
