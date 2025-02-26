@@ -1,12 +1,12 @@
 se:
   no new messages: inga nya meddelanden
   1 of 1 nodes online: 1 av 1 noder online
-  'uptime 00:00:00': upptid 00:00:00
+  uptime 00:00:00: upptid 00:00:00
   LoRa 0.0 MHz: ~
   no signal: ingen signal
   silent: tyst
   no SD card detected: inget SD kort hittat
-  'Heap: 0\nLVGL: 0': ~
+  "Heap: 0\nLVGL: 0": ~
   DEL: ~
   Settings: Inställningar
   'User name: ': 'Användarnamn: '
@@ -15,7 +15,7 @@ se:
   'Role: Client': 'Roll: Klient'
   'WiFi: <not setup>': 'WiFi: <ej inställt>'
   'Screen Timeout: 60s': 'Bildskärms Timeout: 60s'
-  'Screen Lock: off': 'Bildskärms Lås: av'
+  'Lock: off/off': 'Lås: av/av'
   'Screen Brightness: 60%': 'Bildskärmens Ljusstyrka: 60%'
   'Theme: Dark': 'Tema: Mörkt'
   'Screen Calibration: default': 'Bildskärmens Kalibrering: standard'
@@ -38,7 +38,7 @@ se:
   Settings & Tools: Inställningar & Verktyg
   Settings (advanced): Inställningar (Avancerat)
   Locations Map: Karta
-  Locations Map (%d/%d): Karta (%d/%d)
+  'Locations Map (%d/%d)': Karta (%d/%d)
   no chats: inga chattar
   Node Search: Sök nod
   Packet Statistics: Paket Statistik
@@ -59,17 +59,16 @@ se:
     Kort räckvidd / Snabb
     Lång räckvidd / Måttlig
     Kort räckvidd / Turbo
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
     Klient
     Klient Stum
     Router
-    -- utfasad --
     Relästation
     Spårare
     Sensor
     TAK
     Klient Gömd
-    Förlorad & hittad
+    Förlorad & Hittad
     TAK Spårare
   WiFi SSID: ~
   WiFi pre-shared Key: WiFi Lösenord
@@ -92,7 +91,7 @@ se:
   Backup: Säkerhetskopiera
   Restore: Återställ
   Public/Private Key: Publik/Privat nyckel
-  NodeDB Reset\nFactory Reset\nClear Chat History: |-
+  "NodeDB Reset\nFactory Reset\nClear Chat History": |-
     Nollställ NodeDB
     Fabriksåterställning
     Rensa Chatt Historik
@@ -116,12 +115,12 @@ se:
     välj
     nod
   choose target node: välj mål nod
-  "New Message from\n": |
+  "New Message from\n": |-
     Nytt meddelande från
   Restoring messages ...: Återställer meddelanden ...
   Please set region and name: Ange region och namn
   Region: ~
-  Resync...: Synkronisera om...
+  Resync ...: Synkroniserar om ...
   OK: ~
   Cancel: Avbryt
   now: nu
@@ -131,7 +130,15 @@ se:
   'Screen Calibration: %s': 'Bildskärmens Kalibrering: %s'
   done: klar
   default: standard
-  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Klient\nKlient Stum\nRouter\nRelästation\nSpårare\nSensor\nTAK\nKlient Gömd\nFörlorad & Hittad\nTAK Spårare"
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
+    Klient
+    Klient Stum
+    Spårare
+    Sensor
+    TAK
+    Klient Gömd
+    Förlorad & Hittad
+    TAK Spårare"
   Rebooting ...: Startar om ...
   '>> Programming mode <<': '>> Programmeringsläge <<'
   Enter Text ...: Text ...
@@ -168,7 +175,7 @@ se:
   Failed to write keys!: 'Misslyckades: skriva nycklar!'
   Failed to restore keys!: 'Misslyckades: återställa nycklar!'
   Failed to parse keys!: 'Misslyckades: läsa nycklar!'
-  Failed to retrieve keys!: 'Misslyckades: hitta nycklar!'
+  Failed to retrieve keys!: 'Misslyckades: hämta nycklar!'
   '%d active chat(s)':
     one: 1 aktiv chatt
     other: '%d aktiva chattar'
@@ -183,13 +190,12 @@ se:
   '%d new message': '%d nytt meddelande'
   '%d new messages': '%d nya meddelanden'
   'uptime: %02d:%02d:%02d': 'upptid: %02d:%02d:%02d'
-  '%s (%0.1f GB)\nUsed: %d MB (%d%%)': ~
-  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
   'Screen Lock: %s': 'Bildskärms Lås: %s'
   <no name>: <inget namn>
   Filtering ...: Filtrerar ...
-  Resync ...: Synkroniserar om ...
-  'Lock: off/off': 'Lås: av/av'
+  Resync...: Synkronisera om...
   map tiles not found!: kartor ej hittat!
   LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium räckvidd / Långsam\nMedium räckvidd / Snabb\nKort räckvidd / Långsam\nKort räckvidd / Snabb\nLång räckvidd / Måttlig\nKort räckvidd / Turbo
   Dark\nLight: Mörkt\nLjust
@@ -201,3 +207,16 @@ se:
   "NodeDB Reset\nFactory Reset": |-
     Nollställ NodeDB
     Fabriksåterställning
+  'Screen Lock: off': 'Bildskärms Lås: av'
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
+    Klient
+    Klient Stum
+    Router
+    -- utfasad --
+    Relästation
+    Spårare
+    Sensor
+    TAK
+    Klient Gömd
+    Förlorad & Hittad
+    TAK Spårare"
