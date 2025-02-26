@@ -16,8 +16,7 @@ MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
     ILOG_DEBUG("panel size: %dx%d", widthPixel, heightPixel);
 
     extern OSMTiles<lv_obj_t> *osm;
-    osm = OSMTiles<lv_obj_t>::create(MapTileSettings::getPrefix(),
-                                     [this](const char *name, void *img) -> bool { return service->load(name, img); });
+    osm = OSMTiles<lv_obj_t>::create([this](const char *name, void *img) -> bool { return service->load(name, img); });
 
     center();
 }

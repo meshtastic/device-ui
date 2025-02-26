@@ -51,6 +51,7 @@ class MapPanel
     void setHomeLocationImage(lv_obj_t *img);
     void setGpsPositionImage(lv_obj_t *img);
     void setNoTileImage(const lv_image_dsc_t *img_src);
+    void forceRedraw(void) { needsRedraw = true; }
     // must be called for incremental drawing of all changes
     void task_handler(void);
     ~MapPanel(void);

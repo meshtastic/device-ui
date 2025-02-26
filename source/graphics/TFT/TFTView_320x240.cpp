@@ -810,6 +810,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.gps_lock_button, ui_event_lockGps, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.map_brightness_slider, ui_event_mapBrightnessSlider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_contrast_slider, ui_event_mapContrastSlider, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // tools buttons
     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
@@ -2092,6 +2093,16 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
     lv_obj_set_style_opa(objects.raw_map_panel, ct, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
+void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
+{
+    lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
+                                 sizeof(THIS->db.uiConfig.map_data.style));
+    MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
+    THIS->controller->storeUIConfig(THIS->db.uiConfig);
+    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+    THIS->map->forceRedraw();
+}
+
 void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
 {
     // navigate to node in node list
@@ -2181,13 +2192,46 @@ void TFTView_320x240::loadMap(void)
 #else
         map = new MapPanel(objects.raw_map_panel, new SDCardService());
 #endif
+        map->setHomeLocationImage(objects.home_location_image);
+
         if (updateSDCard()) {
             map->setNoTileImage(&img_no_tile_image);
             lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+
+            std::set<std::string> mapStyles = loadMapStyles();
+            if (mapStyles.find("/map") != mapStyles.end()) {
+                // no styles found, but the /map directory, so use it
+                MapTileSettings::setPrefix("/map");
+                lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
+            } else if (!mapStyles.empty()) {
+                // populate dropdown
+                uint16_t pos = 0;
+                bool savedStyleOK = false;
+                lv_dropdown_set_options(objects.map_style_dropdown, "");
+                for (auto it : mapStyles) {
+                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
+                    if (it == db.uiConfig.map_data.style) {
+                        lv_dropdown_set_selected(objects.map_style_dropdown, pos);
+                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+                        savedStyleOK = true;
+                    }
+                    pos++;
+                }
+
+                if (!savedStyleOK) {
+                    // no such style on SD, pick first one we found
+                    char style[20];
+                    lv_dropdown_set_selected(objects.map_style_dropdown, 0);
+                    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+                    MapTileSettings::setTileStyle(style);
+                }
+            } else {
+                messageAlert(_("No map tiles found on SDCard!"), true);
+                lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+            }
         } else {
             lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
         }
-        map->setHomeLocationImage(objects.home_location_image);
 
         // center map to GPS > home > other nodes > default location
         if (db.config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
@@ -2272,12 +2316,46 @@ void TFTView_320x240::loadMap(void)
     lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
+/**
+ * Search SD /maps directory for map styles
+ * Revert back to "/map" directory if no styles found
+ */
+std::set<std::string> TFTView_320x240::loadMapStyles(void)
+{
+    std::set<std::string> styles;
+    File maps = SD.open(MapTileSettings::getPrefix());
+    if (maps) {
+        do {
+            File style = maps.openNextFile();
+            if (!style)
+                break;
+            std::string path = style.name();
+            std::string dir = path.substr(path.find_last_of("/") + 1);
+            if (style.isDirectory() && dir.c_str()[0] != '.') {
+                ILOG_DEBUG("found map style: %s", dir.c_str());
+                styles.insert(dir);
+            }
+            style.close();
+        } while (true);
+        maps.close();
+    }
+    if (styles.empty()) {
+        File map = SD.open("/map");
+        if (map) {
+            ILOG_DEBUG("found /map dir");
+            styles.insert("/map");
+            map.close();
+        } else {
+            ILOG_DEBUG("no maps found");
+        }
+    }
+    return styles;
+}
+
 void TFTView_320x240::updateLocationMap(uint32_t num)
 {
     lv_label_set_text_fmt(objects.top_map_label, _("Locations Map (%d/%d)"), num, nodeCount);
 }
-
-void TFTView_320x240::checkMapSD(void) {}
 
 /**
  * add node location image for display on map

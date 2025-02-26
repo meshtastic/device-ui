@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <string.h>
 
 /**
  * Global settings for raster tile map
@@ -27,13 +28,18 @@ class MapTileSettings
     static void setDefaultLon(float lon) { defaultLon = lon; }
 
     static const char *getPrefix(void) { return prefix; }
-    static void setPrefix(const char *p) { prefix = p; }
+    static void setPrefix(const char *p) { strcpy(prefix, p); }
 
     static const char *getTileStyle(void) { return tileStyle; }
-    static void setTileStyle(const char *p) { tileStyle = p; }
+    static void setTileStyle(const char *p)
+    {
+        strcpy(tileStyle, p);
+        if (tileStyle[strlen(tileStyle) - 1] != '/')
+            strcat(tileStyle, "/");
+    }
 
     static const char *getTileFormat(void) { return tileFormat; }
-    static void setTileFormat(const char *p) { tileFormat = p; }
+    static void setTileFormat(const char *p) { strcpy(tileFormat, p); }
 
     static bool getDebug(void) { return debug; }
     static void setDebug(bool on) { debug = on; }
@@ -45,8 +51,8 @@ class MapTileSettings
     static uint32_t cacheSize;
     static float defaultLat;
     static float defaultLon;
-    static const char *prefix;
-    static const char *tileStyle;
-    static const char *tileFormat;
+    static char prefix[];
+    static char tileStyle[];
+    static char tileFormat[];
     static bool debug;
 };

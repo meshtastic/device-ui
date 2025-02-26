@@ -25,14 +25,15 @@ template <class IMG> class OSMTiles
     };
 
     // create instance of this class and provide cb function for loading images
-    static OSMTiles *create(const char *_prefix, std::function<bool(const char *, IMG *)> cb);
+    static OSMTiles *create(std::function<bool(const char *, IMG *)> cb);
 
     // filename caching for GeoPoint tile
     bool load(OSMTiles::Tile &tile, IMG *img)
     {
         if (!tile.filename[0]) {
-            std::snprintf(tile.filename, IMG_PATH_LEN, "%s/%s%d/%d/%d.%s", prefix, MapTileSettings::getTileStyle(),
-                          tile.zoomLevel, tile.xTile, tile.yTile, MapTileSettings::getTileFormat());
+            std::snprintf(tile.filename, IMG_PATH_LEN, "%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(),
+                          MapTileSettings::getTileStyle(), tile.zoomLevel, tile.xTile, tile.yTile,
+                          MapTileSettings::getTileFormat());
         }
         return loadcb(tile.filename, img);
     }
@@ -41,24 +42,20 @@ template <class IMG> class OSMTiles
     bool load(const GeoPoint &tile, IMG *img)
     {
         char name[IMG_PATH_LEN];
-        std::snprintf(name, IMG_PATH_LEN, "%s/%s%d/%d/%d.%s", prefix, MapTileSettings::getTileStyle(), tile.zoomLevel, tile.xTile,
-                      tile.yTile, MapTileSettings::getTileFormat());
+        std::snprintf(name, IMG_PATH_LEN, "%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileStyle(),
+                      tile.zoomLevel, tile.xTile, tile.yTile, MapTileSettings::getTileFormat());
         return loadcb(name, img);
     }
 
   private:
     OSMTiles() = default;
-    static const char *prefix;
     static std::function<bool(const char *, IMG *)> loadcb;
 };
 
-template <class IMG> OSMTiles<IMG> *OSMTiles<IMG>::create(const char *_prefix, std::function<bool(const char *, IMG *)> cb)
+template <class IMG> OSMTiles<IMG> *OSMTiles<IMG>::create(std::function<bool(const char *, IMG *)> cb)
 {
-    prefix = _prefix;
     loadcb = cb;
     return new OSMTiles;
 }
-
-template <class IMG> const char *OSMTiles<IMG>::prefix;
 
 template <class IMG> std::function<bool(const char *, IMG *)> OSMTiles<IMG>::loadcb;
