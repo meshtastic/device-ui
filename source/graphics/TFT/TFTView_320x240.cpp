@@ -8,6 +8,7 @@
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
+#include "graphics/map/MapPanel.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
@@ -28,6 +29,13 @@
 #include <time.h>
 
 #ifdef ARCH_PORTDUINO
+#include "graphics/map/LinuxFileSystemService.h"
+#endif
+#if !LV_USE_FS_ARDUINO_SD
+#include "graphics/map/SDCardService.h"
+#endif
+
+#ifdef ARCH_PORTDUINO
 #include "PortduinoFS.h"
 #include "util/LinuxHelper.h"
 fs::FS &SD = PortduinoFS;
@@ -45,6 +53,11 @@ fs::SDMMCFS &SD = SD_MMC;
 #ifndef PACKET_LOGS_MAX
 #define PACKET_LOGS_MAX 200
 #endif
+
+LV_IMAGE_DECLARE(img_circle_image);
+LV_IMAGE_DECLARE(img_no_tile_image);
+LV_IMAGE_DECLARE(node_location_pin_image);
+LV_IMAGE_DECLARE(node_location_pin24_image);
 
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
 #define THIS TFTView_320x240::instance() // need to use this in all static methods
@@ -83,6 +96,17 @@ enum NodePanelIdx {
     node_tm2_idx
 };
 
+enum ScrollDirection {
+    scrollDownLeft = 1,
+    scrollDown = 2,
+    scrollDownRight = 3,
+    scrollLeft = 4,
+    scrollRight = 6,
+    scrollUpLeft = 7,
+    scrollUp = 8,
+    scrollUpRight = 9,
+};
+
 extern const char *firmware_version;
 
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
@@ -113,8 +137,8 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
       processingFilter(false), packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0),
-      lastHeard(0), hasPosition(false), topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false),
-      chooseNodeTraceRoute(false), qr(nullptr), db{}
+      lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0), topNodeLL(nullptr), scans(0), selectedHops(0),
+      chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr), db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -261,6 +285,38 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
 
     // check SD card
     updateSDCard();
+
+    // function callback for the map panel node symbol
+    drawObjectCB = [this](uint32_t id, uint16_t x, uint16_t y, uint8_t zoom) {
+        auto img = nodeObjects[id];
+        if (!x && !y && !zoom) {
+            lv_obj_add_flag(img, LV_OBJ_FLAG_HIDDEN);
+            return;
+        }
+        lv_obj_move_foreground(img);
+        lv_obj_clear_flag(img, LV_OBJ_FLAG_HIDDEN);
+        if (zoom >= 12 || (zoom >= 7 && map->getObjectsOnMap() < 10)) {
+            lv_obj_clear_flag(img->spec_attr->children[0], LV_OBJ_FLAG_HIDDEN);
+        } else {
+            // hide text
+            lv_obj_add_flag(img->spec_attr->children[0], LV_OBJ_FLAG_HIDDEN);
+        }
+        if (zoom >= 4) {
+            // pin location image
+            lv_img_set_src(img, &img_node_location_pin24_image);
+            lv_img_set_zoom(img, 256);
+            lv_obj_set_pos(img, x - 20, y - 24); // img has 40x35 size, needle at 24
+            lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);
+            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else {
+            // circle image
+            lv_img_set_src(img, &img_circle_image);
+            lv_img_set_zoom(img, (zoom - 1) * 50 + 80);
+            lv_obj_set_pos(img, x - 20, y - 17); // img has 40x35 size, circle at center
+            lv_image_set_inner_align(img, LV_IMAGE_ALIGN_CENTER);
+            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+    };
 
     lv_disp_trig_activity(NULL);
     return true;
@@ -711,14 +767,14 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj14__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj15__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj15__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj16__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj16__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj17__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj17__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj20__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj20__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj26__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj26__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    // lv_obj_add_event_cb(objects.obj16__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    // lv_obj_add_event_cb(objects.obj16__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj18__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj18__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj24__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj24__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    // lv_obj_add_event_cb(objects.obj26__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    // lv_obj_add_event_cb(objects.obj26__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -741,6 +797,20 @@ void TFTView_320x240::ui_events_init(void)
 
     lv_obj_add_event_cb(objects.settings_backup_checkbox, ui_event_backup_restore_radio_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.settings_restore_checkbox, ui_event_backup_restore_radio_button, LV_EVENT_ALL, NULL);
+
+    // map settings and navigation
+    lv_obj_add_event_cb(objects.arrow_up_button, this->ui_event_arrow, LV_EVENT_CLICKED, (void *)8);
+    lv_obj_add_event_cb(objects.arrow_left_button, this->ui_event_arrow, LV_EVENT_CLICKED, (void *)4);
+    lv_obj_add_event_cb(objects.arrow_right_button, this->ui_event_arrow, LV_EVENT_CLICKED, (void *)6);
+    lv_obj_add_event_cb(objects.arrow_down_button, this->ui_event_arrow, LV_EVENT_CLICKED, (void *)2);
+    lv_obj_add_event_cb(objects.nav_button, this->ui_event_navHome, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.zoom_slider, ui_event_zoomSlider, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.zoom_in_button, ui_event_zoomIn, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.zoom_out_button, ui_event_zoomOut, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.gps_lock_button, ui_event_lockGps, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.map_brightness_slider, ui_event_mapBrightnessSlider, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.map_contrast_slider, ui_event_mapContrastSlider, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // tools buttons
     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
@@ -943,9 +1013,38 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 {
+    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+        if (THIS->activePanel == objects.map_panel) {
+            // toggle navigation and zoom slider
+            static bool toggle = true;
+            toggle = !toggle;
+            if (toggle) {
+                // lv_obj_clear_flag(objects.zoom_slider, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
+            } else {
+                lv_obj_add_flag(objects.zoom_slider, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
+            }
+        } else {
+            THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
+            THIS->loadMap();
+        }
+        lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+    } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eNone) {
+        lv_obj_clear_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        ignoreClicked = true;
     }
 }
 
@@ -1955,6 +2054,370 @@ void TFTView_320x240::ui_event_backup_restore_radio_button(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_zoomSlider(lv_event_t *e)
+{
+    THIS->map->setZoom(lv_slider_get_value(objects.zoom_slider));
+    THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+}
+
+void TFTView_320x240::ui_event_zoomIn(lv_event_t *e)
+{
+    THIS->map->setZoom(MapTileSettings::getZoomLevel() + 1);
+    THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+}
+
+void TFTView_320x240::ui_event_zoomOut(lv_event_t *e)
+{
+    THIS->map->setZoom(MapTileSettings::getZoomLevel() - 1);
+    THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+}
+
+void TFTView_320x240::ui_event_lockGps(lv_event_t *e)
+{
+    bool gpsLocked = lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED);
+    THIS->map->setLocked(gpsLocked);
+    THIS->db.uiConfig.map_data.follow_gps = gpsLocked;
+    THIS->controller->storeUIConfig(THIS->db.uiConfig);
+}
+
+void TFTView_320x240::ui_event_mapBrightnessSlider(lv_event_t *e)
+{
+    uint32_t br = lv_slider_get_value(objects.map_brightness_slider);
+    lv_obj_set_style_bg_color(objects.map_panel, lv_color_make(br, br, br), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(objects.raw_map_panel, lv_color_make(br, br, br), LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
+void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
+{
+    uint32_t ct = lv_slider_get_value(objects.map_contrast_slider);
+    lv_obj_set_style_opa(objects.raw_map_panel, ct, LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
+void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
+{
+    lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
+                                 sizeof(THIS->db.uiConfig.map_data.style));
+    MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
+    THIS->controller->storeUIConfig(THIS->db.uiConfig);
+    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+    THIS->map->forceRedraw();
+}
+
+void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
+{
+    // navigate to node in node list
+    uint32_t nodeNum = (unsigned long)e->user_data;
+    ILOG_DEBUG("map node %08x", nodeNum);
+    lv_obj_t *panel = THIS->nodes[nodeNum];
+    THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+    lv_obj_scroll_to_view(panel, LV_ANIM_ON);
+}
+
+void TFTView_320x240::ui_event_arrow(lv_event_t *e)
+{
+    if (THIS->map) {
+        uint16_t deltaX = 0;
+        uint16_t deltaY = 0;
+        ScrollDirection direction = (ScrollDirection)(unsigned long)e->user_data;
+        switch (direction) {
+        case scrollDownLeft:
+            deltaX = 1;
+            deltaY = -1;
+            break;
+        case scrollDown:
+            deltaX = 0;
+            deltaY = -1;
+            break;
+        case scrollDownRight:
+            deltaX = -1;
+            deltaY = -1;
+            break;
+        case scrollLeft:
+            deltaX = 1;
+            deltaY = 0;
+            break;
+        case scrollRight:
+            deltaX = -1;
+            deltaY = 0;
+            break;
+        case scrollUpLeft:
+            deltaX = 1;
+            deltaY = 1;
+            break;
+        case scrollUp:
+            deltaX = 0;
+            deltaY = 1;
+            break;
+        case scrollUpRight:
+            deltaX = -1;
+            deltaY = 1;
+            break;
+        default:
+            break;
+        };
+        THIS->map->scroll(deltaX, deltaY);
+    }
+    THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+}
+
+void TFTView_320x240::ui_event_navHome(lv_event_t *e)
+{
+    static bool ignoreClicked = false;
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+        THIS->map->moveHome();
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        ignoreClicked = true;
+        float lat, lon;
+        THIS->map->setHomePosition();
+        THIS->map->getHomeLocation(lat, lon);
+        THIS->db.uiConfig.has_map_data = true;
+        THIS->db.uiConfig.map_data.has_home = true;
+        THIS->db.uiConfig.map_data.home.latitude = lat * 1e7;
+        THIS->db.uiConfig.map_data.home.longitude = lon * 1e7;
+        THIS->db.uiConfig.map_data.home.zoom = MapTileSettings::getZoomLevel();
+        THIS->controller->storeUIConfig(THIS->db.uiConfig);
+    }
+}
+
+void TFTView_320x240::loadMap(void)
+{
+    if (!map) {
+#if LV_USE_FS_ARDUINO_SD
+        map = new MapPanel(objects.raw_map_panel);
+#else
+        map = new MapPanel(objects.raw_map_panel, new SDCardService());
+#endif
+        map->setHomeLocationImage(objects.home_location_image);
+
+        if (updateSDCard()) {
+            map->setNoTileImage(&img_no_tile_image);
+            lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+
+            std::set<std::string> mapStyles = loadMapStyles();
+            if (mapStyles.find("/map") != mapStyles.end()) {
+                // no styles found, but the /map directory, so use it
+                MapTileSettings::setPrefix("/map");
+                lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
+            } else if (!mapStyles.empty()) {
+                // populate dropdown
+                uint16_t pos = 0;
+                bool savedStyleOK = false;
+                lv_dropdown_set_options(objects.map_style_dropdown, "");
+                for (auto it : mapStyles) {
+                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
+                    if (it == db.uiConfig.map_data.style) {
+                        lv_dropdown_set_selected(objects.map_style_dropdown, pos);
+                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+                        savedStyleOK = true;
+                    }
+                    pos++;
+                }
+
+                if (!savedStyleOK) {
+                    // no such style on SD, pick first one we found
+                    char style[20];
+                    lv_dropdown_set_selected(objects.map_style_dropdown, 0);
+                    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+                    MapTileSettings::setTileStyle(style);
+                }
+            } else {
+                messageAlert(_("No map tiles found on SDCard!"), true);
+                lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+            }
+        } else {
+            lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+        }
+
+        // center map to GPS > home > other nodes > default location
+        if (db.config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
+            map->setGpsPositionImage(objects.gps_position_image);
+            lv_obj_clear_flag(objects.gps_position_image, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(objects.gps_position_image, LV_OBJ_FLAG_HIDDEN);
+        }
+        if (hasPosition) {
+            map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
+            if (db.uiConfig.map_data.has_home) {
+                map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
+                map->setZoom(db.uiConfig.map_data.home.zoom);
+            } else {
+                map->setHomeLocation(myLatitude * 1e-7, myLongitude * 1e-7);
+                map->setZoom(13);
+            }
+        } else if (db.uiConfig.map_data.has_home) {
+            map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
+            map->setZoom(db.uiConfig.map_data.home.zoom);
+        } else if (nodeObjects.size() >= 1) {
+            // no gps, no saved position then center the home location among other available nodes
+            std::vector<int32_t> sortedLat;
+            std::vector<int32_t> sortedLon;
+            sortedLat.reserve(nodeObjects.size());
+            sortedLon.reserve(nodeObjects.size());
+            for (auto it : nodeObjects) {
+                lv_obj_t *p = nodes[it.first];
+                int32_t lat = (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
+                int32_t lon = (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
+                if (lat && lon) {
+                    sortedLat.push_back(lat);
+                    sortedLon.push_back(lon);
+                }
+            }
+            std::sort(sortedLat.begin(), sortedLat.end());
+            std::sort(sortedLon.begin(), sortedLon.end());
+            int64_t latcenter = 0;
+            int64_t loncenter = 0;
+            int32_t count = 0;
+            // select just the closest 60% of nodes, ignore the rest
+            int pp = 100 / 20;
+            for (int i = sortedLat.size() / pp; i < pp * sortedLat.size() / pp; i++) {
+                latcenter += sortedLat[i];
+                loncenter += sortedLon[i];
+                count++;
+            }
+            latcenter /= count;
+            loncenter /= count;
+            map->setHomeLocation(latcenter * 1e-7, loncenter * 1e-7);
+
+            // calculate optimal zoom factor to fit in all nodes of this range
+            lv_obj_update_layout(objects.raw_map_panel);
+            float rangeDeg = 1e-7 * (sortedLon[(pp - 1) * sortedLon.size() / pp] - sortedLon[sortedLon.size() / pp]);
+            float distanceKm = abs(rangeDeg * 111.32 * cos(1e-7 * sortedLat[sortedLat.size() / 2]));
+            uint32_t zoom = sqrt(156.543034f / distanceKm * abs(cos(1e-7 * sortedLat[sortedLat.size() / 2])) * 256) + 1;
+            map->setZoom(zoom);
+        } else {
+            // use default location @theBigBentern
+            map->setZoom(3);
+        }
+
+        if (db.uiConfig.map_data.follow_gps) {
+            lv_obj_set_state(objects.gps_lock_button, LV_STATE_CHECKED, true);
+            map->setLocked(true);
+        }
+
+        // finally add all node images to the map
+        if (!nodeObjects.empty()) {
+            for (auto it : nodeObjects) {
+                lv_obj_t *p = nodes[it.first];
+                float lat = 1e-7 * (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
+                float lon = 1e-7 * (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
+                map->add(it.first, lat, lon, drawObjectCB);
+                lv_obj_add_event_cb(it.second, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)it.first);
+            }
+        }
+        updateLocationMap(map->getObjectsOnMap());
+    }
+
+    lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
+}
+
+/**
+ * Search SD /maps directory for map styles
+ * Revert back to "/map" directory if no styles found
+ */
+std::set<std::string> TFTView_320x240::loadMapStyles(void)
+{
+    std::set<std::string> styles;
+    File maps = SD.open(MapTileSettings::getPrefix());
+    if (maps) {
+        do {
+            File style = maps.openNextFile();
+            if (!style)
+                break;
+            std::string path = style.name();
+            std::string dir = path.substr(path.find_last_of("/") + 1);
+            if (style.isDirectory() && dir.c_str()[0] != '.') {
+                ILOG_DEBUG("found map style: %s", dir.c_str());
+                styles.insert(dir);
+            }
+            style.close();
+        } while (true);
+        maps.close();
+    }
+    if (styles.empty()) {
+        File map = SD.open("/map");
+        if (map) {
+            ILOG_DEBUG("found /map dir");
+            styles.insert("/map");
+            map.close();
+        } else {
+            ILOG_DEBUG("no maps found");
+        }
+    }
+    return styles;
+}
+
+void TFTView_320x240::updateLocationMap(uint32_t num)
+{
+    lv_label_set_text_fmt(objects.top_map_label, _("Locations Map (%d/%d)"), num, nodeCount);
+}
+
+/**
+ * add node location image for display on map
+ */
+void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
+{
+    auto it = nodeObjects.find(nodeNum);
+    if (it == nodeObjects.end()) {
+        uint32_t bgColor, fgColor;
+        std::tie(bgColor, fgColor) = nodeColor(nodeNum);
+        lv_obj_t *img = lv_image_create(objects.raw_map_panel);
+        lv_obj_set_size(img, 40, 35);
+        lv_img_set_src(img, &img_circle_image);
+        lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);
+        lv_obj_set_style_opa(img, 180, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_image_recolor(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_image_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_top(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_bottom(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_left(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_right(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+        lv_obj_t *lbl = lv_label_create(img);
+        lv_obj_set_pos(lbl, 0, 0);
+        lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        lv_obj_set_style_text_color(lbl, lv_color_black(), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_image_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(lbl, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+        lv_obj_t *p = nodes[nodeNum];
+        lv_label_set_text_fmt(lbl, "%s", lv_label_get_text(p->LV_OBJ_IDX(node_lbs_idx)));
+
+        nodeObjects[nodeNum] = img;
+        if (map) {
+            map->add(nodeNum, lat * 1e-7, lon * 1e-7, drawObjectCB);
+            lv_obj_add_event_cb(img, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)p);
+            updateLocationMap(map->getObjectsOnMap());
+        }
+    } else {
+        if (map)
+            map->update(it->first, lat * 1e-7, lon * 1e-7);
+    }
+}
+
+void TFTView_320x240::removeFromMap(uint32_t nodeNum)
+{
+    auto it = nodeObjects.find(nodeNum);
+    if (it == nodeObjects.end())
+        return;
+
+    lv_obj_t *img = it->second;
+    if (map) {
+        map->remove(it->first);
+        updateLocationMap(map->getObjectsOnMap());
+    }
+    nodeObjects.erase(nodeNum);
+    lv_obj_delete(img);
+}
+
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
 {
     THIS->ui_set_active(objects.settings_button, objects.mesh_detector_panel, objects.top_mesh_detector_panel);
@@ -2484,12 +2947,6 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
                     buf[3] = userData[3];
                     buf[4] = '\0';
                 }
-            }
-
-            // if name is empty or using glyphs then replace with short id
-            uint32_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
-            if (!width) {
-                sprintf(buf, "%04x", it2.id & 0xffff);
             }
 
             lv_table_set_cell_value(objects.statistics_table, row, 0, buf);
@@ -3759,20 +4216,28 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_pos(sn_lbl, 30, 10);
     lv_obj_set_size(sn_lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_label_set_long_mode(sn_lbl, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(sn_lbl, userShort);
     lv_obj_set_style_align(sn_lbl, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(sn_lbl, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+    // if short name contains only non-printable glyphs replace with short id
+    if (lv_txt_get_width(userShort, strlen(userShort), &ui_font_montserrat_14, 0) <= 4) {
+        lv_label_set_text_fmt(sn_lbl, "%04x", nodeNum & 0xffff);
+    } else {
+        lv_label_set_text(sn_lbl, userShort);
+    }
+    char *modUserShort = lv_label_get_text(sn_lbl);
+
+    // keep a copy of the (4-byte) short name for use in many other widgets
     char *userData = (char *)&(sn_lbl->user_data);
-    userData[0] = userShort[0];
+    userData[0] = modUserShort[0];
     if (userData[0] == 0x00)
         userData[0] = ' ';
-    userData[1] = userShort[1];
+    userData[1] = modUserShort[1];
     if (userData[1] == 0x00)
         userData[1] = ' ';
-    userData[2] = userShort[2];
+    userData[2] = modUserShort[2];
     if (userData[2] == 0x00)
         userData[2] = ' ';
-    userData[3] = userShort[3];
+    userData[3] = modUserShort[3];
     if (userData[3] == 0x00)
         userData[3] = ' ';
 
@@ -4008,10 +4473,16 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
                     }
                 }
             }
+            // update own location on map
+            if (map)
+                map->setGpsPosition(lat * 1e-7, lon * 1e-7);
         }
     } else {
-        if (hasPosition) {
-            updateDistance(nodeNum, lat, lon);
+        if (lat != 0 && lon != 0) {
+            if (hasPosition) {
+                updateDistance(nodeNum, lat, lon);
+            }
+            addOrUpdateMap(nodeNum, lat, lon);
         }
     }
 
@@ -4599,6 +5070,7 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
             updateActiveChats();
         }
     }
+    removeFromMap(oldest);
     nodes.erase(oldest);
     nodeCount--;
     nodesChanged = true; // flag to force re-apply node filter
@@ -6087,7 +6559,7 @@ void TFTView_320x240::updateTime(void)
 bool TFTView_320x240::updateSDCard(void)
 {
     bool cardDetected = false;
-#if !defined(ARCH_PORTDUINO) && HAS_SDCARD
+#if HAS_SDCARD
     char buf[64];
     uint8_t cardType = SD.cardType();
     if (cardType == CARD_NONE) {
@@ -6115,6 +6587,9 @@ bool TFTView_320x240::updateSDCard(void)
 #else
     lv_obj_add_flag(objects.home_sd_card_button, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.home_sd_card_label, LV_OBJ_FLAG_HIDDEN);
+#if defined(ARCH_PORTDUINO)
+    cardDetected = true; // use PortduinoFS instead
+#endif
 #endif
     return cardDetected;
 }
@@ -6153,7 +6628,14 @@ void TFTView_320x240::task_handler(void)
     MeshtasticView::task_handler();
 
     if (screensInitialised) {
+        if (map)
+            map->task_handler();
+
         if (curtime - lastrun1 >= 1) { // call every 1s
+            if (map) {
+                updateLocationMap(THIS->map->getObjectsOnMap());
+            }
+
             lastrun1 = curtime;
             actTime++;
             updateTime();
