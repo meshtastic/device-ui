@@ -5633,8 +5633,8 @@ void TFTView_320x240::restore(uint32_t option)
             String b64pub = pubKey.substring(pubKey.lastIndexOf(":") + 1);
             b64priv.trim();
             b64pub.trim();
-            if (base64ToPsk(b64priv.c_str(), pubkey.bytes, privkey.size) &&
-                base64ToPsk(b64pub.c_str(), privkey.bytes, pubkey.size) &&
+            if (base64ToPsk(b64priv.c_str(), privkey.bytes, privkey.size) &&
+                base64ToPsk(b64pub.c_str(), pubkey.bytes, pubkey.size) &&
                 controller->sendConfig(meshtastic_Config_SecurityConfig{db.config.security})) {
                 ILOG_INFO("restore pub/priv keys sent to radio");
             } else {
