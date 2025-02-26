@@ -295,7 +295,7 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         }
         lv_obj_move_foreground(img);
         lv_obj_clear_flag(img, LV_OBJ_FLAG_HIDDEN);
-        if (zoom >= 12 || (zoom >= 7 && map->getObjectsOnMap() < 10)) {
+        if (zoom >= 10 || (zoom >= 7 && nodeObjects.size() < 10)) {
             lv_obj_clear_flag(img->spec_attr->children[0], LV_OBJ_FLAG_HIDDEN);
         } else {
             // hide text
