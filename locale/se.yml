@@ -149,7 +149,7 @@ se:
   'Timeout: off': 'Timeout: av'
   'Timeout: %ds': ~
   No map tiles found on SDCard!: Inga kartor hittades på SD kort!
-  'Locations Map (%d/%d)': Karta (%d/%d)
+  Locations Map (%d/%d): Karta (%d/%d)
   Stop: Stopp
   'heard: !%08x': 'hört: !%08x'
   'Packet Log: %d': 'Paket Loggbok: %d'
