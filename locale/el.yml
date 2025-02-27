@@ -8,6 +8,7 @@ el:
   no SD card detected: Δεν βρέθηκε κάρτα SD
   "Heap: 0\nLVGL: 0": ~
   DEL: ~
+  map tiles not found!: Δεν βρέθηκαν πλακίδια χάρτη!
   Settings: Ρυθμίσεις
   'User name: ': 'Όνομα χρήστη: '
   'Modem Preset: LONG FAST': 'Προκαθ. Modem: LONG FAST'
@@ -38,7 +39,6 @@ el:
   Settings & Tools: Ρυθμίσεις & Εργαλεία
   Settings (advanced): Ρυθμίσεις (προχωρ.)
   Locations Map: Χάρτης Τοποθεσιών
-  'Locations Map (%d/%d)': 'Χάρτης Τοποθεσιών (%d/%d)'
   no chats: Κανένας διάλογος
   Node Search: Αναζήτηση Κόμβων
   Packet Statistics: Στατιστικά Πακέτων
@@ -113,6 +113,8 @@ el:
   'Brightness: %d%%': 'Ένταση: %d%%'
   'Timeout: off': 'Λήξη: off'
   'Timeout: %ds': 'Λήξη: %ds'
+  No map tiles found on SDCard!: Δεν βρέθηκαν πλακίδια χάρτη στην κάρτα SD!
+  Locations Map (%d/%d): Χάρτης Τοποθεσιών (%d/%d)
   Stop: Διακοπή
   'heard: !%08x': '!%08x'
   'Packet Log: %d': 'Καταγραφή Πακέτων: %d'
