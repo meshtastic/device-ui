@@ -21,6 +21,7 @@ de:
   Settings: Konfiguration
   Settings (advanced): Erweiterte Konfiguration
   Locations Map: Karte
+  'Locations Map (%d/%d)': 'Karte (%d/%d)'
   no chats: Keine Gespräche
   Node Options: Optionen
   Short Name: Kurzname
@@ -39,7 +40,7 @@ de:
   Pre-shared Key: Schlüssel
   "New Message from\n": |
     Neue Nachricht von
-  Resynch...: Synchronisieren...
+  Resync...: Synchronisieren...
   'Screen Calibration: %s': 'Kalibrierung: %s'
   done: erledigt
   default: Standard
@@ -130,7 +131,7 @@ de:
   "Dark\nLight": |-
     Dunkel
     Hell
-  Resynch ...: Synchronisierung ...
+  Resync ...: Synchronisierung ...
   Rebooting ...: Neustart ...
   Shutting down ...: Herunterfahren ...
   LoRa 0.0 MHz: ~

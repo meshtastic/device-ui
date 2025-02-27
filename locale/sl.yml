@@ -30,6 +30,7 @@ sl:
   Settings & Tools: Nastavitve in orodja
   Settings (advanced): Nastavitve (napredno)
   Locations Map: Zemljevid lokacij
+  'Locations Map (%d/%d)': 'Zemljevid lokacij (%d/%d)'
   no chats: ni pogovorov
   Node Search: Iskanje vozlišč
   Packet Statistics: Statistika paketov
@@ -74,7 +75,7 @@ sl:
     Kopica: 0
     LVGL: 0
   "New Message from \n%s": "Novo sporočilo od\n%s"
-  Resynch...: Sinhronizacija...
+  Resync...: Sinhronizacija...
   OK: OK
   Cancel: Prekliči
   'FrequencySlot: %d (%g MHz)': 'Frekvenčno okno: %d (%g MHz)'
@@ -130,7 +131,7 @@ sl:
   Highlight: Označeno
   Primary Channel: Primarni kanal
   Secondary Channels: Sekundarni kanal
-  Resynch ...: Sinhronizacija ...
+  Resync ...: Sinhronizacija ...
   Rebooting ...: Ponovni zagon ...
   Shutting down ...: Ugašanje ...
   LoRa 0.0 MHz: ~

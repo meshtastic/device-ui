@@ -80,6 +80,21 @@ extern const lv_img_dsc_t img_hourgalss_start_image;
 extern const lv_img_dsc_t img_home_sd_card_image;
 extern const lv_img_dsc_t img_bluetooth_on_image;
 extern const lv_img_dsc_t img_top_loop_image;
+extern const lv_img_dsc_t img_nav_up_image;
+extern const lv_img_dsc_t img_nav_left_image;
+extern const lv_img_dsc_t img_nav_right_image;
+extern const lv_img_dsc_t img_nav_down_image;
+extern const lv_img_dsc_t img_nav_home_image;
+extern const lv_img_dsc_t img_location_pin_image;
+extern const lv_img_dsc_t img_no_tile_image;
+extern const lv_img_dsc_t img_circle_image;
+extern const lv_img_dsc_t img_zoom_minus_image;
+extern const lv_img_dsc_t img_zoom_plus_image;
+extern const lv_img_dsc_t img_gps_location_image;
+extern const lv_img_dsc_t img_location_lock_image;
+extern const lv_img_dsc_t img_node_location_pin_image;
+extern const lv_img_dsc_t img_node_location_pin24_image;
+extern const lv_img_dsc_t img_reboot_bt_on_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -89,7 +104,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[73];
+extern const ext_img_desc_t images[88];
 
 
 #ifdef __cplusplus

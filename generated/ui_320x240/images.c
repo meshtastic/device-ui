@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[73] = {
+const ext_img_desc_t images[88] = {
     { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
     { "settings_button_image", &img_settings_button_image },
     { "map_button_image", &img_map_button_image },
@@ -74,4 +74,19 @@ const ext_img_desc_t images[73] = {
     { "home_sd_card_image", &img_home_sd_card_image },
     { "bluetooth_on_image", &img_bluetooth_on_image },
     { "top_loop_image", &img_top_loop_image },
+    { "nav_up_image", &img_nav_up_image },
+    { "nav_left_image", &img_nav_left_image },
+    { "nav_right_image", &img_nav_right_image },
+    { "nav_down_image", &img_nav_down_image },
+    { "nav_home_image", &img_nav_home_image },
+    { "location_pin_image", &img_location_pin_image },
+    { "no_tile_image", &img_no_tile_image },
+    { "circle_image", &img_circle_image },
+    { "zoom_minus_image", &img_zoom_minus_image },
+    { "zoom_plus_image", &img_zoom_plus_image },
+    { "gps_location_image", &img_gps_location_image },
+    { "location_lock_image", &img_location_lock_image },
+    { "node_location_pin_image", &img_node_location_pin_image },
+    { "node_location_pin24_image", &img_node_location_pin24_image },
+    { "reboot_BT_on_image", &img_reboot_bt_on_image },
 };

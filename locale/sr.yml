@@ -32,6 +32,7 @@ sr:
   Settings & Tools: Podešavanja i alat
   Settings (advanced): Podešavanja (napredna)
   Locations Map: Mapa lokacija
+  'Locations Map (%d/%d)': 'Mapa lokacija (%d/%d)'
   no chats: nema četova
   Node Search: Pretraga Nodova
   Packet Statistics: Statistika paketa
@@ -73,7 +74,7 @@ sr:
   New Message from\n: |-
     Nova poruka od
     :
-  Resynch...: Sinhronizacija...
+  Resync...: Sinhronizacija...
   OK: OK
   Cancel: Odustajanje
   'FrequencySlot: %d (%g MHz)': 'Frekventni slot: %d (%g MHz)'
@@ -129,7 +130,7 @@ sr:
   Highlight: Označeno
   Primary Channel: Primarni kanal
   Secondary Channels: Sekundarni kanal
-  Resynch ...: Sinhronizacija ...
+  Resync ...: Sinhronizacija ...
   Rebooting ...: Resetovanje ...
   Shutting down ...: Gašenje ...
   LoRa 0.0 MHz: ~

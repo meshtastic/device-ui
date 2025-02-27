@@ -30,6 +30,7 @@ tr:
   Settings & Tools: Ayarlar & Araçlar
   Settings (advanced): Gelişmiş ayarlar
   Locations Map: Harita lokasyonları
+  'Locations Map (%d/%d)': 'Harita lokasyonları %d/%d'
   no chats: Sohbet yok
   Node Search: Düğüm araması
   Packet Statistics: Paket İstatistiği
@@ -67,7 +68,7 @@ tr:
   IAQ: ~
   Start: Başla
   "New Message from\n": 'Yeni mesaj'
-  Resynch...: Yeniden senkronize et
+  Resync...: Yeniden senkronize et
   OK: Tamam
   Cancel: İptal
   'FrequencySlot: %d (%g MHz)': 'Frekans Slotu: %d (%g MHz)'
@@ -119,7 +120,7 @@ tr:
   Highlight: Vurgu
   Primary Channel: Birinci kanallar
   Secondary Channels: İkinci kanallar
-  Resynch ...: Yeniden senkronize et
+  Resync ...: Yeniden senkronize et
   Rebooting ...: Yeniden başlatılıyor ...
   Shutting down ...: Kapatılıyor ...
   LoRa 0.0 MHz: ~

@@ -30,6 +30,7 @@ pt:
   Settings & Tools: Configurações e Ferramentas
   Settings (advanced): Configurações Avançadas
   Locations Map: Mapa de Localização
+  'Locations Map (%d/%d)': Mapa de Localização %d/%d
   no chats: Nenhuma Conversa
   Node Search: Buscar Dispositivos
   Packet Statistics: Estatísticas de Pacotes
@@ -92,7 +93,7 @@ pt:
   Start: Início
   "New Message from\n": |
     Nova Mensagem de
-  Resynch...: Resincronizando...
+  Resync...: Resincronizando...
   OK: OK
   Cancel: Cancelar
   'FrequencySlot: %d (%g MHz)': Banco de Frequência %d (%g MHz)
@@ -148,7 +149,7 @@ pt:
   Highlight: Destaque
   Primary Channel: Canal Primário
   Secondary Channels: Canais Secundários
-  Resynch ...: Resincronizando...
+  Resync ...: Resincronizando...
   Rebooting ...: Reiniciando...
   Shutting down ...: Desligando...
   LoRa 0.0 MHz: ~

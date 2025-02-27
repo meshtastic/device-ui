@@ -37,6 +37,11 @@ static inline uint32_t op_t(uint32_t val)
     UNUSED(val);
     return 0;
 }
+static inline uint32_t op_e(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
 
 static uint8_t en_plural_fn(int32_t num)
 {
@@ -56,7 +61,7 @@ static const lv_i18n_lang_t en_lang = {.locale_name = "en",
 
                                        .locale_plural_fn = en_plural_fn};
 
-static lv_i18n_phrase_t de_singulars[] = {
+static const lv_i18n_phrase_t de_singulars[] = {
     {"User name: %s", "Benutzer: %s"},
     {"Device Role: %s", "Gerätemodus: %s"},
     {"no new messages", "keine Nachrichten"},
@@ -78,6 +83,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Settings", "Konfiguration"},
     {"Settings (advanced)", "Erweiterte Konfiguration"},
     {"Locations Map", "Karte"},
+    {"Locations Map (%d/%d)", "Karte (%d/%d)"},
     {"no chats", "Keine Gespräche"},
     {"Node Options", "Optionen"},
     {"Short Name", "Kurzname"},
@@ -93,7 +99,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Channel Name", "Kanalname"},
     {"Pre-shared Key", "Schlüssel"},
     {"New Message from\n", "Neue Nachricht von\n"},
-    {"Resynch...", "Synchronisieren..."},
+    {"Resync...", "Synchronisieren..."},
     {"Screen Calibration: %s", "Kalibrierung: %s"},
     {"done", "erledigt"},
     {"default", "Standard"},
@@ -155,7 +161,7 @@ static lv_i18n_phrase_t de_singulars[] = {
     {"Primary Channel", "Primärkanal"},
     {"Secondary Channels", "Sekundärkanäle"},
     {"Dark\nLight", "Dunkel\nHell"},
-    {"Resynch ...", "Synchronisierung ..."},
+    {"Resync ...", "Synchronisierung ..."},
     {"Rebooting ...", "Neustart ..."},
     {"Shutting down ...", "Herunterfahren ..."},
     {"silent", "stumm"},
@@ -178,11 +184,11 @@ static lv_i18n_phrase_t de_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t de_plurals_one[] = {
+static const lv_i18n_phrase_t de_plurals_one[] = {
     {"%d active chat(s)", "%d aktives Gespräch"}, {"%d of %d nodes online", "1 Gerät online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t de_plurals_other[] = {
+static const lv_i18n_phrase_t de_plurals_other[] = {
     {"%d active chat(s)", "%d aktive Gespräche"}, {"%d of %d nodes online", "%d / %d Geräte online"}, {NULL, NULL} // End mark
 };
 
@@ -206,7 +212,7 @@ static const lv_i18n_lang_t de_lang = {.locale_name = "de",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = de_plurals_other,
                                        .locale_plural_fn = de_plural_fn};
 
-static lv_i18n_phrase_t el_singulars[] = {
+static const lv_i18n_phrase_t el_singulars[] = {
     {"no new messages", "κανένα νέο μήνυμα"},
     {"1 of 1 nodes online", "1 Κόμβος online"},
     {"uptime 00:00:00", "Χρόν.λειτ. 00:00:00"},
@@ -242,6 +248,7 @@ static lv_i18n_phrase_t el_singulars[] = {
     {"Settings & Tools", "Ρυθμίσεις & Εργαλεία"},
     {"Settings (advanced)", "Ρυθμίσεις (προχωρ.)"},
     {"Locations Map", "Χάρτης Τοποθεσιών"},
+    {"Locations Map (%d/%d)", "Χάρτης Τοποθεσιών (%d/%d)"},
     {"no chats", "Κανένας διάλογος"},
     {"Node Search", "Αναζήτηση Κόμβων"},
     {"Packet Statistics", "Στατιστικά Πακέτων"},
@@ -289,7 +296,7 @@ static lv_i18n_phrase_t el_singulars[] = {
     {"Restoring messages ...", "Επαναφορά μηνυμάτων..."},
     {"Please set region and name", "Ορίστε περιοχή και όνομα"},
     {"Region", "Περιοχή"},
-    {"Resynch ...", "Συγχρονισμός ..."},
+    {"Resync ...", "Συγχρονισμός ..."},
     {"Cancel", "Άκυρο"},
     {"now", "τώρα"},
     {"Lock: %s/%s", "Κλείδωμα Συσκευής"},
@@ -341,11 +348,11 @@ static lv_i18n_phrase_t el_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t el_plurals_one[] = {
+static const lv_i18n_phrase_t el_plurals_one[] = {
     {"%d active chat(s)", "%d ενεργ. συνομιλία"}, {"%d of %d nodes online", "1 Κόμβος online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t el_plurals_other[] = {
+static const lv_i18n_phrase_t el_plurals_other[] = {
     {"%d active chat(s)", "%d ενεργ. συνομιλίες"}, {"%d of %d nodes online", "%d / %d Κόμβοι online"}, {NULL, NULL} // End mark
 };
 
@@ -365,7 +372,7 @@ static const lv_i18n_lang_t el_lang = {.locale_name = "el",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = el_plurals_other,
                                        .locale_plural_fn = el_plural_fn};
 
-static lv_i18n_phrase_t es_singulars[] = {
+static const lv_i18n_phrase_t es_singulars[] = {
     {"no new messages", "Sin mensajes nuevos"},
     {"1 of 1 nodes online", "1 de 1 nodos activos"},
     {"DEL", "BOR"},
@@ -396,7 +403,7 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"NodeDB Reset\nFactory Reset", "Borrar NodeDB\nReini. Fábrica"},
     {"Channel Name", "Nombre Canal"},
     {"Pre-shared Key", "Clave Precomp."},
-    {"New Message from\\n", "Nuevo msg de\\n"},
+    {"New Message from\n", "Nuevo msg de\n"},
     {"User name: %s", "Nombre: %s"},
     {"Device Role: %s", "Rol Dispo.: %s"},
     {"Screen Calibration: %s", "Calibración pant.: %s"},
@@ -454,9 +461,7 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"hops: %d", "saltos: %d"},
     {"unknown", "desconocido"},
     {"<no name>", "<sin nombre>"},
-    {"%d active chat(s)", "%d chat(s) activos"},
     {"New message from \n%s", "Nuevo mensaje de:\n%s"},
-    {"%d of %d nodes online", "%d de %d nodos activos"},
     {"Filtering ...", "Filtrando ..."},
     {"Filter: %d of %d nodes", "Filtro: %d de %d nodos"},
     {"now", "ahora"},
@@ -473,7 +478,7 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"Shutting down ...", "Apagando ..."},
     {"silent", "silenciado"},
     {"WiFi: <not setup>", "WiFi: <no configurada>"},
-    {"LoRa TX off!", "LoRa TX apagado!"},
+    {"LoRa TX off!", "LoRa TX apagada!"},
     {"WiFi SSID", "Nombre de la WiFi"},
     {"WiFi pre-shared Key", "Clave de la WiFi"},
     {"<not set>", "<vacío>"},
@@ -488,25 +493,58 @@ static lv_i18n_phrase_t es_singulars[] = {
     {"Enter Filter ...", "Introduce filtro ..."},
     {"region unset", "región no configurada"},
     {"no signal", "sin señal"},
+    {"Restoring messages ...", "Restaurando mensajes"},
+    {"no SD card detected", "SD no detectada"},
+    {"Backup & Restore", "Salvar y Restaurar"},
+    {"Backup", "Salvar"},
+    {"Restore", "Restaurar"},
+    {"Public/Private Key", "Clave Pub/Privada"},
+    {"NodeDB Reset\nFactory Reset\nClear Chat History", "Borrar NodeDB\nReini. Fábrica\nBorrar Histórico Mensajes"},
+    {"Channel", "Canal"},
+    {"Please set region and name", "Por favor, escoge nombre y región"},
+    {"Region", "Región"},
+    {">> Programming mode <<", ">> Modo Programación <<"},
+    {"Failed to write keys!", "Fallo al salvar!"},
+    {"Failed to restore keys!", "Fallo al restaurar!"},
+    {"Failed to parse keys!", "Error procesando claves!"},
+    {"Failed to retrieve keys!", "Error obteniendo ficheros!"},
+    {"%s (%0.1f GB)\nUsed: %d MB (%d%%)", "%s (%0.1f GB)\nUsado: %d MB (%d%%)"},
     {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t es_plurals_one[] = {
+    {"%d active chat(s)", "1 chat activo"}, {"%d of %d nodes online", "1 nodo activo"}, {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t es_plurals_other[] = {
+    {"%d active chat(s)", "%d chat activos"}, {"%d of %d nodes online", "%d de %d nodos activos"}, {NULL, NULL} // End mark
 };
 
 static uint8_t es_plural_fn(int32_t num)
 {
     uint32_t n = op_n(num);
     UNUSED(n);
-
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i1000000 = i % 1000000;
     if ((n == 1))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
 static const lv_i18n_lang_t es_lang = {.locale_name = "es",
                                        .singulars = es_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = es_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = es_plurals_other,
                                        .locale_plural_fn = es_plural_fn};
 
-static lv_i18n_phrase_t fi_singulars[] = {
+static const lv_i18n_phrase_t fi_singulars[] = {
     {"no new messages", "ei uusia viestejä"},
     {"1 of 1 nodes online", "1/1 nodea verkossa"},
     {"uptime 00:00:00", "käyttöaika 00:00:00"},
@@ -535,6 +573,7 @@ static lv_i18n_phrase_t fi_singulars[] = {
     {"Settings & Tools", "Asetukset ja Työkalut"},
     {"Settings (advanced)", "lisäasetukset"},
     {"Locations Map", "Sijaintikartta"},
+    {"Locations Map (%d/%d)", "Sijaintikartta (%d/%d)"},
     {"no chats", "ei keskusteluja"},
     {"Node Search", "Node haku"},
     {"Packet Statistics", "Pakettitilastot"},
@@ -611,7 +650,7 @@ static lv_i18n_phrase_t fi_singulars[] = {
     {"Highlight", "Korosta"},
     {"Primary Channel", "Ensisijainen kanava"},
     {"Secondary Channels", "Toissijaiset kanavat"},
-    {"Resynch ...", "Synkronoi uudelleen ..."},
+    {"Resync ...", "Synkronoi uudelleen ..."},
     {"Rebooting ...", "Käynnistetään uudelleen ..."},
     {"Shutting down ...", "Sammutetetaan ..."},
     {NULL, NULL} // End mark
@@ -636,7 +675,7 @@ static const lv_i18n_lang_t fi_lang = {.locale_name = "fi",
 
                                        .locale_plural_fn = fi_plural_fn};
 
-static lv_i18n_phrase_t fr_singulars[] = {
+static const lv_i18n_phrase_t fr_singulars[] = {
     {"no new messages", "0 nouveau message"},
     {"1 of 1 nodes online", "1 sur 1 noeud actif"},
     {"uptime 00:00:00", "Activité: 00:00:00"},
@@ -664,6 +703,7 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Settings & Tools", "Outils et Configuration"},
     {"Settings (advanced)", "Configur. avancée"},
     {"Locations Map", "Carte / Localisations"},
+    {"Locations Map (%d/%d)", "Localisations (%d/%d)"},
     {"no chats", "Aucune conversation"},
     {"Node Search", "Recherche noeud"},
     {"Packet Statistics", "Statistiques des paquets"},
@@ -679,7 +719,7 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Keyboard", "Clavier"},
     {"Message Alert", "Notifications"},
     {"Ringtone", "Sonnerie"},
-    {"Default", "défaut"},
+    {"Default", "Par Défaut"},
     {"Zone", "Zone"},
     {"City", "Ville"},
     {"NodeDB Reset\nFactory Reset", "Reinit. NodeDB\nReinit. Usine"},
@@ -688,7 +728,7 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Unknown", "Inconnu"},
     {"Offline", "Hors ligne"},
     {"Public Key", "Clé Publique"},
-    {"Hops away", "Sauts"},
+    {"Hops away", "Sauts parcourus"},
     {"MQTT", "MQTT"},
     {"Position", "Position"},
     {"Name", "Nom"},
@@ -697,11 +737,12 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Start", "Marche"},
     {"New Message from\n", "Nouveau message de\\n"},
     {"Cancel", "Annuler"},
+    {"FrequencySlot: %d (%g MHz)", "Slot: %d (%g MHz)"},
     {"Brightness: %d%%", "Luminosité : %d%%"},
     {"Timeout: off", "Timeout: désactivé"},
     {"Screen Calibration: %s", "Calibration d'écran: %s"},
-    {"done", "fait"},
-    {"default", "défaut"},
+    {"done", "terminé"},
+    {"default", "par défaut"},
     {"Stop", "Arrêt"},
     {"choose\nnode", "choix du\nnoeud"},
     {"choose target node", "Choix du noeud cible"},
@@ -724,15 +765,12 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"hops: %d", "sauts: %d"},
     {"unknown", "inconnu"},
     {"<no name>", "<sans nom>"},
-    {"%d active chat(s)", "%d chat(s) actif(s)"},
     {"New message from \n%s", "Nouveau message de:\n%s"},
-    {"%d of %d nodes online", "%d sur %d noeuds actifs"},
     {"Filtering ...", "Filtrage ..."},
     {"Filter: %d of %d nodes", "Filtre: %d sur %d noeuds"},
     {"now", "maintenant"},
     {"%d new message", "%d nouveau message"},
     {"%d new messages", "%d nouveaux messages"},
-    {"uptime: %02d:%02d:%02d", "Activité: %02d:%02d:%02d"},
     {"Settings", "Configuration"},
     {"Tools", "Outils"},
     {"Filter", "Filtrer"},
@@ -758,8 +796,30 @@ static lv_i18n_phrase_t fr_singulars[] = {
     {"Banner & Sound", "Visuelle et sonore"},
     {"Banner only", "Alerte Visuelle"},
     {"Sound only", "Sonnerie Seule"},
-    {"no signal", "aucun signal"},
+    {"no signal", "Aucun signal"},
+    {"no SD card detected", "Aucune Carte SD"},
+    {"Backup & Restore", "Sauvegarde/Restauration"},
+    {"Backup", "Sauvegarde"},
+    {"Restore", "Restauration"},
+    {"Public/Private Key", "Clé Publique/Privée"},
+    {"NodeDB Reset\nFactory Reset\nClear Chat History", "NodeDB\nD'usine\nMessages"},
+    {"Restoring messages ...", "Restauration des messages"},
+    {"Please set region and name", "Renseignez votre Nom et Région"},
+    {">> Programming mode <<", ">>Mode Programmation<<"},
+    {"Failed to write keys!", "Écriture impossible!"},
+    {"Failed to restore keys!", "Restauration Impossible!"},
+    {"Failed to parse keys!", "Erreur de lecture!"},
+    {"Failed to retrieve keys!", "Erreur de lecture!"},
+    {"%s (%0.1f GB)\nUsed: %d MB (%d%%)", "%s (%0.1f GB)\nUtilisé: %d MB (%d%%)"},
     {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t fr_plurals_one[] = {
+    {"%d active chat(s)", "%d chat actif"}, {"%d of %d nodes online", "%d sur %d noeud actif"}, {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t fr_plurals_other[] = {
+    {"%d active chat(s)", "%d chats actifs"}, {"%d of %d nodes online", "%d sur %d noeuds actifs"}, {NULL, NULL} // End mark
 };
 
 static uint8_t fr_plural_fn(int32_t num)
@@ -768,18 +828,25 @@ static uint8_t fr_plural_fn(int32_t num)
     UNUSED(n);
     uint32_t i = op_i(n);
     UNUSED(i);
-
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i1000000 = i % 1000000;
     if ((((i == 0) || (i == 1))))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
 static const lv_i18n_lang_t fr_lang = {.locale_name = "fr",
                                        .singulars = fr_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = fr_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = fr_plurals_other,
                                        .locale_plural_fn = fr_plural_fn};
 
-static lv_i18n_phrase_t it_singulars[] = {
+static const lv_i18n_phrase_t it_singulars[] = {
     {"no new messages", "nessun messaggio"},
     {"1 of 1 nodes online", "1 di 1 nodi online"},
     {"uptime 00:00:00", "tempo di attività 00:00:00"},
@@ -811,6 +878,7 @@ static lv_i18n_phrase_t it_singulars[] = {
     {"Settings & Tools", "Impostazioni & Strumenti"},
     {"Settings (advanced)", "Impostazioni (avanzate)"},
     {"Locations Map", "Mappa delle posizioni"},
+    {"Locations Map (%d/%d)", "Mappa delle posizioni %d/%d"},
     {"no chats", "nessuna chat"},
     {"Node Search", "Ricerca nodo"},
     {"Packet Statistics", "Statistiche pacchetti"},
@@ -843,7 +911,7 @@ static lv_i18n_phrase_t it_singulars[] = {
     {"Active Chat", "Chat Attiva"},
     {"Telemetry", "Telemetria"},
     {"New Message from\n", "Nuovo messaggio da\n"},
-    {"Resynch...", "Risinc..."},
+    {"Resync...", "Risinc..."},
     {"Cancel", "Annulla"},
     {"FrequencySlot: %d (%g MHz)", "Slot di Frequenza: %d (%g MHz)"},
     {"Brightness: %d%%", "Luminosità: %d%%"},
@@ -889,7 +957,7 @@ static lv_i18n_phrase_t it_singulars[] = {
     {"Highlight", "Evidenzia"},
     {"Primary Channel", "Canale Primario"},
     {"Secondary Channels", "Canali Secondari"},
-    {"Resynch ...", "Risinc ..."},
+    {"Resync ...", "Risinc ..."},
     {"Rebooting ...", "Riavvio ..."},
     {"Shutting down ...", "Spegnimento ..."},
     {"silent", "silenzioso"},
@@ -913,11 +981,11 @@ static lv_i18n_phrase_t it_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t it_plurals_one[] = {
+static const lv_i18n_phrase_t it_plurals_one[] = {
     {"%d active chat(s)", "%d chat attiva"}, {"%d of %d nodes online", "1 nodo online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t it_plurals_other[] = {
+static const lv_i18n_phrase_t it_plurals_other[] = {
     {"%d active chat(s)", "%d chat attive"}, {"%d of %d nodes online", "%d di %d nodi online"}, {NULL, NULL} // End mark
 };
 
@@ -929,9 +997,13 @@ static uint8_t it_plural_fn(int32_t num)
     UNUSED(i);
     uint32_t v = op_v(n);
     UNUSED(v);
-
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t i1000000 = i % 1000000;
     if ((i == 1 && v == 0))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
@@ -941,7 +1013,7 @@ static const lv_i18n_lang_t it_lang = {.locale_name = "it",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = it_plurals_other,
                                        .locale_plural_fn = it_plural_fn};
 
-static lv_i18n_phrase_t nl_singulars[] = {
+static const lv_i18n_phrase_t nl_singulars[] = {
     {"no new messages", "0 nieuwe berichten"},
     {"1 of 1 nodes online", "1 van 1 nodes online"},
     {"uptime 00:00:00", "uptime 00:00:00"},
@@ -973,6 +1045,7 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Settings & Tools", "Instellingen en Tools"},
     {"Settings (advanced)", "Instellingen (geavanceerd)"},
     {"Locations Map", "Lokaties Kaart"},
+    {"Locations Map (%d/%d)", "Lokaties Kaart (%d/%d)"},
     {"no chats", "geen chats"},
     {"Node Search", "Node zoeken"},
     {"Packet Statistics", "Packet Statistieken"},
@@ -997,7 +1070,6 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Default", "Standaard"},
     {"Zone", "Zone"},
     {"City", "Stad"},
-    {"NodeDB Reset\nFactory Reset", "NodeDB herstellen\nFabrieksinstellingen herstellen"},
     {"Channel Name", "Kanaal Naam"},
     {"Pre-shared Key", "Pre-shared Key"},
     {"Unknown", "Onbekend"},
@@ -1045,10 +1117,8 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"hops: %d", "hops: %d"},
     {"unknown", "onbekend"},
     {"<no name>", "<geen naam>"},
-    {"%d active chat(s)", "%d actieve chat(s)"},
     {"New message from \n%s", "Nieuw bericht van \n%s"},
     {"Input Control: %s/%s", "Input Control: %s/%s"},
-    {"%d of %d nodes online", "%d van %d nodes online"},
     {"Filtering ...", "Filteren ..."},
     {"Filter: %d of %d nodes", "Filter: %d van %d nodes"},
     {"now", "nu"},
@@ -1080,7 +1150,33 @@ static lv_i18n_phrase_t nl_singulars[] = {
     {"Banner only", "Alleen strook"},
     {"Sound only", "Alleen geluid"},
     {"no signal", "geen signaal"},
+    {"Restoring messages ...", "Berichten herstellen ..."},
+    {"no SD card detected", "geen SD kaart gevonden"},
+    {"Backup & Restore", "Backup & Herstel"},
+    {"Backup", "Backup"},
+    {"Restore", "Herstel"},
+    {"Public/Private Key", "Public/Private Key"},
+    {"NodeDB Reset\nFactory Reset\nClear Chat History",
+     "NodeDB herstellen\nFabrieksinstellingen herstellen\nWis Chat Geschiedenis"},
+    {"Channel", "Kanaal"},
+    {"Please set region and name", "Stel regio en naam in a.u.b."},
+    {"Region", "Regio"},
+    {"Resync ...", "Hersynchroniseer ..."},
+    {">> Programming mode <<", ">> Programmeer mode <<"},
+    {"Failed to write keys!", "Keys schrijven mislukt!"},
+    {"Failed to restore keys!", "Keys herstellen mislukt!"},
+    {"Failed to parse keys!", "Keys verwerken mislukt!"},
+    {"Failed to retrieve keys!", "Keys ophalen mislukt!"},
+    {"%s (%0.1f GB)\nUsed: %d MB (%d%%)", "%s (%0.1f GB)\nGebruikt: %d MB (%d%%)"},
     {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t nl_plurals_one[] = {
+    {"%d active chat(s)", "%d actieve chats"}, {"%d of %d nodes online", "1 node online"}, {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t nl_plurals_other[] = {
+    {"%d active chat(s)", "%d actieve chats"}, {"%d of %d nodes online", "%d van %d nodes online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t nl_plural_fn(int32_t num)
@@ -1099,10 +1195,11 @@ static uint8_t nl_plural_fn(int32_t num)
 
 static const lv_i18n_lang_t nl_lang = {.locale_name = "nl",
                                        .singulars = nl_singulars,
-
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = nl_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = nl_plurals_other,
                                        .locale_plural_fn = nl_plural_fn};
 
-static lv_i18n_phrase_t no_singulars[] = {
+static const lv_i18n_phrase_t no_singulars[] = {
     {"no new messages", "Ingen nye meldinger"},
     {"1 of 1 nodes online", "1 av 1 noder online"},
     {"uptime 00:00:00", "oppetid 00:00:00"},
@@ -1131,6 +1228,7 @@ static lv_i18n_phrase_t no_singulars[] = {
     {"Settings & Tools", "Innstillinger & Verktøy"},
     {"Settings (advanced)", "Innstillinger (Avansert)"},
     {"Locations Map", "Kart"},
+    {"Locations Map (%d/%d)", "Kart (%d/%d)"},
     {"no chats", "ingen chats"},
     {"Node Search", "Søk node"},
     {"Packet Statistics", "Statistikk på pakker"},
@@ -1168,7 +1266,7 @@ static lv_i18n_phrase_t no_singulars[] = {
     {"Telemetry", "Telemetri"},
     {"Start", "Kjør"},
     {"New Message from\n", "Ny melding fra\n"},
-    {"Resynch...", "Synkroniser om..."},
+    {"Resync...", "Synkroniser om..."},
     {"Cancel", "Avbryt"},
     {"FrequencySlot: %d (%g MHz)", "Frekvensplass: %d (%g MHz)"},
     {"Brightness: %d%%", "Lysstyrke: %d%%"},
@@ -1212,7 +1310,7 @@ static lv_i18n_phrase_t no_singulars[] = {
     {"Settings", "Innstillinger"},
     {"Primary Channel", "Hovedkanal"},
     {"Secondary Channels", "Sekunder kanal"},
-    {"Resynch ...", "Synkroniserer ..."},
+    {"Resync ...", "Synkroniserer ..."},
     {"Rebooting ...", "Starter på nytt ..."},
     {"Shutting down ...", "Skrur av ..."},
     {"silent", "stille"},
@@ -1234,11 +1332,11 @@ static lv_i18n_phrase_t no_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t no_plurals_one[] = {
+static const lv_i18n_phrase_t no_plurals_one[] = {
     {"%d active chat(s)", "1 aktiv chat"}, {"%d of %d nodes online", "1 node online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t no_plurals_other[] = {
+static const lv_i18n_phrase_t no_plurals_other[] = {
     {"%d active chat(s)", "%d aktive chat"}, {"%d of %d nodes online", "%d av %d noder online"}, {NULL, NULL} // End mark
 };
 
@@ -1258,7 +1356,7 @@ static const lv_i18n_lang_t no_lang = {.locale_name = "no",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = no_plurals_other,
                                        .locale_plural_fn = no_plural_fn};
 
-static lv_i18n_phrase_t pl_singulars[] = {
+static const lv_i18n_phrase_t pl_singulars[] = {
     {"no new messages", "Brak wiadomości"},
     {"1 of 1 nodes online", "1 z 1 węzłów online"},
     {"User name: ", "Nazwa"},
@@ -1277,6 +1375,7 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Settings", "Ustawienia"},
     {"Settings (advanced)", "Ustawienia (zaawansowane)"},
     {"Locations Map", "Mapa miejsc"},
+    {"Locations Map (%d/%d)", "Mapa miejsc (%d/%d)"},
     {"no chats", "brak czatów"},
     {"Node Options", "Ustawienia węzła"},
     {"Short Name", "Krótka nazwa"},
@@ -1290,7 +1389,7 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"NodeDB Reset\nFactory Reset", "Reset NodeDB\nReset do ustawień domyślnych"},
     {"Channel Name", "Nazwa kanału"},
     {"New Message from\n", "Nowa wiadomość od\n"},
-    {"Resynch ...", "Resynchronizacja..."},
+    {"Resync ...", "Resyncronizacja..."},
     {"User name: %s", "Nazwa: %s"},
     {"Device Role: %s", "Typ urządzenia: %s"},
     {"Screen Calibration: %s", "Kalibracja ekranu: %s"},
@@ -1387,7 +1486,7 @@ static const lv_i18n_lang_t pl_lang = {.locale_name = "pl",
 
                                        .locale_plural_fn = pl_plural_fn};
 
-static lv_i18n_phrase_t pt_singulars[] = {
+static const lv_i18n_phrase_t pt_singulars[] = {
     {"no new messages", "Nenhuma mensagem"},
     {"1 of 1 nodes online", "1 dispositivo online"},
     {"uptime 00:00:00", "Tempo ligado\n00:00:00"},
@@ -1418,6 +1517,7 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"Settings & Tools", "Configurações e Ferramentas"},
     {"Settings (advanced)", "Configurações Avançadas"},
     {"Locations Map", "Mapa de Localização"},
+    {"Locations Map (%d/%d)", "Mapa de Localização %d/%d"},
     {"no chats", "Nenhuma Conversa"},
     {"Node Search", "Buscar Dispositivos"},
     {"Packet Statistics", "Estatísticas de Pacotes"},
@@ -1458,7 +1558,7 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"IAQ", "Qualidade do Ar"},
     {"Start", "Início"},
     {"New Message from\n", "Nova Mensagem de\n"},
-    {"Resynch...", "Resincronizando..."},
+    {"Resync...", "Resincronizando..."},
     {"OK", "OK"},
     {"Cancel", "Cancelar"},
     {"FrequencySlot: %d (%g MHz)", "Banco de Frequência %d (%g MHz)"},
@@ -1506,17 +1606,17 @@ static lv_i18n_phrase_t pt_singulars[] = {
     {"Highlight", "Destaque"},
     {"Primary Channel", "Canal Primário"},
     {"Secondary Channels", "Canais Secundários"},
-    {"Resynch ...", "Resincronizando..."},
+    {"Resync ...", "Resincronizando..."},
     {"Rebooting ...", "Reiniciando..."},
     {"Shutting down ...", "Desligando..."},
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t pt_plurals_one[] = {
+static const lv_i18n_phrase_t pt_plurals_one[] = {
     {"%d of %d nodes online", "1 dispositivo online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t pt_plurals_other[] = {
+static const lv_i18n_phrase_t pt_plurals_other[] = {
     {"%d of %d nodes online", "%d/%d dispositivos online"}, {NULL, NULL} // End mark
 };
 
@@ -1526,9 +1626,15 @@ static uint8_t pt_plural_fn(int32_t num)
     UNUSED(n);
     uint32_t i = op_i(n);
     UNUSED(i);
-
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i1000000 = i % 1000000;
     if (((0 <= i && i <= 1)))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
@@ -1558,7 +1664,7 @@ static const lv_i18n_lang_t ro_lang = {.locale_name = "ro",
 
                                        .locale_plural_fn = ro_plural_fn};
 
-static lv_i18n_phrase_t ru_singulars[] = {
+static const lv_i18n_phrase_t ru_singulars[] = {
     {"no new messages", "нет новых сообщений"},
     {"1 of 1 nodes online", "1 из 1 узлов онлайн"},
     {"DEL", "DEL"},
@@ -1659,7 +1765,7 @@ static lv_i18n_phrase_t ru_singulars[] = {
     {"Highlight", "Выделить"},
     {"Primary Channel", "Основной канал"},
     {"Secondary Channels", "Вторичные каналы"},
-    {"Resynch ...", "Ресинхронизация ..."},
+    {"Resync ...", "Ресинхронизация ..."},
     {"Rebooting ...", "Перезагрузка ..."},
     {"Shutting down ...", "Выключение ..."},
     {"silent", "тихий режим"},
@@ -1705,7 +1811,7 @@ static const lv_i18n_lang_t ru_lang = {.locale_name = "ru",
 
                                        .locale_plural_fn = ru_plural_fn};
 
-static lv_i18n_phrase_t se_singulars[] = {
+static const lv_i18n_phrase_t se_singulars[] = {
     {"no new messages", "inga nya meddelanden"},
     {"1 of 1 nodes online", "1 av 1 noder online"},
     {"uptime 00:00:00", "upptid 00:00:00"},
@@ -1734,6 +1840,7 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Settings & Tools", "Inställningar & Verktyg"},
     {"Settings (advanced)", "Inställningar (Avancerat)"},
     {"Locations Map", "Karta"},
+    {"Locations Map (%d/%d)", "Karta (%d/%d)"},
     {"no chats", "inga chattar"},
     {"Node Search", "Sök nod"},
     {"Packet Statistics", "Paket Statistik"},
@@ -1772,7 +1879,7 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Telemetry", "Telemetri"},
     {"Start", "Kör"},
     {"New Message from\n", "Nytt meddelande från\n"},
-    {"Resynch...", "Synkronisera om..."},
+    {"Resync...", "Synkronisera om..."},
     {"Cancel", "Avbryt"},
     {"FrequencySlot: %d (%g MHz)", "Frekvensplats: %d (%g MHz)"},
     {"Brightness: %d%%", "Ljusstyrka: %d%%"},
@@ -1815,7 +1922,7 @@ static lv_i18n_phrase_t se_singulars[] = {
     {"Settings", "Inställningar"},
     {"Primary Channel", "Primär Kanal"},
     {"Secondary Channels", "Sekundär Kanal"},
-    {"Resynch ...", "Synkroniserar om ..."},
+    {"Resync ...", "Synkroniserar om ..."},
     {"Rebooting ...", "Startar om ..."},
     {"Shutting down ...", "Stänger av ..."},
     {"silent", "tyst"},
@@ -1836,11 +1943,11 @@ static lv_i18n_phrase_t se_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t se_plurals_one[] = {
+static const lv_i18n_phrase_t se_plurals_one[] = {
     {"%d active chat(s)", "1 aktiv chatt"}, {"%d of %d nodes online", "1 nod online"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t se_plurals_other[] = {
+static const lv_i18n_phrase_t se_plurals_other[] = {
     {"%d active chat(s)", "%d aktiva chattar"}, {"%d of %d nodes online", "%d av %d noder online"}, {NULL, NULL} // End mark
 };
 
@@ -1862,7 +1969,7 @@ static const lv_i18n_lang_t se_lang = {.locale_name = "se",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = se_plurals_other,
                                        .locale_plural_fn = se_plural_fn};
 
-static lv_i18n_phrase_t sl_singulars[] = {
+static const lv_i18n_phrase_t sl_singulars[] = {
     {"User name: %s", "Uporabniško ime: %s"},
     {"Device Role: %s", "Vloga: %s"},
     {"no new messages", "ni novih sporočil"},
@@ -1893,6 +2000,7 @@ static lv_i18n_phrase_t sl_singulars[] = {
     {"Settings & Tools", "Nastavitve in orodja"},
     {"Settings (advanced)", "Nastavitve (napredno)"},
     {"Locations Map", "Zemljevid lokacij"},
+    {"Locations Map (%d/%d)", "Zemljevid lokacij (%d/%d)"},
     {"no chats", "ni pogovorov"},
     {"Node Search", "Iskanje vozlišč"},
     {"Packet Statistics", "Statistika paketov"},
@@ -1934,7 +2042,7 @@ static lv_i18n_phrase_t sl_singulars[] = {
     {"uptime 00:00:00", "prižgan 00:00:00"},
     {"Heap: 0\nLVGL: 0", "Kopica: 0\nLVGL: 0"},
     {"New Message from \n%s", "Novo sporočilo od\n%s"},
-    {"Resynch...", "Sinhronizacija..."},
+    {"Resync...", "Sinhronizacija..."},
     {"OK", "OK"},
     {"Cancel", "Prekliči"},
     {"FrequencySlot: %d (%g MHz)", "Frekvenčno okno: %d (%g MHz)"},
@@ -1980,7 +2088,7 @@ static lv_i18n_phrase_t sl_singulars[] = {
     {"Highlight", "Označeno"},
     {"Primary Channel", "Primarni kanal"},
     {"Secondary Channels", "Sekundarni kanal"},
-    {"Resynch ...", "Sinhronizacija ..."},
+    {"Resync ...", "Sinhronizacija ..."},
     {"Rebooting ...", "Ponovni zagon ..."},
     {"Shutting down ...", "Ugašanje ..."},
     {"silent", "tihi način"},
@@ -2002,11 +2110,11 @@ static lv_i18n_phrase_t sl_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t sl_plurals_one[] = {
+static const lv_i18n_phrase_t sl_plurals_one[] = {
     {"%d of %d nodes online", "1 vozlišč povezano"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t sl_plurals_other[] = {
+static const lv_i18n_phrase_t sl_plurals_other[] = {
     {"%d of %d nodes online", "%d / %d vozl. povezanih"}, {NULL, NULL} // End mark
 };
 
@@ -2034,7 +2142,7 @@ static const lv_i18n_lang_t sl_lang = {.locale_name = "sl",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = sl_plurals_other,
                                        .locale_plural_fn = sl_plural_fn};
 
-static lv_i18n_phrase_t sr_singulars[] = {
+static const lv_i18n_phrase_t sr_singulars[] = {
     {"no new messages", "nema novih poruka"},
     {"1 of 1 nodes online", "1 od 1 nodova online"},
     {"uptime 00:00:00", "uključen pre 00:00:00"},
@@ -2065,6 +2173,7 @@ static lv_i18n_phrase_t sr_singulars[] = {
     {"Settings & Tools", "Podešavanja i alat"},
     {"Settings (advanced)", "Podešavanja (napredna)"},
     {"Locations Map", "Mapa lokacija"},
+    {"Locations Map (%d/%d)", "Mapa lokacija (%d/%d)"},
     {"no chats", "nema četova"},
     {"Node Search", "Pretraga Nodova"},
     {"Packet Statistics", "Statistika paketa"},
@@ -2099,7 +2208,7 @@ static lv_i18n_phrase_t sr_singulars[] = {
     {"Telemetry", "Telemetrija"},
     {"Start", "Start"},
     {"New Message from\\n", "Nova poruka od\n:"},
-    {"Resynch...", "Sinhronizacija..."},
+    {"Resync...", "Sinhronizacija..."},
     {"OK", "OK"},
     {"Cancel", "Odustajanje"},
     {"FrequencySlot: %d (%g MHz)", "Frekventni slot: %d (%g MHz)"},
@@ -2147,7 +2256,7 @@ static lv_i18n_phrase_t sr_singulars[] = {
     {"Highlight", "Označeno"},
     {"Primary Channel", "Primarni kanal"},
     {"Secondary Channels", "Sekundarni kanal"},
-    {"Resynch ...", "Sinhronizacija ..."},
+    {"Resync ...", "Sinhronizacija ..."},
     {"Rebooting ...", "Resetovanje ..."},
     {"Shutting down ...", "Gašenje ..."},
     {"silent", "bez zvuka"},
@@ -2188,7 +2297,7 @@ static const lv_i18n_lang_t sr_lang = {.locale_name = "sr",
 
                                        .locale_plural_fn = sr_plural_fn};
 
-static lv_i18n_phrase_t tr_singulars[] = {
+static const lv_i18n_phrase_t tr_singulars[] = {
     {"no new messages", "Yeni mesaj yok"},
     {"1 of 1 nodes online", "1/1 düğüm aktif"},
     {"uptime 00:00:00", "Çalışma süresi %s"},
@@ -2217,6 +2326,7 @@ static lv_i18n_phrase_t tr_singulars[] = {
     {"Settings & Tools", "Ayarlar & Araçlar"},
     {"Settings (advanced)", "Gelişmiş ayarlar"},
     {"Locations Map", "Harita lokasyonları"},
+    {"Locations Map (%d/%d)", "Harita lokasyonları %d/%d"},
     {"no chats", "Sohbet yok"},
     {"Node Search", "Düğüm araması"},
     {"Packet Statistics", "Paket İstatistiği"},
@@ -2249,7 +2359,7 @@ static lv_i18n_phrase_t tr_singulars[] = {
     {"Telemetry", "Telemetri"},
     {"Start", "Başla"},
     {"New Message from\n", "Yeni mesaj"},
-    {"Resynch...", "Yeniden senkronize et"},
+    {"Resync...", "Yeniden senkronize et"},
     {"OK", "Tamam"},
     {"Cancel", "İptal"},
     {"FrequencySlot: %d (%g MHz)", "Frekans Slotu: %d (%g MHz)"},
@@ -2294,7 +2404,7 @@ static lv_i18n_phrase_t tr_singulars[] = {
     {"Highlight", "Vurgu"},
     {"Primary Channel", "Birinci kanallar"},
     {"Secondary Channels", "İkinci kanallar"},
-    {"Resynch ...", "Yeniden senkronize et"},
+    {"Resync ...", "Yeniden senkronize et"},
     {"Rebooting ...", "Yeniden başlatılıyor ..."},
     {"Shutting down ...", "Kapatılıyor ..."},
     {"silent", "Sessiz"},
@@ -2318,11 +2428,11 @@ static lv_i18n_phrase_t tr_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t tr_plurals_one[] = {
+static const lv_i18n_phrase_t tr_plurals_one[] = {
     {"%d of %d nodes online", "1 düğüm çevrimiçi"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t tr_plurals_other[] = {
+static const lv_i18n_phrase_t tr_plurals_other[] = {
     {"%d of %d nodes online", "%d / %d düğümler çevrimiçi"}, {NULL, NULL} // End mark
 };
 
@@ -2342,7 +2452,7 @@ static const lv_i18n_lang_t tr_lang = {.locale_name = "tr",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = tr_plurals_other,
                                        .locale_plural_fn = tr_plural_fn};
 
-static lv_i18n_phrase_t zh_cn_singulars[] = {
+static const lv_i18n_phrase_t zh_cn_singulars[] = {
     {"no new messages", "暂无新消息"},
     {"1 of 1 nodes online", "1/1 个节点在线"},
     {"DEL", "删除"},
@@ -2363,6 +2473,7 @@ static lv_i18n_phrase_t zh_cn_singulars[] = {
     {"Settings", "设置"},
     {"Settings (advanced)", "高级设置"},
     {"Locations Map", "位置地图"},
+    {"Locations Map (%d/%d)", "位置地图 %d/%d"},
     {"no chats", "暂无聊天"},
     {"Node Options", "节点选项"},
     {"Short Name", "简称"},
@@ -2453,7 +2564,7 @@ static lv_i18n_phrase_t zh_cn_singulars[] = {
     {"choose node", "选择节点"},
     {"Primary Channel", "主信道"},
     {"Secondary Channels", "辅助信道"},
-    {"Resynch ...", "正在重新同步..."},
+    {"Resync ...", "正在重新同步..."},
     {"Rebooting ...", "正在重启..."},
     {"Shutting down ...", "正在关机..."},
     {"LoRa 0.0 MHz", "LoRa 0.0 MHz"},
@@ -2527,6 +2638,14 @@ int lv_i18n_init(const lv_i18n_language_pack_t *langs)
 }
 
 /**
+ * Sugar for simplified `lv_i18n_init` call
+ */
+int lv_i18n_init_default(void)
+{
+    return lv_i18n_init(lv_i18n_language_pack);
+}
+
+/**
  * Change the localization (language)
  * @param l_name name of the translation locale to use. E.g. "en-GB"
  */
@@ -2548,12 +2667,12 @@ int lv_i18n_set_locale(const char *l_name)
     return -1;
 }
 
-static const char *__lv_i18n_get_text_core(lv_i18n_phrase_t *trans, const char *msg_id)
+static const char *__lv_i18n_get_text_core(const lv_i18n_phrase_t *trans, const char *msg_id)
 {
     uint16_t i;
     for (i = 0; trans[i].msg_id != NULL; i++) {
         if (strcmp(trans[i].msg_id, msg_id) == 0) {
-            /*The msg_id has found. Check the translation*/
+            /*The msg_id has been found. Check the translation*/
             if (trans[i].translation)
                 return trans[i].translation;
         }

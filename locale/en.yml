@@ -38,6 +38,7 @@ en:
   Settings & Tools: ~
   Settings (advanced): ~
   Locations Map: ~
+  'Locations Map (%d/%d)': ~
   no chats: ~
   Node Search: ~
   Packet Statistics: ~
@@ -92,7 +93,7 @@ en:
   Restoring messages ...: ~
   Please set region and name: ~
   Region: ~
-  Resynch ...: ~
+  Resync ...: ~
   OK: ~
   Cancel: ~
   now: ~

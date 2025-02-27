@@ -30,6 +30,7 @@ no:
   Settings & Tools: Innstillinger & Verktøy
   Settings (advanced): Innstillinger (Avansert)
   Locations Map: Kart
+  'Locations Map (%d/%d)': 'Kart (%d/%d)'
   no chats: ingen chats
   Node Search: Søk node
   Packet Statistics: Statistikk på pakker
@@ -92,7 +93,7 @@ no:
   Start: Kjør
   "New Message from\n": |
     Ny melding fra
-  Resynch...: Synkroniser om...
+  Resync...: Synkroniser om...
   OK: ~
   Cancel: Avbryt
   'FrequencySlot: %d (%g MHz)': 'Frekvensplass: %d (%g MHz)'
@@ -150,7 +151,7 @@ no:
   Settings: Innstillinger
   Primary Channel: Hovedkanal
   Secondary Channels: Sekunder kanal
-  Resynch ...: Synkroniserer ...
+  Resync ...: Synkroniserer ...
   Rebooting ...: Starter på nytt ...
   Shutting down ...: Skrur av ...
   LoRa 0.0 MHz: ~

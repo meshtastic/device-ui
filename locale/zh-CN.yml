@@ -19,6 +19,7 @@ zh-CN:
   Settings: 设置
   Settings (advanced): 高级设置
   Locations Map: 位置地图
+  'Locations Map (%d/%d)': '位置地图 %d/%d'
   no chats: 暂无聊天
   Node Options: 节点选项
   Short Name: 简称
@@ -107,7 +108,7 @@ zh-CN:
   choose node: 选择节点
   Primary Channel: 主信道
   Secondary Channels: 辅助信道
-  Resynch ...: 正在重新同步...
+  Resync ...: 正在重新同步...
   Rebooting ...: 正在重启...
   Shutting down ...: 正在关机...
   LoRa 0.0 MHz: LoRa 0.0 MHz

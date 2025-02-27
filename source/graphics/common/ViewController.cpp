@@ -45,7 +45,8 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 void ViewController::runOnce(void)
 {
     if (client) {
-        if (view->getState() == MeshtasticView::eEnterProgrammingMode || view->getState() == MeshtasticView::eBootScreenDone)
+        if (view->getState() == MeshtasticView::eEnterProgrammingMode ||
+            (view->getState() >= MeshtasticView::eBootScreenDone && requestConfigRequired))
             requestConfig();
 
         if (configCompleted && !messagesRestored)
@@ -63,7 +64,7 @@ void ViewController::runOnce(void)
             lastrun10 = curtime;
             if (!client->isConnected())
                 client->connect();
-            if (view->getState() != MeshtasticView::eProgrammingMode && view->getState() < MeshtasticView::eConfigComplete) {
+            if (view->getState() == MeshtasticView::eBootScreenDone) {
                 requestConfigRequired = true;
                 requestConfig();
             }
@@ -879,6 +880,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
     view->updateLastHeard(p.from);
 
     switch (p.decoded.portnum) {
+    case meshtastic_PortNum_ALERT_APP:
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
         ILOG_INFO("received text message '%s'", (const char *)p.decoded.payload.bytes);
         if (!messagesRestored && log.count() > 0) {

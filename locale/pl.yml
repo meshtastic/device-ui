@@ -18,6 +18,7 @@ pl:
   Settings: Ustawienia
   Settings (advanced): Ustawienia (zaawansowane)
   Locations Map: Mapa miejsc
+  'Locations Map (%d/%d)': 'Mapa miejsc (%d/%d)'
   no chats: brak czatów
   Node Options: Ustawienia węzła
   Short Name: Krótka nazwa
@@ -36,7 +37,7 @@ pl:
   Pre-shared Key: ~
   "New Message from\n": |
     Nowa wiadomość od
-  Resynch ...: Resynchronizacja...
+  Resync ...: Resyncronizacja...
   'User name: %s': 'Nazwa: %s'
   'Device Role: %s': 'Typ urządzenia: %s'
   'Screen Calibration: %s': 'Kalibracja ekranu: %s'
