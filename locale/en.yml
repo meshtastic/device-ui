@@ -8,6 +8,7 @@ en:
   no SD card detected: ~
   "Heap: 0\nLVGL: 0": ~
   DEL: ~
+  map tiles not found!: ~
   Settings: ~
   'User name: ': ~
   'Modem Preset: LONG FAST': ~
@@ -38,7 +39,6 @@ en:
   Settings & Tools: ~
   Settings (advanced): ~
   Locations Map: ~
-  'Locations Map (%d/%d)': ~
   no chats: ~
   Node Search: ~
   Packet Statistics: ~
@@ -113,6 +113,8 @@ en:
   'Brightness: %d%%': ~
   'Timeout: off': ~
   'Timeout: %ds': ~
+  No map tiles found on SDCard!: ~
+  Locations Map (%d/%d): ~
   Stop: ~
   'heard: !%08x': ~
   'Packet Log: %d': ~
