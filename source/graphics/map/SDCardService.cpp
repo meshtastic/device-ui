@@ -9,7 +9,7 @@
 static fs::FS &SD = PortduinoFS; // Portduino does not (yet) support SD device, use normal file system
 #elif defined(HAS_SD_MMC)
 #include "SD_MMC.h"
-fs::SDMMCFS &SD = SD_MMC;
+static fs::SDMMCFS &SD = SD_MMC;
 #else
 #include "SD.h"
 #endif
