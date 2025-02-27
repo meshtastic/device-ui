@@ -8,6 +8,7 @@ se:
   no SD card detected: inget SD kort hittat
   "Heap: 0\nLVGL: 0": ~
   DEL: ~
+  map tiles not found!: kartor ej hittat!
   Settings: Inställningar
   'User name: ': 'Användarnamn: '
   'Modem Preset: LONG FAST': 'Förinställning: Lång räckvidd / Snabb'
@@ -38,7 +39,6 @@ se:
   Settings & Tools: Inställningar & Verktyg
   Settings (advanced): Inställningar (Avancerat)
   Locations Map: Karta
-  'Locations Map (%d/%d)': Karta (%d/%d)
   no chats: inga chattar
   Node Search: Sök nod
   Packet Statistics: Paket Statistik
@@ -148,6 +148,8 @@ se:
   'Brightness: %d%%': 'Ljusstyrka: %d%%'
   'Timeout: off': 'Timeout: av'
   'Timeout: %ds': ~
+  No map tiles found on SDCard!: Inga kartor hittades på SD kort!
+  'Locations Map (%d/%d)': Karta (%d/%d)
   Stop: Stopp
   'heard: !%08x': 'hört: !%08x'
   'Packet Log: %d': 'Paket Loggbok: %d'
@@ -196,8 +198,6 @@ se:
   <no name>: <inget namn>
   Filtering ...: Filtrerar ...
   Resync...: Synkronisera om...
-  map tiles not found!: kartor ej hittat!
-  No map tiles found on SDCard!: Inga kartor hittades på SD kort!
   "NodeDB Reset\nFactory Reset": |-
     Nollställ NodeDB
     Fabriksåterställning
