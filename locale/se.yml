@@ -197,13 +197,12 @@ se:
   Filtering ...: Filtrerar ...
   Resync...: Synkronisera om...
   map tiles not found!: kartor ej hittat!
-  LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO: Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium räckvidd / Långsam\nMedium räckvidd / Snabb\nKort räckvidd / Långsam\nKort räckvidd / Snabb\nLång räckvidd / Måttlig\nKort räckvidd / Turbo
-  Dark\nLight: Mörkt\nLjust
-  choose\nnode: välj\nnod
-  New Message from\n: Nytt meddelande från\n
-  Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker: Klient\nKlient Stum\nSpårare\nSensor\nTAK\nKlient Gömd\nFörlorad & Hittad\nTAK Spårare
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium räckvidd / Långsam\nMedium räckvidd / Snabb\nKort räckvidd / Långsam\nKort räckvidd / Snabb\nLång räckvidd / Måttlig\nKort räckvidd / Turbo"
+  "Dark\nLight": "Mörkt\nLjust"
+  "choose\nnode": "välj\nnod"
+  "New Message from\n": "Nytt meddelande från\n"
   No map tiles found on SDCard!: Inga kartor hittades på SD kort!
-  New message from \n%s: Nytt meddelande från \n%s
+  "New message from \n%s": "Nytt meddelande från \n%s"
   "NodeDB Reset\nFactory Reset": |-
     Nollställ NodeDB
     Fabriksåterställning
