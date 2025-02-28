@@ -59,17 +59,7 @@ se:
     Kort räckvidd / Snabb
     Lång räckvidd / Måttlig
     Kort räckvidd / Turbo
-  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
-    Klient
-    Klient Stum
-    Router
-    Relästation
-    Spårare
-    Sensor
-    TAK
-    Klient Gömd
-    Förlorad & Hittad
-    TAK Spårare
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
   WiFi SSID: ~
   WiFi pre-shared Key: WiFi Lösenord
   'Brightness: 60%': 'Ljusstyrka: 60%'
@@ -95,14 +85,14 @@ se:
     Nollställ NodeDB
     Fabriksåterställning
     Rensa Chatthistorik
-  Channel Name: Kanal Namn
+  Channel Name: Kanalnamn
   Pre-shared Key: Tidigare delad Nyckel
-  Filter: ~
+  Filter: Filter
   Unknown: Okänd
   Offline: Frånkopplad
   Public Key: Publik Nyckel
   Channel: Kanal
-  Hops away: Hopp bort
+  Hops away: Antal hopp
   MQTT: ~
   Position: Position
   Name: Namn
@@ -130,15 +120,7 @@ se:
   'Screen Calibration: %s': 'Bildskärmens Kalibrering: %s'
   done: klar
   default: standard
-  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
-    Klient
-    Klient Stum
-    Spårare
-    Sensor
-    TAK
-    Klient Gömd
-    Förlorad & Hittad
-    TAK Spårare
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
   Rebooting ...: Startar om ...
   '>> Programming mode <<': '>> Programmeringsläge <<'
   Enter Text ...: Text ...
@@ -203,14 +185,14 @@ se:
     Fabriksåterställning
   'Screen Lock: off': 'Bildskärms Lås: av'
   "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
-    Klient
-    Klient Stum
+    Client
+    Client Mute
     Router
     -- utfasad --
-    Relästation
-    Spårare
+    Repeater
+    Tracker
     Sensor
     TAK
-    Klient Gömd
-    Förlorad & Hittad
-    TAK Spårare
+    Client Hidden
+    Lost & Found
+    TAK Tracker
