@@ -4,12 +4,14 @@
 #include <LovyanGFX.hpp>
 #include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
 #include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
+#include <TCA9534.h>
+
+TCA9534 ioex;
 
 class LGFX_ELECROW70 : public lgfx::LGFX_Device
 {
     lgfx::Bus_RGB _bus_instance;
     lgfx::Panel_RGB _panel_instance;
-    lgfx::Light_PWM _light_instance;
     lgfx::Touch_GT911 _touch_instance;
 
   public:
@@ -17,6 +19,30 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
     const uint16_t screenHeight = 480;
 
     bool hasButton(void) { return true; }
+
+    bool init_impl(bool use_reset, bool use_clear) override
+    {
+        ioex.attach(Wire);
+        ioex.setDeviceAddress(0x18);
+        ioex.config(1, TCA9534::Config::OUT);
+        ioex.config(2, TCA9534::Config::OUT);
+        ioex.config(3, TCA9534::Config::OUT);
+        ioex.config(4, TCA9534::Config::OUT);
+        
+        ioex.output(1, TCA9534::Level::H);
+        ioex.output(3, TCA9534::Level::L);
+        ioex.output(4, TCA9534::Level::H);
+        
+        pinMode(1, OUTPUT);
+        digitalWrite(1, LOW);
+        ioex.output(2, TCA9534::Level::L);
+        delay(20);
+        ioex.output(2, TCA9534::Level::H);
+        delay(100);
+        pinMode(1, INPUT);
+
+        return LGFX_Device::init_impl(use_reset, use_clear);
+    }
 
     LGFX_ELECROW70(void)
     {
@@ -35,7 +61,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
 
         {
             auto cfg = _panel_instance.config_detail();
-            cfg.use_psram = 1;
+            cfg.use_psram = 0;
             _panel_instance.config_detail(cfg);
         }
 
@@ -63,7 +89,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             cfg.pin_vsync = GPIO_NUM_41;
             cfg.pin_hsync = GPIO_NUM_40;
             cfg.pin_pclk = GPIO_NUM_39;
-            cfg.freq_write = 21000000;
+            cfg.freq_write = 13000000;
 
             cfg.hsync_polarity = 0;
             cfg.hsync_front_porch = 8;
@@ -76,20 +102,13 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             cfg.vsync_back_porch = 8;
 
             cfg.pclk_idle_high = 1;
-            // cfg.pclk_active_neg = 0;
-            // cfg.pclk_idle_high = 0;
+            //cfg.pclk_active_neg = 0;
+            //cfg.pclk_idle_high = 0;
+            //cfg.de_idle_high = 1;
 
             _bus_instance.config(cfg);
         }
         _panel_instance.setBus(&_bus_instance);
-
-        {
-            auto cfg = _light_instance.config();
-            cfg.pin_bl = GPIO_NUM_2;
-            // cfg.freq = 100;
-            _light_instance.config(cfg);
-        }
-        _panel_instance.light(&_light_instance);
 
         {
             auto cfg = _touch_instance.config();
@@ -99,7 +118,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             cfg.y_max = 480;
             cfg.pin_int = -1;
             cfg.pin_rst = -1;
-            cfg.bus_shared = false;
+            cfg.bus_shared = true;
             cfg.offset_rotation = 0;
 
             cfg.i2c_port = 0;
