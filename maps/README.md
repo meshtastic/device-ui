@@ -34,11 +34,11 @@ Python script link: https://gist.github.com/droberin/b333a216d860361e329e74f59f4
 
 Please read the instructions carefully and don't abuse the freely provided services.
 
-Note: when choosing a region for downloading tiles you'd need to adapt the zoom level from the outer part (e.g. level 6 - 8) to the center of the area of interest (e.g. level 15 or 16). The sourrounding box is determined by two locations (lat/lon) SW / NE east of Greenwich, or NW / SE west of Greenwich, respectively, which are to be entered into the config of the downloader script.
+Note: when choosing a region for downloading tiles you'd advised to adapt the zoom level from the outer part (e.g. level 6 - 8) to the center of the area of interest (e.g. level 15 or 16). The sourrounding box is determined by two locations (lat/lon) SW / NE east of Greenwich, or NW / SE west of Greenwich, respectively, which are to be entered into the config of the downloader script. This way you can save a lot of time, space and credits.
 
 <img src="../docs/tile_pyramid.png" alt="Tile Zoom Levels">
 
-<br>
+If you like to check of how many tiles an area is composed of you can make use of this [Tile Calculator](https://tools.geofabrik.de/calc) provided by Geofabrik.
 <br>
 
 # Extra maps
