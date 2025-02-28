@@ -123,7 +123,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 #endif
                     }
                     if ((pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
-                        (screenTimeout > lv_display_get_inactive_time(NULL) && !DisplayDriver::view->isScreenLocked())) {
+                        (screenTimeout + 50 > lv_display_get_inactive_time(NULL) && !DisplayDriver::view->isScreenLocked())) {
                         delay(2); // let the CPU finish to restore all register in case of light sleep
                         // woke up by touch or button
                         ILOG_INFO("leaving powersave");
