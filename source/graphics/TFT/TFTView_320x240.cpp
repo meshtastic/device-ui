@@ -490,6 +490,11 @@ void TFTView_320x240::enterProgrammingMode(void)
         lv_label_set_text(objects.meshtastic_url, _("Rebooting ..."));
 
         if (ownNode) {
+            meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
+            if (network.wifi_enabled) {
+                network.wifi_enabled = false;
+                THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
+            }
             meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
             bluetooth.mode = meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
             bluetooth.fixed_pin = random(100000, 999999);
@@ -1852,6 +1857,11 @@ void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
 
 void TFTView_320x240::ui_event_device_progmode_button(lv_event_t *e)
 {
+    meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
+    if (network.wifi_enabled) {
+        network.wifi_enabled = false;
+        THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
+    }
     meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
     bluetooth.enabled = true;
     THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
