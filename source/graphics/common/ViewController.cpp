@@ -976,8 +976,9 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
     }
     case meshtastic_PortNum_ROUTING_APP: {
         meshtastic_Routing routing;
-        ILOG_DEBUG("PortNum_ROUTING_APP: id:%08x, from:%08x, to:%08x, dest:%08x, source:%08x, requestId:%08x, replyId:%08x", p.id,
-                   p.from, p.to, p.decoded.dest, p.decoded.source, p.decoded.request_id, p.decoded.reply_id);
+        ILOG_DEBUG(
+            "PortNum_ROUTING_APP: id:%08x, from:%08x, to:%08x, ch:%d, dest:%08x, source:%08x, requestId:%08x, replyId:%08x", p.id,
+            p.from, p.to, p.channel, p.decoded.dest, p.decoded.source, p.decoded.request_id, p.decoded.reply_id);
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Routing_msg, &routing)) {
             if (routing.which_variant == meshtastic_Routing_error_reason_tag) {
                 switch (routing.error_reason) {
