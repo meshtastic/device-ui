@@ -4088,7 +4088,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
 
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
-        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, nullptr, callback);
+        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)ch, callback);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
