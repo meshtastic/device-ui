@@ -43,7 +43,7 @@ If you like to check of how many tiles an area is composed of you can make use o
 
 # Extra maps
 
-A small group of map tile enthusiasts (special thanks to @joyel24) like to share their downloaded tiles. In this section you'll find torrents for downloading complete sets of map tiles of various zoom levels.
+A small group of map tile enthusiasts (special thanks to @joyel24 & @teddy1602) like to share their downloaded tiles. In this section you'll find torrents for downloading complete sets of map tiles of various zoom levels.
 
 ## France
 
