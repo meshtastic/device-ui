@@ -113,7 +113,7 @@ en:
   'Brightness: %d%%': ~
   'Timeout: off': ~
   'Timeout: %ds': ~
-  No map tiles found on SDCard!: ~
+  No map tiles found on SDCard!: Map tiles not found!
   Locations Map (%d/%d): ~
   Stop: ~
   'heard: !%08x': ~
