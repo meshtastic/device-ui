@@ -209,6 +209,14 @@ bool ViewController::sendConfig(meshtastic_Config_PositionConfig &&position, uin
                             nodeId ? nodeId : myNodeNum);
 }
 
+bool ViewController::sendConfig(meshtastic_Position &&position, uint32_t nodeId)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_fixed_position_tag,
+                                                    .set_fixed_position{position}},
+                            nodeId ? nodeId : myNodeNum);
+
+}
+
 bool ViewController::sendConfig(meshtastic_Config_PowerConfig &&power, uint32_t nodeId)
 {
     return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_set_config_tag,
