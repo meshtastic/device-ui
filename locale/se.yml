@@ -1,15 +1,22 @@
 se:
   no new messages: inga nya meddelanden
   1 of 1 nodes online: 1 av 1 noder online
-  'uptime 00:00:00': upptid 00:00:00
-  'Heap: 0\nLVGL: 0': ~
+  uptime 00:00:00: upptid 00:00:00
+  LoRa 0.0 MHz: ~
+  no signal: ingen signal
+  silent: tyst
+  no SD card detected: inget SD kort hittat
+  "Heap: 0\nLVGL: 0": ~
   DEL: ~
+  map tiles not found!: kartor ej hittat!
+  Settings: Inställningar
   'User name: ': 'Användarnamn: '
   'Modem Preset: LONG FAST': 'Förinställning: Lång räckvidd / Snabb'
   'Channel: LongFast': 'Kanal: LongFast'
   'Role: Client': 'Roll: Klient'
+  'WiFi: <not setup>': 'WiFi: <ej inställt>'
   'Screen Timeout: 60s': 'Bildskärms Timeout: 60s'
-  'Screen Lock: off': 'Bildskärms Lås: av'
+  'Lock: off/off': 'Lås: av/av'
   'Screen Brightness: 60%': 'Bildskärmens Ljusstyrka: 60%'
   'Theme: Dark': 'Tema: Mörkt'
   'Screen Calibration: default': 'Bildskärmens Kalibrering: standard'
@@ -17,7 +24,9 @@ se:
   'Message Alert Buzzer: on': 'Meddelande varningsklocka: på'
   'Language: English': 'Språk: Svenska'
   Configuration Reset: Återställ konfiguration
+  Backup & Restore: Säkerhetskopiera & Återställ
   Reboot / Shutdown: Starta om / Stäng av
+  Tools: Verktyg
   Mesh Detector: Meshdetektor
   Signal Scanner: Signalskanner
   Trace Route: Traceroute (spåra rutt)
@@ -30,42 +39,36 @@ se:
   Settings & Tools: Inställningar & Verktyg
   Settings (advanced): Inställningar (Avancerat)
   Locations Map: Karta
-  'Locations Map (%d/%d)': 'Karta (%d/%d)'
   no chats: inga chattar
   Node Search: Sök nod
   Packet Statistics: Paket Statistik
   Node Options: Nod alternativ
+  LoRa TX off!: LoRa TX avstängt!
   Short Name: Kort Namn
   Long Name: Långt Namn
+  Primary Channel: Primär Kanal
   <unset>: <ej inställt>
+  Secondary Channels: Sekundär Kanal
   "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": |-
     Lång räckvidd / Snabb
     Lång räckvidd / Långsam
     -- utfasad --
-    Medium Räckvidd / Långsam
+    Medium räckvidd / Långsam
     Medium räckvidd / Snabb
     Kort räckvidd / Långsam
     Kort räckvidd / Snabb
     Lång räckvidd / Måttlig
     Kort räckvidd / Turbo
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
-    Klient
-    Klient Stum
-    Router
-    -- utfasad --
-    Relästation
-    Spårare
-    Sensor
-    TAK
-    Klient Gömd
-    Förlorad & hittad
-    TAK Spårare
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: WiFi Lösenord
   'Brightness: 60%': 'Ljusstyrka: 60%'
   "Dark\nLight": |-
     Mörkt
     Ljust
   'Timeout: 60s': ~
   Screen Lock: Bildskärms Lås
+  Settings Lock: Inställningslås
   Lock PIN: Lås PIN
   Mouse: Mus
   none: ingen
@@ -75,39 +78,61 @@ se:
   Default: Standard
   Zone: Zon
   City: Stad
-  "NodeDB Reset\nFactory Reset": |-
+  Backup: Säkerhetskopiera
+  Restore: Återställ
+  Public/Private Key: Publik/Privat nyckel
+  "NodeDB Reset\nFactory Reset\nClear Chat History": |-
     Nollställ NodeDB
     Fabriksåterställning
-  Channel Name: Kanal Namn
+    Rensa Chatthistorik
+  Channel Name: Kanalnamn
   Pre-shared Key: Tidigare delad Nyckel
+  Filter: Filter
   Unknown: Okänd
   Offline: Frånkopplad
   Public Key: Publik Nyckel
-  Hops away: Hopp bort
+  Channel: Kanal
+  Hops away: Antal hopp
   MQTT: ~
   Position: Position
   Name: Namn
+  Highlight: Markera
   Active Chat: Aktiv Chatt
   Telemetry: Telemetri
   IAQ: ~
   Start: Kör
-  "New Message from\n": |
-    Nytt meddelande från
-  Resync...: Synkronisera om...
-  OK: ~
-  Cancel: Avbryt
-  'FrequencySlot: %d (%g MHz)': 'Frekvensplats: %d (%g MHz)'
-  'Brightness: %d%%': 'Ljusstyrka: %d%%'
-  'Timeout: off': 'Timeout: av'
-  'Timeout: %ds': ~
-  'Screen Calibration: %s': 'Bildskärmens Kalibrering: %s'
-  done: klar
-  default: standard
-  Stop: Stopp
   "choose\nnode": |-
     välj
     nod
   choose target node: välj mål nod
+  "New Message from\n": |-
+    Nytt meddelande från
+  Restoring messages ...: Återställer meddelanden ...
+  Please set region and name: Ange region och namn
+  Region: ~
+  Resync ...: Synkroniserar om ...
+  OK: ~
+  Cancel: Avbryt
+  now: nu
+  'Lock: %s/%s': 'Lås: %s/%s'
+  'on': på
+  'off': av
+  'Screen Calibration: %s': 'Bildskärmens Kalibrering: %s'
+  done: klar
+  default: standard
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  Rebooting ...: Startar om ...
+  '>> Programming mode <<': '>> Programmeringsläge <<'
+  Enter Text ...: Text ...
+  '!Enter Filter ...': '!Filter ...'
+  Enter Filter ...: Filter ...
+  'FrequencySlot: %d (%g MHz)': 'Frekvensplats: %d (%g MHz)'
+  'Brightness: %d%%': 'Ljusstyrka: %d%%'
+  'Timeout: off': 'Timeout: av'
+  'Timeout: %ds': ~
+  No map tiles found on SDCard!: Inga kartor hittades på SD kort!
+  Locations Map (%d/%d): Karta (%d/%d)
+  Stop: Stopp
   'heard: !%08x': 'hört: !%08x'
   'Packet Log: %d': 'Paket Loggbok: %d'
   'Language: %s': 'Språk: %s'
@@ -115,19 +140,26 @@ se:
   'Screen Timeout: %ds': 'Bildskärms Timeout: %ds'
   'Screen Brightness: %d%%': 'Bildskärmens Ljusstyrka: %d%%'
   'Theme: %s': 'Tema: %s'
+  'Region: %s': 'Region: %s'
   'User name: %s': 'Användarnamn: %s'
   'Device Role: %s': 'Roll: %s'
-  'Region: %s': 'Region: %s'
   'Modem Preset: %s': 'Förinställning: %s'
-  'Channel: %s': 'Kanal: %s'
-  'Screen Lock: %s': 'Bildskärms Lås: %s'
-  'on': på
-  'off': av
-  'Message Alert: %s': 'Meddelande Varning: %s'
+  'WiFi: %s': ~
+  <not set>: <ej inställd>
   Util %0.1f%%  Air %0.1f%%: ~
   'hops: %d': 'hopp: %d'
   unknown: okänd
-  <no name>: <inget namn>
+  Shutting down ...: Stänger av ...
+  region unset: ingen region
+  Banner & Sound: Banner & Ljud
+  Banner only: Endast Banner
+  Sound only: Endast ljud
+  'Message Alert: %s': 'Meddelande Varning: %s'
+  'Channel: %s': 'Kanal: %s'
+  Failed to write keys!: 'Misslyckades: skriva nycklar!'
+  Failed to restore keys!: 'Misslyckades: återställa nycklar!'
+  Failed to parse keys!: 'Misslyckades: läsa nycklar!'
+  Failed to retrieve keys!: 'Misslyckades: hämta nycklar!'
   '%d active chat(s)':
     one: 1 aktiv chatt
     other: '%d aktiva chattar'
@@ -138,39 +170,29 @@ se:
   '%d of %d nodes online':
     one: 1 nod online
     other: '%d av %d noder online'
-  Filtering ...: Filtrerar ...
   'Filter: %d of %d nodes': 'Filter: %d av %d noder'
-  now: nu
   '%d new message': '%d nytt meddelande'
   '%d new messages': '%d nya meddelanden'
   'uptime: %02d:%02d:%02d': 'upptid: %02d:%02d:%02d'
-  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
-  Tools: Verktyg
-  Filter: ~
-  Highlight: Markera
-  Settings: Inställningar
-  Primary Channel: Primär Kanal
-  Secondary Channels: Sekundär Kanal
-  Resync ...: Synkroniserar om ...
-  Rebooting ...: Startar om ...
-  Shutting down ...: Stänger av ...
-  LoRa 0.0 MHz: ~
-  silent: tyst
-  'WiFi: <not setup>': 'WiFi: <ej inställt>'
-  'Lock: off/off': 'Lås: av/av'
-  LoRa TX off!: LoRa TX avstängt!
-  WiFi SSID: ~
-  WiFi pre-shared Key: WiFi Lösenord
-  Settings Lock: Inställningslås
-  'Lock: %s/%s': 'Lås: %s/%s'
-  Enter Text ...: Text ...
-  '!Enter Filter ...': '!Filter ...'
-  Enter Filter ...: Filter ...
-  'WiFi: %s': ~
-  <not set>: <ej inställd>
-  region unset: ingen region
-  Banner & Sound: Banner & Ljud
-  Banner only: Endast Banner
-  Sound only: Endast ljud
-  no signal: ~
-  Restoring messages ...: ~
+  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
+  'Screen Lock: %s': 'Bildskärms Lås: %s'
+  <no name>: <inget namn>
+  Filtering ...: Filtrerar ...
+  Resync...: Synkronisera om...
+  "NodeDB Reset\nFactory Reset": |-
+    Nollställ NodeDB
+    Fabriksåterställning
+  'Screen Lock: off': 'Bildskärms Lås: av'
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
+    Client
+    Client Mute
+    Router
+    -- utfasad --
+    Repeater
+    Tracker
+    Sensor
+    TAK
+    Client Hidden
+    Lost & Found
+    TAK Tracker
