@@ -924,15 +924,17 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
 {
+    static bool animRunning = false;
+    static auto deleted_cb = [](_lv_anim_t *) { animRunning = false; };
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_CLICKED && !animRunning) {
         uint32_t nodeNum = (unsigned long)e->user_data;
         if (!nodeNum) // event-handler for own node has value 0 in user_data
             nodeNum = THIS->ownNode;
         lv_obj_t *panel = THIS->nodes[nodeNum];
         if (currentPanel) {
             // create animation to shrink other panel
-            lv_anim_t a;
+            static lv_anim_t a;
             int32_t height = lv_obj_get_height(currentPanel);
             lv_anim_init(&a);
             lv_anim_set_var(&a, currentPanel);
@@ -940,11 +942,13 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             lv_anim_set_duration(&a, 200);
             lv_anim_set_exec_cb(&a, ui_anim_node_panel_cb);
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
+            lv_anim_set_deleted_cb(&a, deleted_cb);
             lv_anim_start(&a);
+            animRunning = true;
         }
         if (panel != currentPanel) {
             // create animation to enlarge node panel
-            lv_anim_t a;
+            static lv_anim_t a;
             int32_t height = lv_obj_get_height(panel);
             lv_anim_init(&a);
             lv_anim_set_var(&a, panel);
@@ -952,7 +956,9 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             lv_anim_set_duration(&a, 200);
             lv_anim_set_exec_cb(&a, ui_anim_node_panel_cb);
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
+            lv_anim_set_deleted_cb(&a, deleted_cb);
             lv_anim_start(&a);
+            animRunning = true;
             currentPanel = panel;
             currentNode = nodeNum;
         } else {
