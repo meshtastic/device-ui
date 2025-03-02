@@ -37,6 +37,7 @@ class ViewController
     virtual bool sendConfig(const meshtastic_User &user, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_DeviceConfig &&device, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_PositionConfig &&position, uint32_t nodeId = 0);
+    virtual bool sendConfig(meshtastic_Position &&position, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_PowerConfig &&power, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_NetworkConfig &&network, uint32_t nodeId = 0);
     virtual bool sendConfig(meshtastic_Config_DisplayConfig &&display, uint32_t nodeId = 0);
