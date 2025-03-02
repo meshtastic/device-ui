@@ -2214,12 +2214,28 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
         float lat, lon;
         THIS->map->setHomePosition();
         THIS->map->getHomeLocation(lat, lon);
+
+        int32_t ilat = lat * 1e7f;
+        int32_t ilon = lon * 1e7f;
         THIS->db.uiConfig.has_map_data = true;
         THIS->db.uiConfig.map_data.has_home = true;
-        THIS->db.uiConfig.map_data.home.latitude = lat * 1e7;
-        THIS->db.uiConfig.map_data.home.longitude = lon * 1e7;
+        THIS->db.uiConfig.map_data.home.latitude = ilat;
+        THIS->db.uiConfig.map_data.home.longitude = ilon;
         THIS->db.uiConfig.map_data.home.zoom = MapTileSettings::getZoomLevel();
         THIS->controller->storeUIConfig(THIS->db.uiConfig);
+
+        meshtastic_Config_PositionConfig &position = THIS->db.config.position;
+        if (position.fixed_position) {
+            THIS->updatePosition(THIS->ownNode, ilat, ilon, 0, 0, 0);
+            if (position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
+                // grey out text to indicate it's a fixed position vs. actual GPS position
+                Themes::recolorText(objects.home_location_label, false);
+                THIS->controller->sendConfig(meshtastic_Position{.latitude_i = ilat,
+                                                                 .longitude_i = ilon,
+                                                                 .time = uint32_t(VALID_TIME(THIS->actTime) ? THIS->actTime : 0),
+                                                                 .location_source = meshtastic_Position_LocSource_LOC_MANUAL});
+            }
+        }
     }
 }
 
@@ -5483,8 +5499,14 @@ void TFTView_320x240::updatePositionConfig(const meshtastic_Config_PositionConfi
 {
     db.config.position = cfg;
     db.config.has_position = true;
+    if (cfg.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
+        if (cfg.fixed_position && db.uiConfig.map_data.has_home) {
+            updatePosition(ownNode, db.uiConfig.map_data.home.latitude, db.uiConfig.map_data.home.longitude, 0, 0, 0);
+        }
+        // grey out text to indicate it's a fixed position vs. actual GPS position
+        Themes::recolorText(objects.home_location_label, !cfg.fixed_position);
+    }
     Themes::recolorButton(objects.home_location_button, cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
-    Themes::recolorText(objects.home_location_label, cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
 }
 
 void TFTView_320x240::updatePowerConfig(const meshtastic_Config_PowerConfig &cfg)
