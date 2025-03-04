@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
   "name": "meshtastic-device-ui",
   "version": "1.0.0",
   "description": "LVGL GUI for meshtastic devices",
@@ -24,21 +25,15 @@
   },
   "build": {
     "libArchive": true,
+    "extraScript": "extra_script.py",
     "flags": [
       "-Iinclude",
       "-Igenerated",
       "-Ilocale",
-      "-Iportduino",
       "-DLV_LVGL_H_INCLUDE_SIMPLE",
       "-DLV_CONF_INCLUDE_SIMPLE",
       "-DLV_COMP_CONF_INCLUDE_SIMPLE"
     ],
-    "srcFilter": [
-      "+<generated>",
-      "+<resources>",
-      "+<locale>",
-      "+<source>",
-      "+<portduino>"
-    ]
+    "srcFilter": ["+<resources>", "+<locale>", "+<source>"]
   }
 }
