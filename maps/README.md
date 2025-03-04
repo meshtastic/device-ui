@@ -53,8 +53,7 @@ Entire France Atlas zoom 6 to 13: [Torrent Magnet Link](https://tinyurl.com/43n7
 ## Netherlands
 Entire Netherlands zoom 1 to 14 including Asmterdan until zoom 17: [Torrent Magnet Link](https://tinyurl.com/4vpuhd7n) ~956MB md5: 30ccf6484c99ae0b0765cff19acfc67e
 
-<br>
-Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
+<br>Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
 
 ### md5sum calculation
 
