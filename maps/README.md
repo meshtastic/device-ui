@@ -50,7 +50,7 @@ A small group of map tile enthusiasts (special thanks to @joyel24 & @teddy1602) 
 Entire France Atlas zoom 6 to 13: [Torrent Magnet Link](https://tinyurl.com/43n7uwv3) ~1.29GB md5: 1e21c497e124647dda528d71011e133c
 <br>Entire France Outdoors zoom 1 to 13: [Torrent Magnet Link](https://tinyurl.com/3xhpn7j7) ~3.9GB md5: c02b89e9d5d2c7d5b3d902e6429dd5c4
 
-Refer to [Credits and Attribution](#CCredits-and-Attribution) for the origin of the provided map tiles.
+Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
 
 ### md5sum calculation
 
