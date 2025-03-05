@@ -934,6 +934,7 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
         lv_obj_t *panel = THIS->nodes[nodeNum];
         if (currentPanel) {
             // create animation to shrink other panel
+            animRunning = true;
             static lv_anim_t a;
             int32_t height = lv_obj_get_height(currentPanel);
             lv_anim_init(&a);
@@ -944,10 +945,10 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
             lv_anim_set_deleted_cb(&a, deleted_cb);
             lv_anim_start(&a);
-            animRunning = true;
         }
         if (panel != currentPanel) {
             // create animation to enlarge node panel
+            animRunning = true;
             static lv_anim_t a;
             int32_t height = lv_obj_get_height(panel);
             lv_anim_init(&a);
@@ -958,7 +959,6 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
             lv_anim_set_deleted_cb(&a, deleted_cb);
             lv_anim_start(&a);
-            animRunning = true;
             currentPanel = panel;
             currentNode = nodeNum;
         } else {
