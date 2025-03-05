@@ -64,6 +64,6 @@ Entire Netherlands Standard Style zoom 1 to 14 including Amsterdam until zoom 17
 # Credits and Attribution
 
 Attribution to Thunderforest, Geoapify, and OpenStreetMap for providing the tile API services:
-_<br>atlas, outdoors © https://www.thunderforest.com/terms - Creative Commons licence CC-BY-SA 2.0_
-_<br>positron, dark-matter-brown © https://www.geoapify.com/terms-and-conditions/ - Open Data Common Open Database License, "ODbL" 1.0_
-_<br>osm, Standard style © https://www.osm.org/copyright - Open Data Commons Open Database License, "ODbL" 1.0_
+_<br>atlas, outdoors styles © https://www.thunderforest.com/terms - Creative Commons licence CC-BY-SA 2.0_
+_<br>positron, dark-matter-brown styles © https://www.geoapify.com/terms-and-conditions/ - Open Data Common Open Database License, "ODbL" 1.0_
+_<br>osm, standard style © https://www.osm.org/copyright - Open Data Commons Open Database License, "ODbL" 1.0_
