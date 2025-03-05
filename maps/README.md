@@ -51,7 +51,7 @@ Entire France Atlas style zoom 6 to 13: [Torrent Magnet Link](https://tinyurl.co
 <br>Entire France Outdoors style zoom 1 to 13: [Torrent Magnet Link](https://tinyurl.com/3xhpn7j7) ~3.9GB md5: c02b89e9d5d2c7d5b3d902e6429dd5c4
 
 ## Netherlands
-Entire Netherlands Standard Style zoom 1 to 14 including Amsterdam until zoom 17: [Torrent Magnet Link](https://tinyurl.com/4vpuhd7n) ~956MB md5: 30ccf6484c99ae0b0765cff19acfc67e
+Entire Netherlands Standard style zoom 1 to 14 including Amsterdam until zoom 17: [Torrent Magnet Link](https://tinyurl.com/4vpuhd7n) ~956MB md5: 30ccf6484c99ae0b0765cff19acfc67e
 
 <br>Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
 
