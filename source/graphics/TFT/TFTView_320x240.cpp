@@ -5424,6 +5424,10 @@ void TFTView_320x240::screenSaving(bool enabled)
         } else if (objects.main_screen) {
             ILOG_DEBUG("showing main screen");
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            if (THIS->activeSettings != eNone) {
+                lv_event_t e = {.code = LV_EVENT_CLICKED};
+                ui_event_cancel(&e);
+            }
             screenLocked = false;
         } else {
             ILOG_DEBUG("showing boot screen");
