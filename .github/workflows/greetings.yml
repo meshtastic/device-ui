@@ -2,6 +2,8 @@ name: Greetings
 
 on: [pull_request_target, issues]
 
+permissions: read-all
+
 jobs:
   greeting:
     runs-on: ubuntu-latest
@@ -9,8 +11,8 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-    - uses: actions/first-interaction@v1
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: "Congratulations for your first issue"
-        pr-message: "Congratulations for your first pull request"
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: Congratulations for your first issue
+          pr-message: Congratulations for your first pull request

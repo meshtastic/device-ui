@@ -21,7 +21,7 @@
   "headers": ["DeviceScreen.h", "SharedQueue.h"],
   "dependencies": {
     "Thread": "*",
-    "external-lvgl": "https://github.com/lvgl/lvgl#4f2fd4b54950d5efcee9070fbb92d0005236d2ee",
+    "lvgl/lvgl": "https://github.com/lvgl/lvgl#4f2fd4b54950d5efcee9070fbb92d0005236d2ee",
     "nanopb/Nanopb": "0.4.91"
   },
   "build": {
