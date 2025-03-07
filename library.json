@@ -20,7 +20,7 @@
   "platforms": "Expressif 32, Nordic nRF52, Raspberry Pi RP2040, Native, Linux x86_64, Linux ARM",
   "headers": ["DeviceScreen.h", "SharedQueue.h"],
   "dependencies": {
-    "Thread": "*",
+    "meshtastic/ArduinoThread": "https://github.com/meshtastic/ArduinoThread.git#1ae8778c85d0a2a729f989e0b1e7d7c4dc84eef0",
     "lvgl/lvgl": "https://github.com/lvgl/lvgl#4f2fd4b54950d5efcee9070fbb92d0005236d2ee",
     "nanopb/Nanopb": "0.4.91"
   },
