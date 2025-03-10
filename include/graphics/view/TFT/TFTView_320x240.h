@@ -189,8 +189,6 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon);
     // show map and load tiles
     virtual void loadMap(void);
-    // check what maps and formats are available on SD
-    virtual std::set<std::string> loadMapStyles(void);
     // add objects on map
     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
     // remove objects from map
