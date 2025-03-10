@@ -5622,17 +5622,17 @@ void TFTView_320x240::backup(uint32_t option)
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
 #if defined(ARCH_PORTDUINO)
     SDFs.mkdir("/keys");
-    File sd = SDFs.open(path.str().c_str(), FILE_READ);
+    File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
 #else
     SDFs.mkdir("/keys");
-    FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
+    FsFile sd = SDFs.open(path.str().c_str(), O_RDWR | O_CREAT);
 #endif
     if (sd) {
         sd.println("config:");
         sd.println("  security:");
-        sd.print("      privateKey: base64: ");
+        sd.print("      privateKey: base64:");
         sd.println(pskToBase64(privkey.bytes, privkey.size).c_str());
-        sd.print("      publicKey: base64: ");
+        sd.print("      publicKey: base64:");
         sd.println(pskToBase64(pubkey.bytes, pubkey.size).c_str());
         ILOG_INFO("backup pub/priv keys done.");
     } else {
@@ -5679,7 +5679,7 @@ void TFTView_320x240::restore(uint32_t option)
             messageAlert(_("Failed to parse keys!"), true);
         }
     } else {
-        ILOG_ERROR("open file %s for backup failed", path.str().c_str());
+        ILOG_ERROR("open file %s failed", path.str().c_str());
         messageAlert(_("Failed to retrieve keys!"), true);
     }
     sd.close();
