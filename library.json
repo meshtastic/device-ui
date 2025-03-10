@@ -20,7 +20,8 @@
   "headers": ["DeviceScreen.h", "SharedQueue.h"],
   "dependencies": {
     "external-repo": "https://github.com/lvgl/lvgl#4f2fd4b54950d5efcee9070fbb92d0005236d2ee",
-    "nanopb/Nanopb": "0.4.7"
+    "nanopb/Nanopb": "0.4.7",
+    "greiman/SdFat": "2.3.0"
   },
   "build": {
     "libArchive": true,

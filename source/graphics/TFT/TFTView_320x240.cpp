@@ -29,22 +29,13 @@
 #include <time.h>
 
 #ifdef ARCH_PORTDUINO
-#include "graphics/map/LinuxFileSystemService.h"
-#endif
-#if !LV_USE_FS_ARDUINO_SD
-#include "graphics/map/SDCardService.h"
-#endif
-
-#ifdef ARCH_PORTDUINO
-#include "PortduinoFS.h"
 #include "util/LinuxHelper.h"
-fs::FS &SD = PortduinoFS;
-#elif defined(HAS_SD_MMC)
-#include "SD_MMC.h"
-fs::SDMMCFS &SD = SD_MMC;
+//#include "graphics/map/LinuxFileSystemService.h"
+#include "graphics/map/SDCardService.h"
 #else
-#include "SD.h"
+#include "graphics/map/SdFatService.h"
 #endif
+#include "graphics/common/SdCard.h"
 
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
@@ -383,9 +374,7 @@ void TFTView_320x240::init_screens(void)
 #endif
 
 #ifdef HAS_SDCARD
-#if HAS_SDCARD
     lv_obj_clear_flag(objects.basic_settings_backup_restore_button, LV_OBJ_FLAG_HIDDEN);
-#endif
 #endif
 
     // signal scanner scale
@@ -1386,10 +1375,7 @@ void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_SDCardButton(lv_event_t *e)
 {
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
-        THIS->updateSDCard();
-    }
+    THIS->updateSDCard();
 }
 
 void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
@@ -2250,49 +2236,14 @@ void TFTView_320x240::loadMap(void)
     if (!map) {
 #if LV_USE_FS_ARDUINO_SD
         map = new MapPanel(objects.raw_map_panel);
+#elif defined(HAS_SD_MMC)
+        map = new MapPanel(objects.raw_map_panel, new SDCardService());
+#elif defined(HAS_SDCARD)
+        map = new MapPanel(objects.raw_map_panel, new SdFatService());
 #else
         map = new MapPanel(objects.raw_map_panel, new SDCardService());
 #endif
         map->setHomeLocationImage(objects.home_location_image);
-
-        if (updateSDCard()) {
-            map->setNoTileImage(&img_no_tile_image);
-            lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
-
-            std::set<std::string> mapStyles = loadMapStyles();
-            if (mapStyles.find("/map") != mapStyles.end()) {
-                // no styles found, but the /map directory, so use it
-                MapTileSettings::setPrefix("/map");
-                lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
-            } else if (!mapStyles.empty()) {
-                // populate dropdown
-                uint16_t pos = 0;
-                bool savedStyleOK = false;
-                lv_dropdown_set_options(objects.map_style_dropdown, "");
-                for (auto it : mapStyles) {
-                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
-                    if (it == db.uiConfig.map_data.style) {
-                        lv_dropdown_set_selected(objects.map_style_dropdown, pos);
-                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
-                        savedStyleOK = true;
-                    }
-                    pos++;
-                }
-
-                if (!savedStyleOK) {
-                    // no such style on SD, pick first one we found
-                    char style[20];
-                    lv_dropdown_set_selected(objects.map_style_dropdown, 0);
-                    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
-                    MapTileSettings::setTileStyle(style);
-                }
-            } else {
-                messageAlert(_("No map tiles found on SDCard!"), true);
-                lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
-            }
-        } else {
-            lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
-        }
 
         // center map to GPS > home > other nodes > default location
         if (db.config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
@@ -2374,44 +2325,53 @@ void TFTView_320x240::loadMap(void)
         updateLocationMap(map->getObjectsOnMap());
     }
 
+    if (sdCard && !sdCard->isUpdated()) {
+        map->setNoTileImage(&img_no_tile_image);
+        lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+        std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
+        if (mapStyles.find("/map") != mapStyles.end()) {
+            // no styles found, but the /map directory, so use it
+            MapTileSettings::setPrefix("/map");
+            MapTileSettings::setTileStyle("");
+            lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
+        }
+        else if (!mapStyles.empty()) {
+            // populate dropdown
+            uint16_t pos = 0;
+            bool savedStyleOK = false;
+            lv_dropdown_set_options(objects.map_style_dropdown, "");
+            for (auto it : mapStyles) {
+                lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
+                if (it == db.uiConfig.map_data.style) {
+                    lv_dropdown_set_selected(objects.map_style_dropdown, pos);
+                    MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+                    savedStyleOK = true;
+                }
+                pos++;
+            }
+            if (!savedStyleOK) {
+                // no such style on SD, pick first one we found
+                char style[20];
+                lv_dropdown_set_selected(objects.map_style_dropdown, 0);
+                lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+                MapTileSettings::setTileStyle(style);
+            }
+            MapTileSettings::setPrefix("/maps");
+        }
+        else {
+            messageAlert(_("No map tiles found on SDCard!"), true);
+            map->setNoTileImage(&img_no_tile_image);
+            lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+        }
+        map->forceRedraw();
+    } 
+    else {
+        lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+        lv_dropdown_set_options(objects.map_style_dropdown, "");
+    }
+
     lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
-}
-
-/**
- * Search SD /maps directory for map styles
- * Revert back to "/map" directory if no styles found
- */
-std::set<std::string> TFTView_320x240::loadMapStyles(void)
-{
-    std::set<std::string> styles;
-    File maps = SD.open(MapTileSettings::getPrefix());
-    if (maps) {
-        do {
-            File style = maps.openNextFile();
-            if (!style)
-                break;
-            std::string path = style.name();
-            std::string dir = path.substr(path.find_last_of("/") + 1);
-            if (style.isDirectory() && dir.c_str()[0] != '.') {
-                ILOG_DEBUG("found map style: %s", dir.c_str());
-                styles.insert(dir);
-            }
-            style.close();
-        } while (true);
-        maps.close();
-    }
-    if (styles.empty()) {
-        File map = SD.open("/map");
-        if (map) {
-            ILOG_DEBUG("found /map dir");
-            styles.insert("/map");
-            map.close();
-        } else {
-            ILOG_DEBUG("no maps found");
-        }
-    }
-    return styles;
 }
 
 void TFTView_320x240::updateLocationMap(uint32_t num)
@@ -5660,8 +5620,13 @@ void TFTView_320x240::backup(uint32_t option)
 
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
-    SD.mkdir("/keys");
-    File sd = SD.open(path.str().c_str(), FILE_WRITE);
+#if defined(ARCH_PORTDUINO)
+    SDFs.mkdir("/keys");
+    File sd = SDFs.open(path.str().c_str(), FILE_READ);
+#else
+    SDFs.mkdir("/keys");
+    FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
+#endif
     if (sd) {
         sd.println("config:");
         sd.println("  security:");
@@ -5684,7 +5649,12 @@ void TFTView_320x240::restore(uint32_t option)
 
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
-    File sd = SD.open(path.str().c_str(), FILE_READ);
+
+#if defined(ARCH_PORTDUINO)
+    File sd = SDFs.open(path.str().c_str(), FILE_READ);
+#else
+    FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
+#endif
     if (sd) {
         // TODO: improve parsing file contents
         sd.readStringUntil('\n');                  // config:
@@ -6644,29 +6614,50 @@ void TFTView_320x240::updateTime(void)
 bool TFTView_320x240::updateSDCard(void)
 {
     bool cardDetected = false;
-#if HAS_SDCARD
+    if (sdCard) {
+        delete sdCard;
+        sdCard = nullptr;
+    }
+#ifdef HAS_SDCARD
     char buf[64];
-    uint8_t cardType = SD.cardType();
-    if (cardType == CARD_NONE) {
+    sdCard = new SdFsCard;
+    if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
+        ILOG_DEBUG("SdFsCard init successful, card type: %d", sdCard->cardType());
+        ISdCard::CardType cardType = sdCard->cardType();
+        ISdCard::FatType fatType = sdCard->fatType();
+        uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
+        uint32_t totalSpace = sdCard->cardSize() / (1024 * 1024);
+        uint32_t totalSpaceGB = (sdCard->cardSize() + 500000000ULL) / (1000ULL * 1000ULL * 1000ULL);
+    
+        sprintf(buf, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"),
+                cardType == ISdCard::eMMC    ? "MMC"
+                : cardType == ISdCard::eSD   ? "SDSC"
+                : cardType == ISdCard::eSDHC ? "SDHC"
+                : cardType == ISdCard::eSDXC ? "SDXC"
+                                             : "UNKN",
+                totalSpaceGB,
+                fatType == ISdCard::eExFat   ? "exFAT"
+                : fatType == ISdCard::eFat32 ? "FAT32"
+                : fatType == ISdCard::eFat16 ? "FAT16"
+                                             : "???",
+                float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
+                totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
+        Themes::recolorButton(objects.home_sd_card_button, true);
+        Themes::recolorText(objects.home_sd_card_label, true);
+        cardDetected = true;
+    }
+    else {
+        ILOG_DEBUG("SdFsCard init failed");
+        delete sdCard;
+        sdCard = nullptr;
+    }
+
+    if (!cardDetected) {
         lv_snprintf(buf, sizeof(buf), _("no SD card detected"));
         Themes::recolorButton(objects.home_sd_card_button, false);
         Themes::recolorText(objects.home_sd_card_label, false);
         // allow backup/restore only if there is an SD card detected
         lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
-    } else {
-        uint32_t usedSpace = SD.usedBytes() / (1024 * 1024);
-        uint32_t totalSpace = SD.cardSize() / (1024 * 1024);
-        float totalSpaceGB = totalSpace / 1024.0f;
-
-        sprintf(buf, _("%s (%0.1f GB)\nUsed: %d MB (%d%%)"),
-                cardType == CARD_MMC    ? "MMC"
-                : cardType == CARD_SD   ? "SDSC"
-                : cardType == CARD_SDHC ? "SDHC"
-                                        : "Unknown",
-                totalSpaceGB, usedSpace, ((usedSpace * 100) + totalSpace / 2) / totalSpace);
-        Themes::recolorButton(objects.home_sd_card_button, true);
-        Themes::recolorText(objects.home_sd_card_label, true);
-        cardDetected = true;
     }
     lv_label_set_text(objects.home_sd_card_label, buf);
 #else
@@ -6674,8 +6665,11 @@ bool TFTView_320x240::updateSDCard(void)
     lv_obj_add_flag(objects.home_sd_card_label, LV_OBJ_FLAG_HIDDEN);
 #if defined(ARCH_PORTDUINO)
     cardDetected = true; // use PortduinoFS instead
+    sdCard = new SDCard;
 #endif
 #endif
+    if (!sdCard)
+        sdCard = new NoSdCard;
     return cardDetected;
 }
 
