@@ -9,7 +9,7 @@
 class SdFatService : public ITileService
 {
   public:
-  SdFatService();
+    SdFatService();
 
     virtual ~SdFatService();
 
