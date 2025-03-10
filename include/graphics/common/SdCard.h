@@ -13,8 +13,8 @@ extern fs::SDMMCFS &SD;
 extern SdFs SDFs;
 #endif
 
-#include <string>
 #include <set>
+#include <string>
 
 /**
  * SdCard adapter to define a common interface for SD and SdFs
@@ -23,20 +23,20 @@ class ISdCard
 {
   public:
     enum CardType {
-      eNone,
-      eMMC,
-      eSD,
-      eSDHC,
-      eSDXC,
-      eSDUC,
-      eUnknown,
+        eNone,
+        eMMC,
+        eSD,
+        eSDHC,
+        eSDXC,
+        eSDUC,
+        eUnknown,
     };
 
     enum FatType {
-      eNA,
-      eFat16,
-      eFat32,
-      eExFat,
+        eNA,
+        eFat16,
+        eFat32,
+        eExFat,
     };
 
     virtual bool init(void) = 0;
@@ -47,10 +47,10 @@ class ISdCard
     virtual uint64_t cardSize(void) = 0;
 
     bool isUpdated(void) { return updated; }
-    virtual std::set<std::string> loadMapStyles(const char* folder) = 0;
+    virtual std::set<std::string> loadMapStyles(const char *folder) = 0;
     virtual ~ISdCard(void) {}
 
-    protected:
+  protected:
     bool updated = false;
 };
 
@@ -64,8 +64,8 @@ class SDCard : public ISdCard
     uint64_t usedBytes(void) override;
     uint64_t freeBytes(void) override;
     uint64_t cardSize(void) override;
-    
-    std::set<std::string> loadMapStyles(const char* folder) override;
+
+    std::set<std::string> loadMapStyles(const char *folder) override;
     virtual ~SDCard(void) {}
 };
 
@@ -79,8 +79,8 @@ class SdFsCard : public ISdCard
     uint64_t usedBytes(void) override;
     uint64_t freeBytes(void) override;
     uint64_t cardSize(void) override;
-    
-    std::set<std::string> loadMapStyles(const char* folder) override;
+
+    std::set<std::string> loadMapStyles(const char *folder) override;
     virtual ~SdFsCard(void) {}
 };
 
@@ -99,11 +99,12 @@ class NoSdCard : public ISdCard
     uint64_t freeBytes(void) override { return 0; }
     uint64_t cardSize(void) override { return 1; }
 
-    std::set<std::string> loadMapStyles(const char* folder) override { 
-      updated = true; return std::set<std::string>{}; 
+    std::set<std::string> loadMapStyles(const char *folder) override
+    {
+        updated = true;
+        return std::set<std::string>{};
     }
     virtual ~NoSdCard(void) {}
-  };
-
+};
 
 extern ISdCard *sdCard;

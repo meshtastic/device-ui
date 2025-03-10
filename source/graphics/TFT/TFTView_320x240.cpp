@@ -30,7 +30,7 @@
 
 #ifdef ARCH_PORTDUINO
 #include "util/LinuxHelper.h"
-//#include "graphics/map/LinuxFileSystemService.h"
+// #include "graphics/map/LinuxFileSystemService.h"
 #include "graphics/map/SDCardService.h"
 #else
 #include "graphics/map/SdFatService.h"
@@ -2334,8 +2334,7 @@ void TFTView_320x240::loadMap(void)
             MapTileSettings::setPrefix("/map");
             MapTileSettings::setTileStyle("");
             lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
-        }
-        else if (!mapStyles.empty()) {
+        } else if (!mapStyles.empty()) {
             // populate dropdown
             uint16_t pos = 0;
             bool savedStyleOK = false;
@@ -2357,15 +2356,13 @@ void TFTView_320x240::loadMap(void)
                 MapTileSettings::setTileStyle(style);
             }
             MapTileSettings::setPrefix("/maps");
-        }
-        else {
+        } else {
             messageAlert(_("No map tiles found on SDCard!"), true);
             map->setNoTileImage(&img_no_tile_image);
             lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
         }
         map->forceRedraw();
-    } 
-    else {
+    } else {
         lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
         lv_dropdown_set_options(objects.map_style_dropdown, "");
     }
@@ -6632,7 +6629,7 @@ bool TFTView_320x240::updateSDCard(void)
         uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
         uint32_t totalSpace = sdCard->cardSize() / (1024 * 1024);
         uint32_t totalSpaceGB = (sdCard->cardSize() + 500000000ULL) / (1000ULL * 1000ULL * 1000ULL);
-    
+
         sprintf(buf, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"),
                 cardType == ISdCard::eMMC    ? "MMC"
                 : cardType == ISdCard::eSD   ? "SDSC"
@@ -6649,8 +6646,7 @@ bool TFTView_320x240::updateSDCard(void)
         Themes::recolorButton(objects.home_sd_card_button, true);
         Themes::recolorText(objects.home_sd_card_label, true);
         cardDetected = true;
-    }
-    else {
+    } else {
         ILOG_DEBUG("SdFsCard init failed");
         delete sdCard;
         sdCard = nullptr;

@@ -6,7 +6,7 @@
 #endif
 
 #if defined(HAS_SD_MMC)
-SPIClass SDHandler; //TODO allow specification of spi bus
+SPIClass SDHandler; // TODO allow specification of spi bus
 fs::SDMMCFS &SDFs = SD_MMC;
 #elif defined(ARCH_PORTDUINO)
 fs::FS &SDFs = PortduinoFS;
@@ -15,7 +15,6 @@ SPIClass &SDHandler = SPI;
 SdFs SDFs;
 using File = FsFile;
 #endif
-
 
 ISdCard *sdCard = nullptr;
 
@@ -50,8 +49,7 @@ uint64_t SDCard::cardSize(void)
     return 1;
 }
 
-
-std::set<std::string> SDCard::loadMapStyles(const char* folder)
+std::set<std::string> SDCard::loadMapStyles(const char *folder)
 {
     std::set<std::string> styles;
     File maps = SDFs.open(folder);
@@ -60,7 +58,7 @@ std::set<std::string> SDCard::loadMapStyles(const char* folder)
             File style = maps.openNextFile();
             if (!style)
                 break;
-            
+
             std::string path = style.name();
             std::string dir = path.substr(path.find_last_of("/") + 1);
             if (/* style.isDirectory() && */ dir.c_str()[0] != '.') {
@@ -110,10 +108,10 @@ ISdCard::CardType SdFsCard::cardType(void)
 ISdCard::FatType SdFsCard::fatType(void)
 {
     uint8_t type = SDFs.fatType();
-    return type == FAT_TYPE_EXFAT ? FatType::eExFat 
-         : type == FAT_TYPE_FAT32 ? FatType::eFat32 
-         : type == FAT_TYPE_FAT16 ? FatType::eFat16
-         : FatType::eNA;
+    return type == FAT_TYPE_EXFAT   ? FatType::eExFat
+           : type == FAT_TYPE_FAT32 ? FatType::eFat32
+           : type == FAT_TYPE_FAT16 ? FatType::eFat16
+                                    : FatType::eNA;
 }
 
 uint64_t SdFsCard::usedBytes(void)
@@ -131,8 +129,7 @@ uint64_t SdFsCard::cardSize(void)
     return uint64_t(SDFs.clusterCount()) * uint64_t(SDFs.bytesPerCluster());
 }
 
-
-std::set<std::string> SdFsCard::loadMapStyles(const char* folder)
+std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
 {
     std::set<std::string> styles;
     File maps = SDFs.open(folder);
@@ -141,7 +138,7 @@ std::set<std::string> SdFsCard::loadMapStyles(const char* folder)
             File style = maps.openNextFile();
             if (!style)
                 break;
-            
+
             char name[20];
             style.getName(name, sizeof(name));
             std::string path = name;
