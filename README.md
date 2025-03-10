@@ -89,7 +89,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
       - [x] Greek translation
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
-    - [ ] Allow co-existence of generated files/views by different eez-studio projects
+    - [x] Allow co-existence of generated files/views by different eez-studio projects
     - [ ] Fix PSRAM draw buffer issue and do buffer size optimization
     - [ ] Native lvgl driver support
       - [ ] TFT drivers
@@ -109,6 +109,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
       - [x] WiFi info
       - [x] Time and Data
       - [x] MQTT info
+      - [x] SD card info
       - [x] Free memory info
     - [ ] Nodes panel
       - [x] Scroll display and sorting
@@ -148,7 +149,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
         - [x] Message Alert / Ringtones
         - [x] Language
         - [ ] Timezone
-        - [ ] Maps
+        - [x] Maps
         - [ ] Audio
         - [x] NodeDB / Factory Reset
         - [x] Reboot / Shutdown
