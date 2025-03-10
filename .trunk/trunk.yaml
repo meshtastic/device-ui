@@ -45,6 +45,8 @@ lint:
       paths:
         # Ignore generated files
         - generated/**
+        # Ignore "special" platformio Python script
+        - extra_script.py
 actions:
   disabled:
     - trunk-announce

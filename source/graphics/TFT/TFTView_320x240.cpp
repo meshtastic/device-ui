@@ -923,6 +923,7 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
         lv_obj_t *panel = THIS->nodes[nodeNum];
         if (currentPanel) {
             // create animation to shrink other panel
+            animRunning = true;
             static lv_anim_t a;
             int32_t height = lv_obj_get_height(currentPanel);
             lv_anim_init(&a);
@@ -933,10 +934,10 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
             lv_anim_set_deleted_cb(&a, deleted_cb);
             lv_anim_start(&a);
-            animRunning = true;
         }
         if (panel != currentPanel) {
             // create animation to enlarge node panel
+            animRunning = true;
             static lv_anim_t a;
             int32_t height = lv_obj_get_height(panel);
             lv_anim_init(&a);
@@ -947,7 +948,6 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             lv_anim_set_path_cb(&a, lv_anim_path_linear);
             lv_anim_set_deleted_cb(&a, deleted_cb);
             lv_anim_start(&a);
-            animRunning = true;
             currentPanel = panel;
             currentNode = nodeNum;
         } else {
@@ -5384,6 +5384,10 @@ void TFTView_320x240::screenSaving(bool enabled)
         } else if (objects.main_screen) {
             ILOG_DEBUG("showing main screen");
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            if (THIS->activeSettings != eNone) {
+                lv_event_t e = {.code = LV_EVENT_CLICKED};
+                ui_event_cancel(&e);
+            }
             screenLocked = false;
         } else {
             ILOG_DEBUG("showing boot screen");
@@ -5536,7 +5540,7 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
 {
     char loraFreq[48];
-    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num);
+    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + db.config.lora.frequency_offset;
     if (frequency > 1.0 && frequency < 10000.0) {
         sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
     } else {
