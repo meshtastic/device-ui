@@ -22,8 +22,8 @@
   "dependencies": {
     "ArduinoThread": "https://github.com/meshtastic/ArduinoThread.git#7c3ee9e1951551b949763b1f5280f8db1fa4068d",
     "lvgl/lvgl": "https://github.com/lvgl/lvgl#4f2fd4b54950d5efcee9070fbb92d0005236d2ee",
-    "nanopb/Nanopb": "0.4.91",
-    "greiman/SdFat": "2.3.0"
+    "greiman/SdFat": "https://github.com/mverch67/SdFat#e25bebdc41523eaee6aef164a97df25f7ee59494",
+    "nanopb/Nanopb": "0.4.91"
   },
   "build": {
     "libArchive": true,
