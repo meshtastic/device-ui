@@ -2240,8 +2240,10 @@ void TFTView_320x240::loadMap(void)
         map = new MapPanel(objects.raw_map_panel, new SDCardService());
 #elif defined(HAS_SDCARD)
         map = new MapPanel(objects.raw_map_panel, new SdFatService());
+#elif defined(ARCH_PORTDUINO)
+        map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
 #else
-        map = new MapPanel(objects.raw_map_panel, new SDCardService());
+        map = new MapPanel(objects.raw_map_panel);
 #endif
         map->setHomeLocationImage(objects.home_location_image);
 
@@ -5616,6 +5618,7 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
 
 void TFTView_320x240::backup(uint32_t option)
 {
+#if defined(HAS_SDCARD) || defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
     meshtastic_Config_SecurityConfig_public_key_t &pubkey = db.config.security.public_key;
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
@@ -5641,10 +5644,12 @@ void TFTView_320x240::backup(uint32_t option)
         messageAlert(_("Failed to write keys!"), true);
     }
     sd.close();
+#endif
 }
 
 void TFTView_320x240::restore(uint32_t option)
 {
+#if defined(HAS_SDCARD) || defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
     meshtastic_Config_SecurityConfig_public_key_t &pubkey = db.config.security.public_key;
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
@@ -5684,6 +5689,7 @@ void TFTView_320x240::restore(uint32_t option)
         messageAlert(_("Failed to retrieve keys!"), true);
     }
     sd.close();
+#endif
 }
 
 /**
