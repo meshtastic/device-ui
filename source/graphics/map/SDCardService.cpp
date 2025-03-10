@@ -33,21 +33,6 @@ SDCardService::SDCardService() : ITileService(DRIVE_LETTER ":")
     drv.dir_read_cb = fs_dir_read;
     drv.dir_close_cb = fs_dir_close;
     lv_fs_drv_register(&drv);
-
-#ifdef SD_CARD_INIT
-    SD.end();
-    // begin(uint8_t ssPin=SS, SPIClass &spi=SPI,
-    //       uint32_t frequency=4000000, const char * mountpoint="/sd",
-    //       uint8_t max_files=5, bool format_if_empty=false);
-    SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-    if (!SD.begin(SDCARD_CS, SPI, 40000000)) {
-        ILOG_ERROR("failed to mount SD card!");
-        return;
-    } else {
-        ILOG_INFO("cardType: %d, cardSize:%d, used: %d/%d (%d%%)", SD.cardType(), SD.cardSize(), SD.usedBytes(), SD.totalBytes(),
-                  SD.usedBytes() * 100 / SD.totalBytes());
-    }
-#endif
 }
 
 SDCardService::~SDCardService()
@@ -64,7 +49,7 @@ bool SDCardService::load(const char *name, void *img)
     // ILOG_DEBUG("SDCardService::load(): %s", buf);
     lv_image_set_src((lv_obj_t *)img, buf);
     if (!lv_image_get_src((lv_obj_t *)img)) {
-        // ILOG_WARN("*** Failed to load tile %s from SD", buf);
+        ILOG_DEBUG("Failed to load tile %s from SD", buf);
         return false;
     }
     // ILOG_INFO("*** Tile %s loaded.", buf);
