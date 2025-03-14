@@ -174,3 +174,18 @@ no:
   Sound only: Bare lyd
   no signal: ingen signal
   Restoring messages ...: Gjenoppretter meldinger ...
+  no SD card detected: ingen SD kort funnet
+  map tiles not found!: ingen kartdata funnet!
+  No map tiles found: Ingen kartdata funnet
+  Backup & Restore: Sikkerhetskopi og gjenopprett
+  Backup: Sikkerhetskopi
+  Restore: Gjenopprett
+  Public/Private Key: Åpen/Privat nøkkel
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "Nullstill NodeDB\nFabrikkinnstillinger\nSlett meldingshistorikk"
+  Please set region and name: Sett region og navn
+  '>> Programming mode <<': '>> Programerings-modus <<'
+  Failed to write keys!: Skrive nøkler feilet!
+  Failed to restore keys!: Gjenoppretting av nøkler feilet!
+  Failed to parse keys!: Analysering av nøkler feilet!
+  Failed to retrieve keys!: Mottak av nøkler feilet!
+  "%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)": "%s: %d GB (%s)\nBrukt: %0.2f GB (%d%%)"
