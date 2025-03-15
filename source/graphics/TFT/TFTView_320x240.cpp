@@ -1343,6 +1343,7 @@ void TFTView_320x240::ui_event_WLANButton(lv_event_t *e)
             lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
             THIS->disablePanel(objects.home_panel);
+            lv_obj_clear_state(objects.home_wlan_button, LV_STATE_PRESSED);
             THIS->activeSettings = eWifi;
         } else {
             // toggle WLAN on/off
@@ -3613,15 +3614,18 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             char buf[30];
             const char *ssid = lv_textarea_get_text(objects.settings_wifi_ssid_textarea);
             const char *psk = lv_textarea_get_text(objects.settings_wifi_password_textarea);
+            if (strlen(ssid) == 0 || strlen(psk) == 0)
+                return;
             lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), ssid[0] ? ssid : _("<not set>"));
             lv_label_set_text(objects.basic_settings_wifi_label, buf);
             if (strcmp(THIS->db.config.network.wifi_ssid, ssid) != 0 || strcmp(THIS->db.config.network.wifi_psk, psk) != 0) {
                 strcpy(THIS->db.config.network.wifi_ssid, ssid);
                 strcpy(THIS->db.config.network.wifi_psk, psk);
+                THIS->db.config.network.wifi_enabled = true;
                 THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{THIS->db.config.network}, THIS->ownNode);
                 THIS->notifyReboot(true);
             }
-            // THIS->enablePanel(objects.home_panel);
+            THIS->enablePanel(objects.home_panel);
             lv_obj_add_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_wifi_button);
             break;
@@ -3893,9 +3897,8 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eWifi: {
             lv_obj_add_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
-            // THIS->enablePanel(objects.home_panel);
+            THIS->enablePanel(objects.home_panel);
             lv_group_focus_obj(objects.home_wlan_button);
-
             break;
         }
         case TFTView_320x240::eLanguage: {
