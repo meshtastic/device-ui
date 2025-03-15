@@ -3614,7 +3614,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             char buf[30];
             const char *ssid = lv_textarea_get_text(objects.settings_wifi_ssid_textarea);
             const char *psk = lv_textarea_get_text(objects.settings_wifi_password_textarea);
-            if (strlen(ssid) == 0 || strlen(psk) == 0) 
+            if (strlen(ssid) == 0 || strlen(psk) == 0)
                 return;
             lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), ssid[0] ? ssid : _("<not set>"));
             lv_label_set_text(objects.basic_settings_wifi_label, buf);
