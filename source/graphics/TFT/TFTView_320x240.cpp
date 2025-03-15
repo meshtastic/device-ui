@@ -5812,7 +5812,6 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
         db.uiConfig.ring_tone_id = rtIndex;
     if (db.uiConfig.ring_tone_id == 0)
         db.uiConfig.ring_tone_id = 1;
-    db.silent = rtIndex == 0;
 
     // update home panel bell text
     setBellText(db.uiConfig.alert_enabled, !db.silent);
