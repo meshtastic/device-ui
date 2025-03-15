@@ -734,8 +734,6 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.setup_region_dropdown, ui_event_setup_region_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // OK / Cancel widget for basic settings dialog
-    lv_obj_add_event_cb(objects.obj0__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj0__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj1__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj1__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj2__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
@@ -766,10 +764,12 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj14__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj15__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj15__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj18__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj18__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj24__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj24__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj16__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj16__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj19__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj19__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj25__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj25__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -1566,7 +1566,7 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
         THIS->activeSettings = eModemPreset;
         lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->db.config.lora.modem_preset);
 
-        char buf[40];
+        char buf[60];
         sprintf(buf, _("FrequencySlot: %d (%g MHz)"), THIS->db.config.lora.channel_num,
                 LoRaPresets::getRadioFreq(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset,
                                           THIS->db.config.lora.channel_num));
@@ -3179,10 +3179,12 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
         return 7;
     case meshtastic_Language_SLOVENIAN:
         return 11;
-    case meshtastic_Language_SIMPLIFIED_CHINESE:
+    case meshtastic_Language_UKRAINIAN:
         return 16;
-    case meshtastic_Language_TRADITIONAL_CHINESE:
+    case meshtastic_Language_SIMPLIFIED_CHINESE:
         return 17;
+    case meshtastic_Language_TRADITIONAL_CHINESE:
+        return 18;
     default:
         ILOG_WARN("unknown language uiconfig: %d", lang);
     }
@@ -3228,8 +3230,10 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
     case 11:
         return meshtastic_Language_SLOVENIAN;
     case 16:
-        return meshtastic_Language_SIMPLIFIED_CHINESE;
+        return meshtastic_Language_UKRAINIAN;
     case 17:
+        return meshtastic_Language_SIMPLIFIED_CHINESE;
+    case 18:
         return meshtastic_Language_TRADITIONAL_CHINESE;
     default:
         ILOG_WARN("unknown language val: %d", val);
@@ -3306,6 +3310,10 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
     case meshtastic_Language_SLOVENIAN:
         lv_i18n_set_locale("sl");
         locale = "sl_SI.UTF-8";
+        break;
+    case meshtastic_Language_UKRAINIAN:
+        lv_i18n_set_locale("uk");
+        locale = "uk_UA.UTF-8";
         break;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
         lv_i18n_set_locale("cn");
