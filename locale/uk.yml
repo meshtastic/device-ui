@@ -1,0 +1,159 @@
+uk:
+  no new messages: немає повідомлень
+  1 of 1 nodes online: 1 нода онлайн
+  uptime 00:00:00: час роботи 00:00:00
+  LoRa 0.0 MHz: ~
+  no signal: немає сигналу
+  silent: тихий
+  no SD card detected: немає SD-карти
+  "Heap: 0\nLVGL: 0": ~
+  DEL: ~
+  map tiles not found!: мапи не знайдено!
+  Settings: Налаштування
+  "User name: ": "Ім'я користувача: "
+  "Modem Preset: LONG FAST": "Режим Модему: LONG FAST"
+  "Channel: LongFast": "Канал: LongFast"
+  "Role: Client": "Роль: Client"
+  "WiFi: <not setup>": "WiFi: <не задано>"
+  "Screen Timeout: 60s": "Таймаут Екрана: 60s"
+  "Lock: off/off": "Блокування: вимкн./вимкн."
+  "Screen Brightness: 60%": "Яскравість Екрана: 60%"
+  "Theme: Dark": "Тема: Темна"
+  "Screen Calibration: default": "Калібрування Екрана: за умовчанням"
+  "Input Control: none/none": "Контроль Вводу: немає/немає"
+  "Message Alert Buzzer: on": "Сповіщення: увімк."
+  "Language: English": "Мова: Українська"
+  Configuration Reset: Скидання Налаштувань
+  Backup & Restore: Збереження та Відновлення
+  Reboot / Shutdown: Перезапуск / Вимкнення
+  Tools: Інструменти
+  Mesh Detector: Детектор Mesh
+  Signal Scanner: Сканер Сигналу
+  Trace Route: Відстеження Маршруту
+  Neighbors: Сусіди
+  Statistics: Статистика
+  Packet Log: Журнал Пакетів
+  Meshtastic: ~
+  Group Channels: Групові Канали
+  no messages: немає повідомлень
+  Settings & Tools: Налаштування та Інструменти
+  Settings (advanced): Налаштування (розширені)
+  Locations Map: Мапа
+  no chats: немає чатів
+  Node Search: Пошук Нод
+  Packet Statistics: Статистика пакетів
+  Node Options: Параметри Ноди
+  LoRa TX off!: LoRa TX вимкн.!
+  Short Name: Коротке Ім'я
+  Long Name: Довге Ім'я
+  Primary Channel: Основний Канал
+  <unset>: <пусто>
+  Secondary Channels: Вторинні Канали
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  WiFi SSID: ~
+  WiFi pre-shared Key: ~
+  "Brightness: 60%": "Яскравість: 60%"
+  "Dark\nLight": "Темна\nСвітла"
+  "Timeout: 60s": "Таймаут: 60s"
+  Screen Lock: Блокування Екрану
+  Settings Lock: Блокування Налаштувань
+  Lock PIN: PIN-код Блокування
+  Mouse: Миша
+  none: немає
+  Keyboard: Клавіатура
+  Message Alert: Сповіщення
+  Ringtone: Рингтон
+  Default: За Умовчанням
+  Zone: Зона
+  City: Місто
+  Backup: Збереження
+  Restore: Відновлення
+  Public/Private Key: Публічний/Приватний Ключ
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "Скидання NodeDB\nСкидання налаштувань\nОчистити історію чатів"
+  Channel Name: Ім'я каналу
+  Pre-shared Key: PSK ключ
+  Filter: Фільтр
+  Unknown: Невідомо
+  Offline: Не в мережі
+  Public Key: Публічний Ключ
+  Channel: Канал
+  Hops away: Стрибки
+  MQTT: ~
+  Position: Позиція
+  Name: Ім'я
+  Highlight: Позначка
+  Active Chat: Активний Чат
+  Telemetry: Телеметрія
+  IAQ: ~
+  Start: Старт
+  "choose\nnode": "оберіть\nноду"
+  choose target node: оберіть цільову ноду
+  "New Message from\n": "Нове Повідомлення від\n"
+  Restoring messages ...: Відновлення повідомлень ...
+  Please set region and name: Будь ласка, вкажіть регіон та ім'я
+  Region: Регіон
+  Resync ...: Ресинхронізація ...
+  OK: ~
+  Cancel: Скасувати
+  now: зараз
+  "Lock: %s/%s": "Блокування: %s/%s"
+  "on": увімк.
+  "off": вимкн.
+  "Screen Calibration: %s": "Калібрування Екрана: %s"
+  done: готово
+  default: за умовчанням
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  Rebooting ...: Перезапуск ...
+  ">> Programming mode <<": ">> Режим програмування <<"
+  Enter Text ...: Введіть Текст ...
+  "!Enter Filter ...": "!Введіть Фільтр ..."
+  Enter Filter ...: Введіть Фільтр ...
+  "FrequencySlot: %d (%g MHz)": "Частотний слот: %d (%g MHz)"
+  "Brightness: %d%%": "Яскравість: %d%%"
+  "Timeout: off": "Таймаут: вимкн."
+  "Timeout: %ds": "Таймаут: %ds"
+  No map tiles found on SDCard!: Мапи не знайдено!
+  Locations Map (%d/%d): Мапа (%d/%d)
+  Stop: Стоп
+  "heard: !%08x": "почуто: !%08x"
+  "Packet Log: %d": "Журнал Пакетів: %d"
+  "Language: %s": "Мова: %s"
+  "Screen Timeout: off": "Таймаут Екрана: вимкн."
+  "Screen Timeout: %ds": "Таймаут Екрана: %ds"
+  "Screen Brightness: %d%%": "Яскравість Екрана: %d%%"
+  "Theme: %s": "Тема: %s"
+  "Region: %s": "Регіон: %s"
+  "User name: %s": "Ім'я користувача: %s"
+  "Device Role: %s": "Роль: %s"
+  "Modem Preset: %s": "Режим Модему: %s"
+  "WiFi: %s": ~
+  <not set>: <не задано>
+  Util %0.1f%%  Air %0.1f%%: ~
+  "hops: %d": "стрибки: %d"
+  unknown: невідомо
+  Shutting down ...: Вимикання ...
+  region unset: регіон не задано
+  Banner & Sound: Банер та Звук
+  Banner only: Тільки банер
+  Sound only: Тільки звук
+  "Message Alert: %s": "Сповіщення: %s"
+  "Channel: %s": "Канал: %s"
+  Failed to write keys!: Не вдалося записати ключі!
+  Failed to restore keys!: Не вдалося відновити ключі!
+  Failed to parse keys!: Не вдалося розібрати ключі!
+  Failed to retrieve keys!: Не вдалося отримати ключі!
+  "%d active chat(s)":
+    one: "%d активний чат"
+    other: "%d активні чати"
+  "New message from \n%s": "Нове повідомлення від \n%s"
+  "Input Control: %s/%s": "Контроль Вводу: %s/%s"
+  "%d of %d nodes online":
+    one: "1 нода онлайн"
+    other: "%d з %d нод онлайн"
+  "Filter: %d of %d nodes": "Фільтр: %d з %d нод"
+  "%d new message": "%d нове повідомлення"
+  "%d new messages": "%d нові повідомлення"
+  "uptime: %02d:%02d:%02d": "час роботи:  %02d:%02d:%02d"
+  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nВикорист.: %d MB (%d%%)"
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
