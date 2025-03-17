@@ -32,6 +32,8 @@
 #include "util/LinuxHelper.h"
 // #include "graphics/map/LinuxFileSystemService.h"
 #include "graphics/map/SDCardService.h"
+#elif defined(HAS_SD_MMC)
+#include "graphics/map/SDCardService.h"
 #else
 #include "graphics/map/SdFatService.h"
 #endif
@@ -4090,7 +4092,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
 
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
-        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)ch, callback);
+        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
@@ -5635,7 +5637,7 @@ void TFTView_320x240::backup(uint32_t option)
 
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
-#if defined(ARCH_PORTDUINO)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
     SDFs.mkdir("/keys");
     File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
 #else
@@ -5667,7 +5669,7 @@ void TFTView_320x240::restore(uint32_t option)
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
 
-#if defined(ARCH_PORTDUINO)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
     File sd = SDFs.open(path.str().c_str(), FILE_READ);
 #else
     FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
@@ -6637,9 +6639,13 @@ bool TFTView_320x240::updateSDCard(void)
     }
 #ifdef HAS_SDCARD
     char buf[64];
+#ifdef HAS_SD_MMC
+    sdCard = new SDCard;
+#else
     sdCard = new SdFsCard;
+#endif
     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
-        ILOG_DEBUG("SdFsCard init successful, card type: %d", sdCard->cardType());
+        ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
         ISdCard::CardType cardType = sdCard->cardType();
         ISdCard::FatType fatType = sdCard->fatType();
         uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
