@@ -153,7 +153,7 @@ bool SdFsCard::init(void)
     // TODO: use begin(SdioConfig(FIFO_SDIO)) for SDIO (T-HMI)
     // Note: this can also be done via #define BUILTIN_SDCARD SDCARD_CS using begin(SDCARD_CS)
     // see also HAS_SDIO_CLASS
-#if defined(HAS_SDIO_CLASS)
+#if HAS_SDIO_CLASS
     return SDFs.begin(SdioConfig(FIFO_SDIO));
 #else
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
