@@ -32,6 +32,8 @@
 #include "util/LinuxHelper.h"
 // #include "graphics/map/LinuxFileSystemService.h"
 #include "graphics/map/SDCardService.h"
+#elif defined(HAS_SD_MMC)
+#include "graphics/map/SDCardService.h"
 #else
 #include "graphics/map/SdFatService.h"
 #endif
@@ -2328,43 +2330,45 @@ void TFTView_320x240::loadMap(void)
         updateLocationMap(map->getObjectsOnMap());
     }
 
-    if (sdCard && !sdCard->isUpdated()) {
-        map->setNoTileImage(&img_no_tile_image);
-        lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
-        std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
-        if (mapStyles.find("/map") != mapStyles.end()) {
-            // no styles found, but the /map directory, so use it
-            MapTileSettings::setPrefix("/map");
-            MapTileSettings::setTileStyle("");
-            lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
-        } else if (!mapStyles.empty()) {
-            // populate dropdown
-            uint16_t pos = 0;
-            bool savedStyleOK = false;
-            lv_dropdown_set_options(objects.map_style_dropdown, "");
-            for (auto it : mapStyles) {
-                lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
-                if (it == db.uiConfig.map_data.style) {
-                    lv_dropdown_set_selected(objects.map_style_dropdown, pos);
-                    MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
-                    savedStyleOK = true;
-                }
-                pos++;
-            }
-            if (!savedStyleOK) {
-                // no such style on SD, pick first one we found
-                char style[20];
-                lv_dropdown_set_selected(objects.map_style_dropdown, 0);
-                lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
-                MapTileSettings::setTileStyle(style);
-            }
-            MapTileSettings::setPrefix("/maps");
-        } else {
-            messageAlert(_("No map tiles found on SDCard!"), true);
+    if (sdCard) {
+        if (!sdCard->isUpdated()) {
             map->setNoTileImage(&img_no_tile_image);
-            lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+            std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
+            if (mapStyles.find("/map") != mapStyles.end()) {
+                // no styles found, but the /map directory, so use it
+                MapTileSettings::setPrefix("/map");
+                MapTileSettings::setTileStyle("");
+                lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
+            } else if (!mapStyles.empty()) {
+                // populate dropdown
+                uint16_t pos = 0;
+                bool savedStyleOK = false;
+                lv_dropdown_set_options(objects.map_style_dropdown, "");
+                for (auto it : mapStyles) {
+                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
+                    if (it == db.uiConfig.map_data.style) {
+                        lv_dropdown_set_selected(objects.map_style_dropdown, pos);
+                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+                        savedStyleOK = true;
+                    }
+                    pos++;
+                }
+                if (!savedStyleOK) {
+                    // no such style on SD, pick first one we found
+                    char style[20];
+                    lv_dropdown_set_selected(objects.map_style_dropdown, 0);
+                    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+                    MapTileSettings::setTileStyle(style);
+                }
+                MapTileSettings::setPrefix("/maps");
+            } else {
+                messageAlert(_("No map tiles found on SDCard!"), true);
+                map->setNoTileImage(&img_no_tile_image);
+                lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+            }
+            map->forceRedraw();
         }
-        map->forceRedraw();
     } else {
         lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
         lv_dropdown_set_options(objects.map_style_dropdown, "");
@@ -4090,7 +4094,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
 
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
-        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)ch, callback);
+        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
@@ -5635,7 +5639,7 @@ void TFTView_320x240::backup(uint32_t option)
 
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
-#if defined(ARCH_PORTDUINO)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
     SDFs.mkdir("/keys");
     File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
 #else
@@ -5667,7 +5671,7 @@ void TFTView_320x240::restore(uint32_t option)
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
 
-#if defined(ARCH_PORTDUINO)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
     File sd = SDFs.open(path.str().c_str(), FILE_READ);
 #else
     FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
@@ -6637,9 +6641,13 @@ bool TFTView_320x240::updateSDCard(void)
     }
 #ifdef HAS_SDCARD
     char buf[64];
+#ifdef HAS_SD_MMC
+    sdCard = new SDCard;
+#else
     sdCard = new SdFsCard;
+#endif
     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
-        ILOG_DEBUG("SdFsCard init successful, card type: %d", sdCard->cardType());
+        ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
         ISdCard::CardType cardType = sdCard->cardType();
         ISdCard::FatType fatType = sdCard->fatType();
         uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);

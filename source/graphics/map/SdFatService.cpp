@@ -1,4 +1,4 @@
-#if defined(HAS_SDCARD) && not defined(ARCH_PORTDUINO)
+#if defined(HAS_SDCARD) && not defined(HAS_SD_MMC) && not defined(ARCH_PORTDUINO)
 
 #include "lvgl.h"
 
