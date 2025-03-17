@@ -6,7 +6,7 @@ extern fs::FS &SDFs;
 
 #elif defined(HAS_SD_MMC)
 #include "SD_MMC.h" // TODO: replace by SdFat SDIO
-extern fs::SDMMCFS &SD;
+extern fs::SDMMCFS &SDFs;
 
 #elif defined(HAS_SDCARD)
 #include "SdFat.h"
@@ -54,7 +54,7 @@ class ISdCard
     bool updated = false;
 };
 
-#if defined(ARCH_PORTDUINO)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
 class SDCard : public ISdCard
 {
   public:
@@ -66,10 +66,10 @@ class SDCard : public ISdCard
     uint64_t cardSize(void) override;
 
     std::set<std::string> loadMapStyles(const char *folder) override;
-    virtual ~SDCard(void) {}
+    virtual ~SDCard(void);
 };
 
-#elif defined(HAS_SDCARD) || defined(HAS_SD_MMC)
+#elif defined(HAS_SDCARD)
 class SdFsCard : public ISdCard
 {
   public:

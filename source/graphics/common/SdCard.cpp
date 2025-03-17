@@ -6,7 +6,6 @@
 #endif
 
 #if defined(HAS_SD_MMC)
-SPIClass SDHandler; // TODO allow specification of spi bus
 fs::SDMMCFS &SDFs = SD_MMC;
 #elif defined(ARCH_PORTDUINO)
 fs::FS &SDFs = PortduinoFS;
@@ -19,6 +18,7 @@ using File = FsFile;
 ISdCard *sdCard = nullptr;
 
 #if defined(ARCH_PORTDUINO)
+
 bool SDCard::init(void)
 {
     return true;
@@ -49,6 +49,69 @@ uint64_t SDCard::cardSize(void)
     return 1;
 }
 
+SDCard::~SDCard(void)
+{
+
+}
+
+#elif defined(HAS_SD_MMC)
+
+bool SDCard::init(void)
+{
+//#ifndef BOARD_HAS_1BIT_SDMMC
+//    SDFs.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_D0, SDMMC_D1, SDMMC_D2, SDMMC_D3);
+//    return SDFs.begin("/sdcard", false);
+//#else
+    SDFs.setPins(SD_SCLK_PIN, SD_MOSI_PIN, SD_MISO_PIN);
+    return SDFs.begin("/sdcard", true);
+//#endif
+}
+
+ISdCard::CardType SDCard::cardType(void)
+{
+    switch(SDFs.cardType()) {
+    case CARD_NONE:
+        return CardType::eNone;
+    case CARD_MMC:
+        return CardType::eMMC;
+    case CARD_SD:
+        return CardType::eSD;
+    case CARD_SDHC:
+        return CardType::eSDHC;
+    case CARD_UNKNOWN:
+    default:
+        return CardType::eUnknown;
+    }
+    return CardType::eUnknown;
+}
+
+ISdCard::FatType SDCard::fatType(void)
+{
+    return SDFs.cardSize() > 4Ull * 1024Ull * 1024Ull * 1024Ull ? FatType::eFat32 : FatType::eFat16;
+}
+
+uint64_t SDCard::usedBytes(void)
+{
+    return SDFs.usedBytes();
+}
+
+uint64_t SDCard::freeBytes(void)
+{
+    return SDFs.totalBytes() - SDFs.usedBytes();
+}
+
+uint64_t SDCard::cardSize(void)
+{
+    return SDFs.totalBytes();
+}
+
+SDCard::~SDCard(void)
+{
+    SDFs.end();
+}
+#endif
+
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
 std::set<std::string> SDCard::loadMapStyles(const char *folder)
 {
     std::set<std::string> styles;
@@ -83,15 +146,18 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
     return styles;
 }
 
-#elif defined(HAS_SDCARD) || defined(HAS_SD_MMC)
-
+#elif defined(HAS_SDCARD)
 bool SdFsCard::init(void)
 {
     // TODO: allow specification of SPI bus
     // TODO: use begin(SdioConfig(FIFO_SDIO)) for SDIO (T-HMI)
     // Note: this can also be done via #define BUILTIN_SDCARD SDCARD_CS using begin(SDCARD_CS)
     // see also HAS_SDIO_CLASS
+#if defined(HAS_SDIO_CLASS)
+    return SDFs.begin(SdioConfig(FIFO_SDIO));
+#else
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
+#endif
 }
 
 ISdCard::CardType SdFsCard::cardType(void)
