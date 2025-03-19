@@ -2,13 +2,13 @@
 
 BatteryLevel::BatteryLevel(void)
     : levels{
-          {100, 0.0},              // Plugged
-          {100, CHARGING_VOLTAGE}, // Charging
-          {80, 4.00},              // Full
-          {35, 3.50},              // Mid
-          {10, 3.30},              // Low
-          {0, 3.12},               // Empty
-          {0, 3.10}                // Warn
+          {100, 0.0f},                    // Plugged
+          {100, (float)CHARGING_VOLTAGE}, // Charging
+          {80, 4.00f},                    // Full
+          {35, 3.50f},                    // Mid
+          {10, 3.30f},                    // Low
+          {0, 3.12f},                     // Empty
+          {0, 3.10f}                      // Warn
       }
 {
 }
