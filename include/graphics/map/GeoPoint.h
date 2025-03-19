@@ -13,7 +13,9 @@
 #endif
 
 #ifdef ARCH_PORTDUINO
+#ifndef PI
 #define PI M_PIl
+#endif
 #endif
 
 /**
@@ -25,14 +27,15 @@ class GeoPoint
   public:
     GeoPoint(uint32_t xtile, uint32_t ytile, uint8_t zoom) : xPos(0), yPos(0), xTile(xtile), yTile(ytile), zoomLevel(zoom)
     {
-        // not used: reverse calculate from tile x/y/z back to lat/long (upper left corner 0/0)
+        // not used in any scenario yet; so comment out for now
+        // reverse calculate from tile x/y/z back to lat/long (upper left corner 0/0)
         // auto n = 1 << zoom;
         // longitude = FLOATING_POINT(xTile) / n * FLOATING_POINT(360.0) - FLOATING_POINT(180.0);
         // latitude = FLOATING_POINT(180.0) / FLOATING_POINT(PI) *
         //           FLOATING_POINT(std::atan(std::sinh(FLOATING_POINT(PI) * (1.0 - 2.0 * FLOATING_POINT(yTile) / n))));
     }
 
-    GeoPoint(float lat, float lon, uint8_t zoom) : latitude(lat), longitude(lon) { setZoom(zoom); }
+    GeoPoint(float lat, float lon, uint8_t zoom) : latitude(lat), longitude(lon), zoomLevel(255) { setZoom(zoom); }
 
     void setZoom(uint8_t zoom)
     {
@@ -97,3 +100,62 @@ class GeoPoint
     // level 0 (course) .. 18 (detail)
     uint8_t zoomLevel;
 };
+
+#ifdef UNIT_TEST
+#include <doctest/doctest.h>
+
+TEST_CASE("GeoPoint create000Tile")
+{
+    GeoPoint p(0U, 0U, 0);
+    CHECK(p.zoomLevel == 0);
+    CHECK(p.xTile == 0);
+    CHECK(p.yTile == 0);
+}
+
+TEST_CASE("GeoPoint create000Location")
+{
+    GeoPoint p(0.0f, 0.0f, 0);
+    CHECK(p.zoomLevel == 0);
+    CHECK(p.xTile == 0);
+    CHECK(p.yTile == 0);
+}
+
+TEST_CASE("GeoPoint locationMunichFrauenkirche")
+{
+    GeoPoint p(48.13867316206941f, 11.573006651462567f, 15);
+    CHECK(p.zoomLevel == 15);
+    CHECK(p.xTile == 17437);
+    CHECK(p.yTile == 11371);
+}
+
+// TEST_CASE("GeoPoint reverseMunichFrauenkirche") {
+//     GeoPoint p(17437U, 11371, 15);
+//     CHECK(p.latitude == doctest::Approx(48.1440964f));
+//     CHECK(p.longitude == doctest::Approx(11.5686035f));
+// }
+
+TEST_CASE("GeoPoint locationSanFrancisco")
+{
+    GeoPoint p(37.7749f, -122.4194f, 10);
+    CHECK(p.zoomLevel == 10);
+    CHECK(p.xTile == 163);
+    CHECK(p.yTile == 395);
+}
+
+TEST_CASE("GeoPoint setZoom")
+{
+    GeoPoint point(37.7749f, -122.4194f, 10);
+    point.setZoom(12);
+    CHECK(point.zoomLevel == 12);
+}
+
+TEST_CASE("GeoPoint move")
+{
+    GeoPoint point(37.7749f, -122.4194f, 10);
+    int16_t initialXPos = point.xPos;
+    int16_t initialYPos = point.yPos;
+    point.move(10, 20);
+    CHECK(point.xPos == initialXPos - 10);
+    CHECK(point.yPos == initialYPos - 20);
+}
+#endif
