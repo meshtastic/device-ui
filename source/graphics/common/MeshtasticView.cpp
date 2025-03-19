@@ -159,11 +159,11 @@ bool MeshtasticView::lastHeardToString(uint32_t lastHeard, char *buf)
     if (timediff < 60)
         strcpy(buf, _("now"));
     else if (timediff < 3600)
-        sprintf(buf, "%d min", timediff / 60);
+        sprintf(buf, "%ld min", timediff / 60);
     else if (timediff < 3600 * 24)
-        sprintf(buf, "%d h", timediff / 3600);
+        sprintf(buf, "%ld h", timediff / 3600);
     else if (timediff < 3600 * 24 * 60)
-        sprintf(buf, "%d d", timediff / 86400);
+        sprintf(buf, "%ld d", timediff / 86400);
     else // after 60 days
         buf[0] = '\0';
 

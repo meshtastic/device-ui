@@ -9,5 +9,6 @@
   "cmake.configureOnOpen": false,
   "[cpp]": {
     "editor.defaultFormatter": "trunk.io"
-  }
+  },
+  "testMate.cpp.test.executables": "${workspaceFolder}/build/bin/tests"
 }
