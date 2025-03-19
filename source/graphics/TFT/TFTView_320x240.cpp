@@ -2330,43 +2330,45 @@ void TFTView_320x240::loadMap(void)
         updateLocationMap(map->getObjectsOnMap());
     }
 
-    if (sdCard && !sdCard->isUpdated()) {
-        map->setNoTileImage(&img_no_tile_image);
-        lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
-        std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
-        if (mapStyles.find("/map") != mapStyles.end()) {
-            // no styles found, but the /map directory, so use it
-            MapTileSettings::setPrefix("/map");
-            MapTileSettings::setTileStyle("");
-            lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
-        } else if (!mapStyles.empty()) {
-            // populate dropdown
-            uint16_t pos = 0;
-            bool savedStyleOK = false;
-            lv_dropdown_set_options(objects.map_style_dropdown, "");
-            for (auto it : mapStyles) {
-                lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
-                if (it == db.uiConfig.map_data.style) {
-                    lv_dropdown_set_selected(objects.map_style_dropdown, pos);
-                    MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
-                    savedStyleOK = true;
-                }
-                pos++;
-            }
-            if (!savedStyleOK) {
-                // no such style on SD, pick first one we found
-                char style[20];
-                lv_dropdown_set_selected(objects.map_style_dropdown, 0);
-                lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
-                MapTileSettings::setTileStyle(style);
-            }
-            MapTileSettings::setPrefix("/maps");
-        } else {
-            messageAlert(_("No map tiles found on SDCard!"), true);
+    if (sdCard) {
+        if (!sdCard->isUpdated()) {
             map->setNoTileImage(&img_no_tile_image);
-            lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+            std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
+            if (mapStyles.find("/map") != mapStyles.end()) {
+                // no styles found, but the /map directory, so use it
+                MapTileSettings::setPrefix("/map");
+                MapTileSettings::setTileStyle("");
+                lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
+            } else if (!mapStyles.empty()) {
+                // populate dropdown
+                uint16_t pos = 0;
+                bool savedStyleOK = false;
+                lv_dropdown_set_options(objects.map_style_dropdown, "");
+                for (auto it : mapStyles) {
+                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
+                    if (it == db.uiConfig.map_data.style) {
+                        lv_dropdown_set_selected(objects.map_style_dropdown, pos);
+                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+                        savedStyleOK = true;
+                    }
+                    pos++;
+                }
+                if (!savedStyleOK) {
+                    // no such style on SD, pick first one we found
+                    char style[20];
+                    lv_dropdown_set_selected(objects.map_style_dropdown, 0);
+                    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+                    MapTileSettings::setTileStyle(style);
+                }
+                MapTileSettings::setPrefix("/maps");
+            } else {
+                messageAlert(_("No map tiles found on SDCard!"), true);
+                map->setNoTileImage(&img_no_tile_image);
+                lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
+            }
+            map->forceRedraw();
         }
-        map->forceRedraw();
     } else {
         lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
         lv_dropdown_set_options(objects.map_style_dropdown, "");
