@@ -10,5 +10,7 @@
   "[cpp]": {
     "editor.defaultFormatter": "trunk.io"
   },
-  "testMate.cpp.test.executables": "${workspaceFolder}/build/bin/tests"
+  "testMate.cpp.test.executables": "${workspaceFolder}/build/bin/tests",
+  "testMate.cpp.discovery.loadOnStartup": true,
+  "cmake.ctest.testExplorerIntegrationEnabled": false
 }
