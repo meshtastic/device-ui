@@ -72,8 +72,8 @@ endif()
 # Unit Tests
 #
 if(ENABLE_DOCTESTS)
-#    include(CTest)
-#    enable_testing()
+    include(CTest)
+    enable_testing()
     add_executable(tests ${sources_test})
     target_link_libraries(tests PRIVATE DeviceUI doctest::doctest lvgl::lvgl LovyanGFX Portduino Protobufs)
     target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
