@@ -46,10 +46,13 @@ A small group of map tile enthusiasts (special thanks to @joyel24 & @teddy1602) 
 
 ## France
 
-Entire France Atlas zoom 6 to 13: [Torrent Magnet Link](https://tinyurl.com/43n7uwv3) ~1.29GB md5: 1e21c497e124647dda528d71011e133c
-<br>Entire France Outdoors zoom 1 to 13: [Torrent Magnet Link](https://tinyurl.com/3xhpn7j7) ~3.9GB md5: c02b89e9d5d2c7d5b3d902e6429dd5c4
+Entire France Atlas style zoom 6 to 13: [Torrent Magnet Link](https://tinyurl.com/43n7uwv3) ~1.29GB md5: 1e21c497e124647dda528d71011e133c
+<br>Entire France Outdoors style zoom 1 to 13: [Torrent Magnet Link](https://tinyurl.com/3xhpn7j7) ~3.9GB md5: c02b89e9d5d2c7d5b3d902e6429dd5c4
 
-Refer to [Credits and Attribution](#CCredits-and-Attribution) for the origin of the provided map tiles.
+## Netherlands
+Entire Netherlands Standard style zoom 1 to 14 including Amsterdam until zoom 17: [Torrent Magnet Link](https://tinyurl.com/4vpuhd7n) ~956MB md5: 30ccf6484c99ae0b0765cff19acfc67e
+
+<br>Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
 
 ### md5sum calculation
 
@@ -60,6 +63,6 @@ Refer to [Credits and Attribution](#CCredits-and-Attribution) for the origin of 
 # Credits and Attribution
 
 Attribution to Thunderforest, Geoapify, and OpenStreetMap for providing the tile API services:
-_<br>atlas, outdoors © https://www.thunderforest.com/terms - Creative Commons licence CC-BY-SA 2.0_
-_<br>positron, dark-matter-brown © https://www.geoapify.com/terms-and-conditions/ - Open Data Common Open Database License, "ODbL" 1.0_
-_<br>osm © https://www.osm.org/copyright - Open Data Commons Open Database License, "ODbL" 1.0_
+_<br>atlas, outdoors styles © https://www.thunderforest.com/terms - Creative Commons licence CC-BY-SA 2.0_
+_<br>positron, dark-matter-brown styles © https://www.geoapify.com/terms-and-conditions/ - Open Data Common Open Database License, "ODbL" 1.0_
+_<br>osm, standard style © https://www.osm.org/copyright - Open Data Commons Open Database License, "ODbL" 1.0_
