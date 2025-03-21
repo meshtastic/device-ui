@@ -52,6 +52,10 @@ const Rtttl ringtone[] = {
     {"Daft Funk", "DaFunk:d=16,o=5,b=200:2f6,8d#6,8f6,8g#6,2c6,8p,8a#,8c6,8d#6,2g#,8p,8g,8g#,8c6,2f,4g,4g#"},
     {"Highway", "HighwayT:d=8,o=5,b=180:32p,d#,d#,4d#,2p,c,c,4c#,2p,c,c,c#,c,c,c#,c,d#,4d#"},
     {"Intermission", "Intermis:d=4,o=6,b=180:d,d5,p,d5,2f5,d,d5,p,d5,2g5,d,d5,p,d5,2d_5,2c"},
+    {"Short1": "Short1:d=16,o=4,b=225:e,d,g"},
+    {"Short2": "Short2:d=16,o=4,b=225:e,g,c"},
+    {"ArpC": "ArpC:d=16,o=4,b=225:c,e,g,c5"},
+    {"CE": "CE:d=16,o=5,b=225:c,e"},
 };
 
 const int numRingtones = sizeof(ringtone) / sizeof(Rtttl);
