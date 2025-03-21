@@ -22,7 +22,7 @@ void X11Driver::init(DeviceGUI *gui)
     // Initialize LVGL
     DisplayDriver::init(gui);
 
-    char title[24];
+    char title[25];
     sprintf(title, "Meshtastic (%dx%d)", screenWidth, screenHeight);
     display = lv_x11_window_create(title, screenWidth, screenHeight);
     lv_x11_inputs_create(display, &mouse_cursor_icon);

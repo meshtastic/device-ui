@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mesh-pb-constants.h"
+#include "stdint.h"
 
 /**
  * @brief Communication interface to be implemented by the user of the device-ui
