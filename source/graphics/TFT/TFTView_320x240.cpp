@@ -796,11 +796,12 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_restore_checkbox, ui_event_backup_restore_radio_button, LV_EVENT_ALL, NULL);
 
     // map settings and navigation
-    lv_obj_add_event_cb(objects.arrow_up_button, this->ui_event_arrow, LV_EVENT_CLICKED, (void *)8);
-    lv_obj_add_event_cb(objects.arrow_left_button, this->ui_event_arrow, LV_EVENT_CLICKED, (void *)4);
-    lv_obj_add_event_cb(objects.arrow_right_button, this->ui_event_arrow, LV_EVENT_CLICKED, (void *)6);
-    lv_obj_add_event_cb(objects.arrow_down_button, this->ui_event_arrow, LV_EVENT_CLICKED, (void *)2);
-    lv_obj_add_event_cb(objects.nav_button, this->ui_event_navHome, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.main_screen, ui_screen_event_cb, LV_EVENT_GESTURE, NULL);
+    lv_obj_add_event_cb(objects.arrow_up_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)8);
+    lv_obj_add_event_cb(objects.arrow_left_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)4);
+    lv_obj_add_event_cb(objects.arrow_right_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)6);
+    lv_obj_add_event_cb(objects.arrow_down_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)2);
+    lv_obj_add_event_cb(objects.nav_button, ui_event_navHome, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.zoom_slider, ui_event_zoomSlider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.zoom_in_button, ui_event_zoomIn, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.zoom_out_button, ui_event_zoomOut, LV_EVENT_CLICKED, NULL);
@@ -2147,9 +2148,34 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
     lv_obj_scroll_to_view(panel, LV_ANIM_ON);
 }
 
+void TFTView_320x240::ui_screen_event_cb(lv_event_t *e)
+{
+    if (THIS->activePanel == objects.map_panel) {
+        lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+        switch (dir) {
+        case LV_DIR_LEFT:
+            e->user_data = (void *)6;
+            break;
+        case LV_DIR_RIGHT:
+            e->user_data = (void *)4;
+            break;
+        case LV_DIR_TOP:
+            e->user_data = (void *)2;
+            break;
+        case LV_DIR_BOTTOM:
+            e->user_data = (void *)8;
+            break;
+        default:
+            break;
+        }
+        ILOG_DEBUG("gesture: %d", (uint16_t)dir);
+        THIS->ui_event_arrow(e);
+    }
+}
+
 void TFTView_320x240::ui_event_arrow(lv_event_t *e)
 {
-    if (THIS->map) {
+    if (THIS->map && THIS->map->redrawComplete()) {
         uint16_t deltaX = 0;
         uint16_t deltaY = 0;
         ScrollDirection direction = (ScrollDirection)(unsigned long)e->user_data;
@@ -4420,7 +4446,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userS
             lv_label_set_text(objects.basic_settings_user_label, buf);
 
             char buf1[30], buf2[40];
-            lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(meshtastic_Config_DeviceConfig_Role(role)), LV_ANIM_OFF);
+            lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(meshtastic_Config_DeviceConfig_Role(role)),
+                                     LV_ANIM_OFF);
             lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
             lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
             lv_label_set_text(objects.basic_settings_role_label, buf2);

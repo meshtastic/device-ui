@@ -1,5 +1,6 @@
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/MapTileSettings.h"
+#include "graphics/map/TileService.h"
 #include "screens.h"
 #include "util/ILog.h"
 #include <assert.h>
@@ -9,11 +10,15 @@ MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
       current(home), scrolled(home), panel(p), homeLocationImage(nullptr), gpsPositionImage(nullptr), noTileImage(nullptr),
       service(new TileService(s)), objectsOnMap(0)
 {
-    assert(lv_obj_is_valid(p));
-    lv_obj_update_layout(panel);
-    widthPixel = lv_obj_get_width(panel);
-    heightPixel = lv_obj_get_height(panel);
-    ILOG_DEBUG("panel size: %dx%d", widthPixel, heightPixel);
+    if (p) {
+        lv_obj_update_layout(panel);
+        widthPixel = lv_obj_get_width(panel);
+        heightPixel = lv_obj_get_height(panel);
+        ILOG_DEBUG("panel size: %dx%d", widthPixel, heightPixel);
+    } else {
+        widthPixel = 320;
+        heightPixel = 240;
+    }
 
     extern OSMTiles<lv_obj_t> *osm;
     osm = OSMTiles<lv_obj_t>::create([this](const char *name, void *img) -> bool { return service->load(name, img); });
@@ -26,24 +31,35 @@ MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
  */
 void MapPanel::redraw(void)
 {
-    static bool done = false;
     static int16_t x = INT16_MAX;
     static int16_t y = INT16_MAX;
 
     if (needsRedraw) {
         needsRedraw = false;
-        done = false;
+        redrawCompleted = false;
         x = 0;
         y = 0;
         tiles.clear();
     }
 
-    if (done)
+    if (redrawCompleted)
         return;
 
+    int16_t size = MapTileSettings::getTileSize();
+#if defined(MAP_FULL_REDRAW)
+    for (int x = 0; x < tilesX; x++) {
+        for (int y = 0; y < tilesY; y++) {
+            uint32_t hash = ((xStart + x) << 16) | (yStart + y);
+            tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
+            tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
+        }
+    }
+    redrawCompleted = true;
+    drawLocation();
+    drawObjects();
+#else // incremental redraw
     for (int i = 0; i < tilesY; i++) {
         if (x < tilesX && y < tilesY) {
-            int16_t size = MapTileSettings::getTileSize();
             uint32_t hash = ((xStart + x) << 16) | (yStart + y);
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
             tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
@@ -53,13 +69,14 @@ void MapPanel::redraw(void)
                 x = 0;
                 y++;
                 if (y >= tilesY) {
-                    done = true;
+                    redrawCompleted = true;
                     drawLocation();
                     drawObjects();
                 }
             }
         }
     }
+#endif
 }
 
 /**
@@ -89,10 +106,12 @@ void MapPanel::drawLocation(void)
             lv_obj_add_flag(homeLocationImage, LV_OBJ_FLAG_HIDDEN);
         }
     }
-    char buf[30];
-    sprintf(buf, "%0.4f %0.4f", scrolled.latitude, scrolled.longitude);
-    lv_label_set_text(objects.map_location_label, buf);
-    lv_obj_move_foreground(objects.map_location_label);
+    if (objects.map_location_label) {
+        char buf[30];
+        sprintf(buf, "%0.4f %0.4f", scrolled.latitude, scrolled.longitude);
+        lv_label_set_text(objects.map_location_label, buf);
+        lv_obj_move_foreground(objects.map_location_label);
+    }
 }
 
 /**
@@ -176,8 +195,7 @@ void MapPanel::setGpsPosition(float lat, float lon)
 {
     current = GeoPoint(lat, lon, MapTileSettings::getZoomLevel());
     if (locked) {
-        scrolled = current;
-        center();
+        moveCurrent();
     } else {
         drawLocation();
     }
@@ -220,7 +238,7 @@ void MapPanel::setLocked(bool lock)
 /**
  * move map in direction x/y -1, 0, 1 by fraction of panel width but not more than tile size
  */
-void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
+bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
 {
     int16_t size = MapTileSettings::getTileSize();
     int16_t scrollX, scrollY;
@@ -241,7 +259,7 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
     if ((xStart == 0 && scrollX > 0) || (yStart == 0 && scrollY > 0) ||
         (xStart + tilesX > (uint32_t)pow(2, MapTileSettings::getZoomLevel()) && scrollX < 0) ||
         (yStart + tilesY > (uint32_t)pow(2, MapTileSettings::getZoomLevel()) && scrollY < 0)) {
-        return;
+        return false;
     }
 
     // check if the scrolling requires new tiles at the beginning row or column
@@ -250,19 +268,19 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
         MapTile &tile00 = *sit->second;
         if (tile00.getX() + scrollX > 0) {
             if (xStart == 0)
-                return;
+                return false;
             xStart--;
             tilesX++;
         }
         if (tile00.getY() + scrollY > 0) {
             if (yStart == 0)
-                return;
+                return false;
             yStart--;
             tilesY++;
         }
     } else {
         ILOG_ERROR("scroll: start tile %d/%d missing", xStart, yStart);
-        return;
+        return false;
     }
     // check if scrolling requires new tiles at the ending row or column
     auto eit = tiles.find(((xStart + tilesX - 1) << 16) | (yStart + tilesY - 1));
@@ -276,7 +294,7 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
         }
     } else {
         ILOG_ERROR("scroll: end tile %d/%d missing", xStart + tilesX - 1, yStart + tilesY - 1);
-        return;
+        return false;
     }
 
     // calculate new x/y offset of the first entirely visible tile
@@ -309,11 +327,11 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
                 // create new tiles at panel pos x/y
                 int16_t xpos = x * size + xOffset;
                 int16_t ypos = y * size + yOffset;
-                if ((x == 0 && xpos >= 0) || (x == tilesX - 1 && xpos >= widthPixel)) {
+                if ((x == 0 && xpos > 0) || (x == tilesX - 1 && xpos >= widthPixel)) {
                     xpos -= size;
                     xOffset -= size;
                 }
-                if ((y == 0 && ypos >= 0) || (y == tilesY - 1 && ypos >= heightPixel)) {
+                if ((y == 0 && ypos > 0) || (y == tilesY - 1 && ypos >= heightPixel)) {
                     ypos -= size;
                     yOffset -= size;
                 }
@@ -364,12 +382,15 @@ void MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
     if (changeYtiles)
         tilesY--;
 
-    if (tilesX * tilesY != tiles.size())
-        ILOG_ERROR("tile size mismatch: %d*%d != %d", tilesX, tilesY, tiles.size());
-
     scrolled.move(scrollX, scrollY);
     drawLocation();
     drawObjects();
+
+    if (tilesX * tilesY != tiles.size()) {
+        ILOG_ERROR("tile size mismatch: %d*%d != %d", tilesX, tilesY, tiles.size());
+        return false;
+    }
+    return true;
 }
 
 void MapPanel::add(uint32_t id, float lat, float lon, DrawCallback drawCB)
@@ -425,3 +446,21 @@ MapPanel::~MapPanel(void)
 {
     delete service;
 }
+
+#ifdef UNIT_TEST
+#include "sstream"
+void MapPanel::printTiles(void)
+{
+    std::stringstream ss;
+    for (int x = 0; x < tilesX; x++) {
+        for (int y = 0; y < tilesY; y++) {
+            uint32_t hash = ((xStart + x) << 16) | (yStart + y);
+            ss << x << "/" << y << ": "
+               << "(" << (uint32_t)MapTileSettings::getZoomLevel() << "/" << tiles[hash].get()->xTile << "/"
+               << tiles[hash].get()->yTile << ") - " << tiles[hash].get()->xPos << "/" << tiles[hash].get()->yPos << " ==> "
+               << tiles[hash].get()->getX() << "/" << tiles[hash].get()->getY() << std::endl;
+        }
+    }
+    ILOG_DEBUG("tiles: %d\n%s", tiles.size(), ss.str().c_str());
+}
+#endif

@@ -28,7 +28,7 @@ class GeoPoint
     GeoPoint(uint32_t xtile, uint32_t ytile, uint8_t zoom) : xPos(0), yPos(0), xTile(xtile), yTile(ytile), zoomLevel(zoom)
     {
         // not used in any scenario yet; so comment out for now
-        // reverse calculate from tile x/y/z back to lat/long (upper left corner 0/0)
+        // reverse calculate from tile x/y/z back to lat/lon (upper left corner 0/0)
         // auto n = 1 << zoom;
         // longitude = FLOATING_POINT(xTile) / n * FLOATING_POINT(360.0) - FLOATING_POINT(180.0);
         // latitude = FLOATING_POINT(180.0) / FLOATING_POINT(PI) *
