@@ -15,6 +15,7 @@ endif()
 
 option(ENABLE_DOCTESTS "Include tests in the library. Setting this to OFF will remove all doctest related code.
                         Tests in tests/*.cpp will still be enabled." ${MAIN_PROJECT})
+option(ENABLE_DEBUG_LOG "Enable debug log" OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL ON) # with newer cmake versions put all find_package in global scope
@@ -33,10 +34,6 @@ add_compile_definitions(ARDUINO)
 add_compile_definitions(VIEW_320x240)
 add_compile_definitions(USE_X11=1)
 
-if(ENABLE_DOCTESTS)
-    add_compile_definitions(UNIT_TEST)
-endif()
-
 include(FetchContent)
 include(Portduino)
 include(LovyanGFX)
@@ -45,17 +42,12 @@ include(protobuf)
 include(nanopb)
 include(Doctest)
 
-# Manually set the Doctest include directory if not set by the Doctest module
-if(NOT DEFINED DOCTEST_INCLUDE_DIR)
-    set(DOCTEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/path/to/doctest) # Adjust the path as necessary
-endif()
-
 file(GLOB_RECURSE sources      source/* generated/* portduino/* locale/* generated/${GENERATED_VIEW}/*)
 file(GLOB_RECURSE sources_test tests/*.cpp)
 
 add_library(DeviceUI ${sources})
 target_link_libraries(DeviceUI PRIVATE lvgl::lvgl LovyanGFX Portduino Protobufs)
-target_compile_options(DeviceUI PUBLIC -Wall -Wfloat-conversion)
+target_compile_options(DeviceUI PUBLIC -Wall -Wno-format -Wfloat-conversion)
 
 target_include_directories(DeviceUI PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(DeviceUI PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -66,6 +58,10 @@ target_include_directories(DeviceUI PRIVATE ${GENERATED_FILES_DIR} ${CMAKE_CURRE
 
 if(ENABLE_DOCTESTS)
     target_include_directories(DeviceUI PRIVATE ${doctest_SOURCE_DIR})
+    target_compile_definitions(DeviceUI PRIVATE UNIT_TEST)
+    if(ENABLE_DEBUG_LOG)
+        target_compile_definitions(DeviceUI PRIVATE DEBUG_UNIT_TEST)
+    endif()
 endif()
 
 #

@@ -26,8 +26,8 @@ class TileService : public ITileService
 {
   public:
     TileService(ITileService *s) : ITileService(""), service(s) {}
-    void setService(ITileService *s);
-    void setBackupService(ITileService *s);
+    virtual void setService(ITileService *s);
+    virtual void setBackupService(ITileService *s);
 
     bool load(const char *name, void *img) override
     {
