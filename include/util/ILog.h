@@ -42,6 +42,39 @@ class ILog
 #define ILOG_CRIT(...) LOG_CRIT("[DeviceUI] " __VA_ARGS__)
 #define ILOG_TRACE(...) LOG_TRACE("[DeviceUI] " __VA_ARGS__)
 
+#elif defined(DEBUG_UNIT_TEST)
+#include <cstdio>
+#define ILOG_DEBUG(...)                                                                                                          \
+    {                                                                                                                            \
+        printf("DEBUG " __VA_ARGS__);                                                                                            \
+        printf("\n");                                                                                                            \
+    }
+#define ILOG_INFO(...)                                                                                                           \
+    {                                                                                                                            \
+        printf("INFO  " __VA_ARGS__);                                                                                            \
+        printf("\n");                                                                                                            \
+    }
+#define ILOG_WARN(...)                                                                                                           \
+    {                                                                                                                            \
+        printf("WARN  " __VA_ARGS__);                                                                                            \
+        printf("\n");                                                                                                            \
+    }
+#define ILOG_ERROR(...)                                                                                                          \
+    {                                                                                                                            \
+        printf("ERROR " __VA_ARGS__);                                                                                            \
+        printf("\n");                                                                                                            \
+    }
+#define ILOG_CRIT(...)                                                                                                           \
+    {                                                                                                                            \
+        printf("CRIT  " __VA_ARGS__);                                                                                            \
+        printf("\n");                                                                                                            \
+    }
+#define ILOG_TRACE(...)                                                                                                          \
+    {                                                                                                                            \
+        printf("TRACE " __VA_ARGS__);                                                                                            \
+        printf("\n");                                                                                                            \
+    }
+
 #else // no logging
 
 #define ILOG_DEBUG(...)
