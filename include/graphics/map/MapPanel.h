@@ -39,7 +39,7 @@ class MapPanel
     // set new home position
     void setHomeLocation(float lat, float lon);
     void setGpsPosition(float lat, float lon);
-    void scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction = 3); // -1, 0, +1, 1/3
+    bool scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction = 3); // -1, 0, +1, 1/3
     void moveHome(bool zoomDefault = true);
     void moveCurrent(void);
     // placing objects (uses *user_data as internal reference!)
@@ -52,6 +52,9 @@ class MapPanel
     void setGpsPositionImage(lv_obj_t *img);
     void setNoTileImage(const lv_image_dsc_t *img_src);
     void forceRedraw(void) { needsRedraw = true; }
+    bool redrawComplete(void) { return redrawCompleted; }
+    // for debugging
+    void printTiles(void);
     // must be called for incremental drawing of all changes
     void task_handler(void);
     ~MapPanel(void);
@@ -70,6 +73,7 @@ class MapPanel
     void drawObject(const MapObject &obj);
 
     bool needsRedraw = false;
+    bool redrawCompleted = true;
     bool locked = false; // map follows GPS location
 
     int16_t widthPixel;  // visible panel width
