@@ -2215,7 +2215,8 @@ void TFTView_320x240::ui_event_arrow(lv_event_t *e)
         default:
             break;
         };
-        THIS->map->scroll(deltaX, deltaY);
+        if (!THIS->map->scroll(deltaX, deltaY))
+            THIS->map->forceRedraw();
     }
     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
 }
