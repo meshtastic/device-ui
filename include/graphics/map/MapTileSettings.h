@@ -34,7 +34,8 @@ class MapTileSettings
     static void setTileStyle(const char *p)
     {
         strcpy(tileStyle, p);
-        if (tileStyle[strlen(tileStyle) - 1] != '/')
+        size_t len = strlen(tileStyle);
+        if (len > 0 && tileStyle[len - 1] != '/')
             strcat(tileStyle, "/");
     }
 
