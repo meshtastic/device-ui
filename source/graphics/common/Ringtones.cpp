@@ -3,6 +3,13 @@
 const Rtttl ringtone[] = {
     {"Silent", "Silent:"},
     {"Default", "24:d=32,o=5,b=565:f6,p,f6,4p,p,f6,p,f6,2p,p,b6,p,b6,p,b6,p,b6,p,b,p,b,p,b,p,b,p,b,p,b,p,b,p,b,1p.,2p.,p,"},
+    {"Note", "Note:d=16,o=5,b=120:g6,32p,g5"},
+    {"Beat", "Beat:d=16,o=4,b=120:c,g,c,g"},
+    {"Bulp", "Bulp:d=16,o=4,b=225:c,e,g,c5"},
+    {"TockTock", "Tock:d=16,o=4,b=140:c,p,c,p"},
+    {"HighPulse", "HighPulse:d=16,o=4,b=225:e,d,g"},
+    {"LowPulse", "LowPulse:d=16,o=4,b=225:e,g,c"},
+    {"Peal", "Peal:d=16,o=5,b=200:g,c5,e5,g5,c5,e5,g5"},
     {"Text Alert", "TextAlert:d=16,o=7,b=225:e6,p,g6,p,e,p,c,p,d,p,2g"},
     {"Pager 1", "Pager1:d=16,o=5,b=200:d6,8p,d6,8p,f6,32p,d6"},
     {"Pager 2", "Pager2:d=16,o=6,b=160:8d,p,2d,p,8d,p,2d,p,8d,p,2d"},
@@ -52,6 +59,7 @@ const Rtttl ringtone[] = {
     {"Daft Funk", "DaFunk:d=16,o=5,b=200:2f6,8d#6,8f6,8g#6,2c6,8p,8a#,8c6,8d#6,2g#,8p,8g,8g#,8c6,2f,4g,4g#"},
     {"Highway", "HighwayT:d=8,o=5,b=180:32p,d#,d#,4d#,2p,c,c,4c#,2p,c,c,c#,c,c,c#,c,d#,4d#"},
     {"Intermission", "Intermis:d=4,o=6,b=180:d,d5,p,d5,2f5,d,d5,p,d5,2g5,d,d5,p,d5,2d_5,2c"},
-};
+    {"Rick", "Rick:d=4,o=5,b=200:8g,8a,8c6,8a,e6,8p,d6,8p,c6,8b,a.,8g,8a,8c6,8a,2c6,d6,b,a,g.,8p,g,2d6,2c6.,8g,8a,8c6,8a,e6,8p,"
+             "d6,8p,c6,8b,a.,8g,8a,8c6,8a,2c6"}};
 
 const int numRingtones = sizeof(ringtone) / sizeof(Rtttl);
