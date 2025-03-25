@@ -299,7 +299,7 @@
     *LV_LOG_LEVEL_USER        Only logs added by the user
     *LV_LOG_LEVEL_NONE        Do not log anything*/
 
-    #define LV_LOG_LEVEL LV_LOG_LEVEL_ERROR
+    #define LV_LOG_LEVEL LV_LOG_LEVEL_WARN
 
     /*1: Print the log with 'printf';
     *0: User need to register a callback with `lv_log_register_print_cb()`*/
@@ -312,7 +312,7 @@
 
     /*1: Enable print timestamp;
      *0: Disable print timestamp*/
-    #define LV_LOG_USE_TIMESTAMP 0
+    #define LV_LOG_USE_TIMESTAMP 1
 
     /*1: Print file and line number of the log;
      *0: Do not print file and line number of the log*/
@@ -320,12 +320,12 @@
 
 
     /*Enable/disable LV_LOG_TRACE in modules that produces a huge number of logs*/
-    #define LV_LOG_TRACE_MEM        1
+    #define LV_LOG_TRACE_MEM        0
     #define LV_LOG_TRACE_TIMER      0
     #define LV_LOG_TRACE_INDEV      0
     #define LV_LOG_TRACE_DISP_REFR  0
-    #define LV_LOG_TRACE_EVENT      1
-    #define LV_LOG_TRACE_OBJ_CREATE 1
+    #define LV_LOG_TRACE_EVENT      0
+    #define LV_LOG_TRACE_OBJ_CREATE 0
     #define LV_LOG_TRACE_LAYOUT     0
     #define LV_LOG_TRACE_ANIM       0
     #define LV_LOG_TRACE_CACHE      1
@@ -377,7 +377,9 @@
  *Used by image decoders such as `lv_lodepng` to keep the decoded image in the memory.
  *If size is not set to 0, the decoder will fail to decode when the cache is full.
  *If size is 0, the cache function is not enabled and the decoded mem will be released immediately after use.*/
-#define LV_CACHE_DEF_SIZE       1000000
+#ifndef LV_CACHE_DEF_SIZE
+#define LV_CACHE_DEF_SIZE       1572864 /* 6 tiles a 192kB */
+#endif
 
 /*Default number of image header cache entries. The cache is used to store the headers of images
  *The main logic is like `LV_CACHE_DEF_SIZE` but for image headers.*/
@@ -719,7 +721,7 @@
 /*File system interfaces for common APIs */
 
 /*Setting a default driver letter allows skipping the driver prefix in filepaths*/
-#define LV_FS_DEFAULT_DRIVE_LETTER '\0'
+#define LV_FS_DEFAULT_DRIVER_LETTER '\0'
 
 /*API for fopen, fread, etc*/
 #define LV_USE_FS_STDIO 0

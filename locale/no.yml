@@ -2,8 +2,8 @@ no:
   no new messages: Ingen nye meldinger
   1 of 1 nodes online: 1 av 1 noder online
   'uptime 00:00:00': oppetid 00:00:00
-  'Heap: 0\nLVGL: 0': ~
-  DEL: ~
+  'Heap: 0\nLVGL: 0': 'Heap: 0\nLVGL: 0'
+  DEL: SLETT
   'User name: ': 'Brukernavn: '
   'Modem Preset: LONG FAST': 'Modem innstilling: LONG FAST'
   'Channel: LongFast': 'Kanal: LongFast'
@@ -24,7 +24,7 @@ no:
   Neighbors: Naboer
   Statistics: Statistikk
   Packet Log: Pakke-logg
-  Meshtastic: ~
+  Meshtastic: Meshtastic
   Group Channels: Kanaler
   no messages: ingen meldinger
   Settings & Tools: Innstillinger & Verktøy
@@ -84,17 +84,17 @@ no:
   Offline: Frakoblet
   Public Key: Offentlig nøkkel
   Hops away: Hopp bort
-  MQTT: ~
+  MQTT: MQTT
   Position: Posisjon
   Name: Navn
   Active Chat: Aktiv Chat
   Telemetry: Telemetri
-  IAQ: ~
+  IAQ: IAQ
   Start: Kjør
   "New Message from\n": |
     Ny melding fra
   Resync...: Synkroniser om...
-  OK: ~
+  OK: OK
   Cancel: Avbryt
   'FrequencySlot: %d (%g MHz)': 'Frekvensplass: %d (%g MHz)'
   'Brightness: %d%%': 'Lysstyrke: %d%%'
@@ -124,7 +124,7 @@ no:
   'on': på
   'off': av
   'Message Alert: %s': 'Meldingsvarsling: %s'
-  Util %0.1f%%  Air %0.1f%%: ~
+  Util %0.1f%%  Air %0.1f%%: Utnyttelse %0.1f%%  Luft %0.1f%%
   'hops: %d': 'hopp: %d'
   unknown: ukjent
   <no name>: <ingen navn>
@@ -144,9 +144,9 @@ no:
   '%d new message': '%d ny melding'
   '%d new messages': '%d nye meldinger'
   'uptime: %02d:%02d:%02d': 'oppetid: %02d:%02d:%02d'
-  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': ~
+  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': 'Heap: %d (%d%%)\nLVGL: %d (%d%%)'
   Tools: Verktøy
-  Filter: ~
+  Filter: Filter
   Highlight: Marker
   Settings: Innstillinger
   Primary Channel: Hovedkanal
@@ -154,23 +154,38 @@ no:
   Resync ...: Synkroniserer ...
   Rebooting ...: Starter på nytt ...
   Shutting down ...: Skrur av ...
-  LoRa 0.0 MHz: ~
+  LoRa 0.0 MHz: LoRa 0.0 MHz
   silent: stille
   'WiFi: <not setup>': 'WiFi: <ingen innstilling>'
   'Lock: off/off': 'Lås: av/av'
   LoRa TX off!: LoRa TX avskrudd!
-  WiFi SSID: ~
+  WiFi SSID: WiFi SSID
   WiFi pre-shared Key: WiFi passord
   Settings Lock: Innstillingslås
   'Lock: %s/%s': 'Lås: %s/%s'
   Enter Text ...: Tekst ...
   '!Enter Filter ...': '!Filter ...'
   Enter Filter ...: Filter ...
-  'WiFi: %s': ~
+  'WiFi: %s': 'WiFi: %s'
   <not set>: <ikke satt>
   region unset: ingen region
   Banner & Sound: Banner & Lyd
   Banner only: Bare banner
   Sound only: Bare lyd
   no signal: ingen signal
-  Restoring messages ...: ~
+  Restoring messages ...: Gjenoppretter meldinger ...
+  no SD card detected: ingen SD kort funnet
+  map tiles not found!: ingen kartdata funnet!
+  No map tiles found: Ingen kartdata funnet
+  Backup & Restore: Sikkerhetskopi og gjenopprett
+  Backup: Sikkerhetskopi
+  Restore: Gjenopprett
+  Public/Private Key: Åpen/Privat nøkkel
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "Nullstill NodeDB\nFabrikkinnstillinger\nSlett meldingshistorikk"
+  Please set region and name: Sett region og navn
+  '>> Programming mode <<': '>> Programerings-modus <<'
+  Failed to write keys!: Skrive nøkler feilet!
+  Failed to restore keys!: Gjenoppretting av nøkler feilet!
+  Failed to parse keys!: Analysering av nøkler feilet!
+  Failed to retrieve keys!: Mottak av nøkler feilet!
+  "%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)": "%s: %d GB (%s)\nBrukt: %0.2f GB (%d%%)"

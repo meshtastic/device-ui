@@ -24,6 +24,8 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
 {
     x = posx;
     y = posy;
+    if (!p)
+        return false;
     removeImage();
     img = lv_image_create(p);
     lv_obj_set_pos(img, posx, posy);
@@ -76,7 +78,8 @@ bool MapTile::move(int16_t posx, int16_t posy)
 {
     x += posx;
     y += posy;
-    lv_obj_set_pos(img, x, y);
+    if (img)
+        lv_obj_set_pos(img, x, y);
     if (MapTileSettings::getDebug()) {
         lv_label_set_text_fmt(lbl, "(%d/%d/%d) -> %d,%d", MapTileSettings::getZoomLevel(), xTile, yTile, x, y);
     }

@@ -2,7 +2,7 @@
 # To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
 version: 0.1
 cli:
-  version: 1.22.10
+  version: 1.22.11
 plugins:
   sources:
     - id: trunk
@@ -17,16 +17,16 @@ runtimes:
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
-    - trufflehog@3.88.12
-    - yamllint@1.35.1
+    - trufflehog@3.88.18
+    - yamllint@1.36.2
     - bandit@1.8.3
-    - checkov@3.2.372
+    - checkov@3.2.390
     - terrascan@1.19.9
-    - trivy@0.59.1
+    - trivy@0.60.0
     #- trufflehog@3.63.2-rc0
     - taplo@0.9.3
-    - ruff@0.9.7
-    - isort@6.0.0
+    - ruff@0.11.1
+    - isort@6.0.1
     - markdownlint@0.44.0
     - oxipng@9.1.4
     - svgo@3.3.2
@@ -39,12 +39,14 @@ lint:
     - git-diff-check
     - gitleaks@8.24.0
     - clang-format@16.0.3
-    - prettier@3.5.1
+    - prettier@3.5.3
   ignore:
     - linters: [ALL]
       paths:
         # Ignore generated files
         - generated/**
+        # Ignore "special" platformio Python script
+        - extra_script.py
 actions:
   disabled:
     - trunk-announce

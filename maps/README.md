@@ -12,13 +12,12 @@ find maps -name "*.png" -exec mogrify -colors 256 -depth 8  +dither -define png:
 
 ## Installing
 
-Prepare a SDCard < 32GB and format it with Fat32 preferrably with the SD formatting tool provided by [www.sdcard.org](https://www.sdcard.org/downloads/).
+Prepare a SDCard and format it with the SD formatting tool provided by [www.sdcard.org](https://www.sdcard.org/downloads/).
 
-For now, if your card has a bigger size you'll need to create a ~30GB partition and format it to Fat32 with your OS. exFat is not yet supported but is being worked on.
+Unzip the contents of the zip file(s) into the SD card's root folder retaining the subfolder structure `/maps/<style>/z/x/y`.
 
-Unzip the contents of the zip file(s) into the SD card's root folder retaining the subfolder structure `/maps/\<style\>/z/x/y`.
-
-Insert the SD card into the MUI device and switch it on. On MUI's home screen you can check if the card is detected properly: scroll down to the SD card image button where you'll find information about the size and used space of the SD card.
+Insert the SD card into the MUI device. On MUI's home screen you can check if the card is detected properly: scroll down to the SD card image, press the button and you'll find information about the total size, file system format, and used space of the SD card. 
+<br>Note: whenever you remove or insert the SD card you should press the button afterwards to get a consistent state.
 
 Pressing on the Map button in the main button bar will open the map panel and show the surrounding area of where you are positioned according your GPS, or near other nodes with position, or at your saved home position, or at a default location. In case you see only empty tiles which may be the case when you have not yet downloaded detailed map tiles for your location, zoom out to at least level 6 which will then load the tiles on your SD card.
 
