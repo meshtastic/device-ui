@@ -36,11 +36,16 @@ class LGFX_Touch : public lgfx::LGFX_Device
 
     bool getTouchXY(uint16_t *touchX, uint16_t *touchY)
     {
+        char stackProtector1[32];
         TOUCHINFO ti;
-        if (bbct.getSamples(&ti) && (ti.x[0] || ti.y[0]) && ti.x[0] < 480 && ti.y[0] < 480) {
-            *touchX = ti.x[0];
-            *touchY = ti.y[0];
-            return true;
+        char stackProtector2[32];
+
+        if (bbct.getSamples(&ti)) {
+            if ((ti.x[0] || ti.y[0]) && ti.x[0] < 480 && ti.y[0] < 480) {
+                *touchX = ti.x[0];
+                *touchY = ti.y[0];
+                return true;
+            }
         }
         return false;
     };
