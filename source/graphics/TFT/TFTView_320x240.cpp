@@ -4915,7 +4915,8 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::PositionRequest) {
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             }
-        } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL) {
+        } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL ||
+                   routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY) {
             if (req.type == ResponseHandler::TextMessageRequest) {
                 handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
                 // we probably have a wrong key; mark it as bad and don't use in future
