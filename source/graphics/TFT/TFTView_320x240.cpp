@@ -838,6 +838,11 @@ void TFTView_320x240::timer_event_programming_mode(lv_timer_t *timer)
 {
     if (THIS->state == eBooting)
         THIS->state = MeshtasticView::eBootScreenDone;
+    else if (THIS->state == eHoldingBootLogo) {
+        lv_obj_add_flag(objects.boot_logo_arc, LV_OBJ_FLAG_HIDDEN);
+        THIS->state = MeshtasticView::eEnterProgrammingMode;
+        THIS->enterProgrammingMode();
+    }
     lv_obj_remove_event_cb(objects.boot_logo_button, ui_event_LogoButton);
 }
 
@@ -856,6 +861,7 @@ void TFTView_320x240::ui_event_LogoButton(lv_event_t *e)
             THIS->state = MeshtasticView::eEnterProgrammingMode;
             THIS->enterProgrammingMode();
         } else {
+            lv_obj_add_flag(objects.boot_logo_arc, LV_OBJ_FLAG_HIDDEN);
             THIS->state = MeshtasticView::eBootScreenDone;
         }
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
@@ -5793,7 +5799,7 @@ void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothCon
         ownNode = id;
     }
 
-    if (state <= MeshtasticView::eProgrammingMode && state != MeshtasticView::eWaitingForReboot) {
+    if (state <= MeshtasticView::eBootScreenDone && state != MeshtasticView::eWaitingForReboot) {
         enterProgrammingMode();
     }
 }
