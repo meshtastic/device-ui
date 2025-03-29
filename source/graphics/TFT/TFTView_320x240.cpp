@@ -170,7 +170,14 @@ void TFTView_320x240::init(IClientBase *client)
     ui_init_boot();
     FileLoader::init(&fileSystem);
     FileLoader::loadBootImage(objects.boot_logo);
-    lv_label_set_text(objects.firmware_label, firmware_version);
+    // if boot logo is too big remove the label and center the image
+    lv_obj_update_layout(objects.boot_logo);
+    if (lv_obj_get_height(objects.boot_logo) > lv_display_get_vertical_resolution(displaydriver->getDisplay()) / 2) {
+        lv_obj_set_pos(objects.boot_logo, 0, 0);
+        lv_obj_add_flag(objects.firmware_label, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_label_set_text(objects.firmware_label, firmware_version);
+    }
 
     time(&lastrun60);
     time(&lastrun10);
@@ -2163,6 +2170,23 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
     lv_obj_t *panel = THIS->nodes[nodeNum];
     THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
     lv_obj_scroll_to_view(panel, LV_ANIM_ON);
+    if (panel != currentPanel)
+        ui_event_NodeButton(e);
+}
+
+void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
+{
+    // navigate to position in map
+    lv_obj_t *p = (lv_obj_t *)e->user_data;
+    int32_t lat = (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
+    int32_t lon = (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
+    if (lat && lon) {
+        THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
+        if (!THIS->map) {
+            THIS->loadMap();
+        }
+        THIS->map->setScrolledPosition(lat * 1e-7, lon * 1e-7);
+    }
 }
 
 void TFTView_320x240::ui_screen_event_cb(lv_event_t *e)
@@ -2293,6 +2317,8 @@ void TFTView_320x240::loadMap(void)
         map = new MapPanel(objects.raw_map_panel);
 #endif
         map->setHomeLocationImage(objects.home_location_image);
+        lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(objects.home_location_image, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)ownNode);
 
         // center map to GPS > home > other nodes > default location
         if (db.config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
@@ -2368,6 +2394,7 @@ void TFTView_320x240::loadMap(void)
                 float lat = 1e-7 * (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
                 float lon = 1e-7 * (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
                 map->add(it.first, lat, lon, drawObjectCB);
+                lv_obj_add_flag(it.second, LV_OBJ_FLAG_CLICKABLE);
                 lv_obj_add_event_cb(it.second, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)it.first);
             }
         }
@@ -2461,10 +2488,15 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
         lv_obj_t *p = nodes[nodeNum];
         lv_label_set_text_fmt(lbl, "%s", lv_label_get_text(p->LV_OBJ_IDX(node_lbs_idx)));
 
+        // position label callback
+        lv_obj_add_flag(p->LV_OBJ_IDX(node_pos1_idx), LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(p->LV_OBJ_IDX(node_pos1_idx), ui_event_positionButton, LV_EVENT_CLICKED, (void *)p);
+
         nodeObjects[nodeNum] = img;
         if (map) {
             map->add(nodeNum, lat * 1e-7, lon * 1e-7, drawObjectCB);
-            lv_obj_add_event_cb(img, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)p);
+            lv_obj_add_flag(img, LV_OBJ_FLAG_CLICKABLE);
+            lv_obj_add_event_cb(img, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
             updateLocationMap(map->getObjectsOnMap());
         }
     } else {
@@ -2485,6 +2517,7 @@ void TFTView_320x240::removeFromMap(uint32_t nodeNum)
         updateLocationMap(map->getObjectsOnMap());
     }
     nodeObjects.erase(nodeNum);
+    lv_obj_remove_event_cb(img, ui_event_mapNodeButton);
     lv_obj_delete(img);
 }
 

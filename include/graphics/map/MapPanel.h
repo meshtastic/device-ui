@@ -38,6 +38,7 @@ class MapPanel
     void getHomeLocation(float &lat, float &lon) const;
     // set new home position
     void setHomeLocation(float lat, float lon);
+    void setScrolledPosition(float lat, float lon);
     void setGpsPosition(float lat, float lon);
     bool scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction = 3); // -1, 0, +1, 1/3
     void moveHome(bool zoomDefault = true);
