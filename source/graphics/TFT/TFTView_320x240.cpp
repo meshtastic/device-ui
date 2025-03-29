@@ -16,6 +16,7 @@
 #include "lvgl_private.h"
 #include "styles.h"
 #include "ui.h"
+#include "util/FileLoader.h"
 #include "util/ILog.h"
 #include <algorithm>
 #include <cmath>
@@ -28,7 +29,15 @@
 #include <sstream>
 #include <time.h>
 
-#ifdef ARCH_PORTDUINO
+#if defined(ARCH_PORTDUINO)
+#include "PortduinoFS.h"
+fs::FS &fileSystem = PortduinoFS;
+#else
+#include "LittleFS.h"
+fs::FS &fileSystem = LittleFS;
+#endif
+
+#if defined(ARCH_PORTDUINO)
 #include "util/LinuxHelper.h"
 // #include "graphics/map/LinuxFileSystemService.h"
 #include "graphics/map/SDCardService.h"
@@ -159,6 +168,8 @@ void TFTView_320x240::init(IClientBase *client)
     MeshtasticView::init(client);
 
     ui_init_boot();
+    FileLoader::init(&fileSystem);
+    FileLoader::loadBootImage(objects.boot_logo);
     lv_label_set_text(objects.firmware_label, firmware_version);
 
     time(&lastrun60);
