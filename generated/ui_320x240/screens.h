@@ -75,6 +75,7 @@ typedef struct _objects_t {
     lv_obj_t *boot_logo_button;
     lv_obj_t *meshtastic_url;
     lv_obj_t *firmware_label;
+    lv_obj_t *boot_logo;
     lv_obj_t *bluetooth_button;
     lv_obj_t *reboot_panel;
     lv_obj_t *cancel_reboot_button;
@@ -551,7 +552,6 @@ enum ScreensEnum {
     SCREEN_ID_BLANK_SCREEN = 3,
     SCREEN_ID_LOCK_SCREEN = 4,
     SCREEN_ID_CALIBRATION_SCREEN = 5,
-    SCREEN_ID_OK_CANCEL_WIDGET = 6,
 };
 
 void create_screen_boot_screen();
@@ -572,8 +572,10 @@ void tick_screen_calibration_screen();
 void create_user_widget_ok_cancel_widget(lv_obj_t *parent_obj, int startWidgetIndex);
 void tick_user_widget_ok_cancel_widget(int startWidgetIndex);
 
-void create_screens();
+void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);
+
+void create_screens();
 
 
 #ifdef __cplusplus

@@ -87,6 +87,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
       - [x] Slovenian translation
       - [x] Turkish translation
       - [x] Greek translation
+      - [x] Ukrainian translation
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
     - [x] Allow co-existence of generated files/views by different eez-studio projects
@@ -101,7 +102,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 ### Meshtastic UI (general)
 
     - [x] Boot screen
-    - [ ] Customizable boot screen
+    - [x] Customizable boot screen
     - [x] Home Screen
       - [x] Messages info
       - [x] Nodes info
