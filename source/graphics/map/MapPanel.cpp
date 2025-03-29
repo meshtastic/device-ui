@@ -191,6 +191,12 @@ void MapPanel::setHomeLocation(float lat, float lon)
     center();
 }
 
+void MapPanel::setScrolledPosition(float lat, float lon)
+{
+    scrolled = GeoPoint(lat, lon, MapTileSettings::getZoomLevel());
+    center();
+}
+
 void MapPanel::setGpsPosition(float lat, float lon)
 {
     current = GeoPoint(lat, lon, MapTileSettings::getZoomLevel());
