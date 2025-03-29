@@ -170,7 +170,14 @@ void TFTView_320x240::init(IClientBase *client)
     ui_init_boot();
     FileLoader::init(&fileSystem);
     FileLoader::loadBootImage(objects.boot_logo);
-    lv_label_set_text(objects.firmware_label, firmware_version);
+    // if boot logo is too big remove the label and center the image
+    lv_obj_update_layout(objects.boot_logo);
+    if (lv_obj_get_height(objects.boot_logo) > lv_display_get_vertical_resolution(displaydriver->getDisplay()) / 2) {
+        lv_obj_set_pos(objects.boot_logo, 0, 0);
+        lv_obj_add_flag(objects.firmware_label, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_label_set_text(objects.firmware_label, firmware_version);
+    }
 
     time(&lastrun60);
     time(&lastrun10);
