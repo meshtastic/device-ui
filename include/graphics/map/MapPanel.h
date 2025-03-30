@@ -43,16 +43,17 @@ class MapPanel
     bool scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction = 3); // -1, 0, +1, 1/3
     void moveHome(bool zoomDefault = true);
     void moveCurrent(void);
-    // placing objects (uses *user_data as internal reference!)
+    // placing objects
     void add(uint32_t id, float lat, float lon, DrawCallback drawCB);
     void update(uint32_t id, float lat, float lon);
+    void update(uint32_t id, bool filtered);
     void remove(uint32_t id);
     uint32_t getObjectsOnMap(void) { return objectsOnMap; }
     // images
     void setHomeLocationImage(lv_obj_t *img);
     void setGpsPositionImage(lv_obj_t *img);
     void setNoTileImage(const lv_image_dsc_t *img_src);
-    void forceRedraw(void) { needsRedraw = true; }
+    void forceRedraw(bool onlyObjects = false);
     bool redrawComplete(void) { return redrawCompleted; }
     // for debugging
     void printTiles(void);
@@ -71,7 +72,7 @@ class MapPanel
     void redraw(void);
     void drawLocation(void);
     void drawObjects(void);
-    void drawObject(const MapObject &obj);
+    void drawObject(MapObject &obj);
 
     bool needsRedraw = false;
     bool redrawCompleted = true;

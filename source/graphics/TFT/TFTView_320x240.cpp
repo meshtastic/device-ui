@@ -929,6 +929,10 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
         if (filterNeedsUpdate) {
             THIS->updateNodesFiltered(true);
             THIS->updateNodesStatus();
+            lv_obj_scroll_to_view(objects.node_panel, LV_ANIM_ON);
+            if (THIS->map) {
+                THIS->map->forceRedraw(true);
+            }
             filterNeedsUpdate = false;
         }
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
@@ -2500,8 +2504,9 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
             updateLocationMap(map->getObjectsOnMap());
         }
     } else {
-        if (map)
+        if (map) {
             map->update(it->first, lat * 1e-7, lon * 1e-7);
+        }
     }
 }
 
@@ -5291,6 +5296,10 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
     } else {
         lv_obj_clear_flag(panel, LV_OBJ_FLAG_HIDDEN);
     }
+
+    // hide node location if filtered
+    if (map)
+        map->update(nodeNum, hide);
 
     bool highlight = false;
     if (true /*highlight.active*/) { // TODO

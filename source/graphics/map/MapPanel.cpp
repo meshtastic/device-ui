@@ -122,24 +122,30 @@ void MapPanel::drawObjects(void)
 {
     objectsOnMap = 0;
     for (auto &it : mapObjects) {
-        // check if object's tile is visible
-        MapObject &obj = *it.second;
-        obj.point.setZoom(MapTileSettings::getZoomLevel());
-        drawObject(obj);
+        drawObject(*it.second);
     }
 }
 
-void MapPanel::drawObject(const MapObject &obj)
+void MapPanel::drawObject(MapObject &obj)
 {
     if (obj.draw) {
-        auto tileIt = tiles.find(obj.point.xTile << 16 | obj.point.yTile);
-        if (tileIt != tiles.end()) {
-            MapTile &tile = *tileIt->second;
-            objectsOnMap++; // FIXME: counts also objects that are clipped away
-            obj.draw(obj.id, tile.getX() + obj.point.xPos, tile.getY() + obj.point.yPos, MapTileSettings::getZoomLevel());
-        } else {
-            obj.draw(obj.id, 0, 0, 0); // hide object
+        if (!obj.point.isFiltered) {
+            if (obj.point.zoomLevel != MapTileSettings::getZoomLevel()) {
+                obj.point.setZoom(MapTileSettings::getZoomLevel());
+            }
+            // check if object is in the visible tile area
+            auto tileIt = tiles.find(obj.point.xTile << 16 | obj.point.yTile);
+            if (tileIt != tiles.end()) {
+                MapTile &tile = *tileIt->second;
+                if (tile.getX() + obj.point.xPos >= 0 && tile.getX() + obj.point.xPos < widthPixel &&
+                    tile.getY() + obj.point.yPos >= 0 && tile.getY() + obj.point.yPos < heightPixel) {
+                    objectsOnMap++;
+                    obj.draw(obj.id, tile.getX() + obj.point.xPos, tile.getY() + obj.point.yPos, MapTileSettings::getZoomLevel());
+                    return;
+                }
+            }
         }
+        obj.draw(obj.id, 0, 0, 0); // hide object
     }
 }
 
@@ -422,6 +428,16 @@ void MapPanel::update(uint32_t id, float lat, float lon)
     drawObject(*it->second);
 }
 
+void MapPanel::update(uint32_t id, bool filtered)
+{
+    auto it = mapObjects.find(id);
+    if (it != mapObjects.end() && it->second->point.isFiltered != filtered) {
+        // only update if filter state changed
+        it->second->point.isFiltered = filtered;
+        drawObject(*it->second);
+    }
+}
+
 void MapPanel::remove(uint32_t id)
 {
     mapObjects.erase(id);
@@ -441,6 +457,16 @@ void MapPanel::setGpsPositionImage(lv_obj_t *img)
 void MapPanel::setNoTileImage(const lv_image_dsc_t *img_src)
 {
     noTileImage = img_src;
+}
+
+void MapPanel::forceRedraw(bool onlyObjects)
+{
+    if (onlyObjects) {
+        drawObjects();
+        drawLocation();
+    } else {
+        needsRedraw = true;
+    }
 }
 
 void MapPanel::task_handler(void)

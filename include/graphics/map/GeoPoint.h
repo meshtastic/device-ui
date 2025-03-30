@@ -55,7 +55,7 @@ class GeoPoint
         // ILOG_DEBUG("zoomed GeoPoint(%f, %f) %d/%d/%d (%d/%d)", latitude, longitude, zoom, xTile, yTile, xPos, yPos);
     }
 
-    // move the GeoPoint position by pixels and recalculate the resulting tile and new lat/long
+    // move the GeoPoint position by pixels and recalculate the resulting tile and new lat/lon
     void move(int16_t scrollX, int16_t scrollY)
     {
         // ILOG_DEBUG("move: tile offset: x: %d->%d, y: %d->%d pixel", xPos, xPos - scrollX, yPos, yPos - scrollY);
@@ -99,6 +99,7 @@ class GeoPoint
     uint32_t yTile;
     // level 0 (course) .. 18 (detail)
     uint8_t zoomLevel;
+    bool isFiltered = false;
 };
 
 #ifdef UNIT_TEST
