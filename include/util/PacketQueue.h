@@ -1,11 +1,39 @@
 #pragma once
 
+#include <thread>
+
 #include <memory>
-#include <mutex>
 #include <queue>
 
+#ifdef PICO_RP2350
+#include "pico/mutex.h"
+#define MUTEX_ENTER(x) mutex_enter_blocking(&x)
+#define MUTEX_EXIT(x) mutex_exit(&x);
+#define MUTEX_CREATE(x) mutex_t x
+#define MUTEX_INIT(x) mutex_init(&x)
+#define MUTEX_LOCK(x) mutex_lock(&x)
+#define MUTEX_UNLOCK(x) mutex_unlock(&x)
+#define MUTEX_TRY_LOCK(x) mutex_try_lock(&x)
+#define MUTEX_TYPE mutex_t
+#define CONDITION_VARIABLE_CREATE(x) pico_condvar_t x
+#else
+#include <mutex>
+#define MUTEX_ENTER(x) std::lock_guard<std::mutex> lock(x)
+#define MUTEX_CREATE(x) std::mutex x
+#define MUTEX_INIT(x)
+#define MUTEX_LOCK(x) x.lock()
+#define MUTEX_UNLOCK(x) x.unlock()
+#define MUTEX_TRY_LOCK(x) x.try_lock()
+#define MUTEX_TYPE std::mutex
+#define CONDITION_VARIABLE_CREATE(x) std::condition_variable x
+#endif
+
 #ifdef BLOCKING_PACKET_QUEUE
+#ifdef PICO_RP2350
+#include "pico/condition_variable.h"
+#else
 #include <condition_variable>
+#endif
 #endif
 
 /**
@@ -15,7 +43,7 @@
 template <typename T> class PacketQueue
 {
   public:
-    PacketQueue() {}
+    PacketQueue() { MUTEX_INIT(mutex); }
 
     PacketQueue(PacketQueue const &other) = delete;
 
@@ -24,8 +52,9 @@ template <typename T> class PacketQueue
      */
     void push(T &&packet)
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        MUTEX_ENTER(mutex);
         queue.push(packet.move());
+        MUTEX_EXIT(mutex);
 #ifdef BLOCKING_PACKET_QUEUE
         cond.notify_one();
 #endif
@@ -50,22 +79,27 @@ template <typename T> class PacketQueue
      */
     std::unique_ptr<T> try_pop()
     {
-        std::lock_guard<std::mutex> lock(mutex);
-        if (queue.empty())
+        MUTEX_ENTER(mutex);
+        if (queue.empty()) {
+            MUTEX_EXIT(mutex);
             return {nullptr};
+        }
         auto packet = queue.front()->move();
         queue.pop();
+        MUTEX_EXIT(mutex);
         return packet;
     }
 
     uint32_t size() const
     {
-        std::lock_guard<std::mutex> lock(mutex);
-        return queue.size();
+        MUTEX_ENTER(mutex);
+        uint32_t size = queue.size();
+        MUTEX_EXIT(mutex);
+        return size;
     }
 
   private:
-    mutable std::mutex mutex;
+    mutable MUTEX_TYPE mutex;
     std::queue<std::unique_ptr<T>> queue;
 #ifdef BLOCKING_PACKET_QUEUE
     std::condition_variable cond;

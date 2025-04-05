@@ -37,7 +37,13 @@
 #endif
 
 #ifndef LGFX_CFG_HOST
+#ifdef ARCH_ESP32
 #define LGFX_CFG_HOST SPI3_HOST
+#elif defined(ARCH_RP2040)
+#define LGFX_CFG_HOST 1
+#else
+#define LGFX_CFG_HOST SPI
+#endif
 #endif
 
 #ifndef LGFX_SPI_3WIRE
@@ -217,11 +223,13 @@ class LGFX_GENERIC : public lgfx::LGFX_Device
             cfg.freq_write = SPI_FREQUENCY; // SPI clock for transmission (up to 80MHz, rounded to
                                             // the value obtained by dividing 80MHz by an integer)
             cfg.freq_read = 16000000;       // SPI clock when receiving
+#ifndef ARCH_RP2040
             cfg.spi_3wire = LGFX_SPI_3WIRE;
             cfg.use_lock = true;               // Set to true to use transaction locking
             cfg.dma_channel = SPI_DMA_CH_AUTO; // SPI_DMA_CH_AUTO; // Set DMA channel
                                                // to use (0=not use DMA / 1=1ch / 2=ch
                                                // / SPI_DMA_CH_AUTO=auto setting)
+#endif
             cfg.pin_sclk = LGFX_PIN_SCK;       // Set SPI SCLK pin number
             cfg.pin_mosi = LGFX_PIN_MOSI;      // Set SPI MOSI pin number
             cfg.pin_miso = LGFX_PIN_MISO;      // Set SPI MISO pin number (-1 = disable)

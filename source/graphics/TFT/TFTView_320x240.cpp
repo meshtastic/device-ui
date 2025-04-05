@@ -29,6 +29,12 @@
 #include <sstream>
 #include <time.h>
 
+#ifdef ARCH_RP2040
+extern "C" {
+  extern char *strcasestr(const char *haystack, const char *needle);
+}
+#endif
+
 #if defined(ARCH_PORTDUINO)
 #include "PortduinoFS.h"
 fs::FS &fileSystem = PortduinoFS;

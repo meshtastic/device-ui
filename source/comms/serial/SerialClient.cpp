@@ -8,7 +8,7 @@
 #include <assert.h>
 #endif
 
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
+#if defined(ARCH_ESP32)
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -28,7 +28,7 @@ SerialClient::SerialClient(void) : shutdown(false), connected(false), pb_size(0)
 void SerialClient::init(void)
 {
     ILOG_TRACE("SerialClient::init() creating serial task");
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
+#if defined(ARCH_ESP32)
     xTaskCreateUniversal(task_loop, "serial", 8192, NULL, 2, NULL, 0);
 #elif defined(ARCH_PORTDUINO)
     new std::thread([] { instance->task_loop(nullptr); });

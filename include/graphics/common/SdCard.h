@@ -15,6 +15,7 @@ extern SdFs SDFs;
 
 #include <set>
 #include <string>
+#include <cstdint>
 
 /**
  * SdCard adapter to define a common interface for SD and SdFs

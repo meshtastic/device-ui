@@ -2,6 +2,18 @@
 #include "util/ILog.h"
 #include <ctime>
 
+#if !defined(FILE_READ)
+#define FILE_READ "r"
+#endif
+
+#if !defined(FILE_WRITE)
+#define FILE_WRITE "w"
+#endif
+
+#if !defined(FILE_APPEND)
+#define FILE_APPEND "a"
+#endif
+
 #define FILE_PREFIX "log_"
 
 LogRotate::LogRotate(fs::FS &fs, const char *logDir, uint32_t maxLen, uint32_t maxSize, uint32_t maxFiles, uint32_t maxFileSize)
@@ -50,7 +62,7 @@ void LogRotate::init(void)
 bool LogRotate::readNext(ILogEntry &entry)
 {
     if (!rootDir) {
-        rootDir = _fs.open(rootDirName);
+        rootDir = _fs.open(rootDirName, FILE_READ);
         if (!rootDir)
             return false;
     }
@@ -115,7 +127,7 @@ bool LogRotate::write(const ILogEntry &entry)
 bool LogRotate::clear(void)
 {
     time_t start = millis();
-    File root = _fs.open(rootDirName);
+    File root = _fs.open(rootDirName, FILE_READ);
 
     int count = 0;
     bool error = false;
@@ -225,7 +237,7 @@ void LogRotate::scanLogDir(uint32_t &num, uint32_t &minLog, uint32_t &maxLog, ui
 
     ILOG_DEBUG("scanning log folder %s", rootDirName.c_str());
     if (!rootDir)
-        rootDir = _fs.open(rootDirName);
+        rootDir = _fs.open(rootDirName, FILE_READ);
     File file = rootDir.openNextFile();
     while (file) {
         if (!file.isDirectory()) {

@@ -2,6 +2,15 @@
 #include "lvgl_private.h"
 #include "util/ILog.h"
 
+#if !defined(FILE_READ)
+#define FILE_READ "r"
+#endif
+
+#if !defined(FILE_WRITE)
+#define FILE_WRITE "w"
+#endif
+
+
 fs::FS *FileLoader::_fs = nullptr;
 
 void FileLoader::init(fs::FS *fs)

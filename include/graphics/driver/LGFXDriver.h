@@ -399,7 +399,7 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
             break;
         case lgfx::v1::bus_spi: {
             auto cfg = static_cast<lgfx::Bus_SPI *>(lgfx->panel()->getBus())->config();
-#ifdef ARCH_PORTDUINO
+#if defined(ARCH_PORTDUINO) || defined(ARCH_RP2040)
             auto p = lgfx->panel();
             ILOG_DEBUG("Bus_SPI(%d): cs:%d, clk:%d, miso:%d, mosi:%d, dc:%d", cfg.spi_host, p->config().pin_cs, cfg.pin_sclk,
                        cfg.pin_miso, cfg.pin_mosi, cfg.pin_dc);
