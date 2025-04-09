@@ -27,13 +27,12 @@ Long pressing the Map button allows to choose between the map styles found on SD
 
 The map tiles are in .png format of size 256x256 pixel and zoom levels 1 - 20, where 1 represents the entire earth and 20 a mid-sized building.
 
-While there are preparations to provide a graphical tool for convenient downloading of map tiles one of MUI's sponsors Roberto (@droberin) has already adapted a python script for automated download of compatible map tiles using map raster tile APIs from different configurable providers. With this script you can extent the existing map styles by further zoom levels or download your favorite map styles according your preference.
-
-Python script link: https://gist.github.com/droberin/b333a216d860361e329e74f59f4af4ba
+A graphical tool for convenient downloading of further map tiles can be found here: [map-tile-downloader](https://github.com/mattdrum/map-tile-downloader)
+It provides an automated download of MUI compatible map tiles using map raster tile APIs from different configurable providers. With this downloader tool you can extent the existing map styles by further zoom levels or download your favorite map styles according your preference.
 
 Please read the instructions carefully and don't abuse the freely provided services.
 
-Note: when choosing a region for downloading tiles you're advised to adapt the zoom level from the outer part (e.g. level 6 - 8) to the center of the area of interest (e.g. level 15 or 16). The surrounding box is determined by two locations (lat/lon) SW / NE east of Greenwich, or NW / SE west of Greenwich, respectively, which are to be entered into the config of the downloader script. This way you can save a lot of time, space and credits.
+Note: when choosing a region for downloading tiles you're advised to adapt the zoom level from the outer part (e.g. level 6 - 8) to the center of the area of interest (e.g. level 15 or 16). This way you can save a lot of time, space and credits.
 
 <img src="../docs/tile_pyramid.png" alt="Tile Zoom Levels">
 
