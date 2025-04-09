@@ -1442,9 +1442,14 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         uint32_t keyBtnIdx = (unsigned long)e->user_data;
         switch (keyBtnIdx) {
         case 0:
-            THIS->showKeyboard(objects.message_input_area);
+            if (lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+                lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+                THIS->showKeyboard(objects.message_input_area);
+            } else {
+                THIS->hideKeyboard(objects.messages_panel);
+            }
             lv_group_focus_obj(objects.message_input_area);
-            break;
+            return; // continue play animation, don't hide keyboard immediately
         case 1:
             THIS->showKeyboard(objects.settings_user_short_textarea);
             lv_group_focus_obj(objects.settings_user_short_textarea);
@@ -1497,6 +1502,9 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
     }
 }
 
+/**
+ * handle events for virtual keyboard
+ */
 void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -1507,8 +1515,8 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
         switch (btn_id) {
         case 22: { // enter (filtered out by one-liner text input area, so we replace it)
             lv_obj_t *ta = lv_keyboard_get_textarea(kb);
-            lv_textarea_add_char(ta, ' ');
-            lv_textarea_add_char(ta, CR_REPLACEMENT);
+            // lv_textarea_add_char(ta, ' ');
+            // lv_textarea_add_char(ta, CR_REPLACEMENT);
             break;
         }
         case 35: { // keyboard
@@ -1522,7 +1530,12 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             break;
         }
         case 39: { // checkmark
-            lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+            if (THIS->activePanel == objects.messages_panel) {
+                THIS->hideKeyboard(objects.messages_panel);
+            } else {
+                lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+            }
+            lv_group_focus_obj(objects.message_input_area);
             break;
         }
         default:
@@ -1544,6 +1557,10 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
             } else {
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
+                if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+                    THIS->hideKeyboard(objects.messages_panel);
+                }
+                lv_group_focus_obj(objects.message_input_area);
             }
         }
     }
@@ -6399,18 +6416,80 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
-    if (text_coords.y1 > kb_h + 30) {
-        // if enough place above put under top panel
-        lv_obj_set_pos(objects.keyboard, 0, 28);
-    } else if ((text_coords.y1 + 10) > v / 2) {
-        // if text area is at lower half then place above text area
-        lv_obj_set_pos(objects.keyboard, 0, text_coords.y1 - kb_h - 2);
-    } else {
-        // place below text area
-        lv_obj_set_pos(objects.keyboard, 0, text_coords.y2 + 3);
-    }
+    if (textArea == objects.message_input_area) {
+        // if keyboard is to be shown in message input area then scroll the panel using animation
+        static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
 
+        static lv_anim_t a1;
+        lv_area_t panel_coords;
+        lv_obj_get_coords(objects.messages_panel, &panel_coords);
+
+        lv_anim_init(&a1);
+        lv_anim_set_var(&a1, objects.messages_panel);
+        lv_anim_set_exec_cb(&a1, panelAnimCB);
+        lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 - kb_h);
+        lv_anim_set_duration(&a1, 300);
+        lv_anim_set_path_cb(&a1, lv_anim_path_linear);
+        lv_anim_start(&a1);
+
+        static lv_anim_t a2;
+        lv_anim_init(&a2);
+        lv_anim_set_var(&a2, objects.keyboard);
+        lv_anim_set_exec_cb(&a2, kbdAnimCB);
+        lv_anim_set_values(&a2, v, v - kb_h);
+        lv_anim_set_duration(&a2, 300);
+        lv_anim_set_path_cb(&a2, lv_anim_path_linear);
+        lv_anim_start(&a2);
+    } else {
+        if (text_coords.y1 > kb_h + 30) {
+            // if enough place above put under top panel
+            lv_obj_set_pos(objects.keyboard, 0, 28);
+        } else if ((text_coords.y1 + 10) > v / 2) {
+            // if text area is at lower half then place above text area
+            lv_obj_set_pos(objects.keyboard, 0, text_coords.y1 - kb_h - 2);
+        } else {
+            // place below text area
+            lv_obj_set_pos(objects.keyboard, 0, text_coords.y2 + 3);
+        }
+    }
     lv_keyboard_set_textarea(objects.keyboard, textArea);
+}
+
+void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
+{
+    lv_area_t kb_coords;
+    lv_obj_get_coords(objects.keyboard, &kb_coords);
+    uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
+    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
+
+    if (panel == objects.messages_panel) {
+        static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto deleted_cb = [](_lv_anim_t *) { lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN); };
+
+        static lv_anim_t a1;
+        lv_area_t panel_coords;
+        lv_obj_get_coords(panel, &panel_coords);
+
+        lv_anim_init(&a1);
+        lv_anim_set_var(&a1, panel);
+        lv_anim_set_exec_cb(&a1, panelAnimCB);
+        lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 + kb_h);
+        lv_anim_set_duration(&a1, 300);
+        lv_anim_set_path_cb(&a1, lv_anim_path_linear);
+        lv_anim_start(&a1);
+
+        static lv_anim_t a2;
+        lv_anim_init(&a2);
+        lv_anim_set_var(&a2, objects.keyboard);
+        lv_anim_set_exec_cb(&a2, kbdAnimCB);
+        lv_anim_set_values(&a2, kb_coords.y1, kb_coords.y1 + kb_h);
+        lv_anim_set_duration(&a2, 300);
+        lv_anim_set_path_cb(&a2, lv_anim_path_linear);
+        lv_anim_set_deleted_cb(&a2, deleted_cb);
+        lv_anim_start(&a2);
+    }
 }
 
 lv_obj_t *TFTView_320x240::showQrCode(lv_obj_t *parent, const char *data)
