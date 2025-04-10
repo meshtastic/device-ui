@@ -49,27 +49,24 @@ uint64_t SDCard::cardSize(void)
     return 1;
 }
 
-SDCard::~SDCard(void)
-{
-
-}
+SDCard::~SDCard(void) {}
 
 #elif defined(HAS_SD_MMC)
 
 bool SDCard::init(void)
 {
-//#ifndef BOARD_HAS_1BIT_SDMMC
-//    SDFs.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_D0, SDMMC_D1, SDMMC_D2, SDMMC_D3);
-//    return SDFs.begin("/sdcard", false);
-//#else
+    // #ifndef BOARD_HAS_1BIT_SDMMC
+    //     SDFs.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_D0, SDMMC_D1, SDMMC_D2, SDMMC_D3);
+    //     return SDFs.begin("/sdcard", false);
+    // #else
     SDFs.setPins(SD_SCLK_PIN, SD_MOSI_PIN, SD_MISO_PIN);
     return SDFs.begin("/sdcard", true);
-//#endif
+    // #endif
 }
 
 ISdCard::CardType SDCard::cardType(void)
 {
-    switch(SDFs.cardType()) {
+    switch (SDFs.cardType()) {
     case CARD_NONE:
         return CardType::eNone;
     case CARD_MMC:
@@ -88,6 +85,18 @@ ISdCard::CardType SDCard::cardType(void)
 ISdCard::FatType SDCard::fatType(void)
 {
     return SDFs.cardSize() > 4Ull * 1024Ull * 1024Ull * 1024Ull ? FatType::eFat32 : FatType::eFat16;
+}
+
+ErrorType SDCard::errorType(void)
+{
+    switch (SDFs.cardType()) {
+    case CARD_NONE:
+        return ErrorType::eSlotEmpty;
+    case CARD_UNKNOWN:
+        return ErrorType::eCardError;
+    default:
+        return CardType::eUnknownError;
+    }
 }
 
 uint64_t SDCard::usedBytes(void)
@@ -180,6 +189,42 @@ ISdCard::FatType SdFsCard::fatType(void)
                                     : FatType::eNA;
 }
 
+/**
+ * @brief Check the error type of the SD card
+ * @return ErrorType
+ * Note: call only in case of sd.begin() error
+ */
+ISdCard::ErrorType SdFsCard::errorType(void)
+{
+    ILOG_ERROR("SD card error code: %d", SDFs.sdErrorCode());
+    if (SDFs.sdErrorCode() == SD_CARD_ERROR_CMD0)
+        return ErrorType::eSlotEmpty;
+    else if (SDFs.sdErrorCode() > SD_CARD_ERROR_CMD0)
+        return ErrorType::eCardError;
+    else {
+        // check mbr type
+        MbrSector_t mbr;
+        bool valid = true;
+        if (SDFs.card()) {
+            if (!SDFs.card()->readSector(0, (uint8_t *)&mbr)) {
+                // read MBR failed
+                return ErrorType::eFormatError;
+            }
+            MbrPart_t *pt = &mbr.part[0];
+            ILOG_WARN("MBR: boot:%02X type:%02X part:%02X", pt->boot, pt->type, pt->beginCHS[0]);
+            if (pt->boot != 0 || pt->type == 0 || pt->type == 0xEE) {
+                // not mbr
+                return ErrorType::eNoMbrError;
+            } else if (pt->beginCHS[0] == 0xA || pt->beginCHS[0] == 0x82) {
+                // partition looks good
+                return ErrorType::eUnknownError;
+            }
+            return ErrorType::eFormatError;
+        }
+    }
+    return ErrorType::eUnknownError;
+}
+
 uint64_t SdFsCard::usedBytes(void)
 {
     return cardSize() - freeBytes();
@@ -193,6 +238,11 @@ uint64_t SdFsCard::freeBytes(void)
 uint64_t SdFsCard::cardSize(void)
 {
     return uint64_t(SDFs.clusterCount()) * uint64_t(SDFs.bytesPerCluster());
+}
+
+bool SdFsCard::format(void)
+{
+    return SDFs.format();
 }
 
 std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
