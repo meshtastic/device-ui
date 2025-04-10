@@ -39,12 +39,17 @@ class ISdCard
         eExFat,
     };
 
+    enum ErrorType { eNoError, eSlotEmpty, eCardError, eFormatError, eNoMbrError, eUnknownError };
+
     virtual bool init(void) = 0;
     virtual CardType cardType(void) = 0;
     virtual FatType fatType(void) = 0;
+    virtual ErrorType errorType(void) = 0;
+
     virtual uint64_t usedBytes(void) = 0;
     virtual uint64_t freeBytes(void) = 0;
     virtual uint64_t cardSize(void) = 0;
+    virtual bool format(void) = 0;
 
     bool isUpdated(void) { return updated; }
     virtual std::set<std::string> loadMapStyles(const char *folder) = 0;
@@ -61,9 +66,11 @@ class SDCard : public ISdCard
     bool init(void) override;
     CardType cardType(void) override;
     FatType fatType(void) override;
+    ErrorType errorType(void) override;
     uint64_t usedBytes(void) override;
     uint64_t freeBytes(void) override;
     uint64_t cardSize(void) override;
+    bool format(void){};
 
     std::set<std::string> loadMapStyles(const char *folder) override;
     virtual ~SDCard(void);
@@ -76,9 +83,11 @@ class SdFsCard : public ISdCard
     bool init(void) override;
     CardType cardType(void) override;
     FatType fatType(void) override;
+    ErrorType errorType(void) override;
     uint64_t usedBytes(void) override;
     uint64_t freeBytes(void) override;
     uint64_t cardSize(void) override;
+    bool format(void) override;
 
     std::set<std::string> loadMapStyles(const char *folder) override;
     virtual ~SdFsCard(void) {}
@@ -95,9 +104,11 @@ class NoSdCard : public ISdCard
     bool init(void) override { return true; }
     CardType cardType(void) override { return CardType::eNone; }
     FatType fatType(void) override { return FatType::eNA; }
+    ErrorType errorType(void) override { return ErrorType::eNoError; }
     uint64_t usedBytes(void) override { return 0; }
     uint64_t freeBytes(void) override { return 0; }
     uint64_t cardSize(void) override { return 1; }
+    bool format(void) override{};
 
     std::set<std::string> loadMapStyles(const char *folder) override
     {

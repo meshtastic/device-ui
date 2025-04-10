@@ -1408,7 +1408,20 @@ void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_SDCardButton(lv_event_t *e)
 {
-    THIS->updateSDCard();
+    static bool ignoreClicked = false;
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+        THIS->updateSDCard();
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        if (THIS->formatSD) {
+            ignoreClicked = true;
+            THIS->formatSDCard();
+        }
+    }
 }
 
 void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
@@ -6803,6 +6816,7 @@ void TFTView_320x240::updateTime(void)
 bool TFTView_320x240::updateSDCard(void)
 {
     bool cardDetected = false;
+    formatSD = false;
     if (sdCard) {
         delete sdCard;
         sdCard = nullptr;
@@ -6814,6 +6828,7 @@ bool TFTView_320x240::updateSDCard(void)
 #else
     sdCard = new SdFsCard;
 #endif
+    ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
         ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
         ISdCard::CardType cardType = sdCard->cardType();
@@ -6840,12 +6855,36 @@ bool TFTView_320x240::updateSDCard(void)
         cardDetected = true;
     } else {
         ILOG_DEBUG("SdFsCard init failed");
+        err = sdCard->errorType();
         delete sdCard;
         sdCard = nullptr;
     }
 
-    if (!cardDetected) {
-        lv_snprintf(buf, sizeof(buf), _("no SD card detected"));
+    if (!cardDetected || err != ISdCard::ErrorType::eNoError) {
+        switch (err) {
+        case ISdCard::ErrorType::eSlotEmpty:
+            ILOG_ERROR("SD card slot empty");
+            lv_snprintf(buf, sizeof(buf), _("SD slot empty"));
+            break;
+        case ISdCard::ErrorType::eFormatError:
+            ILOG_ERROR("SD invalid format");
+            lv_snprintf(buf, sizeof(buf), _("SD invalid format"));
+            formatSD = true;
+            break;
+        case ISdCard::ErrorType::eNoMbrError:
+            ILOG_ERROR("SD mbr not found");
+            lv_snprintf(buf, sizeof(buf), _("SD mbr not found"));
+            formatSD = true;
+            break;
+        case ISdCard::ErrorType::eCardError:
+            ILOG_ERROR("SD card error");
+            lv_snprintf(buf, sizeof(buf), _("SD card error"));
+            break;
+        default:
+            ILOG_ERROR("SD unknown error");
+            lv_snprintf(buf, sizeof(buf), _("SD unknown error"));
+            break;
+        }
         Themes::recolorButton(objects.home_sd_card_button, false);
         Themes::recolorText(objects.home_sd_card_label, false);
         // allow backup/restore only if there is an SD card detected
@@ -6863,6 +6902,30 @@ bool TFTView_320x240::updateSDCard(void)
     if (!sdCard)
         sdCard = new NoSdCard;
     return cardDetected;
+}
+
+void TFTView_320x240::formatSDCard(void)
+{
+    if (sdCard) {
+        delete sdCard;
+        sdCard = nullptr;
+    }
+#ifdef HAS_SDCARD
+#ifdef HAS_SD_MMC
+    sdCard = new SDCard;
+#else
+    sdCard = new SdFsCard;
+#endif
+    ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
+    ILOG_DEBUG("formatting SD card");
+    if (sdCard->format()) {
+        updateSDCard();
+    } else {
+        lv_label_set_text(objects.home_sd_card_label, "SD format failed");
+    }
+#endif
+    if (!sdCard)
+        sdCard = new NoSdCard;
 }
 
 void TFTView_320x240::updateFreeMem(void)
