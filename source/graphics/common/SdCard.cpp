@@ -34,6 +34,11 @@ ISdCard::FatType SDCard::fatType(void)
     return FatType::eFat32;
 }
 
+ISdCard::ErrorType SDCard::errorType(void)
+{
+    return ErrorType::eNoError;
+}
+
 uint64_t SDCard::usedBytes(void)
 {
     return 0;
@@ -87,7 +92,7 @@ ISdCard::FatType SDCard::fatType(void)
     return SDFs.cardSize() > 4Ull * 1024Ull * 1024Ull * 1024Ull ? FatType::eFat32 : FatType::eFat16;
 }
 
-ErrorType SDCard::errorType(void)
+ISdCard::ErrorType SDCard::errorType(void)
 {
     switch (SDFs.cardType()) {
     case CARD_NONE:
@@ -95,7 +100,7 @@ ErrorType SDCard::errorType(void)
     case CARD_UNKNOWN:
         return ErrorType::eCardError;
     default:
-        return CardType::eUnknownError;
+        return ErrorType::eUnknownError;
     }
 }
 
