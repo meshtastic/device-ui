@@ -100,7 +100,7 @@ ISdCard::ErrorType SDCard::errorType(void)
     case CARD_UNKNOWN:
         return ErrorType::eCardError;
     default:
-        return CardType::eUnknownError;
+        return ErrorType::eUnknownError;
     }
 }
 
