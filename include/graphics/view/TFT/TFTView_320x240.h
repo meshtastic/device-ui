@@ -369,6 +369,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_mapBrightnessSlider(lv_event_t *e);
     static void ui_event_mapContrastSlider(lv_event_t *e);
     static void ui_event_mapNodeButton(lv_event_t *e);
+    static void ui_event_chatNodeButton(lv_event_t *e);
     static void ui_event_positionButton(lv_event_t *e);
 
     // animations
