@@ -2209,6 +2209,19 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
         ui_event_NodeButton(e);
 }
 
+void TFTView_320x240::ui_event_chatNodeButton(lv_event_t *e)
+{
+    uint32_t nodeNum = (unsigned long)e->user_data;
+    auto it = THIS->nodes.find(nodeNum);
+    if (it != THIS->nodes.end()) {
+        lv_obj_t *panel = it->second;
+        THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+        lv_obj_scroll_to_view(panel, LV_ANIM_ON);
+        if (panel != currentPanel)
+            ui_event_NodeButton(e);
+    }
+}
+
 void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
 {
     // navigate to position in map
@@ -6118,6 +6131,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);
+    lv_obj_add_event_cb(hiddenPanel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 }
 
 /**
