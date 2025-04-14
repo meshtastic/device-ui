@@ -13,7 +13,7 @@
 
 extern const uint8_t MT_MAGIC_0;
 
-UARTClient::UARTClient(void) : _serial(nullptr) {}
+UARTClient::UARTClient(void) : _serial(nullptr), lastReceived(0) {}
 
 /**
  * @brief init serial interface

@@ -102,7 +102,7 @@ class LGFX_WT_SC01_PLUS : public lgfx::LGFX_Device
             cfg.bus_shared = true;
             cfg.offset_rotation = 0;
             // I2C
-            cfg.i2c_port = 1;
+            cfg.i2c_port = 0;
             cfg.i2c_addr = 0x38;
             cfg.pin_sda = 6;
             cfg.pin_scl = 5;

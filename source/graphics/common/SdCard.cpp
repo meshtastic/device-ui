@@ -10,7 +10,12 @@ fs::SDMMCFS &SDFs = SD_MMC;
 #elif defined(ARCH_PORTDUINO)
 fs::FS &SDFs = PortduinoFS;
 #elif defined(HAS_SDCARD)
-SPIClass &SDHandler = SPI;
+#ifdef SDCARD_USE_SPI1
+static SPIClass SPI1(HSPI);
+static SPIClass &SDHandler = SPI1;
+#else
+static SPIClass &SDHandler = SPI;
+#endif
 SdFs SDFs;
 using File = FsFile;
 #endif
