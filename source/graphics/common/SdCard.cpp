@@ -13,6 +13,8 @@ fs::FS &SDFs = PortduinoFS;
 #ifdef SDCARD_USE_SPI1
 static SPIClass SPI1(HSPI);
 static SPIClass &SDHandler = SPI1;
+#elif SDCARD_USE_SOFT_SPI
+static SoftSpiDriver<SPI_MISO, SPI_MOSI, SPI_SCK> SDHandler;
 #else
 static SPIClass &SDHandler = SPI;
 #endif
@@ -174,6 +176,8 @@ bool SdFsCard::init(void)
     // see also HAS_SDIO_CLASS
 #if HAS_SDIO_CLASS
     return SDFs.begin(SdioConfig(FIFO_SDIO));
+#elif defined(SDCARD_USE_SOFT_SPI)
+    return SDFs.begin(SdSpiConfig(SDCARD_CS, DEDICATED_SPI, SD_SCK_MHZ(0), &SDHandler));
 #else
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
 #endif
