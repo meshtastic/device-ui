@@ -108,7 +108,7 @@ class NoSdCard : public ISdCard
     uint64_t usedBytes(void) override { return 0; }
     uint64_t freeBytes(void) override { return 0; }
     uint64_t cardSize(void) override { return 1; }
-    bool format(void) override{};
+    bool format(void) override { return false; }
 
     std::set<std::string> loadMapStyles(const char *folder) override
     {
