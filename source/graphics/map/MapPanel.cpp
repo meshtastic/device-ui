@@ -122,11 +122,16 @@ void MapPanel::drawObjects(void)
 {
     objectsOnMap = 0;
     for (auto &it : mapObjects) {
-        drawObject(*it.second);
+        drawObject(*it.second, true);
     }
 }
 
-void MapPanel::drawObject(MapObject &obj)
+/**
+ * draw a single object
+ * @param obj object to draw
+ * @param count if true, count the number of objects drawn
+ */
+void MapPanel::drawObject(MapObject &obj, bool count)
 {
     if (obj.draw) {
         if (!obj.point.isFiltered) {
@@ -139,7 +144,8 @@ void MapPanel::drawObject(MapObject &obj)
                 MapTile &tile = *tileIt->second;
                 if (tile.getX() + obj.point.xPos >= 0 && tile.getX() + obj.point.xPos < widthPixel &&
                     tile.getY() + obj.point.yPos >= 0 && tile.getY() + obj.point.yPos < heightPixel) {
-                    objectsOnMap++;
+                    if (count)
+                        objectsOnMap++;
                     obj.draw(obj.id, tile.getX() + obj.point.xPos, tile.getY() + obj.point.yPos, MapTileSettings::getZoomLevel());
                     return;
                 }
@@ -414,7 +420,7 @@ void MapPanel::add(uint32_t id, float lat, float lon, DrawCallback drawCB)
     } else {
         auto object = std::unique_ptr<MapObject>(
             new MapObject({.id = id, .point = GeoPoint(lat, lon, MapTileSettings::getZoomLevel()), .draw = drawCB}));
-        drawObject(*object);
+        drawObject(*object, true);
         mapObjects.emplace(id, std::move(object));
     }
 }
