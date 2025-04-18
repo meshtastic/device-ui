@@ -4790,11 +4790,20 @@ void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtasti
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
         char buf[50];
-        if ((int)metrics.relative_humidity > 0) {
-            sprintf(buf, "%2.1f°C %d%% %3.1fhPa", metrics.temperature, (int)metrics.relative_humidity,
-                    metrics.barometric_pressure);
+        if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
+            if ((int)metrics.relative_humidity > 0) {
+                sprintf(buf, "%2.1f°C %d%% %3.1fhPa", metrics.temperature, (int)metrics.relative_humidity,
+                        metrics.barometric_pressure);
+            } else {
+                sprintf(buf, "%2.1f°C %3.1fhPa", metrics.temperature, metrics.barometric_pressure);
+            }
         } else {
-            sprintf(buf, "%2.1f°C %3.1fhPa", metrics.temperature, metrics.barometric_pressure);
+            if ((int)metrics.relative_humidity > 0) {
+                sprintf(buf, "%2.1f°F %d%% %3.1finHg", metrics.temperature * 9 / 5 + 32, (int)metrics.relative_humidity,
+                        metrics.barometric_pressure / 33.86f);
+            } else {
+                sprintf(buf, "%2.1f°F %3.1finHg", metrics.temperature * 9 / 5 + 32, metrics.barometric_pressure / 33.86f);
+            }
         }
         lv_label_set_text(it->second->LV_OBJ_IDX(node_tm1_idx), buf);
 
