@@ -72,7 +72,7 @@ class MapPanel
     void redraw(void);
     void drawLocation(void);
     void drawObjects(void);
-    void drawObject(MapObject &obj);
+    void drawObject(MapObject &obj, bool count = false);
 
     bool needsRedraw = false;
     bool redrawCompleted = true;
