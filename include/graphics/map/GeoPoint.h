@@ -100,6 +100,7 @@ class GeoPoint
     // level 0 (course) .. 18 (detail)
     uint8_t zoomLevel;
     bool isFiltered = false;
+    bool isVisible = false;
 };
 
 #ifdef UNIT_TEST
