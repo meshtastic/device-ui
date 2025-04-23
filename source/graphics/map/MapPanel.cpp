@@ -147,12 +147,14 @@ void MapPanel::drawObject(MapObject &obj, bool count)
                     if (count)
                         objectsOnMap++;
                     obj.draw(obj.id, tile.getX() + obj.point.xPos, tile.getY() + obj.point.yPos, MapTileSettings::getZoomLevel());
+                    obj.point.isVisible = true;
                     return;
                 }
             }
         }
         obj.draw(obj.id, 0, 0, 0); // hide object
     }
+    obj.point.isVisible = false;
 }
 
 /**
@@ -446,8 +448,13 @@ void MapPanel::update(uint32_t id, bool filtered)
 
 void MapPanel::remove(uint32_t id)
 {
+    auto it = mapObjects.find(id);
+    if (it != mapObjects.end()) {
+        if (it->second->point.isVisible) {
+            objectsOnMap--;
+        }
+    }
     mapObjects.erase(id);
-    objectsOnMap--;
 }
 
 void MapPanel::setHomeLocationImage(lv_obj_t *img)
