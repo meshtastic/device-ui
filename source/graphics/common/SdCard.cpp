@@ -147,7 +147,7 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
             std::string dir = path.substr(path.find_last_of("/") + 1);
             if (dir.c_str()[0] != '.') {
                 if (dir.size() > 20) {
-                    LOG_WARN("SD: map style name too long: %s", dir.c_str());
+                    ILOG_WARN("SD: map style name too long: %s", dir.c_str());
                 }
                 else {
                     ILOG_DEBUG("SD: found map style: %s", dir.c_str());
@@ -280,7 +280,7 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
             std::string dir = path.substr(path.find_last_of("/") + 1);
             if (dir.c_str()[0] != '.') {
                 if (dir.size() > 20) {
-                    LOG_WARN("SdFs: map style name too long: %s", dir.c_str());
+                    ILOG_WARN("SdFs: map style name too long: %s", dir.c_str());
                 }
                 else {
                     ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
