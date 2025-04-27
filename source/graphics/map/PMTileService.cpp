@@ -1,3 +1,5 @@
+#if defined(ARCH_PORTDUINO) || defined(HAS_SDCARD)
+
 #include "graphics/map/PMTileService.h"
 #include "graphics/map/MapTileSettings.h"
 #include "util/ILog.h"
@@ -211,3 +213,5 @@ bool PMTileService::load(uint32_t x, uint32_t y, uint32_t z, void *img)
     ILOG_WARN("Tile not found after traversing directories!");
     return false;
 }
+
+#endif

@@ -47,7 +47,10 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SdFatService.h"
 #endif
 #include "graphics/common/SdCard.h"
+
+#if defined(ARCH_PORTDUINO) || defined(HAS_SDCARD)
 #include "graphics/map/PMTileService.h"
+#endif
 
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
@@ -2496,7 +2499,9 @@ void TFTView_320x240::setTileService(bool pmtiles)
 {
     assert(map);
     if (pmtiles) {
+#if defined(ARCH_PORTDUINO) || defined(HAS_SDCARD)
         map->setTileService(new PMTileService());
+#endif
     }
     else {
 #if defined(HAS_SD_MMC)
