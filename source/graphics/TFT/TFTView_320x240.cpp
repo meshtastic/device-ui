@@ -1409,7 +1409,20 @@ void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_SDCardButton(lv_event_t *e)
 {
-    THIS->updateSDCard();
+    static bool ignoreClicked = false;
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+        THIS->updateSDCard();
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        if (THIS->formatSD) {
+            ignoreClicked = true;
+            THIS->formatSDCard();
+        }
+    }
 }
 
 void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
@@ -1443,9 +1456,14 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         uint32_t keyBtnIdx = (unsigned long)e->user_data;
         switch (keyBtnIdx) {
         case 0:
-            THIS->showKeyboard(objects.message_input_area);
+            if (lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+                lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+                THIS->showKeyboard(objects.message_input_area);
+            } else {
+                THIS->hideKeyboard(objects.messages_panel);
+            }
             lv_group_focus_obj(objects.message_input_area);
-            break;
+            return; // continue play animation, don't hide keyboard immediately
         case 1:
             THIS->showKeyboard(objects.settings_user_short_textarea);
             lv_group_focus_obj(objects.settings_user_short_textarea);
@@ -1498,6 +1516,9 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
     }
 }
 
+/**
+ * handle events for virtual keyboard
+ */
 void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -1508,8 +1529,8 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
         switch (btn_id) {
         case 22: { // enter (filtered out by one-liner text input area, so we replace it)
             lv_obj_t *ta = lv_keyboard_get_textarea(kb);
-            lv_textarea_add_char(ta, ' ');
-            lv_textarea_add_char(ta, CR_REPLACEMENT);
+            // lv_textarea_add_char(ta, ' ');
+            // lv_textarea_add_char(ta, CR_REPLACEMENT);
             break;
         }
         case 35: { // keyboard
@@ -1523,7 +1544,12 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             break;
         }
         case 39: { // checkmark
-            lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+            if (THIS->activePanel == objects.messages_panel) {
+                THIS->hideKeyboard(objects.messages_panel);
+            } else {
+                lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+            }
+            lv_group_focus_obj(objects.message_input_area);
             break;
         }
         default:
@@ -1545,6 +1571,10 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
             } else {
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
+                if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+                    THIS->hideKeyboard(objects.messages_panel);
+                }
+                lv_group_focus_obj(objects.message_input_area);
             }
         }
     }
@@ -2180,6 +2210,19 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
     lv_obj_scroll_to_view(panel, LV_ANIM_ON);
     if (panel != currentPanel)
         ui_event_NodeButton(e);
+}
+
+void TFTView_320x240::ui_event_chatNodeButton(lv_event_t *e)
+{
+    uint32_t nodeNum = (unsigned long)e->user_data;
+    auto it = THIS->nodes.find(nodeNum);
+    if (it != THIS->nodes.end()) {
+        lv_obj_t *panel = it->second;
+        THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+        lv_obj_scroll_to_view(panel, LV_ANIM_ON);
+        if (panel != currentPanel)
+            ui_event_NodeButton(e);
+    }
 }
 
 void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
@@ -4759,11 +4802,20 @@ void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtasti
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
         char buf[50];
-        if ((int)metrics.relative_humidity > 0) {
-            sprintf(buf, "%2.1f°C %d%% %3.1fhPa", metrics.temperature, (int)metrics.relative_humidity,
-                    metrics.barometric_pressure);
+        if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
+            if ((int)metrics.relative_humidity > 0) {
+                sprintf(buf, "%2.1f°C %d%% %3.1fhPa", metrics.temperature, (int)metrics.relative_humidity,
+                        metrics.barometric_pressure);
+            } else {
+                sprintf(buf, "%2.1f°C %3.1fhPa", metrics.temperature, metrics.barometric_pressure);
+            }
         } else {
-            sprintf(buf, "%2.1f°C %3.1fhPa", metrics.temperature, metrics.barometric_pressure);
+            if ((int)metrics.relative_humidity > 0) {
+                sprintf(buf, "%2.1f°F %d%% %3.1finHg", metrics.temperature * 9 / 5 + 32, (int)metrics.relative_humidity,
+                        metrics.barometric_pressure / 33.86f);
+            } else {
+                sprintf(buf, "%2.1f°F %3.1finHg", metrics.temperature * 9 / 5 + 32, metrics.barometric_pressure / 33.86f);
+            }
         }
         lv_label_set_text(it->second->LV_OBJ_IDX(node_tm1_idx), buf);
 
@@ -6100,6 +6152,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);
+    lv_obj_add_event_cb(hiddenPanel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 }
 
 /**
@@ -6411,18 +6464,80 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
-    if (text_coords.y1 > kb_h + 30) {
-        // if enough place above put under top panel
-        lv_obj_set_pos(objects.keyboard, 0, 28);
-    } else if ((text_coords.y1 + 10) > v / 2) {
-        // if text area is at lower half then place above text area
-        lv_obj_set_pos(objects.keyboard, 0, text_coords.y1 - kb_h - 2);
-    } else {
-        // place below text area
-        lv_obj_set_pos(objects.keyboard, 0, text_coords.y2 + 3);
-    }
+    if (textArea == objects.message_input_area) {
+        // if keyboard is to be shown in message input area then scroll the panel using animation
+        static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
 
+        static lv_anim_t a1;
+        lv_area_t panel_coords;
+        lv_obj_get_coords(objects.messages_panel, &panel_coords);
+
+        lv_anim_init(&a1);
+        lv_anim_set_var(&a1, objects.messages_panel);
+        lv_anim_set_exec_cb(&a1, panelAnimCB);
+        lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 - kb_h);
+        lv_anim_set_duration(&a1, 300);
+        lv_anim_set_path_cb(&a1, lv_anim_path_linear);
+        lv_anim_start(&a1);
+
+        static lv_anim_t a2;
+        lv_anim_init(&a2);
+        lv_anim_set_var(&a2, objects.keyboard);
+        lv_anim_set_exec_cb(&a2, kbdAnimCB);
+        lv_anim_set_values(&a2, v, v - kb_h);
+        lv_anim_set_duration(&a2, 300);
+        lv_anim_set_path_cb(&a2, lv_anim_path_linear);
+        lv_anim_start(&a2);
+    } else {
+        if (text_coords.y1 > kb_h + 30) {
+            // if enough place above put under top panel
+            lv_obj_set_pos(objects.keyboard, 0, 28);
+        } else if ((text_coords.y1 + 10) > v / 2) {
+            // if text area is at lower half then place above text area
+            lv_obj_set_pos(objects.keyboard, 0, text_coords.y1 - kb_h - 2);
+        } else {
+            // place below text area
+            lv_obj_set_pos(objects.keyboard, 0, text_coords.y2 + 3);
+        }
+    }
     lv_keyboard_set_textarea(objects.keyboard, textArea);
+}
+
+void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
+{
+    lv_area_t kb_coords;
+    lv_obj_get_coords(objects.keyboard, &kb_coords);
+    uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
+    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
+
+    if (panel == objects.messages_panel) {
+        static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto deleted_cb = [](_lv_anim_t *) { lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN); };
+
+        static lv_anim_t a1;
+        lv_area_t panel_coords;
+        lv_obj_get_coords(panel, &panel_coords);
+
+        lv_anim_init(&a1);
+        lv_anim_set_var(&a1, panel);
+        lv_anim_set_exec_cb(&a1, panelAnimCB);
+        lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 + kb_h);
+        lv_anim_set_duration(&a1, 300);
+        lv_anim_set_path_cb(&a1, lv_anim_path_linear);
+        lv_anim_start(&a1);
+
+        static lv_anim_t a2;
+        lv_anim_init(&a2);
+        lv_anim_set_var(&a2, objects.keyboard);
+        lv_anim_set_exec_cb(&a2, kbdAnimCB);
+        lv_anim_set_values(&a2, kb_coords.y1, kb_coords.y1 + kb_h);
+        lv_anim_set_duration(&a2, 300);
+        lv_anim_set_path_cb(&a2, lv_anim_path_linear);
+        lv_anim_set_deleted_cb(&a2, deleted_cb);
+        lv_anim_start(&a2);
+    }
 }
 
 lv_obj_t *TFTView_320x240::showQrCode(lv_obj_t *parent, const char *data)
@@ -6736,6 +6851,7 @@ void TFTView_320x240::updateTime(void)
 bool TFTView_320x240::updateSDCard(void)
 {
     bool cardDetected = false;
+    formatSD = false;
     if (sdCard) {
         delete sdCard;
         sdCard = nullptr;
@@ -6747,6 +6863,7 @@ bool TFTView_320x240::updateSDCard(void)
 #else
     sdCard = new SdFsCard;
 #endif
+    ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
         ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
         ISdCard::CardType cardType = sdCard->cardType();
@@ -6773,12 +6890,36 @@ bool TFTView_320x240::updateSDCard(void)
         cardDetected = true;
     } else {
         ILOG_DEBUG("SdFsCard init failed");
+        err = sdCard->errorType();
         delete sdCard;
         sdCard = nullptr;
     }
 
-    if (!cardDetected) {
-        lv_snprintf(buf, sizeof(buf), _("no SD card detected"));
+    if (!cardDetected || err != ISdCard::ErrorType::eNoError) {
+        switch (err) {
+        case ISdCard::ErrorType::eSlotEmpty:
+            ILOG_ERROR("SD card slot empty");
+            lv_snprintf(buf, sizeof(buf), _("SD slot empty"));
+            break;
+        case ISdCard::ErrorType::eFormatError:
+            ILOG_ERROR("SD invalid format");
+            lv_snprintf(buf, sizeof(buf), _("SD invalid format"));
+            formatSD = true;
+            break;
+        case ISdCard::ErrorType::eNoMbrError:
+            ILOG_ERROR("SD mbr not found");
+            lv_snprintf(buf, sizeof(buf), _("SD mbr not found"));
+            formatSD = true;
+            break;
+        case ISdCard::ErrorType::eCardError:
+            ILOG_ERROR("SD card error");
+            lv_snprintf(buf, sizeof(buf), _("SD card error"));
+            break;
+        default:
+            ILOG_ERROR("SD unknown error");
+            lv_snprintf(buf, sizeof(buf), _("SD unknown error"));
+            break;
+        }
         Themes::recolorButton(objects.home_sd_card_button, false);
         Themes::recolorText(objects.home_sd_card_label, false);
         // allow backup/restore only if there is an SD card detected
@@ -6796,6 +6937,30 @@ bool TFTView_320x240::updateSDCard(void)
     if (!sdCard)
         sdCard = new NoSdCard;
     return cardDetected;
+}
+
+void TFTView_320x240::formatSDCard(void)
+{
+    if (sdCard) {
+        delete sdCard;
+        sdCard = nullptr;
+    }
+#ifdef HAS_SDCARD
+#ifdef HAS_SD_MMC
+    sdCard = new SDCard;
+#else
+    sdCard = new SdFsCard;
+#endif
+    ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
+    ILOG_DEBUG("formatting SD card");
+    if (sdCard->format()) {
+        updateSDCard();
+    } else {
+        lv_label_set_text(objects.home_sd_card_label, "SD format failed");
+    }
+#endif
+    if (!sdCard)
+        sdCard = new NoSdCard;
 }
 
 void TFTView_320x240::updateFreeMem(void)

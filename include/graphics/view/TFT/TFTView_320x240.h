@@ -183,6 +183,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateTime(void);
     // update SD card slot info
     virtual bool updateSDCard(void);
+    // format SD card if invalid
+    virtual void formatSDCard(void);
     // update time display on home screen
     virtual void updateFreeMem(void);
     // update distance to other node
@@ -212,6 +214,7 @@ class TFTView_320x240 : public MeshtasticView
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
+    void hideKeyboard(lv_obj_t *panel);
     lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
 
     void enablePanel(lv_obj_t *panel);
@@ -367,6 +370,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_mapBrightnessSlider(lv_event_t *e);
     static void ui_event_mapContrastSlider(lv_event_t *e);
     static void ui_event_mapNodeButton(lv_event_t *e);
+    static void ui_event_chatNodeButton(lv_event_t *e);
     static void ui_event_positionButton(lv_event_t *e);
 
     // animations
@@ -390,6 +394,7 @@ class TFTView_320x240 : public MeshtasticView
     bool processingFilter;                                // indicates that filtering is ongoing
     bool packetLogEnabled;                                // display received packets
     bool detectorRunning;                                 // meshDetector is active
+    bool formatSD;                                        // offer to format SD card
     uint16_t statisticTableRows;                          // number of rows in statistics table
     uint16_t packetCounter;                               // number of packets in packet log
     time_t lastrun60, lastrun10, lastrun5, lastrun1;      // timers for task loop
