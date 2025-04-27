@@ -10,7 +10,6 @@ class FileSystemService : public ITileService
 
     virtual ~FileSystemService();
 
-//    bool load(const char *name, void *img) override;
     bool load(uint32_t x, uint32_t y, uint32_t z, void *img) override;
 
   protected:
