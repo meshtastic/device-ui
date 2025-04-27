@@ -31,13 +31,7 @@ class MapTileSettings
     static void setPrefix(const char *p) { strcpy(prefix, p); }
 
     static const char *getTileStyle(void) { return tileStyle; }
-    static void setTileStyle(const char *p)
-    {
-        strcpy(tileStyle, p);
-        size_t len = strlen(tileStyle);
-        if (len > 0 && tileStyle[len - 1] != '/')
-            strcat(tileStyle, "/");
-    }
+    static void setTileStyle(const char *p) { strcpy(tileStyle, p); }
 
     static const char *getTileFormat(void) { return tileFormat; }
     static void setTileFormat(const char *p) { strcpy(tileFormat, p); }

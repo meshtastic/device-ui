@@ -29,17 +29,18 @@ FileSystemService::FileSystemService() : ITileService(DRIVE_LETTER ":")
 
 FileSystemService::~FileSystemService() {}
 
-bool FileSystemService::load(const char *name, void *img)
+bool FileSystemService::load(uint32_t x, uint32_t y, uint32_t z, void *img)
 {
     char buf[128] = DRIVE_LETTER ":";
-    strcat(&buf[2], name);
+    sprintf(&buf[2], "%s/%s/%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileStyle(), z, x, y,
+            MapTileSettings::getTileFormat());
     lv_image_set_src((lv_obj_t *)img, buf);
     if (!lv_image_get_src((lv_obj_t *)img)) {
         lv_image_set_src((lv_obj_t *)img, &img_no_tile_image);
-        ILOG_WARN("*** Failed to load tile %s", buf);
+        ILOG_WARN("failed to load tile %s", buf);
         return false;
     }
-    ILOG_INFO("*** Tile %s loaded.", buf);
+    ILOG_DEBUG("FileSystemService: tile %s loaded", buf);
     return true;
 }
 

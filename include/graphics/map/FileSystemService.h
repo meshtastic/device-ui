@@ -10,7 +10,8 @@ class FileSystemService : public ITileService
 
     virtual ~FileSystemService();
 
-    bool load(const char *name, void *img) override;
+//    bool load(const char *name, void *img) override;
+    bool load(uint32_t x, uint32_t y, uint32_t z, void *img) override;
 
   protected:
     static void *fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode);
