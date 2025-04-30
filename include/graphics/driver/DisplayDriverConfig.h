@@ -21,6 +21,8 @@ class DisplayDriverConfig
         CUSTOM_OLED,
         CUSTOM_EINK,
         X11,
+        SDL,
+        FB,
         THMI,
         TDECK,
         INDICATOR,
