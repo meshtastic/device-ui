@@ -1531,7 +1531,7 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 
         switch (btn_id) {
         case 22: { // enter (filtered out by one-liner text input area, so we replace it)
-            lv_obj_t *ta = lv_keyboard_get_textarea(kb);
+            // lv_obj_t *ta = lv_keyboard_get_textarea(kb);
             // lv_textarea_add_char(ta, ' ');
             // lv_textarea_add_char(ta, CR_REPLACEMENT);
             break;
@@ -2194,7 +2194,7 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
 void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 {
     std::string style(20, '\0');
-    lv_dropdown_get_selected_str(objects.map_style_dropdown, (char*)style.data(), 20);
+    lv_dropdown_get_selected_str(objects.map_style_dropdown, (char *)style.data(), 20);
     strcpy(THIS->db.uiConfig.map_data.style, style.c_str());
     MapTileSettings::setTileStyle(style.c_str());
     THIS->setTileService(style.find(".pmtiles") != std::string::npos);
@@ -2502,8 +2502,7 @@ void TFTView_320x240::setTileService(bool pmtiles)
 #if defined(ARCH_PORTDUINO) || defined(HAS_SDCARD)
         map->setTileService(new PMTileService());
 #endif
-    }
-    else {
+    } else {
 #if defined(HAS_SD_MMC)
         map->setTileService(new SDCardService());
 #elif defined(HAS_SDCARD)
@@ -6514,7 +6513,6 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
     lv_area_t kb_coords;
     lv_obj_get_coords(objects.keyboard, &kb_coords);
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
-    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (panel == objects.messages_panel) {
         static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
