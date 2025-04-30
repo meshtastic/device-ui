@@ -43,9 +43,6 @@ DisplayDriverFactory::DisplayDriverFactory() {}
  */
 DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 {
-#if defined(USE_FRAMEBUFFER)
-    return &FBDriver::create(width, height);
-#endif
 #if defined(USE_X11)
     return &X11Driver::create(width, height);
 #elif defined(USE_SDL2)
@@ -83,11 +80,6 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         // TODO return new EINKDriver<EINKConfig>(cfg);
     }
 #endif
-#if defined(USE_FRAMEBUFFER)
-    if (cfg._device == DisplayDriverConfig::device_t::FB) {
-        return &FBDriver::create(cfg.width(), cfg.height());
-    }
-#endif
 #if defined(USE_X11)
     if (cfg._device == DisplayDriverConfig::device_t::X11) {
         return &X11Driver::create(cfg.width(), cfg.height());
@@ -105,10 +97,6 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(LVGL_DRIVER)
     return new LVGLDriver<LVGLConfig>(cfg.width(), cfg.height());
 #endif
-#elif defined(USE_FRAMEBUFFER)
-    case DisplayDriverConfig::device_t::FB:
-        return &FBDriver::create(cfg.width(), cfg.height());
-        break;
 #elif defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:
         return &X11Driver::create(cfg.width(), cfg.height());
