@@ -24,5 +24,5 @@ class FBDriver : public DisplayDriver
 #endif
 
     static FBDriver *fbDriver;
-    static lv_display_t* display;
+    static lv_display_t *display;
 };

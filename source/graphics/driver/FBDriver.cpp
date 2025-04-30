@@ -1,9 +1,8 @@
 #ifdef USE_FRAMEBUFFER
 
 #include "graphics/driver/FBDriver.h"
-#include "util/ILog.h"
 #include "src/core/lv_global.h"
-
+#include "util/ILog.h"
 
 LV_IMG_DECLARE(mouse_cursor_icon);
 
@@ -45,15 +44,15 @@ void FBDriver::init(DeviceGUI *gui)
 #if LV_USE_EVDEV
 void FBDriver::discovery_cb(lv_indev_t *indev, lv_evdev_type_t type, void *user_data)
 {
-    ILOG_INFO("'%s' device discovered", type == LV_EVDEV_TYPE_REL ? "REL" :
-                                        type == LV_EVDEV_TYPE_ABS ? "ABS" :
-                                        type == LV_EVDEV_TYPE_KEY ? "KEY" :
-                                        "???");
+    ILOG_INFO("'%s' device discovered", type == LV_EVDEV_TYPE_REL   ? "REL"
+                                        : type == LV_EVDEV_TYPE_ABS ? "ABS"
+                                        : type == LV_EVDEV_TYPE_KEY ? "KEY"
+                                                                    : "???");
 
     lv_display_t *disp = (lv_display_t *)user_data;
     lv_indev_set_display(indev, disp);
 
-    if(type == LV_EVDEV_TYPE_REL) {
+    if (type == LV_EVDEV_TYPE_REL) {
         set_mouse_cursor_icon(indev, disp);
     }
 }
@@ -72,8 +71,9 @@ void FBDriver::set_mouse_cursor_icon(lv_indev_t *indev, lv_display_t *display)
 
 void FBDriver::indev_deleted_cb(lv_event_t *e)
 {
-    if(LV_GLOBAL_DEFAULT()->deinit_in_progress) return;
-    lv_obj_t *cursor_obj = (lv_obj_t*)lv_event_get_user_data(e);
+    if (LV_GLOBAL_DEFAULT()->deinit_in_progress)
+        return;
+    lv_obj_t *cursor_obj = (lv_obj_t *)lv_event_get_user_data(e);
     lv_obj_del(cursor_obj);
 }
 #endif
