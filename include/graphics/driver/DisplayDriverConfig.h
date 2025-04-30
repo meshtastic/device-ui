@@ -29,6 +29,7 @@ class DisplayDriverConfig
         BPICOMPUTER_S3,
         TWATCH_S3,
         UNPHONE_V9,
+        ELECROW_ADV,
         HELTEC_TRACKER,
         WT32_SC01_PLUS,
         ESP2432S028RV1,

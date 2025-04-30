@@ -10,9 +10,6 @@
 #if defined(EINK_DRIVER) || defined(ARCH_PORTDUINO)
 // TODO #include "graphics/driver/EINKDriver.h"
 #endif
-#if defined(USE_FRAMEBUFFER)
-#include "graphics/driver/FBDriver.h"
-#endif
 #if defined(USE_X11)
 #include "graphics/driver/X11Driver.h"
 #endif
@@ -45,6 +42,9 @@
 #ifdef UNPHONE
 #include "graphics/LGFX/LGFX_UNPHONE.h"
 #endif
+#ifdef ELECROW_PANEL
+#include "graphics/LGFX/LGFX_ELECROW70.h"
+#endif
 #ifdef ESP32_2432S022
 #include "graphics/LGFX/LGFX_ESP2432S022.h"
 #endif
@@ -69,9 +69,6 @@ DisplayDriverFactory::DisplayDriverFactory() {}
 
 DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 {
-#if defined(USE_FRAMEBUFFER)
-    return &FBDriver::create(width, height);
-#endif
 #if defined(USE_X11)
     return &X11Driver::create(width, height);
 #elif defined(LGFX_DRIVER)
@@ -98,11 +95,6 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #if defined(EINKConfig) || defined(ARCH_PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_EINK) {
         // TODO return new EINKDriver<EINKConfig>(cfg);
-    }
-#endif
-#if defined(USE_FRAMEBUFFER)
-    if (cfg._device == DisplayDriverConfig::device_t::FB) {
-        return &FBDriver::create(cfg.width(), cfg.height());
     }
 #endif
 #if defined(USE_X11)
@@ -147,6 +139,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::UNPHONE_V9:
         return new LGFXDriver<LGFX_UNPHONE_V9>(cfg.width(), cfg.height());
         break;
+#elif defined(ELECROW_PANEL)
+    case DisplayDriverConfig::device_t::ELECROW_ADV:
+        return new LGFXDriver<LGFX_ELECROW70>(cfg.width(), cfg.height());
+        break;
 #elif defined(HELTEC_TRACKER)
     case DisplayDriverConfig::device_t::HELTEC_TRACKER:
         // return new LGFXDriver<LGFX_HELTEC_TRACKER>(cfg.width(), cfg.height());
@@ -164,10 +160,6 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         return new LGFXDriver<LGFX_ESP2432S028RV2>(cfg.width(), cfg.height());
         break;
 #endif
-#elif defined(USE_FRAMEBUFFER)
-    case DisplayDriverConfig::device_t::FB:
-        return &FBDriver::create(cfg.width(), cfg.height());
-        break;
 #elif defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:
         return &X11Driver::create(cfg.width(), cfg.height());
