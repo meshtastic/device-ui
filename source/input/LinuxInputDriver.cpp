@@ -1,4 +1,4 @@
-#ifdef ARCH_PORTDUINO
+#if defined(ARCH_PORTDUINO) && LV_USE_LIBINPUT
 
 #include "input/LinuxInputDriver.h"
 #include "screens.h"

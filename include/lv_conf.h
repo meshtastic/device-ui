@@ -1040,7 +1040,7 @@
 #endif
 
 /*Driver for /dev/fb*/
-#define LV_USE_LINUX_FBDEV      0
+#define LV_USE_LINUX_FBDEV      USE_FRAMEBUFFER
 #if LV_USE_LINUX_FBDEV
     #define LV_LINUX_FBDEV_BSD           0
     #define LV_LINUX_FBDEV_RENDER_MODE   LV_DISPLAY_RENDER_MODE_PARTIAL
@@ -1076,7 +1076,9 @@
 #define LV_USE_TFT_ESPI         0
 
 /*Driver for evdev input devices*/
+#ifndef LV_USE_EVDEV
 #define LV_USE_EVDEV    0
+#endif
 
 /*Driver for libinput input devices*/
 #ifndef LV_USE_LIBINPUT
