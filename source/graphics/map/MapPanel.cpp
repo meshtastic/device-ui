@@ -5,6 +5,9 @@
 #include "util/ILog.h"
 #include <assert.h>
 
+#define HASH(X, Y) (((X) << 16) | ((Y) & 0xFFFF))
+
+
 MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
     : home(GeoPoint(MapTileSettings::getDefaultLat(), MapTileSettings::getDefaultLon(), MapTileSettings::getZoomLevel())),
       current(home), scrolled(home), panel(p), homeLocationImage(nullptr), gpsPositionImage(nullptr), noTileImage(nullptr),
@@ -49,7 +52,7 @@ void MapPanel::redraw(void)
 #if defined(MAP_FULL_REDRAW)
     for (int x = 0; x < tilesX; x++) {
         for (int y = 0; y < tilesY; y++) {
-            uint32_t hash = ((xStart + x) << 16) | (yStart + y);
+            uint32_t hash = HASH(xStart + x, yStart + y);
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
             tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
         }
@@ -60,7 +63,7 @@ void MapPanel::redraw(void)
 #else // incremental redraw
     for (int i = 0; i < tilesY; i++) {
         if (x < tilesX && y < tilesY) {
-            uint32_t hash = ((xStart + x) << 16) | (yStart + y);
+            uint32_t hash = HASH(xStart + x, yStart + y);
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
             tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
             x++;
@@ -85,7 +88,7 @@ void MapPanel::redraw(void)
 void MapPanel::drawLocation(void)
 {
     if (gpsPositionImage) {
-        auto it = tiles.find(current.xTile << 16 | current.yTile);
+        auto it = tiles.find(HASH(current.xTile, current.yTile));
         if (it != tiles.end()) {
             MapTile &tile = *it->second;
             lv_obj_set_pos(gpsPositionImage, current.xPos + tile.getX() - 4, current.yPos + tile.getY() - 10);
@@ -96,7 +99,7 @@ void MapPanel::drawLocation(void)
         }
     }
     if (homeLocationImage) {
-        auto it = tiles.find(home.xTile << 16 | home.yTile);
+        auto it = tiles.find(HASH(home.xTile, home.yTile));
         if (it != tiles.end()) {
             MapTile &tile = *it->second;
             lv_obj_set_pos(homeLocationImage, home.xPos + tile.getX() - 4, home.yPos + tile.getY() - 10);
@@ -139,7 +142,7 @@ void MapPanel::drawObject(MapObject &obj, bool count)
                 obj.point.setZoom(MapTileSettings::getZoomLevel());
             }
             // check if object is in the visible tile area
-            auto tileIt = tiles.find(obj.point.xTile << 16 | obj.point.yTile);
+            auto tileIt = tiles.find(HASH(obj.point.xTile, obj.point.yTile));
             if (tileIt != tiles.end()) {
                 MapTile &tile = *tileIt->second;
                 if (tile.getX() + obj.point.xPos >= 0 && tile.getX() + obj.point.xPos < widthPixel &&
@@ -283,7 +286,7 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
     }
 
     // check if the scrolling requires new tiles at the beginning row or column
-    auto sit = tiles.find((xStart << 16) | yStart);
+    auto sit = tiles.find(HASH(xStart, yStart));
     if (sit != tiles.end()) {
         MapTile &tile00 = *sit->second;
         if (tile00.getX() + scrollX > 0) {
@@ -303,7 +306,7 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
         return false;
     }
     // check if scrolling requires new tiles at the ending row or column
-    auto eit = tiles.find(((xStart + tilesX - 1) << 16) | (yStart + tilesY - 1));
+    auto eit = tiles.find(HASH(xStart + tilesX - 1, yStart + tilesY - 1));
     if (eit != tiles.end()) {
         MapTile &tileNN = *eit->second;
         if (tileNN.getX() + scrollX < widthPixel - size) {
@@ -342,7 +345,7 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
     // now loop over the extended square of tiles, create, move and delete as required
     for (int x = 0; x < tilesX; x++) {
         for (int y = 0; y < tilesY; y++) {
-            uint32_t hash = ((xStart + x) << 16) | (yStart + y);
+            uint32_t hash = HASH(xStart + x, yStart + y);
             if (tiles.find(hash) == tiles.end()) {
                 // create new tiles at panel pos x/y
                 int16_t xpos = x * size + xOffset;
@@ -499,7 +502,7 @@ void MapPanel::printTiles(void)
     std::stringstream ss;
     for (int x = 0; x < tilesX; x++) {
         for (int y = 0; y < tilesY; y++) {
-            uint32_t hash = ((xStart + x) << 16) | (yStart + y);
+            uint32_t hash = HASH(xStart + x, yStart + y);
             ss << x << "/" << y << ": "
                << "(" << (uint32_t)MapTileSettings::getZoomLevel() << "/" << tiles[hash].get()->xTile << "/"
                << tiles[hash].get()->yTile << ") - " << tiles[hash].get()->xPos << "/" << tiles[hash].get()->yPos << " ==> "
