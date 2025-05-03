@@ -42,6 +42,9 @@
 #ifdef UNPHONE
 #include "graphics/LGFX/LGFX_UNPHONE.h"
 #endif
+#ifdef ELECROW_PANEL
+#include "graphics/LGFX/LGFX_ELECROW70.h"
+#endif
 #ifdef ESP32_2432S022
 #include "graphics/LGFX/LGFX_ESP2432S022.h"
 #endif
@@ -135,6 +138,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(UNPHONE)
     case DisplayDriverConfig::device_t::UNPHONE_V9:
         return new LGFXDriver<LGFX_UNPHONE_V9>(cfg.width(), cfg.height());
+        break;
+#elif defined(ELECROW_PANEL)
+    case DisplayDriverConfig::device_t::ELECROW_ADV:
+        return new LGFXDriver<LGFX_ELECROW70>(cfg.width(), cfg.height());
         break;
 #elif defined(HELTEC_TRACKER)
     case DisplayDriverConfig::device_t::HELTEC_TRACKER:

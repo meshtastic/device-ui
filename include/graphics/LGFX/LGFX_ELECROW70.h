@@ -2,11 +2,13 @@
 
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
+#include <TCA9534.h>
 #include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
 #include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
-#include <TCA9534.h>
 
-TCA9534 ioex;
+#ifndef FREQ_WRITE
+#define FREQ_WRITE 14000000
+#endif
 
 class LGFX_ELECROW70 : public lgfx::LGFX_Device
 {
@@ -28,11 +30,11 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
         ioex.config(2, TCA9534::Config::OUT);
         ioex.config(3, TCA9534::Config::OUT);
         ioex.config(4, TCA9534::Config::OUT);
-        
+
         ioex.output(1, TCA9534::Level::H);
         ioex.output(3, TCA9534::Level::L);
         ioex.output(4, TCA9534::Level::H);
-        
+
         pinMode(1, OUTPUT);
         digitalWrite(1, LOW);
         ioex.output(2, TCA9534::Level::L);
@@ -61,7 +63,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
 
         {
             auto cfg = _panel_instance.config_detail();
-            cfg.use_psram = 0;
+            cfg.use_psram = 1;
             _panel_instance.config_detail(cfg);
         }
 
@@ -89,7 +91,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             cfg.pin_vsync = GPIO_NUM_41;
             cfg.pin_hsync = GPIO_NUM_40;
             cfg.pin_pclk = GPIO_NUM_39;
-            cfg.freq_write = 13000000;
+            cfg.freq_write = FREQ_WRITE;
 
             cfg.hsync_polarity = 0;
             cfg.hsync_front_porch = 8;
@@ -102,9 +104,9 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             cfg.vsync_back_porch = 8;
 
             cfg.pclk_idle_high = 1;
-            //cfg.pclk_active_neg = 0;
-            //cfg.pclk_idle_high = 0;
-            //cfg.de_idle_high = 1;
+            // cfg.pclk_active_neg = 0;
+            // cfg.pclk_idle_high = 0;
+            // cfg.de_idle_high = 1;
 
             _bus_instance.config(cfg);
         }
@@ -132,4 +134,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
 
         setPanel(&_panel_instance);
     }
+
+  private:
+    TCA9534 ioex;
 };
