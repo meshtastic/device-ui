@@ -19,6 +19,7 @@
 
 // gzip helper
 extern std::string decompressGzip(const std::string &compressedData);
+extern uint8_t *decompressGzip(const uint8_t *compressedData, size_t length, size_t &actualDecompressedSize);
 
 PMTileService::PMTileService() : ITileService(nullptr)
 {
@@ -152,14 +153,30 @@ bool PMTileService::load(uint32_t x, uint32_t y, uint32_t z, void *img)
         const std::vector<pmtiles::entryv3> *dirEntries = nullptr;
         if (dir_offset != cachedDirOffset[depth]) {
             // Read the directory
-            std::string dirBuffer(dir_length, '\0');
+            uint8_t *dirBuffer = (uint8_t *)lv_malloc(dir_length);
+            if (!dirBuffer) {
+                ILOG_ERROR("Failed to allocate memory for dirBuffer");
+                return false;
+            }
             pmTiles.seek(dir_offset);
-            pmTiles.readBytes(&dirBuffer[0], dir_length);
-
+#ifdef ARCH_PORTDUINO
+            pmTiles.readBytes((char *)dirBuffer, dir_length);
+#else
+            pmTiles.readBytes(dirBuffer, dir_length);
+#endif
             // Decompress and deserialize the directory
-            // std::string decompressedDir = decompressGzip(dirBuffer, pmHeader.internal_compression);
+            // std::string decompressedDir = decompress(dirBuffer, pmHeader.internal_compression);
+            size_t decompressedSize = 0;
+            uint8_t *decompressedDir = decompressGzip(dirBuffer, dir_length, decompressedSize);
+            if (!decompressedDir) {
+                lv_free(dirBuffer);
+                return false;
+            }
+            // Deserialize the directory
             cachedDirOffset[depth] = dir_offset;
-            cachedDirEntries[depth] = pmtiles::deserialize_directory(decompressGzip(dirBuffer));
+            cachedDirEntries[depth] = pmtiles::deserialize_directory((const char *)decompressedDir, decompressedSize);
+            lv_free(decompressedDir);
+            lv_free(dirBuffer);
         }
         dirEntries = &cachedDirEntries[depth];
 

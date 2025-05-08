@@ -4,18 +4,19 @@
 #ifndef PMTILES_HPP
 #define PMTILES_HPP
 
-#include <cstdint>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <tuple>
-#include <functional>
 #include <algorithm>
+#include <cstdint>
+#include <functional>
 #include <limits> // for std::numeric_limits<>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include "util/ILog.h"
 
-namespace pmtiles {
+namespace pmtiles
+{
 
 const uint8_t TILETYPE_UNKNOWN = 0x0;
 const uint8_t TILETYPE_MVT = 0x1;
@@ -31,29 +32,26 @@ const uint8_t COMPRESSION_BROTLI = 0x3;
 const uint8_t COMPRESSION_ZSTD = 0x4;
 
 #ifdef PMTILES_MSB
-template<class T>
-inline void swap_byte_order_if_msb(T* ptr) {
-    unsigned char* ptrBytes = reinterpret_cast<unsigned char*>(ptr);
-    for (size_t i = 0; i < sizeof(T)/2; ++i) {
-        std::swap(ptrBytes[i], ptrBytes[sizeof(T)-1-i]);
+template <class T> inline void swap_byte_order_if_msb(T *ptr)
+{
+    unsigned char *ptrBytes = reinterpret_cast<unsigned char *>(ptr);
+    for (size_t i = 0; i < sizeof(T) / 2; ++i) {
+        std::swap(ptrBytes[i], ptrBytes[sizeof(T) - 1 - i]);
     }
 }
 #else
-template<class T>
-inline void swap_byte_order_if_msb(T* /*ptr*/)
-{
-}
+template <class T> inline void swap_byte_order_if_msb(T * /*ptr*/) {}
 #endif
 
-template<class T>
-inline void copy_to_lsb(std::stringstream& ss, T val) {
+template <class T> inline void copy_to_lsb(std::stringstream &ss, T val)
+{
     swap_byte_order_if_msb(&val);
-    ss.write(reinterpret_cast<char*>(&val), sizeof(T));
+    ss.write(reinterpret_cast<char *>(&val), sizeof(T));
 }
 
-template<>
-inline void copy_to_lsb<uint8_t>(std::stringstream& ss, uint8_t val) {
-    ss.write(reinterpret_cast<char*>(&val), 1);
+template <> inline void copy_to_lsb<uint8_t>(std::stringstream &ss, uint8_t val)
+{
+    ss.write(reinterpret_cast<char *>(&val), 1);
 }
 
 struct headerv3 {
@@ -83,7 +81,8 @@ struct headerv3 {
     int32_t center_lat_e7;
 
     // WARNING: this is limited to little-endian
-    std::string serialize() {
+    std::string serialize()
+    {
         std::stringstream ss;
         ss << "PMTiles";
         uint8_t version = 3;
@@ -123,13 +122,14 @@ struct headerv3 {
     }
 };
 
-template<class T>
-inline void copy_from_lsb(T* ptr, const std::string &s, size_t offset) {
+template <class T> inline void copy_from_lsb(T *ptr, const std::string &s, size_t offset)
+{
     s.copy(reinterpret_cast<char *>(ptr), sizeof(T), offset);
     swap_byte_order_if_msb(ptr);
 }
 
-inline headerv3 deserialize_header(const std::string &s) {
+inline headerv3 deserialize_header(const std::string &s)
+{
     if (s.substr(0, 7) != "PMTiles") {
         ILOG_ERROR("Invalid .pmtiles file");
         return headerv3{};
@@ -175,9 +175,7 @@ struct zxy {
     uint32_t x;
     uint32_t y;
 
-    zxy(uint8_t _z, int _x, int _y)
-        : z(_z), x(_x), y(_y) {
-    }
+    zxy(uint8_t _z, int _x, int _y) : z(_z), x(_x), y(_y) {}
 };
 
 struct entryv3 {
@@ -186,19 +184,16 @@ struct entryv3 {
     uint32_t length;
     uint32_t run_length;
 
-    entryv3()
-        : tile_id(0), offset(0), length(0), run_length(0) {
-    }
+    entryv3() : tile_id(0), offset(0), length(0), run_length(0) {}
 
     entryv3(uint64_t _tile_id, uint64_t _offset, uint32_t _length, uint32_t _run_length)
-        : tile_id(_tile_id), offset(_offset), length(_length), run_length(_run_length) {
+        : tile_id(_tile_id), offset(_offset), length(_length), run_length(_run_length)
+    {
     }
 };
 
 struct {
-    bool operator()(entryv3 a, entryv3 b) const {
-        return a.tile_id < b.tile_id;
-    }
+    bool operator()(entryv3 a, entryv3 b) const { return a.tile_id < b.tile_id; }
 } entryv3_cmp;
 
 struct entry_zxy {
@@ -209,22 +204,24 @@ struct entry_zxy {
     uint32_t length;
 
     entry_zxy(uint8_t _z, uint32_t _x, uint32_t _y, uint64_t _offset, uint32_t _length)
-        : z(_z), x(_x), y(_y), offset(_offset), length(_length) {
+        : z(_z), x(_x), y(_y), offset(_offset), length(_length)
+    {
     }
 };
 
-
-namespace {
+namespace
+{
 constexpr const int8_t max_varint_length = sizeof(uint64_t) * 8 / 7 + 1;
 
 // from https://github.com/mapbox/protozero/blob/master/include/protozero/varint.hpp
-uint64_t decode_varint_impl(const char **data, const char *end) {
+uint64_t decode_varint_impl(const char **data, const char *end)
+{
     const auto *begin = reinterpret_cast<const int8_t *>(*data);
     const auto *iend = reinterpret_cast<const int8_t *>(end);
     const int8_t *p = begin;
     uint64_t val = 0;
 
-    if (iend - begin >= max_varint_length) {  // fast path
+    if (iend - begin >= max_varint_length) { // fast path
         do {
             int64_t b = *p++;
             val = ((uint64_t(b) & 0x7fU));
@@ -296,7 +293,8 @@ uint64_t decode_varint_impl(const char **data, const char *end) {
     return val;
 }
 
-uint64_t decode_varint(const char **data, const char *end) {
+uint64_t decode_varint(const char **data, const char *end)
+{
     // If this is a one-byte varint, decode it here.
     if (end != *data && ((static_cast<uint64_t>(**data) & 0x80U) == 0)) {
         const auto val = static_cast<uint64_t>(**data);
@@ -307,7 +305,8 @@ uint64_t decode_varint(const char **data, const char *end) {
     return decode_varint_impl(data, end);
 }
 
-void rotate(int64_t n, uint32_t &x, uint32_t &y, uint32_t rx, uint32_t ry) {
+void rotate(int64_t n, uint32_t &x, uint32_t &y, uint32_t rx, uint32_t ry)
+{
     if (ry == 0) {
         if (rx != 0) {
             x = n - 1 - x;
@@ -319,7 +318,8 @@ void rotate(int64_t n, uint32_t &x, uint32_t &y, uint32_t rx, uint32_t ry) {
     }
 }
 
-int write_varint(std::back_insert_iterator<std::string> data, uint64_t value) {
+int write_varint(std::back_insert_iterator<std::string> data, uint64_t value)
+{
     int n = 1;
 
     while (value >= 0x80U) {
@@ -334,7 +334,8 @@ int write_varint(std::back_insert_iterator<std::string> data, uint64_t value) {
 
 // TMS order
 struct {
-    bool operator()(entry_zxy a, entry_zxy b) const {
+    bool operator()(entry_zxy a, entry_zxy b) const
+    {
         if (a.z != b.z) {
             return a.z < b.z;
         }
@@ -346,7 +347,8 @@ struct {
 } colmajor_cmp;
 
 // use a 0 length entry as a null value.
-entryv3 find_tile(const std::vector<entryv3> &entries, uint64_t tile_id) {
+entryv3 find_tile(const std::vector<entryv3> &entries, uint64_t tile_id)
+{
     int m = 0;
     int n = static_cast<int>(entries.size()) - 1;
     while (m <= n) {
@@ -372,16 +374,21 @@ entryv3 find_tile(const std::vector<entryv3> &entries, uint64_t tile_id) {
     return entryv3{0, 0, 0, 0};
 }
 
-}  // end anonymous namespace
+} // end anonymous namespace
 
 // Note: std::bit_width is available in C++20 and later.
-static uint8_t bit_width(uint64_t n) {
+static uint8_t bit_width(uint64_t n)
+{
     uint8_t count = 0;
-    while (n > 0) { count++; n >>= 1; }
+    while (n > 0) {
+        count++;
+        n >>= 1;
+    }
     return count;
 }
 
-inline zxy tileid_to_zxy(uint64_t tileid) {
+inline zxy tileid_to_zxy(uint64_t tileid)
+{
     if (tileid > 6148914691236517204) {
         ILOG_ERROR("tile id exceeds 64-bit limit");
         return zxy(0, 0, 0);
@@ -402,7 +409,8 @@ inline zxy tileid_to_zxy(uint64_t tileid) {
     return zxy(z, static_cast<int>(x), static_cast<int>(y));
 }
 
-inline uint64_t zxy_to_tileid(uint8_t z, uint32_t x, uint32_t y) {
+inline uint64_t zxy_to_tileid(uint8_t z, uint32_t x, uint32_t y)
+{
     if (z > 31) {
         ILOG_ERROR("tile zoom exceeds 64-bit limit");
         return 0;
@@ -425,7 +433,8 @@ inline uint64_t zxy_to_tileid(uint8_t z, uint32_t x, uint32_t y) {
 }
 
 // returns an uncompressed byte buffer
-inline std::string serialize_directory(const std::vector<entryv3> &entries) {
+inline std::string serialize_directory(const std::vector<entryv3> &entries)
+{
     std::string data;
 
     write_varint(std::back_inserter(data), entries.size());
@@ -456,14 +465,15 @@ inline std::string serialize_directory(const std::vector<entryv3> &entries) {
 }
 
 // takes an uncompressed byte buffer
-inline std::vector<entryv3> deserialize_directory(const std::string &decompressed) {
-    const char *t = decompressed.data();
-    const char *end = t + decompressed.size();
+inline std::vector<entryv3> deserialize_directory(const char *decompressed, size_t decompressedSize)
+{
+    const char *t = decompressed;
+    const char *end = t + decompressedSize;
 
     const uint64_t num_entries_64bit = decode_varint(&t, end);
     // Sanity check to avoid excessive memory allocation attempt:
     // each directory entry takes at least 4 bytes
-    if (num_entries_64bit / 4U > decompressed.size()) {
+    if (num_entries_64bit / 4U > decompressedSize) {
         ILOG_ERROR("malformed directory 1");
         return {};
     }
@@ -482,7 +492,7 @@ inline std::vector<entryv3> deserialize_directory(const std::string &decompresse
         if (val > std::numeric_limits<uint64_t>::max() - last_id) {
             ILOG_ERROR("malformed directory 3");
             return {};
-       }
+        }
         const uint64_t tile_id = last_id + val;
         result[i].tile_id = tile_id;
         last_id = tile_id;
@@ -529,7 +539,10 @@ inline std::vector<entryv3> deserialize_directory(const std::string &decompresse
     return result;
 }
 
-inline std::tuple<std::string, std::string, int> build_root_leaves(const std::function<std::string(const std::string &, uint8_t)> mycompress, uint8_t compression, const std::vector<pmtiles::entryv3> &entries, int leaf_size) {
+inline std::tuple<std::string, std::string, int>
+build_root_leaves(const std::function<std::string(const std::string &, uint8_t)> mycompress, uint8_t compression,
+                  const std::vector<pmtiles::entryv3> &entries, int leaf_size)
+{
     std::vector<pmtiles::entryv3> root_entries;
     std::string leaves_bytes;
     int num_leaves = 0;
@@ -550,7 +563,10 @@ inline std::tuple<std::string, std::string, int> build_root_leaves(const std::fu
     return std::make_tuple(compressed_root, leaves_bytes, num_leaves);
 }
 
-inline std::tuple<std::string, std::string, int> make_root_leaves(const std::function<std::string(const std::string &, uint8_t)> mycompress, uint8_t compression, const std::vector<pmtiles::entryv3> &entries) {
+inline std::tuple<std::string, std::string, int>
+make_root_leaves(const std::function<std::string(const std::string &, uint8_t)> mycompress, uint8_t compression,
+                 const std::vector<pmtiles::entryv3> &entries)
+{
     auto test_bytes = pmtiles::serialize_directory(entries);
     auto compressed = mycompress(test_bytes, compression);
     if (compressed.size() <= 16384 - 127) {
@@ -569,11 +585,14 @@ inline std::tuple<std::string, std::string, int> make_root_leaves(const std::fun
     }
 }
 
-inline void collect_entries(const std::function<std::string(const std::string &, uint8_t)> decompress, std::vector<entry_zxy> &tile_entries, const char *pmtiles_map, const headerv3 &h, uint64_t dir_offset, uint64_t dir_len) {
+inline void collect_entries(const std::function<std::string(const std::string &, uint8_t)> decompress,
+                            std::vector<entry_zxy> &tile_entries, const char *pmtiles_map, const headerv3 &h, uint64_t dir_offset,
+                            uint64_t dir_len)
+{
     std::string dir_s{pmtiles_map + dir_offset, static_cast<size_t>(dir_len)};
     std::string decompressed_dir = decompress(dir_s, h.internal_compression);
 
-    auto dir_entries = pmtiles::deserialize_directory(decompressed_dir);
+    auto dir_entries = pmtiles::deserialize_directory(decompressed_dir.data(), decompressed_dir.size());
     for (auto const &entry : dir_entries) {
         if (entry.run_length == 0) {
             collect_entries(decompress, tile_entries, pmtiles_map, h, h.leaf_dirs_offset + entry.offset, entry.length);
@@ -586,7 +605,9 @@ inline void collect_entries(const std::function<std::string(const std::string &,
     }
 }
 
-inline std::vector<entry_zxy> entries_tms(const std::function<std::string(const std::string &, uint8_t)> decompress, const char *pmtiles_map) {
+inline std::vector<entry_zxy> entries_tms(const std::function<std::string(const std::string &, uint8_t)> decompress,
+                                          const char *pmtiles_map)
+{
     std::string header_s{pmtiles_map, 127};
     auto header = pmtiles::deserialize_header(header_s);
 
@@ -597,7 +618,9 @@ inline std::vector<entry_zxy> entries_tms(const std::function<std::string(const 
     return tile_entries;
 }
 
-inline std::pair<uint64_t, uint32_t> get_tile(const std::function<std::string(const std::string &, uint8_t)> decompress, const char *pmtiles_map, uint8_t z, uint32_t x, uint32_t y) {
+inline std::pair<uint64_t, uint32_t> get_tile(const std::function<std::string(const std::string &, uint8_t)> decompress,
+                                              const char *pmtiles_map, uint8_t z, uint32_t x, uint32_t y)
+{
     uint64_t tile_id = pmtiles::zxy_to_tileid(z, x, y);
 
     std::string header_s{pmtiles_map, sizeof(headerv3)};
@@ -612,7 +635,7 @@ inline std::pair<uint64_t, uint32_t> get_tile(const std::function<std::string(co
     for (int depth = 0; depth <= 3; depth++) {
         std::string dir_s{pmtiles_map + dir_offset, dir_length};
         std::string decompressed_dir = decompress(dir_s, h.internal_compression);
-        auto dir_entries = pmtiles::deserialize_directory(decompressed_dir);
+        auto dir_entries = pmtiles::deserialize_directory(decompressed_dir.data(), decompressed_dir.size());
         auto entry = find_tile(dir_entries, tile_id);
 
         if (entry.length > 0) {
@@ -630,5 +653,5 @@ inline std::pair<uint64_t, uint32_t> get_tile(const std::function<std::string(co
     return std::make_pair(0, 0);
 }
 
-}  // namespace pmtiles
+} // namespace pmtiles
 #endif
