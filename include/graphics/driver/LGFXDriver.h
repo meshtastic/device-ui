@@ -148,10 +148,14 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             else {
                 if (!powerSaving) {
                     DisplayDriver::view->blankScreen(true);
+                    lgfx->sleep();
+                    lgfx->powerSaveOn();
                     powerSaving = true;
                 }
                 if (screenTimeout > lv_display_get_inactive_time(NULL)) {
                     DisplayDriver::view->blankScreen(false);
+                    lgfx->powerSaveOff();
+                    lgfx->wakeup();
                     powerSaving = false;
                     lv_disp_trig_activity(NULL);
                 }
