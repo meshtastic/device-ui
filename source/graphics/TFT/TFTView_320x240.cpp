@@ -2193,7 +2193,7 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
 
 void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 {
-    std::string style(20, '\0');
+    std::string style(21, '\0');
     lv_dropdown_get_selected_str(objects.map_style_dropdown, (char *)style.data(), 20);
     strcpy(THIS->db.uiConfig.map_data.style, style.c_str());
     MapTileSettings::setTileStyle(style.c_str());
@@ -2497,6 +2497,7 @@ void TFTView_320x240::loadMap(void)
 
 void TFTView_320x240::setTileService(bool pmtiles)
 {
+    ILOG_DEBUG("setTileService %s (%s)", MapTileSettings::getTileStyle(), pmtiles ? "pmtiles" : "folder");
     assert(map);
     if (pmtiles) {
 #if defined(ARCH_PORTDUINO) || defined(HAS_SDCARD)

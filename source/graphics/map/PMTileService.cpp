@@ -61,11 +61,11 @@ PMTileService::PMTileService() : ITileService(nullptr)
                 pmTiles.close();
             }
         } else {
-            ILOG_ERROR("Invalid .pmtiles file");
+            ILOG_ERROR("Invalid .pmtiles file %s", fname);
             pmTiles.close();
         }
     } else {
-        ILOG_ERROR("Failed to open pmtiles file");
+        ILOG_ERROR("Failed to open pmtiles file %s", fname);
     }
 }
 
@@ -78,8 +78,8 @@ PMTileService::~PMTileService()
 
 void PMTileService::convertRGB888ToRGB565(uint8_t *src, uint16_t *dst, int width, int height)
 {
-    int totalPixels = width * height;
-    int srcIndex = 0;
+    uint32_t totalPixels = width * height;
+    uint32_t srcIndex = 0;
     for (int i = 0; i < totalPixels; i++) {
         uint8_t r = src[srcIndex];
         uint8_t g = src[srcIndex + 1];
