@@ -20,7 +20,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
     const uint16_t screenWidth = 800;
     const uint16_t screenHeight = 480;
 
-    bool hasButton(void) { return true; }
+    bool hasButton(void) { return false; }
 
     bool init_impl(bool use_reset, bool use_clear) override
     {
@@ -133,6 +133,17 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
         }
 
         setPanel(&_panel_instance);
+    }
+
+    void sleep(void)
+    {
+        ioex.output(1, TCA9534::Level::L);
+        _panel->setSleep(true);
+    }
+    void wakeup(void)
+    {
+        ioex.output(1, TCA9534::Level::H);
+        _panel->setSleep(false);
     }
 
   private:
