@@ -999,8 +999,10 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                     // however, it contains valid rssi/snr, so use these
                     view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
                     break;
-                case meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY:
+                case meshtastic_Routing_Error_NO_INTERFACE:
                 case meshtastic_Routing_Error_NO_CHANNEL:
+                    // invalid channel or interface
+                case meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY:
                     // this response is sent by the other node when encryption keys differ (outdated)
                     view->handleResponse(p.from, p.decoded.request_id, routing, p);
                     break;
