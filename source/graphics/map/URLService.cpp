@@ -25,7 +25,7 @@ URLService::URLService() : ITileService("U:")
 
 URLService::~URLService() {}
 
-bool URLService::load(const char *name, void *img)
+bool URLService::load(uint32_t x, uint32_t y, uint32_t z, void *img)
 {
     return false; // TODO
 }
