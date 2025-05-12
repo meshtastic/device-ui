@@ -15,28 +15,32 @@ const size_t PB_BUFSIZE = 516;
 
 EthClient *EthClient::instance = nullptr;
 
-EthClient::EthClient(void) : shutdown(false), connected(false), pb_size(0), bytes_read(0), client(nullptr)
+EthClient::EthClient(byte *mac, IPAddress ip, IPAddress server)
+    : shutdown(false), connected(false), pb_size(0), bytes_read(0), client(nullptr), localIP(ip), serverIP(server)
 {
+    memcpy(this->mac, mac, sizeof(this->mac));
+    ILOG_DEBUG("EthClient mac=%02X:%02X:%02X:%02X:%02X:%02X localIP=%d.%d.%d.%d, serverIP=%d.%d.%d.%d", mac[0], mac[1], mac[2],
+               mac[3], mac[4], mac[5], localIP[0], localIP[1], localIP[2], localIP[3], serverIP[0], serverIP[1], serverIP[2],
+               serverIP[3]);
     // create a buffer for the incoming data
     buffer = new uint8_t[PB_BUFSIZE];
     instance = this;
 }
 
-void EthClient::init(byte *mac, IPAddress ip, IPAddress server)
+void EthClient::init(void)
 {
     ILOG_DEBUG("EthClient::init()");
     client = new EthernetClient();
 
     // Ethernet.init(SS_PIN); // TODO for ESP32
-    Ethernet.begin(mac, ip);
-    serverIP = server;
+    Ethernet.begin(mac, localIP);
 
     // Check for Ethernet hardware present
     if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-        ILOG_ERROR("Ethernet device not found");
+        ILOG_ERROR("Ethernet device not found!");
     }
     if (Ethernet.linkStatus() == LinkOFF) {
-        ILOG_WARN("Ethernet cable not connected");
+        ILOG_WARN("Ethernet cable not connected!");
     }
 
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
@@ -59,7 +63,7 @@ bool EthClient::connect(void)
         ILOG_TRACE("EthClient connected to %d.%d.%d.%d", serverIP[0], serverIP[1], serverIP[2], serverIP[3]);
         connected = true;
     } else {
-        ILOG_WARN("EthClient connection failed");
+        ILOG_WARN("EthClient connection failed!");
         connected = false;
     }
     return connected;

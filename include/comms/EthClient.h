@@ -11,10 +11,9 @@
 class EthClient : public IClientBase
 {
   public:
-    EthClient(void);
-    void init(void) override{};
-    void init(byte *mac, IPAddress ip, IPAddress server = IPAddress(127, 0, 0, 1));
-    // void init(byte *mac, IPAddress ip, IPddress server, IPAddress gateway, IPAddress subnet);
+    EthClient(byte *mac, IPAddress ip, IPAddress server = IPAddress(127, 0, 0, 1));
+    // EthClient(byte *mac, IPAddress ip, IPAddress server, IPAddress gateway, IPAddress subnet);
+    void init(void) override;
     bool sleep(int16_t pin);
     bool connect(void) override;
     bool disconnect(void) override;
@@ -49,6 +48,8 @@ class EthClient : public IClientBase
     size_t bytes_read;
 
     EthernetClient *client;
+    byte mac[6];
+    IPAddress localIP;
     IPAddress serverIP;
 
     // receiver and sender queue
