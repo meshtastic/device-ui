@@ -11,12 +11,44 @@
 #endif
 #include "Arduino.h"
 
-const size_t PB_BUFSIZE = 516;
+#if defined(ARCH_PORTDUINO)
+#include "WiFi.h"
+#include "WiFiClient.h"
+// as of now Portduino implements the ethernet functionality via WiFiClient
+class EthernetClient : public WiFiClient
+{
+  public:
+    EthernetClient() : WiFiClient(0) {}
+};
+#elif HAS_ETHERNET
+#include "Ethernet.h"
+#include "EthernetClient.h"
+#endif
+
+const size_t PB_BUFSIZE = 512 + 4; // 4 bytes for the header
 
 EthClient *EthClient::instance = nullptr;
 
-EthClient::EthClient(byte *mac, IPAddress ip, IPAddress server)
-    : shutdown(false), connected(false), pb_size(0), bytes_read(0), client(nullptr), localIP(ip), serverIP(server)
+EthClient::EthClient(const char *serverName, uint16_t port)
+    : shutdown(false), connected(false), pb_size(0), bytes_read(0), client(nullptr), mac{}, server(serverName), serverPort(port)
+{
+    // create a buffer for the incoming data
+    buffer = new uint8_t[PB_BUFSIZE];
+    instance = this;
+}
+
+EthClient::EthClient(IPAddress server, uint16_t port)
+    : shutdown(false), connected(false), pb_size(0), bytes_read(0), client(nullptr), mac{}, serverIP(server), server(nullptr),
+      serverPort(port)
+{
+    // create a buffer for the incoming data
+    buffer = new uint8_t[PB_BUFSIZE];
+    instance = this;
+}
+
+EthClient::EthClient(uint8_t *mac, IPAddress ip, IPAddress server, uint16_t port)
+    : shutdown(false), connected(false), pb_size(0), bytes_read(0), client(nullptr), localIP(ip), serverIP(server),
+      server(nullptr), serverPort(port)
 {
     memcpy(this->mac, mac, sizeof(this->mac));
     ILOG_DEBUG("EthClient mac=%02X:%02X:%02X:%02X:%02X:%02X localIP=%d.%d.%d.%d, serverIP=%d.%d.%d.%d", mac[0], mac[1], mac[2],
@@ -30,6 +62,7 @@ EthClient::EthClient(byte *mac, IPAddress ip, IPAddress server)
 void EthClient::init(void)
 {
     ILOG_DEBUG("EthClient::init()");
+#if defined(HAS_ETHERNET)
     client = new EthernetClient();
 
     // Ethernet.init(SS_PIN); // TODO for ESP32
@@ -42,6 +75,13 @@ void EthClient::init(void)
     if (Ethernet.linkStatus() == LinkOFF) {
         ILOG_WARN("Ethernet cable not connected!");
     }
+#elif defined(ARCH_PORTDUINO) || defined(HAS_WIFI)
+    client = new EthernetClient();
+    // WiFi.begin(ssid);
+    // if (WiFi.status() != WL_CONNECTED) {
+    //     ILOG_ERROR("WiFi/Eth device not found!");
+    // }
+#endif
 
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
     xTaskCreateUniversal(task_loop, "serial", 4096, NULL, 2, NULL, 0);
@@ -59,12 +99,16 @@ bool EthClient::sleep(int16_t pin)
 
 bool EthClient::connect(void)
 {
-    if (client->connect(serverIP, SERVER_PORT)) {
-        ILOG_TRACE("EthClient connected to %d.%d.%d.%d", serverIP[0], serverIP[1], serverIP[2], serverIP[3]);
-        connected = true;
+    ILOG_INFO("EthClient connecting to %d.%d.%d.%d:%d ...", serverIP[0], serverIP[1], serverIP[2], serverIP[3], serverPort);
+    if (server != nullptr) {
+        connected = client->connect(server, SERVER_PORT);
+    } else {
+        connected = client->connect(serverIP, SERVER_PORT);
+    }
+    if (connected) {
+        ILOG_TRACE("EthClient connected!");
     } else {
         ILOG_WARN("EthClient connection failed!");
-        connected = false;
     }
     return connected;
 }
