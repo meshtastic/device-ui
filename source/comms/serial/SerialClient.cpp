@@ -179,10 +179,9 @@ void SerialClient::handleSendPacket(void)
  */
 void SerialClient::task_loop(void *)
 {
-    size_t space_left = PB_BUFSIZE - instance->pb_size;
     ILOG_TRACE("SerialClient::task_loop running");
-
     while (!instance->shutdown) {
+        size_t space_left = PB_BUFSIZE - instance->pb_size;
         if (instance->connected) {
             size_t bytes_read = instance->receive(&instance->buffer[instance->pb_size], space_left);
             instance->pb_size += bytes_read;
