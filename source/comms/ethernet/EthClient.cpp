@@ -1,15 +1,6 @@
 #include "comms/EthClient.h"
 #include "comms/MeshEnvelope.h"
 #include "util/ILog.h"
-#include <time.h>
-
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
-#include "esp_task_wdt.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#else
-#include <thread>
-#endif
 #include "Arduino.h"
 
 #if defined(ARCH_PORTDUINO)
@@ -47,7 +38,7 @@ EthClient::EthClient(uint8_t *mac, IPAddress ip, IPAddress server, uint16_t port
 void EthClient::init(void)
 {
     ILOG_DEBUG("EthClient::init()");
-#if defined(HAS_ETHERNET)
+#if HAS_ETHERNET
     client = new EthernetClient();
 
     // Ethernet.init(SS_PIN); // TODO for ESP32
@@ -57,12 +48,12 @@ void EthClient::init(void)
     if (Ethernet.hardwareStatus() == EthernetNoHardware) {
         ILOG_ERROR("Ethernet device not found!");
     }
-    if (Ethernet.linkStatus() == LinkOFF) {
+    else if (Ethernet.linkStatus() == LinkOFF) {
         ILOG_WARN("Ethernet cable not connected!");
     }
 #elif defined(ARCH_PORTDUINO)
     client = new EthernetClient();
-#elif defined(HAS_WIFI)
+#elif HAS_WIFI
     // client = new WiFiClient();
     // WiFi.begin(ssid);
     // if (WiFi.status() != WL_CONNECTED) {
@@ -75,10 +66,11 @@ void EthClient::init(void)
 bool EthClient::connect(void)
 {
     if (!connected) {
-        ILOG_INFO("EthClient connecting to %d.%d.%d.%d:%d ...", serverIP[0], serverIP[1], serverIP[2], serverIP[3], serverPort);
         if (server != nullptr) {
+            ILOG_INFO("EthClient connecting to %s:%d ...", server, serverPort);
             connected = client->connect(server, SERVER_PORT);
         } else {
+            ILOG_INFO("EthClient connecting to %d.%d.%d.%d:%d ...", serverIP[0], serverIP[1], serverIP[2], serverIP[3], serverPort);
             connected = client->connect(serverIP, SERVER_PORT);
         }
         if (connected) {
@@ -90,7 +82,6 @@ bool EthClient::connect(void)
                 if (client->peek() != MT_MAGIC_0) {
                     client->read();
                     skipped++;
-                    delay(1);
                 }
             }
             ILOG_TRACE("EthClient::connect skipped %d bytes", skipped);
@@ -150,23 +141,20 @@ size_t EthClient::receive(uint8_t *buf, size_t space_left)
             break; // stop reading if we (potentially!) see next magic header
     }
     if (bytes_read > 0) {
-        ILOG_TRACE("received %d bytes from serial", bytes_read);
+        ILOG_TRACE("received %d bytes from tcp", bytes_read);
     }
     return bytes_read;
 #else // TODO: read all available bytes
-    int bytes_read = 0;
     if (client->available()) {
-        bytes_read = client->read(buf, space_left);
+        int bytes_read = client->read(buf, space_left);
         if (bytes_read == 0) {
-            ILOG_TRACE("received %d bytes from radio", space_left);
+            ILOG_TRACE("received %d bytes from tcp", space_left);
             return space_left;
         } else if (bytes_read > 0) {
-            ILOG_TRACE("received %d bytes from radio", bytes_read);
+            ILOG_TRACE("received %d bytes from tcp", bytes_read);
             return bytes_read;
-        } else {
-            return 0;
         }
     }
-    return bytes_read;
+    return 0;
 #endif
 }

@@ -201,7 +201,7 @@ void SerialClient::task_loop(void *)
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
         vTaskDelay((TickType_t)5); // yield, do not remove
 #else
-        delay(5);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
 #endif
     }
 }
