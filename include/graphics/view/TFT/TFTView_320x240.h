@@ -261,6 +261,8 @@ class TFTView_320x240 : public MeshtasticView
     void onTracerouteCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
 
     // lvgl timer callbacks
+    static void timer_event_reboot(lv_timer_t *timer);
+    static void timer_event_shutdown(lv_timer_t *timer);
     static void timer_event_programming_mode(lv_timer_t *timer);
 
     // lvgl event callbacks

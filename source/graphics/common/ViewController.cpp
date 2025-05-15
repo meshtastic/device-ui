@@ -80,6 +80,14 @@ bool ViewController::sleep(int16_t pin)
         return false;
 }
 
+bool ViewController::isStandalone(void)
+{
+    if (client)
+        return client->isStandalone();
+    else
+        return false;
+}
+
 void ViewController::processEvent(void) {}
 
 uint32_t ViewController::requestDeviceUIConfig(void)

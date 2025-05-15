@@ -397,6 +397,10 @@ void TFTView_320x240::init_screens(void)
     lv_obj_clear_flag(objects.basic_settings_backup_restore_button, LV_OBJ_FLAG_HIDDEN);
 #endif
 
+    if (controller->isStandalone()) {
+        lv_obj_add_flag(objects.progmode_button, LV_OBJ_FLAG_HIDDEN);
+    }
+
     // signal scanner scale
 #if defined(USE_SX127x)
     lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120\n-130\n-140\n-150");
@@ -852,6 +856,29 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
     }
 }
 #endif
+
+void TFTView_320x240::timer_event_reboot(lv_timer_t *timer)
+{
+#if defined(ARCH_PORTDUINO)
+    extern void reboot();
+    reboot();
+#elif defined(ARCH_ESP32)
+    esp_restart();
+#else
+    // TODO: implement for other platforms
+#endif
+}
+
+void TFTView_320x240::timer_event_shutdown(lv_timer_t *timer)
+{
+#if defined(ARCH_PORTDUINO)
+    exit(0);
+#elif defined(ARCH_ESP32)
+    esp_deep_sleep_start();
+#else
+    // TODO: implement for other platforms
+#endif
+}
 
 void TFTView_320x240::timer_event_programming_mode(lv_timer_t *timer)
 {
@@ -1907,6 +1934,9 @@ void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
         THIS->controller->requestReboot(5, THIS->ownNode);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        if (THIS->controller->isStandalone()) {
+            lv_timer_create(timer_event_reboot, 4000, NULL);
+        }
     }
 }
 
@@ -1931,6 +1961,9 @@ void TFTView_320x240::ui_event_device_shutdown_button(lv_event_t *e)
         THIS->controller->requestShutdown(5, THIS->ownNode);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        if (THIS->controller->isStandalone()) {
+            lv_timer_create(timer_event_shutdown, 4000, NULL);
+        }
     }
 }
 
@@ -3550,15 +3583,27 @@ void TFTView_320x240::storeNodeOptions(void)
  */
 void TFTView_320x240::eraseChat(uint32_t channelOrNode)
 {
+    if (chats.find(channelOrNode) == chats.end()) {
+        ILOG_WARN("eraseChat: channelOrNode %d not found", channelOrNode);
+        return;
+    }
     if (channelOrNode < c_max_channels) {
         uint8_t ch = (uint8_t)channelOrNode;
-        lv_obj_delete_delayed(chats[ch], 500);
+        if (state == MeshtasticView::eRunning) {
+            lv_obj_delete_delayed(chats[ch], 500);
+        } else {
+            lv_obj_del(chats[ch]);
+        }
         lv_obj_del(channelGroup[ch]);
         channelGroup[ch] = nullptr;
         chats.erase(ch);
     } else {
         uint32_t nodeNum = channelOrNode;
-        lv_obj_delete_delayed(chats[nodeNum], 500);
+        if (state == MeshtasticView::eRunning) {
+            lv_obj_delete_delayed(chats[nodeNum], 500);
+        } else {
+            lv_obj_delete(chats[nodeNum]);
+        }
         lv_obj_del(messages[nodeNum]);
         messages.erase(nodeNum);
         chats.erase(nodeNum);
@@ -6149,8 +6194,10 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_label_set_text(msgLabel, msg);
     add_style_new_message_style(msgLabel);
 
-    lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
-    lv_obj_move_foreground(objects.message_input_area);
+    if (state == MeshtasticView::eRunning) {
+        lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
+        lv_obj_move_foreground(objects.message_input_area);
+    }
     lv_obj_add_event_cb(hiddenPanel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 }
 
