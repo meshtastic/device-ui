@@ -11,6 +11,7 @@ include_directories(${portduino_SOURCE_DIR}/cores/portduino/FS)
 include_directories(${portduino_SOURCE_DIR}/cores/arduino)
 include_directories(${portduino_SOURCE_DIR}/libraries/SPI/src)
 include_directories(${portduino_SOURCE_DIR}/libraries/Wire/src)
+include_directories(${portduino_SOURCE_DIR}/libraries/WiFi/src)
 include_directories(${portduino_SOURCE_DIR}/ArduinoCore-API/api)
 
 # Specify source files for Portduino

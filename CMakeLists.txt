@@ -72,7 +72,13 @@ if(ENABLE_DOCTESTS)
     enable_testing()
     add_executable(tests ${sources_test})
     target_link_libraries(tests PRIVATE DeviceUI doctest::doctest lvgl::lvgl LovyanGFX Portduino Protobufs)
-    target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(tests PRIVATE 
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/locale
+        ${CMAKE_CURRENT_SOURCE_DIR}/portduino
+        ${CMAKE_CURRENT_SOURCE_DIR}/generated/${GENERATED_VIEW}
+    )
     set_target_properties(tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     add_test(NAME tests COMMAND tests)
 endif()
