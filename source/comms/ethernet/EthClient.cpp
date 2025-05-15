@@ -133,7 +133,7 @@ size_t EthClient::receive(uint8_t *buf, size_t space_left)
     while (client->available()) {
         uint8_t byte = client->read();
         *buf++ = byte;
-        if (++bytes_read >= space_left) {
+        if (++bytes_read >= (int)space_left) {
             ILOG_ERROR("buffer overflow! (%d too small)", space_left);
             break;
         }
