@@ -99,11 +99,10 @@ void DeviceGUI::task_handler(void)
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     if (duration.count() < ms) {
         std::this_thread::sleep_for(std::chrono::milliseconds(ms - duration.count()));
-        lv_tick_inc(ms);
-    }
-    else {
+        // lv_tick_inc(ms);
+    } else {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        lv_tick_inc(duration.count() + 1);
+        // lv_tick_inc(duration.count() + 1);
     }
 };
 
