@@ -5,8 +5,7 @@
 #include "util/ILog.h"
 #include <assert.h>
 
-#define HASH(X, Y) (((X) << 16) | ((Y) & 0xFFFF))
-
+#define HASH(X, Y) (((X) << 16) | ((Y)&0xFFFF))
 
 MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
     : home(GeoPoint(MapTileSettings::getDefaultLat(), MapTileSettings::getDefaultLon(), MapTileSettings::getZoomLevel())),
@@ -53,6 +52,10 @@ void MapPanel::redraw(void)
     for (int x = 0; x < tilesX; x++) {
         for (int y = 0; y < tilesY; y++) {
             uint32_t hash = HASH(xStart + x, yStart + y);
+            if (tiles.find(hash) != tiles.end()) {
+                ILOG_ERROR("internal error: tile %d/%d (hash:%d) already exists", xStart + x, yStart + y, hash);
+                continue;
+            }
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
             tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
         }
@@ -503,10 +506,13 @@ void MapPanel::printTiles(void)
     for (int x = 0; x < tilesX; x++) {
         for (int y = 0; y < tilesY; y++) {
             uint32_t hash = HASH(xStart + x, yStart + y);
-            ss << x << "/" << y << ": "
-               << "(" << (uint32_t)MapTileSettings::getZoomLevel() << "/" << tiles[hash].get()->xTile << "/"
-               << tiles[hash].get()->yTile << ") - " << tiles[hash].get()->xPos << "/" << tiles[hash].get()->yPos << " ==> "
-               << tiles[hash].get()->getX() << "/" << tiles[hash].get()->getY() << std::endl;
+            if (tiles.find(hash) != tiles.end()) {
+                ss << x << "/" << y << ": "
+                   << "(" << (uint32_t)MapTileSettings::getZoomLevel() << "/" << tiles[hash].get()->xTile << "/"
+                   << tiles[hash].get()->yTile << ") " << hash << " - " << tiles[hash].get()->xPos << "/"
+                   << tiles[hash].get()->yPos << " ==> " << tiles[hash].get()->getX() << "/" << tiles[hash].get()->getY()
+                   << std::endl;
+            }
         }
     }
     ILOG_DEBUG("tiles: %d\n%s", tiles.size(), ss.str().c_str());
