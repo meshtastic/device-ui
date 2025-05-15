@@ -109,6 +109,11 @@ bool SerialClient::isConnected(void)
     return connected;
 }
 
+bool SerialClient::isStandalone(void)
+{
+    return true;
+}
+
 bool SerialClient::send(meshtastic_ToRadio &&to)
 {
     static uint32_t id = 1;

@@ -17,6 +17,7 @@ class PacketClient : public IClientBase
     bool connect(void) override;
     bool disconnect(void) override;
     bool isConnected(void) override;
+    bool isStandalone(void) override;
     bool send(meshtastic_ToRadio &&to) override;
     meshtastic_FromRadio receive(void) override;
 
