@@ -20,7 +20,7 @@ template <class TFT> void TFTDriver<TFT>::init(DeviceGUI *gui)
 {
     DisplayDriver::init(gui);
 
-#ifdef ARCH_ESP32
+#ifdef ARCH_ESP32_XXX
 #ifdef DONT_USE_ESP_TIMER
     lv_tick_set_cb(xTaskGetTickCount);
 #else
@@ -31,6 +31,6 @@ template <class TFT> void TFTDriver<TFT>::init(DeviceGUI *gui)
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, 20000));
 #endif
 #elif defined(ARCH_PORTDUINO)
-    lv_tick_set_cb([]() -> uint32_t { return millis(); });
+    //lv_tick_set_cb([]() -> uint32_t { return millis(); });
 #endif
 }
