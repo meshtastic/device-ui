@@ -66,15 +66,17 @@ void EthClient::init(void)
 bool EthClient::connect(void)
 {
     if (!connected) {
+        bool result = false;
         if (server != nullptr) {
             ILOG_INFO("EthClient connecting to %s:%d ...", server, serverPort);
-            connected = client->connect(server, SERVER_PORT);
+            result = client->connect(server, SERVER_PORT);
         } else {
             ILOG_INFO("EthClient connecting to %d.%d.%d.%d:%d ...", serverIP[0], serverIP[1], serverIP[2], serverIP[3], serverPort);
-            connected = client->connect(serverIP, SERVER_PORT);
+            result = client->connect(serverIP, SERVER_PORT);
         }
-        if (connected) {
+        if (result) {
             ILOG_TRACE("EthClient connected!");
+            setConnectionStatus(true);
 
             // skip some available bytes until we see magic header
             int skipped = 0;
@@ -94,13 +96,19 @@ bool EthClient::connect(void)
 
 bool EthClient::disconnect(void)
 {
+    ILOG_DEBUG("EthClient disconnecting...");
+    client->stop();
     return SerialClient::disconnect();
 }
 
 bool EthClient::isConnected(void)
 {
-    connected = client->connected();
-    return connected;
+    bool result = connected && client->connected();
+    if (result != connected) {
+        ILOG_DEBUG("EthClient connection status changed: %d", result);
+        setConnectionStatus(result);
+    }
+    return result;
 }
 
 meshtastic_FromRadio EthClient::receive(void)
@@ -110,6 +118,7 @@ meshtastic_FromRadio EthClient::receive(void)
 
 EthClient::~EthClient()
 {
+    disconnect();
     delete client;
 };
 
@@ -118,8 +127,23 @@ EthClient::~EthClient()
 bool EthClient::send(const uint8_t *buf, size_t len)
 {
     ILOG_TRACE("sending %d bytes to radio", len);
-    size_t wrote = client->write(buf, len);
+    int32_t wrote = 0;
+#ifdef ARCH_PORTDUINO
+    try {
+        wrote = client->write(buf, len);
+    } catch (const std::exception &e) {
+        ILOG_ERROR("caught exception: %s", e.what());
+    }
+#else
+    wrote = client->write(buf, len);
+#endif
+
     if (wrote != len) {
+        if (wrote < 0) {
+            ILOG_ERROR("send failed, disconnecting!");
+            setConnectionStatus(false);
+            return false;
+        }
         ILOG_ERROR("only %d bytes were sent this time", wrote);
         return false;
     }
@@ -128,17 +152,21 @@ bool EthClient::send(const uint8_t *buf, size_t len)
 
 size_t EthClient::receive(uint8_t *buf, size_t space_left)
 {
-#if 1
+#if 1 // read byte by byte
     int bytes_read = 0;
     while (client->available()) {
-        uint8_t byte = client->read();
-        *buf++ = byte;
-        if (++bytes_read >= (int)space_left) {
-            ILOG_ERROR("buffer overflow! (%d too small)", space_left);
-            break;
+        int read = client->read();
+        if (read >= 0) {
+            *buf++ = read & 0xff;
+            if (++bytes_read >= (int)space_left) {
+                ILOG_ERROR("buffer overflow! (%d too small)", space_left);
+                break;
+            }
+            if (client->peek() == MT_MAGIC_0)
+                break; // stop reading if we (potentially!) see next magic header
         }
-        if (client->peek() == MT_MAGIC_0)
-            break; // stop reading if we (potentially!) see next magic header
+        else
+            break; // error reading
     }
     if (bytes_read > 0) {
         ILOG_TRACE("received %d bytes from tcp", bytes_read);

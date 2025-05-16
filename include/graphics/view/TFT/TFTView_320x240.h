@@ -76,6 +76,8 @@ class TFTView_320x240 : public MeshtasticView
     void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) override;
     void notifyRestoreMessages(int32_t percentage) override;
     void notifyMessagesRestored(void) override;
+    void notifyConnected(void) override;
+    void notifyDisconnected(void) override;
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;

@@ -5548,6 +5548,24 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     updateStatistics(p);
 }
 
+void TFTView_320x240::notifyConnected(void)
+{
+    if (state == MeshtasticView::eDisconnected) {
+        messageAlert(_("Connected!"), true);
+        // force re-sync with node
+        THIS->controller->setConfigRequested(true);
+    }
+    state = MeshtasticView::eRunning;
+}
+
+void TFTView_320x240::notifyDisconnected(void)
+{
+    if (state == MeshtasticView::eRunning) {
+        messageAlert(_("Disconnected!"), true);
+    }
+    state = MeshtasticView::eDisconnected;
+}
+
 void TFTView_320x240::notifyResync(bool show)
 {
     messageAlert(_("Resync ..."), show);

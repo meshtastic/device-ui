@@ -47,7 +47,8 @@ class MeshtasticView : public DeviceGUI
         eMessagesRestored,
         eRunning,
         eScreenSaving,
-        eRebooting
+        eRebooting,
+        eDisconnected
     };
 
     enum eRole {
@@ -129,8 +130,11 @@ class MeshtasticView : public DeviceGUI
     virtual void packetReceived(const meshtastic_MeshPacket &p);
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) {}
     virtual void restoreMessage(const LogMessage &msg) {}
+
     virtual void notifyRestoreMessages(int32_t percentage) {}
     virtual void notifyMessagesRestored(void);
+    virtual void notifyConnected(void) {};
+    virtual void notifyDisconnected(void) {};
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);

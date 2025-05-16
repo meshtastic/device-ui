@@ -19,7 +19,8 @@
 
 SerialClient *SerialClient::instance = nullptr;
 
-SerialClient::SerialClient(void) : shutdown(false), connected(false), pb_size(0), bytes_read(0)
+SerialClient::SerialClient(void) : pb_size(0), bytes_read(0), 
+    connectionStatus(false), connected(false), shutdown(false), notifyConnectionStatus(nullptr)
 {
     buffer = new uint8_t[PB_BUFSIZE + MT_HEADER_SIZE];
     instance = this;
@@ -109,6 +110,16 @@ bool SerialClient::isConnected(void)
     return connected;
 }
 
+void SerialClient::setConnectionStatus(bool status)
+{
+    connected = status;
+}
+
+void SerialClient::setNotifyCallback(std::function<void(bool status)> notifyConnectionStatus)
+{
+    this->notifyConnectionStatus = notifyConnectionStatus;
+}
+
 bool SerialClient::isStandalone(void)
 {
     return true;
@@ -126,10 +137,23 @@ meshtastic_FromRadio SerialClient::receive(void)
 {
     if (queue.serverQueueSize() != 0) {
         ILOG_TRACE("SerialClient::receive() got a packet from queue");
-        auto p = queue.clientReceive()->move();
-        return static_cast<DataPacket<meshtastic_FromRadio> *>(p.get())->getData();
+        auto p = queue.clientReceive();
+        if (p) {
+            return static_cast<DataPacket<meshtastic_FromRadio> *>(p->move().get())->getData();
+        }
+        else {
+            ILOG_ERROR("SerialClient::receive() no packet in queue");
+        }
     }
     return meshtastic_FromRadio();
+}
+
+void SerialClient::task_handler(void)
+{
+    if (connectionStatus != connected && notifyConnectionStatus) {
+        connectionStatus = connected;
+        notifyConnectionStatus(connectionStatus);
+    }
 }
 
 SerialClient::~SerialClient()
@@ -168,13 +192,18 @@ void SerialClient::handlePacketReceived(void)
 
 void SerialClient::handleSendPacket(void)
 {
-    auto p = queue.serverReceive()->move();
-    meshtastic_ToRadio toRadio = static_cast<DataPacket<meshtastic_ToRadio> *>(p.get())->getData();
-    //    meshtastic_ToRadio toRadio{std::move(static_cast<DataPacket<meshtastic_ToRadio> *>(p.get())->getData())};
-    MeshEnvelope envelope;
-    const std::vector<uint8_t> &pb_buf = envelope.encode(toRadio);
-    if (pb_buf.size() > 0) {
-        send(&pb_buf[0], pb_buf.size());
+    auto p = queue.serverReceive();
+    if (p) {
+        meshtastic_ToRadio toRadio = static_cast<DataPacket<meshtastic_ToRadio> *>(p->move().get())->getData();
+        //    meshtastic_ToRadio toRadio{std::move(static_cast<DataPacket<meshtastic_ToRadio> *>(p.get())->getData())};
+        MeshEnvelope envelope;
+        const std::vector<uint8_t> &pb_buf = envelope.encode(toRadio);
+        if (pb_buf.size() > 0) {
+            send(&pb_buf[0], pb_buf.size());
+        }
+    }
+    else {
+        ILOG_ERROR("SerialClient::handleSendPacket() no packet in queue!");
     }
 }
 
@@ -185,28 +214,33 @@ void SerialClient::handleSendPacket(void)
 void SerialClient::task_loop(void *)
 {
     ILOG_TRACE("SerialClient::task_loop running");
+    int sleep_time = 50;
     while (!instance->shutdown) {
         size_t space_left = PB_BUFSIZE - instance->pb_size;
         if (instance->connected) {
             size_t bytes_read = instance->receive(&instance->buffer[instance->pb_size], space_left);
-            instance->pb_size += bytes_read;
-            size_t payload_len;
-            bool valid = MeshEnvelope::validate(instance->buffer, instance->pb_size, payload_len);
-
-            if (valid) {
-                instance->handlePacketReceived();
-                MeshEnvelope::invalidate(instance->buffer, instance->pb_size, payload_len);
+            if (bytes_read > 0) {
+                instance->pb_size += bytes_read;
+                size_t payload_len;
+                bool valid = MeshEnvelope::validate(instance->buffer, instance->pb_size, payload_len);
+    
+                if (valid) {
+                    instance->handlePacketReceived();
+                    MeshEnvelope::invalidate(instance->buffer, instance->pb_size, payload_len);
+                    sleep_time = 2;
+                }
             }
-
+        }
+        if (instance->connected) {
             // send a packet if available
-            if (instance->queue.clientQueueSize() != 0) {
+            if (instance->queue.clientQueueSize() > 0) {
                 instance->handleSendPacket();
             }
         }
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
-        vTaskDelay((TickType_t)5); // yield, do not remove
+        vTaskDelay((TickType_t)sleep_time); // yield, do not remove
 #else
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
 #endif
     }
 }
