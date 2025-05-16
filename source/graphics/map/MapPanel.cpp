@@ -53,7 +53,7 @@ void MapPanel::redraw(void)
         for (int y = 0; y < tilesY; y++) {
             uint32_t hash = HASH(xStart + x, yStart + y);
             if (tiles.find(hash) != tiles.end()) {
-                ILOG_ERROR("internal error: tile %d/%d (hash:%d) already exists", xStart + x, yStart + y, hash);
+                ILOG_ERROR("internal error: tile %d/%d (hash:%u) already exists", xStart + x, yStart + y, hash);
                 continue;
             }
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
