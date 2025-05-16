@@ -24,6 +24,8 @@ class PacketClient : public IClientBase
     virtual bool hasData() const;
     virtual bool available() const;
 
+    void task_handler(void) override{};
+    void setNotifyCallback(std::function<void(bool status)> notifyConnectionStatus) override{};
     virtual ~PacketClient() = default;
 
   protected:
