@@ -8,20 +8,11 @@
 #define HASH(X, Y) (((X) << 16) | ((Y)&0xFFFF))
 
 MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
-    : home(GeoPoint(MapTileSettings::getDefaultLat(), MapTileSettings::getDefaultLon(), MapTileSettings::getZoomLevel())),
+    : widthPixel(320), heightPixel(240), 
+      home(GeoPoint(MapTileSettings::getDefaultLat(), MapTileSettings::getDefaultLon(), MapTileSettings::getZoomLevel())),
       current(home), scrolled(home), panel(p), homeLocationImage(nullptr), gpsPositionImage(nullptr), noTileImage(nullptr),
       service(new TileService(s)), objectsOnMap(0)
 {
-    if (p) {
-        lv_obj_update_layout(panel);
-        widthPixel = lv_obj_get_width(panel);
-        heightPixel = lv_obj_get_height(panel);
-        ILOG_DEBUG("panel size: %dx%d", widthPixel, heightPixel);
-    } else {
-        widthPixel = 320;
-        heightPixel = 240;
-    }
-
     extern OSMTiles<lv_obj_t> *osm;
     osm = OSMTiles<lv_obj_t>::create([this](const char *name, void *img) -> bool { return service->load(name, img); });
 
@@ -169,6 +160,7 @@ void MapPanel::drawObject(MapObject &obj, bool count)
  */
 void MapPanel::center(void)
 {
+    updateDimensions();
     int16_t size = MapTileSettings::getTileSize();
     int16_t xpos = widthPixel / 2 - scrolled.xPos;
     int16_t ypos = heightPixel / 2 - scrolled.yPos;
@@ -252,6 +244,16 @@ void MapPanel::setZoom(uint8_t zoom)
         current.setZoom(zoom);
         scrolled.setZoom(zoom);
         center();
+    }
+}
+
+void MapPanel::updateDimensions(void)
+{
+    if (panel) {
+        lv_obj_update_layout(panel);
+        widthPixel = lv_obj_get_width(panel);
+        heightPixel = lv_obj_get_height(panel);
+        ILOG_DEBUG("panel size: %dx%d", widthPixel, heightPixel);
     }
 }
 

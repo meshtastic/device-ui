@@ -31,6 +31,8 @@ class MapPanel
     void setZoom(uint8_t zoom);
     // follow GPS
     void setLocked(bool lock);
+    // reset panel size to actual dimensions
+    void updateDimensions(void);
 
     // positioning
     // set new home position according current
