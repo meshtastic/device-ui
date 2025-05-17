@@ -31,6 +31,11 @@ bool PacketClient::isConnected(void)
     return is_connected;
 }
 
+bool PacketClient::isStandalone(void)
+{
+    return false;
+}
+
 int PacketClient::connect(SharedQueue *_queue)
 {
     if (!queue) {

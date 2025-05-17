@@ -36,6 +36,15 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
         client->connect();
     }
     log.init();
+
+    // client status handler
+    client->setNotifyCallback([this](bool status) {
+        if (status) {
+            view->notifyConnected();
+        } else {
+            view->notifyDisconnected();
+        }
+    });
 }
 
 /**
@@ -64,11 +73,12 @@ void ViewController::runOnce(void)
             lastrun10 = curtime;
             if (!client->isConnected())
                 client->connect();
-            if (view->getState() == MeshtasticView::eBootScreenDone) {
+            if (client->isConnected() && view->getState() == MeshtasticView::eBootScreenDone) {
                 requestConfigRequired = true;
                 requestConfig();
             }
         }
+        client->task_handler();
     }
 }
 
@@ -76,6 +86,14 @@ bool ViewController::sleep(int16_t pin)
 {
     if (client)
         return client->sleep(pin);
+    else
+        return false;
+}
+
+bool ViewController::isStandalone(void)
+{
+    if (client)
+        return client->isStandalone();
     else
         return false;
 }
@@ -422,6 +440,9 @@ void ViewController::sendHeartbeat(void)
 {
     if (client->isConnected()) {
         client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_heartbeat_tag});
+    }
+    else {
+        ILOG_DEBUG("sendHeartbeat skipped, client not connected");
     }
 }
 

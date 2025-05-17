@@ -14,6 +14,7 @@ class ViewController
     virtual void runOnce(void);
     virtual bool sleep(int16_t pin);
     virtual void processEvent(void);
+    virtual bool isStandalone(void);
 
     // device config
     virtual uint32_t requestDeviceUIConfig(void);

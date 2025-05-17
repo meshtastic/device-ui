@@ -93,5 +93,6 @@ void DeviceScreen::sleep(uint32_t time)
     if (xSemaphore && xSemaphoreTake(xSemaphore, portMAX_DELAY) == pdTRUE)
         xSemaphoreGive(xSemaphore);
 #endif
-    delay(time);
+    // delay(time); // has been moved to DeviceGUI::task_handler()
 }
+  

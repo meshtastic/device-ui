@@ -31,6 +31,6 @@ class MeshEnvelope
 
     ~MeshEnvelope() {}
 
-  private:
+  protected:
     std::vector<uint8_t> envelope;
 };

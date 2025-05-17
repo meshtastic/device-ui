@@ -76,6 +76,8 @@ class TFTView_320x240 : public MeshtasticView
     void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) override;
     void notifyRestoreMessages(int32_t percentage) override;
     void notifyMessagesRestored(void) override;
+    void notifyConnected(void) override;
+    void notifyDisconnected(void) override;
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;
@@ -261,6 +263,8 @@ class TFTView_320x240 : public MeshtasticView
     void onTracerouteCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
 
     // lvgl timer callbacks
+    static void timer_event_reboot(lv_timer_t *timer);
+    static void timer_event_shutdown(lv_timer_t *timer);
     static void timer_event_programming_mode(lv_timer_t *timer);
 
     // lvgl event callbacks
