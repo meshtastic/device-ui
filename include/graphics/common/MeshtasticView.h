@@ -63,6 +63,7 @@ class MeshtasticView : public DeviceGUI
         client_hidden,
         lost_and_found,
         tak_tracker,
+        router_late,
         unknown
     };
 

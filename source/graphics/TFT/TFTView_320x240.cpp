@@ -3261,6 +3261,8 @@ uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
         return 8 + offset;
     case meshtastic_Config_DeviceConfig_Role_TAK_TRACKER:
         return 9 + offset;
+    case meshtastic_Config_DeviceConfig_Role_ROUTER_LATE:
+        return 10 + offset;
     default:
         ILOG_ERROR("unsupported device role: %d", role);
         return 0;
@@ -3298,6 +3300,8 @@ meshtastic_Config_DeviceConfig_Role TFTView_320x240::val2role(uint32_t val)
         return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND - offset);
     case 9:
         return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TAK_TRACKER - offset);
+    case 10:
+        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_ROUTER_LATE - offset);
     default:
         ILOG_WARN("unknown role value: %d", val);
     }
@@ -6745,7 +6749,8 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, l
         break;
     }
     case repeater:
-    case router: {
+    case router:
+    case router_late: {
         lv_image_set_src(img, &img_node_router_image);
         break;
     }
