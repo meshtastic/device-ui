@@ -12953,7 +12953,7 @@
                     }
                   },
                   "groupIndex": 0,
-                  "options": "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+                  "options": "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker\nRouter Late",
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
