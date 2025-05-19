@@ -3201,39 +3201,18 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
  */
 uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
 {
-    int offset = 0;
-#ifndef USE_ROUTER_ROLE
-    // skipping
-    offset = -2;
+#ifdef USE_ROUTER_ROLE
+    int32_t val[] = {
+        0, 1, 2, -1, 3, 4, 5, 6, 7, 8, 9 };
+#else
+    int32_t val[] = {
+        0, 1, -1, -1, -1, 2, 3, 4, 5, 6, 7 };
 #endif
-
-    switch (role) {
-    case meshtastic_Config_DeviceConfig_Role_CLIENT:
-        return 0;
-    case meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE:
-        return 1;
-    case meshtastic_Config_DeviceConfig_Role_ROUTER:
-        return 2;
-    case meshtastic_Config_DeviceConfig_Role_REPEATER:
-        return 3;
-    case meshtastic_Config_DeviceConfig_Role_TRACKER:
-        return 4 + offset;
-    case meshtastic_Config_DeviceConfig_Role_SENSOR:
-        return 5 + offset;
-    case meshtastic_Config_DeviceConfig_Role_TAK:
-        return 6 + offset;
-    case meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN:
-        return 7 + offset;
-    case meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND:
-        return 8 + offset;
-    case meshtastic_Config_DeviceConfig_Role_TAK_TRACKER:
-        return 9 + offset;
-    case meshtastic_Config_DeviceConfig_Role_ROUTER_LATE:
-        return 10 + offset;
-    default:
-        ILOG_ERROR("unsupported device role: %d", role);
+    if (role > 10 || val[role] == -1) {
+        ILOG_WARN("unknown role value: %d", role);
         return 0;
     }
+    return uint32_t(val[role]);
 }
 
 /**
@@ -3241,38 +3220,25 @@ uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
  */
 meshtastic_Config_DeviceConfig_Role TFTView_320x240::val2role(uint32_t val)
 {
-    int offset = 0;
-#ifndef USE_ROUTER_ROLE
-    // skipping
-    offset = -2;
+    meshtastic_Config_DeviceConfig_Role role[] = {
+        meshtastic_Config_DeviceConfig_Role_CLIENT,
+        meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE,
+#ifdef USE_ROUTER_ROLE
+        meshtastic_Config_DeviceConfig_Role_ROUTER,
+        meshtastic_Config_DeviceConfig_Role_REPEATER,
 #endif
-    switch (val) {
-    case 0:
-        return meshtastic_Config_DeviceConfig_Role_CLIENT;
-    case 1:
-        return meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE;
-    case 2:
-        return meshtastic_Config_DeviceConfig_Role_ROUTER;
-    case 3:
-        return meshtastic_Config_DeviceConfig_Role_REPEATER;
-    case 4:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TRACKER - offset);
-    case 5:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_SENSOR - offset);
-    case 6:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TAK - offset);
-    case 7:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN - offset);
-    case 8:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND - offset);
-    case 9:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TAK_TRACKER - offset);
-    case 10:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_ROUTER_LATE - offset);
-    default:
+        meshtastic_Config_DeviceConfig_Role_TRACKER,
+        meshtastic_Config_DeviceConfig_Role_SENSOR,
+        meshtastic_Config_DeviceConfig_Role_TAK,
+        meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN,
+        meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND,
+        meshtastic_Config_DeviceConfig_Role_TAK_TRACKER,
+        meshtastic_Config_DeviceConfig_Role_ROUTER_LATE };
+    if (val > 10) {
         ILOG_WARN("unknown role value: %d", val);
+        return meshtastic_Config_DeviceConfig_Role_CLIENT;
     }
-    return meshtastic_Config_DeviceConfig_Role_CLIENT;
+    return role[val];
 }
 
 /**
