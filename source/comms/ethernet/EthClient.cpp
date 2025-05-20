@@ -145,7 +145,7 @@ bool EthClient::send(const uint8_t *buf, size_t len)
     wrote = client->write(buf, len);
 #endif
 
-    if (wrote != len) {
+    if (wrote != (int32_t)len) {
         if (wrote < 0) {
             ILOG_ERROR("send failed, disconnecting!");
             setConnectionStatus(false);
@@ -154,7 +154,7 @@ bool EthClient::send(const uint8_t *buf, size_t len)
         ILOG_ERROR("only %d bytes were sent this time", wrote);
         return false;
     }
-    return wrote == len;
+    return wrote == (int32_t)len;
 }
 
 size_t EthClient::receive(uint8_t *buf, size_t space_left)
