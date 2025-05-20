@@ -11,6 +11,7 @@ class EthernetClient : public WiFiClient
 {
   public:
     EthernetClient() : WiFiClient(0) {}
+    virtual ~EthernetClient() {}
 };
 #elif HAS_ETHERNET
 #include "Ethernet.h"
@@ -67,6 +68,12 @@ void EthClient::init(void)
     SerialClient::init();
 }
 
+/**
+ * @brief Connect to the server via ethernet socket communication links
+ *
+ * @return true - connected
+ * @return false - not connected
+ */
 bool EthClient::connect(void)
 {
     if (!connected) {
@@ -82,18 +89,6 @@ bool EthClient::connect(void)
         if (result) {
             ILOG_INFO("EthClient connected!");
             setConnectionStatus(true);
-
-#if 0
-            // skip some available bytes until we see magic header
-            int skipped = 0;
-            while (client->available()) {
-                if (client->peek() != MT_MAGIC_0) {
-                    client->read();
-                    skipped++;
-                }
-            }
-            ILOG_DEBUG("EthClient::connect skipped %d bytes", skipped);
-#endif
         } else {
             ILOG_WARN("EthClient connection failed!");
         }
@@ -131,6 +126,14 @@ EthClient::~EthClient()
 
 // --- protected part ---
 
+/**
+ * @brief Send a packet to the server
+ *
+ * @param buf - pointer to the buffer
+ * @param len - length of the buffer
+ * @return true - send ok
+ * @return false - send failed
+ */
 bool EthClient::send(const uint8_t *buf, size_t len)
 {
     ILOG_TRACE("sending %d bytes to radio", len);
@@ -157,9 +160,15 @@ bool EthClient::send(const uint8_t *buf, size_t len)
     return wrote == (int32_t)len;
 }
 
+/**
+ * @brief Receive a packet from the server if available
+ *
+ * @param buf - pointer to the buffer
+ * @param space_left - space left in the buffer
+ * @return size_t - number of bytes read
+ */
 size_t EthClient::receive(uint8_t *buf, size_t space_left)
 {
-#if 1 // read byte by byte
     int bytes_read = 0;
     while (client->available() && bytes_read < MAX_PACKET_SIZE) {
         int read = client->read();
@@ -169,30 +178,11 @@ size_t EthClient::receive(uint8_t *buf, size_t space_left)
                 ILOG_WARN("buffer overflow! (%d / %d)", bytes_read, space_left);
                 break;
             }
-#if 0
-            if (client->peek() == MT_MAGIC_0) {
-                ILOG_TRACE("found magic0 after %d bytes read (%d bytes left) ", bytes_read, space_left);
-                break; // pause reading if we (potentially!) see next magic header
-            }
-#endif
         } else
             break; // error reading
     }
     if (bytes_read > 0) {
-        ILOG_TRACE("received %d bytes from tcp", bytes_read);
+        ILOG_TRACE("received %d bytes via tcp", bytes_read);
     }
     return bytes_read;
-#else // TODO: read all available bytes (does not work yet; missing very first byte)
-    if (client->available()) {
-        int bytes_read = client->read(buf, space_left);
-        if (bytes_read == 0) {
-            ILOG_TRACE("received %d bytes from tcp", space_left);
-            return space_left;
-        } else if (bytes_read > 0) {
-            ILOG_TRACE("received %d bytes from tcp", bytes_read);
-            return bytes_read;
-        }
-    }
-    return 0;
-#endif
 }
