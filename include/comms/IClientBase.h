@@ -25,7 +25,7 @@ class IClientBase
     virtual meshtastic_FromRadio receive(void) = 0;
     virtual ~IClientBase(){};
 
-    virtual void task_handler(void) {};
+    virtual void task_handler(void){};
     virtual void setNotifyCallback(std::function<void(bool status)> notifyConnectionStatus) = 0;
 
   protected:

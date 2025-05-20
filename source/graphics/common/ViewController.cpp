@@ -440,8 +440,7 @@ void ViewController::sendHeartbeat(void)
 {
     if (client->isConnected()) {
         client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_heartbeat_tag});
-    }
-    else {
+    } else {
         ILOG_DEBUG("sendHeartbeat skipped, client not connected");
     }
 }

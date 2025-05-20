@@ -8,7 +8,7 @@
 #define HASH(X, Y) (((X) << 16) | ((Y)&0xFFFF))
 
 MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
-    : widthPixel(320), heightPixel(240), 
+    : widthPixel(320), heightPixel(240),
       home(GeoPoint(MapTileSettings::getDefaultLat(), MapTileSettings::getDefaultLon(), MapTileSettings::getZoomLevel())),
       current(home), scrolled(home), panel(p), homeLocationImage(nullptr), gpsPositionImage(nullptr), noTileImage(nullptr),
       service(new TileService(s)), objectsOnMap(0)
