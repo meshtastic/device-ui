@@ -3235,11 +3235,9 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
 uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
 {
 #ifdef USE_ROUTER_ROLE
-    int32_t val[] = {
-        0, 1, 2, -1, 3, 4, 5, 6, 7, 8, 9 };
+    int32_t val[] = {0, 1, 2, -1, 3, 4, 5, 6, 7, 8, 9};
 #else
-    int32_t val[] = {
-        0, 1, -1, -1, -1, 2, 3, 4, 5, 6, 7 };
+    int32_t val[] = {0, 1, -1, -1, -1, 2, 3, 4, 5, 6, 7};
 #endif
     if (role > 10 || val[role] == -1) {
         ILOG_WARN("unknown role value: %d", role);
@@ -3253,20 +3251,19 @@ uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
  */
 meshtastic_Config_DeviceConfig_Role TFTView_320x240::val2role(uint32_t val)
 {
-    meshtastic_Config_DeviceConfig_Role role[] = {
-        meshtastic_Config_DeviceConfig_Role_CLIENT,
-        meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE,
+    meshtastic_Config_DeviceConfig_Role role[] = {meshtastic_Config_DeviceConfig_Role_CLIENT,
+                                                  meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE,
 #ifdef USE_ROUTER_ROLE
-        meshtastic_Config_DeviceConfig_Role_ROUTER,
-        meshtastic_Config_DeviceConfig_Role_REPEATER,
+                                                  meshtastic_Config_DeviceConfig_Role_ROUTER,
+                                                  meshtastic_Config_DeviceConfig_Role_REPEATER,
 #endif
-        meshtastic_Config_DeviceConfig_Role_TRACKER,
-        meshtastic_Config_DeviceConfig_Role_SENSOR,
-        meshtastic_Config_DeviceConfig_Role_TAK,
-        meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN,
-        meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND,
-        meshtastic_Config_DeviceConfig_Role_TAK_TRACKER,
-        meshtastic_Config_DeviceConfig_Role_ROUTER_LATE };
+                                                  meshtastic_Config_DeviceConfig_Role_TRACKER,
+                                                  meshtastic_Config_DeviceConfig_Role_SENSOR,
+                                                  meshtastic_Config_DeviceConfig_Role_TAK,
+                                                  meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN,
+                                                  meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND,
+                                                  meshtastic_Config_DeviceConfig_Role_TAK_TRACKER,
+                                                  meshtastic_Config_DeviceConfig_Role_ROUTER_LATE};
     if (val > 10) {
         ILOG_WARN("unknown role value: %d", val);
         return meshtastic_Config_DeviceConfig_Role_CLIENT;
@@ -3560,21 +3557,21 @@ void TFTView_320x240::eraseChat(uint32_t channelOrNode)
     if (channelOrNode < c_max_channels) {
         uint8_t ch = (uint8_t)channelOrNode;
         if (state == MeshtasticView::eRunning) {
-            lv_obj_delete_delayed(chats[ch], 500);
+            lv_obj_delete_delayed(chats.at(ch), 500);
         } else {
-            lv_obj_del(chats[ch]);
+            lv_obj_del(chats.at(ch));
         }
-        lv_obj_del(channelGroup[ch]);
+        lv_obj_del(channelGroup.at(ch));
         channelGroup[ch] = nullptr;
         chats.erase(ch);
     } else {
         uint32_t nodeNum = channelOrNode;
         if (state == MeshtasticView::eRunning) {
-            lv_obj_delete_delayed(chats[nodeNum], 500);
+            lv_obj_delete_delayed(chats.at(nodeNum), 500);
         } else {
-            lv_obj_delete(chats[nodeNum]);
+            lv_obj_delete(chats.at(nodeNum));
         }
-        lv_obj_del(messages[nodeNum]);
+        lv_obj_del(messages.at(nodeNum));
         messages.erase(nodeNum);
         chats.erase(nodeNum);
     }
