@@ -87,11 +87,12 @@ void DeviceGUI::init(IClientBase *client)
 }
 
 /**
- * measure how long it takes to call displaydriver->task_handler().
+ * Linux: measure how long it takes to call displaydriver->task_handler().
  * Then tell the lvgl library how long it took via lv_tick_inc().
  */
 void DeviceGUI::task_handler(void)
 {
+#if defined(ARCH_PORTDUINO)
     int ms = 10;
     auto start = std::chrono::high_resolution_clock::now();
     displaydriver->task_handler();
@@ -99,11 +100,14 @@ void DeviceGUI::task_handler(void)
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     if (duration.count() < ms) {
         std::this_thread::sleep_for(std::chrono::milliseconds(ms - duration.count()));
-        // lv_tick_inc(ms);
+        lv_tick_inc(ms);
     } else {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // lv_tick_inc(duration.count() + 1);
+        lv_tick_inc(duration.count() + 1);
     }
+#else
+    displaydriver->task_handler();
+#endif
 };
 
 DeviceGUI::~DeviceGUI()
