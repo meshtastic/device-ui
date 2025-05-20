@@ -1,7 +1,7 @@
 #include "comms/EthClient.h"
+#include "Arduino.h"
 #include "comms/MeshEnvelope.h"
 #include "util/ILog.h"
-#include "Arduino.h"
 
 #if defined(ARCH_PORTDUINO)
 #include "WiFi.h"
@@ -17,17 +17,22 @@ class EthernetClient : public WiFiClient
 #include "EthernetClient.h"
 #endif
 
+#define MAX_PACKET_SIZE 284
+
 extern const uint8_t MT_MAGIC_0;
 
-EthClient::EthClient(const char *serverName, uint16_t port) : client(nullptr), mac{}, server(serverName), serverPort(port) {}
+EthClient::EthClient(const char *serverName, uint16_t port)
+    : SerialClient("eth"), client(nullptr), mac{}, server(serverName), serverPort(port)
+{
+}
 
 EthClient::EthClient(IPAddress server, uint16_t port)
-    : client(nullptr), mac{}, serverIP(server), server(nullptr), serverPort(port)
+    : SerialClient("eth"), client(nullptr), mac{}, serverIP(server), server(nullptr), serverPort(port)
 {
 }
 
 EthClient::EthClient(uint8_t *mac, IPAddress ip, IPAddress server, uint16_t port)
-    : client(nullptr), localIP(ip), serverIP(server), server(nullptr), serverPort(port)
+    : SerialClient("eth"), client(nullptr), localIP(ip), serverIP(server), server(nullptr), serverPort(port)
 {
     memcpy(this->mac, mac, sizeof(this->mac));
     ILOG_DEBUG("EthClient mac=%02X:%02X:%02X:%02X:%02X:%02X localIP=%d.%d.%d.%d, serverIP=%d.%d.%d.%d", mac[0], mac[1], mac[2],
@@ -47,8 +52,7 @@ void EthClient::init(void)
     // Check for Ethernet hardware present
     if (Ethernet.hardwareStatus() == EthernetNoHardware) {
         ILOG_ERROR("Ethernet device not found!");
-    }
-    else if (Ethernet.linkStatus() == LinkOFF) {
+    } else if (Ethernet.linkStatus() == LinkOFF) {
         ILOG_WARN("Ethernet cable not connected!");
     }
 #elif defined(ARCH_PORTDUINO)
@@ -71,13 +75,15 @@ bool EthClient::connect(void)
             ILOG_INFO("EthClient connecting to %s:%d ...", server, serverPort);
             result = client->connect(server, SERVER_PORT);
         } else {
-            ILOG_INFO("EthClient connecting to %d.%d.%d.%d:%d ...", serverIP[0], serverIP[1], serverIP[2], serverIP[3], serverPort);
+            ILOG_INFO("EthClient connecting to %d.%d.%d.%d:%d ...", serverIP[0], serverIP[1], serverIP[2], serverIP[3],
+                      serverPort);
             result = client->connect(serverIP, SERVER_PORT);
         }
         if (result) {
-            ILOG_TRACE("EthClient connected!");
+            ILOG_INFO("EthClient connected!");
             setConnectionStatus(true);
 
+#if 0
             // skip some available bytes until we see magic header
             int skipped = 0;
             while (client->available()) {
@@ -86,7 +92,8 @@ bool EthClient::connect(void)
                     skipped++;
                 }
             }
-            ILOG_TRACE("EthClient::connect skipped %d bytes", skipped);
+            ILOG_DEBUG("EthClient::connect skipped %d bytes", skipped);
+#endif
         } else {
             ILOG_WARN("EthClient connection failed!");
         }
@@ -154,25 +161,28 @@ size_t EthClient::receive(uint8_t *buf, size_t space_left)
 {
 #if 1 // read byte by byte
     int bytes_read = 0;
-    while (client->available()) {
+    while (client->available() && bytes_read < MAX_PACKET_SIZE) {
         int read = client->read();
         if (read >= 0) {
             *buf++ = read & 0xff;
             if (++bytes_read >= (int)space_left) {
-                ILOG_ERROR("buffer overflow! (%d too small)", space_left);
+                ILOG_WARN("buffer overflow! (%d / %d)", bytes_read, space_left);
                 break;
             }
-            if (client->peek() == MT_MAGIC_0)
-                break; // stop reading if we (potentially!) see next magic header
-        }
-        else
+#if 0
+            if (client->peek() == MT_MAGIC_0) {
+                ILOG_TRACE("found magic0 after %d bytes read (%d bytes left) ", bytes_read, space_left);
+                break; // pause reading if we (potentially!) see next magic header
+            }
+#endif
+        } else
             break; // error reading
     }
     if (bytes_read > 0) {
         ILOG_TRACE("received %d bytes from tcp", bytes_read);
     }
     return bytes_read;
-#else // TODO: read all available bytes
+#else // TODO: read all available bytes (does not work yet; missing very first byte)
     if (client->available()) {
         int bytes_read = client->read(buf, space_left);
         if (bytes_read == 0) {

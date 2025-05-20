@@ -17,10 +17,17 @@
 #endif
 #include "Arduino.h"
 
+#ifndef SLEEP_TIME_IDLE
+#define SLEEP_TIME_IDLE 50 // ms
+#endif
+#ifndef SLEEP_TIME_ACTIVE
+#define SLEEP_TIME_ACTIVE 2 // ms
+#endif
+
 SerialClient *SerialClient::instance = nullptr;
 
-SerialClient::SerialClient(void) : pb_size(0), bytes_read(0), 
-    connectionStatus(false), connected(false), shutdown(false), notifyConnectionStatus(nullptr)
+SerialClient::SerialClient(const char *name)
+    : pb_size(0), connectionStatus(false), connected(false), shutdown(false), notifyConnectionStatus(nullptr), threadName(name)
 {
     buffer = new uint8_t[PB_BUFSIZE + MT_HEADER_SIZE];
     instance = this;
@@ -28,11 +35,18 @@ SerialClient::SerialClient(void) : pb_size(0), bytes_read(0),
 
 void SerialClient::init(void)
 {
-    ILOG_TRACE("SerialClient::init() creating serial task");
+    ILOG_TRACE("SerialClient::init() creating %s task", threadName);
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
-    xTaskCreateUniversal(task_loop, "serial", 8192, NULL, 2, NULL, 0);
+    xTaskCreateUniversal(task_loop, threadName, 8192, NULL, 1, NULL, 0);
 #elif defined(ARCH_PORTDUINO)
-    new std::thread([] { instance->task_loop(nullptr); });
+    new std::thread([] {
+#ifdef __APPLE__
+        pthread_setname_np(threadName);
+#else
+        pthread_setname_np(pthread_self(), instance->threadName);
+#endif
+        instance->task_loop(nullptr);
+    });
 #else
 // #error "unsupported architecture"
 #endif
@@ -128,7 +142,7 @@ bool SerialClient::isStandalone(void)
 bool SerialClient::send(meshtastic_ToRadio &&to)
 {
     static uint32_t id = 1;
-    ILOG_TRACE("SerialClient::send() push packet %d to queue", id);
+    ILOG_TRACE("SerialClient::send() push packet %d to server", id);
     queue.clientSend(DataPacket<meshtastic_ToRadio>(id++, to));
     return false;
 }
@@ -140,8 +154,7 @@ meshtastic_FromRadio SerialClient::receive(void)
         auto p = queue.clientReceive();
         if (p) {
             return static_cast<DataPacket<meshtastic_FromRadio> *>(p->move().get())->getData();
-        }
-        else {
+        } else {
             ILOG_ERROR("SerialClient::receive() no packet in queue");
         }
     }
@@ -159,6 +172,7 @@ void SerialClient::task_handler(void)
 SerialClient::~SerialClient()
 {
     shutdown = true;
+    delete[] buffer;
 };
 
 // --- protected part ---
@@ -187,6 +201,7 @@ void SerialClient::handlePacketReceived(void)
     meshtastic_FromRadio fromRadio = envelope.decode();
     if (fromRadio.which_payload_variant != 0) {
         queue.serverSend(DataPacket<meshtastic_FromRadio>(fromRadio.id, fromRadio));
+        ILOG_TRACE("server queue size=%d", queue.serverQueueSize());
     }
 }
 
@@ -201,8 +216,7 @@ void SerialClient::handleSendPacket(void)
         if (pb_buf.size() > 0) {
             send(&pb_buf[0], pb_buf.size());
         }
-    }
-    else {
+    } else {
         ILOG_ERROR("SerialClient::handleSendPacket() no packet in queue!");
     }
 }
@@ -213,22 +227,25 @@ void SerialClient::handleSendPacket(void)
  */
 void SerialClient::task_loop(void *)
 {
+    delay(1000);
     ILOG_TRACE("SerialClient::task_loop running");
-    int sleep_time = 50;
     while (!instance->shutdown) {
+        int sleep_time = SLEEP_TIME_IDLE;
         size_t space_left = PB_BUFSIZE - instance->pb_size;
         if (instance->connected) {
             size_t bytes_read = instance->receive(&instance->buffer[instance->pb_size], space_left);
             if (bytes_read > 0) {
                 instance->pb_size += bytes_read;
                 size_t payload_len;
-                bool valid = MeshEnvelope::validate(instance->buffer, instance->pb_size, payload_len);
-    
-                if (valid) {
-                    instance->handlePacketReceived();
-                    MeshEnvelope::invalidate(instance->buffer, instance->pb_size, payload_len);
-                    sleep_time = 2;
-                }
+                bool valid = false;
+                do {
+                    valid = MeshEnvelope::validate(instance->buffer, instance->pb_size, payload_len);
+                    if (valid) {
+                        instance->handlePacketReceived();
+                        MeshEnvelope::invalidate(instance->buffer, instance->pb_size, payload_len);
+                    }
+                } while (valid && instance->pb_size > 0);
+                sleep_time = SLEEP_TIME_ACTIVE;
             }
         }
         if (instance->connected) {

@@ -11,9 +11,11 @@
 #define TIMEOUT 250
 #define ACK 1
 
+#define MAX_PACKET_SIZE 284
+
 extern const uint8_t MT_MAGIC_0;
 
-UARTClient::UARTClient(void) : _serial(nullptr), lastReceived(0) {}
+UARTClient::UARTClient(void) : SerialClient("uart"), _serial(nullptr), lastReceived(0) {}
 
 /**
  * @brief init serial interface
@@ -76,7 +78,7 @@ bool UARTClient::connect(void)
         }
 
         connected = true;
-        ILOG_TRACE("UARTClient::connect, skipped %d bytes", skipped);
+        ILOG_INFO("UARTClient connected! (skipped %d bytes)", skipped);
     }
     return true;
 }
@@ -137,11 +139,12 @@ bool UARTClient::send(const uint8_t *buf, size_t len)
 size_t UARTClient::receive(uint8_t *buf, size_t space_left)
 {
     size_t bytes_read = 0;
-    while (_serial->available()) {
+    while (_serial->available() && bytes_read < MAX_PACKET_SIZE) {
         uint8_t byte = _serial->read();
         *buf++ = byte;
         if (++bytes_read >= space_left) {
-            ILOG_ERROR("Serial overflow!");
+            // no error, but serial thread is too slow (-> reduce sleep_time)
+            ILOG_WARN("Serial overflow!");
             break;
         }
     }

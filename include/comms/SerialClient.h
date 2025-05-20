@@ -7,7 +7,7 @@
 class SerialClient : public IClientBase
 {
   public:
-    SerialClient(void);
+    SerialClient(const char *name = "serial");
     void init(void) override;
     bool sleep(int16_t pin);
     bool connect(void) override;
@@ -41,9 +41,8 @@ class SerialClient : public IClientBase
     static void task_loop(void *);
     static SerialClient *instance;
 
-    // local data
+    // local buffered data
     size_t pb_size;
-    size_t bytes_read;
     uint8_t *buffer;
 
     // status of server connection
@@ -53,6 +52,8 @@ class SerialClient : public IClientBase
     volatile bool shutdown;
     // callback for connection status
     std::function<void(bool status)> notifyConnectionStatus;
+    // instance thread name
+    const char *threadName;
 
     // receiver and sender queue
     SharedQueue queue;

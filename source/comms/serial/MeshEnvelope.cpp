@@ -93,7 +93,7 @@ bool MeshEnvelope::validate(uint8_t *pb_buf, size_t &pb_size, size_t &payload_le
         }
 
         // re-align magic header to front of buffer
-        ILOG_TRACE("Skipping first %d bytes (%02x%02x%02x...)", startpos, (int)pb_buf[0], (int)pb_buf[1], (int)pb_buf[2]);
+        ILOG_WARN("Skipping first %d bytes (%02x%02x%02x...)", startpos, (int)pb_buf[0], (int)pb_buf[1], (int)pb_buf[2]);
         pb_size -= startpos;
         memmove(&pb_buf[0], &pb_buf[startpos], pb_size);
     }
@@ -124,5 +124,6 @@ void MeshEnvelope::invalidate(uint8_t *pb_buf, size_t &pb_size, size_t &payload_
     } else {
         pb_size -= payload_len + MT_HEADER_SIZE;
     }
+    ILOG_TRACE("Invalidating %d bytes, pb_size=%d", payload_len + MT_HEADER_SIZE, pb_size);
     memmove(&pb_buf[0], &pb_buf[payload_len + MT_HEADER_SIZE], pb_size);
 }
