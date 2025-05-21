@@ -432,5 +432,5 @@ class TFTView_320x240 : public MeshtasticView
         meshtastic_DeviceConnectionStatus connectionStatus; // wifi/bluetooth/ethernet
     };
 
-    meshtastic_DeviceProfile_full db; // full copy of the node's configuration db (except nodeinfos) plus ui data
+    meshtastic_DeviceProfile_full db{}; // full copy of the node's configuration db (except nodeinfos) plus ui data
 };

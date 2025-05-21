@@ -36,7 +36,7 @@ float LoRaPresets::getFrequencyEnd(meshtastic_Config_LoRaConfig_RegionCode regio
  * Default slot number is generated using the same firmware hash algorithm
  */
 uint16_t LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode region,
-                                     meshtastic_Config_LoRaConfig_ModemPreset preset)
+                                     meshtastic_Config_LoRaConfig_ModemPreset preset, const char *channelName)
 {
     auto hash = [](const char *str) -> uint32_t {
         uint32_t hash = 5381;
@@ -47,7 +47,7 @@ uint16_t LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode reg
     };
 
     uint32_t numChannels = getNumChannels(region, preset);
-    return numChannels == 0 ? 1 : hash(modemPreset[preset].preset) % numChannels + 1;
+    return numChannels == 0 ? 1 : hash(channelName ? channelName : modemPreset[preset].preset) % numChannels + 1;
 }
 
 float LoRaPresets::getBandwidth(meshtastic_Config_LoRaConfig_ModemPreset preset)

@@ -3218,37 +3218,18 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
  */
 uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
 {
-    int offset = 0;
-#ifndef USE_ROUTER_ROLE
-    // skipping
-    offset = -2;
+#ifdef USE_ROUTER_ROLE
+    int32_t val[] = {
+        0, 1, 2, -1, 3, 4, 5, 6, 7, 8, 9 };
+#else
+    int32_t val[] = {
+        0, 1, -1, -1, -1, 2, 3, 4, 5, 6, 7 };
 #endif
-
-    switch (role) {
-    case meshtastic_Config_DeviceConfig_Role_CLIENT:
-        return 0;
-    case meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE:
-        return 1;
-    case meshtastic_Config_DeviceConfig_Role_ROUTER:
-        return 2;
-    case meshtastic_Config_DeviceConfig_Role_REPEATER:
-        return 3;
-    case meshtastic_Config_DeviceConfig_Role_TRACKER:
-        return 4 + offset;
-    case meshtastic_Config_DeviceConfig_Role_SENSOR:
-        return 5 + offset;
-    case meshtastic_Config_DeviceConfig_Role_TAK:
-        return 6 + offset;
-    case meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN:
-        return 7 + offset;
-    case meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND:
-        return 8 + offset;
-    case meshtastic_Config_DeviceConfig_Role_TAK_TRACKER:
-        return 9 + offset;
-    default:
-        ILOG_ERROR("unsupported device role: %d", role);
+    if (role > 10 || val[role] == -1) {
+        ILOG_WARN("unknown role value: %d", role);
         return 0;
     }
+    return uint32_t(val[role]);
 }
 
 /**
@@ -3256,36 +3237,25 @@ uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
  */
 meshtastic_Config_DeviceConfig_Role TFTView_320x240::val2role(uint32_t val)
 {
-    int offset = 0;
-#ifndef USE_ROUTER_ROLE
-    // skipping
-    offset = -2;
+    meshtastic_Config_DeviceConfig_Role role[] = {
+        meshtastic_Config_DeviceConfig_Role_CLIENT,
+        meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE,
+#ifdef USE_ROUTER_ROLE
+        meshtastic_Config_DeviceConfig_Role_ROUTER,
+        meshtastic_Config_DeviceConfig_Role_REPEATER,
 #endif
-    switch (val) {
-    case 0:
-        return meshtastic_Config_DeviceConfig_Role_CLIENT;
-    case 1:
-        return meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE;
-    case 2:
-        return meshtastic_Config_DeviceConfig_Role_ROUTER;
-    case 3:
-        return meshtastic_Config_DeviceConfig_Role_REPEATER;
-    case 4:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TRACKER - offset);
-    case 5:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_SENSOR - offset);
-    case 6:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TAK - offset);
-    case 7:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN - offset);
-    case 8:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND - offset);
-    case 9:
-        return meshtastic_Config_DeviceConfig_Role(meshtastic_Config_DeviceConfig_Role_TAK_TRACKER - offset);
-    default:
+        meshtastic_Config_DeviceConfig_Role_TRACKER,
+        meshtastic_Config_DeviceConfig_Role_SENSOR,
+        meshtastic_Config_DeviceConfig_Role_TAK,
+        meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN,
+        meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND,
+        meshtastic_Config_DeviceConfig_Role_TAK_TRACKER,
+        meshtastic_Config_DeviceConfig_Role_ROUTER_LATE };
+    if (val > 10) {
         ILOG_WARN("unknown role value: %d", val);
+        return meshtastic_Config_DeviceConfig_Role_CLIENT;
     }
-    return meshtastic_Config_DeviceConfig_Role_CLIENT;
+    return role[val];
 }
 
 /**
@@ -3631,7 +3601,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
 
                 meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
-                uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset);
+                uint32_t defaultSlot = lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? lora.channel_num : 0;
+                if (defaultSlot == 0) {
+                    defaultSlot =
+                        LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset, THIS->db.channel[0].settings.name);
+                }
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
@@ -3716,7 +3690,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
 
                 meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
-                uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset);
+                uint32_t defaultSlot = lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? lora.channel_num : 0;
+                if (defaultSlot == 0) {
+                    defaultSlot =
+                        LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset, THIS->db.channel[0].settings.name);
+                }
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
@@ -3970,27 +3948,29 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 // delete channel
                 THIS->channel_scratch[ch].role = meshtastic_Channel_Role_DISABLED;
                 THIS->channel_scratch[ch].settings.psk.size = 0;
-                strcpy(THIS->channel_scratch[ch].settings.name, "");
+                memset(THIS->channel_scratch[ch].settings.name, 0, sizeof(THIS->channel_scratch[ch].settings.name));
+                memset(THIS->channel_scratch[ch].settings.psk.bytes, 0, sizeof(THIS->channel_scratch[ch].settings.psk.bytes));
+                THIS->channel_scratch[ch].has_settings = false;
                 lv_label_set_text(THIS->ch_label[btn_id], _("<unset>"));
                 THIS->activeSettings = eChannel;
-            }
-
-            int paddings = (4 - strlen(base64) % 4) % 4;
-            while (paddings-- > 0) {
-                lv_textarea_add_text(objects.settings_modify_channel_psk_textarea, "=");
-            }
-
-            if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk.bytes, psk.size)) {
-                if (strlen(name) || psk.size) {
-                    // TODO: fill temp storage -> user data
-                    lv_label_set_text(THIS->ch_label[btn_id], name);
-                    strcpy(THIS->channel_scratch[ch].settings.name, name);
-                    memcpy(THIS->channel_scratch[ch].settings.psk.bytes, psk.bytes, 32);
-                    THIS->channel_scratch[ch].settings.psk.size = psk.size;
-                    THIS->activeSettings = eChannel;
+            } else {
+                int paddings = (4 - strlen(base64) % 4) % 4;
+                while (paddings-- > 0) {
+                    lv_textarea_add_text(objects.settings_modify_channel_psk_textarea, "=");
                 }
-            }
 
+                if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk.bytes, psk.size)) {
+                    if (strlen(name) || psk.size) {
+                        // TODO: fill temp storage -> user data
+                        lv_label_set_text(THIS->ch_label[btn_id], name);
+                        strcpy(THIS->channel_scratch[ch].settings.name, name);
+                        memcpy(THIS->channel_scratch[ch].settings.psk.bytes, psk.bytes, 32);
+                        THIS->channel_scratch[ch].settings.psk.size = psk.size;
+                        THIS->activeSettings = eChannel;
+                    }
+                }
+                THIS->channel_scratch[ch].role = (ch == 0) ? meshtastic_Channel_Role_PRIMARY : meshtastic_Channel_Role_SECONDARY;
+            }
             if (THIS->activeSettings == eChannel) {
                 lv_obj_add_flag(objects.settings_modify_channel_panel, LV_OBJ_FLAG_HIDDEN);
                 THIS->enablePanel(objects.settings_channel_panel);
@@ -4173,7 +4153,7 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
         return;
     }
 
-    uint32_t channel = LoRaPresets::getDefaultSlot(THIS->db.config.lora.region, preset);
+    uint32_t channel = LoRaPresets::getDefaultSlot(THIS->db.config.lora.region, preset, THIS->db.channel[0].settings.name);
     if (channel > numChannels)
         channel = 1;
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
@@ -5693,7 +5673,8 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
 
     if (!db.config.lora.channel_num) {
-        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset);
+        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
+                                                                 THIS->db.channel[0].settings.name);
     }
     lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
 
@@ -6685,7 +6666,8 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, l
         break;
     }
     case repeater:
-    case router: {
+    case router:
+    case router_late: {
         lv_image_set_src(img, &img_node_router_image);
         break;
     }
