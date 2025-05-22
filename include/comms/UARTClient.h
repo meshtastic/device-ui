@@ -15,9 +15,6 @@ class UARTClient : public SerialClient
     meshtastic_FromRadio receive(void) override;
     virtual ~UARTClient();
 
-    bool isActive(void) const;
-    const char *getConnectionInfo(void) const;
-
   protected:
     // low-level send method to write the buffer to serial
     bool send(const uint8_t *buf, size_t len) override;
@@ -25,6 +22,7 @@ class UARTClient : public SerialClient
     // low-level receive method, periodically being called via thread
     size_t receive(uint8_t *buf, size_t space_left) override;
 
+    bool isActive;
     HardwareSerial *_serial;
     time_t lastReceived;
 };

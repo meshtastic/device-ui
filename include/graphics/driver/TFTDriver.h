@@ -35,6 +35,7 @@ template <class TFT> void TFTDriver<TFT>::init(DeviceGUI *gui)
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, 20000));
 #endif
 #elif defined(ARCH_PORTDUINO)
-    lv_tick_set_cb([]() -> uint32_t { return millis(); });
+    // for linux we use lv_tick_inc() in DeviceGUI::task_handler()
+    // lv_tick_set_cb([]() -> uint32_t { return millis(); });
 #endif
 }
