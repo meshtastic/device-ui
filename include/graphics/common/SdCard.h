@@ -70,7 +70,7 @@ class SDCard : public ISdCard
     uint64_t usedBytes(void) override;
     uint64_t freeBytes(void) override;
     uint64_t cardSize(void) override;
-    bool format(void){};
+    bool format(void) override { return false; };
 
     std::set<std::string> loadMapStyles(const char *folder) override;
     virtual ~SDCard(void);

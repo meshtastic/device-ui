@@ -14,6 +14,8 @@ class ViewController
     virtual void runOnce(void);
     virtual bool sleep(int16_t pin);
     virtual void processEvent(void);
+    virtual bool isStandalone(void);
+    virtual void stop(void);
 
     // device config
     virtual uint32_t requestDeviceUIConfig(void);
@@ -105,6 +107,7 @@ class ViewController
     IClientBase *client;
     uint32_t sendId;
     uint32_t myNodeNum;
+    time_t lastrun1;
     time_t lastrun10;
     time_t restoreTimer;
     bool setupDone;             // true if ui config has been loaded and screens are setup in the view

@@ -87,11 +87,11 @@ int DeviceScreen::wakeUp(esp_sleep_wakeup_cause_t cause)
 /**
  * @brief synchronisation point: here we sleep after prepareSleep() was called
  */
-void DeviceScreen::sleep(uint32_t time)
+void DeviceScreen::sleep(uint32_t sleepTime)
 {
-#if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARCH_ESP32)
     if (xSemaphore && xSemaphoreTake(xSemaphore, portMAX_DELAY) == pdTRUE)
         xSemaphoreGive(xSemaphore);
+    vTaskDelay((TickType_t)sleepTime); // yield, do not remove
 #endif
-    delay(time);
 }

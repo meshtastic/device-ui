@@ -7,13 +7,15 @@
 #define SERIAL_BAUD 38400
 #endif
 
+#define CONNECTION_TIMEOUT 60 // seconds
 #define RX_BUFFER 1024
-#define TIMEOUT 250
-#define ACK 1
+#define TIMEOUT 250 // ms
+
+#define MAX_PACKET_SIZE 284
 
 extern const uint8_t MT_MAGIC_0;
 
-UARTClient::UARTClient(void) : _serial(nullptr), lastReceived(0) {}
+UARTClient::UARTClient(void) : SerialClient("uart"), isActive(false), _serial(nullptr) {}
 
 /**
  * @brief init serial interface
@@ -51,16 +53,20 @@ void UARTClient::init(void)
     _serial->setPins(SERIAL_RX, SERIAL_TX);
     ILOG_INFO("UARTClient::setPins rx=%d, tx=%d with %d baud", SERIAL_RX, SERIAL_TX, SERIAL_BAUD);
 #endif
+    time(&lastReceived);
     SerialClient::init();
 }
 
 bool UARTClient::connect(void)
 {
-    if (!connected) {
+    if (clientStatus != eConnected) {
+        ILOG_DEBUG("UARTClient connecting...");
+        setConnectionStatus(eConnecting, "Connecting...");
         time_t timeout = millis();
         while (!*_serial) {
             if ((millis() - timeout) > 5) {
-                connected = false;
+                setConnectionStatus(eError, "Connection failed!");
+                ILOG_WARN("UARTClient connection failed!");
                 return false;
             }
         }
@@ -73,22 +79,37 @@ bool UARTClient::connect(void)
                 skipped++;
                 delay(1);
             }
+            isActive = true;
         }
 
-        connected = true;
-        ILOG_TRACE("UARTClient::connect, skipped %d bytes", skipped);
+        if (isActive) {
+            setConnectionStatus(eConnected, "Connected!");
+            ILOG_INFO("UARTClient connected! (skipped %d bytes)", skipped);
+        } else {
+            // pretend to be connected and start sending data
+            clientStatus = eConnected;
+        }
     }
-    return true;
+    return clientStatus == eConnected;
 }
 
 bool UARTClient::disconnect(void)
 {
+    ILOG_DEBUG("UARTClient disconnecting...");
+    isActive = false;
+    setConnectionStatus(eDisconnected, "Disconnected");
     return SerialClient::disconnect();
 }
 
 bool UARTClient::isConnected(void)
 {
-    return *_serial && connected;
+    time_t now;
+    time(&now);
+    if (now - lastReceived > CONNECTION_TIMEOUT && isActive) {
+        isActive = false;
+        setConnectionStatus(eDisconnected, "Disconnected");
+    }
+    return *_serial && (clientStatus == eConnected || isActive);
 }
 
 meshtastic_FromRadio UARTClient::receive(void)
@@ -96,29 +117,12 @@ meshtastic_FromRadio UARTClient::receive(void)
     return SerialClient::receive();
 }
 
-UARTClient::~UARTClient(){
-
+UARTClient::~UARTClient()
+{
+    if (_serial) {
+        _serial->end();
+    }
 };
-
-// --- convenience interface ---
-
-bool UARTClient::isActive(void) const
-{
-    time_t now;
-    time(&now);
-    return lastReceived > 0 && now - lastReceived < 60;
-}
-
-const char *UARTClient::getConnectionInfo(void) const
-{
-    static char connectionInfo[32];
-#ifdef SERIAL_RX
-    sprintf(connectionInfo, "serial rx=%d/tx=%d", SERIAL_RX, SERIAL_TX);
-#else
-    strcpy(connectionInfo, "serial RX/TX/GND");
-#endif
-    return connectionInfo;
-}
 
 // --- protected part ---
 
@@ -137,17 +141,19 @@ bool UARTClient::send(const uint8_t *buf, size_t len)
 size_t UARTClient::receive(uint8_t *buf, size_t space_left)
 {
     size_t bytes_read = 0;
-    while (_serial->available()) {
+    while (_serial->available() && bytes_read < MAX_PACKET_SIZE) {
         uint8_t byte = _serial->read();
         *buf++ = byte;
         if (++bytes_read >= space_left) {
-            ILOG_ERROR("Serial overflow!");
+            // no error, but serial thread is too slow (-> reduce sleep_time)
+            ILOG_WARN("Serial overflow!");
             break;
         }
     }
     if (bytes_read > 0) {
         ILOG_TRACE("received %d bytes from serial", bytes_read);
         time(&lastReceived);
+        isActive = true;
     }
     return bytes_read;
 }

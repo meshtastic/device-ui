@@ -46,7 +46,7 @@ bool SDCardService::load(const char *name, void *img)
 {
     char buf[128] = DRIVE_LETTER ":";
     strcat(&buf[2], name);
-    // ILOG_DEBUG("SDCardService::load(): %s", buf);
+    ILOG_DEBUG("SDCardService::load(): %s", buf);
     lv_image_set_src((lv_obj_t *)img, buf);
     if (!lv_image_get_src((lv_obj_t *)img)) {
         ILOG_DEBUG("Failed to load tile %s from SD", buf);

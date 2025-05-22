@@ -92,6 +92,7 @@ void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float 
 void MeshtasticView::notifyMessagesRestored(void)
 {
     messagesRestored = true;
+    state = eRunning;
 }
 
 void MeshtasticView::notifyResync(bool show) {}
