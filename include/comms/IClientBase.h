@@ -14,6 +14,10 @@
 class IClientBase
 {
   public:
+    enum ConnectionStatus { eDisconnected = 0, eConnected, eConnecting, eDisconnecting, eError };
+
+    using NotifyCallback = std::function<void(ConnectionStatus status, const char *info)>;
+
     virtual void init(void) = 0;
     virtual bool connect(void) = 0;
     virtual bool disconnect(void) = 0;
@@ -26,7 +30,7 @@ class IClientBase
     virtual ~IClientBase(){};
 
     virtual void task_handler(void){};
-    virtual void setNotifyCallback(std::function<void(bool status)> notifyConnectionStatus) = 0;
+    virtual void setNotifyCallback(NotifyCallback notifyConnectionStatus) = 0;
 
   protected:
     IClientBase() = default;

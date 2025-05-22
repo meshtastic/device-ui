@@ -23,22 +23,8 @@ class EthernetClient : public WiFiClient
 extern const uint8_t MT_MAGIC_0;
 
 EthClient::EthClient(const char *serverName, uint16_t port)
-    : SerialClient("eth"), client(nullptr), mac{}, server(serverName), serverPort(port)
+    : SerialClient("eth"), client(nullptr), server(serverName), serverPort(port)
 {
-}
-
-EthClient::EthClient(IPAddress server, uint16_t port)
-    : SerialClient("eth"), client(nullptr), mac{}, serverIP(server), server(nullptr), serverPort(port)
-{
-}
-
-EthClient::EthClient(uint8_t *mac, IPAddress ip, IPAddress server, uint16_t port)
-    : SerialClient("eth"), client(nullptr), localIP(ip), serverIP(server), server(nullptr), serverPort(port)
-{
-    memcpy(this->mac, mac, sizeof(this->mac));
-    ILOG_DEBUG("EthClient mac=%02X:%02X:%02X:%02X:%02X:%02X localIP=%d.%d.%d.%d, serverIP=%d.%d.%d.%d", mac[0], mac[1], mac[2],
-               mac[3], mac[4], mac[5], localIP[0], localIP[1], localIP[2], localIP[3], serverIP[0], serverIP[1], serverIP[2],
-               serverIP[3]);
 }
 
 void EthClient::init(void)
@@ -76,40 +62,30 @@ void EthClient::init(void)
  */
 bool EthClient::connect(void)
 {
-    if (!connected) {
-        bool result = false;
-        if (server != nullptr) {
-            ILOG_INFO("EthClient connecting to %s:%d ...", server, serverPort);
-            result = client->connect(server, SERVER_PORT);
-        } else {
-            ILOG_INFO("EthClient connecting to %d.%d.%d.%d:%d ...", serverIP[0], serverIP[1], serverIP[2], serverIP[3],
-                      serverPort);
-            result = client->connect(serverIP, SERVER_PORT);
-        }
-        if (result) {
+    if (clientStatus != eConnected) {
+        setConnectionStatus(eConnecting, "Connecting...");
+        if (client->connect(server, SERVER_PORT)) {
             ILOG_INFO("EthClient connected!");
-            setConnectionStatus(true);
+            setConnectionStatus(eConnected, "Connected!");
         } else {
             ILOG_WARN("EthClient connection failed!");
+            setConnectionStatus(eError, "Connection failed!");
         }
     }
-    return connected;
+    return clientStatus == eConnected;
 }
 
 bool EthClient::disconnect(void)
 {
     ILOG_DEBUG("EthClient disconnecting...");
     client->stop();
+    setConnectionStatus(eDisconnected, "Disconnected!");
     return SerialClient::disconnect();
 }
 
 bool EthClient::isConnected(void)
 {
-    bool result = connected && client->connected();
-    if (result != connected) {
-        ILOG_DEBUG("EthClient connection status changed: %d", result);
-        setConnectionStatus(result);
-    }
+    bool result = clientStatus == eConnected && client->connected();
     return result;
 }
 
@@ -151,7 +127,7 @@ bool EthClient::send(const uint8_t *buf, size_t len)
     if (wrote != (int32_t)len) {
         if (wrote < 0) {
             ILOG_ERROR("send failed, disconnecting!");
-            setConnectionStatus(false);
+            setConnectionStatus(eDisconnected);
             return false;
         }
         ILOG_ERROR("only %d bytes were sent this time", wrote);

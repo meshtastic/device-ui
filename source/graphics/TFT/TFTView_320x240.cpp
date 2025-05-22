@@ -337,9 +337,10 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
  * @brief display custom message on boot screen
  *        Note: currently, the firmware version field is used and set in main()/setup()
  */
-void TFTView_320x240::updateBootMessage(void)
+void TFTView_320x240::updateBootMessage(const char *msg)
 {
-    lv_label_set_text(objects.firmware_label, firmware_version);
+    if (msg)
+        lv_label_set_text(objects.firmware_label, msg);
 }
 
 /**
@@ -5515,22 +5516,30 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     updateStatistics(p);
 }
 
-void TFTView_320x240::notifyConnected(void)
+void TFTView_320x240::notifyConnected(const char *info)
 {
-    if (state == MeshtasticView::eDisconnected) {
-        messageAlert(_("Connected!"), true);
-        // force re-sync with node
-        THIS->controller->setConfigRequested(true);
+    if (state == MeshtasticView::eBooting) {
+        updateBootMessage(info);
+    } else {
+        if (state == MeshtasticView::eDisconnected) {
+            messageAlert(_("Connected!"), true);
+            // force re-sync with node
+            THIS->controller->setConfigRequested(true);
+        }
+        state = MeshtasticView::eRunning;
     }
-    state = MeshtasticView::eRunning;
 }
 
-void TFTView_320x240::notifyDisconnected(void)
+void TFTView_320x240::notifyDisconnected(const char *info)
 {
-    if (state == MeshtasticView::eRunning) {
-        messageAlert(_("Disconnected!"), true);
+    if (state == MeshtasticView::eBooting) {
+        updateBootMessage(info);
+    } else {
+        if (state == MeshtasticView::eRunning) {
+            messageAlert(_("Disconnected!"), true);
+        }
+        state = MeshtasticView::eDisconnected;
     }
-    state = MeshtasticView::eDisconnected;
 }
 
 void TFTView_320x240::notifyResync(bool show)
@@ -7087,13 +7096,6 @@ void TFTView_320x240::task_handler(void)
         }
         if (processingFilter || nodesChanged) {
             updateNodesFiltered(nodesChanged);
-        }
-    } else { // CYD scenario only
-        if (state == MeshtasticView::eBooting) {
-            if (curtime - lastrun1 >= 1) { // call every 1s
-                lastrun1 = curtime;
-                updateBootMessage();
-            }
         }
     }
 }

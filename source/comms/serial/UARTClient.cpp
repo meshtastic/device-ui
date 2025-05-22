@@ -15,7 +15,7 @@
 
 extern const uint8_t MT_MAGIC_0;
 
-UARTClient::UARTClient(void) : SerialClient("uart"), _serial(nullptr), lastReceived(0) {}
+UARTClient::UARTClient(void) : SerialClient("uart"), _serial(nullptr) {}
 
 /**
  * @brief init serial interface
@@ -58,11 +58,17 @@ void UARTClient::init(void)
 
 bool UARTClient::connect(void)
 {
-    if (!connected) {
+    if (clientStatus != eConnected) {
+        static char info[20];
+#ifdef SERIAL_RX
+        snprintf(info, sizeof(info), "Connecting (rx=%d/tx=%d)", SERIAL_RX, SERIAL_TX);
+#else
+        snprintf(info, sizeof(info), "Connecting ...");
+#endif
+        setConnectionStatus(eConnecting, info);
         time_t timeout = millis();
         while (!*_serial) {
             if ((millis() - timeout) > 5) {
-                connected = false;
                 return false;
             }
         }
@@ -77,20 +83,21 @@ bool UARTClient::connect(void)
             }
         }
 
-        connected = true;
+        setConnectionStatus(eConnected, "Connected!");
         ILOG_INFO("UARTClient connected! (skipped %d bytes)", skipped);
     }
-    return true;
+    return clientStatus == eConnected;
 }
 
 bool UARTClient::disconnect(void)
 {
+    setConnectionStatus(eDisconnected, "Disconnected");
     return SerialClient::disconnect();
 }
 
 bool UARTClient::isConnected(void)
 {
-    return *_serial && connected;
+    return *_serial && clientStatus == eConnected;
 }
 
 meshtastic_FromRadio UARTClient::receive(void)
@@ -101,26 +108,6 @@ meshtastic_FromRadio UARTClient::receive(void)
 UARTClient::~UARTClient(){
 
 };
-
-// --- convenience interface ---
-
-bool UARTClient::isActive(void) const
-{
-    time_t now;
-    time(&now);
-    return lastReceived > 0 && now - lastReceived < 60;
-}
-
-const char *UARTClient::getConnectionInfo(void) const
-{
-    static char connectionInfo[32];
-#ifdef SERIAL_RX
-    sprintf(connectionInfo, "serial rx=%d/tx=%d", SERIAL_RX, SERIAL_TX);
-#else
-    strcpy(connectionInfo, "serial RX/TX/GND");
-#endif
-    return connectionInfo;
-}
 
 // --- protected part ---
 
@@ -150,7 +137,6 @@ size_t UARTClient::receive(uint8_t *buf, size_t space_left)
     }
     if (bytes_read > 0) {
         ILOG_TRACE("received %d bytes from serial", bytes_read);
-        time(&lastReceived);
     }
     return bytes_read;
 }

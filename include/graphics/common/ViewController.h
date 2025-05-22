@@ -106,6 +106,7 @@ class ViewController
     IClientBase *client;
     uint32_t sendId;
     uint32_t myNodeNum;
+    time_t lastrun1;
     time_t lastrun10;
     time_t restoreTimer;
     bool setupDone;             // true if ui config has been loaded and screens are setup in the view

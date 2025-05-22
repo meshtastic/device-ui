@@ -13,9 +13,6 @@ class EthClient : public SerialClient
 {
   public:
     EthClient(const char *serverName = "localhost", uint16_t port = SERVER_PORT);
-    EthClient(IPAddress server, uint16_t port = SERVER_PORT);
-    EthClient(uint8_t *mac, IPAddress ip, IPAddress server = IPAddress(127, 0, 0, 1), uint16_t port = SERVER_PORT);
-    // EthClient(uint8_t *mac, IPAddress ip, IPAddress server, IPAddress gateway, IPAddress subnet);
     void init(void) override;
     bool connect(void) override;
     bool disconnect(void) override;

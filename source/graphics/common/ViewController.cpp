@@ -28,23 +28,23 @@ ViewController::ViewController()
 
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
+    time(&lastrun1);
     time(&lastrun10);
     view = gui;
     client = _client;
     if (client) {
+        // client status handler
+        client->setNotifyCallback([this](IClientBase::ConnectionStatus status, const char *info) {
+            if (status == IClientBase::eConnected) {
+                view->notifyConnected(info);
+            } else {
+                view->notifyDisconnected(info);
+            }
+        });
         client->init();
         client->connect();
     }
     log.init();
-
-    // client status handler
-    client->setNotifyCallback([this](bool status) {
-        if (status) {
-            view->notifyConnected();
-        } else {
-            view->notifyDisconnected();
-        }
-    });
 }
 
 /**
@@ -78,7 +78,12 @@ void ViewController::runOnce(void)
                 requestConfig();
             }
         }
-        client->task_handler();
+
+        // executed every 1s:
+        if (curtime - lastrun1 >= 1) {
+            lastrun1 = curtime;
+            client->task_handler();
+        }
     }
 }
 

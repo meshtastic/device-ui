@@ -27,7 +27,8 @@
 SerialClient *SerialClient::instance = nullptr;
 
 SerialClient::SerialClient(const char *name)
-    : pb_size(0), connectionStatus(false), connected(false), shutdown(false), notifyConnectionStatus(nullptr), threadName(name)
+    : pb_size(0), clientStatus(eDisconnected), connectionStatus(eDisconnected), connectionInfo(nullptr), shutdown(false),
+      notifyConnectionStatus(nullptr), threadName(name)
 {
     buffer = new uint8_t[PB_BUFSIZE + MT_HEADER_SIZE];
     instance = this;
@@ -109,27 +110,28 @@ bool SerialClient::sleep(int16_t pin)
 
 bool SerialClient::connect(void)
 {
-    ILOG_ERROR("SerialClient::connect() not implemented");
-    return false;
+    clientStatus = eConnected;
+    return clientStatus == eConnected;
 }
 
 bool SerialClient::disconnect(void)
 {
-    connected = false;
-    return connected;
+    clientStatus = eDisconnected;
+    return clientStatus == eDisconnected;
 }
 
 bool SerialClient::isConnected(void)
 {
-    return connected;
+    return clientStatus == eConnected;
 }
 
-void SerialClient::setConnectionStatus(bool status)
+void SerialClient::setConnectionStatus(ConnectionStatus status, const char *info)
 {
-    connected = status;
+    this->clientStatus = status;
+    this->connectionInfo = info;
 }
 
-void SerialClient::setNotifyCallback(std::function<void(bool status)> notifyConnectionStatus)
+void SerialClient::setNotifyCallback(NotifyCallback notifyConnectionStatus)
 {
     this->notifyConnectionStatus = notifyConnectionStatus;
 }
@@ -163,9 +165,12 @@ meshtastic_FromRadio SerialClient::receive(void)
 
 void SerialClient::task_handler(void)
 {
-    if (connectionStatus != connected && notifyConnectionStatus) {
-        connectionStatus = connected;
-        notifyConnectionStatus(connectionStatus);
+    // check for connection status change
+    if (notifyConnectionStatus) {
+        if (connectionStatus != clientStatus || (connectionStatus == eConnected && !isConnected())) {
+            connectionStatus = clientStatus;
+            notifyConnectionStatus(connectionStatus, connectionInfo);
+        }
     }
 }
 
@@ -232,7 +237,7 @@ void SerialClient::task_loop(void *)
     while (!instance->shutdown) {
         int sleep_time = SLEEP_TIME_IDLE;
         size_t space_left = PB_BUFSIZE - instance->pb_size;
-        if (instance->connected) {
+        if (instance->clientStatus == eConnected) {
             size_t bytes_read = instance->receive(&instance->buffer[instance->pb_size], space_left);
             if (bytes_read > 0) {
                 instance->pb_size += bytes_read;
@@ -248,7 +253,7 @@ void SerialClient::task_loop(void *)
                 sleep_time = SLEEP_TIME_ACTIVE;
             }
         }
-        if (instance->connected) {
+        if (instance->clientStatus == eConnected) {
             // send a packet if available
             if (instance->queue.clientQueueSize() > 0) {
                 instance->handleSendPacket();

@@ -76,8 +76,8 @@ class TFTView_320x240 : public MeshtasticView
     void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) override;
     void notifyRestoreMessages(int32_t percentage) override;
     void notifyMessagesRestored(void) override;
-    void notifyConnected(void) override;
-    void notifyDisconnected(void) override;
+    void notifyConnected(const char *info) override;
+    void notifyDisconnected(const char *info) override;
     void notifyResync(bool show) override;
     void notifyReboot(bool show) override;
     void notifyShutdown(void) override;
@@ -134,7 +134,7 @@ class TFTView_320x240 : public MeshtasticView
     // initialize all ui screens
     virtual void init_screens(void);
     // update custom display string on boot screen
-    virtual void updateBootMessage(void);
+    virtual void updateBootMessage(const char *);
     // show initial setup panel to configure region and name
     virtual void requestSetup(void);
     // patch widgets on generated screens

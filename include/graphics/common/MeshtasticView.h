@@ -121,8 +121,13 @@ class MeshtasticView : public DeviceGUI
 
     virtual void configCompleted(void)
     {
-        configComplete = true;
-        state = eConfigComplete;
+        if (!configComplete) {
+            configComplete = true;
+            state = eConfigComplete;
+        } else {
+            // we came here from resync
+            state = eRunning;
+        }
     }
 
     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing, const meshtastic_MeshPacket &p) {}
@@ -134,8 +139,8 @@ class MeshtasticView : public DeviceGUI
 
     virtual void notifyRestoreMessages(int32_t percentage) {}
     virtual void notifyMessagesRestored(void);
-    virtual void notifyConnected(void){};
-    virtual void notifyDisconnected(void){};
+    virtual void notifyConnected(const char *info){};
+    virtual void notifyDisconnected(const char *info){};
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);

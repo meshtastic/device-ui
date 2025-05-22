@@ -18,7 +18,7 @@ class SerialClient : public IClientBase
     meshtastic_FromRadio receive(void) override;
 
     void task_handler(void) override;
-    void setNotifyCallback(std::function<void(bool status)> notifyConnectionStatus) override;
+    void setNotifyCallback(NotifyCallback notifyConnectionStatus) override;
     virtual ~SerialClient();
 
   protected:
@@ -35,7 +35,7 @@ class SerialClient : public IClientBase
     virtual void handleSendPacket(void);
 
     // status handling, to be called by derived classes
-    void setConnectionStatus(bool status);
+    void setConnectionStatus(ConnectionStatus status, const char *info = nullptr);
 
     // thread handling stuff and data
     static void task_loop(void *);
@@ -45,13 +45,17 @@ class SerialClient : public IClientBase
     size_t pb_size;
     uint8_t *buffer;
 
-    // status of server connection
-    bool connectionStatus;
-    volatile bool connected;
+    // callback for connection status
+    NotifyCallback notifyConnectionStatus;
+    // reported status
+    ConnectionStatus connectionStatus;
+    // status of client connection (set by derived class)
+    volatile ConnectionStatus clientStatus;
+    // status details (set by derived class)
+    const char *connectionInfo;
+
     // announce client shutdown
     volatile bool shutdown;
-    // callback for connection status
-    std::function<void(bool status)> notifyConnectionStatus;
     // instance thread name
     const char *threadName;
 
