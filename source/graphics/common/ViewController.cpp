@@ -103,6 +103,13 @@ bool ViewController::isStandalone(void)
         return false;
 }
 
+void ViewController::stop(void)
+{
+    if (client) {
+        client->disconnect();
+    }
+}
+
 void ViewController::processEvent(void) {}
 
 uint32_t ViewController::requestDeviceUIConfig(void)

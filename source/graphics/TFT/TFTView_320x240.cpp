@@ -860,6 +860,9 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
 
 void TFTView_320x240::timer_event_reboot(lv_timer_t *timer)
 {
+    ILOG_INFO("Rebooting...");
+    THIS->controller->stop();
+    delay(4000);
 #if defined(ARCH_PORTDUINO)
     extern void reboot();
     reboot();
@@ -872,6 +875,9 @@ void TFTView_320x240::timer_event_reboot(lv_timer_t *timer)
 
 void TFTView_320x240::timer_event_shutdown(lv_timer_t *timer)
 {
+    ILOG_INFO("Shutdown...");
+    THIS->controller->stop();
+    delay(1000);
 #if defined(ARCH_PORTDUINO)
     exit(0);
 #elif defined(ARCH_ESP32)
@@ -5553,6 +5559,9 @@ void TFTView_320x240::notifyResync(bool show)
 void TFTView_320x240::notifyReboot(bool show)
 {
     messageAlert(_("Rebooting ..."), show);
+    if (controller->isStandalone()) {
+        lv_timer_create(timer_event_reboot, 8000, NULL);
+    }
 }
 
 void TFTView_320x240::notifyShutdown(void)
