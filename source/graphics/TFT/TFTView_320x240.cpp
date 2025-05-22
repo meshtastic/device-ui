@@ -5550,9 +5550,14 @@ void TFTView_320x240::notifyDisconnected(const char *info)
 
 void TFTView_320x240::notifyResync(bool show)
 {
-    messageAlert(_("Resync ..."), show);
-    if (!show) {
-        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    if (controller->isStandalone()) {
+        if (show)
+            notifyReboot(true);
+    } else {
+        messageAlert(_("Resync ..."), show);
+        if (!show) {
+            lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        }
     }
 }
 

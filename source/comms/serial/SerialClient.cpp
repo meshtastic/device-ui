@@ -127,6 +127,7 @@ bool SerialClient::isConnected(void)
 
 void SerialClient::setConnectionStatus(ConnectionStatus status, const char *info)
 {
+    ILOG_TRACE("SerialClient::setConnectionStatus() status=%d, info=%s", status, info);
     this->clientStatus = status;
     this->connectionInfo = info;
 }

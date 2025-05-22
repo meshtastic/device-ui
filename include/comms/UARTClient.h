@@ -22,6 +22,7 @@ class UARTClient : public SerialClient
     // low-level receive method, periodically being called via thread
     size_t receive(uint8_t *buf, size_t space_left) override;
 
+    bool isActive;
     HardwareSerial *_serial;
     time_t lastReceived;
 };
