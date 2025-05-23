@@ -17,12 +17,15 @@ class PacketClient : public IClientBase
     bool connect(void) override;
     bool disconnect(void) override;
     bool isConnected(void) override;
+    bool isStandalone(void) override;
     bool send(meshtastic_ToRadio &&to) override;
     meshtastic_FromRadio receive(void) override;
 
     virtual bool hasData() const;
     virtual bool available() const;
 
+    void task_handler(void) override{};
+    void setNotifyCallback(NotifyCallback notifyConnectionStatus) override{};
     virtual ~PacketClient() = default;
 
   protected:

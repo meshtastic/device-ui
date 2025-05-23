@@ -341,9 +341,10 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
  * @brief display custom message on boot screen
  *        Note: currently, the firmware version field is used and set in main()/setup()
  */
-void TFTView_320x240::updateBootMessage(void)
+void TFTView_320x240::updateBootMessage(const char *msg)
 {
-    lv_label_set_text(objects.firmware_label, firmware_version);
+    if (msg)
+        lv_label_set_text(objects.firmware_label, msg);
 }
 
 /**
@@ -400,6 +401,10 @@ void TFTView_320x240::init_screens(void)
 #ifdef HAS_SDCARD
     lv_obj_clear_flag(objects.basic_settings_backup_restore_button, LV_OBJ_FLAG_HIDDEN);
 #endif
+
+    if (controller->isStandalone()) {
+        lv_obj_add_flag(objects.progmode_button, LV_OBJ_FLAG_HIDDEN);
+    }
 
     // signal scanner scale
 #if defined(USE_SX127x)
@@ -856,6 +861,35 @@ void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
     }
 }
 #endif
+
+void TFTView_320x240::timer_event_reboot(lv_timer_t *timer)
+{
+    ILOG_INFO("Rebooting...");
+    THIS->controller->stop();
+    delay(4000);
+#if defined(ARCH_PORTDUINO)
+    extern void reboot();
+    reboot();
+#elif defined(ARCH_ESP32)
+    esp_restart();
+#else
+    // TODO: implement for other platforms
+#endif
+}
+
+void TFTView_320x240::timer_event_shutdown(lv_timer_t *timer)
+{
+    ILOG_INFO("Shutdown...");
+    THIS->controller->stop();
+    delay(1000);
+#if defined(ARCH_PORTDUINO)
+    exit(0);
+#elif defined(ARCH_ESP32)
+    esp_deep_sleep_start();
+#else
+    // TODO: implement for other platforms
+#endif
+}
 
 void TFTView_320x240::timer_event_programming_mode(lv_timer_t *timer)
 {
@@ -1911,6 +1945,9 @@ void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
         THIS->controller->requestReboot(5, THIS->ownNode);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        if (THIS->controller->isStandalone()) {
+            lv_timer_create(timer_event_reboot, 4000, NULL);
+        }
     }
 }
 
@@ -1935,6 +1972,9 @@ void TFTView_320x240::ui_event_device_shutdown_button(lv_event_t *e)
         THIS->controller->requestShutdown(5, THIS->ownNode);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        if (THIS->controller->isStandalone()) {
+            lv_timer_create(timer_event_shutdown, 4000, NULL);
+        }
     }
 }
 
@@ -3219,11 +3259,9 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
 uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
 {
 #ifdef USE_ROUTER_ROLE
-    int32_t val[] = {
-        0, 1, 2, -1, 3, 4, 5, 6, 7, 8, 9 };
+    int32_t val[] = {0, 1, 2, -1, 3, 4, 5, 6, 7, 8, 9};
 #else
-    int32_t val[] = {
-        0, 1, -1, -1, -1, 2, 3, 4, 5, 6, 7 };
+    int32_t val[] = {0, 1, -1, -1, -1, 2, 3, 4, 5, 6, 7};
 #endif
     if (role > 10 || val[role] == -1) {
         ILOG_WARN("unknown role value: %d", role);
@@ -3237,20 +3275,19 @@ uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
  */
 meshtastic_Config_DeviceConfig_Role TFTView_320x240::val2role(uint32_t val)
 {
-    meshtastic_Config_DeviceConfig_Role role[] = {
-        meshtastic_Config_DeviceConfig_Role_CLIENT,
-        meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE,
+    meshtastic_Config_DeviceConfig_Role role[] = {meshtastic_Config_DeviceConfig_Role_CLIENT,
+                                                  meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE,
 #ifdef USE_ROUTER_ROLE
-        meshtastic_Config_DeviceConfig_Role_ROUTER,
-        meshtastic_Config_DeviceConfig_Role_REPEATER,
+                                                  meshtastic_Config_DeviceConfig_Role_ROUTER,
+                                                  meshtastic_Config_DeviceConfig_Role_REPEATER,
 #endif
-        meshtastic_Config_DeviceConfig_Role_TRACKER,
-        meshtastic_Config_DeviceConfig_Role_SENSOR,
-        meshtastic_Config_DeviceConfig_Role_TAK,
-        meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN,
-        meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND,
-        meshtastic_Config_DeviceConfig_Role_TAK_TRACKER,
-        meshtastic_Config_DeviceConfig_Role_ROUTER_LATE };
+                                                  meshtastic_Config_DeviceConfig_Role_TRACKER,
+                                                  meshtastic_Config_DeviceConfig_Role_SENSOR,
+                                                  meshtastic_Config_DeviceConfig_Role_TAK,
+                                                  meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN,
+                                                  meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND,
+                                                  meshtastic_Config_DeviceConfig_Role_TAK_TRACKER,
+                                                  meshtastic_Config_DeviceConfig_Role_ROUTER_LATE};
     if (val > 10) {
         ILOG_WARN("unknown role value: %d", val);
         return meshtastic_Config_DeviceConfig_Role_CLIENT;
@@ -3537,16 +3574,28 @@ void TFTView_320x240::storeNodeOptions(void)
  */
 void TFTView_320x240::eraseChat(uint32_t channelOrNode)
 {
+    if (chats.find(channelOrNode) == chats.end()) {
+        ILOG_WARN("eraseChat: channelOrNode %d not found", channelOrNode);
+        return;
+    }
     if (channelOrNode < c_max_channels) {
         uint8_t ch = (uint8_t)channelOrNode;
-        lv_obj_delete_delayed(chats[ch], 500);
-        lv_obj_del(channelGroup[ch]);
+        if (state == MeshtasticView::eRunning) {
+            lv_obj_delete_delayed(chats.at(ch), 500);
+        } else {
+            lv_obj_del(chats.at(ch));
+        }
+        lv_obj_del(channelGroup.at(ch));
         channelGroup[ch] = nullptr;
         chats.erase(ch);
     } else {
         uint32_t nodeNum = channelOrNode;
-        lv_obj_delete_delayed(chats[nodeNum], 500);
-        lv_obj_del(messages[nodeNum]);
+        if (state == MeshtasticView::eRunning) {
+            lv_obj_delete_delayed(chats.at(nodeNum), 500);
+        } else {
+            lv_obj_delete(chats.at(nodeNum));
+        }
+        lv_obj_del(messages.at(nodeNum));
         messages.erase(nodeNum);
         chats.erase(nodeNum);
     }
@@ -5490,17 +5539,51 @@ void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
     updateStatistics(p);
 }
 
+void TFTView_320x240::notifyConnected(const char *info)
+{
+    if (state == MeshtasticView::eBooting) {
+        updateBootMessage(info);
+    } else {
+        if (state == MeshtasticView::eDisconnected) {
+            messageAlert(_("Connected!"), true);
+            // force re-sync with node
+            THIS->controller->setConfigRequested(true);
+        }
+        state = MeshtasticView::eRunning;
+    }
+}
+
+void TFTView_320x240::notifyDisconnected(const char *info)
+{
+    if (state == MeshtasticView::eBooting) {
+        updateBootMessage(info);
+    } else {
+        if (state == MeshtasticView::eRunning) {
+            messageAlert(_("Disconnected!"), true);
+        }
+        state = MeshtasticView::eDisconnected;
+    }
+}
+
 void TFTView_320x240::notifyResync(bool show)
 {
-    messageAlert(_("Resync ..."), show);
-    if (!show) {
-        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    if (controller->isStandalone()) {
+        if (show)
+            notifyReboot(true);
+    } else {
+        messageAlert(_("Resync ..."), show);
+        if (!show) {
+            lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        }
     }
 }
 
 void TFTView_320x240::notifyReboot(bool show)
 {
     messageAlert(_("Rebooting ..."), show);
+    if (controller->isStandalone()) {
+        lv_timer_create(timer_event_reboot, 8000, NULL);
+    }
 }
 
 void TFTView_320x240::notifyShutdown(void)
@@ -6136,8 +6219,10 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_label_set_text(msgLabel, msg);
     add_style_new_message_style(msgLabel);
 
-    lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
-    lv_obj_move_foreground(objects.message_input_area);
+    if (state == MeshtasticView::eRunning) {
+        lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
+        lv_obj_move_foreground(objects.message_input_area);
+    }
     lv_obj_add_event_cb(hiddenPanel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 }
 
@@ -7041,13 +7126,6 @@ void TFTView_320x240::task_handler(void)
         }
         if (processingFilter || nodesChanged) {
             updateNodesFiltered(nodesChanged);
-        }
-    } else { // CYD scenario only
-        if (state == MeshtasticView::eBooting) {
-            if (curtime - lastrun1 >= 1) { // call every 1s
-                lastrun1 = curtime;
-                updateBootMessage();
-            }
         }
     }
 }

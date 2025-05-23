@@ -5,24 +5,14 @@
 #include "util/ILog.h"
 #include <assert.h>
 
-#define HASH(X, Y) (((X) << 16) | ((Y) & 0xFFFF))
-
+#define HASH(X, Y) (((X) << 16) | ((Y)&0xFFFF))
 
 MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
-    : home(GeoPoint(MapTileSettings::getDefaultLat(), MapTileSettings::getDefaultLon(), MapTileSettings::getZoomLevel())),
+    : widthPixel(320), heightPixel(240),
+      home(GeoPoint(MapTileSettings::getDefaultLat(), MapTileSettings::getDefaultLon(), MapTileSettings::getZoomLevel())),
       current(home), scrolled(home), panel(p), homeLocationImage(nullptr), gpsPositionImage(nullptr), noTileImage(nullptr),
       service(new TileService(s)), objectsOnMap(0)
 {
-    if (p) {
-        lv_obj_update_layout(panel);
-        widthPixel = lv_obj_get_width(panel);
-        heightPixel = lv_obj_get_height(panel);
-        ILOG_DEBUG("panel size: %dx%d", widthPixel, heightPixel);
-    } else {
-        widthPixel = 320;
-        heightPixel = 240;
-    }
-
     extern OSMTiles<lv_obj_t> *osm;
     osm = OSMTiles<lv_obj_t>::create([this](uint32_t x, uint32_t y, uint32_t z, void *img) -> bool { return service->load(x, y, z, img); });
 
@@ -53,6 +43,11 @@ void MapPanel::redraw(void)
     for (int x = 0; x < tilesX; x++) {
         for (int y = 0; y < tilesY; y++) {
             uint32_t hash = HASH(xStart + x, yStart + y);
+            if (tiles.find(hash) != tiles.end()) {
+                ILOG_ERROR("internal error: tile %d/%d (hash:%u) already exists", xStart + x, yStart + y, hash);
+                needsRedraw = true;
+                return;
+            }
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
             tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
         }
@@ -165,6 +160,7 @@ void MapPanel::drawObject(MapObject &obj, bool count)
  */
 void MapPanel::center(void)
 {
+    updateDimensions();
     int16_t size = MapTileSettings::getTileSize();
     int16_t xpos = widthPixel / 2 - scrolled.xPos;
     int16_t ypos = heightPixel / 2 - scrolled.yPos;
@@ -248,6 +244,16 @@ void MapPanel::setZoom(uint8_t zoom)
         current.setZoom(zoom);
         scrolled.setZoom(zoom);
         center();
+    }
+}
+
+void MapPanel::updateDimensions(void)
+{
+    if (panel) {
+        lv_obj_update_layout(panel);
+        widthPixel = lv_obj_get_width(panel);
+        heightPixel = lv_obj_get_height(panel);
+        ILOG_DEBUG("panel size: %dx%d", widthPixel, heightPixel);
     }
 }
 
@@ -503,10 +509,13 @@ void MapPanel::printTiles(void)
     for (int x = 0; x < tilesX; x++) {
         for (int y = 0; y < tilesY; y++) {
             uint32_t hash = HASH(xStart + x, yStart + y);
-            ss << x << "/" << y << ": "
-               << "(" << (uint32_t)MapTileSettings::getZoomLevel() << "/" << tiles[hash].get()->xTile << "/"
-               << tiles[hash].get()->yTile << ") - " << tiles[hash].get()->xPos << "/" << tiles[hash].get()->yPos << " ==> "
-               << tiles[hash].get()->getX() << "/" << tiles[hash].get()->getY() << std::endl;
+            if (tiles.find(hash) != tiles.end()) {
+                ss << x << "/" << y << ": "
+                   << "(" << (uint32_t)MapTileSettings::getZoomLevel() << "/" << tiles[hash].get()->xTile << "/"
+                   << tiles[hash].get()->yTile << ") " << hash << " - " << tiles[hash].get()->xPos << "/"
+                   << tiles[hash].get()->yPos << " ==> " << tiles[hash].get()->getX() << "/" << tiles[hash].get()->getY()
+                   << std::endl;
+            }
         }
     }
     ILOG_DEBUG("tiles: %d\n%s", tiles.size(), ss.str().c_str());
