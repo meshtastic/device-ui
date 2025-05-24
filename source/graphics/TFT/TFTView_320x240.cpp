@@ -1955,6 +1955,8 @@ void TFTView_320x240::ui_event_device_progmode_button(lv_event_t *e)
         THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
     }
     meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
+    bluetooth.mode = meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
+    bluetooth.fixed_pin = random(100000, 999999);
     bluetooth.enabled = true;
     THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
     lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
