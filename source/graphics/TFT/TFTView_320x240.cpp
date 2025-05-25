@@ -1564,7 +1564,7 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 
         switch (btn_id) {
         case 22: { // enter (filtered out by one-liner text input area, so we replace it)
-            lv_obj_t *ta = lv_keyboard_get_textarea(kb);
+            // lv_obj_t *ta = lv_keyboard_get_textarea(kb);
             // lv_textarea_add_char(ta, ' ');
             // lv_textarea_add_char(ta, CR_REPLACEMENT);
             break;
@@ -3489,8 +3489,10 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         break;
     }
 
-#ifdef ARCH_PORTDUINO
-    // std::locale::global(std::locale(locale));
+#if defined(LOCALE_SUPPORT)
+    std::locale::global(std::locale(locale));
+#else
+    (void)locale;
 #endif
 }
 
@@ -6607,7 +6609,6 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
     lv_area_t kb_coords;
     lv_obj_get_coords(objects.keyboard, &kb_coords);
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
-    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (panel == objects.messages_panel) {
         static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
@@ -7023,6 +7024,9 @@ bool TFTView_320x240::updateSDCard(void)
         Themes::recolorText(objects.home_sd_card_label, false);
         // allow backup/restore only if there is an SD card detected
         lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
+    } else {
+        // enable backup/restore
+        lv_obj_clear_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
     }
     lv_label_set_text(objects.home_sd_card_label, buf);
 #else
@@ -7050,7 +7054,6 @@ void TFTView_320x240::formatSDCard(void)
 #else
     sdCard = new SdFsCard;
 #endif
-    ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
     ILOG_DEBUG("formatting SD card");
     if (sdCard->format()) {
         updateSDCard();
