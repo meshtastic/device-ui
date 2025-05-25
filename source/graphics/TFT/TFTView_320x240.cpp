@@ -3997,8 +3997,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eDisplayMode: {
             meshtastic_Config_DisplayConfig &display = THIS->db.config.display;
+            meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
             display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_DEFAULT;
+            bluetooth.enabled = true;
             THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display}, THIS->ownNode);
+            THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
             THIS->controller->requestReboot(5, THIS->ownNode);
             lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
             lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
