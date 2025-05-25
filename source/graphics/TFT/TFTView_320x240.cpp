@@ -5758,7 +5758,7 @@ void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig 
     db.config.has_display = true;
     if (cfg.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
         meshtastic_Config_DisplayConfig &display = db.config.display;
-        display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_DEFAULT;
+        display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_COLOR;
         THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display}, THIS->ownNode);
     }
 }
