@@ -1,11 +1,11 @@
 #pragma once
 
 #include "graphics/LVGL/LVGLDriver.h"
-#include "graphics/LVGL/LVGL_ST7789_Driver.h"
+#include "graphics/LVGL/LVGLSpiBusDriver.h"
 #include "graphics/driver/DisplayDriverConfig.h"
+#include "lvgl.h"
 #include "strings.h"
 #include "util/ILog.h"
-#include "lvgl.h"
 
 class DisplayDeviceDriver;
 

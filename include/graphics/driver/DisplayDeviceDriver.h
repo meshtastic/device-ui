@@ -1,7 +1,7 @@
 #pragma once
 
-#include "stdint.h"
 #include "lvgl.h"
+#include "stdint.h"
 
 /**
  * Base class for all implemented display device drivers
@@ -20,7 +20,11 @@ class DisplayDeviceDriver
     virtual uint16_t getScreenTimeout() const { return 0; }
     virtual void setScreenTimeout(uint16_t timeout) {}
 
-    virtual ~DisplayDeviceDriver() = default;
+    virtual bool hasButton(void) const { return false; }
+    virtual bool hasTouch(void) const { return false; }
+    virtual bool light(void) { return false; }
+
+    virtual ~DisplayDeviceDriver(){};
 
   protected:
     const uint16_t screenWidth;

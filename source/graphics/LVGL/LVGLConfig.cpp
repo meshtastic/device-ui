@@ -1,6 +1,10 @@
 #ifdef LVGL_DRIVER
 
 #include "graphics/LVGL/LVGLConfig.h"
+#if defined(LV_USE_ST7789)
+#include "graphics/driver/LVGL_ST7789.h"
+#endif
+
 #include "util/ILog.h"
 #include <assert.h>
 
@@ -19,7 +23,11 @@ void LVGLConfig::init()
 {
     ILOG_DEBUG("LVGLConfig::init() ...");
     if (strcasecmp(config->_panel.type, "ST7789") == 0) {
-        lvglDeviceDriver = new LVGL_ST7789_Driver(config->_width, config->_height);
+#if defined(LV_USE_ST7789)
+        lvglDeviceDriver = new LVGL_ST7789(config->_width, config->_height);
+#else
+        ILOG_CRIT("LVGL device panel support not configured: '%s'", config->_panel.type);
+#endif
     } else {
         ILOG_CRIT("LVGL device panel support not yet implemented for '%s'", config->_panel.type);
         return;
