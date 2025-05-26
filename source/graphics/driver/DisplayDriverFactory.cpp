@@ -20,7 +20,6 @@
 #if defined(USE_FRAMEBUFFER)
 #include "graphics/driver/FBDriver.h"
 #endif
-
 #if defined(USE_X11)
 #include "graphics/driver/X11Driver.h"
 #endif
@@ -85,6 +84,11 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #if defined(EINK_DRIVER) || defined(ARCH_PORTDUINO)
     if (cfg._device == DisplayDriverConfig::device_t::CUSTOM_EINK) {
         //return new EINKDriver<EINKConfig>(cfg);
+    }
+#endif
+#if defined(USE_FRAMEBUFFER)
+    if (cfg._device == DisplayDriverConfig::device_t::FB) {
+        return &FBDriver::create(cfg.width(), cfg.height());
     }
 #endif
 #if defined(USE_X11)
