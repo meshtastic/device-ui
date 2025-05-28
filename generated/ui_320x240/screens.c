@@ -20,7 +20,13 @@ void create_screen_boot_screen() {
     lv_obj_set_size(obj, 320, 240);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_text_font(obj, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
+    int bg_color;
+    #ifdef USERPREFS_TFT_COLOR_BG
+    bg_color = lv_color_hex(USERPREFS_TFT_COLOR_BG);
+    #else
+    bg_color = lv_color_hex(0xff67ea94);
+    #endif
+    lv_obj_set_style_bg_color(obj, bg_color, LV_PART_MAIN | LV_STATE_DEFAULT);
     {
         lv_obj_t *parent_obj = obj;
         {
