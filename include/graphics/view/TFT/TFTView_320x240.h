@@ -107,6 +107,7 @@ class TFTView_320x240 : public MeshtasticView
         eBackupRestore,
         eReset,
         eReboot,
+        eDisplayMode,
         eModifyChannel
     };
 

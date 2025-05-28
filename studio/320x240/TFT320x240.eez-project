@@ -744,6 +744,162 @@
                   "textType": "literal",
                   "longMode": "WRAP",
                   "recolor": false
+                },
+                {
+                  "objID": "5f74af31-d4d1-43bd-9d40-40c541c9f745",
+                  "type": "LVGLPanelWidget",
+                  "left": 0,
+                  "top": 12,
+                  "width": 240,
+                  "height": 120,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "c88fc7c2-9edd-4a50-bde1-872df4754d9a",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "hiddenInEditor": false,
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "identifier": "SettingsRebootPanel",
+                  "leftUnit": "%",
+                  "topUnit": "%",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [
+                    {
+                      "objID": "7d4036b4-f5fd-4039-a824-606c7429eb5a",
+                      "type": "LVGLLabelWidget",
+                      "left": 0,
+                      "top": 20,
+                      "width": 200,
+                      "height": 22,
+                      "customInputs": [],
+                      "customOutputs": [],
+                      "style": {
+                        "objID": "3f385429-fa37-4865-fc2d-a86097228884",
+                        "useStyle": "default",
+                        "conditionalStyles": [],
+                        "childStyles": []
+                      },
+                      "hiddenInEditor": false,
+                      "timeline": [],
+                      "eventHandlers": [],
+                      "leftUnit": "px",
+                      "topUnit": "px",
+                      "widthUnit": "px",
+                      "heightUnit": "content",
+                      "children": [],
+                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                      "hiddenFlag": false,
+                      "hiddenFlagType": "literal",
+                      "clickableFlagType": "literal",
+                      "checkedStateType": "literal",
+                      "disabledStateType": "literal",
+                      "states": "",
+                      "localStyles": {
+                        "objID": "d6c08e84-6cad-4372-f62b-5313a07f2ce6",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "align": "TOP_MID",
+                              "text_align": "CENTER",
+                              "text_opa": 200,
+                              "text_color": "#ff5858",
+                              "text_font": "montserrat_16"
+                            },
+                            "DISABLED": {
+                              "align": "TOP_LEFT"
+                            }
+                          }
+                        }
+                      },
+                      "groupIndex": 0,
+                      "text": "Reboot into former UI ?",
+                      "textType": "translated-literal",
+                      "longMode": "CLIP",
+                      "recolor": false
+                    },
+                    {
+                      "objID": "8690a9d6-fc5c-444e-91d5-197ae98ab126",
+                      "type": "LVGLUserWidgetWidget",
+                      "left": 4,
+                      "top": 5,
+                      "width": 160,
+                      "height": 50,
+                      "customInputs": [],
+                      "customOutputs": [],
+                      "style": {
+                        "objID": "e73526c7-e166-4e7b-9f47-8fa234008c82",
+                        "useStyle": "default",
+                        "conditionalStyles": [],
+                        "childStyles": []
+                      },
+                      "hiddenInEditor": false,
+                      "timeline": [],
+                      "eventHandlers": [],
+                      "leftUnit": "px",
+                      "topUnit": "px",
+                      "widthUnit": "px",
+                      "heightUnit": "px",
+                      "children": [],
+                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                      "hiddenFlagType": "literal",
+                      "clickableFlag": true,
+                      "clickableFlagType": "literal",
+                      "checkedStateType": "literal",
+                      "disabledStateType": "literal",
+                      "states": "",
+                      "localStyles": {
+                        "objID": "808bf419-4d6d-4535-8099-6d7e12eacd0d",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "align": "BOTTOM_MID"
+                            }
+                          }
+                        }
+                      },
+                      "groupIndex": 0,
+                      "userWidgetPageName": "OkCancelWidget",
+                      "userPropertyValues": {
+                        "objID": "8c5510a4-61d0-4e2c-985c-69e4a7c62319",
+                        "values": {}
+                      }
+                    }
+                  ],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlag": true,
+                  "hiddenFlagType": "literal",
+                  "clickableFlag": true,
+                  "clickableFlagType": "literal",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "useStyle": "SettingsPanelStyle",
+                  "localStyles": {
+                    "objID": "e530233e-99f3-4ec3-f4b3-7bb9d8cfd5fc",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "border_width": 2,
+                          "radius": 12,
+                          "border_color": "#216ad8",
+                          "align": "TOP_MID",
+                          "border_opa": 255,
+                          "bg_opa": 250,
+                          "layout": "NONE",
+                          "pad_top": 6,
+                          "pad_bottom": 10,
+                          "pad_left": 5,
+                          "pad_right": 5
+                        }
+                      }
+                    }
+                  },
+                  "groupIndex": 0
                 }
               ],
               "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -15775,7 +15931,7 @@
                 "conditionalStyles": [],
                 "childStyles": []
               },
-              "hiddenInEditor": true,
+              "hiddenInEditor": false,
               "timeline": [],
               "eventHandlers": [],
               "identifier": "SettingsResetPanel",
@@ -15799,7 +15955,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "SettingsResetDropdown",
@@ -15850,7 +16006,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "leftUnit": "px",

@@ -746,7 +746,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
 
     lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.shutdown_button, ui_event_device_shutdown_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.cancel_reboot_button, ui_event_device_cancel_button, LV_EVENT_CLICKED, NULL);
 
@@ -760,8 +760,6 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.setup_region_dropdown, ui_event_setup_region_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // OK / Cancel widget for basic settings dialog
-    lv_obj_add_event_cb(objects.obj1__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj1__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj2__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj2__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj3__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
@@ -792,10 +790,14 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj15__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj16__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj16__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj19__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj19__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj25__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj25__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj17__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj17__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj18__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj18__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj21__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj21__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj27__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj27__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -1107,6 +1109,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
         } else {
             THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
             THIS->loadMap();
+            lv_group_focus_obj(objects.nav_button);
         }
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eNone) {
@@ -1561,7 +1564,7 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 
         switch (btn_id) {
         case 22: { // enter (filtered out by one-liner text input area, so we replace it)
-            lv_obj_t *ta = lv_keyboard_get_textarea(kb);
+            // lv_obj_t *ta = lv_keyboard_get_textarea(kb);
             // lv_textarea_add_char(ta, ' ');
             // lv_textarea_add_char(ta, CR_REPLACEMENT);
             break;
@@ -1949,18 +1952,37 @@ void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
 
 void TFTView_320x240::ui_event_device_progmode_button(lv_event_t *e)
 {
-    meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
-    if (network.wifi_enabled) {
-        network.wifi_enabled = false;
-        THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
+    static bool ignoreClicked = false;
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+
+        meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
+        if (network.wifi_enabled) {
+            network.wifi_enabled = false;
+            THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
+        }
+        meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
+        bluetooth.mode = meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
+        bluetooth.fixed_pin = random(100000, 999999);
+        bluetooth.enabled = true;
+        THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
+        lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        if (!THIS->controller->isStandalone()) {
+#if defined(HAS_SCREEN) && HAS_SCREEN == 1
+            ignoreClicked = true;
+            // open dialog
+            lv_obj_remove_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.settings_reboot_panel);
+            THIS->activeSettings = eDisplayMode;
+#endif
+        }
     }
-    meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
-    bluetooth.mode = meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
-    bluetooth.fixed_pin = random(100000, 999999);
-    bluetooth.enabled = true;
-    THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
-    lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
-    lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
 void TFTView_320x240::ui_event_device_shutdown_button(lv_event_t *e)
@@ -1982,6 +2004,7 @@ void TFTView_320x240::ui_event_device_cancel_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->enablePanel(objects.controller_panel);
         THIS->enablePanel(objects.tab_page_basic_settings);
         lv_group_focus_obj(objects.basic_settings_reboot_button);
@@ -3467,8 +3490,10 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         break;
     }
 
-#ifdef ARCH_PORTDUINO
-    // std::locale::global(std::locale(locale));
+#if defined(LOCALE_SUPPORT)
+    std::locale::global(std::locale(locale));
+#else
+    (void)locale;
 #endif
 }
 
@@ -3971,6 +3996,19 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_group_focus_obj(objects.basic_settings_reset_button);
             break;
         }
+        case eDisplayMode: {
+            meshtastic_Config_DisplayConfig &display = THIS->db.config.display;
+            meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
+            display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_DEFAULT;
+            bluetooth.enabled = true;
+            THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display}, THIS->ownNode);
+            THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
+            THIS->controller->requestReboot(5, THIS->ownNode);
+            lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
+            lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
         case eModifyChannel: {
             meshtastic_ChannelSettings_psk_t psk = {};
             const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
@@ -4115,6 +4153,11 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eReset: {
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_reset_button);
+            break;
+        }
+        case TFTView_320x240::eDisplayMode: {
+            lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_reset_button);
             break;
         }
@@ -5719,6 +5762,11 @@ void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig 
 {
     db.config.display = cfg;
     db.config.has_display = true;
+    if (cfg.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
+        meshtastic_Config_DisplayConfig &display = db.config.display;
+        display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_COLOR;
+        THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display}, THIS->ownNode);
+    }
 }
 
 void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
@@ -6565,7 +6613,6 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
     lv_area_t kb_coords;
     lv_obj_get_coords(objects.keyboard, &kb_coords);
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
-    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (panel == objects.messages_panel) {
         static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
@@ -6981,6 +7028,9 @@ bool TFTView_320x240::updateSDCard(void)
         Themes::recolorText(objects.home_sd_card_label, false);
         // allow backup/restore only if there is an SD card detected
         lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
+    } else {
+        // enable backup/restore
+        lv_obj_clear_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
     }
     lv_label_set_text(objects.home_sd_card_label, buf);
 #else
@@ -7008,7 +7058,6 @@ void TFTView_320x240::formatSDCard(void)
 #else
     sdCard = new SdFsCard;
 #endif
-    ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
     ILOG_DEBUG("formatting SD card");
     if (sdCard->format()) {
         updateSDCard();
