@@ -8,6 +8,7 @@
 LVGL_TDECK::LVGL_TDECK(void) : LVGL_ST7789(c_screenWidth, c_screenHeight)
 {
     ILOG_DEBUG("LVGL_TDECK::LVGL_TDECK()...");
+    bl = 42;
 }
 
 LVGL_TDECK::LVGL_TDECK(const DisplayDriverConfig &cfg) : LVGL_ST7789(cfg) {}

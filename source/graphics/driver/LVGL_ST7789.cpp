@@ -3,9 +3,10 @@
 #include "graphics/driver/LVGL_ST7789.h"
 #include "drivers/display/st7789/lv_st7789.h"
 #include "graphics/LVGL/LVGLSpiBusDriver.h"
-#include "hal/spi_types.h"
+//#include "hal/spi_types.h"
 
-LVGL_ST7789::LVGL_ST7789(uint16_t width, uint16_t height) : DisplayDeviceDriver(width, height), driver(nullptr)
+LVGL_ST7789::LVGL_ST7789(uint16_t width, uint16_t height) : DisplayDeviceDriver(width, height), 
+    bl(-1), driver(nullptr)
 {
     ILOG_DEBUG("LVGL_ST7789::LVGL_ST7789()...");
     auto st7789Func = [](uint32_t hor_res, uint32_t ver_res, lv_lcd_flag_t flags, lv_lcd_send_cmd_cb_t send_cmd_cb,
@@ -15,19 +16,26 @@ LVGL_ST7789::LVGL_ST7789(uint16_t width, uint16_t height) : DisplayDeviceDriver(
     driver = new LVGLSpiBusDriver(screenWidth, screenHeight, st7789Func);
 }
 
-LVGL_ST7789::LVGL_ST7789(const DisplayDriverConfig &cfg) : DisplayDeviceDriver(cfg.width(), cfg.height()), driver(nullptr)
+LVGL_ST7789::LVGL_ST7789(const DisplayDriverConfig &cfg) : DisplayDeviceDriver(cfg.width(), cfg.height()), 
+    bl(cfg._light.pin_bl), driver(nullptr)
 {
     ILOG_DEBUG("LVGL_ST7789::LVGL_ST7789() with config...");
-    auto st7789Func = [](uint32_t hor_res, uint32_t ver_res, lv_lcd_flag_t flags, lv_lcd_send_cmd_cb_t send_cmd_cb,
+    static auto st7789Func = [](uint32_t hor_res, uint32_t ver_res, lv_lcd_flag_t flags, lv_lcd_send_cmd_cb_t send_cmd_cb,
                          lv_lcd_send_color_cb_t send_color_cb) {
         return lv_st7789_create(hor_res, ver_res, flags, send_cmd_cb, send_color_cb);
     };
     driver = new LVGLSpiBusDriver(cfg.width(), cfg.height(), st7789Func);
+    driver->init(cfg._bus.spi.spi_host, cfg._bus.spi.pin_sclk, cfg._bus.spi.pin_mosi, cfg._bus.spi.pin_miso,
+                 cfg._bus.spi.pin_dc, cfg._panel.pin_rst, cfg._panel.pin_cs);
 }
 
 void LVGL_ST7789::init(void)
 {
     ILOG_DEBUG("LVGL_ST7789::init()...");
+    if (bl >= 0) {
+        pinMode(bl, OUTPUT);
+        digitalWrite(bl, HIGH); // Turn on backlight
+    }
 }
 
 void LVGL_ST7789::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
@@ -38,9 +46,9 @@ void LVGL_ST7789::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 /**
  * create lvgl display
  */
-lv_display_t *LVGL_ST7789::create(uint32_t hor_res, uint32_t ver_res)
+lv_display_t *LVGL_ST7789::createDisplay(uint32_t hor_res, uint32_t ver_res)
 {
-    return driver->create(hor_res, ver_res);
+    return driver->createDisplay(hor_res, ver_res);
 }
 
 LVGL_ST7789::~LVGL_ST7789()
