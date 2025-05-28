@@ -8,13 +8,14 @@
 #include "util/ILog.h"
 #include <assert.h>
 
-LVGLConfig::LVGLConfig(void) : config(nullptr)
+LVGLConfig::LVGLConfig(void) : DisplayDeviceDriver(0, 0), config(nullptr)
 {
     ILOG_ERROR("ctor called without config");
     assert(0);
 }
 
-LVGLConfig::LVGLConfig(const DisplayDriverConfig &cfg) : config(&cfg)
+LVGLConfig::LVGLConfig(const DisplayDriverConfig &cfg) : DisplayDeviceDriver(cfg.width(), cfg.height()),
+    screenWidth(cfg.width()), screenHeight(cfg.height()), config(new DisplayDriverConfig(cfg)), lvglDeviceDriver(nullptr)
 {
     ILOG_DEBUG("LVGLConfig ...");
 }
@@ -24,7 +25,9 @@ void LVGLConfig::init()
     ILOG_DEBUG("LVGLConfig::init() ...");
     if (strcasecmp(config->_panel.type, "ST7789") == 0) {
 #if defined(LV_USE_ST7789)
-        lvglDeviceDriver = new LVGL_ST7789(config->_width, config->_height);
+        lvglDeviceDriver = new LVGL_ST7789(*config);
+        lvglDeviceDriver->init();
+        lv_display_t *display = lvglDeviceDriver->createDisplay(screenWidth, screenHeight);
 #else
         ILOG_CRIT("LVGL device panel support not configured: '%s'", config->_panel.type);
 #endif
@@ -39,10 +42,10 @@ void LVGLConfig::init()
     }
 }
 
-lv_display_t *LVGLConfig::create(uint32_t hor_res, uint32_t ver_res)
+lv_display_t *LVGLConfig::createDisplay(uint32_t hor_res, uint32_t ver_res)
 {
-    ILOG_DEBUG("LVGLConfig::create() ...");
-    return lvglDeviceDriver->create(hor_res, ver_res);
+    ILOG_DEBUG("LVGLConfig::createDisplay() ...");
+    return lvglDeviceDriver->createDisplay(hor_res, ver_res);
 }
 
 void LVGLConfig::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
@@ -78,6 +81,7 @@ void LVGLConfig::setBrightness(uint8_t setBrightness)
 LVGLConfig::~LVGLConfig()
 {
     delete lvglDeviceDriver;
+    delete config;
 }
 
 #endif

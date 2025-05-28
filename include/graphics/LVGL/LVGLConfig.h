@@ -13,7 +13,7 @@ class DisplayDeviceDriver;
  * @brief Runtime configuration class for lvgl driver
  *
  */
-class LVGLConfig
+class LVGLConfig : public DisplayDeviceDriver
 {
   public:
     uint16_t screenWidth = 0;
@@ -22,7 +22,7 @@ class LVGLConfig
     LVGLConfig(void);
     LVGLConfig(const DisplayDriverConfig &cfg);
     void init(void);
-    lv_display_t *create(uint32_t hor_res, uint32_t ver_res);
+    lv_display_t *createDisplay(uint32_t hor_res, uint32_t ver_res);
     void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
 
     bool hasButton(void);

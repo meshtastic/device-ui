@@ -1,11 +1,14 @@
 #pragma once
 
 #ifdef LVGL_DRIVER
-
+#ifdef ARCH_PORTDUINO
+#include "HardwareSPI.h"
+#else
 #include "SPI.h"
+#endif
 #include "drivers/display/lcd/lv_lcd_generic_mipi.h"
 #include "graphics/driver/DisplayDeviceDriver.h"
-#include "graphics/driver/DisplayDriverConfig.h"
+//#include "graphics/driver/DisplayDriverConfig.h"
 #include <functional>
 
 class LVGLSpiBusDriver
@@ -16,7 +19,7 @@ class LVGLSpiBusDriver
 
     LVGLSpiBusDriver(uint16_t width, uint16_t height, CreateCB createDisplayFunc);
     void init(int16_t spiBus, int16_t sclk, int16_t mosi, int16_t miso, int16_t dc, int16_t rst, int16_t cs);
-    lv_display_t *create(uint32_t hor_res, uint32_t ver_res);
+    lv_display_t *createDisplay(uint32_t hor_res, uint32_t ver_res);
     virtual ~LVGLSpiBusDriver()
     {
         if (spi)
@@ -44,7 +47,7 @@ class LVGLSpiBusDriver
     SPISettings spiSettings;
     static SPIClass *spi;
     static LVGLSpiBusDriver *instance;
-    CreateCB createDisplay;
+    CreateCB lv_createDisplay;
 };
 
 #endif

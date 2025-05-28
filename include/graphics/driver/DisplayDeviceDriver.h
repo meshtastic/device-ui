@@ -12,7 +12,7 @@ class DisplayDeviceDriver
     DisplayDeviceDriver(uint16_t width, uint16_t height) : screenWidth(width), screenHeight(height){};
 
     virtual void init(void) {}
-    virtual lv_display_t *create(uint32_t hor_res, uint32_t ver_res) = 0;
+    virtual lv_display_t *createDisplay(uint32_t hor_res, uint32_t ver_res) = 0;
 
     virtual uint8_t getBrightness(void) const { return 128; }
     virtual void setBrightness(uint8_t brightness) {}

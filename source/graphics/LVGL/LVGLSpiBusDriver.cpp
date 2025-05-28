@@ -8,7 +8,7 @@ LVGLSpiBusDriver *LVGLSpiBusDriver::instance = nullptr;
 
 LVGLSpiBusDriver::LVGLSpiBusDriver(uint16_t width, uint16_t height, CreateCB createDisplayFunc)
     : /* DisplayDeviceDriver(width, height), */
-      rst(-1), dc(-1), cs(-1), sclk(-1), mosi(-1), miso(-1), spiBus(-1), createDisplay(createDisplayFunc)
+      rst(-1), dc(-1), cs(-1), sclk(-1), mosi(-1), miso(-1), spiBus(-1), lv_createDisplay(createDisplayFunc)
 {
     ILOG_DEBUG("LVGLSpiBusDriver()...");
     instance = this;
@@ -36,10 +36,10 @@ void LVGLSpiBusDriver::connect(void)
     if (spi) {
 #ifdef ARCH_ESP32
         spi->begin(sclk, miso, mosi, cs);
-#else
-        spi->begin();
-#endif
         spi->setClockDivider(SPI_CLOCK_DIV2);
+#else
+        spi->begin(40000000);
+#endif
     }
     // Set pin modes
     pinMode(dc, OUTPUT);
@@ -61,7 +61,7 @@ void LVGLSpiBusDriver::connect(void)
 }
 
 /**
- * Create an LCD display with ST7789 driver
+ * Create an LCD display
  * @param hor_res       horizontal resolution
  * @param ver_res       vertical resolution
  * @param flags         default configuration settings (mirror, RGB ordering, etc.)
@@ -70,11 +70,11 @@ void LVGLSpiBusDriver::connect(void)
  *                      implement a 'ready' callback)
  * @return              pointer to the created display
  */
-lv_display_t *LVGLSpiBusDriver::create(uint32_t hor_res, uint32_t ver_res)
+lv_display_t *LVGLSpiBusDriver::createDisplay(uint32_t hor_res, uint32_t ver_res)
 {
     ILOG_DEBUG("lv_st7789_create...");
     if (spi) {
-        lv_display_t *display = createDisplay(hor_res, ver_res, LV_LCD_FLAG_NONE, lcd_send_cmd_cb, lcd_send_color_cb);
+        lv_display_t *display = lv_createDisplay(hor_res, ver_res, LV_LCD_FLAG_NONE, lcd_send_cmd_cb, lcd_send_color_cb);
         lv_display_set_color_format(display, LV_COLOR_FORMAT_RGB565);
         return display;
     } else {
@@ -98,11 +98,11 @@ void LVGLSpiBusDriver::lcd_send_cmd_cb(lv_display_t *disp, const uint8_t *cmd, s
         digitalWrite(instance->cs, LOW);
     }
     instance->spi->beginTransaction(instance->spiSettings);
-    instance->spi->transferBytes(cmd, NULL, cmd_size);
+    instance->spi->transfer((void*)cmd, cmd_size);
 
     digitalWrite(instance->dc, HIGH); // Data mode
     if (param && param_size > 0) {
-        instance->spi->transferBytes(param, NULL, param_size);
+        instance->spi->transfer((void*)param, param_size);
     }
     instance->spi->endTransaction();
     if (instance->cs != -1) {
@@ -125,7 +125,7 @@ void LVGLSpiBusDriver::lcd_send_color_cb(lv_display_t *disp, const uint8_t *cmd,
         digitalWrite(instance->cs, LOW);
     }
     instance->spi->beginTransaction(instance->spiSettings);
-    instance->spi->transferBytes(param, NULL, param_size);
+    instance->spi->transfer((void*)param, param_size);
     instance->spi->endTransaction();
     if (instance->cs != -1) {
         digitalWrite(instance->cs, HIGH);
