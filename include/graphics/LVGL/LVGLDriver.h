@@ -36,6 +36,7 @@ template <class LVGL> class LVGLDriver : public TFTDriver<LVGL>
 
   protected:
     void init_lvgl(void);
+    static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
     {
         return lvgldriver->touchpad_read(indev_driver, data);
@@ -73,12 +74,12 @@ LVGLDriver<LVGL>::LVGLDriver(const DisplayDriverConfig &cfg)
 template <class LVGL> void LVGLDriver<LVGL>::init(DeviceGUI *gui)
 {
     ILOG_DEBUG("LVGLDriver<LVGL>::init...");
-    init_lvgl();
     TFTDriver<LVGL>::init(gui);
+    init_lvgl();
 
     // LVGL: setup display device driver
     ILOG_DEBUG("LVGL display driver create...");
-    display = lvgldriver->create(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
+    display = lvgldriver->createDisplay(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
 
     std::pair<lv_color_t *, lv_color_t *> draw_buffers = {nullptr, nullptr};
     const auto buffer_size =
@@ -103,6 +104,13 @@ template <class LVGL> void LVGLDriver<LVGL>::init(DeviceGUI *gui)
     }
     lv_display_set_buffers(display, draw_buffers.first, draw_buffers.second, buffer_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
+    lv_display_set_flush_cb(display, LVGLDriver::display_flush);
+
+    #if defined(DISPLAY_SET_RESOLUTION)
+        ILOG_DEBUG("Set display resolution: %dx%d", lvgldriver->screenWidth, lgflvgldriverx->screenHeight);
+        lv_display_set_resolution(this->display, lvgldriver->screenWidth, lvgldriver->screenHeight);
+    #endif
+    
     if (hasTouch()) {
         lv_indev_t *indev = lv_indev_create();
         lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
@@ -111,20 +119,58 @@ template <class LVGL> void LVGLDriver<LVGL>::init(DeviceGUI *gui)
     }
 }
 
-template <class LGFX> void LVGLDriver<LGFX>::init_lvgl(void)
+template <class LVGL> void LVGLDriver<LVGL>::init_lvgl(void)
 {
     lvgldriver->init();
     lvgldriver->setBrightness(defaultBrightness);
-    // lvgldriver->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
+    // lvgldriver->fillScreen(LVGL::color565(0x3D, 0xDA, 0x83));
 }
 
-template <class LGFX> bool LVGLDriver<LGFX>::hasTouch(void)
+template <class LVGL> bool LVGLDriver<LVGL>::hasTouch(void)
 {
     return lvgldriver->hasTouch();
 }
 
-template <class LGFX> void LVGLDriver<LGFX>::task_handler(void)
+template <class LVGL> void LVGLDriver<LVGL>::task_handler(void)
 {
     DisplayDriver::task_handler();
 }
+
+// Display flushing not using DMA */
+template <class LVGL> void LVGLDriver<LVGL>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
+{
+    uint32_t w = area->x2 - area->x1 + 1;
+    uint32_t h = area->y2 - area->y1 + 1;
+    lv_draw_sw_rgb565_swap(px_map, w * h);
+#if 0 // TODO: //// lvgldriver->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map) ////
+
+    pixelcopy_t pc(px_map, _write_conv.depth, get_depth<T>::value, hasPalette());
+    if (std::is_same<rgb565_t, T>::value || std::is_same<rgb888_t, T>::value || std::is_same<argb8888_t, T>::value || std::is_same<grayscale_t, T>::value)
+    {
+      pc.no_convert = false;
+      pc.fp_copy = pixelcopy_t::get_fp_copy_rgb_affine<T>(_write_conv.depth);
+    }
+    pixelcopy_t *param = &pc;
+    uint32_t x_mask = 7 >> (param->src_bits >> 1);
+    param->src_bitwidth = (w + x_mask) & (~x_mask);
+
+    int32_t dx=0, dw=w;
+    if (0 < _clip_l - x) { dx = _clip_l - x; dw -= dx; x = _clip_l; }
+
+    if (_adjust_width(x, dx, dw, _clip_l, _clip_r - _clip_l + 1)) return;
+    param->src_x32 = param->src_x32_add * dx;
+
+    int32_t dy=0, dh=h;
+    if (0 < _clip_t - y) { dy = _clip_t - y; dh -= dy; y = _clip_t; }
+    if (_adjust_width(y, dy, dh, _clip_t, _clip_b - _clip_t + 1)) return;
+    param->src_y = dy;
+
+    startWrite();
+    _panel->writeImage(x, y, dw, dh, param, use_dma);
+    endWrite();
+#endif
+
+    lv_display_flush_ready(disp);
+}
+
 #endif

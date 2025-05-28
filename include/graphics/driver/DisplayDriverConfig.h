@@ -170,6 +170,7 @@ class DisplayDriverConfig
     friend class DisplayDriverFactory;
     friend class LGFXConfig;
     friend class LVGLConfig;
+    friend class LVGL_ST7789;
 
     enum device_t _device;
     panel_config_t _panel;

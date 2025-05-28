@@ -18,15 +18,20 @@ class LVGL_ST7789 : public DisplayDeviceDriver
     uint8_t getBrightness(void) const override { return 128; }
     void setBrightness(uint8_t setBrightness) override {}
 
-    lv_display_t *create(uint32_t hor_res, uint32_t ver_res) override;
+    lv_display_t *createDisplay(uint32_t hor_res, uint32_t ver_res) override;
     void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
+
+    LVGLSpiBusDriver *getBusDriver(void) const { return driver; }
 
     virtual ~LVGL_ST7789();
 
   protected:
+    int16_t bl;
     LVGLSpiBusDriver *driver;
-
+    
   private:
+    LVGL_ST7789(const LVGL_ST7789 &) = delete;
+    LVGL_ST7789 &operator=(const LVGL_ST7789 &) = delete;   
 };
 
 #endif
