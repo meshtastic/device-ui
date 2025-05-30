@@ -30,7 +30,7 @@ nl:
   Settings & Tools: Instellingen en Tools
   Settings (advanced): Instellingen (geavanceerd)
   Locations Map: Lokaties Kaart
-  Locations Map (%d/%d): Lokaties Kaart (%d/%d)
+  'Locations Map (%d/%d)': 'Lokaties Kaart (%d/%d)'
   no chats: geen chats
   Node Search: Node zoeken
   Packet Statistics: Packet Statistieken

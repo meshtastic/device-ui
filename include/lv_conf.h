@@ -1097,10 +1097,18 @@
 #endif
 
 /*Drivers for LCD devices connected via SPI/parallel port*/
+#ifndef LV_USE_ST7735
 #define LV_USE_ST7735        0
+#endif
+#ifndef LV_USE_ST7789
 #define LV_USE_ST7789        0
+#endif
+#ifndef LV_USE_ST7796
 #define LV_USE_ST7796        0
+#endif
+#ifndef LV_USE_ILI9341
 #define LV_USE_ILI9341       0
+#endif
 
 #define LV_USE_GENERIC_MIPI (LV_USE_ST7735 | LV_USE_ST7789 | LV_USE_ST7796 | LV_USE_ILI9341)
 

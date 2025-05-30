@@ -2,6 +2,10 @@
 
 #include "graphics/driver/DisplayDriver.h"
 
+#ifdef ARCH_PORTDUINO
+#include "Common.h" // millis()
+#endif
+
 template <class TFT> class TFTDriver : public DisplayDriver
 {
   public:

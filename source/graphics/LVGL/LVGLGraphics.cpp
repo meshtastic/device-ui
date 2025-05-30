@@ -11,6 +11,9 @@ void LVGLGraphics::init(void)
     lv_log_register_print_cb(lv_debug);
 #endif
     lv_init();
+    lv_delay_set_cb([](uint32_t ms) {
+        delay(ms);
+    });
 #if LV_USE_LOG
     lv_log_register_print_cb(lv_debug);
 #endif
