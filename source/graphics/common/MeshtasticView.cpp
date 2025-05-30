@@ -55,7 +55,7 @@ void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool h
 }
 
 void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                             eRole role, bool hasKey, bool viaMqtt)
+                             eRole role, bool hasKey, bool unmessagable)
 {
 }
 
@@ -66,22 +66,19 @@ void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *user
 void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
 {
     // has_user == false, generate default user name
+    meshtastic_User user{};
     char userShort[5], userLong[32];
-    sprintf(userShort, "%04x", nodeNum & 0xffff);
-    strcpy(userLong, "Meshtastic ");
-    strcat(userLong, userShort);
-    addOrUpdateNode(nodeNum, channel, (const char *)&userShort[0], (const char *)&userLong[0], lastHeard, role, hasKey, viaMqtt);
+    sprintf(user.short_name, "%04x", nodeNum & 0xffff);
+    strcpy(user.long_name, "Meshtastic ");
+    strcat(user.long_name, userShort);
+    user.role = (meshtastic_Config_DeviceConfig_Role)role;
+    user.hw_model = meshtastic_HardwareModel_UNSET;
+    addOrUpdateNode(nodeNum, channel, lastHeard, user);
 }
 
-void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                     uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
-{
-}
+void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg) {}
 
-void MeshtasticView::updateNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong,
-                                uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
-{
-}
+void MeshtasticView::updateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_User &cfg) {}
 
 void MeshtasticView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision) {}
 

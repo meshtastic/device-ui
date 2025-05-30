@@ -1036,7 +1036,8 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         //  set color and text of clicked node
         uint32_t nodeNum = (unsigned long)e->user_data;
-        if (nodeNum != THIS->ownNode)
+        bool isMessagable = !((unsigned long)(THIS->nodes[nodeNum]->LV_OBJ_IDX(node_img_idx)->user_data) == eRole::unmessagable);
+        if (nodeNum != THIS->ownNode && isMessagable)
             THIS->showMessages(nodeNum);
     }
 }
@@ -4373,7 +4374,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 }
 
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                              eRole role, bool hasKey, bool viaMqtt)
+                              eRole role, bool hasKey, bool unmessagable)
 {
     // lv_obj nodesPanel children  |  user data (4 bytes)
     // ==================================================
@@ -4415,7 +4416,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     // NodeImage
     lv_obj_t *img = lv_img_create(p);
-    setNodeImage(nodeNum, role, viaMqtt, img);
+    setNodeImage(nodeNum, role, unmessagable, img);
     lv_obj_set_pos(img, -5, 3);
     lv_obj_set_size(img, 32, 32);
     lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
@@ -4426,7 +4427,12 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     if (!hasKey) {
         lv_obj_set_style_border_color(img, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
-    img->user_data = (void *)role;
+    if (unmessagable) {
+        // node role icon is not clickable and replaced with a cancelled icon
+        img->user_data = (void *)eRole::unmessagable;
+    } else {
+        img->user_data = (void *)role;
+    }
 
     // NodeButton
     lv_obj_t *nodeButton = lv_btn_create(p);
@@ -4587,13 +4593,13 @@ void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool 
 {
 }
 
-void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong,
-                                      uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
+void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg)
 {
     if (nodes.find(nodeNum) == nodes.end()) {
-        addNode(nodeNum, ch, userShort, userLong, lastHeard, role, hasKey, viaMqtt);
+        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, lastHeard, (MeshtasticView::eRole)cfg.role,
+                cfg.public_key.size != 0, cfg.has_is_unmessagable && cfg.is_unmessagable);
     } else {
-        updateNode(nodeNum, ch, userShort, userLong, lastHeard, role, hasKey, viaMqtt);
+        updateNode(nodeNum, channel, cfg);
     }
 }
 
@@ -4608,49 +4614,52 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *
  * @param role
  * @param viaMqtt
  */
-void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                                 eRole role, bool hasKey, bool viaMqtt)
+// void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
+//                                  eRole role, bool hasKey, bool viaMqtt)
+void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_User &cfg)
 {
+    db.user = cfg;
     auto it = nodes.find(nodeNum);
     if (it != nodes.end() && it->second) {
         if (it->first == ownNode) {
             // update related settings buttons and store role in image user data
             char buf[30];
-            lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
+            lv_snprintf(buf, sizeof(buf), _("User name: %s"), cfg.short_name);
             lv_label_set_text(objects.basic_settings_user_label, buf);
 
             char buf1[30], buf2[40];
-            lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(meshtastic_Config_DeviceConfig_Role(role)),
-                                     LV_ANIM_OFF);
+            lv_dropdown_set_selected(objects.settings_device_role_dropdown,
+                                     role2val(meshtastic_Config_DeviceConfig_Role(cfg.role)), LV_ANIM_OFF);
             lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
             lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
             lv_label_set_text(objects.basic_settings_role_label, buf2);
 
             // update DB
-            strcpy(db.short_name, userShort);
-            strcpy(db.long_name, userLong);
-            db.config.device.role = (meshtastic_Config_DeviceConfig_Role)role;
+            strcpy(db.short_name, cfg.short_name);
+            strcpy(db.long_name, cfg.long_name);
+            db.config.device.role = cfg.role;
         }
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), userLong);
+        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), cfg.long_name);
         it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)nodeNum;
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
+        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), cfg.short_name);
         char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
-        userData[0] = userShort[0];
+        userData[0] = cfg.short_name[0];
         if (userData[0] == 0x00)
             userData[0] = ' ';
-        userData[1] = userShort[1];
+        userData[1] = cfg.short_name[1];
         if (userData[1] == 0x00)
             userData[1] = ' ';
-        userData[2] = userShort[2];
+        userData[2] = cfg.short_name[2];
         if (userData[2] == 0x00)
             userData[2] = ' ';
-        userData[3] = userShort[3];
+        userData[3] = cfg.short_name[3];
         if (userData[3] == 0x00)
             userData[3] = ' ';
 
-        setNodeImage(nodeNum, role, viaMqtt, it->second->LV_OBJ_IDX(node_img_idx));
+        setNodeImage(nodeNum, (MeshtasticView::eRole)cfg.role, cfg.has_is_unmessagable && cfg.is_unmessagable,
+                     it->second->LV_OBJ_IDX(node_img_idx));
 
-        if (hasKey) {
+        if (cfg.public_key.size != 0) {
             // set border color to bg color
             lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -6763,48 +6772,52 @@ void TFTView_320x240::removeNode(uint32_t nodeNum)
     }
 }
 
-void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, lv_obj_t *img)
+void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img)
 {
     uint32_t bgColor, fgColor;
     std::tie(bgColor, fgColor) = nodeColor(nodeNum);
-    // if (viaMqtt) {
-    //     lv_image_set_src(img, &//TODO );
-    // }
-    // else
-    switch (role) {
-    case client:
-    case client_mute:
-    case client_hidden:
-    case tak: {
-        lv_image_set_src(img, &img_node_client_image);
-        break;
+    if (unmessagable) {
+        lv_image_set_src(img, &img_unmessagable_image);
+        lv_obj_set_style_border_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_img_recolor(img, lv_color_hex(0xFF5555), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_img_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        return;
+    } else {
+        switch (role) {
+        case client:
+        case client_mute:
+        case client_hidden:
+        case tak: {
+            lv_image_set_src(img, &img_node_client_image);
+            break;
+        }
+        case router_client: {
+            lv_image_set_src(img, &img_top_nodes_image);
+            break;
+        }
+        case repeater:
+        case router:
+        case router_late: {
+            lv_image_set_src(img, &img_node_router_image);
+            break;
+        }
+        case tracker:
+        case sensor:
+        case lost_and_found:
+        case tak_tracker: {
+            lv_image_set_src(img, &img_node_sensor_image);
+            break;
+        }
+        case unknown: {
+            lv_image_set_src(img, &img_circle_question_image);
+            break;
+        }
+        default:
+            lv_image_set_src(img, &img_node_client_image);
+            break;
+        }
     }
-    case router_client: {
-        lv_image_set_src(img, &img_top_nodes_image);
-        break;
-    }
-    case repeater:
-    case router:
-    case router_late: {
-        lv_image_set_src(img, &img_node_router_image);
-        break;
-    }
-    case tracker:
-    case sensor:
-    case lost_and_found:
-    case tak_tracker: {
-        lv_image_set_src(img, &img_node_sensor_image);
-        break;
-    }
-    case unknown: {
-        lv_image_set_src(img, &img_circle_question_image);
-        break;
-    }
-    default:
-        lv_image_set_src(img, &img_node_client_image);
-        break;
-    }
-
     lv_obj_set_style_bg_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor_opa(img, fgColor ? 0 : 255, LV_PART_MAIN | LV_STATE_DEFAULT);
