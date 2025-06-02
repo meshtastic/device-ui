@@ -15,6 +15,8 @@ class DisplayDriver;
 class DisplayDriverConfig
 {
   public:
+    enum struct driver_t { LGFX, LVGL, ADAFRUIT, OTHER };
+
     enum struct device_t {
         NONE,
         CUSTOM_TFT,
@@ -40,6 +42,7 @@ class DisplayDriverConfig
 
     struct panel_config_t {
         char *type = nullptr;
+        driver_t driver = driver_t::LGFX;
         uint16_t panel_width = 0;
         uint16_t panel_height = 0;
         bool rotation = false;
@@ -166,6 +169,8 @@ class DisplayDriverConfig
   private:
     friend class DisplayDriverFactory;
     friend class LGFXConfig;
+    friend class LVGLConfig;
+    friend class LVGL_ST7789;
 
     enum device_t _device;
     panel_config_t _panel;
