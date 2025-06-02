@@ -1,145 +1,159 @@
 tr:
-  no new messages: Yeni mesaj yok
-  1 of 1 nodes online: 1/1 düğüm aktif
-  'uptime 00:00:00': 'Çalışma süresi %s'
-  "Heap: 0\nLVGL: 0": ~
-  DEL: Kapat
-  'User name: ': 'Kullanıcı adı'
-  'Modem Preset: LONG FAST': 'Modem ön ayarı: LONG FAST'
+  no new messages: yeni mesaj yok
+  1 of 1 nodes online: 1/1 düğüm çevrimiçi
+  uptime 00:00:00: çalışma süresi 00:00:00
+  LoRa 0.0 MHz: LoRa 0.0 MHz
+  no signal: sinyal yok
+  silent: sessiz
+  no SD card detected: SD kart algılanmadı
+  "Heap: 0\nLVGL: 0": "Yığın: 0\nLVGL: 0"
+  DEL: SİL
+  map tiles not found!: harita döşemeleri bulunamadı!
+  Settings: Ayarlar
+  'User name: ': 'Kullanıcı adı: '
+  'Modem Preset: LONG FAST': 'Modem Ayarı: UZUN HIZLI'
   'Channel: LongFast': 'Kanal: LongFast'
-  'Role: Client': 'Rol: Müşteri'
-  'Screen Timeout: 60s': 'Ekran süresi: 60 saniye'
-  'Screen Lock: off': 'Ekran kilidi: kapalı'
-  'Screen Brightness: 60%': 'Ekran parlaklığı: 60%'
-  'Theme: Dark': 'Tema: Karanlık'
-  'Screen Calibration: default': 'Ekran kalibrasyonu: varsayılan'
-  'Input Control: none/none': 'Giriş kontrolü: yok/yok'
-  'Message Alert Buzzer: on': 'Mesaj Uyarı Sesi: açık'
-  'Language: English': 'Dil: İngizce'
-  Configuration Reset: Yapılandırma sıfırlaması
-  Reboot / Shutdown: Yeniden başlat / Kapat
-  Mesh Detector: Mesh dedektörü
-  Signal Scanner: Sinyal tarayıcısı
-  Trace Route: ~
+  'Role: Client': 'Rol: İstemci'
+  'WiFi: <not setup>': 'WiFi: <ayarlanmadı>'
+  'Screen Timeout: 60s': 'Ekran Zaman Aşımı: 60sn'
+  'Lock: off/off': 'Kilit: kapalı/kapalı'
+  'Screen Brightness: 60%': 'Ekran Parlaklığı: %60'
+  'Theme: Dark': 'Tema: Koyu'
+  'Screen Calibration: default': 'Ekran Kalibrasyonu: varsayılan'
+  'Input Control: none/none': 'Girdi Kontrolü: yok/yok'
+  'Message Alert Buzzer: on': 'Mesaj Uyarı Zili: açık'
+  'Language: English': 'Dil: İngilizce'
+  Configuration Reset: Yapılandırmayı Sıfırla
+  Backup & Restore: Yedekle & Geri Yükle
+  Reboot / Shutdown: Yeniden Başlat / Kapat
+  Tools: Araçlar
+  Mesh Detector: Mesh Algılayıcı
+  Signal Scanner: Sinyal Tarayıcı
+  Trace Route: Güzergah İzleyici
   Neighbors: Komşular
   Statistics: İstatistikler
-  Packet Log: Paket kaydı
-  Meshtastic: ~
-  Group Channels: Grup kanalları
-  no messages: Mesaj yok
+  Packet Log: Paket Günlüğü
+  Meshtastic: Meshtastic
+  Group Channels: Grup Kanalları
+  no messages: mesaj yok
   Settings & Tools: Ayarlar & Araçlar
-  Settings (advanced): Gelişmiş ayarlar
-  Locations Map: Harita lokasyonları
-  'Locations Map (%d/%d)': 'Harita lokasyonları %d/%d'
-  no chats: Sohbet yok
-  Node Search: Düğüm araması
-  Packet Statistics: Paket İstatistiği
-  Node Options: Düğüm seçenekleri
-  Short Name: Cihaz kısa ad
-  Long Name: Cihaz uzun ad
+  Settings (advanced): Ayarlar (gelişmiş)
+  Locations Map: Konum Haritası
+  no chats: sohbet yok
+  Node Search: Düğüm Arama
+  Packet Statistics: Paket İstatistikleri
+  Node Options: Düğüm Seçenekleri
+  LoRa TX off!: LoRa TX kapalı!
+  Short Name: Kısa Ad
+  Long Name: Uzun Ad
+  Primary Channel: Birincil Kanal
   <unset>: <ayarlanmamış>
-  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
-  'Brightness: 60%': 'Parlaklık: 60%'
-  "Dark\nLight": "Karanlık\nAçık"
-  'Timeout: 60s': 'Zaman aşımı: 60s'
-  Screen Lock: Ekran kilidi
-  Lock PIN: PIN kodunu \n kitle
+  Secondary Channels: İkincil Kanallar
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "UZUN HIZLI\nUZUN YAVAŞ\n-- kullanım dışı --\nORTA YAVAŞ\nORTA HIZLI\nKISA YAVAŞ\nKISA HIZLI\nUZUN ORTA\nKISA TURBO"
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "İstemci\nİstemci Sessiz\nYönlendirici\nTekrarlayıcı\nİzleyici\nSensör\nTAK\nGizli İstemci\nKayıp & Bulunan\nTAK İzleyici"
+  WiFi SSID: WiFi SSID
+  WiFi pre-shared Key: WiFi ön paylaşımlı Anahtar
+  'Brightness: 60%': 'Parlaklık: %60'
+  "Dark\nLight": "Koyu\nAçık"
+  'Timeout: 60s': 'Zaman Aşımı: 60sn'
+  Screen Lock: Ekran Kilidi
+  Settings Lock: Ayar Kilidi
+  Lock PIN: Kilit PIN'i
   Mouse: Fare
-  none: Yok
+  none: yok
   Keyboard: Klavye
-  Message Alert: Mesaj uyarısı
-  Ringtone: Zil ses
+  Message Alert: Mesaj Uyarısı
+  Ringtone: Zil Sesi
   Default: Varsayılan
-  Zone: Alan
+  Zone: Bölge
   City: Şehir
-  "NodeDB Reset\nFactory Reset": "NodeDB Sıfırlaması\nFabrika sıfırlaması"
-  Channel Name: Kanal adı
-  Pre-shared Key: Önceden paylaşılan anahtar
+  Backup: Yedekle
+  Restore: Geri Yükle
+  Public/Private Key: Açık/Özel Anahtar
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "Düğüm Veritabanını Sıfırla\nFabrika Ayarlarına Sıfırla\nSohbet Geçmişini Temizle"
+  Channel Name: Kanal Adı
+  Pre-shared Key: Ön Paylaşımlı Anahtar
+  Filter: Filtre
   Unknown: Bilinmeyen
-  Offline: 'Çevrimdışı'
-  Public Key: 'Açık Anahtar'
-  Hops away: ~
-  MQTT: ~
-  Position: Pozisyon
+  Offline: Çevrimdışı
+  Public Key: Açık Anahtar
+  Channel: Kanal
+  Hops away: Atlama uzaklıkta
+  MQTT: MQTT
+  Position: Konum
   Name: Ad
-  Active Chat: Aktif sohbet
+  Highlight: Vurgula
+  Active Chat: Aktif Sohbet
   Telemetry: Telemetri
-  IAQ: ~
-  Start: Başla
-  "New Message from\n": 'Yeni mesaj'
-  Resync...: Yeniden senkronize et
+  IAQ: HİA (Hava Kalitesi İndeksi)
+  Start: Başlat
+  "choose\nnode": "seç\nnod"
+  choose target node: hedef düğümü seç
+  "New Message from\n": "Yeni Mesaj Gönderen\n"
+  Restoring messages ...: Mesajlar geri yükleniyor ...
+  Please set region and name: Lütfen bölge ve isim belirleyin
+  Region: Bölge
+  Resync ...: Yeniden senkronize et ...
   OK: Tamam
   Cancel: İptal
-  'FrequencySlot: %d (%g MHz)': 'Frekans Slotu: %d (%g MHz)'
+  now: şimdi
+  'Lock: %s/%s': 'Kilit: %s/%s'
+  'on': 'açık'
+  'off': 'kapalı'
+  'Screen Calibration: %s': 'Ekran Kalibrasyonu: %s'
+  done: tamamlandı
+  default: varsayılan
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "İstemci\nİstemci Sessiz\nİzleyici\nSensör\nTAK\nGizli İstemci\nKayıp & Bulunan\nTAK İzleyici"
+  Rebooting ...: Yeniden başlatılıyor ...
+  '>> Programming mode <<': '>> Programlama modu <<'
+  Enter Text ...: Metin Girin ...
+  '!Enter Filter ...': '!Filtre Girin ...'
+  Enter Filter ...: Filtre Girin ...
+  'FrequencySlot: %d (%g MHz)': 'Frekans Yuvası: %d (%g MHz)'
   'Brightness: %d%%': 'Parlaklık: %d%%'
-  'Timeout: off': 'Zaman aşımı: kapalı'
-  'Timeout: %ds': 'Zaman aşımı: %ds'
-  'Screen Calibration: %s': 'Ekran kalibrasyonu: %s'
-  done: Bitti
-  default: Varsayılan
-  Stop: Dur
-  "choose\nnode": "Düğüm\nseç"
-  choose target node: Hedef düğüm seç
-  'heard: !%08x': ~
-  'Packet Log: %d': 'Paket kaydı: %d'
+  'Timeout: off': 'Zaman Aşımı: kapalı'
+  'Timeout: %ds': 'Zaman Aşımı: %ds'
+  No map tiles found on SDCard!: SD kartta harita döşemesi bulunamadı!
+  Locations Map (%d/%d): Konum Haritası (%d/%d)
+  Stop: Durdur
+  'heard: !%08x': 'duyuldu: !%08x'
+  'Packet Log: %d': 'Paket Günlüğü: %d'
   'Language: %s': 'Dil: %s'
   'Screen Timeout: off': 'Ekran Zaman Aşımı: kapalı'
   'Screen Timeout: %ds': 'Ekran Zaman Aşımı: %ds'
-  'Screen Brightness: %d%%': 'Ekran parlaklığı: %d%%'
+  'Screen Brightness: %d%%': 'Ekran Parlaklığı: %d%%'
   'Theme: %s': 'Tema: %s'
-  'User name: %s': 'Kullanıcı adı: %s'
-  'Device Role: %s': 'Cihaz rolü: %s'
   'Region: %s': 'Bölge: %s'
-  'Modem Preset: %s': 'Modem Ön Ayarı: %s'
-  'Channel: %s': 'Kanal: %s'
-  'Screen Lock: %s': 'Ekran kilidi: %s'
-  'on': 'Açık'
-  'off': 'Kapalı'
-  'Message Alert: %s': 'Mesaj Uyarısı: %s'
-  Util %0.1f%%  Air %0.1f%%: ~
-  'hops: %d': ~
-  unknown: Bilinmeyen
-  <no name>: <ad yok>
-  '%d active chat(s)': '%d aktif sohbet(ler)'
-  "New message from \n%s": "Yeni mesaj: \n%s'den"
-  'Input Control: %s/%s': 'Giriş kontrolü: %s/%s'
-  '%d of %d nodes online':
-    one: '1 düğüm çevrimiçi'
-    other: '%d / %d düğümler çevrimiçi'
-  'Filtering ...': 'Filtreleniyor ...'
-  'Filter: %d of %d nodes': 'Filtre: %d/%d'
-  now: Şimdi
-  '%d new message': 'Yeni %d mesaj'
-  '%d new messages': 'Yeni %d mesajlar'
-  'uptime: %02d:%02d:%02d': 'Çalışma süresi: %02d:%02d:%02d'
-  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
-  Settings: Ayarlar
-  Tools: Araçlar
-  Filter: Filtre
-  Highlight: Vurgu
-  Primary Channel: Birinci kanallar
-  Secondary Channels: İkinci kanallar
-  Resync ...: Yeniden senkronize et
-  Rebooting ...: Yeniden başlatılıyor ...
-  Shutting down ...: Kapatılıyor ...
-  LoRa 0.0 MHz: ~
-  silent: Sessiz
-  'WiFi: <not setup>': 'WiFi: <kurulmamış>'
-  'Lock: off/off': 'Lock: kapalı/kapalı'
-  LoRa TX off!: LoRa TX kapalı!
-  WiFi SSID: WiFi SSID
-  WiFi pre-shared Key: WiFi önceden paylaşılmış anahtar
-  Settings Lock: Ayarlar kilidi
-  'Lock: %s/%s': 'Kilit: %s/%s'
-  Enter Text ...: Metin gir...
-  '!Enter Filter ...': '!Filtre girin ...'
-  Enter Filter ...: Filtre gir ...
-  'WiFi: %s': ~
+  'User name: %s': 'Kullanıcı adı: %s'
+  'Device Role: %s': 'Cihaz Rolü: %s'
+  'Modem Preset: %s': 'Modem Ayarı: %s'
+  'WiFi: %s': 'WiFi: %s'
   <not set>: <ayarlanmamış>
-  region unset: Bölge ayarlanmamış
-  Banner & Sound: Afiş & ses
-  Banner only: Sadece afiş
-  Sound only: Sadece ses
-  no signal: Sinyal yok
-  Restoring messages ...: Mesajlar kurtarılıyor...
+  Util %0.1f%%  Air %0.1f%%: Kullanım %0.1f%%  Hava %0.1f%%
+  'hops: %d': 'atlamalar: %d'
+  unknown: bilinmiyor
+  Shutting down ...: Kapatılıyor ...
+  region unset: bölge ayarlanmamış
+  Banner & Sound: Afiş ve Ses
+  Banner only: Sadece Afiş
+  Sound only: Sadece Ses
+  'Message Alert: %s': 'Mesaj Uyarısı: %s'
+  'Channel: %s': 'Kanal: %s'
+  Failed to write keys!: Anahtarlar yazılamadı!
+  Failed to restore keys!: Anahtarlar geri yüklenemedi!
+  Failed to parse keys!: Anahtarlar ayrıştırılamadı!
+  Failed to retrieve keys!: Anahtarlar alınamadı
+  '%d active chat(s)':
+    one: '1 aktif sohbet'
+    other: '%d aktif sohbet'
+  "New message from \n%s": "Yeni mesaj:\n%s"
+  'Input Control: %s/%s': 'Girdi Kontrolü: %s/%s'
+  '%d of %d nodes online':
+    one: '1 / %d düğüm çevrimiçi'
+    other: '%d / %d düğüm çevrimiçi'
+  'Filter: %d of %d nodes': 'Filtre: %d / %d düğüm'
+  '%d new message': '%d yeni mesaj'
+  '%d new messages': '%d yeni mesaj'
+  'uptime: %02d:%02d:%02d': 'çalışma süresi: %02d:%02d:%02d'
+  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nKullanılan: %d MB (%d%%)"
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": "Yığın: %d (%d%%)\nLVGL: %d (%d%%)"
