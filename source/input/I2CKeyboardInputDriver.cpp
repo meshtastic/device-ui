@@ -54,7 +54,8 @@ void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *d
     Wire.requestFrom(INPUTDRIVER_I2C_KBD_TYPE, 1);
     if (Wire.available() > 0) {
         keyValue = Wire.read();
-        if (keyValue != (char)0x00) {
+        // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
+        if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
             data->state = LV_INDEV_STATE_PRESSED;
             ILOG_DEBUG("key press value: %d", (int)keyValue);
 
