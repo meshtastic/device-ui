@@ -1,13 +1,13 @@
 bg:
   no new messages: няма нови съобщения
   1 of 1 nodes online: 1 от 1 нода са онлайн
-  DEL: DEL
+  DEL: ~
   'User name: ': 'Потребителско име:'
   'Modem Preset: LONG FAST': ~
   'Channel: LongFast': 'Канал: LongFast'
   'Role: Client': 'Роля: Клиент'
   'Screen Timeout: 60s': 'Таймаут на екрана: 60с'
-  'Screen Brightness: 60%': 'Яркостн а екрана: 60%'
+  'Screen Brightness: 60%': 'Яркостн а екрана: 60%%'
   'Screen Calibration: default': 'Калибровка на екрана: по подразбиране'
   'Input Control: none/none': ~
   'Message Alert Buzzer: on': 'Звън при съобщение: включено'
@@ -25,7 +25,7 @@ bg:
   Long Name: Дълго име
   <unset>: <неопределено>
   'FrequencySlot: 1 (902.0MHz)': ~
-  'Brightness: 60%': 'Яркост: 60%'
+  'Brightness: 60%': 'Яркост: 60%%'
   'Timeout: 60s': ~
   Mouse: Мишка
   Keyboard: Клавиатура
@@ -83,10 +83,10 @@ bg:
   Cancel: Отмени
   'FrequencySlot: %d (%.2f MHz)': ~
   'Brightness: %d%%': 'Яркост: %d%%'
-  'Timeout: off': ~
-  'Timeout: %ds': ~
+  'Timeout: off': 'Таймаут: изкл'
+  'Timeout: %ds': 'Таймаут: %ds'
   Stop: Стоп
-  "choose\nnode": "избери\нод"
+  "choose\nnode": "избери\nод"
   choose target node: изберете целеви възел
   'heard: !%08x': 'чут: !%08x'
   'Packet Log: %d': 'Лог на пакети: %d'
@@ -101,10 +101,14 @@ bg:
   'hops: %d': 'хопове: %d'
   unknown: неизвестно
   <no name>: <без име>
-  '%d active chat(s)': '%d активни чатове'
+  '%d active chat(s)':
+    one: '%d активен чат'
+    other: '%d активни чатове'
   "New message from \n%s": "Ново съобщение от:\n%s"
   'Input Control: %s/%s': ~
-  '%d of %d nodes online': '%d от %d нода са онлайн'
+  '%d of %d nodes online':
+    one: '%d възел онлайн'
+    other: '%d от %d нода са онлайн'
   Filtering ...: Филтрация ...
   'Filter: %d of %d nodes': 'Филтър: %d от %d нода'
   now: сега

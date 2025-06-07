@@ -61,6 +61,152 @@ static const lv_i18n_lang_t en_lang = {.locale_name = "en",
 
                                        .locale_plural_fn = en_plural_fn};
 
+static lv_i18n_phrase_t bg_singulars[] = {
+    {"no new messages", "няма нови съобщения"},
+    {"1 of 1 nodes online", "1 от 1 нода са онлайн"},
+    {"User name: ", "Потребителско име:"},
+    {"Channel: LongFast", "Канал: LongFast"},
+    {"Role: Client", "Роля: Клиент"},
+    {"Screen Timeout: 60s", "Таймаут на екрана: 60с"},
+    {"Screen Brightness: 60%", "Яркостн а екрана: 60%%"},
+    {"Screen Calibration: default", "Калибровка на екрана: по подразбиране"},
+    {"Message Alert Buzzer: on", "Звън при съобщение: включено"},
+    {"Language: English", "Език: Български"},
+    {"Configuration Reset", "ресет на настройките"},
+    {"Reboot / Shutdown", "Рестарт / изкл."},
+    {"Group Channels", "Групови канали"},
+    {"no messages", "няма съобщения"},
+    {"Settings", "Настройки"},
+    {"Settings (advanced)", "Разширени настройки"},
+    {"Locations Map", "Карта на местоположението"},
+    {"no chats", "няма чатове"},
+    {"Node Options", "Опции на възела"},
+    {"Short Name", "Кратко име"},
+    {"Long Name", "Дълго име"},
+    {"<unset>", "<неопределено>"},
+    {"Brightness: 60%", "Яркост: 60%%"},
+    {"Mouse", "Мишка"},
+    {"Keyboard", "Клавиатура"},
+    {"Message Alert", "Известие за съобщение"},
+    {"NodeDB Reset\nFactory Reset", "Нулиране NodeDB\nНулиране на настройки"},
+    {"Channel Name", "Име на канала"},
+    {"New Message from\\n", "Ново съобщение от\\n"},
+    {"User name: %s", "Име: %s"},
+    {"Device Role: %s", "Роля на устройство: %s"},
+    {"Screen Calibration: %s", "Калибровка на екрана: %s"},
+    {"done", "готово"},
+    {"default", "по подразбиране"},
+    {"Region: %s", "Регион: %s"},
+    {"Channel: %s", "Канал: %s"},
+    {"Language: %s", "Език: %s"},
+    {"Screen Lock: off", "Блокировка на екрана: off"},
+    {"Theme: Dark", "Тема: Тъмна"},
+    {"Mesh Detector", "Mesh Детектор"},
+    {"Signal Scanner", "Сигнал скенер"},
+    {"Trace Route", "Маршрут"},
+    {"Neighbors", "Съседи"},
+    {"Statistics", "Статистика"},
+    {"Packet Log", "Лог на пакети"},
+    {"Settings & Tools", "Настройки и инструменти"},
+    {"Node Search", "Търсене на нод"},
+    {"Screen Lock", "Блокировка на екрана"},
+    {"Lock PIN", "PIN-код"},
+    {"Ringtone", "Рингтон"},
+    {"Zone", "Зона"},
+    {"City", "Град"},
+    {"Unknown", "Неизвестно"},
+    {"Offline", "Не е в мрежата"},
+    {"Public Key", "Публичен ключ"},
+    {"Hops away", "Хопове"},
+    {"Position", "Позиция"},
+    {"Name", "Име"},
+    {"Active Chat", "Активен чат"},
+    {"Telemetry", "Телеметрия"},
+    {"Start", "Старт"},
+    {"Theme: %s", "Тема: %s"},
+    {"Packet Statistics", "Статистика на пакети"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- старо --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- старо --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"Dark\nLight", "Тъмна\nСветла"},
+    {"Cancel", "Отмени"},
+    {"Brightness: %d%%", "Яркост: %d%%"},
+    {"Timeout: off", "Таймаут: изкл"},
+    {"Timeout: %ds", "Таймаут: %ds"},
+    {"Stop", "Стоп"},
+    {"choose\nnode", "избери\nод"},
+    {"choose target node", "изберете целеви възел"},
+    {"heard: !%08x", "чут: !%08x"},
+    {"Packet Log: %d", "Лог на пакети: %d"},
+    {"Screen Timeout: off", "Таймаут на екрана: вкл."},
+    {"Screen Timeout: %ds", "Таймаут на екрана: %ds"},
+    {"Screen Brightness: %d%%", "Яркост на екрана: %d%%"},
+    {"Screen Lock: %s", "Блокировка на екрана: %s"},
+    {"on", "вкл."},
+    {"off", "изкл."},
+    {"Message Alert: %s", "Оповестяване: %s"},
+    {"hops: %d", "хопове: %d"},
+    {"unknown", "неизвестно"},
+    {"<no name>", "<без име>"},
+    {"New message from \n%s", "Ново съобщение от:\n%s"},
+    {"Filtering ...", "Филтрация ..."},
+    {"Filter: %d of %d nodes", "Филтър: %d от %d нода"},
+    {"now", "сега"},
+    {"%d new message", "%d ново съобщение"},
+    {"%d new messages", "%d нови съобщения"},
+    {"uptime: %02d:%02d:%02d", "време в работа:\n%02d:%02d:%02d"},
+    {"Tools", "Инструменти"},
+    {"Filter", "Филтер"},
+    {"Highlight", "Подчертаване"},
+    {"Primary Channel", "Основен канал"},
+    {"Secondary Channels", "Вторични канали"},
+    {"Resync ...", "Ресинхронизация ..."},
+    {"Rebooting ...", "Рестартиране ..."},
+    {"Shutting down ...", "Изключване ..."},
+    {"silent", "тих режим"},
+    {"WiFi: <not setup>", "WiFi: <не е настроен>"},
+    {"Lock: off/off", "Блокировка: изкл./изкл."},
+    {"LoRa TX off!", "LoRa TX изкл.!"},
+    {"WiFi SSID", "Име на WiFi мрежата"},
+    {"Settings Lock", "Блокировка на настройки"},
+    {"Lock: %s/%s", "Блокировка: %s/%s"},
+    {"Enter Text ...", "Въведете сообщение ..."},
+    {"!Enter Filter ...", "!Въведете фильтр ..."},
+    {"Enter Filter ...", "Въведете фильтр ..."},
+    {"WiFi: %s", "WiFi: %s"},
+    {"<not set>", "<не е настроено>"},
+    {"region unset", "регион не настроен"},
+    {"Banner & Sound", "Банер и звук"},
+    {"Banner only", "Само банер"},
+    {"Sound only", "Само звук"},
+    {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t bg_plurals_one[] = {
+    {"%d active chat(s)", "%d активен чат"}, {"%d of %d nodes online", "%d възел онлайн"}, {NULL, NULL} // End mark
+};
+
+static lv_i18n_phrase_t bg_plurals_other[] = {
+    {"%d active chat(s)", "%d активни чатове"}, {"%d of %d nodes online", "%d от %d нода са онлайн"}, {NULL, NULL} // End mark
+};
+
+static uint8_t bg_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num);
+    UNUSED(n);
+
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t bg_lang = {.locale_name = "bg",
+                                       .singulars = bg_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = bg_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = bg_plurals_other,
+                                       .locale_plural_fn = bg_plural_fn};
+
 static lv_i18n_phrase_t de_singulars[] = {
     {"User name: %s", "Benutzer: %s"},
     {"Device Role: %s", "Gerätemodus: %s"},
@@ -2632,9 +2778,14 @@ static uint8_t uk_plural_fn(int32_t num)
     UNUSED(v);
     uint32_t i = op_i(n);
     UNUSED(i);
-
-    if ((i == 1 && v == 0))
+    uint32_t i10 = i % 10;
+    uint32_t i100 = i % 100;
+    if ((v == 0 && i10 == 1 && i100 != 11))
         return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))))
+        return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i10 == 0) || (v == 0 && (5 <= i10 && i10 <= 9)) || (v == 0 && (11 <= i100 && i100 <= 14)))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
@@ -2793,8 +2944,8 @@ static const lv_i18n_lang_t zh_cn_lang = {.locale_name = "zh-CN",
                                           .locale_plural_fn = zh_cn_plural_fn};
 
 const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
-    &en_lang, &de_lang, &el_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang, &no_lang,    &pl_lang,
-    &pt_lang, &ro_lang, &ru_lang, &se_lang, &sl_lang, &sr_lang, &tr_lang, &uk_lang, &zh_cn_lang,
+    &en_lang, &bg_lang, &de_lang, &el_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang, &no_lang,
+    &pl_lang, &pt_lang, &ro_lang, &ru_lang, &se_lang, &sl_lang, &sr_lang, &tr_lang, &uk_lang, &zh_cn_lang,
     NULL // End mark
 };
 
