@@ -744,6 +744,162 @@
                   "textType": "literal",
                   "longMode": "WRAP",
                   "recolor": false
+                },
+                {
+                  "objID": "5f74af31-d4d1-43bd-9d40-40c541c9f745",
+                  "type": "LVGLPanelWidget",
+                  "left": 0,
+                  "top": 12,
+                  "width": 240,
+                  "height": 120,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "c88fc7c2-9edd-4a50-bde1-872df4754d9a",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "hiddenInEditor": false,
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "identifier": "SettingsRebootPanel",
+                  "leftUnit": "%",
+                  "topUnit": "%",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [
+                    {
+                      "objID": "7d4036b4-f5fd-4039-a824-606c7429eb5a",
+                      "type": "LVGLLabelWidget",
+                      "left": 0,
+                      "top": 20,
+                      "width": 200,
+                      "height": 22,
+                      "customInputs": [],
+                      "customOutputs": [],
+                      "style": {
+                        "objID": "3f385429-fa37-4865-fc2d-a86097228884",
+                        "useStyle": "default",
+                        "conditionalStyles": [],
+                        "childStyles": []
+                      },
+                      "hiddenInEditor": false,
+                      "timeline": [],
+                      "eventHandlers": [],
+                      "leftUnit": "px",
+                      "topUnit": "px",
+                      "widthUnit": "px",
+                      "heightUnit": "content",
+                      "children": [],
+                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                      "hiddenFlag": false,
+                      "hiddenFlagType": "literal",
+                      "clickableFlagType": "literal",
+                      "checkedStateType": "literal",
+                      "disabledStateType": "literal",
+                      "states": "",
+                      "localStyles": {
+                        "objID": "d6c08e84-6cad-4372-f62b-5313a07f2ce6",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "align": "TOP_MID",
+                              "text_align": "CENTER",
+                              "text_opa": 200,
+                              "text_color": "#ff5858",
+                              "text_font": "montserrat_16"
+                            },
+                            "DISABLED": {
+                              "align": "TOP_LEFT"
+                            }
+                          }
+                        }
+                      },
+                      "groupIndex": 0,
+                      "text": "Reboot into former UI ?",
+                      "textType": "translated-literal",
+                      "longMode": "CLIP",
+                      "recolor": false
+                    },
+                    {
+                      "objID": "8690a9d6-fc5c-444e-91d5-197ae98ab126",
+                      "type": "LVGLUserWidgetWidget",
+                      "left": 4,
+                      "top": 5,
+                      "width": 160,
+                      "height": 50,
+                      "customInputs": [],
+                      "customOutputs": [],
+                      "style": {
+                        "objID": "e73526c7-e166-4e7b-9f47-8fa234008c82",
+                        "useStyle": "default",
+                        "conditionalStyles": [],
+                        "childStyles": []
+                      },
+                      "hiddenInEditor": false,
+                      "timeline": [],
+                      "eventHandlers": [],
+                      "leftUnit": "px",
+                      "topUnit": "px",
+                      "widthUnit": "px",
+                      "heightUnit": "px",
+                      "children": [],
+                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                      "hiddenFlagType": "literal",
+                      "clickableFlag": true,
+                      "clickableFlagType": "literal",
+                      "checkedStateType": "literal",
+                      "disabledStateType": "literal",
+                      "states": "",
+                      "localStyles": {
+                        "objID": "808bf419-4d6d-4535-8099-6d7e12eacd0d",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "align": "BOTTOM_MID"
+                            }
+                          }
+                        }
+                      },
+                      "groupIndex": 0,
+                      "userWidgetPageName": "OkCancelWidget",
+                      "userPropertyValues": {
+                        "objID": "8c5510a4-61d0-4e2c-985c-69e4a7c62319",
+                        "values": {}
+                      }
+                    }
+                  ],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlag": true,
+                  "hiddenFlagType": "literal",
+                  "clickableFlag": true,
+                  "clickableFlagType": "literal",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "useStyle": "SettingsPanelStyle",
+                  "localStyles": {
+                    "objID": "e530233e-99f3-4ec3-f4b3-7bb9d8cfd5fc",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "border_width": 2,
+                          "radius": 12,
+                          "border_color": "#216ad8",
+                          "align": "TOP_MID",
+                          "border_opa": 255,
+                          "bg_opa": 250,
+                          "layout": "NONE",
+                          "pad_top": 6,
+                          "pad_bottom": 10,
+                          "pad_left": 5,
+                          "pad_right": 5
+                        }
+                      }
+                    }
+                  },
+                  "groupIndex": 0
                 }
               ],
               "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -2652,14 +2808,14 @@
                         "definition": {
                           "MAIN": {
                             "DEFAULT": {
-                              "img_recolor": "#FFFFFF",
-                              "img_recolor_opa": 255,
+                              "img_recolor": "FFFFFF",
                               "align": "TOP_LEFT",
                               "radius": 6,
                               "bg_color": "#5d9388",
-                              "bg_opa": 255,
                               "border_color": "FF5555",
-                              "border_width": 3
+                              "img_recolor_opa": 255,
+                              "border_width": 3,
+                              "bg_opa": 255
                             }
                           }
                         }
@@ -4497,7 +4653,7 @@
                 "conditionalStyles": [],
                 "childStyles": []
               },
-              "hiddenInEditor": false,
+              "hiddenInEditor": true,
               "timeline": [],
               "eventHandlers": [],
               "identifier": "MapPanel",
@@ -4521,7 +4677,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": false,
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "worldImage",
@@ -4577,7 +4733,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": false,
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "rawMapPanel",
@@ -4601,7 +4757,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": false,
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "homeLocationImage",
@@ -4648,6 +4804,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "gpsPositionImage",
@@ -4739,7 +4896,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": false,
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "navigationPanel",
@@ -4763,7 +4920,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": false,
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowUpButton",
@@ -4813,7 +4970,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": false,
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowLeftButton",
@@ -4863,7 +5020,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": false,
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "navButton",
@@ -4913,7 +5070,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": false,
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowRightButton",
@@ -4963,7 +5120,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": false,
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowDownButton",
@@ -5049,6 +5206,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomSlider",
@@ -5123,7 +5281,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": false,
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "gpsLockButton",
@@ -5182,7 +5340,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": false,
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomInButton",
@@ -5232,7 +5390,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": false,
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomOutButton",
@@ -5282,7 +5440,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": false,
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "mapOSDPanel",
@@ -5306,6 +5464,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapBrightnessSlider",
@@ -5378,6 +5537,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapContrastSlider",
@@ -5450,6 +5610,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
+                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapStyleDropdown",
@@ -5544,6 +5705,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
+                  "hiddenInEditor": true,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "mapLocationLabel",
@@ -15136,7 +15298,7 @@
                     }
                   },
                   "groupIndex": 0,
-                  "options": "English\nDeutsch\nΕλληνικά\nEspañol\nFrançais\nItaliano\nNederlands\nNorsk\nPolski\nPortuguês\nРусский\nSlovenščina\nSrpski\nSuomalainen\nSvenska\nTürkçe\nУкраїнська",
+                  "options": "English\nбългарски\nDeutsch\nΕλληνικά\nEspañol\nFrançais\nItaliano\nNederlands\nNorsk\nPolski\nPortuguês\nРусский\nSlovenščina\nSrpski\nSuomalainen\nSvenska\nTürkçe\nУкраїнська",
                   "optionsType": "literal",
                   "selected": 0,
                   "selectedType": "literal",
@@ -15775,7 +15937,7 @@
                 "conditionalStyles": [],
                 "childStyles": []
               },
-              "hiddenInEditor": true,
+              "hiddenInEditor": false,
               "timeline": [],
               "eventHandlers": [],
               "identifier": "SettingsResetPanel",
@@ -15799,7 +15961,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "SettingsResetDropdown",
@@ -15850,7 +16012,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "leftUnit": "px",
@@ -24241,6 +24403,13 @@
       "objID": "38fc79ef-3d6f-4def-e10e-ba5facdad744",
       "name": "reboot_BT_on_image",
       "image": "data:image/png;base64,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",
+      "bpp": 16,
+      "alwaysBuild": false
+    },
+    {
+      "objID": "fb8a66b9-30e6-41b6-e16d-dd76c32b6d1f",
+      "name": "unmessagable_image",
+      "image": "data:image/png;base64,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",
       "bpp": 16,
       "alwaysBuild": false
     }

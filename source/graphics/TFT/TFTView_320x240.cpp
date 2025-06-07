@@ -750,7 +750,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
 
     lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.shutdown_button, ui_event_device_shutdown_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.cancel_reboot_button, ui_event_device_cancel_button, LV_EVENT_CLICKED, NULL);
 
@@ -764,8 +764,6 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.setup_region_dropdown, ui_event_setup_region_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // OK / Cancel widget for basic settings dialog
-    lv_obj_add_event_cb(objects.obj1__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj1__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj2__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj2__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj3__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
@@ -796,10 +794,14 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj15__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj16__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj16__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj19__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj19__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj25__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj25__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj17__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj17__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj18__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj18__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj21__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj21__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj27__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj27__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -1038,7 +1040,8 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         //  set color and text of clicked node
         uint32_t nodeNum = (unsigned long)e->user_data;
-        if (nodeNum != THIS->ownNode)
+        bool isMessagable = !((unsigned long)(THIS->nodes[nodeNum]->LV_OBJ_IDX(node_img_idx)->user_data) == eRole::unmessagable);
+        if (nodeNum != THIS->ownNode && isMessagable)
             THIS->showMessages(nodeNum);
     }
 }
@@ -1111,6 +1114,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
         } else {
             THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
             THIS->loadMap();
+            lv_group_focus_obj(objects.nav_button);
         }
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eNone) {
@@ -1953,16 +1957,37 @@ void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
 
 void TFTView_320x240::ui_event_device_progmode_button(lv_event_t *e)
 {
-    meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
-    if (network.wifi_enabled) {
-        network.wifi_enabled = false;
-        THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
+    static bool ignoreClicked = false;
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
+
+        meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
+        if (network.wifi_enabled) {
+            network.wifi_enabled = false;
+            THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{network});
+        }
+        meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
+        bluetooth.mode = meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
+        bluetooth.fixed_pin = random(100000, 999999);
+        bluetooth.enabled = true;
+        THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
+        lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        if (!THIS->controller->isStandalone()) {
+#if defined(HAS_SCREEN) && HAS_SCREEN == 1
+            ignoreClicked = true;
+            // open dialog
+            lv_obj_remove_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.settings_reboot_panel);
+            THIS->activeSettings = eDisplayMode;
+#endif
+        }
     }
-    meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
-    bluetooth.enabled = true;
-    THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
-    lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
-    lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
 void TFTView_320x240::ui_event_device_shutdown_button(lv_event_t *e)
@@ -1984,6 +2009,7 @@ void TFTView_320x240::ui_event_device_cancel_button(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->enablePanel(objects.controller_panel);
         THIS->enablePanel(objects.tab_page_basic_settings);
         lv_group_focus_obj(objects.basic_settings_reboot_button);
@@ -3304,41 +3330,43 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_ENGLISH:
         return 0;
     case meshtastic_Language_FRENCH:
-        return 4;
-    case meshtastic_Language_GERMAN:
-        return 1;
-    case meshtastic_Language_ITALIAN:
         return 5;
-    case meshtastic_Language_PORTUGUESE:
-        return 9;
-    case meshtastic_Language_SPANISH:
-        return 3;
-    case meshtastic_Language_SWEDISH:
-        return 14;
-    case meshtastic_Language_FINNISH:
-        return 13;
-    case meshtastic_Language_POLISH:
-        return 8;
-    case meshtastic_Language_TURKISH:
-        return 15;
-    case meshtastic_Language_SERBIAN:
-        return 12;
-    case meshtastic_Language_RUSSIAN:
-        return 10;
-    case meshtastic_Language_DUTCH:
-        return 6;
-    case meshtastic_Language_GREEK:
+    case meshtastic_Language_GERMAN:
         return 2;
-    case meshtastic_Language_NORWEGIAN:
-        return 7;
-    case meshtastic_Language_SLOVENIAN:
-        return 11;
-    case meshtastic_Language_UKRAINIAN:
+    case meshtastic_Language_ITALIAN:
+        return 6;
+    case meshtastic_Language_PORTUGUESE:
+        return 10;
+    case meshtastic_Language_SPANISH:
+        return 4;
+    case meshtastic_Language_SWEDISH:
+        return 15;
+    case meshtastic_Language_FINNISH:
+        return 14;
+    case meshtastic_Language_POLISH:
+        return 9;
+    case meshtastic_Language_TURKISH:
         return 16;
-    case meshtastic_Language_SIMPLIFIED_CHINESE:
+    case meshtastic_Language_SERBIAN:
+        return 13;
+    case meshtastic_Language_RUSSIAN:
+        return 11;
+    case meshtastic_Language_DUTCH:
+        return 7;
+    case meshtastic_Language_GREEK:
+        return 3;
+    case meshtastic_Language_NORWEGIAN:
+        return 8;
+    case meshtastic_Language_SLOVENIAN:
+        return 12;
+    case meshtastic_Language_UKRAINIAN:
         return 17;
-    case meshtastic_Language_TRADITIONAL_CHINESE:
+    case meshtastic_Language_BULGARIAN:
+        return 1;
+    case meshtastic_Language_SIMPLIFIED_CHINESE:
         return 18;
+    case meshtastic_Language_TRADITIONAL_CHINESE:
+        return 19;
     default:
         ILOG_WARN("unknown language uiconfig: %d", lang);
     }
@@ -3353,41 +3381,43 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
     switch (val) {
     case 0:
         return meshtastic_Language_ENGLISH;
-    case 4:
-        return meshtastic_Language_FRENCH;
-    case 1:
-        return meshtastic_Language_GERMAN;
     case 5:
-        return meshtastic_Language_ITALIAN;
-    case 9:
-        return meshtastic_Language_PORTUGUESE;
-    case 3:
-        return meshtastic_Language_SPANISH;
-    case 14:
-        return meshtastic_Language_SWEDISH;
-    case 13:
-        return meshtastic_Language_FINNISH;
-    case 8:
-        return meshtastic_Language_POLISH;
-    case 15:
-        return meshtastic_Language_TURKISH;
-    case 12:
-        return meshtastic_Language_SERBIAN;
-    case 10:
-        return meshtastic_Language_RUSSIAN;
-    case 6:
-        return meshtastic_Language_DUTCH;
+        return meshtastic_Language_FRENCH;
     case 2:
-        return meshtastic_Language_GREEK;
-    case 7:
-        return meshtastic_Language_NORWEGIAN;
-    case 11:
-        return meshtastic_Language_SLOVENIAN;
+        return meshtastic_Language_GERMAN;
+    case 6:
+        return meshtastic_Language_ITALIAN;
+    case 10:
+        return meshtastic_Language_PORTUGUESE;
+    case 4:
+        return meshtastic_Language_SPANISH;
+    case 15:
+        return meshtastic_Language_SWEDISH;
+    case 14:
+        return meshtastic_Language_FINNISH;
+    case 9:
+        return meshtastic_Language_POLISH;
     case 16:
-        return meshtastic_Language_UKRAINIAN;
+        return meshtastic_Language_TURKISH;
+    case 13:
+        return meshtastic_Language_SERBIAN;
+    case 11:
+        return meshtastic_Language_RUSSIAN;
+    case 7:
+        return meshtastic_Language_DUTCH;
+    case 3:
+        return meshtastic_Language_GREEK;
+    case 8:
+        return meshtastic_Language_NORWEGIAN;
+    case 12:
+        return meshtastic_Language_SLOVENIAN;
     case 17:
+        return meshtastic_Language_UKRAINIAN;
+    case 1:
+        return meshtastic_Language_BULGARIAN;
+    case 19:
         return meshtastic_Language_SIMPLIFIED_CHINESE;
-    case 18:
+    case 20:
         return meshtastic_Language_TRADITIONAL_CHINESE;
     default:
         ILOG_WARN("unknown language val: %d", val);
@@ -3404,6 +3434,10 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
     switch (lang) {
     case meshtastic_Language_ENGLISH:
         lv_i18n_set_locale("en");
+        break;
+    case meshtastic_Language_BULGARIAN:
+        lv_i18n_set_locale("bg");
+        locale = "bg_BG.UTF-8";
         break;
     case meshtastic_Language_GERMAN:
         lv_i18n_set_locale("de");
@@ -3482,8 +3516,10 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         break;
     }
 
-#ifdef ARCH_PORTDUINO
-    // std::locale::global(std::locale(locale));
+#if defined(LOCALE_SUPPORT)
+    std::locale::global(std::locale(locale));
+#else
+    (void)locale;
 #endif
 }
 
@@ -3986,6 +4022,19 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_group_focus_obj(objects.basic_settings_reset_button);
             break;
         }
+        case eDisplayMode: {
+            meshtastic_Config_DisplayConfig &display = THIS->db.config.display;
+            meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
+            display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_DEFAULT;
+            bluetooth.enabled = true;
+            THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display}, THIS->ownNode);
+            THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
+            THIS->controller->requestReboot(5, THIS->ownNode);
+            lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 1000, false);
+            lv_obj_add_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
         case eModifyChannel: {
             meshtastic_ChannelSettings_psk_t psk = {};
             const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
@@ -4130,6 +4179,11 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         }
         case TFTView_320x240::eReset: {
             lv_obj_add_flag(objects.settings_reset_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_reset_button);
+            break;
+        }
+        case TFTView_320x240::eDisplayMode: {
+            lv_obj_add_flag(objects.settings_reboot_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_reset_button);
             break;
         }
@@ -4345,7 +4399,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 }
 
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                              eRole role, bool hasKey, bool viaMqtt)
+                              eRole role, bool hasKey, bool unmessagable)
 {
     // lv_obj nodesPanel children  |  user data (4 bytes)
     // ==================================================
@@ -4387,7 +4441,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     // NodeImage
     lv_obj_t *img = lv_img_create(p);
-    setNodeImage(nodeNum, role, viaMqtt, img);
+    setNodeImage(nodeNum, role, unmessagable, img);
     lv_obj_set_pos(img, -5, 3);
     lv_obj_set_size(img, 32, 32);
     lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
@@ -4398,7 +4452,12 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     if (!hasKey) {
         lv_obj_set_style_border_color(img, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
-    img->user_data = (void *)role;
+    if (unmessagable) {
+        // node role icon is not clickable and replaced with a cancelled icon
+        img->user_data = (void *)eRole::unmessagable;
+    } else {
+        img->user_data = (void *)role;
+    }
 
     // NodeButton
     lv_obj_t *nodeButton = lv_btn_create(p);
@@ -4559,13 +4618,13 @@ void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool 
 {
 }
 
-void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong,
-                                      uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
+void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg)
 {
     if (nodes.find(nodeNum) == nodes.end()) {
-        addNode(nodeNum, ch, userShort, userLong, lastHeard, role, hasKey, viaMqtt);
+        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, lastHeard, (MeshtasticView::eRole)cfg.role,
+                cfg.public_key.size != 0, cfg.has_is_unmessagable && cfg.is_unmessagable);
     } else {
-        updateNode(nodeNum, ch, userShort, userLong, lastHeard, role, hasKey, viaMqtt);
+        updateNode(nodeNum, channel, cfg);
     }
 }
 
@@ -4580,49 +4639,52 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t ch, const char *
  * @param role
  * @param viaMqtt
  */
-void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                                 eRole role, bool hasKey, bool viaMqtt)
+// void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
+//                                  eRole role, bool hasKey, bool viaMqtt)
+void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_User &cfg)
 {
+    db.user = cfg;
     auto it = nodes.find(nodeNum);
     if (it != nodes.end() && it->second) {
         if (it->first == ownNode) {
             // update related settings buttons and store role in image user data
             char buf[30];
-            lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
+            lv_snprintf(buf, sizeof(buf), _("User name: %s"), cfg.short_name);
             lv_label_set_text(objects.basic_settings_user_label, buf);
 
             char buf1[30], buf2[40];
-            lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(meshtastic_Config_DeviceConfig_Role(role)),
-                                     LV_ANIM_OFF);
+            lv_dropdown_set_selected(objects.settings_device_role_dropdown,
+                                     role2val(meshtastic_Config_DeviceConfig_Role(cfg.role)), LV_ANIM_OFF);
             lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
             lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
             lv_label_set_text(objects.basic_settings_role_label, buf2);
 
             // update DB
-            strcpy(db.short_name, userShort);
-            strcpy(db.long_name, userLong);
-            db.config.device.role = (meshtastic_Config_DeviceConfig_Role)role;
+            strcpy(db.short_name, cfg.short_name);
+            strcpy(db.long_name, cfg.long_name);
+            db.config.device.role = cfg.role;
         }
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), userLong);
+        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), cfg.long_name);
         it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)nodeNum;
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), userShort);
+        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), cfg.short_name);
         char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
-        userData[0] = userShort[0];
+        userData[0] = cfg.short_name[0];
         if (userData[0] == 0x00)
             userData[0] = ' ';
-        userData[1] = userShort[1];
+        userData[1] = cfg.short_name[1];
         if (userData[1] == 0x00)
             userData[1] = ' ';
-        userData[2] = userShort[2];
+        userData[2] = cfg.short_name[2];
         if (userData[2] == 0x00)
             userData[2] = ' ';
-        userData[3] = userShort[3];
+        userData[3] = cfg.short_name[3];
         if (userData[3] == 0x00)
             userData[3] = ' ';
 
-        setNodeImage(nodeNum, role, viaMqtt, it->second->LV_OBJ_IDX(node_img_idx));
+        setNodeImage(nodeNum, (MeshtasticView::eRole)cfg.role, cfg.has_is_unmessagable && cfg.is_unmessagable,
+                     it->second->LV_OBJ_IDX(node_img_idx));
 
-        if (hasKey) {
+        if (cfg.public_key.size != 0) {
             // set border color to bg color
             lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -5734,6 +5796,11 @@ void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig 
 {
     db.config.display = cfg;
     db.config.has_display = true;
+    if (cfg.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
+        meshtastic_Config_DisplayConfig &display = db.config.display;
+        display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_COLOR;
+        THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display}, THIS->ownNode);
+    }
 }
 
 void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
@@ -6404,7 +6471,7 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
 
 void TFTView_320x240::updateActiveChats(void)
 {
-    char buf[40];
+    char buf[48];
     sprintf(buf, _p("%d active chat(s)", chats.size()), chats.size());
     lv_label_set_text(objects.top_chats_label, buf);
 }
@@ -6730,48 +6797,52 @@ void TFTView_320x240::removeNode(uint32_t nodeNum)
     }
 }
 
-void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool viaMqtt, lv_obj_t *img)
+void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img)
 {
     uint32_t bgColor, fgColor;
     std::tie(bgColor, fgColor) = nodeColor(nodeNum);
-    // if (viaMqtt) {
-    //     lv_image_set_src(img, &//TODO );
-    // }
-    // else
-    switch (role) {
-    case client:
-    case client_mute:
-    case client_hidden:
-    case tak: {
-        lv_image_set_src(img, &img_node_client_image);
-        break;
+    if (unmessagable) {
+        lv_image_set_src(img, &img_unmessagable_image);
+        lv_obj_set_style_border_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_img_recolor(img, lv_color_hex(0xFF5555), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_img_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        return;
+    } else {
+        switch (role) {
+        case client:
+        case client_mute:
+        case client_hidden:
+        case tak: {
+            lv_image_set_src(img, &img_node_client_image);
+            break;
+        }
+        case router_client: {
+            lv_image_set_src(img, &img_top_nodes_image);
+            break;
+        }
+        case repeater:
+        case router:
+        case router_late: {
+            lv_image_set_src(img, &img_node_router_image);
+            break;
+        }
+        case tracker:
+        case sensor:
+        case lost_and_found:
+        case tak_tracker: {
+            lv_image_set_src(img, &img_node_sensor_image);
+            break;
+        }
+        case unknown: {
+            lv_image_set_src(img, &img_circle_question_image);
+            break;
+        }
+        default:
+            lv_image_set_src(img, &img_node_client_image);
+            break;
+        }
     }
-    case router_client: {
-        lv_image_set_src(img, &img_top_nodes_image);
-        break;
-    }
-    case repeater:
-    case router:
-    case router_late: {
-        lv_image_set_src(img, &img_node_router_image);
-        break;
-    }
-    case tracker:
-    case sensor:
-    case lost_and_found:
-    case tak_tracker: {
-        lv_image_set_src(img, &img_node_sensor_image);
-        break;
-    }
-    case unknown: {
-        lv_image_set_src(img, &img_circle_question_image);
-        break;
-    }
-    default:
-        lv_image_set_src(img, &img_node_client_image);
-        break;
-    }
-
     lv_obj_set_style_bg_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor_opa(img, fgColor ? 0 : 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -6995,6 +7066,9 @@ bool TFTView_320x240::updateSDCard(void)
         Themes::recolorText(objects.home_sd_card_label, false);
         // allow backup/restore only if there is an SD card detected
         lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
+    } else {
+        // enable backup/restore
+        lv_obj_clear_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
     }
     lv_label_set_text(objects.home_sd_card_label, buf);
 #else
@@ -7022,7 +7096,6 @@ void TFTView_320x240::formatSDCard(void)
 #else
     sdCard = new SdFsCard;
 #endif
-    ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
     ILOG_DEBUG("formatting SD card");
     if (sdCard->format()) {
         updateSDCard();

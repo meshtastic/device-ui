@@ -47,7 +47,9 @@ uint16_t LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode reg
     };
 
     uint32_t numChannels = getNumChannels(region, preset);
-    return numChannels == 0 ? 1 : hash(channelName ? channelName : modemPreset[preset].preset) % numChannels + 1;
+    return numChannels == 0
+               ? 1
+               : hash(channelName && channelName[0] != '\0' ? channelName : modemPreset[preset].preset) % numChannels + 1;
 }
 
 float LoRaPresets::getBandwidth(meshtastic_Config_LoRaConfig_ModemPreset preset)
