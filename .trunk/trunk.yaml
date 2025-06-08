@@ -20,7 +20,7 @@ lint:
     - trufflehog@3.88.35
     - yamllint@1.37.1
     - bandit@1.8.3
-    - checkov@3.2.435
+    - checkov@3.2.436
     - terrascan@1.19.9
     - trivy@0.63.0
     #- trufflehog@3.63.2-rc0
@@ -37,7 +37,7 @@ lint:
     - shellcheck@0.10.0
     - black@25.1.0
     - git-diff-check
-    - gitleaks@8.26.0
+    - gitleaks@8.27.0
     - clang-format@16.0.3
     - prettier@3.5.3
   ignore:
