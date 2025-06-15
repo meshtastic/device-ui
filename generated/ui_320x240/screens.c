@@ -224,7 +224,7 @@ void create_screen_boot_screen() {
                             lv_obj_set_pos(obj, 0, 20);
                             lv_obj_set_size(obj, 200, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
-                            lv_label_set_text(obj, _("Reboot into former UI ?"));
+                            lv_label_set_text(obj, _("Reboot into BaseUI?"));
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_text_opa(obj, 200, LV_PART_MAIN | LV_STATE_DEFAULT);
