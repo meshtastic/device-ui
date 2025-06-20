@@ -163,6 +163,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
         }
     } else if (lgfx->getBrightness() < lastBrightness) {
         lgfx->setBrightness(lastBrightness);
+        lastBrightness = lgfx->getBrightness();
     }
 
     if (!calibrating) {
