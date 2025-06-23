@@ -1,4 +1,5 @@
 #include "graphics/common/LoRaPresets.h"
+#include "util/ILog.h"
 
 /**
  * LoRa Presets
@@ -48,7 +49,7 @@ uint16_t LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode reg
 
     uint32_t numChannels = getNumChannels(region, preset);
     return numChannels == 0
-               ? 1
+               ? (region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? 0 : 1)
                : hash(channelName && channelName[0] != '\0' ? channelName : modemPreset[preset].preset) % numChannels + 1;
 }
 
