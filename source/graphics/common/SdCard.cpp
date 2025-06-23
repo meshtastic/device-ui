@@ -145,9 +145,14 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
 
             std::string path = style.name();
             std::string dir = path.substr(path.find_last_of("/") + 1);
-            if (/* style.isDirectory() && */ dir.c_str()[0] != '.') {
-                ILOG_DEBUG("SD: found map style: %s", dir.c_str());
-                styles.insert(dir);
+            if (dir.c_str()[0] != '.') {
+                if (dir.size() > 20) {
+                    ILOG_WARN("SD: map style name too long: %s", dir.c_str());
+                }
+                else {
+                    ILOG_DEBUG("SD: found map style: %s", dir.c_str());
+                    styles.insert(dir);
+                }
             }
             style.close();
         } while (true);
@@ -273,9 +278,14 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
             style.getName(name, sizeof(name));
             std::string path = name;
             std::string dir = path.substr(path.find_last_of("/") + 1);
-            if (style.isDirectory() && dir.c_str()[0] != '.') {
-                ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
-                styles.insert(dir);
+            if (dir.c_str()[0] != '.') {
+                if (dir.size() > 20) {
+                    ILOG_WARN("SdFs: map style name too long: %s", dir.c_str());
+                }
+                else {
+                    ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
+                    styles.insert(dir);
+                }
             }
             style.close();
         } while (true);
