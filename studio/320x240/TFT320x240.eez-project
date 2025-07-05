@@ -817,7 +817,7 @@
                         }
                       },
                       "groupIndex": 0,
-                      "text": "Reboot into former UI ?",
+                      "text": "Reboot into BaseUI?",
                       "textType": "translated-literal",
                       "longMode": "CLIP",
                       "recolor": false
