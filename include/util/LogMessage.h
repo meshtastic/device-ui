@@ -12,6 +12,8 @@ constexpr uint32_t messagePayloadSize = 233;
  * Note: this struct does have vtable pointers, i.e. sizeof(LogMessageHeader)-8 is the real data size
  */
 struct LogMessageHeader : public ILogEntry {
+    size_t length(void) const override { return _size; }
+
     uint16_t _size;
     time_t time;
     uint32_t from;

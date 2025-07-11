@@ -6347,8 +6347,8 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
             pos += sprintf(buf, "%04x ", msg.from & 0xffff);
         }
         uint32_t len = timestamp(buf + pos, msg.time, false);
-        memcpy(buf + pos + len, msg.bytes, msg.size());
-        buf[pos + len + msg.size()] = 0;
+        memcpy(buf + pos + len, msg.bytes, msg.length());
+        buf[pos + len + msg.length()] = 0;
 
         lv_obj_t *container = newMessageContainer(msg.from, msg.to, msg.ch);
         lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
