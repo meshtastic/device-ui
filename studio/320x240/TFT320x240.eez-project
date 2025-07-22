@@ -817,7 +817,7 @@
                         }
                       },
                       "groupIndex": 0,
-                      "text": "Reboot into former UI ?",
+                      "text": "Reboot into BaseUI?",
                       "textType": "translated-literal",
                       "longMode": "CLIP",
                       "recolor": false
@@ -12698,7 +12698,7 @@
                     }
                   },
                   "groupIndex": 0,
-                  "options": "US\nEU_433\nEU_868\nCN\nJP\nANZ\nKR\nTW\nRU\nIN\nNZ_865\nTH\nLORA_24\nUA_433\nUA_868\nMY_433\nMY_919\nSG_923\nPH_433\nPH_868\nPH_915",
+                  "options": "US\nEU_433\nEU_868\nCN\nJP\nANZ\nKR\nTW\nRU\nIN\nNZ_865\nTH\nLORA_24\nUA_433\nUA_868\nMY_433\nMY_919\nSG_923\nPH_433\nPH_868\nPH_915\nANZ_433",
                   "optionsType": "literal",
                   "selected": 0,
                   "selectedType": "literal",
@@ -21784,7 +21784,7 @@
                         }
                       },
                       "groupIndex": 0,
-                      "options": "US\nEU_433\nEU_868\nCN\nJP\nANZ\nKR\nTW\nRU\nIN\nNZ_865\nTH\nLORA_24\nUA_433\nUA_868\nMY_433\nMY_919\nSG_923\nPH_433\nPH_868\nPH_915",
+                      "options": "US\nEU_433\nEU_868\nCN\nJP\nANZ\nKR\nTW\nRU\nIN\nNZ_865\nTH\nLORA_24\nUA_433\nUA_868\nMY_433\nMY_919\nSG_923\nPH_433\nPH_868\nPH_915\nANZ_433",
                       "optionsType": "literal",
                       "selected": 0,
                       "selectedType": "literal",

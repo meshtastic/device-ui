@@ -471,6 +471,18 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
         lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
         if (activePanel == objects.messages_panel) {
             lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
+            if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+                hideKeyboard(objects.messages_panel);
+            }
+            uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+            // remove empty messageContainer if we are leaving messages panel
+            if (channelOrNode >= c_max_channels) {
+                if (activeMsgContainer->spec_attr->child_cnt == 0) {
+                    eraseChat(channelOrNode);
+                    updateActiveChats();
+                    activeMsgContainer = objects.messages_container;
+                }
+            }
             unreadMessages = 0; // TODO: not all messages may be actually read
             updateUnreadMessages();
         } else if (activePanel == objects.node_options_panel) {
@@ -6352,8 +6364,8 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
             pos += sprintf(buf, "%04x ", msg.from & 0xffff);
         }
         uint32_t len = timestamp(buf + pos, msg.time, false);
-        memcpy(buf + pos + len, msg.bytes, msg.size());
-        buf[pos + len + msg.size()] = 0;
+        memcpy(buf + pos + len, msg.bytes, msg.length());
+        buf[pos + len + msg.length()] = 0;
 
         lv_obj_t *container = newMessageContainer(msg.from, msg.to, msg.ch);
         lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
@@ -6977,7 +6989,11 @@ void TFTView_320x240::updateTime(void)
 
     int len = 0;
     if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0) {
-        len = strftime(buf, 40, "%T %Z\n%a %d-%b-%g", curr_tm);
+        if (db.config.display.use_12h_clock) {
+            len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
+        } else {
+            len = strftime(buf, 40, "%T %Z\n%a %d-%b-%g", curr_tm);
+        }
     } else {
         uint32_t uptime = millis() / 1000;
         int hours = uptime / 3600;

@@ -67,10 +67,9 @@ void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t
 {
     // has_user == false, generate default user name
     meshtastic_User user{};
-    char userShort[5], userLong[32];
     sprintf(user.short_name, "%04x", nodeNum & 0xffff);
     strcpy(user.long_name, "Meshtastic ");
-    strcat(user.long_name, userShort);
+    strcat(user.long_name, user.short_name);
     user.role = (meshtastic_Config_DeviceConfig_Role)role;
     user.hw_model = meshtastic_HardwareModel_UNSET;
     addOrUpdateNode(nodeNum, channel, lastHeard, user);

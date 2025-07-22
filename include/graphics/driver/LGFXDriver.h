@@ -163,6 +163,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
         }
     } else if (lgfx->getBrightness() < lastBrightness) {
         lgfx->setBrightness(lastBrightness);
+        lastBrightness = lgfx->getBrightness();
     }
 
     if (!calibrating) {
@@ -353,6 +354,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 
 template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
 {
+#ifndef CUSTOM_TOUCH_DRIVER
     if (parameters[0] || parameters[7]) {
         ILOG_DEBUG("setting touch screen calibration data");
         lgfx->setTouchCalibrate(parameters);
@@ -374,6 +376,7 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
     }
     ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}", parameters[0], parameters[1],
                parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
+#endif
     return true;
 }
 

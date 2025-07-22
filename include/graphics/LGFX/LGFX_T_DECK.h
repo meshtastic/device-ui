@@ -50,12 +50,12 @@ class LGFX_Touch : public lgfx::LGFX_Device
     bool getTouchXY(uint16_t *touchX, uint16_t *touchY)
     {
         TOUCHINFO ti;
-        if (!digitalRead(TOUCH_INT))
-            if (bbct.getSamples(&ti)) {
-                *touchX = ti.x[0];
-                *touchY = ti.y[0] - 90;
-                return true;
-            }
+        // if (!digitalRead(TOUCH_INT)) // cannot use as T-Deck Plus has inconsistent factory settings for IRQ pin
+        if (bbct.getSamples(&ti)) {
+            *touchX = ti.x[0];
+            *touchY = ti.y[0] - 90;
+            return true;
+        }
         return false;
     };
 
@@ -75,12 +75,22 @@ class LGFX_TDECK : public lgfx::LGFX_Device
     lgfx::Bus_SPI _bus_instance;
     lgfx::Light_PWM _light_instance;
     lgfx::Touch_GT911 _touch_instance;
+    uint8_t brightness = 153;
 
   public:
     const uint32_t screenWidth = 320;
     const uint32_t screenHeight = 240;
 
     bool hasButton(void) { return true; }
+
+    void setBrightness(uint8_t brightness)
+    {
+        // T-Deck PWM doesn't like 100%, so limit to 253 (99%)
+        _light_instance.setBrightness(brightness < 253 ? brightness : 253);
+        this->brightness = brightness;
+    }
+
+    uint8_t getBrightness(void) const { return brightness; }
 
     LGFX_TDECK(void)
     {
