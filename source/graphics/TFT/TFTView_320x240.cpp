@@ -2110,8 +2110,7 @@ void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
         }
         base64 = THIS->pskToBase64(psk.bytes, psk.size);
         lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
-    }
-    else {
+    } else {
         // decode base64 PSK
         if (!THIS->base64ToPsk(base64, psk.bytes, psk.size)) {
             ILOG_ERROR("failed to decode PSK from base64: %s", base64.c_str());
