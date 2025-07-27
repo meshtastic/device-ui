@@ -2124,8 +2124,9 @@ void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
     int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
     meshtastic_Channel channel = THIS->channel_scratch[ch];
     memcpy(channel.settings.psk.bytes, psk.bytes, psk.size);
-    channel.settings.psk.size = psk.size;
     strcpy(channel.settings.name, lv_textarea_get_text(objects.settings_modify_channel_name_textarea));
+    channel.settings.psk.size = psk.size;
+    channel.has_settings = true;
 
     meshtastic_Data_payload_t encoded;
     encoded.size = pb_encode_to_bytes(encoded.bytes, meshtastic_Constants_DATA_PAYLOAD_LEN, meshtastic_Channel_fields, &channel);
