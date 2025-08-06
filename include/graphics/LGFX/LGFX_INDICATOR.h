@@ -24,7 +24,6 @@ class LGFX_Touch : public lgfx::LGFX_Device
   public:
     bool init_impl(bool use_reset, bool use_clear) override
     {
-        Wire.begin(TOUCH_SDA, TOUCH_SCL);
         bool result = LGFX_Device::init_impl(use_reset, use_clear);
         bbct.init(TOUCH_SDA, TOUCH_SCL);
         bbct.setOrientation(180, 480, 480);
@@ -60,19 +59,20 @@ class LGFX_Touch : public lgfx::LGFX_Device
 class Panel_Indicator : public lgfx::Panel_ST7701
 {
   public:
-    const uint8_t* getInitCommands(uint8_t listno) const override
+    const uint8_t *getInitCommands(uint8_t listno) const override
     {
-      static constexpr const uint8_t list1[] =
-      {
-        0x36, 1, 0x10, // MADCTL for vertical flip
-        0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x10, // Command2 BK0 SEL
-        0xC7, 1, 0x04, // SDIR: X-direction Control (Horizontal Flip)
-        0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x00 // Command2 BK0 DIS
-      };
-      switch (listno) {
-        case 1: return list1;
-        default: return lgfx::Panel_ST7701::getInitCommands(listno);
-      }
+        static constexpr const uint8_t list1[] = {
+            0x36, 1, 0x10,                         // MADCTL for vertical flip
+            0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x10, // Command2 BK0 SEL
+            0xC7, 1, 0x04,                         // SDIR: X-direction Control (Horizontal Flip)
+            0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x00  // Command2 BK0 DIS
+        };
+        switch (listno) {
+        case 1:
+            return list1;
+        default:
+            return lgfx::Panel_ST7701::getInitCommands(listno);
+        }
     }
 };
 
