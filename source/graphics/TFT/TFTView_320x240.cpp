@@ -6293,9 +6293,9 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
  */
 void TFTView_320x240::restoreMessage(const LogMessage &msg)
 {
-    ((uint8_t *)msg.bytes)[msg._size] = 0;
-    ILOG_DEBUG("restoring msg from:0x%08x, to:0x%08x, ch:%d, time:%d, status:%d, trash:%d, size:%d, '%s'", msg.from, msg.to,
-               msg.ch, msg.time, (int)msg.status, msg.trashFlag, msg._size, msg.bytes);
+    //((uint8_t *)msg.bytes)[msg._size] = 0;
+    // ILOG_DEBUG("restoring msg from:0x%08x, to:0x%08x, ch:%d, time:%d, status:%d, trash:%d, size:%d, '%s'", msg.from, msg.to,
+    //           msg.ch, msg.time, (int)msg.status, msg.trashFlag, msg._size, msg.bytes);
 
     if (msg.from == ownNode) {
         lv_obj_t *container = nullptr;
