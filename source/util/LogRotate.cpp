@@ -104,8 +104,8 @@ bool LogRotate::write(const ILogEntry &entry)
     currentSize += entry.size();
     totalSize += entry.size();
 
-    ILOG_DEBUG("LogRotate: %d bytes written in %d ms to %s (%d/%d bytes, total: %d)", entry.size(), millis() - start,
-               currentLogName.c_str(), currentSize, c_maxFileSize, totalSize);
+    // ILOG_DEBUG("LogRotate: %d bytes written in %d ms to %s (%d/%d bytes, total: %d)", entry.size(), millis() - start,
+    //            currentLogName.c_str(), currentSize, c_maxFileSize, totalSize);
     return true;
 }
 
