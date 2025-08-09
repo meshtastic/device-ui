@@ -461,7 +461,7 @@ void ViewController::sendPing(void)
 {
     if (client->isConnected()) {
         client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_heartbeat_tag,
-                                        .heartbeat{.dummy_field = 1}}); // tell packet server to send ping to all nodes
+                                        .heartbeat{.nonce = 1}}); // tell packet server to send ping to all nodes
     }
 }
 
