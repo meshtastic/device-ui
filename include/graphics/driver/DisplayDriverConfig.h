@@ -25,6 +25,7 @@ class DisplayDriverConfig
         FB,
         THMI,
         TDECK,
+        TLORA_PAGER,
         INDICATOR,
         BPICOMPUTER_S3,
         TWATCH_S3,
