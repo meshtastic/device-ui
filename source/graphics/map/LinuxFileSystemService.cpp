@@ -28,17 +28,18 @@ LinuxFileSystemService::LinuxFileSystemService() : ITileService(DRIVE_LETTER ":"
 
 LinuxFileSystemService::~LinuxFileSystemService() {}
 
-bool LinuxFileSystemService::load(const char *name, void *img)
+bool load(uint32_t x, uint32_t y, uint32_t z, void *img)
 {
     char buf[128] = DRIVE_LETTER ":";
-    strcat(&buf[2], name);
+    sprintf(&buf[2], "%s/%s/%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileStyle(), z, x, y,
+            MapTileSettings::getTileFormat());
     lv_image_set_src((lv_obj_t *)img, buf);
     if (!lv_image_get_src((lv_obj_t *)img)) {
         lv_image_set_src((lv_obj_t *)img, &img_no_tile_image);
         ILOG_WARN("failed to load tile %s", buf);
         return false;
     }
-    ILOG_DEBUG("tile %s loaded", buf);
+    //ILOG_DEBUG("tile %s loaded", buf);
     return true;
 }
 
