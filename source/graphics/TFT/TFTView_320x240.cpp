@@ -1,4 +1,4 @@
-#if HAS_TFT // VIEW_320x240
+#if HAS_TFT && defined(VIEW_320x240)
 
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"

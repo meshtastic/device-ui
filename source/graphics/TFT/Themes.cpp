@@ -1,3 +1,5 @@
+#ifdef VIEW_320x240
+
 #include "graphics/view/TFT/Themes.h"
 #include "stdint.h"
 
@@ -503,3 +505,5 @@ void Themes::recolorTableRow(lv_draw_fill_dsc_t *fill_draw_dsc, bool odd)
         fill_draw_dsc->color = lv_color_hex(THEME(eTableItemDarkBg));
     }
 }
+
+#endif // VIEW_320x240
