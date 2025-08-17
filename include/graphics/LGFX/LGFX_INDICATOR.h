@@ -65,7 +65,8 @@ class Panel_Indicator : public lgfx::Panel_ST7701
             0x36, 1, 0x10,                         // MADCTL for vertical flip
             0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x10, // Command2 BK0 SEL
             0xC7, 1, 0x04,                         // SDIR: X-direction Control (Horizontal Flip)
-            0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x00  // Command2 BK0 DIS
+            0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x00, // Command2 BK0 DIS
+            0xFF, 0xFF
         };
         switch (listno) {
         case 1:
