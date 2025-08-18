@@ -17,7 +17,7 @@ runtimes:
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
-    - trufflehog@3.90.4
+    - trufflehog@3.90.5
     - yamllint@1.37.1
     - bandit@1.8.6
     - checkov@3.2.461
