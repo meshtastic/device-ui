@@ -560,13 +560,31 @@ void TFTView_320x240::apply_hotfix(void)
         }
     }
 
-    // keyboard size limit
+    // fix size for 480 pixel height displays
     if (v >= 480) {
+        // keyboard size limit
         lv_obj_set_size(objects.keyboard, LV_PCT(100), LV_PCT(45));
+
+        // resize channel buttons
+        buttonSize = 40;
+        lv_obj_set_height(objects.channel_button0, buttonSize);
+        lv_obj_set_height(objects.channel_button1, buttonSize);
+        lv_obj_set_height(objects.channel_button2, buttonSize);
+        lv_obj_set_height(objects.channel_button3, buttonSize);
+        lv_obj_set_height(objects.channel_button4, buttonSize);
+        lv_obj_set_height(objects.channel_button5, buttonSize);
+        lv_obj_set_height(objects.channel_button6, buttonSize);
+        lv_obj_set_height(objects.channel_button7, buttonSize);
+
+        lv_obj_set_height(objects.chats_button, buttonSize);
 
         if (h == 480) {
             lv_img_set_zoom(objects.world_image, 460);
         }
+    }
+    else {
+        // chat button size
+        buttonSize = 36;
     }
 
     lv_obj_move_foreground(objects.keyboard);
@@ -6376,7 +6394,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     // ChatsButton
     lv_obj_t *chatBtn = lv_btn_create(parent_obj);
     lv_obj_set_pos(chatBtn, 0, 0);
-    lv_obj_set_size(chatBtn, LV_PCT(100), 36);
+    lv_obj_set_size(chatBtn, LV_PCT(100), buttonSize);
     lv_obj_add_flag(chatBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
     lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_SCROLLABLE);
     add_style_home_button_style(chatBtn);
