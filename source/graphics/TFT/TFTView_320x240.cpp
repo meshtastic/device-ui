@@ -581,8 +581,7 @@ void TFTView_320x240::apply_hotfix(void)
         if (h == 480) {
             lv_img_set_zoom(objects.world_image, 460);
         }
-    }
-    else {
+    } else {
         // chat button size
         buttonSize = 36;
     }
