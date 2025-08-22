@@ -31,9 +31,14 @@ bool I2CKeyboardInputDriver::registerI2CKeyboard(I2CKeyboardInputDriver *driver,
 
 void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
-    // Read from the first registered keyboard
-    auto &keyboardDef = i2cKeyboardList.front();
-    keyboardDef->driver->readKeyboard(keyboardDef->address, indev, data);
+    // Read from all registered keyboards
+    for (auto &keyboardDef : i2cKeyboardList) {
+        keyboardDef->driver->readKeyboard(keyboardDef->address, indev, data);
+        if (data->state == LV_INDEV_STATE_PRESSED) {
+            // If any keyboard reports a key press, we stop reading further
+            return;
+        }
+    }
 }
 
 // ---------- TDeckKeyboardInputDriver Implementation ----------
