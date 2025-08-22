@@ -6,7 +6,7 @@
 
 I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
 
-I2CKeyboardInputDriver::I2CKeyboardInputDriver(uint8_t address) : address(address) {}
+I2CKeyboardInputDriver::I2CKeyboardInputDriver(void) {}
 
 void I2CKeyboardInputDriver::init(void)
 {
@@ -33,12 +33,12 @@ void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *d
 {
     // Read from the first registered keyboard
     auto &keyboardDef = i2cKeyboardList.front();
-    keyboardDef->driver->readKeyboard(indev, data);
+    keyboardDef->driver->readKeyboard(keyboardDef->address, indev, data);
 }
 
 // ---------- TDeckKeyboardInputDriver Implementation ----------
 
-TDeckKeyboardInputDriver::TDeckKeyboardInputDriver(uint8_t address) : I2CKeyboardInputDriver(address)
+TDeckKeyboardInputDriver::TDeckKeyboardInputDriver(uint8_t address)
 {
     registerI2CKeyboard(this, "T-Deck Keyboard", address);
 }
@@ -71,11 +71,11 @@ TDeckKeyboardInputDriver::TDeckKeyboardInputDriver(uint8_t address) : I2CKeyboar
     LV_KEY_END       = 3,   // 0x03, ETX
 *******************************************************************/
 
-void TDeckKeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *data)
+void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    Wire.requestFrom(address, 1);
-    if (Wire.available() > 0) {
+    uint8_t bytes = Wire.requestFrom(address, 1);
+    if (Wire.available() > 0 && bytes > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
         if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
@@ -98,7 +98,7 @@ void TDeckKeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *
 
 // ---------- TCA8418KeyboardInputDriver Implementation ----------
 
-TCA8418KeyboardInputDriver::TCA8418KeyboardInputDriver(uint8_t address) : I2CKeyboardInputDriver(address)
+TCA8418KeyboardInputDriver::TCA8418KeyboardInputDriver(uint8_t address)
 {
     registerI2CKeyboard(this, "TCA8418 Keyboard", address);
 }
@@ -109,7 +109,7 @@ void TCA8418KeyboardInputDriver::init(void)
     I2CKeyboardInputDriver::init();
 }
 
-void TCA8418KeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *data)
+void TCA8418KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     // TODO
     char keyValue = 0;
@@ -130,7 +130,7 @@ void TLoraPagerKeyboardInputDriver::init(void)
     TCA8418KeyboardInputDriver::init();
 }
 
-void TLoraPagerKeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *data)
+void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     // TODO
     char keyValue = 0;
@@ -151,7 +151,7 @@ void TDeckProKeyboardInputDriver::init(void)
     TCA8418KeyboardInputDriver::init();
 }
 
-void TDeckProKeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *data)
+void TDeckProKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     // TODO
     char keyValue = 0;
@@ -161,7 +161,7 @@ void TDeckProKeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_
 
 // ---------- BBQ10KeyboardInputDriver Implementation ----------
 
-BBQ10KeyboardInputDriver::BBQ10KeyboardInputDriver(uint8_t address) : I2CKeyboardInputDriver(address)
+BBQ10KeyboardInputDriver::BBQ10KeyboardInputDriver(uint8_t address)
 {
     registerI2CKeyboard(this, "BBQ10 Keyboard", address);
 }
@@ -172,11 +172,11 @@ void BBQ10KeyboardInputDriver::init(void)
     // Additional initialization for BBQ10 if needed
 }
 
-void BBQ10KeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *data)
+void BBQ10KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    Wire.requestFrom(address, 1);
-    if (Wire.available() > 0) {
+    uint8_t bytes = Wire.requestFrom(address, 1);
+    if (Wire.available() > 0 && bytes > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
         if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
@@ -199,12 +199,12 @@ void BBQ10KeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *
 
 // ---------- CardKBInputDriver Implementation ----------
 
-CardKBInputDriver::CardKBInputDriver(uint8_t address) : I2CKeyboardInputDriver(address)
+CardKBInputDriver::CardKBInputDriver(uint8_t address)
 {
     registerI2CKeyboard(this, "Card Keyboard", address);
 }
 
-void CardKBInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *data)
+void CardKBInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
     Wire.requestFrom(address, 1);
@@ -255,7 +255,7 @@ void CardKBInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *data)
 
 // ---------- MPR121KeyboardInputDriver Implementation ----------
 
-MPR121KeyboardInputDriver::MPR121KeyboardInputDriver(uint8_t address) : I2CKeyboardInputDriver(address)
+MPR121KeyboardInputDriver::MPR121KeyboardInputDriver(uint8_t address)
 {
     registerI2CKeyboard(this, "MPR121 Keyboard", address);
 }
@@ -266,7 +266,7 @@ void MPR121KeyboardInputDriver::init(void)
     // Additional initialization for MPR121 if needed
 }
 
-void MPR121KeyboardInputDriver::readKeyboard(lv_indev_t *indev, lv_indev_data_t *data)
+void MPR121KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     // TODO
     char keyValue = 0;

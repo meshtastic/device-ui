@@ -8,10 +8,10 @@
 class I2CKeyboardInputDriver : public InputDriver
 {
   public:
-    I2CKeyboardInputDriver(uint8_t address = 0x00);
+    I2CKeyboardInputDriver(void);
     virtual void init(void) override;
     virtual void task_handler(void) override{};
-    virtual void readKeyboard(lv_indev_t *indev, lv_indev_data_t *data) = 0;
+    virtual void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) = 0;
     virtual ~I2CKeyboardInputDriver(void) {}
 
     struct KeyboardDefinition {
@@ -25,7 +25,6 @@ class I2CKeyboardInputDriver : public InputDriver
 
   protected:
     bool registerI2CKeyboard(I2CKeyboardInputDriver *driver, std::string name, uint8_t address);
-    uint8_t address;
 
   private:
     static void keyboard_read(lv_indev_t *indev, lv_indev_data_t *data);
@@ -37,7 +36,7 @@ class TDeckKeyboardInputDriver : public I2CKeyboardInputDriver
 {
   public:
     TDeckKeyboardInputDriver(uint8_t address);
-    void readKeyboard(lv_indev_t *indev, lv_indev_data_t *data) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TDeckKeyboardInputDriver(void) {}
 };
 
@@ -46,7 +45,7 @@ class TCA8418KeyboardInputDriver : public I2CKeyboardInputDriver
   public:
     TCA8418KeyboardInputDriver(uint8_t address);
     void init(void) override;
-    void readKeyboard(lv_indev_t *indev, lv_indev_data_t *data) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TCA8418KeyboardInputDriver(void) {}
 };
 
@@ -55,7 +54,7 @@ class TLoraPagerKeyboardInputDriver : public TCA8418KeyboardInputDriver
   public:
     TLoraPagerKeyboardInputDriver(uint8_t address);
     void init(void) override;
-    void readKeyboard(lv_indev_t *indev, lv_indev_data_t *data) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TLoraPagerKeyboardInputDriver(void) {}
 };
 
@@ -64,7 +63,7 @@ class TDeckProKeyboardInputDriver : public TCA8418KeyboardInputDriver
   public:
     TDeckProKeyboardInputDriver(uint8_t address);
     void init(void) override;
-    void readKeyboard(lv_indev_t *indev, lv_indev_data_t *data) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TDeckProKeyboardInputDriver(void) {}
 };
 
@@ -73,7 +72,7 @@ class BBQ10KeyboardInputDriver : public I2CKeyboardInputDriver
   public:
     BBQ10KeyboardInputDriver(uint8_t address);
     void init(void) override;
-    void readKeyboard(lv_indev_t *indev, lv_indev_data_t *data) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~BBQ10KeyboardInputDriver(void) {}
 };
 
@@ -81,7 +80,7 @@ class CardKBInputDriver : public I2CKeyboardInputDriver
 {
   public:
     CardKBInputDriver(uint8_t address);
-    void readKeyboard(lv_indev_t *indev, lv_indev_data_t *data) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~CardKBInputDriver(void) {}
 };
 
@@ -90,6 +89,6 @@ class MPR121KeyboardInputDriver : public I2CKeyboardInputDriver
   public:
     MPR121KeyboardInputDriver(uint8_t address);
     void init(void) override;
-    void readKeyboard(lv_indev_t *indev, lv_indev_data_t *data) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~MPR121KeyboardInputDriver(void) {}
 };
