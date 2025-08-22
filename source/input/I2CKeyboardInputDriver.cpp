@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#include "indev/lv_indev_private.h"
+
 I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
 
 I2CKeyboardInputDriver::I2CKeyboardInputDriver(void) {}
@@ -247,6 +249,15 @@ void CardKBInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_inde
                 break;
             case 0x8C: // Fn+TAB
                 keyValue = LV_KEY_PREV;
+                break;
+            case 0xA3: // Fn+ENTER
+                // simulate a long press on Fn+ENTER (see indev_keypad_proc() in indev.c)
+                indev->wait_until_release = 0;
+                indev->pr_timestamp = lv_tick_get() - indev->long_press_time - 1;
+                indev->long_pr_sent = 0;
+                indev->keypad.last_state = LV_INDEV_STATE_PRESSED;
+                indev->keypad.last_key = LV_KEY_ENTER;
+                keyValue = LV_KEY_ENTER;
                 break;
             default:
                 break;
