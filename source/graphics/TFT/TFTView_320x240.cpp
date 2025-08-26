@@ -5819,7 +5819,14 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 {
     db.config.lora = cfg;
     db.config.has_lora = true;
-    showLoRaFrequency(cfg);
+
+    // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
+    if (!db.config.lora.channel_num) {
+        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
+                                                                 THIS->db.channel[0].settings.name);
+    }
+
+    showLoRaFrequency(db.config.lora);
 
     char region[30];
     lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
@@ -5833,11 +5840,6 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 
     uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-
-    if (!db.config.lora.channel_num) {
-        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
-                                                                 THIS->db.channel[0].settings.name);
-    }
     lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
 
     if (db.config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
@@ -5855,8 +5857,8 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
 {
     char loraFreq[48];
-    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + db.config.lora.frequency_offset;
-    if (frequency > 1.0 && frequency < 10000.0) {
+    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
+    if (cfg.region) {
         sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
     } else {
         strcpy(loraFreq, _("region unset"));
