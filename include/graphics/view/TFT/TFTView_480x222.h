@@ -8,7 +8,7 @@
  * Note: due to static callbacks in lvgl this class is modelled as
  *       a singleton with static callback members
  */
-class TFTView_480x320 : public MeshtasticView
+class TFTView_480x222 : public MeshtasticView
 {
   public:
     void init(IClientBase *client) override;
@@ -28,10 +28,10 @@ class TFTView_480x320 : public MeshtasticView
   private:
     // view creation only via ViewFactory
     friend class ViewFactory;
-    static TFTView_480x320 *instance(void);
-    static TFTView_480x320 *instance(const DisplayDriverConfig &cfg);
-    TFTView_480x320();
-    TFTView_480x320(const DisplayDriverConfig *cfg, DisplayDriver *driver);
+    static TFTView_480x222 *instance(void);
+    static TFTView_480x222 *instance(const DisplayDriverConfig &cfg);
+    TFTView_480x222();
+    TFTView_480x222(const DisplayDriverConfig *cfg, DisplayDriver *driver);
 
-    static TFTView_480x320 *gui;
+    static TFTView_480x222 *gui;
 };

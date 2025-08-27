@@ -1,17 +1,17 @@
 #include "graphics/DeviceGUI.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverConfig.h"
+#include "input/I2CKeyboardScanner.h"
 #include "input/InputDriver.h"
 #include <thread>
+
+#include "input/I2CKeyboardInputDriver.h"
+static I2CKeyboardInputDriver *keyboardDriver = nullptr;
 
 #if LV_USE_LIBINPUT
 #include "input/LinuxInputDriver.h"
 static LinuxInputDriver *linuxInputDriver = nullptr;
 #else
-#if defined(INPUTDRIVER_I2C_KBD_TYPE)
-#include "input/I2CKeyboardInputDriver.h"
-static I2CKeyboardInputDriver *keyboardDriver = nullptr;
-#endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
 #include "input/EncoderInputDriver.h"
 static EncoderInputDriver *encoderDriver = nullptr;
@@ -31,15 +31,13 @@ static ButtonInputDriver *buttonDriver = nullptr;
 
 DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : displaydriver(driver), inputdriver(nullptr)
 {
+
 #if LV_USE_LIBINPUT
     if (cfg)
         linuxInputDriver = new LinuxInputDriver(cfg->keyboard(), cfg->pointer());
 //    else
 //        linuxInputDriver = InputDriver::instance();
 #else
-#if defined(INPUTDRIVER_I2C_KBD_TYPE)
-    keyboardDriver = new I2CKeyboardInputDriver;
-#endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     encoderDriver = new EncoderInputDriver;
 #endif
@@ -60,13 +58,13 @@ void DeviceGUI::init(IClientBase *client)
     displaydriver->init(this);
 
     ILOG_DEBUG("Input driver init...");
+    I2CKeyboardScanner scanner;
+    keyboardDriver = scanner.scan();
+    if (keyboardDriver)
+        keyboardDriver->init();
 #if LV_USE_LIBINPUT
     if (linuxInputDriver)
         linuxInputDriver->init();
-#endif
-#if defined(INPUTDRIVER_I2C_KBD_TYPE)
-    if (keyboardDriver)
-        keyboardDriver->init();
 #endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     if (encoderDriver)
