@@ -1,9 +1,12 @@
-#ifdef INPUTDRIVER_I2C_KBD_TYPE
 
 #include "input/I2CKeyboardInputDriver.h"
 #include "util/ILog.h"
 #include <Arduino.h>
 #include <Wire.h>
+
+#include "indev/lv_indev_private.h"
+
+I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
 
 I2CKeyboardInputDriver::I2CKeyboardInputDriver(void) {}
 
@@ -18,6 +21,33 @@ void I2CKeyboardInputDriver::init(void)
         lv_group_set_default(inputGroup);
     }
     lv_indev_set_group(keyboard, inputGroup);
+}
+
+bool I2CKeyboardInputDriver::registerI2CKeyboard(I2CKeyboardInputDriver *driver, std::string name, uint8_t address)
+{
+    auto keyboardDef = std::unique_ptr<KeyboardDefinition>(new KeyboardDefinition{driver, name, address});
+    i2cKeyboardList.push_back(std::move(keyboardDef));
+    ILOG_INFO("Registered I2C keyboard: %s at address 0x%02X", name.c_str(), address);
+    return true;
+}
+
+void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *data)
+{
+    // Read from all registered keyboards
+    for (auto &keyboardDef : i2cKeyboardList) {
+        keyboardDef->driver->readKeyboard(keyboardDef->address, indev, data);
+        if (data->state == LV_INDEV_STATE_PRESSED) {
+            // If any keyboard reports a key press, we stop reading further
+            return;
+        }
+    }
+}
+
+// ---------- TDeckKeyboardInputDriver Implementation ----------
+
+TDeckKeyboardInputDriver::TDeckKeyboardInputDriver(uint8_t address)
+{
+    registerI2CKeyboard(this, "T-Deck Keyboard", address);
 }
 
 /******************************************************************
@@ -48,11 +78,11 @@ void I2CKeyboardInputDriver::init(void)
     LV_KEY_END       = 3,   // 0x03, ETX
 *******************************************************************/
 
-void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *data)
+void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    Wire.requestFrom(INPUTDRIVER_I2C_KBD_TYPE, 1);
-    if (Wire.available() > 0) {
+    uint8_t bytes = Wire.requestFrom(address, 1);
+    if (Wire.available() > 0 && bytes > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
         if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
@@ -73,8 +103,189 @@ void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *d
     data->key = (uint32_t)keyValue;
 }
 
-void I2CKeyboardInputDriver::task_handler(void) {}
+// ---------- TCA8418KeyboardInputDriver Implementation ----------
 
-I2CKeyboardInputDriver::~I2CKeyboardInputDriver(void) {}
+TCA8418KeyboardInputDriver::TCA8418KeyboardInputDriver(uint8_t address)
+{
+    registerI2CKeyboard(this, "TCA8418 Keyboard", address);
+}
 
-#endif
+void TCA8418KeyboardInputDriver::init(void)
+{
+    // Additional initialization for TCA8418 if needed
+    I2CKeyboardInputDriver::init();
+}
+
+void TCA8418KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
+{
+    // TODO
+    char keyValue = 0;
+    data->state = LV_INDEV_STATE_RELEASED;
+    data->key = (uint32_t)keyValue;
+}
+
+// ---------- TLoraPagerKeyboardInputDriver Implementation ----------
+
+TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address) : TCA8418KeyboardInputDriver(address)
+{
+    registerI2CKeyboard(this, "TLora Pager Keyboard", address);
+}
+
+void TLoraPagerKeyboardInputDriver::init(void)
+{
+    // Additional initialization for TLora-Pager if needed
+    TCA8418KeyboardInputDriver::init();
+}
+
+void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
+{
+    // TODO
+    char keyValue = 0;
+    data->state = LV_INDEV_STATE_RELEASED;
+    data->key = (uint32_t)keyValue;
+}
+
+// ---------- TDeckProKeyboardInputDriver Implementation ----------
+
+TDeckProKeyboardInputDriver::TDeckProKeyboardInputDriver(uint8_t address) : TCA8418KeyboardInputDriver(address)
+{
+    registerI2CKeyboard(this, "T-Deck Pro Keyboard", address);
+}
+
+void TDeckProKeyboardInputDriver::init(void)
+{
+    // Additional initialization for TLora-Pager if needed
+    TCA8418KeyboardInputDriver::init();
+}
+
+void TDeckProKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
+{
+    // TODO
+    char keyValue = 0;
+    data->state = LV_INDEV_STATE_RELEASED;
+    data->key = (uint32_t)keyValue;
+}
+
+// ---------- BBQ10KeyboardInputDriver Implementation ----------
+
+BBQ10KeyboardInputDriver::BBQ10KeyboardInputDriver(uint8_t address)
+{
+    registerI2CKeyboard(this, "BBQ10 Keyboard", address);
+}
+
+void BBQ10KeyboardInputDriver::init(void)
+{
+    I2CKeyboardInputDriver::init();
+    // Additional initialization for BBQ10 if needed
+}
+
+void BBQ10KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
+{
+    char keyValue = 0;
+    uint8_t bytes = Wire.requestFrom(address, 1);
+    if (Wire.available() > 0 && bytes > 0) {
+        keyValue = Wire.read();
+        // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
+        if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
+            data->state = LV_INDEV_STATE_PRESSED;
+            ILOG_DEBUG("key press value: %d", (int)keyValue);
+
+            switch (keyValue) {
+            case 0x0D:
+                keyValue = LV_KEY_ENTER;
+                break;
+            default:
+                break;
+            }
+        } else {
+            data->state = LV_INDEV_STATE_RELEASED;
+        }
+    }
+    data->key = (uint32_t)keyValue;
+}
+
+// ---------- CardKBInputDriver Implementation ----------
+
+CardKBInputDriver::CardKBInputDriver(uint8_t address)
+{
+    registerI2CKeyboard(this, "Card Keyboard", address);
+}
+
+void CardKBInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
+{
+    char keyValue = 0;
+    Wire.requestFrom(address, 1);
+    if (Wire.available() > 0) {
+        keyValue = Wire.read();
+        // ignore empty reads and keycode 224 which causes internal issues
+        if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
+            data->state = LV_INDEV_STATE_PRESSED;
+            ILOG_DEBUG("key press value: %d", (int)keyValue);
+
+            switch (keyValue) {
+            case 0x0D:
+                keyValue = LV_KEY_ENTER;
+                break;
+            case 0xB4:
+                keyValue = LV_KEY_LEFT;
+                break;
+            case 0xB5:
+                keyValue = LV_KEY_UP;
+                break;
+            case 0xB6:
+                keyValue = LV_KEY_DOWN;
+                break;
+            case 0xB7:
+                keyValue = LV_KEY_RIGHT;
+                break;
+            case 0x99: // Fn+UP
+                keyValue = LV_KEY_HOME;
+                break;
+            case 0xA4: // Fn+DOWN
+                keyValue = LV_KEY_END;
+                break;
+            case 0x8B: // Fn+BS
+                keyValue = LV_KEY_DEL;
+                break;
+            case 0x8C: // Fn+TAB
+                keyValue = LV_KEY_PREV;
+                break;
+            case 0xA3: // Fn+ENTER
+                // simulate a long press on Fn+ENTER (see indev_keypad_proc() in indev.c)
+                indev->wait_until_release = 0;
+                indev->pr_timestamp = lv_tick_get() - indev->long_press_time - 1;
+                indev->long_pr_sent = 0;
+                indev->keypad.last_state = LV_INDEV_STATE_PRESSED;
+                indev->keypad.last_key = LV_KEY_ENTER;
+                keyValue = LV_KEY_ENTER;
+                break;
+            default:
+                break;
+            }
+        } else {
+            data->state = LV_INDEV_STATE_RELEASED;
+        }
+    }
+    data->key = (uint32_t)keyValue;
+}
+
+// ---------- MPR121KeyboardInputDriver Implementation ----------
+
+MPR121KeyboardInputDriver::MPR121KeyboardInputDriver(uint8_t address)
+{
+    registerI2CKeyboard(this, "MPR121 Keyboard", address);
+}
+
+void MPR121KeyboardInputDriver::init(void)
+{
+    I2CKeyboardInputDriver::init();
+    // Additional initialization for MPR121 if needed
+}
+
+void MPR121KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
+{
+    // TODO
+    char keyValue = 0;
+    data->state = LV_INDEV_STATE_RELEASED;
+    data->key = (uint32_t)keyValue;
+}
