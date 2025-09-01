@@ -60,6 +60,9 @@
 #ifdef ESP32_2432S028RV2
 #include "graphics/LGFX/LGFX_ESP2432S028RV2.h"
 #endif
+#ifdef JC4827W543C
+#include "graphics/LGFX/LGFX_JC4827W543C.h"
+#endif
 #ifdef WT32_SC01
 #include "graphics/LGFX/LGFX_WT_SC01PLUS.h"
 #endif
@@ -176,6 +179,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(ESP2432S028RV2)
     case DisplayDriverConfig::device_t::ESP2432S028RV2:
         return new LGFXDriver<LGFX_ESP2432S028RV2>(cfg.width(), cfg.height());
+        break;
+#elif defined(JC4827W543C)
+    case DisplayDriverConfig::device_t::ESPJC4827W543C:
+        return new LGFXDriver<LGFX_JC4827W543C>(cfg.width(), cfg.height());
         break;
 #endif
 #elif defined(USE_FRAMEBUFFER)
