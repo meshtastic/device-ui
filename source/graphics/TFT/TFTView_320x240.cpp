@@ -564,13 +564,30 @@ void TFTView_320x240::apply_hotfix(void)
         }
     }
 
-    // keyboard size limit
+    // fix size for 480 pixel height displays
     if (v >= 480) {
+        // keyboard size limit
         lv_obj_set_size(objects.keyboard, LV_PCT(100), LV_PCT(45));
+
+        // resize channel buttons
+        buttonSize = 40;
+        lv_obj_set_height(objects.channel_button0, buttonSize);
+        lv_obj_set_height(objects.channel_button1, buttonSize);
+        lv_obj_set_height(objects.channel_button2, buttonSize);
+        lv_obj_set_height(objects.channel_button3, buttonSize);
+        lv_obj_set_height(objects.channel_button4, buttonSize);
+        lv_obj_set_height(objects.channel_button5, buttonSize);
+        lv_obj_set_height(objects.channel_button6, buttonSize);
+        lv_obj_set_height(objects.channel_button7, buttonSize);
+
+        lv_obj_set_height(objects.chats_button, buttonSize);
 
         if (h == 480) {
             lv_img_set_zoom(objects.world_image, 460);
         }
+    } else {
+        // chat button size
+        buttonSize = 36;
     }
 
     lv_obj_move_foreground(objects.keyboard);
@@ -5819,7 +5836,14 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 {
     db.config.lora = cfg;
     db.config.has_lora = true;
-    showLoRaFrequency(cfg);
+
+    // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
+    if (!db.config.lora.channel_num) {
+        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
+                                                                 THIS->db.channel[0].settings.name);
+    }
+
+    showLoRaFrequency(db.config.lora);
 
     char region[30];
     lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
@@ -5833,11 +5857,6 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 
     uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
     lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-
-    if (!db.config.lora.channel_num) {
-        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
-                                                                 THIS->db.channel[0].settings.name);
-    }
     lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
 
     if (db.config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
@@ -5855,8 +5874,8 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
 {
     char loraFreq[48];
-    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + db.config.lora.frequency_offset;
-    if (frequency > 1.0 && frequency < 10000.0) {
+    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
+    if (cfg.region) {
         sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
     } else {
         strcpy(loraFreq, _("region unset"));
@@ -6393,7 +6412,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     // ChatsButton
     lv_obj_t *chatBtn = lv_btn_create(parent_obj);
     lv_obj_set_pos(chatBtn, 0, 0);
-    lv_obj_set_size(chatBtn, LV_PCT(100), 36);
+    lv_obj_set_size(chatBtn, LV_PCT(100), buttonSize);
     lv_obj_add_flag(chatBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
     lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_SCROLLABLE);
     add_style_home_button_style(chatBtn);
