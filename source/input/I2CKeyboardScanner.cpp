@@ -16,10 +16,11 @@ I2CKeyboardScanner::I2CKeyboardScanner(void) {}
 
 I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 {
-    ILOG_DEBUG("I2CKeyboardScanner::init ...");
+    I2CKeyboardInputDriver *driver = nullptr;
+#ifndef ARCH_PORTDUINO
     uint8_t i2cKeyboards[] = {SCAN_TDECK_KB_ADDR, SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR, SCAN_BBQ10_KB_ADDR,
                               SCAN_MPR121_KB_ADDR};
-    I2CKeyboardInputDriver *driver = nullptr;
+    ILOG_DEBUG("I2CKeyboardScanner scanning...");
     for (uint8_t i = 0; i < sizeof(i2cKeyboards); i++) {
         uint8_t address = i2cKeyboards[i];
         Wire.beginTransmission(address);
@@ -54,5 +55,6 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
     if (I2CKeyboardInputDriver::getI2CKeyboardList().empty()) {
         ILOG_DEBUG("No I2C keyboards found");
     }
+#endif
     return driver;
 }
