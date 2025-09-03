@@ -8,8 +8,7 @@
 class ITileService
 {
   public:
-    // lvgl lv_fs_drv callbacks
-    virtual bool load(const char *name, void *img) = 0;
+    virtual bool load(uint32_t x, uint32_t y, uint32_t z, void *img) = 0;
     virtual ~ITileService() {}
 
   protected:
@@ -29,9 +28,9 @@ class TileService : public ITileService
     virtual void setService(ITileService *s);
     virtual void setBackupService(ITileService *s);
 
-    bool load(const char *name, void *img) override
+    bool load(uint32_t x, uint32_t y, uint32_t z, void *img) override
     {
-        return service ? service->load(name, img) : backup ? backup->load(name, img) : false;
+        return service ? service->load(x, y, z, img) : backup ? backup->load(x, y, z, img) : false;
     }
 
     virtual ~TileService();
