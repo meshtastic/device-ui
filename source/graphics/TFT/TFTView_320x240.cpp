@@ -58,7 +58,6 @@ fs::FS &fileSystem = LittleFS;
 
 LV_IMAGE_DECLARE(img_circle_image);
 LV_IMAGE_DECLARE(img_no_tile_image);
-LV_IMAGE_DECLARE(node_location_pin_image);
 LV_IMAGE_DECLARE(node_location_pin24_image);
 
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
@@ -577,10 +576,6 @@ void TFTView_320x240::apply_hotfix(void)
         lv_obj_set_height(objects.channel_button7, buttonSize);
 
         lv_obj_set_height(objects.chats_button, buttonSize);
-
-        if (h == 480) {
-            lv_img_set_zoom(objects.world_image, 460);
-        }
     } else {
         // chat button size
         buttonSize = 36;
@@ -2547,7 +2542,6 @@ void TFTView_320x240::loadMap(void)
     if (sdCard) {
         if (!sdCard->isUpdated()) {
             map->setNoTileImage(&img_no_tile_image);
-            lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
             std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
             if (mapStyles.find("/map") != mapStyles.end()) {
                 // no styles found, but the /map directory, so use it
@@ -2579,12 +2573,10 @@ void TFTView_320x240::loadMap(void)
             } else {
                 messageAlert(_("No map tiles found on SDCard!"), true);
                 map->setNoTileImage(&img_no_tile_image);
-                lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
             }
             map->forceRedraw();
         }
     } else {
-        lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
         lv_dropdown_set_options(objects.map_style_dropdown, "");
     }
 
@@ -6293,7 +6285,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
+    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_14, 0);
     lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
