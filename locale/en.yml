@@ -1,4 +1,5 @@
 en:
+  Reboot into BaseUI?: ~
   no new messages: ~
   1 of 1 nodes online: ~
   uptime 00:00:00: ~
@@ -132,6 +133,8 @@ en:
   Util %0.1f%%  Air %0.1f%%: ~
   'hops: %d': ~
   unknown: ~
+  Connected!: ~
+  Disconnected!: ~
   Shutting down ...: ~
   region unset: ~
   Banner & Sound: ~
@@ -155,5 +158,10 @@ en:
   '%d new message': ~
   '%d new messages': ~
   'uptime: %02d:%02d:%02d': ~
-  "%s (%0.1f GB)\nUsed: %d MB (%d%%)": ~
+  "%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)": ~
+  SD slot empty: ~
+  SD invalid format: ~
+  SD mbr not found: ~
+  SD card error: ~
+  SD unknown error: ~
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~

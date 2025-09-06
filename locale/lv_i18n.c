@@ -218,6 +218,7 @@ static const lv_i18n_lang_t de_lang = {.locale_name = "de",
                                        .locale_plural_fn = de_plural_fn};
 
 static const lv_i18n_phrase_t el_singulars[] = {
+    {"Reboot into BaseUI?", "Επανεκκίνηση σε BaseUI;"},
     {"no new messages", "κανένα νέο μήνυμα"},
     {"1 of 1 nodes online", "1 Κόμβος online"},
     {"uptime 00:00:00", "Χρόν.λειτ. 00:00:00"},
@@ -334,6 +335,8 @@ static const lv_i18n_phrase_t el_singulars[] = {
     {"<not set>", "<χωρίς ρύθμιση>"},
     {"hops: %d", "Αναμεταδόσεις: %d"},
     {"unknown", "άγνωστο"},
+    {"Connected!", "Συνδεμένο!"},
+    {"Disconnected!", "Αποσυνδέμενο!"},
     {"Shutting down ...", "Τερματισμός ..."},
     {"region unset", "Περιοχή μη-ορισμ."},
     {"Banner & Sound", "Πλαίσιο & Ήχος"},
@@ -351,7 +354,12 @@ static const lv_i18n_phrase_t el_singulars[] = {
     {"%d new message", "%d νέο μήνυμα"},
     {"%d new messages", "%d νέα μηνύματα"},
     {"uptime: %02d:%02d:%02d", "Χρόνος Λειτ.: %02d:%02d:%02d"},
-    {"%s (%0.1f GB)\nUsed: %d MB (%d%%)", "%s (%0.1f GB)\nΧρησ.: %d MB (%d%%)"},
+    {"%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)", "%s: %d GB (%s)\nΧρησ.: %0.2f GB (%d%%)"},
+    {"SD slot empty", "SD υποδοχή άδεια"},
+    {"SD invalid format", "SD άκυρη μορφή"},
+    {"SD mbr not found", "SD mbr δεν βρέθηκε"},
+    {"SD card error", "SD σφάλμα κάρτας"},
+    {"SD unknown error", "SD άγνωστο σφάλμα"},
     {NULL, NULL} // End mark
 };
 
