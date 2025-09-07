@@ -16,7 +16,6 @@ const ext_img_desc_t images[89] = {
     { "home_memory_button", &img_home_memory_button },
     { "node_client_image", &img_node_client_image },
     { "keyboard_image", &img_keyboard_image },
-    { "worldmap_image", &img_worldmap_image },
     { "top_nodes_image", &img_top_nodes_image },
     { "top_group_image", &img_top_group_image },
     { "top_chats_image", &img_top_chats_image },
@@ -90,4 +89,5 @@ const ext_img_desc_t images[89] = {
     { "node_location_pin24_image", &img_node_location_pin24_image },
     { "reboot_BT_on_image", &img_reboot_bt_on_image },
     { "unmessagable_image", &img_unmessagable_image },
+    { "home_qr_button_image", &img_home_qr_button_image },
 };

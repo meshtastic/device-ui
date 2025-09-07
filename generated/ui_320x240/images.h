@@ -22,7 +22,6 @@ extern const lv_img_dsc_t img_home_bluetooth_on_button_image;
 extern const lv_img_dsc_t img_home_memory_button;
 extern const lv_img_dsc_t img_node_client_image;
 extern const lv_img_dsc_t img_keyboard_image;
-extern const lv_img_dsc_t img_worldmap_image;
 extern const lv_img_dsc_t img_top_nodes_image;
 extern const lv_img_dsc_t img_top_group_image;
 extern const lv_img_dsc_t img_top_chats_image;
@@ -96,6 +95,7 @@ extern const lv_img_dsc_t img_node_location_pin_image;
 extern const lv_img_dsc_t img_node_location_pin24_image;
 extern const lv_img_dsc_t img_reboot_bt_on_image;
 extern const lv_img_dsc_t img_unmessagable_image;
+extern const lv_img_dsc_t img_home_qr_button_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T

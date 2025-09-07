@@ -260,7 +260,7 @@ void init_style_new_message_style_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_pad_bottom(style, 2);
     lv_style_set_pad_left(style, 2);
     lv_style_set_pad_right(style, 2);
-    lv_style_set_text_font(style, &ui_font_montserrat_12);
+    lv_style_set_text_font(style, &ui_font_montserrat_14);
     lv_style_set_bg_color(style, lv_color_hex(0xffffffff));
     lv_style_set_text_align(style, LV_TEXT_ALIGN_LEFT);
     lv_style_set_bg_opa(style, 255);
@@ -297,7 +297,7 @@ void init_style_chat_message_style_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_pad_bottom(style, 2);
     lv_style_set_pad_left(style, 2);
     lv_style_set_pad_right(style, 2);
-    lv_style_set_text_font(style, &ui_font_montserrat_12);
+    lv_style_set_text_font(style, &ui_font_montserrat_14);
     lv_style_set_bg_color(style, lv_color_hex(0xfffbfce9));
     lv_style_set_bg_opa(style, 255);
     lv_style_set_text_align(style, LV_TEXT_ALIGN_LEFT);
