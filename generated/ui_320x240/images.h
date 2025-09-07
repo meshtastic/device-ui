@@ -91,7 +91,6 @@ extern const lv_img_dsc_t img_zoom_minus_image;
 extern const lv_img_dsc_t img_zoom_plus_image;
 extern const lv_img_dsc_t img_gps_location_image;
 extern const lv_img_dsc_t img_location_lock_image;
-extern const lv_img_dsc_t img_node_location_pin_image;
 extern const lv_img_dsc_t img_node_location_pin24_image;
 extern const lv_img_dsc_t img_reboot_bt_on_image;
 extern const lv_img_dsc_t img_unmessagable_image;
