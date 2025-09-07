@@ -125,6 +125,8 @@ typedef struct _objects_t {
     lv_obj_t *home_sd_card_label;
     lv_obj_t *home_memory_button;
     lv_obj_t *home_memory_label;
+    lv_obj_t *home_qr_button;
+    lv_obj_t *home_qr_label;
     lv_obj_t *nodes_panel;
     lv_obj_t *node_panel;
     lv_obj_t *node_image;
@@ -293,6 +295,8 @@ typedef struct _objects_t {
     lv_obj_t *top_lora_tx_panel;
     lv_obj_t *top_lora_tx_label;
     lv_obj_t *top_lora_tx_image;
+    lv_obj_t *home_show_qr_panel;
+    lv_obj_t *home_cancel_qr_button;
     lv_obj_t *settings_username_panel;
     lv_obj_t *settings_user_short_textarea;
     lv_obj_t *keyboard_button_1;

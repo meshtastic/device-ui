@@ -296,6 +296,8 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_MQTTButton(lv_event_t *e);
     static void ui_event_SDCardButton(lv_event_t *e);
     static void ui_event_MemoryButton(lv_event_t *e);
+    static void ui_event_QrButton(lv_event_t *e);
+    static void ui_event_CancelQrButton(lv_event_t *e);
 
     // blank screen
     static void ui_event_BlankScreenButton(lv_event_t *e);

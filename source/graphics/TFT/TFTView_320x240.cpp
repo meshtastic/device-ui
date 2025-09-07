@@ -580,6 +580,9 @@ void TFTView_320x240::apply_hotfix(void)
         // chat button size
         buttonSize = 36;
     }
+    if (h > 400) {
+        lv_obj_set_style_text_font(objects.home_qr_label, &ui_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
 
     lv_obj_move_foreground(objects.keyboard);
     lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
@@ -711,6 +714,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_sd_card_button, this->ui_event_SDCardButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_qr_button, this->ui_event_QrButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_cancel_qr_button, this->ui_event_CancelQrButton, LV_EVENT_CLICKED, NULL);
 
     // node and channel buttons
     lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
@@ -1499,6 +1504,37 @@ void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
             THIS->updateFreeMem();
         }
     }
+}
+
+void TFTView_320x240::ui_event_QrButton(lv_event_t *e)
+{
+    meshtastic_SharedContact contact { .node_num = THIS->ownNode,
+                                       .has_user = true,
+                                       .user = THIS->db.user,
+                                       .should_ignore = false
+                                     };
+
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, sizeof(payload.bytes), &meshtastic_SharedContact_msg, &contact);
+    std::string base64Https = THIS->pskToBase64(payload.bytes, payload.size);
+    for (char &c : base64Https) {
+        if (c == '+')
+            c = '-';
+        else if (c == '/')
+            c = '_';
+        else if (c == '=')
+            c = '\0';
+    }
+    std::string qr = "https://meshtastic.org/v/#" + base64Https;
+    lv_obj_remove_flag(objects.home_show_qr_panel, LV_OBJ_FLAG_HIDDEN);
+    THIS->qr = THIS->showQrCode(objects.home_show_qr_panel, qr.c_str());
+}
+
+void TFTView_320x240::ui_event_CancelQrButton(lv_event_t *e)
+{
+    lv_obj_add_flag(objects.home_show_qr_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_delete(THIS->qr);
+    THIS->qr = nullptr;
 }
 
 void TFTView_320x240::ui_event_BlankScreenButton(lv_event_t *e)
@@ -6068,6 +6104,11 @@ void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfi
 {
     db.config.security = cfg;
     db.config.has_security = true;
+    
+    // display public key in qr code label
+    char buf[64];
+    lv_snprintf(buf, sizeof(buf), "%s", pskToBase64((uint8_t*)cfg.public_key.bytes, cfg.public_key.size).c_str());
+    lv_label_set_text(objects.home_qr_label, buf);
 }
 
 void TFTView_320x240::updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg)
