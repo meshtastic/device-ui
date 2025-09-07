@@ -2176,7 +2176,7 @@ void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
     channel.has_settings = true;
 
     meshtastic_Data_payload_t encoded;
-    encoded.size = pb_encode_to_bytes(encoded.bytes, meshtastic_Constants_DATA_PAYLOAD_LEN, meshtastic_Channel_fields, &channel);
+    encoded.size = pb_encode_to_bytes(encoded.bytes, meshtastic_Constants_DATA_PAYLOAD_LEN, &meshtastic_ChannelSettings_msg, &channel.settings);
 
     // replace + with -, / with _ and remove trailing =
     std::string base64Https = THIS->pskToBase64(encoded.bytes, encoded.size);
