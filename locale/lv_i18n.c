@@ -188,11 +188,11 @@ static const lv_i18n_phrase_t bg_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t bg_plurals_one[] = {
+static const lv_i18n_phrase_t bg_plurals_one[] = {
     {"%d active chat(s)", "%d активен чат"}, {"%d of %d nodes online", "%d възел онлайн"}, {NULL, NULL} // End mark
 };
 
-static lv_i18n_phrase_t bg_plurals_other[] = {
+static const lv_i18n_phrase_t bg_plurals_other[] = {
     {"%d active chat(s)", "%d активни чатове"}, {"%d of %d nodes online", "%d от %d нода са онлайн"}, {NULL, NULL} // End mark
 };
 
