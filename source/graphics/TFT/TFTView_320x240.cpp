@@ -1508,11 +1508,7 @@ void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_QrButton(lv_event_t *e)
 {
-    meshtastic_SharedContact contact { .node_num = THIS->ownNode,
-                                       .has_user = true,
-                                       .user = THIS->db.user,
-                                       .should_ignore = false
-                                     };
+    meshtastic_SharedContact contact{.node_num = THIS->ownNode, .has_user = true, .user = THIS->db.user, .should_ignore = false};
 
     meshtastic_Data_payload_t payload;
     payload.size = pb_encode_to_bytes(payload.bytes, sizeof(payload.bytes), &meshtastic_SharedContact_msg, &contact);
@@ -6104,10 +6100,10 @@ void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfi
 {
     db.config.security = cfg;
     db.config.has_security = true;
-    
+
     // display public key in qr code label
     char buf[64];
-    lv_snprintf(buf, sizeof(buf), "%s", pskToBase64((uint8_t*)cfg.public_key.bytes, cfg.public_key.size).c_str());
+    lv_snprintf(buf, sizeof(buf), "%s", pskToBase64((uint8_t *)cfg.public_key.bytes, cfg.public_key.size).c_str());
     lv_label_set_text(objects.home_qr_label, buf);
 }
 
@@ -6995,7 +6991,7 @@ void TFTView_320x240::updateAllLastHeard(void)
 
 void TFTView_320x240::updateUnreadMessages(void)
 {
-    char buf[32];
+    char buf[64];
     if (unreadMessages > 0) {
         sprintf(buf, unreadMessages == 1 ? _("%d new message") : _("%d new messages"), unreadMessages);
         lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_unread_button_image,
