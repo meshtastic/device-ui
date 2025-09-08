@@ -1,0 +1,146 @@
+cs:
+  'User name: %s': 'Uživatel: %s'
+  'Device Role: %s': 'Role zařízení: %s'
+  no new messages: žádné nové zprávy
+  1 of 1 nodes online: 1 uzel online
+  DEL: SMAŽ
+  'User name: ': 'Uživatel: '
+  'Modem Preset: LONG FAST': 'Modem: LONG FAST'
+  'Channel: LongFast': 'Kanál: LongFast'
+  'Role: Client': 'Role zařízení: Client'
+  'Screen Timeout: 60s': 'Zhasnutí obrazovky: 60s'
+  'Screen Brightness: 60%': 'Jas obrazovky: 60%'
+  'Screen Calibration: default': 'Kalibrace obrazovky: Výchozí'
+  'Input Control: none/none': 'Vstup: žádný/žádný'
+  'Message Alert Buzzer: on': 'Zvukové upozornění na zprávy: zapnuto'
+  'Language: English': 'Jazyk: Čeština'
+  Configuration Reset: Obnovení nastavení
+  Reboot / Shutdown: Restart / Vypnutí
+  Group Channels: Skupinové kanály
+  no messages: žádné nové zprávy
+  Settings: Nastavení
+  Settings (advanced): Rozšířená nastavení
+  Locations Map: Mapa
+  Locations Map (%d/%d): Mapa (%d/%d)
+  no chats: žádné konverzace
+  Node Options: Možnosti uzlu
+  Short Name: Krátké jméno
+  Long Name: Dlouhé jméno
+  <unset>: <nenastaveno>
+  'FrequencySlot: 1 (902.0MHz)': 'Frekvenční slot: 1 (902.0MHz)'
+  'Brightness: 60%': 'Jas: 60%'
+  'Timeout: 60s': 'Zhasnutí obrazovky: 60s'
+  Mouse: Myš
+  Keyboard: Klávesnice
+  Message Alert: Upozornění na zprávy
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "Vymazat databázi uzlů\nTovární nastavení\nVymazat historii chatu"
+  Channel Name: Název kanálu
+  Pre-shared Key: Klíč
+  "New Message from\n": "Nová zpráva od\n"
+  Resync...: Synchronizace...
+  'Screen Calibration: %s': 'Kalibrace obrazovky: %s'
+  done: hotovo
+  default: Výchozí
+  'Region: %s': 'Region: %s'
+  'Modem Preset: %s': 'Předvolba: %s'
+  'Channel: %s': 'Kanál: %s'
+  'Language: %s': 'Jazyk: %s'
+  'Theme: Dark': 'Motiv: Tmavý'
+  Mesh Detector: Mesh detektor
+  Signal Scanner: Skener signálu
+  Trace Route: Trasování
+  Neighbors: Sousedé
+  Statistics: Statistiky paketů
+  Packet Log: Historie paketů
+  Settings & Tools: Nastavení a nástroje
+  Node Search: Hledání uzlů
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  Screen Lock: Zámek obrazovky
+  Lock PIN: PIN
+  Ringtone: Zvuk
+  Zone: Oblast
+  City: Město
+  Unknown: Neznámý
+  Offline: Offline
+  Public Key: Veřejný klíč
+  Hops away: Hopů
+  MQTT: ~
+  Position: Poloha
+  Name: Jméno
+  Active Chat: Aktivní konverzace
+  Telemetry: Telemetrie
+  IAQ: ~
+  Start: ~
+  'Theme: %s': 'Motiv: %s'
+  uptime 00:00:00: ~
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
+  Meshtastic: ~
+  Packet Statistics: Statistiky paketů
+  none: žádné
+  Default: Výchozí
+  OK: ~
+  Cancel: Zrušit
+  'FrequencySlot: %d (%g MHz)': 'Frekvenční slot: %d (%g MHz)'
+  'Brightness: %d%%': 'Jas: %d%%'
+  'Timeout: off': 'Zhasnutí obrazovky: vypnuto'
+  'Timeout: %ds': 'Zhasnutí obrazovky: %ds'
+  Stop: Stop
+  "choose\nnode": "vyber\nuzel"
+  choose target node: vyber cílový uzel
+  'heard: !%08x': 'Zachyceno: !%08x'
+  'Packet Log: %d': 'Historie paketů: %d'
+  'Screen Timeout: off': 'Zhasnutí obrazovky: nikdy'
+  'Screen Timeout: %ds': 'Zhasnutí obrazovky: %ds'
+  'Screen Brightness: %d%%': 'Jas obrazovky: %d%%'
+  'Screen Lock: %s': 'Zámek obrazovky: %s'
+  'on': zapnuto
+  'off': vypnuto
+  'Message Alert: %s': 'Upozornění na zprávy: %s'
+  Util %0.1f%%  Air %0.1f%%: ~
+  'hops: %d': 'hopů: %d'
+  unknown: neznámý
+  <no name>: <bez jména>
+  '%d active chat(s)':
+    one: '%d aktivní konverzace'
+    other: '%d aktivních konverzací'
+  "New message from \n%s": "Nová zpráva od\n%s"
+  'Input Control: %s/%s': 'Vstup: %s/%s'
+  '%d of %d nodes online':
+    one: 1 uzel online
+    other: '%d / %d uzlů online'
+  Filtering ...: Filtrování ...
+  'Filter: %d of %d nodes': 'Filter: %d / %d uzlů'
+  now: nyní
+  '%d new message': '%d nová zpráva'
+  '%d new messages': '%d nových zpráv'
+  'uptime: %02d:%02d:%02d': ~
+  Tools: Nástroje
+  Filter: Filtr
+  Highlight: Zvýraznit
+  choose node: vyber uzel
+  Primary Channel: Primární kanál
+  Secondary Channels: Sekundární kanály
+  "Dark\nLight": "Tmavý\nSvětlý"
+  Resync ...: Synchronizace ...
+  Rebooting ...: Restartuji ...
+  Shutting down ...: Vypínání ...
+  LoRa 0.0 MHz: ~
+  silent: tichý
+  'WiFi: <not setup>': 'WiFi: <nenastaveno>'
+  LoRa TX off!: LoRa TX vypnuto!
+  WiFi SSID: ~
+  WiFi pre-shared Key: WiFi heslo
+  'WiFi: %s': ~
+  <not set>: <nenastaveno>
+  Banner & Sound: Oznámení a zvuk
+  Banner only: Pouze oznámení
+  Sound only: Pouze zvuk
+  'Lock: off/off': Zámek obrazovky vypnuto/vypnuto
+  Settings Lock: Zámek nastavení
+  'Lock: %s/%s': 'Zámek: %s/%s'
+  Enter Text ...: Zpráva ...
+  '!Enter Filter ...': '!Název filtru...'
+  Enter Filter ...: Název filtru...
+  region unset: region nenastaven
+  no signal: bez signálu
+  Restoring messages ...: Obnovuji zprávy...
