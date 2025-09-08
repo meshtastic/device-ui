@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[89] = {
+const ext_img_desc_t images[88] = {
     { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
     { "settings_button_image", &img_settings_button_image },
     { "map_button_image", &img_map_button_image },
@@ -85,7 +85,6 @@ const ext_img_desc_t images[89] = {
     { "zoom_plus_image", &img_zoom_plus_image },
     { "gps_location_image", &img_gps_location_image },
     { "location_lock_image", &img_location_lock_image },
-    { "node_location_pin_image", &img_node_location_pin_image },
     { "node_location_pin24_image", &img_node_location_pin24_image },
     { "reboot_BT_on_image", &img_reboot_bt_on_image },
     { "unmessagable_image", &img_unmessagable_image },
