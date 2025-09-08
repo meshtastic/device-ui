@@ -27,8 +27,8 @@
 SerialClient *SerialClient::instance = nullptr;
 
 SerialClient::SerialClient(const char *name)
-    : pb_size(0), clientStatus(eDisconnected), connectionStatus(eDisconnected), connectionInfo(nullptr), shutdown(false),
-      notifyConnectionStatus(nullptr), threadName(name)
+    : pb_size(0), notifyConnectionStatus(nullptr), connectionStatus(eDisconnected),
+      clientStatus(eDisconnected), connectionInfo(nullptr), shutdown(false), threadName(name)
 {
     buffer = new uint8_t[PB_BUFSIZE + MT_HEADER_SIZE];
     instance = this;

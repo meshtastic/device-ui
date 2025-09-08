@@ -163,6 +163,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
         }
     } else if (lgfx->getBrightness() < lastBrightness) {
         lgfx->setBrightness(lastBrightness);
+        lastBrightness = lgfx->getBrightness();
     }
 
     if (!calibrating) {
@@ -249,18 +250,18 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 #endif
     assert(buf1 != 0 /* && buf2 != 0 */);
     lv_display_set_buffers(disp, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_DIRECT);
-#elif 0 // defined BOARD_HAS_PSRAM
+#elif defined(BOARD_HAS_PSRAM)
     assert(ESP.getFreePsram());
-    bufsize = screenWidth * height / 8 * sizeof(lv_color_t);
-    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for draw buffer"), bufsize;
-    buf1 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT); // heap_alloc_psram
+    bufsize = lgfx->screenWidth * lgfx->screenHeight * sizeof(lv_color_t) / 4;
+    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for draw buffer", bufsize);
+    buf1 = (lv_color_t *)LV_MEM_POOL_ALLOC(bufsize);
     assert(buf1 != 0);
-    lv_display_set_buffers(display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #else
-    bufsize = lgfx->screenWidth * lgfx->screenHeight;
+    bufsize = lgfx->screenWidth * lgfx->screenHeight / 8;
+    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer", sizeof(lv_color_t) * bufsize);
     buf1 = new lv_color_t[bufsize];
     assert(buf1 != 0);
-    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer", sizeof(lv_color_t) * bufsize);
     lv_display_set_buffers(this->display, buf1, buf2, sizeof(lv_color_t) * bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #endif
 
@@ -353,6 +354,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 
 template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
 {
+#ifndef CUSTOM_TOUCH_DRIVER
     if (parameters[0] || parameters[7]) {
         ILOG_DEBUG("setting touch screen calibration data");
         lgfx->setTouchCalibrate(parameters);
@@ -374,6 +376,7 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
     }
     ILOG_DEBUG("Touchscreen calibration parameters: {%d, %d, %d, %d, %d, %d, %d, %d}", parameters[0], parameters[1],
                parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
+#endif
     return true;
 }
 

@@ -1,4 +1,5 @@
 #include "graphics/common/LoRaPresets.h"
+#include "util/ILog.h"
 
 /**
  * LoRa Presets
@@ -10,7 +11,7 @@ LoRaPresets::RegionInfo LoRaPresets::regionInfo[] = {
     {"TW", 920.0f, 925.0f},     {"RU", 868.7f, 869.2f},        {"IN", 865.0f, 867.0f},     {"NZ_865", 864.0f, 868.0f},
     {"TH", 920.0f, 925.0f},     {"LORA_24", 2400.0f, 2483.5f}, {"UA_433", 433.0f, 434.7f}, {"UA_868", 868.0f, 868.6f},
     {"MY_433", 433.0f, 435.0f}, {"MY_919", 919.0f, 924.0f},    {"SG_923", 917.0f, 925.0f}, {"PH_433", 433.0f, 434.7f},
-    {"PH_868", 868.0f, 869.4f}, {"PH_915", 915.0f, 918.0f}};
+    {"PH_868", 868.0f, 869.4f}, {"PH_915", 915.0f, 918.0f},    {"ANZ_433", 433.05f, 434.79f}};
 
 LoRaPresets::ModemPreset LoRaPresets::modemPreset[] = {
     {"LongFast", "250", .250f},   {"LongSlow", "125", .125f},   {"VLongSlow", "62.5", .0625f},
@@ -48,7 +49,7 @@ uint16_t LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode reg
 
     uint32_t numChannels = getNumChannels(region, preset);
     return numChannels == 0
-               ? 1
+               ? (region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? 0 : 1)
                : hash(channelName && channelName[0] != '\0' ? channelName : modemPreset[preset].preset) % numChannels + 1;
 }
 

@@ -461,7 +461,7 @@ void ViewController::sendPing(void)
 {
     if (client->isConnected()) {
         client->send(meshtastic_ToRadio{.which_payload_variant = meshtastic_ToRadio_heartbeat_tag,
-                                        .heartbeat{.dummy_field = 1}}); // tell packet server to send ping to all nodes
+                                        .heartbeat{.nonce = 1}}); // tell packet server to send ping to all nodes
     }
 }
 
@@ -477,7 +477,7 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, 
     assert(msgLen <= (size_t)DATA_PAYLOAD_LEN);
 
     if (send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen)) {
-        ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);
+        // ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);
         log.write(LogMessageEnv(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen, (const uint8_t *)textmsg));
     }
 }
@@ -919,6 +919,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_ALERT_APP:
+    case meshtastic_PortNum_DETECTION_SENSOR_APP:
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
         ILOG_INFO("received text message '%s'", (const char *)p.decoded.payload.bytes);
         if (!messagesRestored && log.count() > 0) {

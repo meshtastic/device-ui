@@ -54,13 +54,36 @@ class LGFX_Touch : public lgfx::LGFX_Device
   private:
     BBCapTouch bbct;
 };
+#endif
 
+class Panel_Indicator : public lgfx::Panel_ST7701
+{
+  public:
+    const uint8_t *getInitCommands(uint8_t listno) const override
+    {
+        static constexpr const uint8_t list1[] = {
+            0x36, 1, 0x10,                         // MADCTL for vertical flip
+            0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x10, // Command2 BK0 SEL
+            0xC7, 1, 0x04,                         // SDIR: X-direction Control (Horizontal Flip)
+            0xFF, 5, 0x77, 0x01, 0x00, 0x00, 0x00, // Command2 BK0 DIS
+            0xFF, 0xFF
+        };
+        switch (listno) {
+        case 1:
+            return list1;
+        default:
+            return lgfx::Panel_ST7701::getInitCommands(listno);
+        }
+    }
+};
+
+#ifdef CUSTOM_TOUCH_DRIVER
 class LGFX_INDICATOR : public LGFX_Touch
 #else
 class LGFX_INDICATOR : public lgfx::LGFX_Device
 #endif
 {
-    lgfx::Panel_ST7701 _panel_instance;
+    Panel_Indicator _panel_instance;
     lgfx::Bus_RGB _bus_instance;
     lgfx::Light_PWM _light_instance;
     lgfx::Touch_FT5x06 _touch_instance;
@@ -81,7 +104,7 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             cfg.panel_height = screenHeight;
             cfg.offset_x = 0;
             cfg.offset_y = 0;
-            cfg.offset_rotation = 2;
+            cfg.offset_rotation = 0;
             _panel_instance.config(cfg);
         }
 
@@ -156,8 +179,8 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             cfg.x_max = 479;
             cfg.y_min = 0;
             cfg.y_max = 479;
-            cfg.pin_int = GPIO_NUM_NC; // don't use IO_EXPANDER!;
-            cfg.pin_rst = GPIO_NUM_NC; // not needed as well;
+            cfg.pin_int = GPIO_NUM_NC; // don't use IO_EXPANDER!
+            cfg.pin_rst = GPIO_NUM_NC; // not needed as well
             cfg.bus_shared = false;
             cfg.offset_rotation = 0;
 
@@ -170,7 +193,6 @@ class LGFX_INDICATOR : public lgfx::LGFX_Device
             _panel_instance.setTouch(&_touch_instance);
         }
 #endif
-
         setPanel(&_panel_instance);
     }
 };

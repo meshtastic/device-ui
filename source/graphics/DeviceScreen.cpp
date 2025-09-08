@@ -17,6 +17,7 @@ DeviceScreen &DeviceScreen::create(void)
 
 DeviceScreen &DeviceScreen::create(const DisplayDriverConfig *cfg)
 {
+    ILOG_DEBUG("creating DeviceScreen %dx%d ...", cfg ? cfg->width() : 0, cfg ? cfg->height() : 0);
     return *new DeviceScreen(cfg);
 }
 
