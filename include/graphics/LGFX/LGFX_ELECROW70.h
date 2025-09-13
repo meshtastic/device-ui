@@ -61,9 +61,9 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
     // 0: off (0x05)
     // 1 .. 51: (0x06) 
     // 52 .. 102: (0x07)
-    // 103 .. 154: (0x08)
-    // 155 .. 206: (0x09)
-    // 207 .. 255: (0x10)
+    // 103 .. 153: (0x08)
+    // 154 .. 204: (0x09)
+    // 205 .. 255: (0x10)
     void setBrightness(uint8_t brightness)
     {
         if (isV2) {
