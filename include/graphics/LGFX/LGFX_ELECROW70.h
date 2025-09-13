@@ -6,6 +6,8 @@
 #include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
 #include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
 
+#define ELECROW_V2_ADDR 0x30
+
 #ifndef FREQ_WRITE
 #define FREQ_WRITE 14000000
 #endif
@@ -15,6 +17,8 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
     lgfx::Bus_RGB _bus_instance;
     lgfx::Panel_RGB _panel_instance;
     lgfx::Touch_GT911 _touch_instance;
+    uint8_t brightness = 153;
+    bool isV2 = false;
 
   public:
     const uint16_t screenWidth = 800;
@@ -43,8 +47,34 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
         delay(100);
         pinMode(1, INPUT);
 
+        // check crowpanel version
+        Wire.beginTransmission(ELECROW_V2_ADDR);
+        if (Wire.endTransmission() == 0) {
+            isV2 = true;
+            setBrightness(brightness);
+        }
+
         return LGFX_Device::init_impl(use_reset, use_clear);
     }
+
+    // crowpanel V2 allows 5 brightness levels
+    // 0: off (0x05)
+    // 1 .. 51: (0x06) 
+    // 52 .. 102: (0x07)
+    // 103 .. 154: (0x08)
+    // 155 .. 206: (0x09)
+    // 207 .. 255: (0x10)
+    void setBrightness(uint8_t brightness)
+    {
+        if (isV2) {
+            Wire.beginTransmission(ELECROW_V2_ADDR);
+            Wire.write((brightness + 50) / 51 + 5);
+            Wire.endTransmission();
+            this->brightness = brightness;
+        }
+    }
+
+    uint8_t getBrightness(void) const { return brightness; }
 
     LGFX_ELECROW70(void)
     {
