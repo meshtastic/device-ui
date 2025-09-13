@@ -57,6 +57,11 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
         return LGFX_Device::init_impl(use_reset, use_clear);
     }
 
+    lgfx::ILight* light(void) const {
+        static lgfx::Light_PWM light_instance;
+        return isV2 ? &light_instance : nullptr; // pointer is used by LGFXdriver to check for hasLight()
+    }
+
     // crowpanel V2 allows 5 brightness levels
     // 0: off (0x05)
     // 1 .. 51: (0x06) 
