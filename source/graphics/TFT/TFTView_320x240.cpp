@@ -6999,7 +6999,7 @@ void TFTView_320x240::updateAllLastHeard(void)
 
 void TFTView_320x240::updateUnreadMessages(void)
 {
-    char buf[32];
+    char buf[64];
     if (unreadMessages > 0) {
         sprintf(buf, unreadMessages == 1 ? _("%d new message") : _("%d new messages"), unreadMessages);
         lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_unread_button_image,
