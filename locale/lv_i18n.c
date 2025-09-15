@@ -212,6 +212,168 @@ static const lv_i18n_lang_t bg_lang = {.locale_name = "bg",
                                        .plurals[LV_I18N_PLURAL_TYPE_OTHER] = bg_plurals_other,
                                        .locale_plural_fn = bg_plural_fn};
 
+static const lv_i18n_phrase_t cs_singulars[] = {
+    {"User name: %s", "Uživatel: %s"},
+    {"Device Role: %s", "Role zařízení: %s"},
+    {"no new messages", "žádné nové zprávy"},
+    {"1 of 1 nodes online", "1 uzel online"},
+    {"DEL", "SMAŽ"},
+    {"User name: ", "Uživatel: "},
+    {"Modem Preset: LONG FAST", "Modem: LONG FAST"},
+    {"Channel: LongFast", "Kanál: LongFast"},
+    {"Role: Client", "Role zařízení: Client"},
+    {"Screen Timeout: 60s", "Zhasnutí obrazovky: 60s"},
+    {"Screen Brightness: 60%", "Jas obrazovky: 60%"},
+    {"Screen Calibration: default", "Kalibrace obrazovky: Výchozí"},
+    {"Input Control: none/none", "Vstup: žádný/žádný"},
+    {"Message Alert Buzzer: on", "Zvukové upozornění na zprávy: zapnuto"},
+    {"Language: English", "Jazyk: Čeština"},
+    {"Configuration Reset", "Obnovení nastavení"},
+    {"Reboot / Shutdown", "Restart / Vypnutí"},
+    {"Group Channels", "Skupinové kanály"},
+    {"no messages", "žádné nové zprávy"},
+    {"Settings", "Nastavení"},
+    {"Settings (advanced)", "Rozšířená nastavení"},
+    {"Locations Map", "Mapa"},
+    {"Locations Map (%d/%d)", "Mapa (%d/%d)"},
+    {"no chats", "žádné konverzace"},
+    {"Node Options", "Možnosti uzlu"},
+    {"Short Name", "Krátké jméno"},
+    {"Long Name", "Dlouhé jméno"},
+    {"<unset>", "<nenastaveno>"},
+    {"FrequencySlot: 1 (902.0MHz)", "Frekvenční slot: 1 (902.0MHz)"},
+    {"Brightness: 60%", "Jas: 60%"},
+    {"Timeout: 60s", "Zhasnutí obrazovky: 60s"},
+    {"Mouse", "Myš"},
+    {"Keyboard", "Klávesnice"},
+    {"Message Alert", "Upozornění na zprávy"},
+    {"NodeDB Reset\nFactory Reset\nClear Chat History", "Vymazat databázi uzlů\nTovární nastavení\nVymazat historii chatu"},
+    {"Channel Name", "Název kanálu"},
+    {"Pre-shared Key", "Klíč"},
+    {"New Message from\n", "Nová zpráva od\n"},
+    {"Resync...", "Synchronizace..."},
+    {"Screen Calibration: %s", "Kalibrace obrazovky: %s"},
+    {"done", "hotovo"},
+    {"default", "Výchozí"},
+    {"Region: %s", "Region: %s"},
+    {"Modem Preset: %s", "Předvolba: %s"},
+    {"Channel: %s", "Kanál: %s"},
+    {"Language: %s", "Jazyk: %s"},
+    {"Theme: Dark", "Motiv: Tmavý"},
+    {"Mesh Detector", "Mesh detektor"},
+    {"Signal Scanner", "Skener signálu"},
+    {"Trace Route", "Trasování"},
+    {"Neighbors", "Sousedé"},
+    {"Statistics", "Statistiky paketů"},
+    {"Packet Log", "Historie paketů"},
+    {"Settings & Tools", "Nastavení a nástroje"},
+    {"Node Search", "Hledání uzlů"},
+    {"Screen Lock", "Zámek obrazovky"},
+    {"Lock PIN", "PIN"},
+    {"Ringtone", "Zvuk"},
+    {"Zone", "Oblast"},
+    {"City", "Město"},
+    {"Unknown", "Neznámý"},
+    {"Offline", "Offline"},
+    {"Public Key", "Veřejný klíč"},
+    {"Hops away", "Hopů"},
+    {"Position", "Poloha"},
+    {"Name", "Jméno"},
+    {"Active Chat", "Aktivní konverzace"},
+    {"Telemetry", "Telemetrie"},
+    {"Theme: %s", "Motiv: %s"},
+    {"Packet Statistics", "Statistiky paketů"},
+    {"none", "žádné"},
+    {"Default", "Výchozí"},
+    {"Cancel", "Zrušit"},
+    {"FrequencySlot: %d (%g MHz)", "Frekvenční slot: %d (%g MHz)"},
+    {"Brightness: %d%%", "Jas: %d%%"},
+    {"Timeout: off", "Zhasnutí obrazovky: vypnuto"},
+    {"Timeout: %ds", "Zhasnutí obrazovky: %ds"},
+    {"Stop", "Stop"},
+    {"choose\nnode", "vyber\nuzel"},
+    {"choose target node", "vyber cílový uzel"},
+    {"heard: !%08x", "Zachyceno: !%08x"},
+    {"Packet Log: %d", "Historie paketů: %d"},
+    {"Screen Timeout: off", "Zhasnutí obrazovky: nikdy"},
+    {"Screen Timeout: %ds", "Zhasnutí obrazovky: %ds"},
+    {"Screen Brightness: %d%%", "Jas obrazovky: %d%%"},
+    {"Screen Lock: %s", "Zámek obrazovky: %s"},
+    {"on", "zapnuto"},
+    {"off", "vypnuto"},
+    {"Message Alert: %s", "Upozornění na zprávy: %s"},
+    {"hops: %d", "hopů: %d"},
+    {"unknown", "neznámý"},
+    {"<no name>", "<bez jména>"},
+    {"New message from \n%s", "Nová zpráva od\n%s"},
+    {"Input Control: %s/%s", "Vstup: %s/%s"},
+    {"Filtering ...", "Filtrování ..."},
+    {"Filter: %d of %d nodes", "Filter: %d / %d uzlů"},
+    {"now", "nyní"},
+    {"%d new message", "%d nová zpráva"},
+    {"%d new messages", "%d nových zpráv"},
+    {"Tools", "Nástroje"},
+    {"Filter", "Filtr"},
+    {"Highlight", "Zvýraznit"},
+    {"choose node", "vyber uzel"},
+    {"Primary Channel", "Primární kanál"},
+    {"Secondary Channels", "Sekundární kanály"},
+    {"Dark\nLight", "Tmavý\nSvětlý"},
+    {"Resync ...", "Synchronizace ..."},
+    {"Rebooting ...", "Restartuji ..."},
+    {"Shutting down ...", "Vypínání ..."},
+    {"silent", "tichý"},
+    {"WiFi: <not setup>", "WiFi: <nenastaveno>"},
+    {"LoRa TX off!", "LoRa TX vypnuto!"},
+    {"WiFi pre-shared Key", "WiFi heslo"},
+    {"<not set>", "<nenastaveno>"},
+    {"Banner & Sound", "Oznámení a zvuk"},
+    {"Banner only", "Pouze oznámení"},
+    {"Sound only", "Pouze zvuk"},
+    {"Lock: off/off", "Zámek obrazovky vypnuto/vypnuto"},
+    {"Settings Lock", "Zámek nastavení"},
+    {"Lock: %s/%s", "Zámek: %s/%s"},
+    {"Enter Text ...", "Zpráva ..."},
+    {"!Enter Filter ...", "!Název filtru..."},
+    {"Enter Filter ...", "Název filtru..."},
+    {"region unset", "region nenastaven"},
+    {"no signal", "bez signálu"},
+    {"Restoring messages ...", "Obnovuji zprávy..."},
+    {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t cs_plurals_one[] = {
+    {"%d active chat(s)", "%d aktivní konverzace"}, {"%d of %d nodes online", "1 uzel online"}, {NULL, NULL} // End mark
+};
+
+static const lv_i18n_phrase_t cs_plurals_other[] = {
+    {"%d active chat(s)", "%d aktivních konverzací"}, {"%d of %d nodes online", "%d / %d uzlů online"}, {NULL, NULL} // End mark
+};
+
+static uint8_t cs_plural_fn(int32_t num)
+{
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if (((2 <= i && i <= 4) && v == 0))
+        return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v != 0))
+        return LV_I18N_PLURAL_TYPE_MANY;
+    return LV_I18N_PLURAL_TYPE_OTHER;
+}
+
+static const lv_i18n_lang_t cs_lang = {.locale_name = "cs",
+                                       .singulars = cs_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = cs_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = cs_plurals_other,
+                                       .locale_plural_fn = cs_plural_fn};
+
 static const lv_i18n_phrase_t de_singulars[] = {
     {"User name: %s", "Benutzer: %s"},
     {"Device Role: %s", "Gerätemodus: %s"},
@@ -2981,7 +3143,7 @@ static const lv_i18n_lang_t zh_cn_lang = {.locale_name = "zh-CN",
                                           .locale_plural_fn = zh_cn_plural_fn};
 
 const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
-    &en_lang, &bg_lang, &de_lang, &el_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang, &no_lang,
+    &en_lang, &bg_lang, &cs_lang, &de_lang, &el_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang,    &no_lang,
     &pl_lang, &pt_lang, &ro_lang, &ru_lang, &se_lang, &sl_lang, &sr_lang, &tr_lang, &uk_lang, &zh_cn_lang,
     NULL // End mark
 };
