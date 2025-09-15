@@ -6,6 +6,7 @@
 #include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
 #include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
 
+#define ELECROW_V1_ADDR 0x18
 #define ELECROW_V2_ADDR 0x30
 
 #ifndef FREQ_WRITE
@@ -20,6 +21,14 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
     uint8_t brightness = 153;
     bool isV2 = false;
 
+    // for V2 microcontroller control
+    uint8_t sendI2CCommand(uint8_t command)
+    {
+        Wire.beginTransmission(ELECROW_V2_ADDR);
+        Wire.write(cmd);
+        return Wire.endTransmission();
+    }
+
   public:
     const uint16_t screenWidth = 800;
     const uint16_t screenHeight = 480;
@@ -28,28 +37,37 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
 
     bool init_impl(bool use_reset, bool use_clear) override
     {
-        ioex.attach(Wire);
-        ioex.setDeviceAddress(0x18);
-        ioex.config(1, TCA9534::Config::OUT);
-        ioex.config(2, TCA9534::Config::OUT);
-        ioex.config(3, TCA9534::Config::OUT);
-        ioex.config(4, TCA9534::Config::OUT);
+        Wire.beginTransmission(ELECROW_V1_ADDR);
+        if (Wire.endTransmission() == 0) {
+            ioex.attach(Wire);
+            ioex.setDeviceAddress(ELECROW_V1_ADDR);
+            ioex.config(1, TCA9534::Config::OUT);
+            ioex.config(2, TCA9534::Config::OUT);
+            ioex.config(3, TCA9534::Config::OUT);
+            ioex.config(4, TCA9534::Config::OUT);
 
-        ioex.output(1, TCA9534::Level::H);
-        ioex.output(3, TCA9534::Level::L);
-        ioex.output(4, TCA9534::Level::H);
+            ioex.output(1, TCA9534::Level::H);
+            ioex.output(3, TCA9534::Level::L);
+            ioex.output(4, TCA9534::Level::H);
 
-        pinMode(1, OUTPUT);
-        digitalWrite(1, LOW);
-        ioex.output(2, TCA9534::Level::L);
-        delay(20);
-        ioex.output(2, TCA9534::Level::H);
-        delay(100);
-        pinMode(1, INPUT);
+            pinMode(1, OUTPUT);
+            digitalWrite(1, LOW);
+            ioex.output(2, TCA9534::Level::L);
+            delay(20);
+            ioex.output(2, TCA9534::Level::H);
+            delay(100);
+            pinMode(1, INPUT);
+        }
 
-        // check crowpanel version
         Wire.beginTransmission(ELECROW_V2_ADDR);
         if (Wire.endTransmission() == 0) {
+            sendI2CCommand(0x19);
+            pinMode(1, OUTPUT);
+            digitalWrite(1, LOW);
+            delay(120);
+            pinMode(1, INPUT);
+            delay(100);
+
             isV2 = true;
             setBrightness(brightness);
         }
@@ -57,14 +75,15 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
         return LGFX_Device::init_impl(use_reset, use_clear);
     }
 
-    lgfx::ILight* light(void) const {
+    lgfx::ILight *light(void) const
+    {
         static lgfx::Light_PWM light_instance;
         return isV2 ? &light_instance : nullptr; // pointer is used by LGFXdriver to check for hasLight()
     }
 
     // crowpanel V2 allows 5 brightness levels
     // 0: off (0x05)
-    // 1 .. 51: (0x06) 
+    // 1 .. 51: (0x06)
     // 52 .. 102: (0x07)
     // 103 .. 153: (0x08)
     // 154 .. 204: (0x09)
@@ -72,9 +91,10 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
     void setBrightness(uint8_t brightness)
     {
         if (isV2) {
-            Wire.beginTransmission(ELECROW_V2_ADDR);
-            Wire.write((brightness + 50) / 51 + 5);
-            Wire.endTransmission();
+            uint8_t cmd = (brightness + 50) / 51 + 5;
+            if (brightness >= 205)
+                cmd = 0x10;
+            sendI2CCommand(cmd);
             this->brightness = brightness;
         }
     }
