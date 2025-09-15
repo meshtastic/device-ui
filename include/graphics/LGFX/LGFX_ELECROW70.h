@@ -67,6 +67,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             delay(120);
             pinMode(1, INPUT);
             delay(100);
+            sendI2CCommand(0x18);
 
             isV2 = true;
             setBrightness(brightness);
