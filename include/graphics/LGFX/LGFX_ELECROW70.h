@@ -22,7 +22,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
     bool isV2 = false;
 
     // for V2 microcontroller control
-    uint8_t sendI2CCommand(uint8_t command)
+    uint8_t sendI2CCommand(uint8_t cmd)
     {
         Wire.beginTransmission(ELECROW_V2_ADDR);
         Wire.write(cmd);
