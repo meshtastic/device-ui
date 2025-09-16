@@ -919,6 +919,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_ALERT_APP:
+    case meshtastic_PortNum_DETECTION_SENSOR_APP:
     case meshtastic_PortNum_TEXT_MESSAGE_APP: {
         ILOG_INFO("received text message '%s'", (const char *)p.decoded.payload.bytes);
         if (!messagesRestored && log.count() > 0) {

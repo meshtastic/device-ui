@@ -58,7 +58,6 @@ fs::FS &fileSystem = LittleFS;
 
 LV_IMAGE_DECLARE(img_circle_image);
 LV_IMAGE_DECLARE(img_no_tile_image);
-LV_IMAGE_DECLARE(node_location_pin_image);
 LV_IMAGE_DECLARE(node_location_pin24_image);
 
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
@@ -577,13 +576,12 @@ void TFTView_320x240::apply_hotfix(void)
         lv_obj_set_height(objects.channel_button7, buttonSize);
 
         lv_obj_set_height(objects.chats_button, buttonSize);
-
-        if (h == 480) {
-            lv_img_set_zoom(objects.world_image, 460);
-        }
     } else {
         // chat button size
         buttonSize = 36;
+    }
+    if (h > 400) {
+        lv_obj_set_style_text_font(objects.home_qr_label, &ui_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
 
     lv_obj_move_foreground(objects.keyboard);
@@ -716,6 +714,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_sd_card_button, this->ui_event_SDCardButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_qr_button, this->ui_event_QrButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.home_cancel_qr_button, this->ui_event_CancelQrButton, LV_EVENT_CLICKED, NULL);
 
     // node and channel buttons
     lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
@@ -1504,6 +1504,33 @@ void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
             THIS->updateFreeMem();
         }
     }
+}
+
+void TFTView_320x240::ui_event_QrButton(lv_event_t *e)
+{
+    meshtastic_SharedContact contact{.node_num = THIS->ownNode, .has_user = true, .user = THIS->db.user, .should_ignore = false};
+
+    meshtastic_Data_payload_t payload;
+    payload.size = pb_encode_to_bytes(payload.bytes, sizeof(payload.bytes), &meshtastic_SharedContact_msg, &contact);
+    std::string base64Https = THIS->pskToBase64(payload.bytes, payload.size);
+    for (char &c : base64Https) {
+        if (c == '+')
+            c = '-';
+        else if (c == '/')
+            c = '_';
+        else if (c == '=')
+            c = '\0';
+    }
+    std::string qr = "https://meshtastic.org/v/#" + base64Https;
+    lv_obj_remove_flag(objects.home_show_qr_panel, LV_OBJ_FLAG_HIDDEN);
+    THIS->qr = THIS->showQrCode(objects.home_show_qr_panel, qr.c_str());
+}
+
+void TFTView_320x240::ui_event_CancelQrButton(lv_event_t *e)
+{
+    lv_obj_add_flag(objects.home_show_qr_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_delete(THIS->qr);
+    THIS->qr = nullptr;
 }
 
 void TFTView_320x240::ui_event_BlankScreenButton(lv_event_t *e)
@@ -2547,7 +2574,6 @@ void TFTView_320x240::loadMap(void)
     if (sdCard) {
         if (!sdCard->isUpdated()) {
             map->setNoTileImage(&img_no_tile_image);
-            lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
             std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
             if (mapStyles.find("/map") != mapStyles.end()) {
                 // no styles found, but the /map directory, so use it
@@ -2579,12 +2605,10 @@ void TFTView_320x240::loadMap(void)
             } else {
                 messageAlert(_("No map tiles found on SDCard!"), true);
                 map->setNoTileImage(&img_no_tile_image);
-                lv_obj_clear_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
             }
             map->forceRedraw();
         }
     } else {
-        lv_obj_add_flag(objects.world_image, LV_OBJ_FLAG_HIDDEN);
         lv_dropdown_set_options(objects.map_style_dropdown, "");
     }
 
@@ -3342,43 +3366,45 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_ENGLISH:
         return 0;
     case meshtastic_Language_FRENCH:
-        return 5;
-    case meshtastic_Language_GERMAN:
-        return 2;
-    case meshtastic_Language_ITALIAN:
         return 6;
-    case meshtastic_Language_PORTUGUESE:
-        return 10;
-    case meshtastic_Language_SPANISH:
-        return 4;
-    case meshtastic_Language_SWEDISH:
-        return 15;
-    case meshtastic_Language_FINNISH:
-        return 14;
-    case meshtastic_Language_POLISH:
-        return 9;
-    case meshtastic_Language_TURKISH:
-        return 16;
-    case meshtastic_Language_SERBIAN:
-        return 13;
-    case meshtastic_Language_RUSSIAN:
-        return 11;
-    case meshtastic_Language_DUTCH:
-        return 7;
-    case meshtastic_Language_GREEK:
+    case meshtastic_Language_GERMAN:
         return 3;
-    case meshtastic_Language_NORWEGIAN:
-        return 8;
-    case meshtastic_Language_SLOVENIAN:
-        return 12;
-    case meshtastic_Language_UKRAINIAN:
+    case meshtastic_Language_ITALIAN:
+        return 7;
+    case meshtastic_Language_PORTUGUESE:
+        return 11;
+    case meshtastic_Language_SPANISH:
+        return 5;
+    case meshtastic_Language_SWEDISH:
+        return 16;
+    case meshtastic_Language_FINNISH:
+        return 15;
+    case meshtastic_Language_POLISH:
+        return 10;
+    case meshtastic_Language_TURKISH:
         return 17;
+    case meshtastic_Language_SERBIAN:
+        return 14;
+    case meshtastic_Language_RUSSIAN:
+        return 12;
+    case meshtastic_Language_DUTCH:
+        return 8;
+    case meshtastic_Language_GREEK:
+        return 4;
+    case meshtastic_Language_NORWEGIAN:
+        return 9;
+    case meshtastic_Language_SLOVENIAN:
+        return 13;
+    case meshtastic_Language_UKRAINIAN:
+        return 18;
     case meshtastic_Language_BULGARIAN:
         return 1;
+    case meshtastic_Language_CZECH:
+        return 2;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
-        return 18;
-    case meshtastic_Language_TRADITIONAL_CHINESE:
         return 19;
+    case meshtastic_Language_TRADITIONAL_CHINESE:
+        return 20;
     default:
         ILOG_WARN("unknown language uiconfig: %d", lang);
     }
@@ -3393,40 +3419,42 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
     switch (val) {
     case 0:
         return meshtastic_Language_ENGLISH;
-    case 5:
-        return meshtastic_Language_FRENCH;
-    case 2:
-        return meshtastic_Language_GERMAN;
     case 6:
-        return meshtastic_Language_ITALIAN;
-    case 10:
-        return meshtastic_Language_PORTUGUESE;
-    case 4:
-        return meshtastic_Language_SPANISH;
-    case 15:
-        return meshtastic_Language_SWEDISH;
-    case 14:
-        return meshtastic_Language_FINNISH;
-    case 9:
-        return meshtastic_Language_POLISH;
-    case 16:
-        return meshtastic_Language_TURKISH;
-    case 13:
-        return meshtastic_Language_SERBIAN;
-    case 11:
-        return meshtastic_Language_RUSSIAN;
-    case 7:
-        return meshtastic_Language_DUTCH;
+        return meshtastic_Language_FRENCH;
     case 3:
-        return meshtastic_Language_GREEK;
-    case 8:
-        return meshtastic_Language_NORWEGIAN;
-    case 12:
-        return meshtastic_Language_SLOVENIAN;
+        return meshtastic_Language_GERMAN;
+    case 7:
+        return meshtastic_Language_ITALIAN;
+    case 11:
+        return meshtastic_Language_PORTUGUESE;
+    case 5:
+        return meshtastic_Language_SPANISH;
+    case 16:
+        return meshtastic_Language_SWEDISH;
+    case 15:
+        return meshtastic_Language_FINNISH;
+    case 10:
+        return meshtastic_Language_POLISH;
     case 17:
+        return meshtastic_Language_TURKISH;
+    case 14:
+        return meshtastic_Language_SERBIAN;
+    case 12:
+        return meshtastic_Language_RUSSIAN;
+    case 8:
+        return meshtastic_Language_DUTCH;
+    case 4:
+        return meshtastic_Language_GREEK;
+    case 9:
+        return meshtastic_Language_NORWEGIAN;
+    case 13:
+        return meshtastic_Language_SLOVENIAN;
+    case 18:
         return meshtastic_Language_UKRAINIAN;
     case 1:
         return meshtastic_Language_BULGARIAN;
+    case 2:
+        return meshtastic_Language_CZECH;
     case 19:
         return meshtastic_Language_SIMPLIFIED_CHINESE;
     case 20:
@@ -3514,6 +3542,10 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
     case meshtastic_Language_UKRAINIAN:
         lv_i18n_set_locale("uk");
         locale = "uk_UA.UTF-8";
+        break;
+    case meshtastic_Language_CZECH:
+        lv_i18n_set_locale("cs");
+        locale = "cs_CZ.UTF-8";
         break;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
         lv_i18n_set_locale("cn");
@@ -6076,6 +6108,11 @@ void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfi
 {
     db.config.security = cfg;
     db.config.has_security = true;
+
+    // display public key in qr code label
+    char buf[64];
+    lv_snprintf(buf, sizeof(buf), "%s", pskToBase64((uint8_t *)cfg.public_key.bytes, cfg.public_key.size).c_str());
+    lv_label_set_text(objects.home_qr_label, buf);
 }
 
 void TFTView_320x240::updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg)
@@ -6293,7 +6330,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
+    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_14, 0);
     lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
@@ -6962,7 +6999,7 @@ void TFTView_320x240::updateAllLastHeard(void)
 
 void TFTView_320x240::updateUnreadMessages(void)
 {
-    char buf[32];
+    char buf[64];
     if (unreadMessages > 0) {
         sprintf(buf, unreadMessages == 1 ? _("%d new message") : _("%d new messages"), unreadMessages);
         lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_unread_button_image,
