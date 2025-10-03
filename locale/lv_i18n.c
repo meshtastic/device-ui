@@ -1,6 +1,5 @@
 #include "./lv_i18n.h"
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Define plural operands
 // http://unicode.org/reports/tr35/tr35-numbers.html#Operands
@@ -9,38 +8,63 @@
 
 #define UNUSED(x) (void)(x)
 
-static inline uint32_t op_n(int32_t val) { return (uint32_t)(val < 0 ? -val : val); }
-static inline uint32_t op_i(uint32_t val) { return val; }
+static inline uint32_t op_n(int32_t val)
+{
+    return (uint32_t)(val < 0 ? -val : val);
+}
+static inline uint32_t op_i(uint32_t val)
+{
+    return val;
+}
 // always zero, when decimal part not exists.
-static inline uint32_t op_v(uint32_t val) { UNUSED(val); return 0;}
-static inline uint32_t op_w(uint32_t val) { UNUSED(val); return 0; }
-static inline uint32_t op_f(uint32_t val) { UNUSED(val); return 0; }
-static inline uint32_t op_t(uint32_t val) { UNUSED(val); return 0; }
-static inline uint32_t op_e(uint32_t val) { UNUSED(val); return 0; }
+static inline uint32_t op_v(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
+static inline uint32_t op_w(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
+static inline uint32_t op_f(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
+static inline uint32_t op_t(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
+static inline uint32_t op_e(uint32_t val)
+{
+    UNUSED(val);
+    return 0;
+}
 
 static const lv_i18n_phrase_t en_singulars[] = {
-    {"No map tiles found on SDCard!", "Map tiles not found!"},
-    {NULL, NULL} // End mark
+    {"No map tiles found on SDCard!", "Map tiles not found!"}, {NULL, NULL} // End mark
 };
-
-
 
 static uint8_t en_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t en_lang = {
-    .locale_name = "en",
-    .singulars = en_singulars,
+static const lv_i18n_lang_t en_lang = {.locale_name = "en",
+                                       .singulars = en_singulars,
 
-    .locale_plural_fn = en_plural_fn
-};
+                                       .locale_plural_fn = en_plural_fn};
 
 static const lv_i18n_phrase_t bg_singulars[] = {
     {"no new messages", "няма нови съобщения"},
@@ -106,8 +130,10 @@ static const lv_i18n_phrase_t bg_singulars[] = {
     {"Start", "Старт"},
     {"Theme: %s", "Тема: %s"},
     {"Packet Statistics", "Статистика на пакети"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- старо --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Client\nClient Mute\nRouter\n-- старо --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- старо --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- старо --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
     {"Dark\nLight", "Тъмна\nСветла"},
     {"Cancel", "Отмени"},
     {"Brightness: %d%%", "Яркост: %d%%"},
@@ -163,33 +189,28 @@ static const lv_i18n_phrase_t bg_singulars[] = {
 };
 
 static const lv_i18n_phrase_t bg_plurals_one[] = {
-    {"%d active chat(s)", "%d активен чат"},
-    {"%d of %d nodes online", "%d възел онлайн"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d активен чат"}, {"%d of %d nodes online", "%d възел онлайн"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t bg_plurals_other[] = {
-    {"%d active chat(s)", "%d активни чатове"},
-    {"%d of %d nodes online", "%d от %d нода са онлайн"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d активни чатове"}, {"%d of %d nodes online", "%d от %d нода са онлайн"}, {NULL, NULL} // End mark
 };
 
 static uint8_t bg_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t n = op_n(num);
+    UNUSED(n);
 
-
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t bg_lang = {
-    .locale_name = "bg",
-    .singulars = bg_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = bg_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = bg_plurals_other,
-    .locale_plural_fn = bg_plural_fn
-};
+static const lv_i18n_lang_t bg_lang = {.locale_name = "bg",
+                                       .singulars = bg_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = bg_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = bg_plurals_other,
+                                       .locale_plural_fn = bg_plural_fn};
 
 static const lv_i18n_phrase_t cs_singulars[] = {
     {"User name: %s", "Uživatel: %s"},
@@ -322,36 +343,36 @@ static const lv_i18n_phrase_t cs_singulars[] = {
 };
 
 static const lv_i18n_phrase_t cs_plurals_one[] = {
-    {"%d active chat(s)", "%d aktivní konverzace"},
-    {"%d of %d nodes online", "1 uzel online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d aktivní konverzace"}, {"%d of %d nodes online", "1 uzel online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t cs_plurals_other[] = {
-    {"%d active chat(s)", "%d aktivních konverzací"},
-    {"%d of %d nodes online", "%d / %d uzlů online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d aktivních konverzací"}, {"%d of %d nodes online", "%d / %d uzlů online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t cs_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
-    if (((2 <= i && i <= 4) && v == 0)) return LV_I18N_PLURAL_TYPE_FEW;
-    if ((v != 0)) return LV_I18N_PLURAL_TYPE_MANY;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if (((2 <= i && i <= 4) && v == 0))
+        return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v != 0))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t cs_lang = {
-    .locale_name = "cs",
-    .singulars = cs_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = cs_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = cs_plurals_other,
-    .locale_plural_fn = cs_plural_fn
-};
+static const lv_i18n_lang_t cs_lang = {.locale_name = "cs",
+                                       .singulars = cs_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = cs_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = cs_plurals_other,
+                                       .locale_plural_fn = cs_plural_fn};
 
 static const lv_i18n_phrase_t da_singulars[] = {
     {"Reboot into BaseUI?", "Genstart til BaseUI?"},
@@ -405,8 +426,10 @@ static const lv_i18n_phrase_t da_singulars[] = {
     {"Primary Channel", "Primær kanal"},
     {"<unset>", "<ikke sat>"},
     {"Secondary Channels", "Sekundære kanaler"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- udfaset --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Klient\nKlient lydløs\nRouter\nRepeater\nTracker\nSensor\nTAK\nSkjult klient\nTabt & Fundet\nTAK Tracker"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- udfaset --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Klient\nKlient lydløs\nRouter\nRepeater\nTracker\nSensor\nTAK\nSkjult klient\nTabt & Fundet\nTAK Tracker"},
     {"WiFi SSID", "WiFi-SSID"},
     {"WiFi pre-shared Key", "WiFi-øgle"},
     {"Brightness: 60%", "Lysstyrke: 60%"},
@@ -459,7 +482,8 @@ static const lv_i18n_phrase_t da_singulars[] = {
     {"Screen Calibration: %s", "Skærmkalibrering: %s"},
     {"done", "færdig"},
     {"default", "standard"},
-    {"Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Klient\nKlient lydløs\nTracker\nSensor\nTAK\nSkjult klient\nTabt & Fundet\nTAK Tracker"},
+    {"Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Klient\nKlient lydløs\nTracker\nSensor\nTAK\nSkjult klient\nTabt & Fundet\nTAK Tracker"},
     {"Rebooting ...", "Genstarter ..."},
     {">> Programming mode <<", ">> Programmeringstilstand <<"},
     {"Enter Text ...", "Indtast tekst ..."},
@@ -518,34 +542,32 @@ static const lv_i18n_phrase_t da_singulars[] = {
 };
 
 static const lv_i18n_phrase_t da_plurals_one[] = {
-    {"%d active chat(s)", "%d aktiv chat"},
-    {"%d of %d nodes online", "%d af %d node online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d aktiv chat"}, {"%d of %d nodes online", "%d af %d node online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t da_plurals_other[] = {
-    {"%d active chat(s)", "%d aktive chats"},
-    {"%d of %d nodes online", "%d af %d noder online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d aktive chats"}, {"%d of %d nodes online", "%d af %d noder online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t da_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t t = op_t(n); UNUSED(t);
-    uint32_t i = op_i(n); UNUSED(i);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t t = op_t(n);
+    UNUSED(t);
+    uint32_t i = op_i(n);
+    UNUSED(i);
 
-    if ((n == 1) || (t != 0 && ((i == 0) || (i == 1)))) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 1) || (t != 0 && ((i == 0) || (i == 1))))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t da_lang = {
-    .locale_name = "da",
-    .singulars = da_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = da_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = da_plurals_other,
-    .locale_plural_fn = da_plural_fn
-};
+static const lv_i18n_lang_t da_lang = {.locale_name = "da",
+                                       .singulars = da_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = da_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = da_plurals_other,
+                                       .locale_plural_fn = da_plural_fn};
 
 static const lv_i18n_phrase_t de_singulars[] = {
     {"User name: %s", "Benutzer: %s"},
@@ -671,34 +693,32 @@ static const lv_i18n_phrase_t de_singulars[] = {
 };
 
 static const lv_i18n_phrase_t de_plurals_one[] = {
-    {"%d active chat(s)", "%d aktives Gespräch"},
-    {"%d of %d nodes online", "1 Gerät online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d aktives Gespräch"}, {"%d of %d nodes online", "1 Gerät online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t de_plurals_other[] = {
-    {"%d active chat(s)", "%d aktive Gespräche"},
-    {"%d of %d nodes online", "%d / %d Geräte online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d aktive Gespräche"}, {"%d of %d nodes online", "%d / %d Geräte online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t de_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t de_lang = {
-    .locale_name = "de",
-    .singulars = de_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = de_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = de_plurals_other,
-    .locale_plural_fn = de_plural_fn
-};
+static const lv_i18n_lang_t de_lang = {.locale_name = "de",
+                                       .singulars = de_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = de_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = de_plurals_other,
+                                       .locale_plural_fn = de_plural_fn};
 
 static const lv_i18n_phrase_t el_singulars[] = {
     {"Reboot into BaseUI?", "Επανεκκίνηση σε BaseUI;"},
@@ -747,7 +767,8 @@ static const lv_i18n_phrase_t el_singulars[] = {
     {"Primary Channel", "Κύριο Κανάλι"},
     {"<unset>", "<αόριστο>"},
     {"Secondary Channels", "Δευτερεύοντα Κανάλια"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- Καταργήθηκε --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- Καταργήθηκε --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
     {"Brightness: 60%", "Ένταση: 60%"},
     {"Dark\nLight", "Σκούρο\nΑνοιχτό"},
     {"Timeout: 60s", "Λήξη: 60s"},
@@ -846,33 +867,28 @@ static const lv_i18n_phrase_t el_singulars[] = {
 };
 
 static const lv_i18n_phrase_t el_plurals_one[] = {
-    {"%d active chat(s)", "%d ενεργ. συνομιλία"},
-    {"%d of %d nodes online", "1 Κόμβος online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d ενεργ. συνομιλία"}, {"%d of %d nodes online", "1 Κόμβος online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t el_plurals_other[] = {
-    {"%d active chat(s)", "%d ενεργ. συνομιλίες"},
-    {"%d of %d nodes online", "%d / %d Κόμβοι online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d ενεργ. συνομιλίες"}, {"%d of %d nodes online", "%d / %d Κόμβοι online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t el_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t n = op_n(num);
+    UNUSED(n);
 
-
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t el_lang = {
-    .locale_name = "el",
-    .singulars = el_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = el_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = el_plurals_other,
-    .locale_plural_fn = el_plural_fn
-};
+static const lv_i18n_lang_t el_lang = {.locale_name = "el",
+                                       .singulars = el_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = el_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = el_plurals_other,
+                                       .locale_plural_fn = el_plural_fn};
 
 static const lv_i18n_phrase_t es_singulars[] = {
     {"no new messages", "Sin mensajes nuevos"},
@@ -940,8 +956,10 @@ static const lv_i18n_phrase_t es_singulars[] = {
     {"Start", "Iniciar"},
     {"Theme: %s", "Tema: %s"},
     {"Packet Statistics", "Estadísticas"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Client\nClient Mute\nRouter\n-- obsoleto --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- obsoleto --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- obsoleto --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
     {"Dark\nLight", "Oscuro\nClaro"},
     {"Cancel", "Cancelar"},
     {"Brightness: %d%%", "Brillo : %d%%"},
@@ -1013,36 +1031,36 @@ static const lv_i18n_phrase_t es_singulars[] = {
 };
 
 static const lv_i18n_phrase_t es_plurals_one[] = {
-    {"%d active chat(s)", "1 chat activo"},
-    {"%d of %d nodes online", "1 nodo activo"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "1 chat activo"}, {"%d of %d nodes online", "1 nodo activo"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t es_plurals_other[] = {
-    {"%d active chat(s)", "%d chat activos"},
-    {"%d of %d nodes online", "%d de %d nodos activos"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d chat activos"}, {"%d of %d nodes online", "%d de %d nodos activos"}, {NULL, NULL} // End mark
 };
 
 static uint8_t es_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t e = op_e(n); UNUSED(e);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
     uint32_t i1000000 = i % 1000000;
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5)))) return LV_I18N_PLURAL_TYPE_MANY;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t es_lang = {
-    .locale_name = "es",
-    .singulars = es_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = es_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = es_plurals_other,
-    .locale_plural_fn = es_plural_fn
-};
+static const lv_i18n_lang_t es_lang = {.locale_name = "es",
+                                       .singulars = es_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = es_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = es_plurals_other,
+                                       .locale_plural_fn = es_plural_fn};
 
 static const lv_i18n_phrase_t fi_singulars[] = {
     {"no new messages", "ei uusia viestejä"},
@@ -1156,24 +1174,24 @@ static const lv_i18n_phrase_t fi_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t fi_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t fi_lang = {
-    .locale_name = "fi",
-    .singulars = fi_singulars,
+static const lv_i18n_lang_t fi_lang = {.locale_name = "fi",
+                                       .singulars = fi_singulars,
 
-    .locale_plural_fn = fi_plural_fn
-};
+                                       .locale_plural_fn = fi_plural_fn};
 
 static const lv_i18n_phrase_t fr_singulars[] = {
     {"no new messages", "0 nouveau message"},
@@ -1315,36 +1333,36 @@ static const lv_i18n_phrase_t fr_singulars[] = {
 };
 
 static const lv_i18n_phrase_t fr_plurals_one[] = {
-    {"%d active chat(s)", "%d chat actif"},
-    {"%d of %d nodes online", "%d sur %d noeud actif"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d chat actif"}, {"%d of %d nodes online", "%d sur %d noeud actif"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t fr_plurals_other[] = {
-    {"%d active chat(s)", "%d chats actifs"},
-    {"%d of %d nodes online", "%d sur %d noeuds actifs"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d chats actifs"}, {"%d of %d nodes online", "%d sur %d noeuds actifs"}, {NULL, NULL} // End mark
 };
 
 static uint8_t fr_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t e = op_e(n); UNUSED(e);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t v = op_v(n);
+    UNUSED(v);
     uint32_t i1000000 = i % 1000000;
-    if ((((i == 0) || (i == 1)))) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5)))) return LV_I18N_PLURAL_TYPE_MANY;
+    if ((((i == 0) || (i == 1))))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t fr_lang = {
-    .locale_name = "fr",
-    .singulars = fr_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = fr_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = fr_plurals_other,
-    .locale_plural_fn = fr_plural_fn
-};
+static const lv_i18n_lang_t fr_lang = {.locale_name = "fr",
+                                       .singulars = fr_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = fr_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = fr_plurals_other,
+                                       .locale_plural_fn = fr_plural_fn};
 
 static const lv_i18n_phrase_t it_singulars[] = {
     {"no new messages", "nessun messaggio"},
@@ -1386,7 +1404,9 @@ static const lv_i18n_phrase_t it_singulars[] = {
     {"Short Name", "Nome breve"},
     {"Long Name", "Nome lungo"},
     {"<unset>", "<non impostato>"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Client\nClient Muto\nRouter\n-- deprecato --\nRipetitore\nTracker\nSensore\nTAK\nClient Nascosto\nOggetti Smarriti\nTAK Tracker"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Muto\nRouter\n-- deprecato --\nRipetitore\nTracker\nSensore\nTAK\nClient Nascosto\nOggetti Smarriti\nTAK "
+     "Tracker"},
     {"Brightness: 60%", "Luminosità: 60%"},
     {"Dark\nLight", "Scuro\nChiaro"},
     {"Screen Lock", "Blocco schermo"},
@@ -1480,36 +1500,36 @@ static const lv_i18n_phrase_t it_singulars[] = {
 };
 
 static const lv_i18n_phrase_t it_plurals_one[] = {
-    {"%d active chat(s)", "%d chat attiva"},
-    {"%d of %d nodes online", "1 nodo online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d chat attiva"}, {"%d of %d nodes online", "1 nodo online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t it_plurals_other[] = {
-    {"%d active chat(s)", "%d chat attive"},
-    {"%d of %d nodes online", "%d di %d nodi online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d chat attive"}, {"%d of %d nodes online", "%d di %d nodi online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t it_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
-    uint32_t e = op_e(n); UNUSED(e);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t e = op_e(n);
+    UNUSED(e);
     uint32_t i1000000 = i % 1000000;
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5)))) return LV_I18N_PLURAL_TYPE_MANY;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t it_lang = {
-    .locale_name = "it",
-    .singulars = it_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = it_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = it_plurals_other,
-    .locale_plural_fn = it_plural_fn
-};
+static const lv_i18n_lang_t it_lang = {.locale_name = "it",
+                                       .singulars = it_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = it_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = it_plurals_other,
+                                       .locale_plural_fn = it_plural_fn};
 
 static const lv_i18n_phrase_t nl_singulars[] = {
     {"no new messages", "0 nieuwe berichten"},
@@ -1551,8 +1571,10 @@ static const lv_i18n_phrase_t nl_singulars[] = {
     {"Short Name", "Korte Naam"},
     {"Long Name", "Lange Naam"},
     {"<unset>", "<niet ingesteld>"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
     {"Brightness: 60%", "Helderheid: 60%"},
     {"Dark\nLight", "Donker\nLicht"},
     {"Timeout: 60s", "Timeout: 60s"},
@@ -1652,7 +1674,8 @@ static const lv_i18n_phrase_t nl_singulars[] = {
     {"Backup", "Backup"},
     {"Restore", "Herstel"},
     {"Public/Private Key", "Public/Private Key"},
-    {"NodeDB Reset\nFactory Reset\nClear Chat History", "NodeDB herstellen\nFabrieksinstellingen herstellen\nWis Chat Geschiedenis"},
+    {"NodeDB Reset\nFactory Reset\nClear Chat History",
+     "NodeDB herstellen\nFabrieksinstellingen herstellen\nWis Chat Geschiedenis"},
     {"Channel", "Kanaal"},
     {"Please set region and name", "Stel regio en naam in a.u.b."},
     {"Region", "Regio"},
@@ -1667,34 +1690,32 @@ static const lv_i18n_phrase_t nl_singulars[] = {
 };
 
 static const lv_i18n_phrase_t nl_plurals_one[] = {
-    {"%d active chat(s)", "%d actieve chats"},
-    {"%d of %d nodes online", "1 node online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d actieve chats"}, {"%d of %d nodes online", "1 node online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t nl_plurals_other[] = {
-    {"%d active chat(s)", "%d actieve chats"},
-    {"%d of %d nodes online", "%d van %d nodes online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d actieve chats"}, {"%d of %d nodes online", "%d van %d nodes online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t nl_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
 
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t nl_lang = {
-    .locale_name = "nl",
-    .singulars = nl_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = nl_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = nl_plurals_other,
-    .locale_plural_fn = nl_plural_fn
-};
+static const lv_i18n_lang_t nl_lang = {.locale_name = "nl",
+                                       .singulars = nl_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = nl_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = nl_plurals_other,
+                                       .locale_plural_fn = nl_plural_fn};
 
 static const lv_i18n_phrase_t no_singulars[] = {
     {"no new messages", "Ingen nye meldinger"},
@@ -1736,8 +1757,10 @@ static const lv_i18n_phrase_t no_singulars[] = {
     {"Short Name", "Kort Navn"},
     {"Long Name", "Langt Navn"},
     {"<unset>", "<ikke satt>"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- utfaset --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Klient\nKlient Stum\nRuter\n-- utfaset --\nRepeater\nSporer\nSensor\nTAK\nKlient Gjemt\nMistet & Funnet\nTAK Sporing"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- utfaset --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Klient\nKlient Stum\nRuter\n-- utfaset --\nRepeater\nSporer\nSensor\nTAK\nKlient Gjemt\nMistet & Funnet\nTAK Sporing"},
     {"Brightness: 60%", "Lysstyrke: 60%"},
     {"Dark\nLight", "Mørk\nLyst"},
     {"Timeout: 60s", "Tidsavbrudd: 60s"},
@@ -1856,33 +1879,28 @@ static const lv_i18n_phrase_t no_singulars[] = {
 };
 
 static const lv_i18n_phrase_t no_plurals_one[] = {
-    {"%d active chat(s)", "1 aktiv chat"},
-    {"%d of %d nodes online", "1 node online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "1 aktiv chat"}, {"%d of %d nodes online", "1 node online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t no_plurals_other[] = {
-    {"%d active chat(s)", "%d aktive chat"},
-    {"%d of %d nodes online", "%d av %d noder online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d aktive chat"}, {"%d of %d nodes online", "%d av %d noder online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t no_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t n = op_n(num);
+    UNUSED(n);
 
-
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t no_lang = {
-    .locale_name = "no",
-    .singulars = no_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = no_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = no_plurals_other,
-    .locale_plural_fn = no_plural_fn
-};
+static const lv_i18n_lang_t no_lang = {.locale_name = "no",
+                                       .singulars = no_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = no_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = no_plurals_other,
+                                       .locale_plural_fn = no_plural_fn};
 
 static const lv_i18n_phrase_t pl_singulars[] = {
     {"no new messages", "Brak wiadomości"},
@@ -1989,27 +2007,30 @@ static const lv_i18n_phrase_t pl_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t pl_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
     uint32_t i10 = i % 10;
     uint32_t i100 = i % 100;
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14)))) return LV_I18N_PLURAL_TYPE_FEW;
-    if ((v == 0 && i != 1 && (0 <= i10 && i10 <= 1)) || (v == 0 && (5 <= i10 && i10 <= 9)) || (v == 0 && (12 <= i100 && i100 <= 14))) return LV_I18N_PLURAL_TYPE_MANY;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))))
+        return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i != 1 && (0 <= i10 && i10 <= 1)) || (v == 0 && (5 <= i10 && i10 <= 9)) ||
+        (v == 0 && (12 <= i100 && i100 <= 14)))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t pl_lang = {
-    .locale_name = "pl",
-    .singulars = pl_singulars,
+static const lv_i18n_lang_t pl_lang = {.locale_name = "pl",
+                                       .singulars = pl_singulars,
 
-    .locale_plural_fn = pl_plural_fn
-};
+                                       .locale_plural_fn = pl_plural_fn};
 
 static const lv_i18n_phrase_t pt_singulars[] = {
     {"no new messages", "Nenhuma mensagem"},
@@ -2050,8 +2071,11 @@ static const lv_i18n_phrase_t pt_singulars[] = {
     {"Short Name", "Nome Curto"},
     {"Long Name", "Nome Longo"},
     {"<unset>", "<Não Configurado>"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- desativado --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Cliente\nCliente Mudo\nRoteador\n-- desativado --\nRepetidor\nRastreador\nSensor\nTAK\nCliente Oculto\nAchados e Perdidos\nRastreador TAK"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- desativado --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Cliente\nCliente Mudo\nRoteador\n-- desativado --\nRepetidor\nRastreador\nSensor\nTAK\nCliente Oculto\nAchados e "
+     "Perdidos\nRastreador TAK"},
     {"Brightness: 60%", "Brilho de Tela: 60%"},
     {"Dark\nLight", "Escuro\nClaro"},
     {"Timeout: 60s", "Tempo Máximo: 60s"},
@@ -2135,52 +2159,56 @@ static const lv_i18n_phrase_t pt_singulars[] = {
 };
 
 static const lv_i18n_phrase_t pt_plurals_one[] = {
-    {"%d of %d nodes online", "1 dispositivo online"},
-    {NULL, NULL} // End mark
+    {"%d of %d nodes online", "1 dispositivo online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t pt_plurals_other[] = {
-    {"%d of %d nodes online", "%d/%d dispositivos online"},
-    {NULL, NULL} // End mark
+    {"%d of %d nodes online", "%d/%d dispositivos online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t pt_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t e = op_e(n); UNUSED(e);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t e = op_e(n);
+    UNUSED(e);
+    uint32_t v = op_v(n);
+    UNUSED(v);
     uint32_t i1000000 = i % 1000000;
-    if (((0 <= i && i <= 1))) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5)))) return LV_I18N_PLURAL_TYPE_MANY;
+    if (((0 <= i && i <= 1)))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((e == 0 && i != 0 && i1000000 == 0 && v == 0) || ((!(0 <= e && e <= 5))))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t pt_lang = {
-    .locale_name = "pt",
-    .singulars = pt_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = pt_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = pt_plurals_other,
-    .locale_plural_fn = pt_plural_fn
-};
+static const lv_i18n_lang_t pt_lang = {.locale_name = "pt",
+                                       .singulars = pt_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = pt_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = pt_plurals_other,
+                                       .locale_plural_fn = pt_plural_fn};
 
 static uint8_t ro_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t v = op_v(n); UNUSED(v);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t v = op_v(n);
+    UNUSED(v);
     uint32_t n100 = n % 100;
-    if ((i == 1 && v == 0)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v != 0) || (n == 0) || (n != 1 && (1 <= n100 && n100 <= 19))) return LV_I18N_PLURAL_TYPE_FEW;
+    if ((i == 1 && v == 0))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v != 0) || (n == 0) || (n != 1 && (1 <= n100 && n100 <= 19)))
+        return LV_I18N_PLURAL_TYPE_FEW;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t ro_lang = {
-    .locale_name = "ro",
+static const lv_i18n_lang_t ro_lang = {.locale_name = "ro",
 
-
-    .locale_plural_fn = ro_plural_fn
-};
+                                       .locale_plural_fn = ro_plural_fn};
 
 static const lv_i18n_phrase_t ru_singulars[] = {
     {"no new messages", "нет новых сообщений"},
@@ -2247,8 +2275,10 @@ static const lv_i18n_phrase_t ru_singulars[] = {
     {"Start", "Начать"},
     {"Theme: %s", "Тема: %s"},
     {"Packet Statistics", "Статистика пакетов"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- устарело --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Client\nClient Mute\nRouter\n-- устарело --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- устарело --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- устарело --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
     {"Dark\nLight", "Тёмная\nСветлая"},
     {"Cancel", "Отмена"},
     {"Brightness: %d%%", "Яркость: %d%%"},
@@ -2303,27 +2333,29 @@ static const lv_i18n_phrase_t ru_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t ru_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t v = op_v(n); UNUSED(v);
-    uint32_t i = op_i(n); UNUSED(i);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i = op_i(n);
+    UNUSED(i);
     uint32_t i10 = i % 10;
     uint32_t i100 = i % 100;
-    if ((v == 0 && i10 == 1 && i100 != 11)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14)))) return LV_I18N_PLURAL_TYPE_FEW;
-    if ((v == 0 && i10 == 0) || (v == 0 && (5 <= i10 && i10 <= 9)) || (v == 0 && (11 <= i100 && i100 <= 14))) return LV_I18N_PLURAL_TYPE_MANY;
+    if ((v == 0 && i10 == 1 && i100 != 11))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))))
+        return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i10 == 0) || (v == 0 && (5 <= i10 && i10 <= 9)) || (v == 0 && (11 <= i100 && i100 <= 14)))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t ru_lang = {
-    .locale_name = "ru",
-    .singulars = ru_singulars,
+static const lv_i18n_lang_t ru_lang = {.locale_name = "ru",
+                                       .singulars = ru_singulars,
 
-    .locale_plural_fn = ru_plural_fn
-};
+                                       .locale_plural_fn = ru_plural_fn};
 
 static const lv_i18n_phrase_t se_singulars[] = {
     {"no new messages", "inga nya meddelanden"},
@@ -2372,7 +2404,9 @@ static const lv_i18n_phrase_t se_singulars[] = {
     {"Primary Channel", "Primär Kanal"},
     {"<unset>", "<ej inställt>"},
     {"Secondary Channels", "Sekundär Kanal"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium räckvidd / Långsam\nMedium räckvidd / Snabb\nKort räckvidd / Långsam\nKort räckvidd / Snabb\nLång räckvidd / Måttlig\nKort räckvidd / Turbo"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "Lång räckvidd / Snabb\nLång räckvidd / Långsam\n-- utfasad --\nMedium räckvidd / Långsam\nMedium räckvidd / Snabb\nKort "
+     "räckvidd / Långsam\nKort räckvidd / Snabb\nLång räckvidd / Måttlig\nKort räckvidd / Turbo"},
     {"WiFi pre-shared Key", "WiFi Lösenord"},
     {"Brightness: 60%", "Ljusstyrka: 60%"},
     {"Dark\nLight", "Mörkt\nLjust"},
@@ -2467,39 +2501,36 @@ static const lv_i18n_phrase_t se_singulars[] = {
     {"Resync...", "Synkronisera om..."},
     {"NodeDB Reset\nFactory Reset", "Nollställ NodeDB\nFabriksåterställning"},
     {"Screen Lock: off", "Bildskärms Lås: av"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Client\nClient Mute\nRouter\n-- utfasad --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Client\nClient Mute\nRouter\n-- utfasad --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker"},
     {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t se_plurals_one[] = {
-    {"%d active chat(s)", "1 aktiv chatt"},
-    {"%d of %d nodes online", "1 nod online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "1 aktiv chatt"}, {"%d of %d nodes online", "1 nod online"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t se_plurals_other[] = {
-    {"%d active chat(s)", "%d aktiva chattar"},
-    {"%d of %d nodes online", "%d av %d noder online"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d aktiva chattar"}, {"%d of %d nodes online", "%d av %d noder online"}, {NULL, NULL} // End mark
 };
 
 static uint8_t se_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t n = op_n(num);
+    UNUSED(n);
 
-
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((n == 2)) return LV_I18N_PLURAL_TYPE_TWO;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 2))
+        return LV_I18N_PLURAL_TYPE_TWO;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t se_lang = {
-    .locale_name = "se",
-    .singulars = se_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = se_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = se_plurals_other,
-    .locale_plural_fn = se_plural_fn
-};
+static const lv_i18n_lang_t se_lang = {.locale_name = "se",
+                                       .singulars = se_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = se_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = se_plurals_other,
+                                       .locale_plural_fn = se_plural_fn};
 
 static const lv_i18n_phrase_t sl_singulars[] = {
     {"User name: %s", "Uporabniško ime: %s"},
@@ -2540,8 +2571,10 @@ static const lv_i18n_phrase_t sl_singulars[] = {
     {"Short Name", "Kratko ime"},
     {"Long Name", "Dolgo ime"},
     {"<unset>", "<prazno>"},
-    {"LONG FAST\nLONG SLOW\n-- zastarelo --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "LONG FAST\nLONG SLOW\n-- zastarelo --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
-    {"Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "Odjemalec\nNemi odjemalec\nSledilnik\nSenzor\nTAK\nSkriti odjemalec\nIzgubljeno - najdeno\nTAK sledilnik"},
+    {"LONG FAST\nLONG SLOW\n-- zastarelo --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "LONG FAST\nLONG SLOW\n-- zastarelo --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"},
+    {"Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "Odjemalec\nNemi odjemalec\nSledilnik\nSenzor\nTAK\nSkriti odjemalec\nIzgubljeno - najdeno\nTAK sledilnik"},
     {"Brightness: 60%", "Svetlost: 60%"},
     {"Dark\nLight", "Temna\nSvetla"},
     {"Timeout: 60s", "Izklop zaslona po: 60s"},
@@ -2555,7 +2588,8 @@ static const lv_i18n_phrase_t sl_singulars[] = {
     {"Default", "Privzeto"},
     {"Zone", "Območje"},
     {"City", "Mesto"},
-    {"NodeDB Reset\nFactory Reset\nClear Chat History", "Ponastavitev NodeDB\nTovarniška ponastavitev\nPočisti zgodovino klepeta"},
+    {"NodeDB Reset\nFactory Reset\nClear Chat History",
+     "Ponastavitev NodeDB\nTovarniška ponastavitev\nPočisti zgodovino klepeta"},
     {"Channel Name", "Ime kanala"},
     {"Pre-shared Key", "PSK ključ"},
     {"Unknown", "Neznano"},
@@ -2640,34 +2674,36 @@ static const lv_i18n_phrase_t sl_singulars[] = {
 };
 
 static const lv_i18n_phrase_t sl_plurals_one[] = {
-    {"%d of %d nodes online", "1 vozlišč povezano"},
-    {NULL, NULL} // End mark
+    {"%d of %d nodes online", "1 vozlišč povezano"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t sl_plurals_other[] = {
-    {"%d of %d nodes online", "%d / %d vozl. povezanih"},
-    {NULL, NULL} // End mark
+    {"%d of %d nodes online", "%d / %d vozl. povezanih"}, {NULL, NULL} // End mark
 };
 
 static uint8_t sl_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t v = op_v(n); UNUSED(v);
-    uint32_t i = op_i(n); UNUSED(i);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i = op_i(n);
+    UNUSED(i);
     uint32_t i100 = i % 100;
-    if ((v == 0 && i100 == 1)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v == 0 && i100 == 2)) return LV_I18N_PLURAL_TYPE_TWO;
-    if ((v == 0 && (3 <= i100 && i100 <= 4)) || (v != 0)) return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i100 == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && i100 == 2))
+        return LV_I18N_PLURAL_TYPE_TWO;
+    if ((v == 0 && (3 <= i100 && i100 <= 4)) || (v != 0))
+        return LV_I18N_PLURAL_TYPE_FEW;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t sl_lang = {
-    .locale_name = "sl",
-    .singulars = sl_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = sl_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = sl_plurals_other,
-    .locale_plural_fn = sl_plural_fn
-};
+static const lv_i18n_lang_t sl_lang = {.locale_name = "sl",
+                                       .singulars = sl_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = sl_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = sl_plurals_other,
+                                       .locale_plural_fn = sl_plural_fn};
 
 static const lv_i18n_phrase_t sr_singulars[] = {
     {"no new messages", "nema novih poruka"},
@@ -2797,29 +2833,32 @@ static const lv_i18n_phrase_t sr_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t sr_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t v = op_v(n); UNUSED(v);
-    uint32_t i = op_i(n); UNUSED(i);
-    uint32_t f = op_f(n); UNUSED(f);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i = op_i(n);
+    UNUSED(i);
+    uint32_t f = op_f(n);
+    UNUSED(f);
     uint32_t i10 = i % 10;
     uint32_t i100 = i % 100;
     uint32_t f10 = f % 10;
     uint32_t f100 = f % 100;
-    if ((v == 0 && i10 == 1 && i100 != 11) || (f10 == 1 && f100 != 11)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))) || ((2 <= f10 && f10 <= 4) && (!(12 <= f100 && f100 <= 14)))) return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i10 == 1 && i100 != 11) || (f10 == 1 && f100 != 11))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))) ||
+        ((2 <= f10 && f10 <= 4) && (!(12 <= f100 && f100 <= 14))))
+        return LV_I18N_PLURAL_TYPE_FEW;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t sr_lang = {
-    .locale_name = "sr",
-    .singulars = sr_singulars,
+static const lv_i18n_lang_t sr_lang = {.locale_name = "sr",
+                                       .singulars = sr_singulars,
 
-    .locale_plural_fn = sr_plural_fn
-};
+                                       .locale_plural_fn = sr_plural_fn};
 
 static const lv_i18n_phrase_t tr_singulars[] = {
     {"no new messages", "Yeni mesaj yok"},
@@ -2953,31 +2992,28 @@ static const lv_i18n_phrase_t tr_singulars[] = {
 };
 
 static const lv_i18n_phrase_t tr_plurals_one[] = {
-    {"%d of %d nodes online", "1 düğüm çevrimiçi"},
-    {NULL, NULL} // End mark
+    {"%d of %d nodes online", "1 düğüm çevrimiçi"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t tr_plurals_other[] = {
-    {"%d of %d nodes online", "%d / %d düğümler çevrimiçi"},
-    {NULL, NULL} // End mark
+    {"%d of %d nodes online", "%d / %d düğümler çevrimiçi"}, {NULL, NULL} // End mark
 };
 
 static uint8_t tr_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
+    uint32_t n = op_n(num);
+    UNUSED(n);
 
-
-    if ((n == 1)) return LV_I18N_PLURAL_TYPE_ONE;
+    if ((n == 1))
+        return LV_I18N_PLURAL_TYPE_ONE;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t tr_lang = {
-    .locale_name = "tr",
-    .singulars = tr_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = tr_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = tr_plurals_other,
-    .locale_plural_fn = tr_plural_fn
-};
+static const lv_i18n_lang_t tr_lang = {.locale_name = "tr",
+                                       .singulars = tr_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = tr_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = tr_plurals_other,
+                                       .locale_plural_fn = tr_plural_fn};
 
 static const lv_i18n_phrase_t uk_singulars[] = {
     {"no new messages", "немає повідомлень"},
@@ -3121,37 +3157,37 @@ static const lv_i18n_phrase_t uk_singulars[] = {
 };
 
 static const lv_i18n_phrase_t uk_plurals_one[] = {
-    {"%d active chat(s)", "%d активний чат"},
-    {"%d of %d nodes online", "1 вузол онлайн"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d активний чат"}, {"%d of %d nodes online", "1 вузол онлайн"}, {NULL, NULL} // End mark
 };
 
 static const lv_i18n_phrase_t uk_plurals_other[] = {
-    {"%d active chat(s)", "%d активні чати"},
-    {"%d of %d nodes online", "%d з %d вузлів онлайн"},
-    {NULL, NULL} // End mark
+    {"%d active chat(s)", "%d активні чати"}, {"%d of %d nodes online", "%d з %d вузлів онлайн"}, {NULL, NULL} // End mark
 };
 
 static uint8_t uk_plural_fn(int32_t num)
 {
-    uint32_t n = op_n(num); UNUSED(n);
-    uint32_t v = op_v(n); UNUSED(v);
-    uint32_t i = op_i(n); UNUSED(i);
+    uint32_t n = op_n(num);
+    UNUSED(n);
+    uint32_t v = op_v(n);
+    UNUSED(v);
+    uint32_t i = op_i(n);
+    UNUSED(i);
     uint32_t i10 = i % 10;
     uint32_t i100 = i % 100;
-    if ((v == 0 && i10 == 1 && i100 != 11)) return LV_I18N_PLURAL_TYPE_ONE;
-    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14)))) return LV_I18N_PLURAL_TYPE_FEW;
-    if ((v == 0 && i10 == 0) || (v == 0 && (5 <= i10 && i10 <= 9)) || (v == 0 && (11 <= i100 && i100 <= 14))) return LV_I18N_PLURAL_TYPE_MANY;
+    if ((v == 0 && i10 == 1 && i100 != 11))
+        return LV_I18N_PLURAL_TYPE_ONE;
+    if ((v == 0 && (2 <= i10 && i10 <= 4) && (!(12 <= i100 && i100 <= 14))))
+        return LV_I18N_PLURAL_TYPE_FEW;
+    if ((v == 0 && i10 == 0) || (v == 0 && (5 <= i10 && i10 <= 9)) || (v == 0 && (11 <= i100 && i100 <= 14)))
+        return LV_I18N_PLURAL_TYPE_MANY;
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t uk_lang = {
-    .locale_name = "uk",
-    .singulars = uk_singulars,
-    .plurals[LV_I18N_PLURAL_TYPE_ONE] = uk_plurals_one,
-    .plurals[LV_I18N_PLURAL_TYPE_OTHER] = uk_plurals_other,
-    .locale_plural_fn = uk_plural_fn
-};
+static const lv_i18n_lang_t uk_lang = {.locale_name = "uk",
+                                       .singulars = uk_singulars,
+                                       .plurals[LV_I18N_PLURAL_TYPE_ONE] = uk_plurals_one,
+                                       .plurals[LV_I18N_PLURAL_TYPE_OTHER] = uk_plurals_other,
+                                       .locale_plural_fn = uk_plural_fn};
 
 static const lv_i18n_phrase_t zh_cn_singulars[] = {
     {"no new messages", "暂无新消息"},
@@ -3219,8 +3255,10 @@ static const lv_i18n_phrase_t zh_cn_singulars[] = {
     {"Heap: 0\nLVGL: 0", "堆内存：0\nLVGL：0"},
     {"Meshtastic", "Meshtastic"},
     {"Packet Statistics", "数据包统计"},
-    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO", "远距快速\n远距慢速\n-- 已弃用 --\n中距慢速\n中距快速\n近距慢速\n近距快速\n远距适中\n近距极速"},
-    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker", "客户端\n静音客户端\n路由器\n-- 已弃用 --\n中继器\n追踪器\n传感器\nTAK\n隐藏客户端\n失物招领\nTAK追踪器"},
+    {"LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+     "远距快速\n远距慢速\n-- 已弃用 --\n中距慢速\n中距快速\n近距慢速\n近距快速\n远距适中\n近距极速"},
+    {"Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker",
+     "客户端\n静音客户端\n路由器\n-- 已弃用 --\n中继器\n追踪器\n传感器\nTAK\n隐藏客户端\n失物招领\nTAK追踪器"},
     {"Dark\nLight", "深色\n浅色"},
     {"none", "无"},
     {"Default", "默认"},
@@ -3288,56 +3326,28 @@ static const lv_i18n_phrase_t zh_cn_singulars[] = {
     {NULL, NULL} // End mark
 };
 
-
-
 static uint8_t zh_cn_plural_fn(int32_t num)
 {
-
-
 
     return LV_I18N_PLURAL_TYPE_OTHER;
 }
 
-static const lv_i18n_lang_t zh_cn_lang = {
-    .locale_name = "zh-CN",
-    .singulars = zh_cn_singulars,
+static const lv_i18n_lang_t zh_cn_lang = {.locale_name = "zh-CN",
+                                          .singulars = zh_cn_singulars,
 
-    .locale_plural_fn = zh_cn_plural_fn
-};
+                                          .locale_plural_fn = zh_cn_plural_fn};
 
 const lv_i18n_language_pack_t lv_i18n_language_pack[] = {
-    &en_lang,
-    &bg_lang,
-    &cs_lang,
-    &da_lang,
-    &de_lang,
-    &el_lang,
-    &es_lang,
-    &fi_lang,
-    &fr_lang,
-    &it_lang,
-    &nl_lang,
-    &no_lang,
-    &pl_lang,
-    &pt_lang,
-    &ro_lang,
-    &ru_lang,
-    &se_lang,
-    &sl_lang,
-    &sr_lang,
-    &tr_lang,
-    &uk_lang,
-    &zh_cn_lang,
+    &en_lang, &bg_lang, &cs_lang, &da_lang, &de_lang, &el_lang, &es_lang, &fi_lang, &fr_lang, &it_lang, &nl_lang,
+    &no_lang, &pl_lang, &pt_lang, &ro_lang, &ru_lang, &se_lang, &sl_lang, &sr_lang, &tr_lang, &uk_lang, &zh_cn_lang,
     NULL // End mark
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
 // Internal state
-static const lv_i18n_language_pack_t * current_lang_pack;
-static const lv_i18n_lang_t * current_lang;
-
+static const lv_i18n_language_pack_t *current_lang_pack;
+static const lv_i18n_lang_t *current_lang;
 
 /**
  * Reset internal state. For testing.
@@ -3352,13 +3362,15 @@ void __lv_i18n_reset(void)
  * Set the languages for internationalization
  * @param langs pointer to the array of languages. (Last element has to be `NULL`)
  */
-int lv_i18n_init(const lv_i18n_language_pack_t * langs)
+int lv_i18n_init(const lv_i18n_language_pack_t *langs)
 {
-    if(langs == NULL) return -1;
-    if(langs[0] == NULL) return -1;
+    if (langs == NULL)
+        return -1;
+    if (langs[0] == NULL)
+        return -1;
 
     current_lang_pack = langs;
-    current_lang = langs[0];     /*Automatically select the first language*/
+    current_lang = langs[0]; /*Automatically select the first language*/
     return 0;
 }
 
@@ -3370,20 +3382,20 @@ int lv_i18n_init_default(void)
     return lv_i18n_init(lv_i18n_language_pack);
 }
 
-
 /**
  * Change the localization (language)
  * @param l_name name of the translation locale to use. E.g. "en-GB"
  */
-int lv_i18n_set_locale(const char * l_name)
+int lv_i18n_set_locale(const char *l_name)
 {
-    if(current_lang_pack == NULL) return -1;
+    if (current_lang_pack == NULL)
+        return -1;
 
     uint16_t i;
 
-    for(i = 0; current_lang_pack[i] != NULL; i++) {
+    for (i = 0; current_lang_pack[i] != NULL; i++) {
         // Found -> finish
-        if(strcmp(current_lang_pack[i]->locale_name, l_name) == 0) {
+        if (strcmp(current_lang_pack[i]->locale_name, l_name) == 0) {
             current_lang = current_lang_pack[i];
             return 0;
         }
@@ -3392,47 +3404,50 @@ int lv_i18n_set_locale(const char * l_name)
     return -1;
 }
 
-
-static const char * __lv_i18n_get_text_core(const lv_i18n_phrase_t * trans, const char * msg_id)
+static const char *__lv_i18n_get_text_core(const lv_i18n_phrase_t *trans, const char *msg_id)
 {
     uint16_t i;
-    for(i = 0; trans[i].msg_id != NULL; i++) {
-        if(strcmp(trans[i].msg_id, msg_id) == 0) {
+    for (i = 0; trans[i].msg_id != NULL; i++) {
+        if (strcmp(trans[i].msg_id, msg_id) == 0) {
             /*The msg_id has been found. Check the translation*/
-            if(trans[i].translation) return trans[i].translation;
+            if (trans[i].translation)
+                return trans[i].translation;
         }
     }
 
     return NULL;
 }
 
-
 /**
  * Get the translation from a message ID
  * @param msg_id message ID
  * @return the translation of `msg_id` on the set local
  */
-const char * lv_i18n_get_text(const char * msg_id)
+const char *lv_i18n_get_text(const char *msg_id)
 {
-    if(current_lang == NULL) return msg_id;
+    if (current_lang == NULL)
+        return msg_id;
 
-    const lv_i18n_lang_t * lang = current_lang;
-    const void * txt;
+    const lv_i18n_lang_t *lang = current_lang;
+    const void *txt;
 
     // Search in current locale
-    if(lang->singulars != NULL) {
+    if (lang->singulars != NULL) {
         txt = __lv_i18n_get_text_core(lang->singulars, msg_id);
-        if (txt != NULL) return txt;
+        if (txt != NULL)
+            return txt;
     }
 
     // Try to fallback
-    if(lang == current_lang_pack[0]) return msg_id;
+    if (lang == current_lang_pack[0])
+        return msg_id;
     lang = current_lang_pack[0];
 
     // Repeat search for default locale
-    if(lang->singulars != NULL) {
+    if (lang->singulars != NULL) {
         txt = __lv_i18n_get_text_core(lang->singulars, msg_id);
-        if (txt != NULL) return txt;
+        if (txt != NULL)
+            return txt;
     }
 
     return msg_id;
@@ -3444,35 +3459,39 @@ const char * lv_i18n_get_text(const char * msg_id)
  * @param num an integer to select the correct plural form
  * @return the translation of `msg_id` on the set local
  */
-const char * lv_i18n_get_text_plural(const char * msg_id, int32_t num)
+const char *lv_i18n_get_text_plural(const char *msg_id, int32_t num)
 {
-    if(current_lang == NULL) return msg_id;
+    if (current_lang == NULL)
+        return msg_id;
 
-    const lv_i18n_lang_t * lang = current_lang;
-    const void * txt;
+    const lv_i18n_lang_t *lang = current_lang;
+    const void *txt;
     lv_i18n_plural_type_t ptype;
 
     // Search in current locale
-    if(lang->locale_plural_fn != NULL) {
+    if (lang->locale_plural_fn != NULL) {
         ptype = lang->locale_plural_fn(num);
 
-        if(lang->plurals[ptype] != NULL) {
+        if (lang->plurals[ptype] != NULL) {
             txt = __lv_i18n_get_text_core(lang->plurals[ptype], msg_id);
-            if (txt != NULL) return txt;
+            if (txt != NULL)
+                return txt;
         }
     }
 
     // Try to fallback
-    if(lang == current_lang_pack[0]) return msg_id;
+    if (lang == current_lang_pack[0])
+        return msg_id;
     lang = current_lang_pack[0];
 
     // Repeat search for default locale
-    if(lang->locale_plural_fn != NULL) {
+    if (lang->locale_plural_fn != NULL) {
         ptype = lang->locale_plural_fn(num);
 
-        if(lang->plurals[ptype] != NULL) {
+        if (lang->plurals[ptype] != NULL) {
             txt = __lv_i18n_get_text_core(lang->plurals[ptype], msg_id);
-            if (txt != NULL) return txt;
+            if (txt != NULL)
+                return txt;
         }
     }
 
@@ -3483,8 +3502,9 @@ const char * lv_i18n_get_text_plural(const char * msg_id, int32_t num)
  * Get the name of the currently used locale.
  * @return name of the currently used locale. E.g. "en-GB"
  */
-const char * lv_i18n_get_current_locale(void)
+const char *lv_i18n_get_current_locale(void)
 {
-    if(!current_lang) return NULL;
+    if (!current_lang)
+        return NULL;
     return current_lang->locale_name;
 }
