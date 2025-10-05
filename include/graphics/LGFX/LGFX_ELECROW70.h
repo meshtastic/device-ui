@@ -68,12 +68,10 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             pinMode(1, INPUT);
             delay(100);
             sendI2CCommand(0x18);
-
             isV2 = true;
-            setBrightness(brightness);
         }
 
-        return LGFX_Device::init_impl(use_reset, use_clear);
+        return LGFX_Device::init_impl(use_reset, use_clear) && setBrightness(brightness);
     }
 
     lgfx::ILight *light(void) const
