@@ -10,7 +10,7 @@
 #define ELECROW_V2_ADDR 0x30
 
 #ifndef FREQ_WRITE
-#define FREQ_WRITE 14000000
+#define FREQ_WRITE 15000000
 #endif
 
 class LGFX_ELECROW70 : public lgfx::LGFX_Device
@@ -71,7 +71,9 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             isV2 = true;
         }
 
-        return LGFX_Device::init_impl(use_reset, use_clear) && setBrightness(brightness);
+        bool result = LGFX_Device::init_impl(use_reset, use_clear);
+        setBrightness(brightness);
+        return result;
     }
 
     lgfx::ILight *light(void) const
