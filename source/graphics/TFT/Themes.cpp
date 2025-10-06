@@ -465,6 +465,22 @@ void Themes::recolorButton(lv_obj_t *obj, bool enabled, lv_opa_t opa)
     lv_obj_set_style_bg_image_recolor_opa(obj, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
+void Themes::recolorImage(lv_obj_t *obj, bool enabled)
+{
+    lv_color_t color;
+    switch (theme) {
+    case eLight:
+        color = enabled ? lv_color_hex(THEME(eHomeButtonImageRecolor)) : lv_color_hex(0xffc0c0c0);
+        break;
+    case eDark:
+        color = enabled ? lv_color_hex(0xffe0e0e0) : lv_color_hex(0xff606060);
+        break;
+    default:
+        break;
+    }
+    lv_obj_set_style_image_recolor(obj, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
 void Themes::recolorText(lv_obj_t *obj, bool enabled)
 {
     lv_color_t color;

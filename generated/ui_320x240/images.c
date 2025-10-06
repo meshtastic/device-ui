@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[88] = {
+const ext_img_desc_t images[90] = {
     { "meshtastic_boot_logo_image", &img_meshtastic_boot_logo_image },
     { "settings_button_image", &img_settings_button_image },
     { "map_button_image", &img_map_button_image },
@@ -89,4 +89,6 @@ const ext_img_desc_t images[88] = {
     { "reboot_BT_on_image", &img_reboot_bt_on_image },
     { "unmessagable_image", &img_unmessagable_image },
     { "home_qr_button_image", &img_home_qr_button_image },
+    { "groups_bell_slash_image", &img_groups_bell_slash_image },
+    { "groups_bell_image", &img_groups_bell_image },
 };

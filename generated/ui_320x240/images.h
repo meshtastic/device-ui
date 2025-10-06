@@ -95,6 +95,8 @@ extern const lv_img_dsc_t img_node_location_pin24_image;
 extern const lv_img_dsc_t img_reboot_bt_on_image;
 extern const lv_img_dsc_t img_unmessagable_image;
 extern const lv_img_dsc_t img_home_qr_button_image;
+extern const lv_img_dsc_t img_groups_bell_slash_image;
+extern const lv_img_dsc_t img_groups_bell_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -104,7 +106,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[88];
+extern const ext_img_desc_t images[90];
 
 
 #ifdef __cplusplus
