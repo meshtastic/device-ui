@@ -137,9 +137,10 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
-      processingFilter(false), packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0),
-      lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0), topNodeLL(nullptr), scans(0), selectedHops(0),
-      chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr), db{}
+      processingFilter(false), packetLogEnabled(false), detectorRunning(false), cardDetected(false), formatSD(false),
+      packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
+      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), 
+      qr(nullptr), db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -660,6 +661,7 @@ void TFTView_320x240::updateTheme(void)
                           db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorButton(objects.home_wlan_button, db.config.network.wifi_enabled);
     Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
+    Themes::recolorButton(objects.home_sd_card_button, cardDetected);
     Themes::recolorButton(objects.home_memory_button, (bool)objects.home_memory_button->user_data);
     Themes::recolorText(objects.home_lora_label, db.config.lora.tx_enabled);
     Themes::recolorText(objects.home_bell_label, db.uiConfig.alert_enabled || !db.silent);
@@ -667,6 +669,7 @@ void TFTView_320x240::updateTheme(void)
                         db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorText(objects.home_wlan_label, db.config.network.wifi_enabled);
     Themes::recolorText(objects.home_mqtt_label, db.module_config.mqtt.enabled);
+    Themes::recolorText(objects.home_sd_card_label, cardDetected);
     Themes::recolorText(objects.home_memory_label, (bool)objects.home_memory_button->user_data);
 
     lv_opa_t opa = (Themes::get() == Themes::eDark) ? 0 : 255;
@@ -676,6 +679,11 @@ void TFTView_320x240::updateTheme(void)
     lv_obj_set_style_bg_img_recolor_opa(objects.messages_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(objects.map_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    for (int i = 0; i < c_max_channels; i++) {
+        if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
+            updateGroupChannel(i);
+    }
 }
 
 void TFTView_320x240::ui_events_init(void)
@@ -1081,8 +1089,13 @@ void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 {
+    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
         if (THIS->db.channel[ch].role != meshtastic_Channel_Role_DISABLED) {
             if (THIS->messagesRestored) {
@@ -1092,8 +1105,14 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
                 lv_group_focus_obj(objects.msg_restore_button);
             }
         }
-    } else {
-        // TODO: click on unset channel should popup config screen
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        // toggle mute channel
+        uint8_t ch = (uint8_t)(unsigned long)e->user_data;
+        bool mute = THIS->db.channel[ch].settings.mute;
+        THIS->db.channel[ch].settings.mute = !mute;
+        THIS->updateChannelConfig(THIS->db.channel[ch]);
+        THIS->controller->sendConfig(THIS->db.channel[ch], THIS->ownNode);
+        ignoreClicked = true;
     }
 }
 
@@ -5789,6 +5808,19 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
         lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+        lv_obj_t *bellImage = NULL;
+        if (lv_obj_get_child_cnt(btn[ch.index]) < 3)
+            bellImage = lv_img_create(btn[ch.index]);
+        else
+            bellImage = lv_obj_get_child(btn[ch.index], 2);
+        lv_obj_set_width(bellImage, LV_SIZE_CONTENT);  /// 1
+        lv_obj_set_height(bellImage, LV_SIZE_CONTENT); /// 1
+        lv_obj_set_align(bellImage, LV_ALIGN_RIGHT_MID);
+        lv_obj_add_flag(bellImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
+        lv_obj_clear_flag(bellImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+        lv_obj_set_style_img_recolor_opa(bellImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        updateGroupChannel(ch.index);
     } else {
         // display smaller button with just the channel number
         char buf[10];
@@ -5799,6 +5831,24 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         if (lv_obj_get_child_cnt(btn[ch.index]) == 2) {
             lv_obj_delete(lv_obj_get_child(btn[ch.index], 1));
         }
+    }
+}
+
+// redraw bell icons and color
+void TFTView_320x240::updateGroupChannel(uint8_t chId)
+{
+    static lv_obj_t *btn[c_max_channels] = {objects.channel_button0, objects.channel_button1, objects.channel_button2,
+                                            objects.channel_button3, objects.channel_button4, objects.channel_button5,
+                                            objects.channel_button6, objects.channel_button7};
+
+    lv_obj_t *bellImage = lv_obj_get_child(btn[chId], 2);
+    if (db.channel[chId].settings.mute) {
+        lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_image_set_src(bellImage, &img_groups_bell_slash_image);
+    }
+    else {
+        Themes::recolorImage(bellImage, true);
+        lv_image_set_src(bellImage, &img_groups_bell_image);
     }
 }
 
@@ -6301,7 +6351,8 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         if (container != activeMsgContainer || activePanel != objects.messages_panel) {
             unreadMessages++;
             updateUnreadMessages();
-            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
+            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled &&
+                !db.channel[ch].settings.mute) {
                 showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
             }
             lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
@@ -7055,7 +7106,6 @@ void TFTView_320x240::updateTime(void)
 
 bool TFTView_320x240::updateSDCard(void)
 {
-    bool cardDetected = false;
     formatSD = false;
     if (sdCard) {
         delete sdCard;
