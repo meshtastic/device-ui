@@ -10,24 +10,81 @@
 #define ELECROW_V2_ADDR 0x30
 
 #ifndef FREQ_WRITE
-#define FREQ_WRITE 15000000
+#define FREQ_WRITE 16000000
 #endif
+
+
+class Elecrow_V2_Light : public lgfx::v1::ILight
+{
+  public:
+    struct config_t {
+        bool isV2 = false;
+        bool isV3 = false;
+        uint8_t brightness = 153; // 60%
+    };
+
+    const config_t &config(void) const { return _cfg; }
+    void config(const config_t &cfg) { _cfg = cfg; }
+
+    bool init(uint8_t brightness) override {
+        Wire.beginTransmission(ELECROW_V2_ADDR);
+        if (Wire.endTransmission() == 0) {
+            sendI2CCommand(0x08);
+            _cfg.isV2 = true;
+        }
+        return true;
+    }
+
+    // crowpanel V2 allows 5 brightness levels
+    // 0: off (0x05)
+    // 1 .. 51: (0x06)
+    // 52 .. 102: (0x07)
+    // 103 .. 153: (0x08)
+    // 154 .. 204: (0x09)
+    // 205 .. 255: (0x10)
+    // crowpanel V3 has level 0 (brightest) .. 245 (off)
+    void setBrightness(uint8_t brightness) override
+    {
+        if (_cfg.isV2) {
+            uint8_t cmd = (brightness + 50) / 51 + 5;
+            if (brightness >= 205)
+                cmd = 0x10;
+            sendI2CCommand(cmd);
+           _cfg.brightness = brightness;
+        }
+        else if (_cfg.isV3) {
+            uint8_t brightnessV3 = 244 - (uint32_t(brightness) * 244 / 255);
+            sendI2CCommand(brightnessV3);
+        }
+        _cfg.brightness = brightness;
+    }
+
+    uint8_t getBrightness(void) const { return _cfg.brightness; }
+
+    virtual ~Elecrow_V2_Light(void) = default;
+
+  private:
+    // for V2/V3 microcontroller control
+    uint8_t sendI2CCommand(uint8_t cmd)
+    {
+        Wire.beginTransmission(ELECROW_V2_ADDR);
+        Wire.write(cmd);
+        uint8_t error = Wire.endTransmission();
+        if (error != 0)
+            ILOG_ERROR("failed to send command 0x%02x: %d", cmd, error);
+        return error;
+    }
+
+    config_t _cfg;
+};
+
 
 class LGFX_ELECROW70 : public lgfx::LGFX_Device
 {
     lgfx::Bus_RGB _bus_instance;
     lgfx::Panel_RGB _panel_instance;
     lgfx::Touch_GT911 _touch_instance;
-    uint8_t brightness = 153;
-    bool isV2 = false;
-
-    // for V2 microcontroller control
-    uint8_t sendI2CCommand(uint8_t cmd)
-    {
-        Wire.beginTransmission(ELECROW_V2_ADDR);
-        Wire.write(cmd);
-        return Wire.endTransmission();
-    }
+    Elecrow_V2_Light _light_instance;
 
   public:
     const uint16_t screenWidth = 800;
@@ -59,48 +116,14 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             pinMode(1, INPUT);
         }
 
-        Wire.beginTransmission(ELECROW_V2_ADDR);
-        if (Wire.endTransmission() == 0) {
-            sendI2CCommand(0x19);
-            pinMode(1, OUTPUT);
-            digitalWrite(1, LOW);
-            delay(120);
-            pinMode(1, INPUT);
-            delay(100);
-            sendI2CCommand(0x18);
-            isV2 = true;
-        }
-
-        bool result = LGFX_Device::init_impl(use_reset, use_clear);
-        setBrightness(brightness);
-        return result;
+        return LGFX_Device::init_impl(use_reset, use_clear);
     }
 
     lgfx::ILight *light(void) const
     {
-        static lgfx::Light_PWM light_instance;
-        return isV2 ? &light_instance : nullptr; // pointer is used by LGFXdriver to check for hasLight()
+        // pointer is used by LGFXDriver to check for hasLight()
+        return _light_instance.config().isV2 || _light_instance.config().isV3 ? (lgfx::ILight *)&_light_instance : nullptr;
     }
-
-    // crowpanel V2 allows 5 brightness levels
-    // 0: off (0x05)
-    // 1 .. 51: (0x06)
-    // 52 .. 102: (0x07)
-    // 103 .. 153: (0x08)
-    // 154 .. 204: (0x09)
-    // 205 .. 255: (0x10)
-    void setBrightness(uint8_t brightness)
-    {
-        if (isV2) {
-            uint8_t cmd = (brightness + 50) / 51 + 5;
-            if (brightness >= 205)
-                cmd = 0x10;
-            sendI2CCommand(cmd);
-            this->brightness = brightness;
-        }
-    }
-
-    uint8_t getBrightness(void) const { return brightness; }
 
     LGFX_ELECROW70(void)
     {
@@ -188,18 +211,30 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
             _panel_instance.setTouch(&_touch_instance);
         }
 
+        // Set the backlight control
+        {
+            auto cfg = _light_instance.config();
+            _light_instance.config(cfg);
+            _panel_instance.setLight(&_light_instance);
+        }
+
         setPanel(&_panel_instance);
     }
 
     void sleep(void)
     {
-        ioex.output(1, TCA9534::Level::L);
+        if (!_light_instance.config().isV2 && !_light_instance.config().isV3) {
+            ioex.output(1, TCA9534::Level::L);
+        }
         _panel->setSleep(true);
     }
+
     void wakeup(void)
     {
-        ioex.output(1, TCA9534::Level::H);
         _panel->setSleep(false);
+        if (!_light_instance.config().isV2 &&!_light_instance.config().isV3) {
+            ioex.output(1, TCA9534::Level::H);
+        }
     }
 
   private:
