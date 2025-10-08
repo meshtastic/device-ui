@@ -2518,7 +2518,6 @@ void TFTView_320x240::loadMap(void)
             lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
         }
         if (hasPosition) {
-            map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
             if (db.uiConfig.map_data.has_home) {
                 map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
                 map->setZoom(db.uiConfig.map_data.home.zoom);
@@ -2526,6 +2525,7 @@ void TFTView_320x240::loadMap(void)
                 map->setHomeLocation(myLatitude * 1e-7, myLongitude * 1e-7);
                 map->setZoom(13);
             }
+            map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
         } else if (db.uiConfig.map_data.has_home) {
             map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
             map->setZoom(db.uiConfig.map_data.home.zoom);
