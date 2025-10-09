@@ -20,12 +20,12 @@ lint:
     - trufflehog@3.90.8
     - yamllint@1.37.1
     - bandit@1.8.6
-    - checkov@3.2.474
+    - checkov@3.2.475
     - terrascan@1.19.9
     - trivy@0.67.0
     #- trufflehog@3.63.2-rc0
     - taplo@0.10.0
-    - ruff@0.13.3
+    - ruff@0.14.0
     - isort@6.1.0
     - markdownlint@0.45.0
     - oxipng@9.1.5
