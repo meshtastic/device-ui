@@ -1108,8 +1108,8 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         // toggle mute channel
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        bool mute = THIS->db.channel[ch].settings.mute;
-        THIS->db.channel[ch].settings.mute = !mute;
+        bool mute = THIS->db.channel[ch].settings.module_settings.is_muted;
+        THIS->db.channel[ch].settings.module_settings.is_muted = !mute;
         THIS->updateChannelConfig(THIS->db.channel[ch]);
         THIS->controller->sendConfig(THIS->db.channel[ch], THIS->ownNode);
         ignoreClicked = true;
@@ -5842,7 +5842,7 @@ void TFTView_320x240::updateGroupChannel(uint8_t chId)
                                             objects.channel_button6, objects.channel_button7};
 
     lv_obj_t *bellImage = lv_obj_get_child(btn[chId], 2);
-    if (db.channel[chId].settings.mute) {
+    if (db.channel[chId].settings.module_settings.is_muted) {
         lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_image_set_src(bellImage, &img_groups_bell_slash_image);
     } else {
@@ -6359,7 +6359,8 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         if (container != activeMsgContainer || activePanel != objects.messages_panel) {
             unreadMessages++;
             updateUnreadMessages();
-            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled && !db.channel[ch].settings.mute) {
+            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled &&
+                !db.channel[ch].settings.module_settings.is_muted) {
                 showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
             }
             lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
