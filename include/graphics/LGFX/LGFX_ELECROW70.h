@@ -13,7 +13,6 @@
 #define FREQ_WRITE 16000000
 #endif
 
-
 class Elecrow_V2_Light : public lgfx::v1::ILight
 {
   public:
@@ -26,10 +25,11 @@ class Elecrow_V2_Light : public lgfx::v1::ILight
     const config_t &config(void) const { return _cfg; }
     void config(const config_t &cfg) { _cfg = cfg; }
 
-    bool init(uint8_t brightness) override {
+    bool init(uint8_t brightness) override
+    {
         Wire.beginTransmission(ELECROW_V2_ADDR);
         if (Wire.endTransmission() == 0) {
-            sendI2CCommand(0x08);
+            sendI2CCommand(0x10);
             _cfg.isV2 = true;
         }
         return true;
@@ -50,9 +50,8 @@ class Elecrow_V2_Light : public lgfx::v1::ILight
             if (brightness >= 205)
                 cmd = 0x10;
             sendI2CCommand(cmd);
-           _cfg.brightness = brightness;
-        }
-        else if (_cfg.isV3) {
+            _cfg.brightness = brightness;
+        } else if (_cfg.isV3) {
             uint8_t brightnessV3 = 244 - (uint32_t(brightness) * 244 / 255);
             sendI2CCommand(brightnessV3);
         }
@@ -77,7 +76,6 @@ class Elecrow_V2_Light : public lgfx::v1::ILight
 
     config_t _cfg;
 };
-
 
 class LGFX_ELECROW70 : public lgfx::LGFX_Device
 {
@@ -232,7 +230,7 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
     void wakeup(void)
     {
         _panel->setSleep(false);
-        if (!_light_instance.config().isV2 &&!_light_instance.config().isV3) {
+        if (!_light_instance.config().isV2 && !_light_instance.config().isV3) {
             ioex.output(1, TCA9534::Level::H);
         }
     }
