@@ -63,6 +63,9 @@
 #ifdef WT32_SC01
 #include "graphics/LGFX/LGFX_WT_SC01PLUS.h"
 #endif
+#ifdef ESP32_S3_TOUCH
+#include "graphics/LGFX/LGFX_ESP32_S3_TOUCH.h"
+#endif
 #ifdef HELTEC_TRACKER
 #include "graphics/LGFX/LGFX_HELTEC_TRACKER.h"
 #endif
@@ -168,6 +171,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(WT_SC01_PLUS)
     case DisplayDriverConfig::device_t::WT32_SC01_PLUS:
         return new LGFXDriver<LGFX_WT_SC01_PLUS>(cfg.width(), cfg.height());
+        break;
+#elif defined(ESP32_S3_TOUCH)
+    case DisplayDriverConfig::device_t::ESP32_S3_CAP_TOUCH:
+        return new LGFXDriver<LGFX_ESP32_S3_TOUCH>(cfg.width(), cfg.height());
         break;
 #elif defined(ESP2432S028RV1)
     case DisplayDriverConfig::device_t::ESP2432S028RV1:

@@ -33,6 +33,7 @@ class DisplayDriverConfig
         ELECROW_ADV,
         HELTEC_TRACKER,
         WT32_SC01_PLUS,
+        ESP32_S3_CAP_TOUCH,
         ESP2432S028RV1,
         ESP2432S028RV2,
         ESP4848S040,
