@@ -55,7 +55,7 @@ class LGFX_ESP32_S3_TOUCH : public lgfx::LGFX_Device
             // The following setting values ​​are general initial values ​​for
             // each panel, so please comment out any unknown items and try them.
 
-            cfg.panel_width = screenHeight;   // actual displayable width
+            cfg.panel_width = screenHeight; // actual displayable width
             cfg.panel_height = screenWidth; // actual displayable height
             cfg.offset_x = 0;               // Panel offset amount in X direction
             cfg.offset_y = 0;               // Panel offset amount in Y direction
@@ -72,7 +72,7 @@ class LGFX_ESP32_S3_TOUCH : public lgfx::LGFX_Device
 
             // Set the following only when the display is shifted with a driver with a
             // variable number of pixels, such as the ST7735 or ILI9163.
-            // cfg.memory_width = TFT_WIDTH;   // Maximum width supported by the driver IC 
+            // cfg.memory_width = TFT_WIDTH;   // Maximum width supported by the driver IC
             // cfg.memory_height = TFT_HEIGHT;  // Maximum height supported by the driver IC
             _panel_instance.config(cfg);
         }
