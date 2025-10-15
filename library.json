@@ -21,7 +21,7 @@
   "headers": ["DeviceScreen.h", "SharedQueue.h"],
   "dependencies": {
     "ArduinoThread": "https://github.com/meshtastic/ArduinoThread/archive/7c3ee9e1951551b949763b1f5280f8db1fa4068d.zip",
-    "lvgl/lvgl": "9.3.0",
+    "lvgl/lvgl": "https://github.com/lvgl/lvgl/archive/283d49ef82ce746f0c0dde8ea4e0f9c3d31b51e8.zip",
     "greiman/SdFat": "https://github.com/mverch67/SdFat/archive/152a52251fc5e1d581303b42378ea712ab229246.zip",
     "nanopb/Nanopb": "0.4.91"
   },

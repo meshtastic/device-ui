@@ -16,6 +16,9 @@
 #if defined(USE_X11)
 #include "graphics/driver/X11Driver.h"
 #endif
+#if defined(USE_SDL)
+#include "graphics/driver/SDLDriver.h"
+#endif
 
 #ifndef ARCH_PORTDUINO
 #ifdef LGFX_DRIVER_TEMPLATE
@@ -178,13 +181,20 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         return new LGFXDriver<LGFX_ESP2432S028RV2>(cfg.width(), cfg.height());
         break;
 #endif
-#elif defined(USE_FRAMEBUFFER)
+#endif
+#if defined(USE_FRAMEBUFFER)
     case DisplayDriverConfig::device_t::FB:
         return &FBDriver::create(cfg.width(), cfg.height());
         break;
-#elif defined(USE_X11)
+#endif
+#if defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:
         return &X11Driver::create(cfg.width(), cfg.height());
+        break;
+#endif
+#if defined(USE_SDL)
+    case DisplayDriverConfig::device_t::SDL:
+        return &SDLDriver::create(cfg.width(), cfg.height());
         break;
 #endif
     default:
