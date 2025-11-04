@@ -139,8 +139,8 @@ TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
       processingFilter(false), packetLogEnabled(false), detectorRunning(false), cardDetected(false), formatSD(false),
       packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
-      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), 
-      qr(nullptr), db{}
+      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
+      db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -1108,8 +1108,8 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         // toggle mute channel
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
-        bool mute = THIS->db.channel[ch].settings.mute;
-        THIS->db.channel[ch].settings.mute = !mute;
+        bool mute = THIS->db.channel[ch].settings.module_settings.is_muted;
+        THIS->db.channel[ch].settings.module_settings.is_muted = !mute;
         THIS->updateChannelConfig(THIS->db.channel[ch]);
         THIS->controller->sendConfig(THIS->db.channel[ch], THIS->ownNode);
         ignoreClicked = true;
@@ -1737,7 +1737,7 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
 void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_lora) {
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.lora.use_preset) {
         THIS->activeSettings = eModemPreset;
         lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->db.config.lora.modem_preset);
 
@@ -2518,7 +2518,6 @@ void TFTView_320x240::loadMap(void)
             lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
         }
         if (hasPosition) {
-            map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
             if (db.uiConfig.map_data.has_home) {
                 map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
                 map->setZoom(db.uiConfig.map_data.home.zoom);
@@ -2526,6 +2525,7 @@ void TFTView_320x240::loadMap(void)
                 map->setHomeLocation(myLatitude * 1e-7, myLongitude * 1e-7);
                 map->setZoom(13);
             }
+            map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
         } else if (db.uiConfig.map_data.has_home) {
             map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
             map->setZoom(db.uiConfig.map_data.home.zoom);
@@ -5842,11 +5842,10 @@ void TFTView_320x240::updateGroupChannel(uint8_t chId)
                                             objects.channel_button6, objects.channel_button7};
 
     lv_obj_t *bellImage = lv_obj_get_child(btn[chId], 2);
-    if (db.channel[chId].settings.mute) {
+    if (db.channel[chId].settings.module_settings.is_muted) {
         lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_image_set_src(bellImage, &img_groups_bell_slash_image);
-    }
-    else {
+    } else {
         Themes::recolorImage(bellImage, true);
         lv_image_set_src(bellImage, &img_groups_bell_image);
     }
@@ -5910,27 +5909,30 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     db.config.lora = cfg;
     db.config.has_lora = true;
 
-    // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
-    if (!db.config.lora.channel_num) {
-        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
-                                                                 THIS->db.channel[0].settings.name);
-    }
+    if (cfg.use_preset) {
+        // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
+        if (!db.config.lora.channel_num) {
+            db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
+                                                                     THIS->db.channel[0].settings.name);
+        }
+        char buf1[20], buf2[32];
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
+        lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
+        lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
+        lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
-    showLoRaFrequency(db.config.lora);
+        uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
+        lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
+        lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
+    } else {
+        lv_label_set_text(objects.basic_settings_modem_preset_label, _("Modem Preset: custom"));
+    }
 
     char region[30];
     lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
     lv_label_set_text(objects.basic_settings_region_label, region);
 
-    char buf1[20], buf2[32];
-    lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
-    lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
-    lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
-    lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
-
-    uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
-    lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-    lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
+    showLoRaFrequency(db.config.lora);
 
     if (db.config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
         // update channel names again now that region is known
@@ -5947,12 +5949,18 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
 {
     char loraFreq[48];
-    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
-    if (cfg.region) {
-        sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
-    } else {
+    if (!cfg.region) {
         strcpy(loraFreq, _("region unset"));
+    } else if (cfg.use_preset) {
+        float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
+        sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
+        lv_obj_remove_state(objects.basic_settings_modem_preset_button, LV_STATE_DISABLED);
+    } else {
+        float frequency = cfg.override_frequency + cfg.frequency_offset;
+        sprintf(loraFreq, "LoRa %g MHz\n[%d kHz]", frequency, cfg.bandwidth);
+        lv_obj_add_state(objects.basic_settings_modem_preset_button, LV_STATE_DISABLED);
     }
+
     lv_label_set_text(objects.home_lora_label, loraFreq);
     Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
     Themes::recolorText(objects.home_lora_label, cfg.tx_enabled);
@@ -6352,7 +6360,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
             unreadMessages++;
             updateUnreadMessages();
             if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled &&
-                !db.channel[ch].settings.mute) {
+                !db.channel[ch].settings.module_settings.is_muted) {
                 showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
             }
             lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
