@@ -10,7 +10,7 @@
 #define ELECROW_V2_ADDR 0x30
 
 #ifndef FREQ_WRITE
-#define FREQ_WRITE 16000000
+#define FREQ_WRITE 15800000
 #endif
 
 class Elecrow_V2_Light : public lgfx::v1::ILight
