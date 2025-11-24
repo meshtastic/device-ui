@@ -12,7 +12,7 @@ find maps -name "*.png" -exec mogrify -colors 256 -depth 8  +dither -define png:
 
 ## Installing
 
-Prepare a SDCard and format it with the SD formatting tool provided by [www.sdcard.org](https://www.sdcard.org/downloads/).
+Prepare a SDCard and format it with the SD formatting tool provided by [www.sdcard.org](https://www.sdcard.org/downloads/). Format the SD card as MBR (sometimes also called "msdos") partition table. Meshtastic UI supports both FAT32 and exFAT partitions, with exFAT being the recommended format.
 
 Unzip the contents of the zip file(s) into the SD card's root folder retaining the subfolder structure `/maps/<style>/z/x/y`.
 
