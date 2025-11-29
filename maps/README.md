@@ -16,7 +16,7 @@ Prepare a SDCard and format it with the SD formatting tool provided by [www.sdca
 
 Unzip the contents of the zip file(s) into the SD card's root folder retaining the subfolder structure `/maps/<style>/z/x/y`.
 
-Insert the SD card into the MUI device. On MUI's home screen you can check if the card is detected properly: scroll down to the SD card image, press the button and you'll find information about the total size, file system format, and used space of the SD card. 
+Insert the SD card into the MUI device. On MUI's home screen you can check if the card is detected properly: scroll down to the SD card icon, press the button and you'll find information about the total size, file system format, and used space of the SD card. If there is no SD card icon, the SD card is not available.
 <br>Note: whenever you remove or insert the SD card you should press the button afterwards to get a consistent state.
 
 Pressing on the Map button in the main button bar will open the map panel and show the surrounding area of where you are positioned according your GPS, or near other nodes with position, or at your saved home position, or at a default location. In case you see only empty tiles which may be the case when you have not yet downloaded detailed map tiles for your location, zoom out to at least level 6 which will then load the tiles on your SD card.
@@ -58,6 +58,10 @@ Entire Netherlands Standard style zoom 1 to 14 including Amsterdam until zoom 17
 `dir=<root_torrent_dir> ; find "$dir" -type f -exec md5sum {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | md5sum`
 
 <br>
+
+# Compatibility
+* 🟢 **LILYGO T-Deck**: Confirmed to work
+* 🔴 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. It can not be used for showing maps in Meshtastic UI.
 
 # Credits and Attribution
 
