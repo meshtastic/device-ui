@@ -16,6 +16,10 @@ static LinuxInputDriver *linuxInputDriver = nullptr;
 #include "input/EncoderInputDriver.h"
 static EncoderInputDriver *encoderDriver = nullptr;
 #endif
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+#include "input/RotaryInputDriver.h"
+static RotaryInputDriver *rotaryDriver = nullptr;
+#endif
 #if defined(INPUTDRIVER_MATRIX_TYPE)
 #include "input/KeyMatrixInputDriver.h"
 static KeyMatrixInputDriver *keyMatrixDriver = nullptr;
@@ -40,6 +44,9 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 #else
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     encoderDriver = new EncoderInputDriver;
+#endif
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+    rotaryDriver = new RotaryInputDriver;
 #endif
 #if defined(INPUTDRIVER_MATRIX_TYPE)
     keyMatrixDriver = new KeyMatrixInputDriver;
@@ -69,6 +76,10 @@ void DeviceGUI::init(IClientBase *client)
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     if (encoderDriver)
         encoderDriver->init();
+#endif
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+    if (rotaryDriver)
+        rotaryDriver->init();
 #endif
 #if defined(INPUTDRIVER_MATRIX_TYPE)
     if (keyMatrixDriver)
