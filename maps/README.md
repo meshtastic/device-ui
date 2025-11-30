@@ -61,6 +61,7 @@ Entire Netherlands Standard style zoom 1 to 14 including Amsterdam until zoom 17
 
 # Compatibility
 * 🟢 **LILYGO T-Deck**: Confirmed to work
+* 🟢 **CrowPanel Advance HMI**: Confirmed to work on 2.4", 2.8", and 3.5" models 
 * 🔴 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. It can not be used for showing maps in Meshtastic UI.
 
 # Credits and Attribution
