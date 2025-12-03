@@ -24,38 +24,8 @@ class LGFX_VISION_MASTER_T190 : public lgfx::LGFX_Device
     {
         pinMode(HELTEC_VTFT_CTRL, OUTPUT);
         digitalWrite(HELTEC_VTFT_CTRL, LOW);
-        //        setBrightness(brightness);
         return LGFX_Device::init_impl(use_reset, use_clear);
     }
-
-#if 0
-    lgfx::ILight *light(void) const
-    {
-        static lgfx::Light_PWM light_instance;
-        return &light_instance;
-    }
-#endif
-
-#if 0
-    void setBrightness(uint8_t brightness)
-    {
-        analogWrite(HELTEC_VTFT_LEDA, brightness);
-        if (brightness > 0) {
-            pinMode(HELTEC_VTFT_CTRL, OUTPUT);
-            digitalWrite(HELTEC_VTFT_CTRL, LOW);
-        }
-        else {
-            //pinMode(HELTEC_VTFT_LEDA, ANALOG);
-            pinMode(HELTEC_VTFT_CTRL, ANALOG);
-            //pinMode(40, ANALOG);
-            //pinMode(47, ANALOG);
-            //pinMode(39, ANALOG);
-        }
-        this->brightness = brightness;
-    }
-
-    uint8_t getBrightness(void) const { return brightness; }
-#endif
 
     LGFX_VISION_MASTER_T190(void)
     {
@@ -63,7 +33,7 @@ class LGFX_VISION_MASTER_T190 : public lgfx::LGFX_Device
             auto cfg = _bus_instance.config();
 
             // SPI
-            cfg.spi_host = SPI2_HOST; // ESP32-S2,C3 : SPI2_HOST or SPI3_HOST / ESP32
+            cfg.spi_host = SPI3_HOST; // ESP32-S2,C3 : SPI2_HOST or SPI3_HOST / ESP32
                                       // : VSPI_HOST or HSPI_HOST
             cfg.spi_mode = 0;
             cfg.freq_write = 40000000;         // SPI clock for transmission (up to 80MHz, rounded to the
@@ -117,12 +87,11 @@ class LGFX_VISION_MASTER_T190 : public lgfx::LGFX_Device
         // Set the backlight control. (delete if not necessary)
         {
             auto cfg = _light_instance.config(); // Gets a structure for backlight settings.
-#if 1
-            cfg.pin_bl = HELTEC_VTFT_LEDA; // Pin number to which the backlight is connected
-            cfg.invert = false;            // true to invert the brightness of the backlight
-            cfg.freq = 44100;              // PWM frequency of backlight
-            cfg.pwm_channel = 7;           // PWM channel number to use
-#endif
+            cfg.pin_bl = HELTEC_VTFT_LEDA;       // Pin number to which the backlight is connected
+            cfg.invert = false;                  // true to invert the brightness of the backlight
+            cfg.freq = 44100;                    // PWM frequency of backlight
+            cfg.pwm_channel = 7;                 // PWM channel number to use
+
             _light_instance.config(cfg);
             _panel_instance.setLight(&_light_instance); // Set the backlight on the panel.
         }
