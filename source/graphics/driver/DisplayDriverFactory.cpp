@@ -66,6 +66,9 @@
 #ifdef HELTEC_TRACKER
 #include "graphics/LGFX/LGFX_HELTEC_TRACKER.h"
 #endif
+#ifdef HELTEC_VISION_MASTER_T190
+#include "graphics/LGFX/LGFX_VISION_MASTER_T190.h"
+#endif
 #ifdef NODEMCU_32S
 #include "graphics/LGFX/LGFX_ESPILI9341XPT2046.h"
 #endif
@@ -164,6 +167,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(HELTEC_TRACKER)
     case DisplayDriverConfig::device_t::HELTEC_TRACKER:
         // return new LGFXDriver<LGFX_HELTEC_TRACKER>(cfg.width(), cfg.height());
+        break;
+#elif defined(HELTEC_VISION_MASTER_T190)
+    case DisplayDriverConfig::device_t::VISION_MASTER_T190:
+        return new LGFXDriver<LGFX_VISION_MASTER_T190>(cfg.width(), cfg.height());
         break;
 #elif defined(WT_SC01_PLUS)
     case DisplayDriverConfig::device_t::WT32_SC01_PLUS:
