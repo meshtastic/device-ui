@@ -9,7 +9,7 @@ namespace lgfx
 {
 inline namespace v1
 {
-constexpr uint8_t Panel_NV3041A::init_cmds[92 * 2];
+constexpr uint8_t Panel_NV3041A::init_cmds[91 * 2];
 }
 } // namespace lgfx
 
