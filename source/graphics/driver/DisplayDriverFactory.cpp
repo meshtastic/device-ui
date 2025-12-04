@@ -72,6 +72,9 @@
 #ifdef NODEMCU_32S
 #include "graphics/LGFX/LGFX_ESPILI9341XPT2046.h"
 #endif
+#ifdef HELTEC_V4_TFT
+#include "graphics/LGFX/LGFX_HELTEC_V4_TFT.h"
+#endif
 #endif
 
 DisplayDriverFactory::DisplayDriverFactory() {}
@@ -192,6 +195,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:
         return &X11Driver::create(cfg.width(), cfg.height());
+        break;
+#elif defined(HELTEC_V4_TFT)
+    case DisplayDriverConfig::device_t::HELTECV4_TFT:
+        return new LGFXDriver<LGFX_HELTEC_V4_TFT>(cfg.width(), cfg.height());
         break;
 #endif
     default:

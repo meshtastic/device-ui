@@ -223,6 +223,7 @@ class TFTView_320x240 : public MeshtasticView
     void setGroupFocus(lv_obj_t *panel);
     void setInputGroup(void);
     void setInputButtonLabel(void);
+    void updateGroupChannel(uint8_t chId);
 
     void backup(uint32_t option);
     void restore(uint32_t option);
@@ -398,6 +399,7 @@ class TFTView_320x240 : public MeshtasticView
     bool processingFilter;                                // indicates that filtering is ongoing
     bool packetLogEnabled;                                // display received packets
     bool detectorRunning;                                 // meshDetector is active
+    bool cardDetected;                                    // SD has been detected
     bool formatSD;                                        // offer to format SD card
     uint16_t buttonSize;                                  // size of group/chat buttons in pixels
     uint16_t statisticTableRows;                          // number of rows in statistics table

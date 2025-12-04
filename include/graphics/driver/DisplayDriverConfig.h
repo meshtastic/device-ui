@@ -37,7 +37,8 @@ class DisplayDriverConfig
         ESP2432S028RV2,
         ESPJC4827W543C,
         ESP4848S040,
-        MAKERFABS480X480
+        MAKERFABS480X480,
+        HELTECV4_TFT
     };
 
     struct panel_config_t {

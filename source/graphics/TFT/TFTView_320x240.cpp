@@ -137,9 +137,10 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
-      processingFilter(false), packetLogEnabled(false), detectorRunning(false), packetCounter(0), actTime(0), uptime(0),
-      lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0), topNodeLL(nullptr), scans(0), selectedHops(0),
-      chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr), db{}
+      processingFilter(false), packetLogEnabled(false), detectorRunning(false), cardDetected(false), formatSD(false),
+      packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
+      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
+      db{}
 {
     filter.active = false;
     highlight.active = false;
@@ -660,6 +661,7 @@ void TFTView_320x240::updateTheme(void)
                           db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorButton(objects.home_wlan_button, db.config.network.wifi_enabled);
     Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
+    Themes::recolorButton(objects.home_sd_card_button, cardDetected);
     Themes::recolorButton(objects.home_memory_button, (bool)objects.home_memory_button->user_data);
     Themes::recolorText(objects.home_lora_label, db.config.lora.tx_enabled);
     Themes::recolorText(objects.home_bell_label, db.uiConfig.alert_enabled || !db.silent);
@@ -667,6 +669,7 @@ void TFTView_320x240::updateTheme(void)
                         db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorText(objects.home_wlan_label, db.config.network.wifi_enabled);
     Themes::recolorText(objects.home_mqtt_label, db.module_config.mqtt.enabled);
+    Themes::recolorText(objects.home_sd_card_label, cardDetected);
     Themes::recolorText(objects.home_memory_label, (bool)objects.home_memory_button->user_data);
 
     lv_opa_t opa = (Themes::get() == Themes::eDark) ? 0 : 255;
@@ -676,6 +679,11 @@ void TFTView_320x240::updateTheme(void)
     lv_obj_set_style_bg_img_recolor_opa(objects.messages_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(objects.map_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    for (int i = 0; i < c_max_channels; i++) {
+        if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
+            updateGroupChannel(i);
+    }
 }
 
 void TFTView_320x240::ui_events_init(void)
@@ -1081,8 +1089,13 @@ void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
 {
+    static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        if (ignoreClicked) { // prevent long press to enter this setting
+            ignoreClicked = false;
+            return;
+        }
         uint8_t ch = (uint8_t)(unsigned long)e->user_data;
         if (THIS->db.channel[ch].role != meshtastic_Channel_Role_DISABLED) {
             if (THIS->messagesRestored) {
@@ -1092,8 +1105,14 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
                 lv_group_focus_obj(objects.msg_restore_button);
             }
         }
-    } else {
-        // TODO: click on unset channel should popup config screen
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        // toggle mute channel
+        uint8_t ch = (uint8_t)(unsigned long)e->user_data;
+        bool mute = THIS->db.channel[ch].settings.module_settings.is_muted;
+        THIS->db.channel[ch].settings.module_settings.is_muted = !mute;
+        THIS->updateChannelConfig(THIS->db.channel[ch]);
+        THIS->controller->sendConfig(THIS->db.channel[ch], THIS->ownNode);
+        ignoreClicked = true;
     }
 }
 
@@ -1718,7 +1737,7 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
 void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_lora) {
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.lora.use_preset) {
         THIS->activeSettings = eModemPreset;
         lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->db.config.lora.modem_preset);
 
@@ -2499,7 +2518,6 @@ void TFTView_320x240::loadMap(void)
             lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
         }
         if (hasPosition) {
-            map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
             if (db.uiConfig.map_data.has_home) {
                 map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
                 map->setZoom(db.uiConfig.map_data.home.zoom);
@@ -2507,6 +2525,7 @@ void TFTView_320x240::loadMap(void)
                 map->setHomeLocation(myLatitude * 1e-7, myLongitude * 1e-7);
                 map->setZoom(13);
             }
+            map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
         } else if (db.uiConfig.map_data.has_home) {
             map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
             map->setZoom(db.uiConfig.map_data.home.zoom);
@@ -3366,45 +3385,47 @@ uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
     case meshtastic_Language_ENGLISH:
         return 0;
     case meshtastic_Language_FRENCH:
-        return 6;
-    case meshtastic_Language_GERMAN:
-        return 3;
-    case meshtastic_Language_ITALIAN:
         return 7;
-    case meshtastic_Language_PORTUGUESE:
-        return 11;
-    case meshtastic_Language_SPANISH:
-        return 5;
-    case meshtastic_Language_SWEDISH:
-        return 16;
-    case meshtastic_Language_FINNISH:
-        return 15;
-    case meshtastic_Language_POLISH:
-        return 10;
-    case meshtastic_Language_TURKISH:
-        return 17;
-    case meshtastic_Language_SERBIAN:
-        return 14;
-    case meshtastic_Language_RUSSIAN:
-        return 12;
-    case meshtastic_Language_DUTCH:
-        return 8;
-    case meshtastic_Language_GREEK:
+    case meshtastic_Language_GERMAN:
         return 4;
-    case meshtastic_Language_NORWEGIAN:
-        return 9;
-    case meshtastic_Language_SLOVENIAN:
-        return 13;
-    case meshtastic_Language_UKRAINIAN:
+    case meshtastic_Language_ITALIAN:
+        return 8;
+    case meshtastic_Language_PORTUGUESE:
+        return 12;
+    case meshtastic_Language_SPANISH:
+        return 6;
+    case meshtastic_Language_SWEDISH:
+        return 17;
+    case meshtastic_Language_FINNISH:
+        return 16;
+    case meshtastic_Language_POLISH:
+        return 11;
+    case meshtastic_Language_TURKISH:
         return 18;
+    case meshtastic_Language_SERBIAN:
+        return 15;
+    case meshtastic_Language_RUSSIAN:
+        return 13;
+    case meshtastic_Language_DUTCH:
+        return 9;
+    case meshtastic_Language_GREEK:
+        return 5;
+    case meshtastic_Language_NORWEGIAN:
+        return 10;
+    case meshtastic_Language_SLOVENIAN:
+        return 14;
+    case meshtastic_Language_UKRAINIAN:
+        return 19;
     case meshtastic_Language_BULGARIAN:
         return 1;
     case meshtastic_Language_CZECH:
         return 2;
+    case meshtastic_Language_DANISH:
+        return 3;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
-        return 19;
-    case meshtastic_Language_TRADITIONAL_CHINESE:
         return 20;
+    case meshtastic_Language_TRADITIONAL_CHINESE:
+        return 21;
     default:
         ILOG_WARN("unknown language uiconfig: %d", lang);
     }
@@ -3419,45 +3440,47 @@ meshtastic_Language TFTView_320x240::val2language(uint32_t val)
     switch (val) {
     case 0:
         return meshtastic_Language_ENGLISH;
-    case 6:
-        return meshtastic_Language_FRENCH;
-    case 3:
-        return meshtastic_Language_GERMAN;
     case 7:
-        return meshtastic_Language_ITALIAN;
-    case 11:
-        return meshtastic_Language_PORTUGUESE;
-    case 5:
-        return meshtastic_Language_SPANISH;
-    case 16:
-        return meshtastic_Language_SWEDISH;
-    case 15:
-        return meshtastic_Language_FINNISH;
-    case 10:
-        return meshtastic_Language_POLISH;
-    case 17:
-        return meshtastic_Language_TURKISH;
-    case 14:
-        return meshtastic_Language_SERBIAN;
-    case 12:
-        return meshtastic_Language_RUSSIAN;
-    case 8:
-        return meshtastic_Language_DUTCH;
+        return meshtastic_Language_FRENCH;
     case 4:
-        return meshtastic_Language_GREEK;
-    case 9:
-        return meshtastic_Language_NORWEGIAN;
-    case 13:
-        return meshtastic_Language_SLOVENIAN;
+        return meshtastic_Language_GERMAN;
+    case 8:
+        return meshtastic_Language_ITALIAN;
+    case 12:
+        return meshtastic_Language_PORTUGUESE;
+    case 6:
+        return meshtastic_Language_SPANISH;
+    case 17:
+        return meshtastic_Language_SWEDISH;
+    case 16:
+        return meshtastic_Language_FINNISH;
+    case 11:
+        return meshtastic_Language_POLISH;
     case 18:
+        return meshtastic_Language_TURKISH;
+    case 15:
+        return meshtastic_Language_SERBIAN;
+    case 13:
+        return meshtastic_Language_RUSSIAN;
+    case 9:
+        return meshtastic_Language_DUTCH;
+    case 5:
+        return meshtastic_Language_GREEK;
+    case 10:
+        return meshtastic_Language_NORWEGIAN;
+    case 14:
+        return meshtastic_Language_SLOVENIAN;
+    case 19:
         return meshtastic_Language_UKRAINIAN;
     case 1:
         return meshtastic_Language_BULGARIAN;
     case 2:
         return meshtastic_Language_CZECH;
-    case 19:
-        return meshtastic_Language_SIMPLIFIED_CHINESE;
+    case 3:
+        return meshtastic_Language_DANISH;
     case 20:
+        return meshtastic_Language_SIMPLIFIED_CHINESE;
+    case 21:
         return meshtastic_Language_TRADITIONAL_CHINESE;
     default:
         ILOG_WARN("unknown language val: %d", val);
@@ -3546,6 +3569,10 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
     case meshtastic_Language_CZECH:
         lv_i18n_set_locale("cs");
         locale = "cs_CZ.UTF-8";
+        break;
+    case meshtastic_Language_DANISH:
+        lv_i18n_set_locale("da");
+        locale = "da_DK.UTF-8";
         break;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
         lv_i18n_set_locale("cn");
@@ -5781,6 +5808,19 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
         lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+        lv_obj_t *bellImage = NULL;
+        if (lv_obj_get_child_cnt(btn[ch.index]) < 3)
+            bellImage = lv_img_create(btn[ch.index]);
+        else
+            bellImage = lv_obj_get_child(btn[ch.index], 2);
+        lv_obj_set_width(bellImage, LV_SIZE_CONTENT);  /// 1
+        lv_obj_set_height(bellImage, LV_SIZE_CONTENT); /// 1
+        lv_obj_set_align(bellImage, LV_ALIGN_RIGHT_MID);
+        lv_obj_add_flag(bellImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
+        lv_obj_clear_flag(bellImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+        lv_obj_set_style_img_recolor_opa(bellImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        updateGroupChannel(ch.index);
     } else {
         // display smaller button with just the channel number
         char buf[10];
@@ -5791,6 +5831,23 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         if (lv_obj_get_child_cnt(btn[ch.index]) == 2) {
             lv_obj_delete(lv_obj_get_child(btn[ch.index], 1));
         }
+    }
+}
+
+// redraw bell icons and color
+void TFTView_320x240::updateGroupChannel(uint8_t chId)
+{
+    static lv_obj_t *btn[c_max_channels] = {objects.channel_button0, objects.channel_button1, objects.channel_button2,
+                                            objects.channel_button3, objects.channel_button4, objects.channel_button5,
+                                            objects.channel_button6, objects.channel_button7};
+
+    lv_obj_t *bellImage = lv_obj_get_child(btn[chId], 2);
+    if (db.channel[chId].settings.module_settings.is_muted) {
+        lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_image_set_src(bellImage, &img_groups_bell_slash_image);
+    } else {
+        Themes::recolorImage(bellImage, true);
+        lv_image_set_src(bellImage, &img_groups_bell_image);
     }
 }
 
@@ -5852,27 +5909,30 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     db.config.lora = cfg;
     db.config.has_lora = true;
 
-    // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
-    if (!db.config.lora.channel_num) {
-        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
-                                                                 THIS->db.channel[0].settings.name);
-    }
+    if (cfg.use_preset) {
+        // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
+        if (!db.config.lora.channel_num) {
+            db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
+                                                                     THIS->db.channel[0].settings.name);
+        }
+        char buf1[20], buf2[32];
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
+        lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
+        lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
+        lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
-    showLoRaFrequency(db.config.lora);
+        uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
+        lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
+        lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
+    } else {
+        lv_label_set_text(objects.basic_settings_modem_preset_label, _("Modem Preset: custom"));
+    }
 
     char region[30];
     lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
     lv_label_set_text(objects.basic_settings_region_label, region);
 
-    char buf1[20], buf2[32];
-    lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
-    lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
-    lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
-    lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
-
-    uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
-    lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-    lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
+    showLoRaFrequency(db.config.lora);
 
     if (db.config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
         // update channel names again now that region is known
@@ -5889,12 +5949,18 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
 {
     char loraFreq[48];
-    float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
-    if (cfg.region) {
-        sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
-    } else {
+    if (!cfg.region) {
         strcpy(loraFreq, _("region unset"));
+    } else if (cfg.use_preset) {
+        float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
+        sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
+        lv_obj_remove_state(objects.basic_settings_modem_preset_button, LV_STATE_DISABLED);
+    } else {
+        float frequency = cfg.override_frequency + cfg.frequency_offset;
+        sprintf(loraFreq, "LoRa %g MHz\n[%d kHz]", frequency, cfg.bandwidth);
+        lv_obj_add_state(objects.basic_settings_modem_preset_button, LV_STATE_DISABLED);
     }
+
     lv_label_set_text(objects.home_lora_label, loraFreq);
     Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
     Themes::recolorText(objects.home_lora_label, cfg.tx_enabled);
@@ -6293,7 +6359,8 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         if (container != activeMsgContainer || activePanel != objects.messages_panel) {
             unreadMessages++;
             updateUnreadMessages();
-            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
+            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled &&
+                !db.channel[ch].settings.module_settings.is_muted) {
                 showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
             }
             lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
@@ -7047,7 +7114,6 @@ void TFTView_320x240::updateTime(void)
 
 bool TFTView_320x240::updateSDCard(void)
 {
-    bool cardDetected = false;
     formatSD = false;
     if (sdCard) {
         delete sdCard;
