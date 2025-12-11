@@ -7098,7 +7098,7 @@ void TFTView_320x240::updateTime(void)
         if (db.config.display.use_12h_clock) {
             len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
         } else {
-            len = strftime(buf, 40, "%T %Z\n%a %d-%b-%g", curr_tm);
+            len = strftime(buf, 40, "%T %Z%z\n%a %d-%b-%g", curr_tm);
         }
     } else {
         uint32_t uptime = millis() / 1000;
