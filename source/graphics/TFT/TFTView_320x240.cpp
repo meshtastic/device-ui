@@ -6515,6 +6515,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_set_style_pad_bottom(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_move_to_index(chatBtn, 0);
 
     char buf[64];
     if (to == UINT32_MAX || from == 0) {
