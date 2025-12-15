@@ -3189,7 +3189,8 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
         stat.trc++;
         break;
     }
-    case meshtastic_PortNum_TEXT_MESSAGE_APP: {
+    case meshtastic_PortNum_TEXT_MESSAGE_APP:
+    case meshtastic_PortNum_RANGE_TEST_APP: {
         stat.txt++;
         break;
     }
