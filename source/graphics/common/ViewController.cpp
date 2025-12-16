@@ -707,10 +707,9 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
             case meshtastic_FromRadio_node_info_tag: {
                 const meshtastic_NodeInfo &node = from.node_info;
                 if (node.has_user) {
-                    view->addOrUpdateNode(node.num, node.channel, node.last_heard, node.user);
+                    view->addOrUpdateNode(node.num, node.channel, node, node.user);
                 } else {
-                    view->addOrUpdateNode(node.num, node.channel, node.last_heard, MeshtasticView::eRole::unknown, false,
-                                          node.via_mqtt);
+                    view->addOrUpdateNode(node.num, node.channel, node);
                 }
                 if (node.has_position) {
                     view->updatePosition(node.num, node.position.latitude_i, node.position.longitude_i, node.position.altitude, 0,
