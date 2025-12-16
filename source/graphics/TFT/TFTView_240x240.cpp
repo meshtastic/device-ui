@@ -1,4 +1,4 @@
-#if HAS_TFT // VIEW_240x240
+#ifdef VIEW_240x240
 
 #include "graphics/view/TFT/TFTView_240x240.h"
 #include "graphics/common/ViewController.h"

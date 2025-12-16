@@ -55,7 +55,7 @@ void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool h
 }
 
 void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                             eRole role, bool hasKey, bool unmessagable)
+                             eRole role, bool hasKey, bool isFav, bool isIgnored, bool unmessagable)
 {
 }
 
@@ -63,19 +63,21 @@ void MeshtasticView::addNode(uint32_t nodeNum, uint8_t channel, const char *user
  * @brief add or update node with unknown user
  *
  */
-void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt)
+void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node)
 {
     // has_user == false, generate default user name
     meshtastic_User user{};
     sprintf(user.short_name, "%04x", nodeNum & 0xffff);
     strcpy(user.long_name, "Meshtastic ");
     strcat(user.long_name, user.short_name);
-    user.role = (meshtastic_Config_DeviceConfig_Role)role;
     user.hw_model = meshtastic_HardwareModel_UNSET;
-    addOrUpdateNode(nodeNum, channel, lastHeard, user);
+    addOrUpdateNode(nodeNum, channel, node, user);
 }
 
-void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg) {}
+void MeshtasticView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node,
+                                     const meshtastic_User &cfg)
+{
+}
 
 void MeshtasticView::updateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_User &cfg) {}
 
@@ -106,13 +108,15 @@ void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
     // if there's a message from a node we don't know (yet), create it with defaults
     auto it = nodes.find(p.from);
     if (it == nodes.end()) {
-        MeshtasticView::addOrUpdateNode(p.from, p.channel, 0, eRole::unknown, false, false);
+        const meshtastic_NodeInfo node{};
+        MeshtasticView::addOrUpdateNode(p.from, p.channel, node);
         updateLastHeard(p.from);
     }
     if (p.to != ownNode && p.to != 0xffffffff) {
         auto it = nodes.find(p.to);
         if (it == nodes.end()) {
-            MeshtasticView::addOrUpdateNode(p.to, p.channel, 0, eRole::unknown, false, false);
+            const meshtastic_NodeInfo node{};
+            MeshtasticView::addOrUpdateNode(p.to, p.channel, node);
             updateLastHeard(p.to);
         }
     }

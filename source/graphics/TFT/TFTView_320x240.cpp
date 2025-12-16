@@ -4443,7 +4443,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 }
 
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-                              eRole role, bool hasKey, bool unmessagable)
+                              eRole role, bool hasKey, bool isFav, bool isIgnored, bool unmessagable)
 {
     // lv_obj nodesPanel children  |  user data (4 bytes)
     // ==================================================
@@ -4662,11 +4662,12 @@ void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool 
 {
 }
 
-void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg)
+void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node,
+                                      const meshtastic_User &cfg)
 {
     if (nodes.find(nodeNum) == nodes.end()) {
-        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, lastHeard, (MeshtasticView::eRole)cfg.role,
-                cfg.public_key.size != 0, cfg.has_is_unmessagable && cfg.is_unmessagable);
+        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, node.last_heard, (MeshtasticView::eRole)cfg.role,
+                cfg.public_key.size != 0, node.is_favorite, node.is_ignored, cfg.has_is_unmessagable && cfg.is_unmessagable);
     } else {
         updateNode(nodeNum, channel, cfg);
     }
@@ -4683,8 +4684,6 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_
  * @param role
  * @param viaMqtt
  */
-// void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
-//                                  eRole role, bool hasKey, bool viaMqtt)
 void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_User &cfg)
 {
     db.user = cfg;
@@ -6848,7 +6847,7 @@ void TFTView_320x240::removeNode(uint32_t nodeNum)
     }
 }
 
-void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img)
+void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool isFav, bool unmessagable, lv_obj_t *img)
 {
     uint32_t bgColor, fgColor;
     std::tie(bgColor, fgColor) = nodeColor(nodeNum);
