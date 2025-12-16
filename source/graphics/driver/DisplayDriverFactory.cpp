@@ -63,8 +63,11 @@
 #ifdef WT32_SC01
 #include "graphics/LGFX/LGFX_WT_SC01PLUS.h"
 #endif
-#ifdef HELTEC_TRACKER
+#if defined(HELTEC_TRACKER) || defined(HELTEC_WIRELESS_TRACKER_V2)
 #include "graphics/LGFX/LGFX_HELTEC_TRACKER.h"
+#endif
+#ifdef HELTEC_VISION_MASTER_T190
+#include "graphics/LGFX/LGFX_VISION_MASTER_T190.h"
 #endif
 #ifdef NODEMCU_32S
 #include "graphics/LGFX/LGFX_ESPILI9341XPT2046.h"
@@ -161,9 +164,13 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::ELECROW_ADV:
         return new LGFXDriver<LGFX_ELECROW70>(cfg.width(), cfg.height());
         break;
-#elif defined(HELTEC_TRACKER)
+#elif defined(HELTEC_TRACKER) || defined(HELTEC_WIRELESS_TRACKER_V2)
     case DisplayDriverConfig::device_t::HELTEC_TRACKER:
-        // return new LGFXDriver<LGFX_HELTEC_TRACKER>(cfg.width(), cfg.height());
+        return new LGFXDriver<LGFX_HELTEC_TRACKER>(cfg.width(), cfg.height());
+        break;
+#elif defined(HELTEC_VISION_MASTER_T190)
+    case DisplayDriverConfig::device_t::VISION_MASTER_T190:
+        return new LGFXDriver<LGFX_VISION_MASTER_T190>(cfg.width(), cfg.height());
         break;
 #elif defined(WT_SC01_PLUS)
     case DisplayDriverConfig::device_t::WT32_SC01_PLUS:
