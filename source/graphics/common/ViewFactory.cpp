@@ -8,6 +8,9 @@
 #if defined(VIEW_240x240) || defined(ARCH_PORTDUINO)
 #include "graphics/view/TFT/TFTView_240x240.h"
 #endif
+#if defined(VIEW_320x170) || defined(ARCH_PORTDUINO)
+#include "graphics/view/TFT/TFTView_320x170.h"
+#endif
 #if defined(VIEW_320x240) || defined(ARCH_PORTDUINO)
 #include "graphics/view/TFT/TFTView_320x240.h"
 #endif
@@ -32,6 +35,8 @@ DeviceGUI *ViewFactory::create(void)
     return TFTView_160x80::instance();
 #elif defined(VIEW_240x240)
     return TFTView_240x240::instance();
+#elif defined(VIEW_320x170)
+    return TFTView_320x170::instance();
 #elif defined(VIEW_480x222)
     return TFTView_480x222::instance();
 #elif defined(VIEW_320x240)
@@ -63,6 +68,11 @@ DeviceGUI *ViewFactory::create(const DisplayDriverConfig &cfg)
 #if defined(VIEW_240x240)
     if (cfg.width() == 240 && cfg.height() == 240) {
         return TFTView_240x240::instance(cfg);
+    }
+#endif
+#if defined(VIEW_320x170)
+    if (cfg.width() == 320 && cfg.height() == 172) {
+        return TFTView_320x170::instance(cfg);
     }
 #endif
 #if defined(VIEW_480x222)
