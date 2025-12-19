@@ -1224,6 +1224,9 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
             THIS->showMessages(nodeNum);
             THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
         }
+        InputDriver *keyboard = (InputDriver*)lv_indev_get_user_data(THIS->inputdriver->getKeyboard());
+        if (keyboard)
+            keyboard->setKeyboardBrightness(THIS->db.uiConfig.screen_brightness);
     }
 }
 
@@ -3977,6 +3980,9 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
             lv_obj_add_flag(objects.settings_brightness_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_brightness_button);
+            InputDriver *keyboard = (InputDriver*)lv_indev_get_user_data(THIS->inputdriver->getKeyboard());
+            if (keyboard)
+                keyboard->setKeyboardBrightness(0);
             break;
         }
         case eTheme: {
@@ -4227,6 +4233,11 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             // revert to old brightness value
             uint32_t old_brightness = THIS->db.uiConfig.screen_brightness;
             THIS->displaydriver->setBrightness((uint8_t)old_brightness);
+            InputDriver *keyboard = (InputDriver*)lv_indev_get_user_data(THIS->inputdriver->getKeyboard());
+            if (keyboard) {
+                keyboard->setKeyboardBrightness((uint8_t)old_brightness);
+                keyboard->setKeyboardBrightness(0); // off
+            }
             break;
         }
         case TFTView_320x240::eTheme: {
@@ -4299,7 +4310,11 @@ void TFTView_320x240::ui_event_brightness_slider(lv_event_t *e)
     char buf[20];
     lv_snprintf(buf, sizeof(buf), _("Brightness: %d%%"), (int)lv_slider_get_value(slider));
     lv_label_set_text(objects.settings_brightness_label, buf);
-    THIS->displaydriver->setBrightness((uint8_t)(lv_slider_get_value(slider) * 255 / 100));
+    uint8_t brightness = (uint8_t)(lv_slider_get_value(slider) * 255 / 100);
+    THIS->displaydriver->setBrightness(brightness);
+    InputDriver *keyboard = (InputDriver*)lv_indev_get_user_data(THIS->inputdriver->getKeyboard());
+    if (keyboard)
+        keyboard->setKeyboardBrightness(brightness);
 }
 
 void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)

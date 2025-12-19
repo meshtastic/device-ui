@@ -15,6 +15,7 @@ void I2CKeyboardInputDriver::init(void)
     keyboard = lv_indev_create();
     lv_indev_set_type(keyboard, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_read_cb(keyboard, keyboard_read);
+    lv_indev_set_user_data(keyboard, this);
 
     if (!inputGroup) {
         inputGroup = lv_group_create();
@@ -88,12 +89,13 @@ void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
         if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
             data->state = LV_INDEV_STATE_PRESSED;
             ILOG_DEBUG("key press value: %d", (int)keyValue);
-
             switch (keyValue) {
             case 0x0D:
                 keyValue = LV_KEY_ENTER;
+                keyboardBacklight(false);
                 break;
             default:
+                keyboardBacklight(true);
                 break;
             }
         } else {
@@ -102,6 +104,27 @@ void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
     }
     data->key = (uint32_t)keyValue;
 }
+
+#define LILYGO_KB_SLAVE_ADDRESS  0x55
+#define LILYGO_KB_BRIGHTNESS_CMD 0x01
+void TDeckKeyboardInputDriver::setKeyboardBrightness(uint8_t value)
+{
+    if (value) brightness = value;
+    Wire.beginTransmission(LILYGO_KB_SLAVE_ADDRESS);
+    Wire.write(LILYGO_KB_BRIGHTNESS_CMD);
+    Wire.write(value);
+    Wire.endTransmission();
+}
+
+void TDeckKeyboardInputDriver::keyboardBacklight(bool on)
+{
+    if (on) {
+        setKeyboardBrightness(brightness);
+    } else {
+        setKeyboardBrightness(0);
+    }
+}
+
 
 // ---------- TCA8418KeyboardInputDriver Implementation ----------
 

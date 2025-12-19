@@ -37,7 +37,11 @@ class TDeckKeyboardInputDriver : public I2CKeyboardInputDriver
   public:
     TDeckKeyboardInputDriver(uint8_t address);
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
+    void setKeyboardBrightness(uint8_t brightness) override;
     virtual ~TDeckKeyboardInputDriver(void) {}
+  private:
+    void keyboardBacklight(bool on);
+    uint8_t brightness = 0;
 };
 
 class TCA8418KeyboardInputDriver : public I2CKeyboardInputDriver

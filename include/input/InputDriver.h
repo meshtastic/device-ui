@@ -38,6 +38,8 @@ class InputDriver
     virtual bool hasEncoderDevice(void) { return encoder != nullptr; }
     virtual bool hasButtonDevice(void) { return button != nullptr; }
 
+    virtual void setKeyboardBrightness(uint8_t brightness) {}
+
     virtual lv_indev_t *getKeyboard(void) { return keyboard; }
     virtual lv_indev_t *getPointer(void) { return pointer; }
     virtual lv_indev_t *getEncoder(void) { return encoder; }
