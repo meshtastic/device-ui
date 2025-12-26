@@ -35,7 +35,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 #elif defined(T_DECK_PRO)
                 driver = new TDeckProKeyboardInputDriver(address);
 #else
-                driver = new TCA8418KeyboardInputDriver(address);
+                // TODO: driver = new TCA8418KeyboardInputDriver(address);
 #endif
                 break;
             case SCAN_CARDKB_ADDR:
@@ -45,7 +45,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
                 driver = new BBQ10KeyboardInputDriver(address);
                 break;
             case SCAN_MPR121_KB_ADDR:
-                driver = new MPR121KeyboardInputDriver(address);
+                // TODO: driver = new MPR121KeyboardInputDriver(address);
                 break;
             default:
                 break;
