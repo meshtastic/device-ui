@@ -3208,7 +3208,8 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
         stat.trc++;
         break;
     }
-    case meshtastic_PortNum_TEXT_MESSAGE_APP: {
+    case meshtastic_PortNum_TEXT_MESSAGE_APP:
+    case meshtastic_PortNum_RANGE_TEST_APP: {
         stat.txt++;
         break;
     }
@@ -6534,6 +6535,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_set_style_pad_bottom(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_move_to_index(chatBtn, 0);
 
     char buf[64];
     if (to == UINT32_MAX || from == 0) {
@@ -7117,7 +7119,7 @@ void TFTView_320x240::updateTime(void)
         if (db.config.display.use_12h_clock) {
             len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
         } else {
-            len = strftime(buf, 40, "%T %Z\n%a %d-%b-%g", curr_tm);
+            len = strftime(buf, 40, "%T %Z%z\n%a %d-%b-%g", curr_tm);
         }
     } else {
         uint32_t uptime = millis() / 1000;
