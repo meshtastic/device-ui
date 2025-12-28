@@ -15,7 +15,7 @@
 
 extern const uint8_t MT_MAGIC_0;
 
-UARTClient::UARTClient(const char* name) : SerialClient(name), isActive(false), _serial(nullptr) {}
+UARTClient::UARTClient(const char *name) : SerialClient(name), isActive(false), _serial(nullptr) {}
 
 /**
  * @brief init serial interface

@@ -10,5 +10,5 @@ class LinuxSerialClient : public UARTClient
     virtual ~LinuxSerialClient() {}
 
   protected:
-    const char* tty;
+    const char *tty;
 };
