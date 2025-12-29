@@ -1,3 +1,4 @@
+#ifdef ARCH_PORTDUINO
 
 #include "comms/LinuxSerialClient.h"
 #include "linux/LinuxSerial.h"
@@ -20,3 +21,5 @@ void LinuxSerialClient::init(void)
     time(&lastReceived);
     SerialClient::init();
 }
+
+#endif
