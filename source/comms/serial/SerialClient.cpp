@@ -27,8 +27,8 @@
 SerialClient *SerialClient::instance = nullptr;
 
 SerialClient::SerialClient(const char *name)
-    : pb_size(0), notifyConnectionStatus(nullptr), connectionStatus(eDisconnected),
-      clientStatus(eDisconnected), connectionInfo(nullptr), shutdown(false), threadName(name)
+    : pb_size(0), notifyConnectionStatus(nullptr), connectionStatus(eDisconnected), clientStatus(eDisconnected),
+      connectionInfo(nullptr), shutdown(false), threadName(name)
 {
     buffer = new uint8_t[PB_BUFSIZE + MT_HEADER_SIZE];
     instance = this;
@@ -145,7 +145,7 @@ bool SerialClient::isStandalone(void)
 bool SerialClient::send(meshtastic_ToRadio &&to)
 {
     static uint32_t id = 1;
-    ILOG_TRACE("SerialClient::send() push packet %d to server", id);
+    ILOG_DEBUG("SerialClient::send() push packet %d to server", id);
     queue.clientSend(DataPacket<meshtastic_ToRadio>(id++, to));
     return false;
 }
