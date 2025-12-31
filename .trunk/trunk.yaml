@@ -20,7 +20,7 @@ lint:
     - trufflehog@3.92.4
     - yamllint@1.37.1
     - bandit@1.9.2
-    - checkov@3.2.495
+    - checkov@3.2.497
     - terrascan@1.19.9
     - trivy@0.68.2
     #- trufflehog@3.63.2-rc0
@@ -30,7 +30,7 @@ lint:
     - markdownlint@0.47.0
     - oxipng@10.0.0
     - svgo@4.0.0
-    - actionlint@1.7.9
+    - actionlint@1.7.10
     - flake8@7.3.0
     - hadolint@2.14.0
     - shfmt@3.6.0
