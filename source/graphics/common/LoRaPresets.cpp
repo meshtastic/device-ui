@@ -16,7 +16,9 @@ LoRaPresets::RegionInfo LoRaPresets::regionInfo[] = {
 LoRaPresets::ModemPreset LoRaPresets::modemPreset[] = {
     {"LongFast", "250", .250f},   {"LongSlow", "125", .125f},   {"VLongSlow", "62.5", .0625f},
     {"MediumSlow", "250", .250f}, {"MediumFast", "250", .250f}, {"ShortSlow", "250", .250f},
-    {"ShortFast", "250", .250f},  {"LongMod", "125", .125f},    {"ShortTurbo", "500", .500f}};
+    {"ShortFast", "250", .250f},  {"LongMod", "125", .125f},    {"ShortTurbo", "500", .500f},
+    {"LongTurbo", "500", .500f}
+};
 
 const char *LoRaPresets::loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region)
 {
