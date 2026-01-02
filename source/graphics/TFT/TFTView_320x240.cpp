@@ -3355,15 +3355,10 @@ uint32_t TFTView_320x240::preset2val(meshtastic_Config_LoRaConfig_ModemPreset pr
 meshtastic_Config_LoRaConfig_ModemPreset TFTView_320x240::val2preset(uint32_t val)
 {
     meshtastic_Config_LoRaConfig_ModemPreset preset[] = {
-      meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,
-      meshtastic_Config_LoRaConfig_ModemPreset_LONG_MODERATE,
-      meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO,
-      meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_FAST,
-      meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_SLOW,
-      meshtastic_Config_LoRaConfig_ModemPreset_SHORT_FAST,
-      meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO,
-      meshtastic_Config_LoRaConfig_ModemPreset_SHORT_SLOW
-    };
+        meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,   meshtastic_Config_LoRaConfig_ModemPreset_LONG_MODERATE,
+        meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO,  meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_SLOW};
     if (val > (sizeof(preset) / sizeof(preset[0]) - 1)) {
         ILOG_ERROR("unknown preset value: %d", val);
         return meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
@@ -4344,10 +4339,9 @@ void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
     char buf[40];
     uint32_t channel = (uint32_t)lv_slider_get_value(slider);
     sprintf(buf, _("FrequencySlot: %d (%g MHz)"), channel,
-            LoRaPresets::getRadioFreq(
-                THIS->db.config.lora.region,
-                THIS->val2preset(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown)),
-                channel));
+            LoRaPresets::getRadioFreq(THIS->db.config.lora.region,
+                                      THIS->val2preset(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown)),
+                                      channel));
     lv_label_set_text(objects.frequency_slot_label, buf);
 }
 
