@@ -1739,7 +1739,7 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.lora.use_preset) {
         THIS->activeSettings = eModemPreset;
-        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->db.config.lora.modem_preset);
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->preset2val(THIS->db.config.lora.modem_preset));
 
         char buf[60];
         sprintf(buf, _("FrequencySlot: %d (%g MHz)"), THIS->db.config.lora.channel_num,
@@ -3336,6 +3336,37 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
 }
 
 /**
+ * Translate proto modem preset enum value to numerical position in dropdown menu
+ */
+uint32_t TFTView_320x240::preset2val(meshtastic_Config_LoRaConfig_ModemPreset preset)
+{
+    int32_t val[] = {0, -1, -1, 4, 3, 7, 5, 1, 6, 2};
+
+    if (preset > (sizeof(val) / sizeof(val[0]) - 1) || val[preset] == -1) {
+        ILOG_WARN("unknown or deprecated preset value: %d", preset);
+        return 0;
+    }
+    return uint32_t(val[preset]);
+}
+
+/**
+ * Translate value from dropdown menu to modem preset proto enum
+ */
+meshtastic_Config_LoRaConfig_ModemPreset TFTView_320x240::val2preset(uint32_t val)
+{
+    meshtastic_Config_LoRaConfig_ModemPreset preset[] = {
+        meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,   meshtastic_Config_LoRaConfig_ModemPreset_LONG_MODERATE,
+        meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO,  meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_SLOW};
+    if (val > (sizeof(preset) / sizeof(preset[0]) - 1)) {
+        ILOG_ERROR("unknown preset value: %d", val);
+        return meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
+    }
+    return preset[val];
+}
+
+/**
  * Translate proto role enum value to numerical position in dropdown menu
  */
 uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
@@ -3864,7 +3895,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         case eModemPreset: {
             meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
             meshtastic_Config_LoRaConfig_ModemPreset preset =
-                (meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
+                THIS->val2preset(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
             uint16_t channelNum = lv_slider_get_value(objects.frequency_slot_slider);
             if (preset != lora.modem_preset || lora.channel_num != channelNum) {
                 char buf1[16], buf2[32];
@@ -4308,10 +4339,9 @@ void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
     char buf[40];
     uint32_t channel = (uint32_t)lv_slider_get_value(slider);
     sprintf(buf, _("FrequencySlot: %d (%g MHz)"), channel,
-            LoRaPresets::getRadioFreq(
-                THIS->db.config.lora.region,
-                (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(objects.settings_modem_preset_dropdown),
-                channel));
+            LoRaPresets::getRadioFreq(THIS->db.config.lora.region,
+                                      THIS->val2preset(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown)),
+                                      channel));
     lv_label_set_text(objects.frequency_slot_label, buf);
 }
 
@@ -4321,8 +4351,8 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
     meshtastic_Config_LoRaConfig_ModemPreset preset =
         (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown);
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
-    if (preset == meshtastic_Config_LoRaConfig_ModemPreset_VERY_LONG_SLOW || numChannels == 0) {
-        // preset deprecated or not possible for this region, revert
+    if (numChannels == 0) {
+        // preset not possible for this region, revert
         lv_dropdown_set_selected(dropdown, THIS->db.config.lora.modem_preset);
         numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset);
         return;
@@ -5917,7 +5947,7 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
                                                                      THIS->db.channel[0].settings.name);
         }
         char buf1[20], buf2[32];
-        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, preset2val(cfg.modem_preset));
         lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
         lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
         lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
