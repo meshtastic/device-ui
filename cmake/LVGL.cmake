@@ -1,9 +1,10 @@
 message(STATUS "Fetching LVGL ...")
+set(LV_CONF_BUILD_DISABLE_DEMOS 1)
+set(LV_CONF_BUILD_DISABLE_EXAMPLES 1)
 set(LV_BUILD_CONF_DIR "include")
 add_compile_definitions(LV_LVGL_H_INCLUDE_SIMPLE)
 add_compile_definitions(LV_CONF_INCLUDE_SIMPLE)
 add_compile_definitions(LV_COMP_CONF_INCLUDE_SIMPLE)
-add_compile_definitions(LV_BUILD_TEST=0)
 add_compile_definitions(LV_USE_LIBINPUT=1)
 add_compile_definitions(LV_LIBINPUT_XKB=1)
 FetchContent_Declare(lvgl 
