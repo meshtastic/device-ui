@@ -318,8 +318,6 @@ void TLoraPagerKeyboardInputDriver::init(void)
     ILOG_INFO("TLoraPagerKeyboardInputDriver initialized (4x10 matrix)");
 }
 
-static uint32_t lastKeyboardLog = 0;
-
 void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     data->state = LV_INDEV_STATE_RELEASED;
@@ -333,12 +331,6 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
     if (Wire.available()) {
         uint8_t keyCount = Wire.read() & 0x0F;
 
-        // Log periodically to show we're polling
-        uint32_t now = millis();
-        if (now - lastKeyboardLog > 5000) {
-            ILOG_DEBUG("T-Pager keyboard poll: keyCount=%d mod=%d", keyCount, modifierState);
-            lastKeyboardLog = now;
-        }
         if (keyCount > 0) {
             // Read key event from FIFO
             Wire.beginTransmission(address);
