@@ -5,6 +5,12 @@
 #include <memory>
 #include <string>
 
+// Callback type for navigation events (e.g., backspace -> focus home button)
+typedef void (*NavigationCallback)(void);
+
+// Callback type for scroll events (direction: +1 = down, -1 = up)
+typedef void (*ScrollCallback)(int direction);
+
 class I2CKeyboardInputDriver : public InputDriver
 {
   public:
@@ -23,7 +29,22 @@ class I2CKeyboardInputDriver : public InputDriver
     using KeyboardList = std::list<std::unique_ptr<KeyboardDefinition>>;
     static KeyboardList &getI2CKeyboardList(void) { return i2cKeyboardList; }
 
+    // Navigation callback for backspace when not in text field
+    static void setNavigateHomeCallback(NavigationCallback cb) { navigateHomeCallback = cb; }
+    static NavigationCallback getNavigateHomeCallback(void) { return navigateHomeCallback; }
+
+    // ALT modifier state for scroll-while-typing feature
+    static bool isAltModifierHeld(void) { return altModifierHeld; }
+    static void setAltModifierHeld(bool held) { altModifierHeld = held; }
+
+    // Scroll callback for alt+encoder scrolling
+    static void setScrollCallback(ScrollCallback cb) { scrollCallback = cb; }
+    static ScrollCallback getScrollCallback(void) { return scrollCallback; }
+
   protected:
+    static NavigationCallback navigateHomeCallback;
+    static bool altModifierHeld;
+    static ScrollCallback scrollCallback;
     bool registerI2CKeyboard(I2CKeyboardInputDriver *driver, std::string name, uint8_t address);
 
   private:

@@ -12,7 +12,10 @@ static I2CKeyboardInputDriver *keyboardDriver = nullptr;
 #include "input/LinuxInputDriver.h"
 static LinuxInputDriver *linuxInputDriver = nullptr;
 #else
-#if defined(INPUTDRIVER_ENCODER_TYPE)
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+#include "input/RotaryEncoderInputDriver.h"
+static RotaryEncoderInputDriver *rotaryEncoderDriver = nullptr;
+#elif defined(INPUTDRIVER_ENCODER_TYPE)
 #include "input/EncoderInputDriver.h"
 static EncoderInputDriver *encoderDriver = nullptr;
 #endif
@@ -38,7 +41,9 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 //    else
 //        linuxInputDriver = InputDriver::instance();
 #else
-#if defined(INPUTDRIVER_ENCODER_TYPE)
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+    rotaryEncoderDriver = new RotaryEncoderInputDriver;
+#elif defined(INPUTDRIVER_ENCODER_TYPE)
     encoderDriver = new EncoderInputDriver;
 #endif
 #if defined(INPUTDRIVER_MATRIX_TYPE)
@@ -66,7 +71,10 @@ void DeviceGUI::init(IClientBase *client)
     if (linuxInputDriver)
         linuxInputDriver->init();
 #endif
-#if defined(INPUTDRIVER_ENCODER_TYPE)
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+    if (rotaryEncoderDriver)
+        rotaryEncoderDriver->init();
+#elif defined(INPUTDRIVER_ENCODER_TYPE)
     if (encoderDriver)
         encoderDriver->init();
 #endif
@@ -105,6 +113,10 @@ void DeviceGUI::task_handler(void)
     }
 #else
     displaydriver->task_handler();
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+    if (rotaryEncoderDriver)
+        rotaryEncoderDriver->task_handler();
+#endif
 #endif
 };
 

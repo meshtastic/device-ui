@@ -12,6 +12,7 @@
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
+#include "input/I2CKeyboardInputDriver.h"
 #include "lv_i18n.h"
 #include "lvgl_private.h"
 #include "styles.h"
@@ -454,13 +455,17 @@ void TFTView_320x240::init_screens(void)
 void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 {
     if (activeButton) {
+        // Reset previous button styling
         lv_obj_set_style_border_width(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(activeButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
         if (Themes::get() == Themes::eDark)
             lv_obj_set_style_bg_img_recolor_opa(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_bg_img_recolor(activeButton, colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
+    // Highlight new active button with green background and dark icon
     lv_obj_set_style_border_width(b, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor(b, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(b, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor(b, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(b, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     if (activePanel) {
@@ -500,6 +505,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     activeButton = b;
     activePanel = p;
     if (activePanel == objects.messages_panel) {
+        // Always focus input area - KEY handler in ui_event_message_ready scrolls when empty
         lv_group_focus_obj(objects.message_input_area);
     } else if (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice()) {
         setGroupFocus(activePanel);
@@ -710,6 +716,36 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.messages_button, this->ui_event_MessagesButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.map_button, this->ui_event_MapButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
+
+    // Focus handlers for main buttons (green highlight on focus)
+    lv_obj_add_event_cb(objects.home_button, this->ui_event_MainButtonFocus, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(objects.home_button, this->ui_event_MainButtonFocus, LV_EVENT_DEFOCUSED, NULL);
+    lv_obj_add_event_cb(objects.nodes_button, this->ui_event_MainButtonFocus, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(objects.nodes_button, this->ui_event_MainButtonFocus, LV_EVENT_DEFOCUSED, NULL);
+    lv_obj_add_event_cb(objects.groups_button, this->ui_event_MainButtonFocus, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(objects.groups_button, this->ui_event_MainButtonFocus, LV_EVENT_DEFOCUSED, NULL);
+    lv_obj_add_event_cb(objects.messages_button, this->ui_event_MainButtonFocus, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(objects.messages_button, this->ui_event_MainButtonFocus, LV_EVENT_DEFOCUSED, NULL);
+    lv_obj_add_event_cb(objects.map_button, this->ui_event_MainButtonFocus, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(objects.map_button, this->ui_event_MainButtonFocus, LV_EVENT_DEFOCUSED, NULL);
+    lv_obj_add_event_cb(objects.settings_button, this->ui_event_MainButtonFocus, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(objects.settings_button, this->ui_event_MainButtonFocus, LV_EVENT_DEFOCUSED, NULL);
+
+    // Register callback for backspace -> home navigation
+    I2CKeyboardInputDriver::setNavigateHomeCallback([]() {
+        if (objects.home_button) {
+            lv_group_focus_obj(objects.home_button);
+        }
+    });
+
+    // Register callback for alt+encoder scrolling in messages
+    I2CKeyboardInputDriver::setScrollCallback([](int direction) {
+        if (THIS && THIS->activeMsgContainer && THIS->activePanel == objects.messages_panel) {
+            int32_t scroll_amount = 80;
+            // direction > 0 means scroll down (content moves up), < 0 means scroll up
+            lv_obj_scroll_by(THIS->activeMsgContainer, 0, direction > 0 ? -scroll_amount : scroll_amount, LV_ANIM_ON);
+        }
+    });
 
     // home buttons
     lv_obj_add_event_cb(objects.home_mail_button, this->ui_event_EnvelopeButton, LV_EVENT_CLICKED, NULL);
@@ -986,6 +1022,43 @@ void TFTView_320x240::ui_event_BluetoothButton(lv_event_t *e)
         meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
         bluetooth.enabled = false;
         THIS->controller->sendConfig(meshtastic_Config_BluetoothConfig{bluetooth}, THIS->ownNode);
+    }
+}
+
+// Focus handler for main menu buttons - applies green highlight on focus
+void TFTView_320x240::ui_event_MainButtonFocus(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t *btn = (lv_obj_t *)lv_event_get_target(e);
+
+    if (event_code == LV_EVENT_FOCUSED) {
+        // Apply green highlight when button receives focus
+        lv_obj_set_style_bg_color(btn, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_img_recolor(btn, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_img_recolor_opa(btn, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    } else if (event_code == LV_EVENT_DEFOCUSED) {
+        // Remove highlight when focus leaves (unless it's the active button)
+        if (btn != THIS->activeButton) {
+            lv_obj_set_style_bg_color(btn, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+            if (Themes::get() == Themes::eDark)
+                lv_obj_set_style_bg_img_recolor_opa(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_img_recolor(btn, colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+    }
+}
+
+// Global key handler for navigation - catches LV_KEY_HOME to focus side menu
+void TFTView_320x240::ui_event_GlobalKeyHandler(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_KEY) {
+        uint32_t key = lv_event_get_key(e);
+        if (key == LV_KEY_HOME) {
+            // Focus the home button to enable side menu navigation
+            if (objects.home_button) {
+                lv_group_focus_obj(objects.home_button);
+            }
+        }
     }
 }
 
@@ -1688,6 +1761,33 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
                 }
                 lv_group_focus_obj(objects.message_input_area);
             }
+        }
+    } else if (event_code == LV_EVENT_KEY) {
+        // Handle scrolling with encoder - safety checks to prevent boot loop
+        if (!THIS || !THIS->activeMsgContainer || THIS->activePanel != objects.messages_panel) {
+            return;
+        }
+        // Ensure message_input_area exists
+        if (!objects.message_input_area) {
+            return;
+        }
+        uint32_t key = lv_event_get_key(e);
+        // Only process UP/DOWN keys for scrolling
+        if (key != LV_KEY_UP && key != LV_KEY_DOWN) {
+            return;
+        }
+        // Scroll when textarea is empty OR when ALT modifier is held
+        bool altHeld = I2CKeyboardInputDriver::isAltModifierHeld();
+        const char *txt = lv_textarea_get_text(objects.message_input_area);
+        bool isEmpty = (txt == nullptr) || (txt[0] == '\0');
+        if (!altHeld && !isEmpty) {
+            return; // Let textarea handle cursor movement when typing (unless ALT held)
+        }
+        int32_t scroll_amount = 40; // pixels to scroll
+        if (key == LV_KEY_UP) {
+            lv_obj_scroll_by(THIS->activeMsgContainer, 0, scroll_amount, LV_ANIM_ON);
+        } else if (key == LV_KEY_DOWN) {
+            lv_obj_scroll_by(THIS->activeMsgContainer, 0, -scroll_amount, LV_ANIM_ON);
         }
     }
 }
@@ -6316,8 +6416,9 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
     lv_obj_set_align(container, LV_ALIGN_TOP_MID);
     lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
-    lv_obj_clear_flag(container, lv_obj_flag_t(LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
-                                               LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC)); /// Flags
+    lv_obj_clear_flag(container, lv_obj_flag_t(LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_GESTURE_BUBBLE |
+                                               LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC |
+                                               LV_OBJ_FLAG_CLICK_FOCUSABLE)); /// Flags
     lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
     lv_obj_set_scroll_dir(container, LV_DIR_VER);
     lv_obj_set_style_pad_left(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
