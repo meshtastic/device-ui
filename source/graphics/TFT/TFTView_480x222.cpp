@@ -120,6 +120,7 @@ uint32_t TFTView_480x222::pinKeys = 0;
 bool TFTView_480x222::screenLocked = false;
 bool TFTView_480x222::screenUnlockRequest = false;
 static lv_obj_t *symIndicator = nullptr;
+static lv_obj_t *messagesBadge = nullptr;
 
 TFTView_480x222 *TFTView_480x222::instance(void)
 {
@@ -445,9 +446,21 @@ void TFTView_480x222::init_screens(void)
     symIndicator = lv_label_create(objects.main_screen);
     lv_label_set_text(symIndicator, "S");
     lv_obj_set_style_text_color(symIndicator, lv_color_hex(0xFF8C00), LV_PART_MAIN);  // Orange
-    lv_obj_set_style_text_font(symIndicator, &lv_font_montserrat_16, LV_PART_MAIN);
+    lv_obj_set_style_text_font(symIndicator, &ui_font_montserrat_20, LV_PART_MAIN);
     lv_obj_align(symIndicator, LV_ALIGN_BOTTOM_LEFT, 5, -5);
     lv_obj_add_flag(symIndicator, LV_OBJ_FLAG_HIDDEN);
+
+    // Reverse flex flow for chats panel so encoder direction feels natural
+    // (clockwise = up in list, counter-clockwise = down)
+    lv_obj_set_style_flex_flow(objects.chats_panel, LV_FLEX_FLOW_COLUMN_REVERSE, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    // Create message counter badge on messages button (hidden by default)
+    messagesBadge = lv_label_create(objects.messages_button);
+    lv_label_set_text(messagesBadge, "");
+    lv_obj_set_style_text_color(messagesBadge, lv_color_hex(0xFF0000), LV_PART_MAIN);  // Red
+    lv_obj_set_style_text_font(messagesBadge, &ui_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_align(messagesBadge, LV_ALIGN_TOP_RIGHT, -2, 2);
+    lv_obj_add_flag(messagesBadge, LV_OBJ_FLAG_HIDDEN);
 
     screensInitialised = true;
     state = MeshtasticView::eInitDone;
@@ -7234,6 +7247,18 @@ void TFTView_480x222::updateUnreadMessages(void)
         lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_button_image, LV_PART_MAIN | LV_STATE_DEFAULT);
     }
     lv_label_set_text(objects.home_mail_label, buf);
+
+    // Update messages button badge
+    if (messagesBadge) {
+        if (unreadMessages > 0) {
+            char badgeBuf[8];
+            sprintf(badgeBuf, "%d", unreadMessages > 99 ? 99 : unreadMessages);
+            lv_label_set_text(messagesBadge, badgeBuf);
+            lv_obj_clear_flag(messagesBadge, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(messagesBadge, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
 }
 
 /**
