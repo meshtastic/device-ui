@@ -119,6 +119,7 @@ time_t TFTView_320x240::startTime = 0;
 uint32_t TFTView_320x240::pinKeys = 0;
 bool TFTView_320x240::screenLocked = false;
 bool TFTView_320x240::screenUnlockRequest = false;
+static lv_obj_t *symIndicator = nullptr;
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -440,6 +441,14 @@ void TFTView_320x240::init_screens(void)
 
     updateFreeMem();
 
+    // Create sym/alt modifier indicator (hidden by default)
+    symIndicator = lv_label_create(objects.main_screen);
+    lv_label_set_text(symIndicator, "S");
+    lv_obj_set_style_text_color(symIndicator, lv_color_hex(0xFF8C00), LV_PART_MAIN);  // Orange
+    lv_obj_set_style_text_font(symIndicator, &lv_font_montserrat_16, LV_PART_MAIN);
+    lv_obj_align(symIndicator, LV_ALIGN_BOTTOM_LEFT, 5, -5);
+    lv_obj_add_flag(symIndicator, LV_OBJ_FLAG_HIDDEN);
+
     screensInitialised = true;
     state = MeshtasticView::eInitDone;
     ILOG_DEBUG("TFTView_320x240 init done.");
@@ -744,6 +753,16 @@ void TFTView_320x240::ui_events_init(void)
             int32_t scroll_amount = 80;
             // direction > 0 means scroll down (content moves up), < 0 means scroll up
             lv_obj_scroll_by(THIS->activeMsgContainer, 0, direction > 0 ? -scroll_amount : scroll_amount, LV_ANIM_ON);
+        }
+    });
+
+    // Register callback for sym/alt indicator
+    I2CKeyboardInputDriver::setAltIndicatorCallback([](bool active) {
+        if (symIndicator) {
+            if (active)
+                lv_obj_clear_flag(symIndicator, LV_OBJ_FLAG_HIDDEN);
+            else
+                lv_obj_add_flag(symIndicator, LV_OBJ_FLAG_HIDDEN);
         }
     });
 

@@ -11,6 +11,9 @@ typedef void (*NavigationCallback)(void);
 // Callback type for scroll events (direction: +1 = down, -1 = up)
 typedef void (*ScrollCallback)(int direction);
 
+// Callback type for alt/sym indicator updates
+typedef void (*AltIndicatorCallback)(bool active);
+
 class I2CKeyboardInputDriver : public InputDriver
 {
   public:
@@ -35,16 +38,20 @@ class I2CKeyboardInputDriver : public InputDriver
 
     // ALT modifier state for scroll-while-typing feature
     static bool isAltModifierHeld(void) { return altModifierHeld; }
-    static void setAltModifierHeld(bool held) { altModifierHeld = held; }
+    static void setAltModifierHeld(bool held);
 
     // Scroll callback for alt+encoder scrolling
     static void setScrollCallback(ScrollCallback cb) { scrollCallback = cb; }
     static ScrollCallback getScrollCallback(void) { return scrollCallback; }
 
+    // Alt/Sym indicator callback for UI updates
+    static void setAltIndicatorCallback(AltIndicatorCallback cb) { altIndicatorCallback = cb; }
+
   protected:
     static NavigationCallback navigateHomeCallback;
     static bool altModifierHeld;
     static ScrollCallback scrollCallback;
+    static AltIndicatorCallback altIndicatorCallback;
     bool registerI2CKeyboard(I2CKeyboardInputDriver *driver, std::string name, uint8_t address);
 
   private:

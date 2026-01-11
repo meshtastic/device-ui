@@ -11,6 +11,15 @@ I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
 NavigationCallback I2CKeyboardInputDriver::navigateHomeCallback = nullptr;
 bool I2CKeyboardInputDriver::altModifierHeld = false;
 ScrollCallback I2CKeyboardInputDriver::scrollCallback = nullptr;
+AltIndicatorCallback I2CKeyboardInputDriver::altIndicatorCallback = nullptr;
+
+void I2CKeyboardInputDriver::setAltModifierHeld(bool held)
+{
+    altModifierHeld = held;
+    if (altIndicatorCallback) {
+        altIndicatorCallback(held);
+    }
+}
 
 I2CKeyboardInputDriver::I2CKeyboardInputDriver(void) {}
 
