@@ -274,6 +274,8 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_BluetoothButton(lv_event_t *e);
 
     // static void ui_event_HomeButton(lv_event_t * e);
+    static void ui_event_MainButtonFocus(lv_event_t *e);
+    static void ui_event_GlobalKeyHandler(lv_event_t *e);
     static void ui_event_NodesButton(lv_event_t *e);
     static void ui_event_GroupsButton(lv_event_t *e);
     static void ui_event_MessagesButton(lv_event_t *e);

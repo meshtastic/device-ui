@@ -14,7 +14,7 @@ TFTView_480x222 *TFTView_480x222::gui = nullptr;
 TFTView_480x222 *TFTView_480x222::instance(void)
 {
     if (!gui)
-        gui = new TFTView_480x222(nullptr, DisplayDriverFactory::create(480, 320));
+        gui = new TFTView_480x222(nullptr, DisplayDriverFactory::create(480, 222));
     return gui;
 }
 

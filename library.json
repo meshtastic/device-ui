@@ -23,7 +23,8 @@
     "ArduinoThread": "https://github.com/meshtastic/ArduinoThread/archive/7c3ee9e1951551b949763b1f5280f8db1fa4068d.zip",
     "lvgl/lvgl": "9.3.0",
     "greiman/SdFat": "https://github.com/mverch67/SdFat/archive/152a52251fc5e1d581303b42378ea712ab229246.zip",
-    "nanopb/Nanopb": "0.4.91"
+    "nanopb/Nanopb": "0.4.91",
+    "RotaryEncoder": "https://github.com/mverch67/RotaryEncoder/archive/da958a21389cbcd485989705df602a33e092dd88.zip"
   },
   "build": {
     "libArchive": true,
