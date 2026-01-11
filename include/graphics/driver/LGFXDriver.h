@@ -178,24 +178,7 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
     lv_draw_sw_rgb565_swap(px_map, w * h);
-#if defined(T_LORA_PAGER) && defined(VIEW_320x240)
-    // Scale 320x240 UI to fill 480x222 display
-    // X scale: 480/320 = 1.5, Y scale: 222/240 = 0.925
-    constexpr float scale_x = 480.0f / 320.0f;  // 1.5
-    constexpr float scale_y = 222.0f / 240.0f;  // 0.925
-    int32_t dst_x = (int32_t)(area->x1 * scale_x);
-    int32_t dst_y = (int32_t)(area->y1 * scale_y);
-    int32_t dst_w = (int32_t)(w * scale_x);
-    int32_t dst_h = (int32_t)(h * scale_y);
-    // Use pushImageAffine for scaled output
-    float affine[6] = {
-        scale_x, 0,       (float)dst_x,
-        0,       scale_y, (float)dst_y
-    };
-    lgfx->pushImageAffine(affine, w, h, (uint16_t *)px_map);
-#else
     lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
-#endif
     lv_display_flush_ready(disp);
 }
 #else

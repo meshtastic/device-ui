@@ -5737,10 +5737,16 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
 void TFTView_320x240::messageAlert(const char *alert, bool show)
 {
     lv_label_set_text(objects.alert_label, alert);
-    if (show)
+    if (show) {
         lv_obj_clear_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
-    else
+        // Auto-hide after 3 seconds
+        lv_timer_create([](lv_timer_t *timer) {
+            lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_timer_delete(timer);
+        }, 3000, NULL);
+    } else {
         lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 /**
