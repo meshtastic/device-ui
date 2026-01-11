@@ -8,6 +8,7 @@ en:
   silent: ~
   no SD card detected: ~
   "Heap: 0\nLVGL: 0": ~
+  no public key: ~
   DEL: ~
   map tiles not found!: ~
   Settings: ~
@@ -50,8 +51,8 @@ en:
   Primary Channel: ~
   <unset>: ~
   Secondary Channels: ~
-  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": ~
-  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": ~
+  "LONG FAST\nLONG MODERATE\nLONG TURBO\nMEDIUM FAST\nMEDIUM SLOW\nSHORT FAST\nSHORT TURBO\nSHORT SLOW": ~
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker\nRouter Late": ~
   WiFi SSID: ~
   WiFi pre-shared Key: ~
   'Brightness: 60%': ~
@@ -114,7 +115,7 @@ en:
   'Brightness: %d%%': ~
   'Timeout: off': ~
   'Timeout: %ds': ~
-  No map tiles found on SDCard!: Map tiles not found!
+  No map tiles found on SDCard!: ~
   Locations Map (%d/%d): ~
   Stop: ~
   'heard: !%08x': ~
@@ -136,6 +137,7 @@ en:
   Connected!: ~
   Disconnected!: ~
   Shutting down ...: ~
+  'Modem Preset: custom': ~
   region unset: ~
   Banner & Sound: ~
   Banner only: ~
