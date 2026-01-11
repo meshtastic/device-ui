@@ -77,8 +77,8 @@ bool MeshEnvelope::validate(uint8_t *pb_buf, size_t &pb_size, size_t &payload_le
         startpos++;
     }
     if (startpos >= pb_size) {
-        ILOG_WARN("MeshEnvelope: no magic found, skipping %d bytes (%02x%02x%02x...)", pb_size, (int)pb_buf[0], (int)pb_buf[1],
-                  (int)pb_buf[2]);
+        ILOG_TRACE("MeshEnvelope: no magic found, skipping %d bytes (%02x%02x%02x...)", pb_size, (int)pb_buf[0], (int)pb_buf[1],
+                   (int)pb_buf[2]);
         pb_size = 0;
         return false;
     }
@@ -93,7 +93,7 @@ bool MeshEnvelope::validate(uint8_t *pb_buf, size_t &pb_size, size_t &payload_le
         }
 
         // re-align magic header to front of buffer
-        ILOG_WARN("Skipping first %d bytes (%02x%02x%02x...)", startpos, (int)pb_buf[0], (int)pb_buf[1], (int)pb_buf[2]);
+        ILOG_TRACE("Skipping first %d bytes (%02x%02x%02x...)", startpos, (int)pb_buf[0], (int)pb_buf[1], (int)pb_buf[2]);
         pb_size -= startpos;
         memmove(&pb_buf[0], &pb_buf[startpos], pb_size);
     }

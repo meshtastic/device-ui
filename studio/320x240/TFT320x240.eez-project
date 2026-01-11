@@ -13003,7 +13003,7 @@
                     }
                   },
                   "groupIndex": 0,
-                  "options": "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO",
+                  "options": "LONG FAST\nLONG MODERATE\nLONG TURBO\nMEDIUM FAST\nMEDIUM SLOW\nSHORT FAST\nSHORT TURBO\nSHORT SLOW",
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
