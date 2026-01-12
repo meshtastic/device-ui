@@ -14,6 +14,9 @@ typedef void (*ScrollCallback)(int direction);
 // Callback type for alt/sym indicator updates
 typedef void (*AltIndicatorCallback)(bool active);
 
+// Callback type for input events (to wake screen on keypress)
+typedef void (*InputEventCallback)(void);
+
 class I2CKeyboardInputDriver : public InputDriver
 {
   public:
@@ -47,11 +50,16 @@ class I2CKeyboardInputDriver : public InputDriver
     // Alt/Sym indicator callback for UI updates
     static void setAltIndicatorCallback(AltIndicatorCallback cb) { altIndicatorCallback = cb; }
 
+    // Input event callback to wake screen on keypress
+    static void setInputEventCallback(InputEventCallback cb) { inputEventCallback = cb; }
+    static InputEventCallback getInputEventCallback(void) { return inputEventCallback; }
+
   protected:
     static NavigationCallback navigateHomeCallback;
     static bool altModifierHeld;
     static ScrollCallback scrollCallback;
     static AltIndicatorCallback altIndicatorCallback;
+    static InputEventCallback inputEventCallback;
     bool registerI2CKeyboard(I2CKeyboardInputDriver *driver, std::string name, uint8_t address);
 
   private:

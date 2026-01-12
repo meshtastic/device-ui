@@ -1,6 +1,9 @@
 #include "graphics/driver/DisplayDriver.h"
 #include "util/ILog.h"
 
+// Static member initialization
+volatile bool DisplayDriver::wakeRequested = false;
+
 #if LV_USE_PROFILER
 #if defined(ARCH_PORTDUINO)
 #include <sys/syscall.h>

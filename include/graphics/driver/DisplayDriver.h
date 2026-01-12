@@ -24,6 +24,11 @@ class DisplayDriver
     virtual void printConfig(void) {}
     virtual ~DisplayDriver() {}
 
+    // Request display wake from any context (thread-safe)
+    static void requestWake(void) { wakeRequested = true; }
+    static bool isWakeRequested(void) { return wakeRequested; }
+    static void clearWakeRequest(void) { wakeRequested = false; }
+
     virtual uint8_t getBrightness() { return 255; }
     virtual void setBrightness(uint8_t timeout) {}
 
@@ -42,4 +47,5 @@ class DisplayDriver
     DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;
+    static volatile bool wakeRequested;
 };

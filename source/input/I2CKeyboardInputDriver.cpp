@@ -6,12 +6,17 @@
 
 #include "indev/lv_indev_private.h"
 #include "widgets/textarea/lv_textarea.h"
+#include "misc/lv_types.h"
+
+// Forward declare the display activity function
+extern "C" void lv_display_trigger_activity(lv_display_t * disp);
 
 I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
 NavigationCallback I2CKeyboardInputDriver::navigateHomeCallback = nullptr;
 bool I2CKeyboardInputDriver::altModifierHeld = false;
 ScrollCallback I2CKeyboardInputDriver::scrollCallback = nullptr;
 AltIndicatorCallback I2CKeyboardInputDriver::altIndicatorCallback = nullptr;
+InputEventCallback I2CKeyboardInputDriver::inputEventCallback = nullptr;
 
 void I2CKeyboardInputDriver::setAltModifierHeld(bool held)
 {
@@ -50,6 +55,13 @@ void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *d
     for (auto &keyboardDef : i2cKeyboardList) {
         keyboardDef->driver->readKeyboard(keyboardDef->address, indev, data);
         if (data->state == LV_INDEV_STATE_PRESSED) {
+            // Reset LVGL inactivity timer to wake screen from power save
+            lv_display_trigger_activity(NULL);
+            ILOG_INFO("Keyboard pressed - triggered activity to wake screen");
+            // Notify firmware to wake screen on keypress
+            if (inputEventCallback) {
+                inputEventCallback();
+            }
             // If any keyboard reports a key press, we stop reading further
             return;
         }
