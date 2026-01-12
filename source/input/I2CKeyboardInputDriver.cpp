@@ -354,6 +354,17 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
                 uint8_t keyCode = keyEvent & 0x7F;
                 bool pressed = (keyEvent & 0x80) != 0;
 
+                // Handle Sym key release for hold-to-scroll behavior
+                if (!pressed && keyCode > 0 && keyCode <= 31) {
+                    uint8_t keyIndex = keyCode - 1;
+                    if (keyIndex == MODIFIER_SYM_KEY) {
+                        // Sym released - disable scroll mode (but keep modifierState for symbol entry)
+                        I2CKeyboardInputDriver::setAltModifierHeld(false);
+                        ILOG_DEBUG("T-Pager: Sym released, scroll disabled");
+                    }
+                    return;  // Don't process other key releases
+                }
+
                 if (pressed && keyCode > 0 && keyCode <= 31) {
                     uint8_t keyIndex = keyCode - 1;
 
@@ -365,11 +376,11 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
                         return;  // Don't output a key for modifier press
                     }
                     if (keyIndex == MODIFIER_SYM_KEY) {
-                        // Toggle sym modifier
+                        // Toggle sym modifier for symbol entry (one-shot)
                         modifierState = (modifierState == 2) ? 0 : 2;
-                        // Also update the class-accessible ALT state for scroll-while-typing
-                        I2CKeyboardInputDriver::setAltModifierHeld(modifierState == 2);
-                        ILOG_DEBUG("T-Pager: Sym toggled, modifierState=%d altHeld=%d", modifierState, modifierState == 2);
+                        // Enable scroll mode while key is physically held
+                        I2CKeyboardInputDriver::setAltModifierHeld(true);
+                        ILOG_DEBUG("T-Pager: Sym pressed, modifierState=%d, scroll enabled while held", modifierState);
                         return;  // Don't output a key for modifier press
                     }
 
