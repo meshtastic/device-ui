@@ -92,7 +92,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                 if (!powerSaving) {
                     // dim display brightness slowly down
                     uint32_t brightness = lgfx->getBrightness();
-                    if (brightness > 1) {
+                    if (brightness > 0) {
                         lgfx->setBrightness(brightness - 1);
                     } else {
                         ILOG_INFO("enter powersave");

@@ -7,7 +7,7 @@
 class UARTClient : public SerialClient
 {
   public:
-    UARTClient(void);
+    UARTClient(const char *name = "uart");
     void init(void) override;
     bool connect(void) override;
     bool disconnect(void) override;
