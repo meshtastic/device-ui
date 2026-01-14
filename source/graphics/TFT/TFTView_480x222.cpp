@@ -459,6 +459,11 @@ void TFTView_480x222::init_screens(void)
     lv_label_set_text(messagesBadge, "");
     lv_obj_set_style_text_color(messagesBadge, lv_color_hex(0xFF0000), LV_PART_MAIN);  // Red
     lv_obj_set_style_text_font(messagesBadge, &ui_font_montserrat_20, LV_PART_MAIN);
+    // Add grey rounded background for readability
+    lv_obj_set_style_bg_color(messagesBadge, lv_color_hex(0x404040), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(messagesBadge, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(messagesBadge, 2, LV_PART_MAIN);
+    lv_obj_set_style_radius(messagesBadge, 4, LV_PART_MAIN);
     lv_obj_align(messagesBadge, LV_ALIGN_TOP_RIGHT, -2, 2);
     lv_obj_add_flag(messagesBadge, LV_OBJ_FLAG_HIDDEN);
 
@@ -808,6 +813,7 @@ void TFTView_480x222::ui_events_init(void)
 
     // message popup
     lv_obj_add_event_cb(objects.msg_popup_button, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.msg_popup_button, this->ui_event_MsgPopupButton, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.msg_popup_panel, this->ui_event_MsgPopupButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.msg_restore_button, this->ui_event_MsgRestoreButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.msg_restore_panel, this->ui_event_MsgRestoreButton, LV_EVENT_CLICKED, NULL);
@@ -1364,11 +1370,34 @@ void TFTView_480x222::ui_event_ChatDelButton(lv_event_t *e)
 
 /**
  * @brief hide msgPopupPanel on touch; goto message on button press
- *
+ *        Keyboard: Enter = navigate to chat, Backspace/ESC = dismiss
  */
 void TFTView_480x222::ui_event_MsgPopupButton(lv_event_t *e)
 {
+    lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target_obj(e);
+
+    // Handle keyboard events
+    if (code == LV_EVENT_KEY) {
+        uint32_t key = lv_event_get_key(e);
+        if (key == LV_KEY_ENTER) {
+            // Navigate to the chat (same as clicking button)
+            uint32_t channelOrNode = (unsigned long)objects.msg_popup_button->user_data;
+            if (channelOrNode < c_max_channels) {
+                uint8_t ch = (uint8_t)channelOrNode;
+                THIS->showMessages(ch);
+            } else {
+                uint32_t nodeNum = channelOrNode;
+                THIS->showMessages(nodeNum);
+            }
+        } else if (key == LV_KEY_BACKSPACE || key == LV_KEY_ESC) {
+            // Dismiss the popup
+            THIS->hideMessagePopup();
+        }
+        return;
+    }
+
+    // Handle click events
     if (target == objects.msg_popup_panel) {
         THIS->hideMessagePopup();
     } else { // msg button was clicked
