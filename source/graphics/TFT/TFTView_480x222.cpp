@@ -6556,11 +6556,15 @@ void TFTView_480x222::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     if (!restore) {
         // display msg popup if not already viewing the messages
         if (container != activeMsgContainer || activePanel != objects.messages_panel) {
-            unreadMessages++;
-            updateUnreadMessages();
-            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled &&
-                !db.channel[ch].settings.module_settings.is_muted) {
-                showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
+            // Check if channel is muted - DMs (to specific node, not broadcast) always notify
+            bool isDM = (to != 0 && to != 0xFFFFFFFF);
+            bool isMuted = !isDM && db.channel[ch].settings.module_settings.is_muted;
+            if (!isMuted) {
+                unreadMessages++;
+                updateUnreadMessages();
+                if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
+                    showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
+                }
             }
             lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
         }
