@@ -282,8 +282,12 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     assert(buf1 != 0);
     lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #else
+#ifdef LGFX_BUFSIZE
+    bufsize = LGFX_BUFSIZE
+#else
     bufsize = lgfx->screenWidth * lgfx->screenHeight / 8;
-    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer", sizeof(lv_color_t) * bufsize);
+#endif
+        ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer", sizeof(lv_color_t) * bufsize);
     buf1 = new lv_color_t[bufsize];
     assert(buf1 != 0);
     lv_display_set_buffers(this->display, buf1, buf2, sizeof(lv_color_t) * bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
