@@ -37,6 +37,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++
     static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
+    static void rounder_cb(lv_event_t *e);
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
 
     uint32_t screenTimeout;
@@ -196,6 +197,29 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 }
 #endif
 
+#ifdef LGFX_AMOLED_ROUNDER
+template <class LGFX> void LGFXDriver<LGFX>::rounder_cb(lv_event_t *e)
+{
+    lv_area_t *area = (lv_area_t *)lv_event_get_param(e);
+#if LGFX_AMOLED_ROUNDER == 1
+    // force the starting X and Y to be even (round down)
+    if (area->x1 % 2 != 0)
+        area->x1--;
+    if (area->y1 % 2 != 0)
+        area->y1--;
+
+    // force the ending X and Y to be odd
+    // (an even start + an odd end = an even width/height)
+    if (area->x2 % 2 == 0)
+        area->x2++;
+    if (area->y2 % 2 == 0)
+        area->y2++;
+#else
+#error "LGFX_AMOLED_AMOLED requires implementation!"
+#endif
+}
+#endif
+
 template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
     uint16_t touchX = 0, touchY = 0;
@@ -266,6 +290,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 #endif
 
     lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
+#ifdef LGFX_AMOLED_ROUNDER
+    lv_display_add_event_cb(this->display, rounder_cb, LV_EVENT_INVALIDATE_AREA, this->display);
+#endif
 
 #if defined(DISPLAY_SET_RESOLUTION)
     ILOG_DEBUG("Set display resolution: %dx%d", lgfx->screenWidth, lgfx->screenHeight);
