@@ -37,8 +37,7 @@ class LGFX_Touch : public lgfx::LGFX_Device
 
     void wakeup(void) {} // TODO: use EXPANDS_TOUCH_RST
     void sleep(void)
-    {
-        /* touchDrv.sleep(); */
+    { /* touchDrv.sleep(); */
     }
 
   private:
@@ -55,7 +54,8 @@ class LGFX_TWATCH_ULTRA : public LGFX_Touch
     const uint32_t screenHeight = 502;
 
     bool hasButton(void) { return true; }
-    lgfx::ILight* light(void) { // only used by 'bool hasLight()' to check if ptr is valid
+    lgfx::ILight *light(void)
+    { // only used by 'bool hasLight()' to check if ptr is valid
         static lgfx::Light_PWM _light_instance;
         return &_light_instance;
     }
@@ -72,7 +72,7 @@ class LGFX_TWATCH_ULTRA : public LGFX_Touch
                                             // 80MHz by an integer)
             cfg.freq_read = 16000000;       // SPI clock when receiving
             cfg.spi_3wire = false;          // Set to true if reception is done on the MOSI pin
-            cfg.use_lock = false;            // Set to true to use transaction locking
+            cfg.use_lock = false;           // Set to true to use transaction locking
             cfg.dma_channel = SPI_DMA_CH_AUTO; // SPI_DMA_CH_AUTO; // Set DMA channel to use (0=not use DMA / 1=1ch / 2=ch /
                                                // SPI_DMA_CH_AUTO=auto setting)
             cfg.pin_sclk = 40;                 // Set SPI SCLK pin number
