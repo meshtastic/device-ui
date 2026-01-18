@@ -203,17 +203,13 @@ template <class LGFX> void LGFXDriver<LGFX>::rounder_cb(lv_event_t *e)
     lv_area_t *area = (lv_area_t *)lv_event_get_param(e);
 #if LGFX_AMOLED_ROUNDER == 1
     // force the starting X and Y to be even (round down)
-    if (area->x1 % 2 != 0)
-        area->x1--;
-    if (area->y1 % 2 != 0)
-        area->y1--;
+    area->x1 &= ~1;
+    area->y1 &= ~1;
 
     // force the ending X and Y to be odd
     // (an even start + an odd end = an even width/height)
-    if (area->x2 % 2 == 0)
-        area->x2++;
-    if (area->y2 % 2 == 0)
-        area->y2++;
+    area->x2 |= 1;
+    area->y2 |= 1;
 #else
 #error "LGFX_AMOLED_AMOLED requires implementation!"
 #endif
