@@ -37,7 +37,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 #elif defined(T_DECK_PRO)
                 driver = new TDeckProKeyboardInputDriver(address);
 #else
-                driver = new TCA8418KeyboardInputDriver(address);
+                // TODO: driver = new TCA8418KeyboardInputDriver(address);
 #endif
                 break;
             case SCAN_CARDKB_ADDR:
