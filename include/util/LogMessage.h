@@ -63,8 +63,13 @@ class LogMessageEnv : public LogMessage
 
     virtual size_t deserialize(std::function<size_t(uint8_t *, size_t)> read) override
     {
-        size_t len = read((uint8_t *)&_size, sizeof(LogMessageHeader) - 8) + read(bytes, _size);
-        bytes[_size] = 0;
+        size_t len = read((uint8_t *)&_size, sizeof(LogMessageHeader) - 8);
+        if (len) {
+            len += read(bytes, _size);
+            bytes[_size] = 0;
+        } else {
+            bytes[0] = 0;
+        }
         return len;
     }
 };
