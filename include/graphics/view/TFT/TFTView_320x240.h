@@ -257,6 +257,7 @@ class TFTView_320x240 : public MeshtasticView
     void setBellText(bool banner, bool sound);
     void setChannelName(const meshtastic_Channel &ch);
     uint32_t timestamp(char *buf, uint32_t time, bool update);
+    void setTileService(bool pmtiles);
     void updateLocationMap(uint32_t objects);
 
     // response callbacks

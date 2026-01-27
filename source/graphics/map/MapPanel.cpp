@@ -14,7 +14,7 @@ MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
       service(new TileService(s)), objectsOnMap(0)
 {
     extern OSMTiles<lv_obj_t> *osm;
-    osm = OSMTiles<lv_obj_t>::create([this](const char *name, void *img) -> bool { return service->load(name, img); });
+    osm = OSMTiles<lv_obj_t>::create([this](uint32_t x, uint32_t y, uint32_t z, void *img) -> bool { return service->load(x, y, z, img); });
 
     center();
 }
