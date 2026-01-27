@@ -915,7 +915,8 @@ void create_screen_main_screen() {
                             lv_label_set_text(obj, "");
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT); 
+                            lv_obj_set_style_text_color(obj, lv_color_hex(0xff5ded96), LV_PART_MAIN | LV_STATE_DEFAULT); // Changes Signal Color to green
                         }
                         {
                             // PositionLabel
@@ -927,7 +928,7 @@ void create_screen_main_screen() {
                             lv_label_set_text(obj, "");
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_text_color(obj, lv_color_hex(0xff05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_text_color(obj, lv_color_hex(0xff05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);   
                         }
                         {
                             // Position2Label
@@ -938,7 +939,7 @@ void create_screen_main_screen() {
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL);
                             lv_label_set_text(obj, "");
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-                            lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);  
                         }
                         {
                             // Telemetry1Label
@@ -1263,6 +1264,9 @@ void create_screen_main_screen() {
                     lv_obj_set_style_pad_left(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_max_height(obj, 25, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_bottom(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff1f2a37), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_border_color(obj, lv_color_hex(0xff1f2a37), LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // KeyboardButton_0

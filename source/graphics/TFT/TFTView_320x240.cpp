@@ -4688,8 +4688,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     // optimisation: hide all 6ix extended labels by default; enable only when set
     // lv_obj_add_flag(ui_lastHeardLabel, LV_OBJ_FLAG_HIDDEN); // lastHeard
-    lv_obj_add_flag(ui_BatteryLabel, LV_OBJ_FLAG_HIDDEN); // hasKey
-    lv_obj_add_flag(ui_SignalLabel, LV_OBJ_FLAG_HIDDEN);  // update
+    lv_obj_add_flag(ui_BatteryLabel, LV_OBJ_FLAG_HIDDEN); // Autohide battery
+    lv_obj_add_flag(ui_SignalLabel, LV_OBJ_FLAG_HIDDEN);  // Autohide signal/hops
     lv_obj_add_flag(ui_PositionLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui_Position2Label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui_Telemetry1Label, LV_OBJ_FLAG_HIDDEN);
