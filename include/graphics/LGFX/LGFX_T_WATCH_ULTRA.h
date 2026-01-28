@@ -4,11 +4,18 @@
 #include <LovyanGFX.hpp>
 #include <TouchDrvCSTXXX.hpp>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
+
 #ifndef SPI_FREQUENCY
 #define SPI_FREQUENCY 75000000
 #endif
 
 #define TOUCH_INT 12
+#define HW_IRQ_TOUCHPAD (_BV(0))
 
 class LGFX_Touch : public lgfx::LGFX_Device
 {
@@ -21,6 +28,15 @@ class LGFX_Touch : public lgfx::LGFX_Device
         result |= touchDrv.begin(Wire, 0x1A, 3, 2);
         if (!result) {
             ILOG_ERROR("Failed to initialise touch panel!");
+        } else {
+            eventGrp = xEventGroupCreate();
+            attachInterrupt(
+                TP_INT,
+                []() {
+                    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+                    xEventGroupSetBitsFromISR(eventGrp, HW_IRQ_TOUCHPAD, &xHigherPriorityTaskWoken);
+                },
+                FALLING);
         }
         return result;
     }
@@ -32,7 +48,15 @@ class LGFX_Touch : public lgfx::LGFX_Device
     // unfortunately not declared as virtual in base class, need to choose a different name
     bool getTouchXY(uint16_t *touchX, uint16_t *touchY)
     {
-        return touchDrv.isPressed() && touchDrv.getPoint((int16_t *)touchX, (int16_t *)touchY, 1);
+        EventBits_t bits = xEventGroupGetBits(eventGrp);
+        if (bits & HW_IRQ_TOUCHPAD) {
+            uint8_t tp = touchDrv.getPoint((int16_t *)touchX, (int16_t *)touchY, 1);
+            if (tp == 0) {
+                xEventGroupClearBits(eventGrp, HW_IRQ_TOUCHPAD);
+            }
+            return tp;
+        }
+        return 0;
     }
 
     void wakeup(void) {} // TODO: use EXPANDS_TOUCH_RST
@@ -42,7 +66,10 @@ class LGFX_Touch : public lgfx::LGFX_Device
 
   private:
     TouchDrvCST92xx touchDrv;
+    static EventGroupHandle_t eventGrp;
 };
+
+EventGroupHandle_t LGFX_Touch::eventGrp = NULL;
 
 class LGFX_TWATCH_ULTRA : public LGFX_Touch
 {
