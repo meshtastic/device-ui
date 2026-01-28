@@ -74,7 +74,7 @@ constexpr lv_color_t colorRed = LV_COLOR_HEX(0xff5555);
 constexpr lv_color_t colorDarkRed = LV_COLOR_HEX(0xa70a0a);
 constexpr lv_color_t colorOrange = LV_COLOR_HEX(0xff8c04);
 constexpr lv_color_t colorYellow = LV_COLOR_HEX(0xdbd251);
-constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x05f6cb);
+constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x5ded96);
 constexpr lv_color_t colorBlue = LV_COLOR_HEX(0x436C70);
 constexpr lv_color_t colorGray = LV_COLOR_HEX(0x757575);
 constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xAAFBFF);
@@ -4651,6 +4651,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_pos(ui_SignalLabel, 8, 1);
     lv_obj_set_align(ui_SignalLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_SignalLabel, "");
+    lv_obj_set_style_text_color(ui_SignalLabel, lv_color_hex(0xff5ded96), LV_PART_MAIN | LV_STATE_DEFAULT);
     ui_SignalLabel->user_data = (void *)-1; // TODO viaMqtt; // used for filtering (applyNodesFilter)
     // PositionLabel
     lv_obj_t *ui_PositionLabel = lv_label_create(p);
@@ -6563,6 +6564,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_set_style_pad_bottom(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(chatBtn, lv_color_hex(0xff141723), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_move_to_index(chatBtn, 0);
 
     char buf[64];
