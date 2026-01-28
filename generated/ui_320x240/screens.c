@@ -4870,7 +4870,7 @@ void create_screen_main_screen() {
                                             // NodesFilterNameArea
                                             lv_obj_t *obj = lv_textarea_create(parent_obj);
                                             objects.nodes_filter_name_area = obj;
-                                            lv_obj_set_pos(obj, -10, -2); // was 40
+                                            lv_obj_set_pos(obj, -8, -2); // was 40
                                             lv_obj_set_size(obj, LV_PCT(70), 24); // was 60
                                             lv_textarea_set_max_length(obj, 15);
                                             lv_textarea_set_placeholder_text(obj, "!Enter Filter ...");
@@ -5054,7 +5054,7 @@ void create_screen_main_screen() {
                                             // NodesHLNameArea
                                             lv_obj_t *obj = lv_textarea_create(parent_obj);
                                             objects.nodes_hl_name_area = obj;
-                                            lv_obj_set_pos(obj, -20, -2);
+                                            lv_obj_set_pos(obj, -8, -2);
                                             lv_obj_set_size(obj, LV_PCT(70), 24);
                                             lv_textarea_set_max_length(obj, 15);
                                             lv_textarea_set_placeholder_text(obj, "Enter Filter ...");
@@ -6243,6 +6243,16 @@ void create_screen_main_screen() {
             // Keyboard
             lv_obj_t *obj = lv_keyboard_create(parent_obj);
             objects.keyboard = obj;
+            /*lv_obj_set_pos(obj, 1, 28);
+            lv_obj_set_size(obj, LV_PCT(100), LV_PCT(50));
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(obj, lv_color_hex(0xff1b43db), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0xffccd1d8), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_max_height(obj, 300, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_max_width(obj, 600, LV_PART_MAIN | LV_STATE_DEFAULT);*/
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
         }
     }
