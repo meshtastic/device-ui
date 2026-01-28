@@ -630,7 +630,7 @@
 
 #define LV_USE_IMAGEBUTTON     1
 
-#define LV_USE_KEYBOARD   1
+#define LV_USE_KEYBOARD   0  // Removed: Virtual keyboard not needed for T-Deck
 
 #define LV_USE_LABEL      1
 #if LV_USE_LABEL

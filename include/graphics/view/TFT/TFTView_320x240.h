@@ -214,8 +214,9 @@ class TFTView_320x240 : public MeshtasticView
     void updateTheme(void);
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
-    void showKeyboard(lv_obj_t *textArea);
-    void hideKeyboard(lv_obj_t *panel);
+    // Removed: Virtual keyboard not needed for T-Deck
+    // void showKeyboard(lv_obj_t *textArea);
+    // void hideKeyboard(lv_obj_t *panel);
     lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
 
     void enablePanel(lv_obj_t *panel);
@@ -305,8 +306,9 @@ class TFTView_320x240 : public MeshtasticView
     // blank screen
     static void ui_event_BlankScreenButton(lv_event_t *e);
 
-    static void ui_event_KeyboardButton(lv_event_t *e);
-    static void ui_event_Keyboard(lv_event_t *e);
+    // Removed: Virtual keyboard event handlers not needed for T-Deck
+    // static void ui_event_KeyboardButton(lv_event_t *e);
+    // static void ui_event_Keyboard(lv_event_t *e);
 
     static void ui_event_message_ready(lv_event_t *e);
 
