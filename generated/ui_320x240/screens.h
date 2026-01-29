@@ -160,6 +160,7 @@ typedef struct _objects_t {
     lv_obj_t *messages_panel;
     lv_obj_t *messages_container;
     lv_obj_t *message_input_area;
+    lv_obj_t *keyboard_button_0;
     lv_obj_t *chats_panel;
     lv_obj_t *chats_button;
     lv_obj_t *chats_button_label;
@@ -298,7 +299,9 @@ typedef struct _objects_t {
     lv_obj_t *home_cancel_qr_button;
     lv_obj_t *settings_username_panel;
     lv_obj_t *settings_user_short_textarea;
+    lv_obj_t *keyboard_button_1;
     lv_obj_t *settings_user_long_textarea;
+    lv_obj_t *keyboard_button_2;
     lv_obj_t *obj3;
     lv_obj_t *obj3__ok_cancel_panel_w;
     lv_obj_t *obj3__ok_button_w;
@@ -346,7 +349,9 @@ typedef struct _objects_t {
     lv_obj_t *obj7__cancel_button_w;
     lv_obj_t *settings_wifi_panel;
     lv_obj_t *settings_wifi_ssid_textarea;
+    lv_obj_t *keyboard_button_8;
     lv_obj_t *settings_wifi_password_textarea;
+    lv_obj_t *keyboard_button_9;
     lv_obj_t *obj8;
     lv_obj_t *obj8__ok_cancel_panel_w;
     lv_obj_t *obj8__ok_button_w;
@@ -379,6 +384,7 @@ typedef struct _objects_t {
     lv_obj_t *obj12__ok_cancel_panel_w;
     lv_obj_t *obj12__ok_button_w;
     lv_obj_t *obj12__cancel_button_w;
+    lv_obj_t *keyboard_button_7;
     lv_obj_t *settings_input_control_panel;
     lv_obj_t *settings_mouse_input_dropdown;
     lv_obj_t *settings_keyboard_input_dropdown;
@@ -423,9 +429,11 @@ typedef struct _objects_t {
     lv_obj_t *settings_modify_channel_panel;
     lv_obj_t *obj19;
     lv_obj_t *settings_modify_channel_name_textarea;
+    lv_obj_t *keyboard_button_3;
     lv_obj_t *obj20;
     lv_obj_t *settings_modify_channel_psk_textarea;
     lv_obj_t *settings_modify_channel_key_generate_button;
+    lv_obj_t *keyboard_button_4;
     lv_obj_t *settings_modify_trash_button;
     lv_obj_t *obj21;
     lv_obj_t *obj21__ok_cancel_panel_w;
@@ -452,6 +460,7 @@ typedef struct _objects_t {
     lv_obj_t *nodes_filter_position_switch;
     lv_obj_t *nodes_filter_name_label;
     lv_obj_t *nodes_filter_name_area;
+    lv_obj_t *keyboard_button_5;
     lv_obj_t *tab_page_highlight;
     lv_obj_t *nodes_hl_active_chat_label;
     lv_obj_t *nodes_hl_active_chat_switch;
@@ -463,6 +472,7 @@ typedef struct _objects_t {
     lv_obj_t *nodes_hliaq_switch;
     lv_obj_t *nodes_hl_name_label;
     lv_obj_t *nodes_hl_name_area;
+    lv_obj_t *keyboard_button_6;
     lv_obj_t *mesh_detector_panel;
     lv_obj_t *detector_radar_panel;
     lv_obj_t *radar_beam;
@@ -528,13 +538,16 @@ typedef struct _objects_t {
     lv_obj_t *setup_panel;
     lv_obj_t *setup_region_dropdown;
     lv_obj_t *setup_user_short_textarea;
+    lv_obj_t *keyboard_button_10;
     lv_obj_t *setup_user_long_textarea;
+    lv_obj_t *keyboard_button_11;
     lv_obj_t *obj27;
     lv_obj_t *obj27__ok_cancel_panel_w;
     lv_obj_t *obj27__ok_button_w;
     lv_obj_t *obj27__cancel_button_w;
     lv_obj_t *alert_panel;
     lv_obj_t *alert_label;
+    lv_obj_t *keyboard;
     lv_obj_t *blank_screen_button;
     lv_obj_t *screen_lock_button_matrix;
     lv_obj_t *lock_screen_digits_label;
