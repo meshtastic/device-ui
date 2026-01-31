@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 typedef struct _objects_t {
-    lv_obj_t *boot;
     lv_obj_t *menu;
+    lv_obj_t *boot;
     lv_obj_t *home;
     lv_obj_t *nodes;
     lv_obj_t *groups;
@@ -18,8 +18,6 @@ typedef struct _objects_t {
     lv_obj_t *clock;
     lv_obj_t *settings;
     lv_obj_t *blank;
-    lv_obj_t *poster_meshtastic;
-    lv_obj_t *obj0;
     lv_obj_t *main_panel;
     lv_obj_t *home_button;
     lv_obj_t *nodes_button;
@@ -32,9 +30,11 @@ typedef struct _objects_t {
     lv_obj_t *tools_button;
     lv_obj_t *settings_button;
     lv_obj_t *power_button;
+    lv_obj_t *obj0;
     lv_obj_t *obj1;
-    lv_obj_t *obj2;
     lv_obj_t *menu_label;
+    lv_obj_t *poster_meshtastic;
+    lv_obj_t *obj2;
     lv_obj_t *top_dashboard_panel;
     lv_obj_t *top_home_back_button;
     lv_obj_t *top_home_label;
@@ -103,9 +103,7 @@ typedef struct _objects_t {
     lv_obj_t *top_chat_back_button;
     lv_obj_t *top_chat_label;
     lv_obj_t *chat_panel;
-    lv_obj_t *chat_button;
-    lv_obj_t *chat_short_name;
-    lv_obj_t *chat_long_name;
+    lv_obj_t *message_input_area;
     lv_obj_t *top_map_panel;
     lv_obj_t *top_map_back_button;
     lv_obj_t *top_map_label;
@@ -126,13 +124,15 @@ typedef struct _objects_t {
     lv_obj_t *settings_device;
     lv_obj_t *settings_network;
     lv_obj_t *settings_display;
+    lv_obj_t *settings_panel_1;
+    lv_obj_t *settings_menu;
 } objects_t;
 
 extern objects_t objects;
 
 enum ScreensEnum {
-    SCREEN_ID_BOOT = 1,
-    SCREEN_ID_MENU = 2,
+    SCREEN_ID_MENU = 1,
+    SCREEN_ID_BOOT = 2,
     SCREEN_ID_HOME = 3,
     SCREEN_ID_NODES = 4,
     SCREEN_ID_GROUPS = 5,
@@ -143,11 +143,11 @@ enum ScreensEnum {
     SCREEN_ID_BLANK = 10,
 };
 
-void create_screen_boot();
-void tick_screen_boot();
-
 void create_screen_menu();
 void tick_screen_menu();
+
+void create_screen_boot();
+void tick_screen_boot();
 
 void create_screen_home();
 void tick_screen_home();

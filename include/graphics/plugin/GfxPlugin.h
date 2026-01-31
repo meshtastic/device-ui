@@ -26,11 +26,8 @@ using lv_indev_t = _lv_indev_t;
 
 /*
  GfxPlugin - minimal, display-agnostic plugin base.
-
- Design:
  - Generated UIs expose global named LVGL widgets. Plugins operate on those widgets.
- - A resolver function can be provided to lookup widgets by name during init; the view
-   should use that to populate the widget array once.
+ - During init the view can use widget setter function to populate the widget array.
 */
 class GfxPlugin
 {

@@ -1,5 +1,9 @@
-#include "graphics/plugin/ScrollMenuPlugin.h"
+#include "graphics/plugin/Plugins.h"
+
+#ifdef MUI_SCROLLMENU_PLUGIN
+
 #include "Arduino.h"
+#include "graphics/plugin/ScrollMenuPlugin.h"
 #include "images.h"
 #include "lv_i18n.h"
 #include "lvgl.h"
@@ -119,3 +123,5 @@ void ScrollMenuPlugin::ui_event_MenuButton(lv_event_t *e)
         }
     }
 }
+
+#endif
