@@ -915,8 +915,7 @@ void create_screen_main_screen() {
                             lv_label_set_text(obj, "");
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT); 
-                            lv_obj_set_style_text_color(obj, lv_color_hex(0xff5ded96), LV_PART_MAIN | LV_STATE_DEFAULT); // Changes Signal / hops Color to green
+                            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                         {
                             // PositionLabel
@@ -928,7 +927,7 @@ void create_screen_main_screen() {
                             lv_label_set_text(obj, "");
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_text_color(obj, lv_color_hex(0xff05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);   
+                            lv_obj_set_style_text_color(obj, lv_color_hex(0xff05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                         {
                             // Position2Label
@@ -939,7 +938,7 @@ void create_screen_main_screen() {
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL);
                             lv_label_set_text(obj, "");
                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-                            lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);  
+                            lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                         {
                             // Telemetry1Label
@@ -1249,7 +1248,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.message_input_area = obj;
                     lv_obj_set_pos(obj, 6, -1);
-                    lv_obj_set_size(obj, LV_PCT(96), 25); // Adjusted width to fit within MessagesPanel was 85
+                    lv_obj_set_size(obj, LV_PCT(85), 25);
                     lv_textarea_set_max_length(obj, 220);
                     lv_textarea_set_placeholder_text(obj, "Enter Text ...");
                     lv_textarea_set_one_line(obj, true);
@@ -1264,15 +1263,18 @@ void create_screen_main_screen() {
                     lv_obj_set_style_pad_left(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_max_height(obj, 25, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_bottom(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff1f2a37), LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_border_color(obj, lv_color_hex(0xff1f2a37), LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // KeyboardButton_0
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_0 = obj;
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_pos(obj, -5, -2);
+                    lv_obj_set_size(obj, 25, 24);
+                    lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
             }
         }
@@ -3120,7 +3122,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.settings_user_short_textarea = obj;
                     lv_obj_set_pos(obj, 0, 18);
-                    lv_obj_set_size(obj, LV_PCT(50), 25); // was 42
+                    lv_obj_set_size(obj, LV_PCT(42), 25);
                     lv_textarea_set_max_length(obj, 4);
                     lv_textarea_set_one_line(obj, true);
                     lv_textarea_set_password_mode(obj, false);
@@ -3134,7 +3136,13 @@ void create_screen_main_screen() {
                     // KeyboardButton_1
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_1 = obj;
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_pos(obj, 163, 18);
+                    lv_obj_set_size(obj, 25, 24);
+                    lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     lv_obj_t *obj = lv_label_create(parent_obj);
@@ -3150,7 +3158,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.settings_user_long_textarea = obj;
                     lv_obj_set_pos(obj, 0, 75);
-                    lv_obj_set_size(obj, LV_PCT(100), 25); // was 88
+                    lv_obj_set_size(obj, LV_PCT(88), 25);
                     lv_textarea_set_max_length(obj, 39);
                     lv_textarea_set_one_line(obj, true);
                     lv_textarea_set_password_mode(obj, false);
@@ -3164,7 +3172,13 @@ void create_screen_main_screen() {
                     // KeyboardButton_2
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_2 = obj;
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_pos(obj, 200, 75);
+                    lv_obj_set_size(obj, 25, 24);
+                    lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
@@ -3700,7 +3714,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.settings_wifi_ssid_textarea = obj;
                     lv_obj_set_pos(obj, 0, 18);
-                    lv_obj_set_size(obj, LV_PCT(100), 25); // was 88
+                    lv_obj_set_size(obj, LV_PCT(88), 25);
                     lv_textarea_set_max_length(obj, 32);
                     lv_textarea_set_one_line(obj, true);
                     lv_textarea_set_password_mode(obj, false);
@@ -3714,7 +3728,13 @@ void create_screen_main_screen() {
                     // KeyboardButton_8
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_8 = obj;
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_pos(obj, 200, 18);
+                    lv_obj_set_size(obj, 25, 24);
+                    lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     lv_obj_t *obj = lv_label_create(parent_obj);
@@ -3730,7 +3750,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.settings_wifi_password_textarea = obj;
                     lv_obj_set_pos(obj, 0, 75);
-                    lv_obj_set_size(obj, LV_PCT(100), 25); // was 88
+                    lv_obj_set_size(obj, LV_PCT(88), 25);
                     lv_textarea_set_max_length(obj, 64);
                     lv_textarea_set_one_line(obj, true);
                     lv_textarea_set_password_mode(obj, false);
@@ -3744,7 +3764,13 @@ void create_screen_main_screen() {
                     // KeyboardButton_9
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_9 = obj;
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_pos(obj, 200, 75);
+                    lv_obj_set_size(obj, 25, 24);
+                    lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
@@ -4012,8 +4038,8 @@ void create_screen_main_screen() {
                     // SettingsScreenLockPasswordTextarea
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.settings_screen_lock_password_textarea = obj;
-                    lv_obj_set_pos(obj, -20, 70); // was -30
-                    lv_obj_set_size(obj, LV_PCT(70), 25); // was 40
+                    lv_obj_set_pos(obj, -30, 70);
+                    lv_obj_set_size(obj, LV_PCT(40), 25);
                     lv_textarea_set_accepted_chars(obj, "1234567890");
                     lv_textarea_set_max_length(obj, 6);
                     lv_textarea_set_placeholder_text(obj, "123456");
@@ -4044,7 +4070,13 @@ void create_screen_main_screen() {
                     // KeyboardButton_7
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_7 = obj;
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_pos(obj, 2, 70);
+                    lv_obj_set_size(obj, 25, 24);
+                    lv_obj_set_style_align(obj, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
             }
         }
@@ -4450,7 +4482,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     objects.obj19 = obj;
                     lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT); // was 200 no PCT
+                    lv_obj_set_size(obj, 200, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                     lv_label_set_text(obj, _("Channel Name"));
                     lv_obj_set_style_text_color(obj, lv_color_hex(0xff7ff5f9), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4463,7 +4495,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.settings_modify_channel_name_textarea = obj;
                     lv_obj_set_pos(obj, 0, 18);
-                    lv_obj_set_size(obj, LV_PCT(100), 25);
+                    lv_obj_set_size(obj, LV_PCT(90), 25);
                     lv_textarea_set_max_length(obj, 11);
                     lv_textarea_set_placeholder_text(obj, "LongFast");
                     lv_textarea_set_one_line(obj, true);
@@ -4478,13 +4510,19 @@ void create_screen_main_screen() {
                     // KeyboardButton_3
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_3 = obj;
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_pos(obj, 224, 18);
+                    lv_obj_set_size(obj, 25, 24);
+                    lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     objects.obj20 = obj;
-                    lv_obj_set_pos(obj, 0, 60); 
-                    lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT); // was 200 no PCT
+                    lv_obj_set_pos(obj, 0, 60);
+                    lv_obj_set_size(obj, 200, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                     lv_label_set_text(obj, _("Pre-shared Key"));
                     lv_obj_set_style_text_color(obj, lv_color_hex(0xff7ff5f9), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4496,7 +4534,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.settings_modify_channel_psk_textarea = obj;
                     lv_obj_set_pos(obj, 0, 80);
-                    lv_obj_set_size(obj, LV_PCT(100), 25);
+                    lv_obj_set_size(obj, LV_PCT(90), 25);
                     lv_textarea_set_accepted_chars(obj, "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+=/");
                     lv_textarea_set_max_length(obj, 44);
                     lv_textarea_set_placeholder_text(obj, "AQ==");
@@ -4516,7 +4554,7 @@ void create_screen_main_screen() {
                     // SettingsModifyChannelKeyGenerateButton
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.settings_modify_channel_key_generate_button = obj;
-                    lv_obj_set_pos(obj, 224, 48); // was 54
+                    lv_obj_set_pos(obj, 224, 54);
                     lv_obj_set_size(obj, 25, 24);
                     lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4528,7 +4566,13 @@ void create_screen_main_screen() {
                     // KeyboardButton_4
                     lv_obj_t *obj = lv_btn_create(parent_obj);
                     objects.keyboard_button_4 = obj;
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_pos(obj, 224, 80);
+                    lv_obj_set_size(obj, 25, 24);
+                    lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // SettingsModifyTrashButton
@@ -4870,8 +4914,8 @@ void create_screen_main_screen() {
                                             // NodesFilterNameArea
                                             lv_obj_t *obj = lv_textarea_create(parent_obj);
                                             objects.nodes_filter_name_area = obj;
-                                            lv_obj_set_pos(obj, -8, -2); // was 40
-                                            lv_obj_set_size(obj, LV_PCT(70), 24); // was 60
+                                            lv_obj_set_pos(obj, -40, -2);
+                                            lv_obj_set_size(obj, LV_PCT(60), 24);
                                             lv_textarea_set_max_length(obj, 15);
                                             lv_textarea_set_placeholder_text(obj, "!Enter Filter ...");
                                             lv_textarea_set_one_line(obj, true);
@@ -4891,7 +4935,15 @@ void create_screen_main_screen() {
                                             // KeyboardButton_5
                                             lv_obj_t *obj = lv_btn_create(parent_obj);
                                             objects.keyboard_button_5 = obj;
-                                            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                                            lv_obj_set_pos(obj, -10, -2);
+                                            lv_obj_set_size(obj, 25, 24);
+                                            lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_shadow_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_shadow_ofs_y(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                                         }
                                     }
                                 }
@@ -5054,8 +5106,8 @@ void create_screen_main_screen() {
                                             // NodesHLNameArea
                                             lv_obj_t *obj = lv_textarea_create(parent_obj);
                                             objects.nodes_hl_name_area = obj;
-                                            lv_obj_set_pos(obj, -8, -2);
-                                            lv_obj_set_size(obj, LV_PCT(70), 24);
+                                            lv_obj_set_pos(obj, -40, -2);
+                                            lv_obj_set_size(obj, LV_PCT(60), 24);
                                             lv_textarea_set_max_length(obj, 15);
                                             lv_textarea_set_placeholder_text(obj, "Enter Filter ...");
                                             lv_textarea_set_one_line(obj, true);
@@ -5075,7 +5127,15 @@ void create_screen_main_screen() {
                                             // KeyboardButton_6
                                             lv_obj_t *obj = lv_btn_create(parent_obj);
                                             objects.keyboard_button_6 = obj;
-                                            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                                            lv_obj_set_pos(obj, -10, -2);
+                                            lv_obj_set_size(obj, 25, 24);
+                                            lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_shadow_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            lv_obj_set_style_shadow_ofs_y(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                                         }
                                     }
                                 }
@@ -6155,7 +6215,13 @@ void create_screen_main_screen() {
                             // KeyboardButton_10
                             lv_obj_t *obj = lv_btn_create(parent_obj);
                             objects.keyboard_button_10 = obj;
-                            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                            lv_obj_set_pos(obj, 200, 72);
+                            lv_obj_set_size(obj, 25, 24);
+                            lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                         {
                             lv_obj_t *obj = lv_label_create(parent_obj);
@@ -6171,7 +6237,7 @@ void create_screen_main_screen() {
                             lv_obj_t *obj = lv_textarea_create(parent_obj);
                             objects.setup_user_long_textarea = obj;
                             lv_obj_set_pos(obj, 0, 119);
-                            lv_obj_set_size(obj, LV_PCT(96), 25);
+                            lv_obj_set_size(obj, LV_PCT(88), 25);
                             lv_textarea_set_max_length(obj, 39);
                             lv_textarea_set_one_line(obj, true);
                             lv_textarea_set_password_mode(obj, false);
@@ -6185,7 +6251,13 @@ void create_screen_main_screen() {
                             // KeyboardButton_11
                             lv_obj_t *obj = lv_btn_create(parent_obj);
                             objects.keyboard_button_11 = obj;
-                            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                            lv_obj_set_pos(obj, 200, 121);
+                            lv_obj_set_size(obj, 25, 24);
+                            lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0xff373737), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                         {
                             lv_obj_t *obj = lv_obj_create(parent_obj);
@@ -6243,7 +6315,7 @@ void create_screen_main_screen() {
             // Keyboard
             lv_obj_t *obj = lv_keyboard_create(parent_obj);
             objects.keyboard = obj;
-            /*lv_obj_set_pos(obj, 1, 28);
+            lv_obj_set_pos(obj, 1, 28);
             lv_obj_set_size(obj, LV_PCT(100), LV_PCT(50));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
@@ -6252,8 +6324,7 @@ void create_screen_main_screen() {
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xffccd1d8), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_max_height(obj, 300, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_max_width(obj, 600, LV_PART_MAIN | LV_STATE_DEFAULT);*/
-            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_max_width(obj, 600, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     }
     

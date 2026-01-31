@@ -21,6 +21,7 @@ extern const lv_img_dsc_t img_home_wlan_button_image;
 extern const lv_img_dsc_t img_home_bluetooth_on_button_image;
 extern const lv_img_dsc_t img_home_memory_button;
 extern const lv_img_dsc_t img_node_client_image;
+extern const lv_img_dsc_t img_keyboard_image;
 extern const lv_img_dsc_t img_top_nodes_image;
 extern const lv_img_dsc_t img_top_group_image;
 extern const lv_img_dsc_t img_top_chats_image;
@@ -105,7 +106,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[89];
+extern const ext_img_desc_t images[90];
 
 
 #ifdef __cplusplus
