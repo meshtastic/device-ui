@@ -12,9 +12,11 @@
 
 #define lv_font_montserrat_12 ui_font_montserrat_12
 #define lv_font_montserrat_16 ui_font_montserrat_16
+#define lv_font_montserrat_24 ui_font_montserrat_24
 
 LV_FONT_DECLARE(ui_font_montserrat_12)
 LV_FONT_DECLARE(ui_font_montserrat_16)
+LV_FONT_DECLARE(ui_font_montserrat_24)
 
 #include <string.h>
 
