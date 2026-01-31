@@ -137,7 +137,7 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
-      processingFilter(false), nodesScrollDisplayLimit(15), packetLogEnabled(false), detectorRunning(false), cardDetected(false),
+      processingFilter(false), nodesScrollDisplayLimit(50), packetLogEnabled(false), detectorRunning(false), cardDetected(false),
       formatSD(false), packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
       topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
       db{}
@@ -729,8 +729,8 @@ void TFTView_320x240::ui_events_init(void)
     // node and channel buttons
     lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
 
-    // nodes panel - infinite scroll support
-    lv_obj_add_event_cb(objects.nodes_panel, this->ui_event_nodesPanelScroll, LV_EVENT_SCROLL, NULL);
+    // nodes panel - infinite scroll support (progressive loading when scrolling near bottom)
+    lv_obj_add_event_cb(objects.nodes_panel, TFTView_320x240::ui_event_nodesPanelScroll, LV_EVENT_SCROLL, this);
 
     // 8 channel buttons
     lv_obj_add_event_cb(objects.channel_button0, ui_event_ChannelButton, LV_EVENT_ALL, (void *)0);
@@ -1030,6 +1030,26 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
         if (!nodeNum) // event-handler for own node has value 0 in user_data
             nodeNum = THIS->ownNode;
         lv_obj_t *panel = THIS->nodes[nodeNum];
+
+        // Check if click was in the image area (left ~40px) to open chat
+        lv_indev_t *indev = lv_indev_active();
+        if (indev && nodeNum != THIS->ownNode) {
+            lv_point_t point;
+            lv_indev_get_point(indev, &point);
+            lv_area_t coords;
+            lv_obj_get_coords(panel, &coords); // coords are already in screen space
+            lv_coord_t local_x = point.x - coords.x1;
+
+            // If click is in the left 40px (image area), open chat instead of expand
+            if (local_x < 40) {
+                bool isMessagable = !((unsigned long)(panel->LV_OBJ_IDX(node_img_idx)->user_data) == eRole::unmessagable);
+                if (isMessagable) {
+                    THIS->showMessages(nodeNum);
+                    return;
+                }
+            }
+        }
+
         if (currentPanel) {
             // create animation to shrink other panel
             animRunning = true;
@@ -1074,13 +1094,8 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
             THIS->chooseNodeTraceRoute = false;
             ui_event_trace_route(NULL);
         }
-    } else if (event_code == LV_EVENT_LONG_PRESSED) {
-        //  set color and text of clicked node
-        uint32_t nodeNum = (unsigned long)e->user_data;
-        bool isMessagable = !((unsigned long)(THIS->nodes[nodeNum]->LV_OBJ_IDX(node_img_idx)->user_data) == eRole::unmessagable);
-        if (nodeNum != THIS->ownNode && isMessagable)
-            THIS->showMessages(nodeNum);
     }
+    // Note: Long press to chat removed - now use image click instead
 }
 
 void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
@@ -1216,6 +1231,25 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
             ignoreClicked = false;
             return;
         }
+
+        // Ignore click if this interaction was actually a scroll gesture
+        lv_indev_t *indev = lv_indev_active();
+        if (indev && lv_indev_get_scroll_obj(indev)) {
+            return; // treat as scroll, not click
+        }
+
+        // Only treat as a click when the touch is inside the label bounds (avoid blank gutter clicks)
+        lv_obj_t *label = target->LV_OBJ_IDX(0); // chats_button_label
+        if (indev && label) {
+            lv_point_t pt;
+            lv_indev_get_point(indev, &pt);
+            lv_area_t la;
+            lv_obj_get_coords(label, &la); // screen coords of label
+            if (!(pt.x >= la.x1 && pt.x <= la.x2 && pt.y >= la.y1 && pt.y <= la.y2)) {
+                return; // touched outside label area, ignore
+            }
+        }
+
         lv_obj_set_style_border_color(target, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
 
         uint32_t channelOrNode = (unsigned long)e->user_data;
@@ -2395,101 +2429,50 @@ void TFTView_320x240::ui_event_nodesPanelScroll(lv_event_t *e)
         return;
 
     lv_event_code_t event_code = lv_event_get_code(e);
-
-    // Only do expensive updates on scroll END, not during continuous scroll
-    if (event_code == LV_EVENT_SCROLL_END) {
-        // Load more nodes if near bottom
-        lv_obj_t *panel = (lv_obj_t *)lv_event_get_target(e);
-        const lv_coord_t LOAD_DISTANCE = 400;
-
-        if (lv_obj_get_scroll_bottom(panel) < LOAD_DISTANCE && self->nodesScrollDisplayLimit < MAX_NUM_NODES_VIEW &&
-            !self->nodesScrollLoadingMore) {
-            self->nodesScrollLoadingMore = true;
-
-            uint16_t new_limit = self->nodesScrollDisplayLimit + 10;
-            if (new_limit > MAX_NUM_NODES_VIEW) {
-                new_limit = MAX_NUM_NODES_VIEW;
-            }
-
-            self->nodesScrollDisplayLimit = new_limit;
-            lv_obj_update_layout(panel);
-
-            ILOG_DEBUG("Loaded nodes batch, now displaying %d nodes", self->nodesScrollDisplayLimit);
-
-            self->nodesScrollLoadingMore = false;
-        }
-
+    if (event_code != LV_EVENT_SCROLL)
         return;
-    }
 
-    // During continuous scroll: only hide/show visible nodes (no text/style updates)
-    if (event_code != LV_EVENT_SCROLL) {
-        return;
-    }
+    lv_obj_t *panel = lv_event_get_target_obj(e);
 
-    lv_obj_t *panel = (lv_obj_t *)lv_event_get_target(e);
-
-    // Prevent re-entry during hide/show updates
+    // Re-entry guard
     static bool scroll_running = false;
     if (scroll_running)
         return;
     scroll_running = true;
 
-    // Hide nodes with 0-node buffer strategy - SINGLE PASS
-    lv_coord_t scroll_y = lv_obj_get_scroll_y(panel);
-    lv_coord_t panel_h = lv_obj_get_height(panel);
+    const lv_coord_t LOAD_DISTANCE = 300;
 
-    // Find first visible node AND hide/show in single loop
-    int node_idx = 0;
+    // Load more nodes when approaching bottom
+    if (lv_obj_get_scroll_bottom(panel) < LOAD_DISTANCE && self->nodesScrollDisplayLimit < MAX_NUM_NODES_VIEW &&
+        !self->nodesScrollLoadingMore) {
 
-    for (auto &node_pair : self->nodes) {
-        lv_obj_t *node_obj = node_pair.second;
-        if (!node_obj)
-            continue;
+        self->nodesScrollLoadingMore = true;
 
-        // Only process up to display limit for performance
-        if (node_idx >= self->nodesScrollDisplayLimit)
-            break;
-
-        lv_coord_t node_y = lv_obj_get_y(node_obj);
-        lv_coord_t node_h = lv_obj_get_height(node_obj);
-
-        // Check if node is within viewport
-        bool is_visible = (node_y + node_h >= scroll_y && node_y <= scroll_y + panel_h);
-
-        if (is_visible) {
-            // Show this node
-            if (lv_obj_has_flag(node_obj, LV_OBJ_FLAG_HIDDEN)) {
-                lv_obj_clear_flag(node_obj, LV_OBJ_FLAG_HIDDEN);
-            }
-        } else {
-            // Hide this node
-            if (!lv_obj_has_flag(node_obj, LV_OBJ_FLAG_HIDDEN)) {
-                lv_obj_add_flag(node_obj, LV_OBJ_FLAG_HIDDEN);
-            }
+        uint16_t new_limit = self->nodesScrollDisplayLimit + 15;
+        if (new_limit > MAX_NUM_NODES_VIEW) {
+            new_limit = MAX_NUM_NODES_VIEW;
         }
 
-        node_idx++;
-    }
+        self->nodesScrollDisplayLimit = new_limit;
+        self->updateNodesFiltered(false);
 
-    // Hide all nodes beyond display limit
-    for (auto &node_pair : self->nodes) {
-        lv_obj_t *node_obj = node_pair.second;
-        if (!node_obj)
-            continue;
+        ILOG_DEBUG("Loaded nodes batch, now displaying %d nodes", self->nodesScrollDisplayLimit);
 
-        if (node_idx >= MAX_NUM_NODES_VIEW)
-            break;
-
-        if (node_idx >= self->nodesScrollDisplayLimit) {
-            if (!lv_obj_has_flag(node_obj, LV_OBJ_FLAG_HIDDEN)) {
-                lv_obj_add_flag(node_obj, LV_OBJ_FLAG_HIDDEN);
-            }
-        }
-        node_idx++;
+        self->nodesScrollLoadingMore = false;
     }
 
     scroll_running = false;
+}
+
+/**
+ * @brief Scroll event handler for message containers
+ *        Progressive loading could be added here if needed for very long message lists
+ */
+void TFTView_320x240::ui_event_messageContainerScroll(lv_event_t *e)
+{
+    // Currently no special handling needed - LVGL handles scrolling efficiently
+    // This handler is kept as a placeholder for future optimizations if needed
+    (void)e;
 }
 
 void TFTView_320x240::ui_screen_event_cb(lv_event_t *e)
@@ -6564,12 +6547,14 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
     add_style_new_message_style(msgLabel);
+    lv_obj_add_flag(msgLabel, LV_OBJ_FLAG_CLICKABLE); // enable tap on bubble
+    // Only the label (bubble) is clickable to open sender node; taps in gutter are ignored
+    lv_obj_add_event_cb(msgLabel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 
     if (state == MeshtasticView::eRunning) {
         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
         lv_obj_move_foreground(objects.message_input_area);
     }
-    lv_obj_add_event_cb(hiddenPanel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 }
 
 /**
