@@ -6,10 +6,6 @@
 
   <h1 align="center"> Meshtastic device-ui library</h1>
   <p style="font-size:20px;" align="center">A versatile UI library for the <a href="https://meshtastic.org">meshtastic® project</a> </p>
-  <p style="font-size:20px;" align="center">This is meant to be a faster and more cut down version</p>
-  <p style="font-size:20px;" align="center">ONLY FOR T-DECK & T-DECK PLUS</p>
-  <p style="font-size:20px;" align="center">This has be edited somewhat by me @limitlezz</p>
-  <p style="font-size:20px;" align="center">Real Credit goes to the Meshtastic UI Devs</p>
 </div>
 
 <!--Project specific badges here-->
