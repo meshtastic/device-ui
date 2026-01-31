@@ -730,7 +730,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
 
     // nodes panel - infinite scroll support
-    lv_obj_add_event_cb(objects.nodes_panel, TFTView_320x240::ui_event_nodesPanelScroll, LV_EVENT_SCROLL, this);
+    lv_obj_add_event_cb(objects.nodes_panel, this->ui_event_nodesPanelScroll, LV_EVENT_SCROLL, NULL);
 
     // 8 channel buttons
     lv_obj_add_event_cb(objects.channel_button0, ui_event_ChannelButton, LV_EVENT_ALL, (void *)0);
@@ -2395,38 +2395,39 @@ void TFTView_320x240::ui_event_nodesPanelScroll(lv_event_t *e)
         return;
 
     lv_event_code_t event_code = lv_event_get_code(e);
-    lv_obj_t *panel = (lv_obj_t *)lv_event_get_target(e);
 
-    // Only load more nodes when scroll ends (not during continuous scroll)
+    // Only do expensive updates on scroll END, not during continuous scroll
     if (event_code == LV_EVENT_SCROLL_END) {
+        // Load more nodes if near bottom
+        lv_obj_t *panel = (lv_obj_t *)lv_event_get_target(e);
         const lv_coord_t LOAD_DISTANCE = 400;
 
-        // Load more nodes when near bottom
-        if (lv_obj_get_scroll_bottom(panel) < LOAD_DISTANCE && self->nodesScrollDisplayLimit < MAX_NUM_NODES_VIEW) {
-            if (!self->nodesScrollLoadingMore) {
-                self->nodesScrollLoadingMore = true;
+        if (lv_obj_get_scroll_bottom(panel) < LOAD_DISTANCE && self->nodesScrollDisplayLimit < MAX_NUM_NODES_VIEW &&
+            !self->nodesScrollLoadingMore) {
+            self->nodesScrollLoadingMore = true;
 
-                uint16_t new_limit = self->nodesScrollDisplayLimit + 10;
-                if (new_limit > MAX_NUM_NODES_VIEW) {
-                    new_limit = MAX_NUM_NODES_VIEW;
-                }
-
-                self->nodesScrollDisplayLimit = new_limit;
-                self->updateNodesFiltered(false);
-                lv_obj_update_layout(panel);
-
-                ILOG_DEBUG("Loaded nodes batch, now displaying %d nodes", self->nodesScrollDisplayLimit);
-
-                self->nodesScrollLoadingMore = false;
+            uint16_t new_limit = self->nodesScrollDisplayLimit + 10;
+            if (new_limit > MAX_NUM_NODES_VIEW) {
+                new_limit = MAX_NUM_NODES_VIEW;
             }
+
+            self->nodesScrollDisplayLimit = new_limit;
+            lv_obj_update_layout(panel);
+
+            ILOG_DEBUG("Loaded nodes batch, now displaying %d nodes", self->nodesScrollDisplayLimit);
+
+            self->nodesScrollLoadingMore = false;
         }
+
         return;
     }
 
-    // During continuous scroll: only hide/show visible nodes (cheap operation)
+    // During continuous scroll: only hide/show visible nodes (no text/style updates)
     if (event_code != LV_EVENT_SCROLL) {
         return;
     }
+
+    lv_obj_t *panel = (lv_obj_t *)lv_event_get_target(e);
 
     // Prevent re-entry during hide/show updates
     static bool scroll_running = false;
@@ -2434,15 +2435,11 @@ void TFTView_320x240::ui_event_nodesPanelScroll(lv_event_t *e)
         return;
     scroll_running = true;
 
-    const int NODE_BUFFER = 3; // Keep 3 nodes visible on each side of viewport
-
-    // Hide nodes with 3-node buffer strategy
+    // Hide nodes with 0-node buffer strategy - SINGLE PASS
     lv_coord_t scroll_y = lv_obj_get_scroll_y(panel);
     lv_coord_t panel_h = lv_obj_get_height(panel);
 
-    // Find first and last visible nodes
-    int first_visible_idx = -1;
-    int last_visible_idx = -1;
+    // Find first visible node AND hide/show in single loop
     int node_idx = 0;
 
     for (auto &node_pair : self->nodes) {
@@ -2458,36 +2455,9 @@ void TFTView_320x240::ui_event_nodesPanelScroll(lv_event_t *e)
         lv_coord_t node_h = lv_obj_get_height(node_obj);
 
         // Check if node is within viewport
-        if (node_y + node_h >= scroll_y && node_y <= scroll_y + panel_h) {
-            if (first_visible_idx == -1) {
-                first_visible_idx = node_idx;
-            }
-            last_visible_idx = node_idx;
-        }
+        bool is_visible = (node_y + node_h >= scroll_y && node_y <= scroll_y + panel_h);
 
-        node_idx++;
-    }
-
-    // Calculate buffer range: 3 nodes before first visible, 3 nodes after last visible
-    // If no visible nodes, show buffer around top
-    int buffer_start = 0;
-    int buffer_end = self->nodesScrollDisplayLimit - 1;
-
-    if (first_visible_idx != -1) {
-        buffer_start = (first_visible_idx > NODE_BUFFER) ? (first_visible_idx - NODE_BUFFER) : 0;
-        buffer_end = last_visible_idx + NODE_BUFFER;
-    }
-
-    // Now hide/show based on buffer range
-    node_idx = 0;
-    for (auto &node_pair : self->nodes) {
-        lv_obj_t *node_obj = node_pair.second;
-        if (!node_obj)
-            continue;
-
-        bool in_buffer = (node_idx < self->nodesScrollDisplayLimit) && (node_idx >= buffer_start && node_idx <= buffer_end);
-
-        if (in_buffer) {
+        if (is_visible) {
             // Show this node
             if (lv_obj_has_flag(node_obj, LV_OBJ_FLAG_HIDDEN)) {
                 lv_obj_clear_flag(node_obj, LV_OBJ_FLAG_HIDDEN);
@@ -2500,9 +2470,23 @@ void TFTView_320x240::ui_event_nodesPanelScroll(lv_event_t *e)
         }
 
         node_idx++;
+    }
+
+    // Hide all nodes beyond display limit
+    for (auto &node_pair : self->nodes) {
+        lv_obj_t *node_obj = node_pair.second;
+        if (!node_obj)
+            continue;
 
         if (node_idx >= MAX_NUM_NODES_VIEW)
             break;
+
+        if (node_idx >= self->nodesScrollDisplayLimit) {
+            if (!lv_obj_has_flag(node_obj, LV_OBJ_FLAG_HIDDEN)) {
+                lv_obj_add_flag(node_obj, LV_OBJ_FLAG_HIDDEN);
+            }
+        }
+        node_idx++;
     }
 
     scroll_running = false;
