@@ -95,84 +95,84 @@ enum ThemeColor {
 
 uint32_t themeColor[][2] = {
     // dark,       light
-    {0xff020712, 0xfff4f4f4}, // eMainScreenStyle
-    {0xff0f1423, 0xff67ea94}, // eTopPanelBg 0d0f1b
+    {0xff303030, 0xfff4f4f4}, // eMainScreenStyle
+    {0xff436C70, 0xff67ea94}, // eTopPanelBg
     {0xffE0E0E0, 0xff212121}, // eTopPanelText
-    {0xff0f1423, 0xff67ea94}, // eTopImageBg
+    {0xff436C70, 0xff67ea94}, // eTopImageBg
     {0xffffffff, 0xff212121}, // eTopImageRecolor
     {255, 255},               // eTopImageRecolorOpa
     {0xffffffff, 0xff212121}, // ePositiveImageRecolor,
-    {0xff020712, 0xfff4f4f0}, // ePanelBg
-    {0xff020712, 0xfffafafa}, // ePanelPressedBg
+    {0xff303030, 0xfff4f4f0}, // ePanelBg
+    {0xff303030, 0xfffafafa}, // ePanelPressedBg
     {0xfff0f0f0, 0xff212121}, // ePanelText
-    {0xff020712, 0xff67ea94}, // ePanelBorder
-    {0xff141723, 0xffffffff}, // eNodePanelBg BG of the whole pannel
-    {0xff141723, 0xff979797}, // eNodePanelBorder
+    {0xff67ea94, 0xff67ea94}, // ePanelBorder
+    {0xff404040, 0xffffffff}, // eNodePanelBg
+    {0xff808080, 0xff979797}, // eNodePanelBorder
     {0xfff0f0f0, 0xff212121}, // eNodePanelText
-    {0xff141723, 0xffffffff}, // eNodeButtonBg
+    {0xff404040, 0xffffffff}, // eNodeButtonBg
     {0, 0},                   // eNodeButtonBgOpa
-    {0xff0a0f1c, 0xffffffff}, // eButtonPanelBg
-    {0xff0a0f1c, 0xffeaeae0}, // eMainButtonBg
+    {0xff585858, 0xffffffff}, // eButtonPanelBg
+    {0xff585858, 0xffeaeae0}, // eMainButtonBg
     {0xffaafbff, 0xff101010}, // eMainButtonText
     {0xff67ea94, 0xff67ea94}, // eMainButtonBorder
     {0xff9e9e9e, 0xffc0c0c0}, // eMainButtonShadow
     {0xff67ea94, 0xff757575}, // eMainButtonImageRecolor
     {0, 255},                 // eMainButtonImageRecolorOpa
-    {0xff020712, 0xfffafaf4}, // eHomeContainerBg
+    {0xff303030, 0xfffafaf4}, // eHomeContainerBg
     {0xff67EA94, 0xffaaaaaa}, // eHomeContainerBorder
     {0xff2B824A, 0xff999999}, // eHomeContainerShadow
     {0xffaafbff, 0xff294337}, // eHomeContainerText
-    {0xff020712, 0xffffffff}, // eHomeButtonBg
+    {0xff303030, 0xffffffff}, // eHomeButtonBg
     {0xffffffff, 0xff101010}, // eHomeButtonText
-    {0xff020712, 0xffd0d0d0}, // eHomeButtonBorder
+    {0xff303030, 0xffd0d0d0}, // eHomeButtonBorder
     {0xff606060, 0xff57a6b3}, // eHomeButtonImageRecolor
     {0, 255},                 // eHomeButtonImageRecolorOpa
-    {0xff141723, 0xfffafaf4}, // eChannelButtonBg //CHAT Button BG
-    {0xff141723, 0xffD0D0D0}, // eChannelButtonBorder
+    {0xff404040, 0xfffafaf4}, // eChannelButtonBg
+    {0xffA0A0A0, 0xffD0D0D0}, // eChannelButtonBorder
     {0xffffffff, 0xff101010}, // eChannelButtonText
-    {0xff020712, 0xfff0f0f0}, // eSettingsPanelBg
+    {0xff303030, 0xfff0f0f0}, // eSettingsPanelBg
     {0xffaafbff, 0xff003c9f}, // eSettingsPanelText
     {0, 0xff979797},          // eSettingsPanelBorder
     {0, 0xff7e7e7e},          // eSettingsPanelShadow
     {250, 250},               // eSettingsPanelBgOpa
-    {0xff141723, 0xffeaeae0}, // eSettingsButtonBg
+    {0xff505050, 0xffeaeae0}, // eSettingsButtonBg
     {0xffaafbff, 0xff294337}, // eSettingsButtonText
-    {0xff020712, 0xffd0d0d0}, // eSettingsButtonBorder
+    {0xff303030, 0xffd0d0d0}, // eSettingsButtonBorder
     {0, 0xff67ea94},          // eSettingsButtonImageRecolor
     {0, 255},                 // eSettingsButtonImageRecolorOpa
-    {0xff141723, 0xffffffff}, // eSettingsLabelBg
-    {0xff141723, 0xff808080}, // eSettingsLabelBorder
-    {0xff020712, 0xfff4f4f4}, // eTabViewBg // Tabview background
-    {0xffaafbff, 0xff003c9f}, // eTabViewText // Tabview text color
-    {0xff020712, 0xffe0e0e0}, // eTabButtonDefaultBg //Tab buttons in tabview like filters and settings
-    {0xff020712, 0xffffffff}, // eTabButtonActiveBg //Tab buttons in tabview like filters and settings
-    {0xff67ea94, 0xffaafbff}, // eTabButtonPressedBg //Tab buttons in tabview like filters and settings
-    {0xffA0A0A0, 0xff606060}, // eTabButtonDefaultText //Tab buttons in tabview like filters and settings
-    {0xffffffff, 0xff101010}, // eTabButtonActiveText //Tab buttons in tabview like filters and settings
-    {0xffffffff, 0xffffffff}, // eTabButtonPressedText //Tab buttons in tabview like filters and settings
-    {0xff505050, 0xffb0b0b0}, // eTabButtonDefaultBorder //Tab buttons in tabview like filters and settings
-    {0xff141723, 0xfffbfce9}, // eChatMessageBg // Maybe in chats page each chat BG?? Rn Testing
+    {0xff404040, 0xffffffff}, // eSettingsLabelBg
+    {0xff404040, 0xff808080}, // eSettingsLabelBorder
+    {0xff303030, 0xfff4f4f4}, // eTabViewBg
+    {0xffaafbff, 0xff003c9f}, // eTabViewText
+    {0xff303030, 0xffe0e0e0}, // eTabButtonDefaultBg
+    {0xff303030, 0xffffffff}, // eTabButtonActiveBg
+    {0xff67ea94, 0xffaafbff}, // eTabButtonPressedBg
+    {0xffA0A0A0, 0xff606060}, // eTabButtonDefaultText
+    {0xffffffff, 0xff101010}, // eTabButtonActiveText
+    {0xffffffff, 0xffffffff}, // eTabButtonPressedText
+    {0xff505050, 0xffb0b0b0}, // eTabButtonDefaultBorder
+    {0xff303030, 0xfffbfce9}, // eChatMessageBg
     {255, 255},               // eChatMessageBgOpa
     {0xffffffff, 0xff294337}, // eChatMessageText
-    {0xff141723, 0xff888888}, // eChatMessageBorder // Maybe in chats page each chat border?? Rn Testing
-    {0xff141723, 0xffffffff}, // eNewMessageBg // Every individual chat new message BG
+    {0xff707070, 0xff888888}, // eChatMessageBorder
+    {0xff404040, 0xffffffff}, // eNewMessageBg
     {255, 255},               // eNewMessageBgOpa
     {0xffd0d0d0, 0xff294337}, // eNewMessageText
-    {0xff141723, 0xff888888}, // eNewMessageBorder // Every individual chat new message border
-    {0xff020712, 0xfffbfbfb}, // eAlertPanelBg
-    {0xff020712, 0xfff4f4f4}, // eBtnMatrixBorderMain // Lock Screen
-    {0xff67ea94, 0xff67ea94}, // eBtnMatrixBorderItems //Lock Screen
-    {0xff606060, 0xfffffff8}, // eBtnMatrixBgItems // Lock Screen
-    {0xffaafbff, 0xff212121}, // eBtnMatrixTextItems // Lock Screen
-    {0xff5ded96, 0xff212121}, // eBatteryPercentageText // changed
+    {0xff808080, 0xff888888}, // eNewMessageBorder
+    {0xff303030, 0xfffbfbfb}, // eAlertPanelBg
+    {0xff303030, 0xfff4f4f4}, // eBtnMatrixBorderMain
+    {0xff67ea94, 0xff67ea94}, // eBtnMatrixBorderItems
+    {0xff606060, 0xfffffff8}, // eBtnMatrixBgItems
+    {0xffaafbff, 0xff212121}, // eBtnMatrixTextItems
+    {0xffaafbff, 0xff212121}, // eBatteryPercentageText
     {0xffaafbff, 0xff003c9f}, // eColorTextLabel
-    {0xff404040, 0xffe0e0e0}, // eSpinnerMainArc // Arc at boot screen
-    {0xff67ea94, 0xff67ea94}, // eSpinnerIndicatorArc // Arc in things like scanner
+    {0xff404040, 0xffe0e0e0}, // eSpinnerMainArc
+    {0xff67ea94, 0xff67ea94}, // eSpinnerIndicatorArc
     {0xffaafbff, 0xff212121}, // eTableHeadingText,
-    {0xff020712, 0xfff4f4f0}, // eTableHeadingBg
+    {0xff303030, 0xfff4f4f0}, // eTableHeadingBg
     {0xffaafbff, 0xff212121}, // eTableItemText,
-    {0xff141723, 0xfff4f4f0}, // eTableItemBg
-    {0xff020712, 0xffd4d4d0}, // eTableItemDarkBg was 020712 testing rn
+    {0xff505050, 0xfff4f4f0}, // eTableItemBg
+    {0xff303030, 0xffd4d4d0}, // eTableItemDarkBg
     {0xff404040, 0xffe0e0e0}, // eTableBorder
     {0xff404040, 0xffe0e0e0}  // eTableCellBorder
 };
