@@ -10,6 +10,12 @@
 
 #include "lv_i18n.h"
 
+#define lv_font_montserrat_12 ui_font_montserrat_12
+#define lv_font_montserrat_16 ui_font_montserrat_16
+
+LV_FONT_DECLARE(ui_font_montserrat_12)
+LV_FONT_DECLARE(ui_font_montserrat_16)
+
 #include <string.h>
 
 objects_t objects;
@@ -23,8 +29,7 @@ void create_screen_menu() {
     lv_obj_set_size(obj, 480, 222);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
-    add_style_page_style(obj);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
+    add_style_screen_style(obj);
     lv_obj_set_style_text_color(obj, lv_color_hex(0xffa6f0ff), LV_PART_MAIN | LV_STATE_DEFAULT);
     {
         lv_obj_t *parent_obj = obj;
@@ -35,6 +40,7 @@ void create_screen_menu() {
             lv_obj_set_pos(obj, 0, LV_PCT(20));
             lv_obj_set_size(obj, LV_PCT(100), LV_PCT(80));
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
+            add_style_page_style(obj);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
@@ -48,7 +54,6 @@ void create_screen_menu() {
             lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_flex_grow(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_color(obj, lv_color_hex(0xff707070), LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_color(obj, lv_color_hex(0xff282b30), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_top(obj, 24, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
@@ -363,7 +368,7 @@ void create_screen_home() {
     objects.home = obj;
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 480, 222);
-    add_style_page_style(obj);
+    add_style_screen_style(obj);
     {
         lv_obj_t *parent_obj = obj;
         {
@@ -416,6 +421,7 @@ void create_screen_home() {
             lv_obj_set_size(obj, LV_PCT(100), LV_PCT(90));
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
+            add_style_page_style(obj);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -781,7 +787,7 @@ void create_screen_nodes() {
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 480, 222);
     lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
-    add_style_page_style(obj);
+    add_style_screen_style(obj);
     {
         lv_obj_t *parent_obj = obj;
         {
@@ -903,7 +909,7 @@ void create_screen_groups() {
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 480, 222);
     lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
-    add_style_page_style(obj);
+    add_style_screen_style(obj);
     {
         lv_obj_t *parent_obj = obj;
         {
@@ -1277,6 +1283,7 @@ void create_screen_chats() {
     objects.chats = obj;
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 480, 222);
+    add_style_screen_style(obj);
     {
         lv_obj_t *parent_obj = obj;
         {
@@ -1362,6 +1369,7 @@ void create_screen_map() {
     objects.map = obj;
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 480, 222);
+    add_style_screen_style(obj);
     {
         lv_obj_t *parent_obj = obj;
         {
