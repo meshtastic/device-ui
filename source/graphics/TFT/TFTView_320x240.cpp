@@ -74,7 +74,7 @@ constexpr lv_color_t colorRed = LV_COLOR_HEX(0xff5555);
 constexpr lv_color_t colorDarkRed = LV_COLOR_HEX(0xa70a0a);
 constexpr lv_color_t colorOrange = LV_COLOR_HEX(0xff8c04);
 constexpr lv_color_t colorYellow = LV_COLOR_HEX(0xdbd251);
-constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x5ded96);
+constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x05f6cb);
 constexpr lv_color_t colorBlue = LV_COLOR_HEX(0x436C70);
 constexpr lv_color_t colorGray = LV_COLOR_HEX(0x757575);
 constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xAAFBFF);
@@ -137,8 +137,8 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
-      processingFilter(false), packetLogEnabled(false), detectorRunning(false), cardDetected(false), formatSD(false),
-      packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
+      processingFilter(false), nodesScrollDisplayLimit(15), packetLogEnabled(false), detectorRunning(false), cardDetected(false),
+      formatSD(false), packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
       topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
       db{}
 {
@@ -728,6 +728,9 @@ void TFTView_320x240::ui_events_init(void)
 
     // node and channel buttons
     lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
+
+    // nodes panel - infinite scroll support
+    lv_obj_add_event_cb(objects.nodes_panel, TFTView_320x240::ui_event_nodesPanelScroll, LV_EVENT_SCROLL, this);
 
     // 8 channel buttons
     lv_obj_add_event_cb(objects.channel_button0, ui_event_ChannelButton, LV_EVENT_ALL, (void *)0);
@@ -2377,6 +2380,132 @@ void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
         }
         THIS->map->setScrolledPosition(lat * 1e-7, lon * 1e-7);
     }
+}
+
+/**
+ * @brief Hard object culling for nodes panel
+ * Actually DELETE nodes outside viewport buffer, recreate when scrolling back
+ * Dramatically reduces LVGL object count and layout cost
+ * Trade-off: slight delay when recreating nodes (but faster overall)
+ */
+void TFTView_320x240::ui_event_nodesPanelScroll(lv_event_t *e)
+{
+    auto *self = static_cast<TFTView_320x240 *>(lv_event_get_user_data(e));
+    if (!self)
+        return;
+
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t *panel = (lv_obj_t *)lv_event_get_target(e);
+
+    // Only load more nodes when scroll ends (not during continuous scroll)
+    if (event_code == LV_EVENT_SCROLL_END) {
+        const lv_coord_t LOAD_DISTANCE = 400;
+
+        // Load more nodes when near bottom
+        if (lv_obj_get_scroll_bottom(panel) < LOAD_DISTANCE && self->nodesScrollDisplayLimit < MAX_NUM_NODES_VIEW) {
+            if (!self->nodesScrollLoadingMore) {
+                self->nodesScrollLoadingMore = true;
+
+                uint16_t new_limit = self->nodesScrollDisplayLimit + 10;
+                if (new_limit > MAX_NUM_NODES_VIEW) {
+                    new_limit = MAX_NUM_NODES_VIEW;
+                }
+
+                self->nodesScrollDisplayLimit = new_limit;
+                self->updateNodesFiltered(false);
+                lv_obj_update_layout(panel);
+
+                ILOG_DEBUG("Loaded nodes batch, now displaying %d nodes", self->nodesScrollDisplayLimit);
+
+                self->nodesScrollLoadingMore = false;
+            }
+        }
+        return;
+    }
+
+    // During continuous scroll: only hide/show visible nodes (cheap operation)
+    if (event_code != LV_EVENT_SCROLL) {
+        return;
+    }
+
+    // Prevent re-entry during hide/show updates
+    static bool scroll_running = false;
+    if (scroll_running)
+        return;
+    scroll_running = true;
+
+    const int NODE_BUFFER = 3; // Keep 3 nodes visible on each side of viewport
+
+    // Hide nodes with 3-node buffer strategy
+    lv_coord_t scroll_y = lv_obj_get_scroll_y(panel);
+    lv_coord_t panel_h = lv_obj_get_height(panel);
+
+    // Find first and last visible nodes
+    int first_visible_idx = -1;
+    int last_visible_idx = -1;
+    int node_idx = 0;
+
+    for (auto &node_pair : self->nodes) {
+        lv_obj_t *node_obj = node_pair.second;
+        if (!node_obj)
+            continue;
+
+        // Only process up to display limit for performance
+        if (node_idx >= self->nodesScrollDisplayLimit)
+            break;
+
+        lv_coord_t node_y = lv_obj_get_y(node_obj);
+        lv_coord_t node_h = lv_obj_get_height(node_obj);
+
+        // Check if node is within viewport
+        if (node_y + node_h >= scroll_y && node_y <= scroll_y + panel_h) {
+            if (first_visible_idx == -1) {
+                first_visible_idx = node_idx;
+            }
+            last_visible_idx = node_idx;
+        }
+
+        node_idx++;
+    }
+
+    // Calculate buffer range: 3 nodes before first visible, 3 nodes after last visible
+    // If no visible nodes, show buffer around top
+    int buffer_start = 0;
+    int buffer_end = self->nodesScrollDisplayLimit - 1;
+
+    if (first_visible_idx != -1) {
+        buffer_start = (first_visible_idx > NODE_BUFFER) ? (first_visible_idx - NODE_BUFFER) : 0;
+        buffer_end = last_visible_idx + NODE_BUFFER;
+    }
+
+    // Now hide/show based on buffer range
+    node_idx = 0;
+    for (auto &node_pair : self->nodes) {
+        lv_obj_t *node_obj = node_pair.second;
+        if (!node_obj)
+            continue;
+
+        bool in_buffer = (node_idx < self->nodesScrollDisplayLimit) && (node_idx >= buffer_start && node_idx <= buffer_end);
+
+        if (in_buffer) {
+            // Show this node
+            if (lv_obj_has_flag(node_obj, LV_OBJ_FLAG_HIDDEN)) {
+                lv_obj_clear_flag(node_obj, LV_OBJ_FLAG_HIDDEN);
+            }
+        } else {
+            // Hide this node
+            if (!lv_obj_has_flag(node_obj, LV_OBJ_FLAG_HIDDEN)) {
+                lv_obj_add_flag(node_obj, LV_OBJ_FLAG_HIDDEN);
+            }
+        }
+
+        node_idx++;
+
+        if (node_idx >= MAX_NUM_NODES_VIEW)
+            break;
+    }
+
+    scroll_running = false;
 }
 
 void TFTView_320x240::ui_screen_event_cb(lv_event_t *e)
@@ -4651,7 +4780,6 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_pos(ui_SignalLabel, 8, 1);
     lv_obj_set_align(ui_SignalLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_SignalLabel, "");
-    lv_obj_set_style_text_color(ui_SignalLabel, lv_color_hex(0xff5ded96), LV_PART_MAIN | LV_STATE_DEFAULT);
     ui_SignalLabel->user_data = (void *)-1; // TODO viaMqtt; // used for filtering (applyNodesFilter)
     // PositionLabel
     lv_obj_t *ui_PositionLabel = lv_label_create(p);
@@ -7038,19 +7166,27 @@ void TFTView_320x240::updateNodesStatus(void)
 void TFTView_320x240::updateNodesFiltered(bool reset)
 {
     static auto it = nodes.begin();
+    static uint16_t processedCount = 0; // Track how many nodes we've processed in current session
+
     if (reset || nodesChanged) {
         nodesFiltered = 0;
         nodesChanged = false;
         processingFilter = true;
         it = nodes.begin();
+        processedCount = 0;
     }
 
-    for (int i = 0; i < 10 && it != nodes.end(); i++) {
+    // Process nodes in batches of 10, but respect the display limit for infinite scroll
+    uint16_t batchSize = 10;
+    uint16_t processLimit = nodesScrollDisplayLimit; // Limit based on infinite scroll display count
+
+    for (int i = 0; i < batchSize && it != nodes.end() && processedCount < processLimit; i++) {
         applyNodesFilter(it->first, true);
         it++;
+        processedCount++;
     }
 
-    if (it == nodes.end()) {
+    if (it == nodes.end() || processedCount >= processLimit) {
         processingFilter = false;
     }
     updateNodesStatus();
