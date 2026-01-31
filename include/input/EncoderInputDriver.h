@@ -17,7 +17,15 @@ class EncoderInputDriver : public InputDriver
     static void intRightHandler(void);
 
   protected:
-    enum EncoderActionType { TB_ACTION_NONE, TB_ACTION_PRESSED, TB_ACTION_UP, TB_ACTION_DOWN, TB_ACTION_LEFT, TB_ACTION_RIGHT };
+    enum EncoderActionType {
+        TB_ACTION_NONE,
+        TB_ACTION_PRESSED,
+        TB_ACTION_UP,
+        TB_ACTION_DOWN,
+        TB_ACTION_LEFT,
+        TB_ACTION_RIGHT,
+        TB_ACTION_ESC
+    };
 
     static volatile EncoderActionType action;
 

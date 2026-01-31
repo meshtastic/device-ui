@@ -55,8 +55,10 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
     buttonDriver = new ButtonInputDriver;
 #endif
 #endif
-    if (!inputdriver)
+    if (!inputdriver) {
+        ILOG_DEBUG("Create default InputDriver instance");
         inputdriver = InputDriver::instance();
+    }
 }
 
 void DeviceGUI::init(IClientBase *client)
