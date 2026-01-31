@@ -379,6 +379,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_mapNodeButton(lv_event_t *e);
     static void ui_event_chatNodeButton(lv_event_t *e);
     static void ui_event_positionButton(lv_event_t *e);
+    static void ui_event_nodesPanelScroll(lv_event_t *e);
 
     // animations
     static void ui_anim_node_panel_cb(void *var, int32_t v);
@@ -399,6 +400,8 @@ class TFTView_320x240 : public MeshtasticView
     uint32_t nodesFiltered;                               // no. hidden nodes in node list
     bool nodesChanged;                                    // true if nodes changed (added or purged)
     bool processingFilter;                                // indicates that filtering is ongoing
+    uint16_t nodesScrollDisplayLimit;                     // current node display limit for infinite scroll
+    bool nodesScrollLoadingMore;                          // prevent loading multiple batches simultaneously
     bool packetLogEnabled;                                // display received packets
     bool detectorRunning;                                 // meshDetector is active
     bool cardDetected;                                    // SD has been detected
