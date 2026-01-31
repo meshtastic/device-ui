@@ -2724,7 +2724,7 @@ void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
 {
     if (currentPanel) {
         THIS->setNodeImage(currentNode, (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data,
-                           false, objects.signal_scanner_node_image);
+                           false, false, objects.signal_scanner_node_image);
         const char *lbs = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbs_idx));
         lv_label_set_text(objects.signal_scanner_node_button_label, lbs);
         lv_obj_clear_state(objects.signal_scanner_start_button, LV_STATE_DISABLED);
@@ -2826,7 +2826,7 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
 
     if (currentPanel) {
         THIS->setNodeImage(THIS->currentNode,
-                           (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
+                           (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false, false,
                            objects.trace_route_to_image);
         const char *lbl = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbl_idx));
         lv_label_set_text(objects.trace_route_to_button_label, lbl);
@@ -2948,7 +2948,7 @@ void TFTView_320x240::packetDetected(const meshtastic_MeshPacket &p)
             lv_obj_add_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
 
             setNodeImage(p.from, (MeshtasticView::eRole)(unsigned long)nodes[p.from]->LV_OBJ_IDX(node_img_idx)->user_data, false,
-                         objects.detector_contact_image);
+                         false, objects.detector_contact_image);
             const char *lbl = lv_label_get_text(nodes[p.from]->LV_OBJ_IDX(node_lbl_idx));
 
             char from[5];
@@ -4485,7 +4485,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
     // NodeImage
     lv_obj_t *img = lv_img_create(p);
-    setNodeImage(nodeNum, role, unmessagable, img);
+    setNodeImage(nodeNum, role, isFav, unmessagable, img);
     lv_obj_set_pos(img, -5, 3);
     lv_obj_set_size(img, 32, 32);
     lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
@@ -4724,7 +4724,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
         if (userData[3] == 0x00)
             userData[3] = ' ';
 
-        setNodeImage(nodeNum, (MeshtasticView::eRole)cfg.role, cfg.has_is_unmessagable && cfg.is_unmessagable,
+        setNodeImage(nodeNum, (MeshtasticView::eRole)cfg.role, false,
+                     cfg.has_is_unmessagable && cfg.is_unmessagable, // TODO isFav
                      it->second->LV_OBJ_IDX(node_img_idx));
 
         if (cfg.public_key.size != 0) {
@@ -5313,9 +5314,9 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
             lv_obj_t *img = lv_img_create(btn);
             if (nodePanel) {
                 setNodeImage(nodeNum, (MeshtasticView::eRole)(unsigned long)nodePanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
-                             img);
+                             false, img);
             } else {
-                setNodeImage(0, eRole::unknown, false, img);
+                setNodeImage(0, eRole::unknown, false, false, img);
             }
             lv_obj_set_pos(img, -5, 3);
             lv_obj_set_size(img, 32, 32);
@@ -6373,7 +6374,8 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 }
             } else {
                 ILOG_DEBUG("to node 0x%08x not in db", msg.to);
-                MeshtasticView::addOrUpdateNode(msg.to, msg.ch, 0, eRole::unknown, false, false);
+                meshtastic_NodeInfo node{};
+                MeshtasticView::addOrUpdateNode(msg.to, msg.ch, node);
             }
         }
         if (container) {
@@ -6396,7 +6398,8 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         if (msg.to != UINT32_MAX) {
             // from node not in db
             ILOG_DEBUG("from node 0x%08x not in db", msg.from);
-            MeshtasticView::addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
+            meshtastic_NodeInfo node{};
+            MeshtasticView::addOrUpdateNode(msg.from, msg.ch, node);
         } else {
             ILOG_DEBUG("from node 0x%08x not in db and no need to insert", msg.from);
             pos += sprintf(buf, "%04x ", msg.from & 0xffff);
