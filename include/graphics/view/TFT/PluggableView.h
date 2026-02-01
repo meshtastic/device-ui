@@ -7,6 +7,7 @@ class ScrollMenuPlugin;
 class DashboardPlugin;
 class NodesPlugin;
 class GroupsPlugin;
+class MessagesPlugin;
 class ClockPlugin;
 
 // use to facilitate indev groups creation before each screen is initialised
@@ -124,6 +125,7 @@ class PluggableView : public MeshtasticView
     DashboardPlugin *dashboard = nullptr;
     NodesPlugin *node = nullptr;
     GroupsPlugin *groups = nullptr;
+    MessagesPlugin *messages = nullptr;
     ClockPlugin *clock = nullptr;
 
     // input device and groups for (encoder/button) navigation

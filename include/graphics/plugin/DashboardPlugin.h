@@ -55,6 +55,7 @@ class DashboardPlugin : public GfxPlugin
         OpenNodes,
         ToggleTime,
         ToggleLoRa,
+        ToggleNotifications,
         ToggleGPS,
         ToggleWLAN,
         ToggleMQTT,
@@ -120,15 +121,15 @@ class DashboardPlugin : public GfxPlugin
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
 
-    Callback onOpenMessages;
-    Callback onOpenNodes;
-    Callback onToggleTime;
-    Callback onToggleLoRa;
-    Callback onToggleSound;
-    Callback onToggleGPS;
-    Callback onToggleWLAN;
-    Callback onToggleMQTT;
-    Callback onRefreshSDCard;
-    Callback onToggleMem;
-    Callback onToggleQR;
+    Callback onOpenMessages = nullptr;
+    Callback onOpenNodes = nullptr;
+    Callback onToggleTime = nullptr;
+    Callback onToggleLoRa = nullptr;
+    Callback onToggleSound = nullptr;
+    Callback onToggleGPS = nullptr;
+    Callback onToggleWLAN = nullptr;
+    Callback onToggleMQTT = nullptr;
+    Callback onRefreshSDCard = nullptr;
+    Callback onToggleMem = nullptr;
+    Callback onToggleQR = nullptr;
 };

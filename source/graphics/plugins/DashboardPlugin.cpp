@@ -63,6 +63,16 @@ void DashboardPlugin::registerStandardWidgetActions(void)
 {
     registerWidgetAction(static_cast<WidgetIndex>(Widget::MailButton), static_cast<GfxPlugin::Action>(Action::OpenMessages));
     registerWidgetAction(static_cast<WidgetIndex>(Widget::NodesButton), static_cast<GfxPlugin::Action>(Action::OpenNodes));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::TimeButton), static_cast<GfxPlugin::Action>(Action::ToggleTime));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::LoRaButton), static_cast<GfxPlugin::Action>(Action::ToggleLoRa));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::BellButton),
+                         static_cast<GfxPlugin::Action>(Action::ToggleNotifications));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::LocationButton), static_cast<GfxPlugin::Action>(Action::ToggleGPS));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::WlanButton), static_cast<GfxPlugin::Action>(Action::ToggleWLAN));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::MqttButton), static_cast<GfxPlugin::Action>(Action::ToggleMQTT));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::SdButton), static_cast<GfxPlugin::Action>(Action::RefreshSD));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::MemoryButton), static_cast<GfxPlugin::Action>(Action::ToggleMem));
+    registerWidgetAction(static_cast<WidgetIndex>(Widget::QrButton), static_cast<GfxPlugin::Action>(Action::ToggleQR));
 }
 
 void DashboardPlugin::registerStandardEventCallbacks(void)
@@ -75,7 +85,41 @@ void DashboardPlugin::registerStandardEventCallbacks(void)
     if (nodes_button)
         lv_obj_add_event_cb(nodes_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onOpenNodes);
 
-    // toggle button registration
+    lv_obj_t *time_button = p->getWidget(static_cast<WidgetIndex>(Widget::TimeButton));
+    if (time_button)
+        lv_obj_add_event_cb(time_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleTime);
+
+    lv_obj_t *lora_button = p->getWidget(static_cast<WidgetIndex>(Widget::LoRaButton));
+    if (lora_button)
+        lv_obj_add_event_cb(lora_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleLoRa);
+
+    lv_obj_t *bell_button = p->getWidget(static_cast<WidgetIndex>(Widget::BellButton));
+    if (bell_button)
+        lv_obj_add_event_cb(bell_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleSound);
+
+    lv_obj_t *location_button = p->getWidget(static_cast<WidgetIndex>(Widget::LocationButton));
+    if (location_button)
+        lv_obj_add_event_cb(location_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleGPS);
+
+    lv_obj_t *wlan_button = p->getWidget(static_cast<WidgetIndex>(Widget::WlanButton));
+    if (wlan_button)
+        lv_obj_add_event_cb(wlan_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleWLAN);
+
+    lv_obj_t *mqtt_button = p->getWidget(static_cast<WidgetIndex>(Widget::MqttButton));
+    if (mqtt_button)
+        lv_obj_add_event_cb(mqtt_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleMQTT);
+
+    lv_obj_t *sd_button = p->getWidget(static_cast<WidgetIndex>(Widget::SdButton));
+    if (sd_button)
+        lv_obj_add_event_cb(sd_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onRefreshSDCard);
+
+    lv_obj_t *memory_button = p->getWidget(static_cast<WidgetIndex>(Widget::MemoryButton));
+    if (memory_button)
+        lv_obj_add_event_cb(memory_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onRefreshSDCard);
+
+    lv_obj_t *qr_button = p->getWidget(static_cast<WidgetIndex>(Widget::QrButton));
+    if (qr_button)
+        lv_obj_add_event_cb(qr_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onRefreshSDCard);
 }
 
 void DashboardPlugin::ui_event_button(lv_event_t *e)
@@ -83,7 +127,7 @@ void DashboardPlugin::ui_event_button(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == EVENT_CLICKED) {
         DashboardPlugin::Callback *onPress = (DashboardPlugin::Callback *)(lv_event_get_user_data(e));
-        if (onPress)
+        if (onPress && *onPress)
             (*onPress)(e);
     }
 }
