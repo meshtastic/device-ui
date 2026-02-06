@@ -169,7 +169,8 @@ void TFTView_320x240::init(IClientBase *client)
 
     ui_init_boot();
     FileLoader::init(&fileSystem);
-    FileLoader::loadBootImage(objects.boot_logo);
+    if (!FileLoader::loadBootImage(objects.boot_logo))
+        lv_image_set_src(objects.boot_logo, &img_meshtastic_boot_logo_image);
     // if boot logo is too big remove the label and center the image
     lv_obj_update_layout(objects.boot_logo);
     if (lv_obj_get_height(objects.boot_logo) > lv_display_get_vertical_resolution(displaydriver->getDisplay()) / 2) {
@@ -918,7 +919,7 @@ void TFTView_320x240::timer_event_shutdown(lv_timer_t *timer)
     THIS->controller->stop();
     delay(1000);
 #if defined(ARCH_PORTDUINO)
-    exit(0);
+    exit(2);
 #elif defined(ARCH_ESP32)
     esp_deep_sleep_start();
 #else
@@ -4685,6 +4686,12 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_align(ui_Telemetry2Label, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_Telemetry2Label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    // optimisation: hide all four extended labels by default; enable only when set
+    lv_obj_add_flag(ui_PositionLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_Position2Label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_Telemetry1Label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_Telemetry2Label, LV_OBJ_FLAG_HIDDEN);
+
     lv_obj_add_event_cb(nodeButton, ui_event_NodeButton, LV_EVENT_ALL, (void *)nodeNum);
 
     // move node into new position within nodePanel
@@ -4882,6 +4889,8 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
         // store lat/lon in user_data, because we need these values later to calculate the distance to us
         panel->LV_OBJ_IDX(node_pos1_idx)->user_data = (void *)lat;
         panel->LV_OBJ_IDX(node_pos2_idx)->user_data = (void *)lon;
+        lv_obj_remove_flag(panel->LV_OBJ_IDX(node_pos1_idx), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(panel->LV_OBJ_IDX(node_pos2_idx), LV_OBJ_FLAG_HIDDEN);
     }
 
     applyNodesFilter(nodeNum);
@@ -5016,11 +5025,13 @@ void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtasti
             }
         }
         lv_label_set_text(it->second->LV_OBJ_IDX(node_tm1_idx), buf);
+        lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_tm1_idx), LV_OBJ_FLAG_HIDDEN);
 
         if (metrics.iaq > 0 && metrics.iaq < 1000) {
             sprintf(buf, "IAQ: %d %.1fV %.1fmA", metrics.iaq, metrics.voltage, metrics.current);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_tm2_idx), buf);
             it->second->LV_OBJ_IDX(node_tm2_idx)->user_data = (void *)(uint32_t)metrics.iaq;
+            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_tm2_idx), LV_OBJ_FLAG_HIDDEN);
         }
         applyNodesFilter(nodeNum);
     }
