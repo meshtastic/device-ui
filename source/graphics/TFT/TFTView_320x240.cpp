@@ -48,6 +48,10 @@ fs::FS &fileSystem = LittleFS;
 #endif
 #include "graphics/common/SdCard.h"
 
+#if defined(ARCH_PORTDUINO) || defined(HAS_SDCARD)
+#include "graphics/map/PMTileService.h"
+#endif
+
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
 #endif
@@ -2331,9 +2335,11 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
 
 void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 {
-    lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
-                                 sizeof(THIS->db.uiConfig.map_data.style));
-    MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
+    std::string style(21, '\0');
+    lv_dropdown_get_selected_str(objects.map_style_dropdown, (char *)style.data(), 20);
+    strcpy(THIS->db.uiConfig.map_data.style, style.c_str());
+    MapTileSettings::setTileStyle(style.c_str());
+    THIS->setTileService(style.find(".pmtiles") != std::string::npos);
     THIS->controller->storeUIConfig(THIS->db.uiConfig);
     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     THIS->map->forceRedraw();
@@ -2495,17 +2501,8 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
 void TFTView_320x240::loadMap(void)
 {
     if (!map) {
-#if LV_USE_FS_ARDUINO_SD
         map = new MapPanel(objects.raw_map_panel);
-#elif defined(HAS_SD_MMC)
-        map = new MapPanel(objects.raw_map_panel, new SDCardService());
-#elif defined(HAS_SDCARD)
-        map = new MapPanel(objects.raw_map_panel, new SdFatService());
-#elif defined(ARCH_PORTDUINO)
-        map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
-#else
-        map = new MapPanel(objects.raw_map_panel);
-#endif
+        map->setNoTileImage(&img_no_tile_image);
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(objects.home_location_image, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)ownNode);
@@ -2604,7 +2601,7 @@ void TFTView_320x240::loadMap(void)
                 // populate dropdown
                 uint16_t pos = 0;
                 bool savedStyleOK = false;
-                lv_dropdown_set_options(objects.map_style_dropdown, "");
+                lv_dropdown_clear_options(objects.map_style_dropdown);
                 for (auto it : mapStyles) {
                     lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
                     if (it == db.uiConfig.map_data.style) {
@@ -2622,6 +2619,9 @@ void TFTView_320x240::loadMap(void)
                     MapTileSettings::setTileStyle(style);
                 }
                 MapTileSettings::setPrefix("/maps");
+                // check if selected style is pmtiles
+                std::string style = MapTileSettings::getTileStyle();
+                setTileService(style.find(".pmtiles") != std::string::npos);
             } else {
                 messageAlert(_("No map tiles found on SDCard!"), true);
                 map->setNoTileImage(&img_no_tile_image);
@@ -2629,11 +2629,30 @@ void TFTView_320x240::loadMap(void)
             map->forceRedraw();
         }
     } else {
-        lv_dropdown_set_options(objects.map_style_dropdown, "");
+        lv_dropdown_clear_options(objects.map_style_dropdown);
     }
 
     lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
+}
+
+void TFTView_320x240::setTileService(bool pmtiles)
+{
+    ILOG_DEBUG("setTileService %s (%s)", MapTileSettings::getTileStyle(), pmtiles ? "pmtiles" : "folder");
+    assert(map);
+    if (pmtiles) {
+#if defined(ARCH_PORTDUINO) || defined(HAS_SDCARD)
+        map->setTileService(new PMTileService());
+#endif
+    } else {
+#if defined(HAS_SD_MMC)
+        map->setTileService(new SDCardService());
+#elif defined(HAS_SDCARD)
+        map->setTileService(new SdFatService());
+#elif defined(ARCH_PORTDUINO)
+        map->setTileService(new SDCardService()); // TODO: LinuxFileSystemService
+#endif
+    }
 }
 
 void TFTView_320x240::updateLocationMap(uint32_t num)
