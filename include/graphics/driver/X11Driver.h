@@ -12,6 +12,7 @@ class X11Driver : public DisplayDriver
   public:
     static X11Driver &create(uint16_t width, uint16_t height);
     void init(DeviceGUI *gui) override;
+    void task_handler(void) override;
     virtual ~X11Driver() {}
 
   private:
