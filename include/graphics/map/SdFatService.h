@@ -3,8 +3,6 @@
 #include "SdFat.h"
 #include "graphics/map/TileService.h"
 #include "lvgl.h"
-#include <memory>
-#include <unordered_map>
 
 class SdFatService : public ITileService
 {
@@ -13,7 +11,7 @@ class SdFatService : public ITileService
 
     virtual ~SdFatService();
 
-    bool load(const char *name, void *img) override;
+    bool load(uint32_t x, uint32_t y, uint32_t z, void *img) override;
 
   protected:
     static void *fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode);
