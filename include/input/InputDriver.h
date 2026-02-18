@@ -40,6 +40,7 @@ class InputDriver
     virtual bool hasButtonDevice(void) { return button != nullptr; }
 
     virtual lv_indev_t *getKeyboard(void) { return keyboard; }
+    virtual void setKeyboard(lv_indev_t *kbd) { keyboard = kbd; }
     virtual lv_indev_t *getPointer(void) { return pointer; }
     virtual lv_indev_t *getEncoder(void) { return encoder; }
     virtual lv_indev_t *getButton(void) { return button; }
