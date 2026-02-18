@@ -1,4 +1,4 @@
-#if defined(VIEW_160x80) || defined(VIEW_320x170) || defined(VIEW_480x222)
+#if defined(VIEW_160x80) || defined(VIEW_320x170) || defined(VIEW_480x222) || defined(VIEW_240x135)
 
 #include "graphics/view/TFT/PluggableView.h"
 #include "graphics/common/BatteryLevel.h"
@@ -10,6 +10,7 @@
 #include "graphics/plugin/ClockPlugin.h"
 #include "graphics/plugin/DashboardPlugin.h"
 #include "graphics/plugin/GroupsPlugin.h"
+#include "graphics/plugin/MessagesPlugin.h"
 #include "graphics/plugin/NodesPlugin.h"
 #include "graphics/plugin/ScrollMenuPlugin.h"
 #include "images.h"
@@ -176,49 +177,61 @@ void PluggableView::init_screens(void)
 void PluggableView::ui_init(void)
 {
     ILOG_DEBUG("ui_init...");
-
+#ifdef MUI_SCROLLMENU_PLUGIN
     // create and wire menu plugin
     SETUP_INDEV(menuGroup);
     create_screen_menu();
     menu = new ScrollMenuPlugin();
     menu->init(objects.menu, nullptr, ScrollMenuPlugin::WIDGET_COUNT, menuGroup, indev);
-
+#endif
+#ifdef MUI_DASHBOARD_PLUGIN
     // create and wire dashboard plugin home screen
     SETUP_INDEV(homeGroup);
     create_screen_home();
     dashboard = new DashboardPlugin();
     dashboard->init(objects.home, nullptr, DashboardPlugin::WIDGET_COUNT, homeGroup, indev);
-
+#endif
+#ifdef MUI_NODES_PLUGIN
     // create and wire nodes plugin
     SETUP_INDEV(nodesGroup);
     create_screen_nodes();
     node = new NodesPlugin();
     node->init(objects.nodes, nullptr, NodesPlugin::WIDGET_COUNT, nodesGroup, indev);
-
+#endif
+#ifdef MUI_GROUPS_PLUGIN
+    // create and wire groups plugin
     SETUP_INDEV(groupsGroup);
     create_screen_groups();
     groups = new GroupsPlugin();
     groups->init(objects.groups, nullptr, GroupsPlugin::WIDGET_COUNT, groupsGroup, indev);
-
+#endif
+#ifdef MUI_MESSAGES_PLUGIN
+    // create and wire messages plugin
     SETUP_INDEV(chatsGroup);
     create_screen_chats();
-
+    messages = new MessagesPlugin();
+    messages->init(objects.chats, nullptr, MessagesPlugin::WIDGET_COUNT, chatsGroup, indev);
+#endif
+#ifdef MUI_MAP_PLUGIN
+    // create and wire map plugin
     SETUP_INDEV(mapGroup);
     create_screen_map();
-
+#endif
+#ifdef MUI_CLOCK_PLUGIN
     // create and wire clock plugin
     SETUP_INDEV(clockGroup);
     create_screen_clock();
     clock = new ClockPlugin();
     clock->init(nullptr, nullptr, ClockPlugin::WIDGET_COUNT, clockGroup, indev);
-
+#endif
+#ifdef MUI_SETTINGS_PLUGIN
+    // create and wire settings plugin
     SETUP_INDEV(settingsGroup);
     create_screen_settings();
-
+#endif
+    // finishes creating all plugins, goto home menu screen
     menu->loadScreen();
     lv_group_focus_obj(objects.home_button);
-
-    setInputGroup();
 }
 
 // lv_menu test
@@ -307,31 +320,49 @@ static void switch_handler(lv_event_t *e)
 void PluggableView::ui_events_init(void)
 {
     // main button events
+#ifdef MUI_DASHBOARD_PLUGIN
     menu->setOnOpenHome(_("Dashboard"), [this](lv_event_t *e) {
         dashboard->loadScreen();
         lv_indev_set_group(THIS->indev, THIS->homeGroup);
-        lv_obj_remove_state(objects.nodes_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.nodes_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(objects.top_home_back_button);
     });
-
+#endif
+#ifdef MUI_NODES_PLUGIN
     menu->setOnOpenNodes(_("Nodes"), [this](lv_event_t *e) {
         node->loadScreen();
         lv_indev_set_group(THIS->indev, THIS->nodesGroup);
-        lv_obj_remove_state(objects.nodes_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.nodes_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(objects.top_nodes_back_button);
     });
-
+#endif
+#ifdef MUI_GROUPS_PLUGIN
     menu->setOnOpenGroups(_("Groups"), [this](lv_event_t *e) {
         groups->loadScreen();
         lv_indev_set_group(THIS->indev, THIS->groupsGroup);
-        lv_obj_remove_state(objects.groups_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.groups_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(objects.top_groups_back_button);
     });
+#endif
+#ifdef MUI_MESSAGES_PLUGIN
+    menu->setOnOpenMessages(_("Messages"), [this](lv_event_t *e) {
+        messages->loadScreen();
+        if (inputdriver->hasKeyboardDevice())
+            lv_indev_set_group(inputdriver->getKeyboard(), chatsGroup);
+        else {
+            // show virtual keyboard
+        }
+        lv_obj_remove_state(objects.messages_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
+    });
+    messages->setOnCancel([this](lv_event_t *e) { menu->loadScreen(); });
+    messages->setOnAddMessage([this](lv_event_t *e) { this->addMessage((char *)e); });
+#endif
 
+    // TODO: old style, create lambda callbacks as above
     // lv_obj_add_event_cb(objects.groups_button, this->ui_event_GroupsButton, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(objects.messages_button, this->ui_event_MessagesButton, LV_EVENT_ALL, NULL);
+    // lv_obj_add_event_cb(objects.messages_button, this->ui_event_MessagesButton, LV_EVENT_ALL, NULL);
     // message text area
-    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
+    // lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
 
     lv_obj_add_event_cb(objects.map_button, this->ui_event_MapButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.clock_button, this->ui_event_ClockButton, LV_EVENT_ALL, NULL);
@@ -341,6 +372,14 @@ void PluggableView::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.power_button, this->ui_event_PowerButton, LV_EVENT_ALL, NULL);
 
+    // dashboard button events
+    //    dashboard->setOnOpenNodes([this](lv_event_t *e) {
+    //        node->loadScreen();
+    //        lv_indev_set_group(THIS->indev, THIS->nodesGroup);
+    //        lv_group_focus_obj(objects.top_nodes_back_button);
+    //    });
+
+    // top back buttons of each plugin
     lv_obj_add_event_cb(objects.top_home_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(objects.top_nodes_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(objects.top_groups_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
@@ -349,6 +388,7 @@ void PluggableView::ui_events_init(void)
     lv_obj_add_event_cb(objects.top_clock_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(objects.top_settings_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
 
+#if 0
     // lv_menu test
     // lv_menu test
 
@@ -402,7 +442,7 @@ void PluggableView::ui_events_init(void)
     lv_menu_set_load_page_event(objects.settings_menu, cont, sub_legal_info_page);
 
     lv_obj_t *sub_menu_mode_page = lv_menu_page_create(objects.settings_menu, NULL);
-    lv_obj_set_style_pad_hor(sub_menu_mode_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), 0), 0);
+    lv_obj_set_style_pad_hor(sub_menu_mode_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
     lv_menu_separator_create(sub_menu_mode_page);
     section = lv_menu_section_create(sub_menu_mode_page);
     cont = create_switch(section, LV_SYMBOL_AUDIO, "Sidebar enable", true);
@@ -410,7 +450,7 @@ void PluggableView::ui_events_init(void)
 
     /*Create a root page*/
     root_page = lv_menu_page_create(objects.settings_menu, "Settings");
-    lv_obj_set_style_pad_hor(root_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), 0), 0);
+    lv_obj_set_style_pad_hor(root_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
     section = lv_menu_section_create(root_page);
     cont = create_text(section, LV_SYMBOL_SETTINGS, "Mechanics", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(objects.settings_menu, cont, sub_mechanics_page);
@@ -431,6 +471,7 @@ void PluggableView::ui_events_init(void)
     lv_menu_set_page(objects.settings_menu, root_page);
 
     //    lv_menu_set_sidebar_page(objects.settings_menu, root_page);
+#endif
 }
 
 /**
@@ -467,20 +508,6 @@ void PluggableView::ui_events_init(void)
     }
 }
 #endif
-
-/**
- * input group used by keyboard and/or pointer for dynamic assignment
- */
-void PluggableView::setInputGroup(void)
-{
-    lv_group_t *group = chatsGroup;
-
-    if (group && inputdriver->hasKeyboardDevice())
-        lv_indev_set_group(inputdriver->getKeyboard(), group);
-
-    if (group && inputdriver->hasPointerDevice())
-        lv_indev_set_group(inputdriver->getPointer(), group);
-}
 
 /**
  * handle events for virtual keyboard
@@ -540,7 +567,7 @@ void PluggableView::ui_event_HomeButton(lv_event_t *e)
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->homeGroup);
         lv_group_focus_obj(objects.top_home_back_button);
-        lv_obj_remove_state(objects.home_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.home_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     }
     else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Home");
@@ -556,7 +583,7 @@ void PluggableView::ui_event_NodesButton(lv_event_t *e)
         lv_screen_load_anim(objects.nodes, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->nodesGroup);
         lv_group_focus_obj(objects.top_nodes_back_button);
-        lv_obj_remove_state(objects.nodes_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.nodes_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     }
     else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Nodes");
@@ -570,7 +597,7 @@ void PluggableView::ui_event_GroupsButton(lv_event_t *e)
         lv_screen_load_anim(objects.groups, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->groupsGroup);
         lv_group_focus_obj(objects.top_groups_back_button);
-        lv_obj_remove_state(objects.groups_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.groups_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Group Channels");
     }
@@ -583,32 +610,9 @@ void PluggableView::ui_event_MessagesButton(lv_event_t *e)
         lv_screen_load_anim(objects.chats, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->chatsGroup);
         lv_group_focus_obj(objects.top_chat_back_button);
-        lv_obj_remove_state(objects.messages_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.messages_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Messages");
-    }
-}
-
-void PluggableView::ui_event_message_ready(lv_event_t *e)
-{
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_READY) {
-        ILOG_DEBUG("ui_event_message_ready -> LV_EVENT_READY");
-        char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
-        uint32_t len = strlen(txt);
-        if (len) {
-            ILOG_INFO("");
-            // lv_textarea_set_text(objects.message_input_area, "");
-            //     if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
-            //         THIS->hideKeyboard(objects.messages_panel);
-            //     }
-            lv_group_focus_obj(objects.message_input_area);
-        }
-    } else if (event_code == LV_EVENT_CANCEL) {
-        ILOG_DEBUG("ui_event_message_ready -> LV_EVENT_CANCEL");
-
-    } else if (event_code == LV_EVENT_VALUE_CHANGED) {
-        ILOG_DEBUG("ui_event_message_ready -> LV_EVENT_VALUE_CHANGED");
     }
 }
 
@@ -620,7 +624,7 @@ void PluggableView::ui_event_MapButton(lv_event_t *e)
         lv_indev_set_group(THIS->indev, THIS->mapGroup);
         THIS->loadMap();
         lv_group_focus_obj(objects.top_map_back_button);
-        lv_obj_remove_state(objects.map_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.map_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Map");
     }
@@ -633,7 +637,7 @@ void PluggableView::ui_event_ClockButton(lv_event_t *e)
         lv_screen_load_anim(objects.clock, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->clockGroup);
         lv_group_focus_obj(objects.top_clock_back_button);
-        lv_obj_remove_state(objects.clock_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.clock_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Clock");
     }
@@ -646,7 +650,7 @@ void PluggableView::ui_event_MusicButton(lv_event_t *e)
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->musicGroup);
         // lv_group_focus_obj(objects.top_music_back_button);
-        lv_obj_remove_state(objects.music_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.music_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Music");
     }
@@ -659,7 +663,7 @@ void PluggableView::ui_event_StatisticsButton(lv_event_t *e)
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->statisticsGroup);
         // lv_group_focus_obj(objects.top_statistics_back_button);
-        lv_obj_remove_state(objects.statistics_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.statistics_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Statistics");
     }
@@ -672,7 +676,7 @@ void PluggableView::ui_event_ToolsButton(lv_event_t *e)
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->toolsGroup);
         // lv_group_focus_obj(objects.top_tools_back_button);
-        lv_obj_remove_state(objects.tools_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.tools_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Tools");
     }
@@ -685,7 +689,7 @@ void PluggableView::ui_event_SettingsButton(lv_event_t *e)
         lv_screen_load_anim(objects.settings, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->settingsGroup);
         // lv_group_focus_obj(objects.top_settings_back_button);
-        lv_obj_remove_state(objects.settings_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(objects.settings_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Settings");
     }
@@ -1504,6 +1508,18 @@ void PluggableView::updateFreeMem(void)
     if (dashboard)
         dashboard->updateFreeMem(freeHeap, mon.free_size);
     //    }
+}
+
+void PluggableView::addMessage(char *msg)
+{
+    // must be implemented in derived view class!
+    ILOG_ERROR("PluggableView::addMessage not implemented");
+}
+
+void PluggableView::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg)
+{
+    // must be implemented in derived view class!
+    ILOG_ERROR("PluggableView::newMessage not implemented");
 }
 
 void PluggableView::packetReceived(const meshtastic_MeshPacket &p)
