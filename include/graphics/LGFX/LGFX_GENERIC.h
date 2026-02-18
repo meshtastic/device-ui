@@ -245,8 +245,12 @@ class LGFX_GENERIC : public lgfx::LGFX_Device
             // The following setting values ​​are general initial values ​​for
             // each panel, so please comment out any unknown items and try them.
 
-            cfg.panel_width = LGFX_SCREEN_WIDTH;    // actual displayable width
-            cfg.panel_height = LGFX_SCREEN_HEIGHT;  // actual displayable height
+            cfg.panel_width = LGFX_SCREEN_WIDTH;   // actual displayable width
+            cfg.panel_height = LGFX_SCREEN_HEIGHT; // actual displayable height
+#ifdef LGFX_MEMORY_WIDTH
+            cfg.memory_width = LGFX_MEMORY_WIDTH;
+            cfg.memory_height = LGFX_MEMORY_HEIGHT;
+#endif
             cfg.offset_x = LGFX_OFFSET_X;           // Panel offset amount in X direction
             cfg.offset_y = LGFX_OFFSET_Y;           // Panel offset amount in Y direction
             cfg.offset_rotation = LGFX_ROTATION;    // Rotation direction value offset 0~7 (4~7 is upside down)
