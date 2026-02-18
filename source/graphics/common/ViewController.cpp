@@ -587,13 +587,14 @@ bool ViewController::receive(void)
 {
     bool gotPacket = false;
     if (client->isConnected()) {
+        uint16_t received = 0;
         do {
             meshtastic_FromRadio from = client->receive();
             if (from.which_payload_variant) {
                 handleFromRadio(from);
             }
             gotPacket = from.which_payload_variant != 0;
-        } while (gotPacket);
+        } while (gotPacket && received++ < 7); // handle max 7 packets in one go
         return true;
     }
     return false;

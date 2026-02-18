@@ -239,6 +239,8 @@ class TFTView_320x240 : public MeshtasticView
     void updateSignalStrength(int32_t rssi, float snr);
     int32_t signalStrength2Percent(int32_t rx_rssi, float rx_snr);
 
+    uint32_t preset2val(meshtastic_Config_LoRaConfig_ModemPreset preset);
+    meshtastic_Config_LoRaConfig_ModemPreset val2preset(uint32_t val);
     uint32_t role2val(meshtastic_Config_DeviceConfig_Role role);
     meshtastic_Config_DeviceConfig_Role val2role(uint32_t val);
     uint32_t language2val(meshtastic_Language lang);

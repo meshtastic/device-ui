@@ -37,6 +37,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++
     static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
+    static void rounder_cb(lv_event_t *e);
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
 
     uint32_t screenTimeout;
@@ -92,7 +93,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                 if (!powerSaving) {
                     // dim display brightness slowly down
                     uint32_t brightness = lgfx->getBrightness();
-                    if (brightness > 1) {
+                    if (brightness > 0) {
                         lgfx->setBrightness(brightness - 1);
                     } else {
                         ILOG_INFO("enter powersave");
@@ -196,6 +197,25 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 }
 #endif
 
+#ifdef LGFX_AMOLED_ROUNDER
+template <class LGFX> void LGFXDriver<LGFX>::rounder_cb(lv_event_t *e)
+{
+    lv_area_t *area = (lv_area_t *)lv_event_get_param(e);
+#if LGFX_AMOLED_ROUNDER == 1
+    // force the starting X and Y to be even (round down)
+    area->x1 &= ~1;
+    area->y1 &= ~1;
+
+    // force the ending X and Y to be odd
+    // (an even start + an odd end = an even width/height)
+    area->x2 |= 1;
+    area->y2 |= 1;
+#else
+#error "LGFX_AMOLED_AMOLED requires implementation!"
+#endif
+}
+#endif
+
 template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
     uint16_t touchX = 0, touchY = 0;
@@ -252,13 +272,21 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     lv_display_set_buffers(disp, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_DIRECT);
 #elif defined(BOARD_HAS_PSRAM)
     assert(ESP.getFreePsram());
+#ifdef LGFX_BUFSIZE
+    bufsize = LGFX_BUFSIZE;
+#else
     bufsize = lgfx->screenWidth * lgfx->screenHeight * sizeof(lv_color_t) / 4;
+#endif
     ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for draw buffer", bufsize);
     buf1 = (lv_color_t *)LV_MEM_POOL_ALLOC(bufsize);
     assert(buf1 != 0);
     lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #else
+#ifdef LGFX_BUFSIZE
+    bufsize = LGFX_BUFSIZE;
+#else
     bufsize = lgfx->screenWidth * lgfx->screenHeight / 8;
+#endif
     ILOG_DEBUG("LVGL: allocating %u bytes heap memory for draw buffer", sizeof(lv_color_t) * bufsize);
     buf1 = new lv_color_t[bufsize];
     assert(buf1 != 0);
@@ -266,6 +294,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 #endif
 
     lv_display_set_flush_cb(this->display, LGFXDriver::display_flush);
+#ifdef LGFX_AMOLED_ROUNDER
+    lv_display_add_event_cb(this->display, rounder_cb, LV_EVENT_INVALIDATE_AREA, this->display);
+#endif
 
 #if defined(DISPLAY_SET_RESOLUTION)
     ILOG_DEBUG("Set display resolution: %dx%d", lgfx->screenWidth, lgfx->screenHeight);

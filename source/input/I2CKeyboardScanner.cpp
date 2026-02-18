@@ -5,11 +5,11 @@
 #include <Wire.h>
 
 enum KeyboardAddresses {
-    SCAN_TDECK_KB_ADDR = 0x55,
+    SCAN_TDECK_KB_ADDR = 0x55, // also BQ27720
     SCAN_TCA8418_KB_ADDR = 0x34,
     SCAN_CARDKB_ADDR = 0x5F,
     SCAN_BBQ10_KB_ADDR = 0x1F,
-    SCAN_MPR121_KB_ADDR = 0x5A
+    SCAN_MPR121_KB_ADDR = 0x5A // also DRV2605
 };
 
 I2CKeyboardScanner::I2CKeyboardScanner(void) {}
@@ -26,16 +26,18 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
         Wire.beginTransmission(address);
         if (Wire.endTransmission() == 0) {
             switch (address) {
+#if defined T_DECK
             case SCAN_TDECK_KB_ADDR:
                 driver = new TDeckKeyboardInputDriver(address);
                 break;
+#endif
             case SCAN_TCA8418_KB_ADDR:
 #if defined(T_LORA_PAGER)
                 driver = new TLoraPagerKeyboardInputDriver(address);
 #elif defined(T_DECK_PRO)
                 driver = new TDeckProKeyboardInputDriver(address);
 #else
-                driver = new TCA8418KeyboardInputDriver(address);
+                // TODO: driver = new TCA8418KeyboardInputDriver(address);
 #endif
                 break;
             case SCAN_CARDKB_ADDR:
@@ -45,7 +47,8 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
                 driver = new BBQ10KeyboardInputDriver(address);
                 break;
             case SCAN_MPR121_KB_ADDR:
-                driver = new MPR121KeyboardInputDriver(address);
+                // TODO: resolve conflict with DRV2605
+                // driver = new MPR121KeyboardInputDriver(address);
                 break;
             default:
                 break;
