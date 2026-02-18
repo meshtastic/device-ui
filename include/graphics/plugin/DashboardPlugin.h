@@ -121,15 +121,15 @@ class DashboardPlugin : public GfxPlugin
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
 
-    Callback onOpenMessages = nullptr;
-    Callback onOpenNodes = nullptr;
-    Callback onToggleTime = nullptr;
-    Callback onToggleLoRa = nullptr;
-    Callback onToggleSound = nullptr;
-    Callback onToggleGPS = nullptr;
-    Callback onToggleWLAN = nullptr;
-    Callback onToggleMQTT = nullptr;
-    Callback onRefreshSDCard = nullptr;
-    Callback onToggleMem = nullptr;
-    Callback onToggleQR = nullptr;
+    Callback onOpenMessages = nullptr;  // MailButton
+    Callback onOpenNodes = nullptr;     // NodesButton
+    Callback onToggleTime = nullptr;    // TimeButton
+    Callback onToggleLoRa = nullptr;    // LoRaButton
+    Callback onToggleSound = nullptr;   // BellButton
+    Callback onToggleGPS = nullptr;     // LocationButton
+    Callback onToggleWLAN = nullptr;    // WlanButton
+    Callback onToggleMQTT = nullptr;    // MqttButton
+    Callback onRefreshSDCard = nullptr; // SdButton
+    Callback onToggleMem = nullptr;     // MemoryButton
+    Callback onToggleQR = nullptr;      // QrButton
 };

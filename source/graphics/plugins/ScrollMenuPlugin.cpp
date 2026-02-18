@@ -30,7 +30,7 @@ void ScrollMenuPlugin::loadScreen(lv_screen_load_anim_t anim, uint32_t time)
     GfxPlugin::loadScreen(anim, time);
     lv_obj_t *home_button = p->getWidget(static_cast<WidgetIndex>(Widget::HomeButton));
     if (home_button)
-        lv_obj_remove_state(home_button, LV_STATE_CHECKED | LV_STATE_PRESSED);
+        lv_obj_remove_state(home_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
 }
 
 void ScrollMenuPlugin::registerStandardWidgets(void)

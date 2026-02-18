@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Plugins.h"
 #include "lvgl.h"
 #include <array>
 #include <cstddef>
