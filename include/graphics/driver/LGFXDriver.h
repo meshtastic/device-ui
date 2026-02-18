@@ -296,7 +296,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 
     if (hasTouch()) {
         DisplayDriver::touch = lv_indev_create();
-        DisplayDriver::touch->gesture_limit = defaultGestureLimit;
+        // DisplayDriver::touch->gesture_limit = defaultGestureLimit;
         lv_indev_set_type(DisplayDriver::touch, LV_INDEV_TYPE_POINTER);
         lv_indev_set_read_cb(DisplayDriver::touch, touchpad_read);
         lv_indev_set_display(DisplayDriver::touch, this->display);
