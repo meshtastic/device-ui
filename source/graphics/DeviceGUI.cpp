@@ -11,6 +11,9 @@ static I2CKeyboardInputDriver *keyboardDriver = nullptr;
 #if LV_USE_LIBINPUT
 #include "input/LinuxInputDriver.h"
 static LinuxInputDriver *linuxInputDriver = nullptr;
+#ifdef USE_X11
+#include "graphics/driver/X11Driver.h"
+#endif
 #else
 #if defined(INPUTDRIVER_ENCODER_TYPE)
 #include "input/EncoderInputDriver.h"
@@ -72,8 +75,16 @@ void DeviceGUI::init(IClientBase *client)
     if (keyboardDriver)
         keyboardDriver->init();
 #if LV_USE_LIBINPUT
-    if (linuxInputDriver)
+    if (linuxInputDriver) {
         linuxInputDriver->init();
+#ifdef USE_X11
+        // check if X11 driver is valid, if so get the assigned X11 keyboard
+        if (X11Driver::isInitialized()) {
+            lv_indev_t *kbd = X11Driver::getKeyboard();
+            linuxInputDriver->setKeyboard(kbd);
+        }
+#endif
+    }
 #endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     if (encoderDriver)
