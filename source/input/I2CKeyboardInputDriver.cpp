@@ -320,6 +320,7 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
 
         if (keyCount > 0) {
             // read key event from FIFO
+            // ILOG_DEBUG("keycount: %d", keyCount);
             Wire.beginTransmission(address);
             Wire.write(TCA8418_REG_KEY_EVENT_A);
             Wire.endTransmission();
@@ -328,6 +329,8 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
                 uint8_t keyEvent = Wire.read();
                 uint8_t keyCode = keyEvent & 0x7F;
                 bool pressed = (keyEvent & 0x80) != 0;
+                // ILOG_DEBUG("keyCount: %d, keyEvent: %02x, keyCode: %02x, pressed:%d", (int)keyCount, (int)keyEvent,
+                // (int)keyCode, (int)pressed);
 
                 if (pressed && keyCode > 0 && keyCode <= 31) {
                     uint8_t keyIndex = keyCode - 1;
@@ -336,13 +339,13 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
                     if (keyIndex == MODIFIER_SHIFT_KEY) {
                         // toggle shift modifier
                         modifierState = (modifierState == 1) ? 0 : 1;
-                        ILOG_DEBUG("T-Pager: Shift toggled, modifierState=%d", modifierState);
+                        // ILOG_DEBUG("T-Pager: Shift toggled, modifierState=%d", modifierState);
                         return;
                     }
                     if (keyIndex == MODIFIER_SYM_KEY) {
                         // toggle sym modifier
                         modifierState = (modifierState == 2) ? 0 : 2;
-                        ILOG_DEBUG("T-Pager: Sym toggled, modifierState=%d altHeld=%d", modifierState, modifierState == 2);
+                        // ILOG_DEBUG("T-Pager: Sym toggled, modifierState=%d altHeld=%d", modifierState, modifierState == 2);
                         return;
                     }
 
@@ -356,7 +359,10 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
                         switch (keyChar) {
                         case 0x0A: // Enter
                         case 0x0D: // Enter
-                            data->key = LV_KEY_ENTER;
+                            if (modifierState == 2)
+                                data->key = LV_KEY_ENTER;
+                            else
+                                data->key = 0x0D;
                             break;
                         case 0x09: // Tab
                             data->key = LV_KEY_NEXT;
@@ -374,7 +380,8 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
                             data->key = (uint32_t)keyChar;
                             break;
                         }
-                        ILOG_DEBUG("T-Pager key: code=%d mod=%d char='%c' lvkey=%d", keyCode, modifierState, keyChar, data->key);
+                        // ILOG_DEBUG("T-Pager key: code=%d mod=%d char='%c' lvkey=%d", keyCode, modifierState, keyChar,
+                        // data->key);
 
                         // clear modifier after a regular key press (one-shot behavior)
                         modifierState = 0;
