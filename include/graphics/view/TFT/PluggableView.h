@@ -10,7 +10,7 @@ class GroupsPlugin;
 class MessagesPlugin;
 class ClockPlugin;
 
-// use to facilitate indev groups creation before each screen is initialised
+// used to facilitate indev groups creation before each screen is initialised
 #define SETUP_INDEV(GROUP)                                                                                                       \
     GROUP = lv_group_create();                                                                                                   \
     lv_group_set_default(GROUP);                                                                                                 \
@@ -66,8 +66,8 @@ class PluggableView : public MeshtasticView
     // initialize all ui screens
     virtual void ui_init(void);
     virtual void init_screens(void);
-    virtual void addMessage(char *msg) {}
-    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg) {}
+    virtual void addMessage(char *msg);
+    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
 
     // update time display on screen
     virtual void updateTime(void);
@@ -127,6 +127,7 @@ class PluggableView : public MeshtasticView
     GroupsPlugin *groups = nullptr;
     MessagesPlugin *messages = nullptr;
     ClockPlugin *clock = nullptr;
+    // MapPlugin *map = nullptr;
 
     // input device and groups for (encoder/button) navigation
     lv_indev_t *indev = nullptr;

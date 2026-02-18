@@ -19,6 +19,8 @@ class TFTView_480x222 : public PluggableView
     // initialize all ui screens
     virtual void ui_init(void);
     virtual void init_screens(void);
+    virtual void addMessage(char *msg);
+    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
 
   private:
     // view creation only via ViewFactory
