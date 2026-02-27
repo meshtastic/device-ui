@@ -7,17 +7,18 @@
 extern "C" {
 #endif
 
-extern const lv_img_dsc_t img_tools_icon;
-extern const lv_img_dsc_t img_map_icon;
-extern const lv_img_dsc_t img_nodes_icon;
 extern const lv_img_dsc_t img_home_icon;
-extern const lv_img_dsc_t img_chats_icon;
+extern const lv_img_dsc_t img_nodes_icon;
 extern const lv_img_dsc_t img_people_icon;
-extern const lv_img_dsc_t img_power_icon;
-extern const lv_img_dsc_t img_cogs_icon;
-extern const lv_img_dsc_t img_music_icon;
+extern const lv_img_dsc_t img_chats_icon;
+extern const lv_img_dsc_t img_map_icon;
 extern const lv_img_dsc_t img_clock_icon;
+extern const lv_img_dsc_t img_music_icon;
+extern const lv_img_dsc_t img_tools_icon;
+extern const lv_img_dsc_t img_apps_icon;
 extern const lv_img_dsc_t img_statistics_icon;
+extern const lv_img_dsc_t img_cogs_icon;
+extern const lv_img_dsc_t img_power_icon;
 extern const lv_img_dsc_t img_boot_logo;
 extern const lv_img_dsc_t img_back_icon;
 extern const lv_img_dsc_t img_no_tile_image;
@@ -50,8 +51,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[34];
-
+extern const ext_img_desc_t images[35];
 
 #ifdef __cplusplus
 }

@@ -8,12 +8,13 @@
 
 #if defined(LV_LVGL_H_INCLUDE_SIMPLE)
 #include "lvgl.h"
+#elif defined(LV_LVGL_H_INCLUDE_SYSTEM)
+#include <lvgl.h>
 #elif defined(LV_BUILD_TEST)
 #include "../lvgl.h"
 #else
 #include "lvgl/lvgl.h"
 #endif
-
 
 #ifndef LV_ATTRIBUTE_MEM_ALIGN
 #define LV_ATTRIBUTE_MEM_ALIGN
@@ -111,13 +112,16 @@ uint8_t img_music_icon_map[] = {
 };
 
 const lv_image_dsc_t img_music_icon = {
-  .header.magic = LV_IMAGE_HEADER_MAGIC,
-  .header.cf = LV_COLOR_FORMAT_A4,
-  .header.flags = 0,
-  .header.w = 80,
-  .header.h = 80,
-  .header.stride = 40,
+  .header = {
+    .magic = LV_IMAGE_HEADER_MAGIC,
+    .cf = LV_COLOR_FORMAT_A4,
+    .flags = 0,
+    .w = 80,
+    .h = 80,
+    .stride = 40,
+    .reserved_2 = 0,
+  },
   .data_size = sizeof(img_music_icon_map),
   .data = img_music_icon_map,
+  .reserved = NULL,
 };
-

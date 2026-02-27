@@ -1,17 +1,18 @@
 #include "images.h"
 
-const ext_img_desc_t images[34] = {
-    { "tools-icon", &img_tools_icon },
-    { "map-icon", &img_map_icon },
-    { "nodes-icon", &img_nodes_icon },
+const ext_img_desc_t images[35] = {
     { "home-icon", &img_home_icon },
-    { "chats-icon", &img_chats_icon },
+    { "nodes-icon", &img_nodes_icon },
     { "people-icon", &img_people_icon },
-    { "power-icon", &img_power_icon },
-    { "cogs-icon", &img_cogs_icon },
-    { "music-icon", &img_music_icon },
+    { "chats-icon", &img_chats_icon },
+    { "map-icon", &img_map_icon },
     { "clock-icon", &img_clock_icon },
+    { "music-icon", &img_music_icon },
+    { "tools-icon", &img_tools_icon },
+    { "apps-icon", &img_apps_icon },
     { "statistics-icon", &img_statistics_icon },
+    { "cogs-icon", &img_cogs_icon },
+    { "power-icon", &img_power_icon },
     { "boot_logo", &img_boot_logo },
     { "back-icon", &img_back_icon },
     { "no-tile-image", &img_no_tile_image },

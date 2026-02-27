@@ -7,12 +7,6 @@
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
 #include "graphics/map/MapPanel.h"
-#include "graphics/plugin/ClockPlugin.h"
-#include "graphics/plugin/DashboardPlugin.h"
-#include "graphics/plugin/GroupsPlugin.h"
-#include "graphics/plugin/MessagesPlugin.h"
-#include "graphics/plugin/NodesPlugin.h"
-#include "graphics/plugin/ScrollMenuPlugin.h"
 #include "images.h"
 #include "input/InputDriver.h"
 #include "lv_i18n.h"
@@ -209,7 +203,7 @@ void PluggableView::ui_init(void)
     // create and wire messages plugin
     SETUP_INDEV(chatsGroup);
     create_screen_chats();
-    messages = new MessagesPlugin();
+    messages = new MessagesPlugin(*this);
     messages->init(objects.chats, nullptr, MessagesPlugin::WIDGET_COUNT, chatsGroup, indev);
 #endif
 #ifdef MUI_MAP_PLUGIN
@@ -355,7 +349,6 @@ void PluggableView::ui_events_init(void)
         lv_obj_remove_state(objects.messages_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     });
     messages->setOnCancel([this](lv_event_t *e) { menu->loadScreen(); });
-    messages->setOnAddMessage([this](lv_event_t *e) { this->addMessage((char *)e); });
 #endif
 
     // TODO: old style, create lambda callbacks as above
@@ -1510,16 +1503,31 @@ void PluggableView::updateFreeMem(void)
     //    }
 }
 
-void PluggableView::addMessage(char *msg)
+void PluggableView::restoreMessage(const LogMessage &msg)
 {
-    // must be implemented in derived view class!
-    ILOG_ERROR("PluggableView::addMessage not implemented");
+    if (messages) {
+        messages->restoreMessage(msg.from, msg.to, msg.ch, (const char *)msg.bytes, msg.time, msg.trashFlag);
+    }
 }
 
-void PluggableView::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg)
+void PluggableView::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore)
 {
-    // must be implemented in derived view class!
-    ILOG_ERROR("PluggableView::newMessage not implemented");
+    if (messages) {
+        messages->newMessage(from, to, ch, msg, msgtime); // TODO: add eventId
+#if 0
+            // display msg popup if not already viewing the messages
+            if (container != activeMsgContainer || activePanel != objects.messages_panel) {
+                unreadMessages++;
+                updateUnreadMessages();
+                if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
+                    showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
+                }
+                lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
+            }
+            if (container != activeMsgContainer)
+                highlightChat(from, to, ch);
+#endif
+    }
 }
 
 void PluggableView::packetReceived(const meshtastic_MeshPacket &p)

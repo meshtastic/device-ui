@@ -1,14 +1,15 @@
 #pragma once
 
 #include "graphics/common/MeshtasticView.h"
+#include "graphics/plugin/ClockPlugin.h"
+#include "graphics/plugin/DashboardPlugin.h"
+#include "graphics/plugin/GroupsPlugin.h"
+#include "graphics/plugin/MessagesPlugin.h"
+#include "graphics/plugin/NodesPlugin.h"
+#include "graphics/plugin/ScrollMenuPlugin.h"
 #include "meshtastic/clientonly.pb.h"
 
-class ScrollMenuPlugin;
-class DashboardPlugin;
-class NodesPlugin;
-class GroupsPlugin;
-class MessagesPlugin;
-class ClockPlugin;
+class LogMessage;
 
 // used to facilitate indev groups creation before each screen is initialised
 #define SETUP_INDEV(GROUP)                                                                                                       \
@@ -23,7 +24,7 @@ class MapPanel;
  *        Note: due to static callbacks in lvgl this class is modelled as a
  *        singleton with static callback members
  */
-class PluggableView : public MeshtasticView
+class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
 {
   public:
     void init(IClientBase *client) override;
@@ -52,6 +53,9 @@ class PluggableView : public MeshtasticView
     void updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg) override {}
     void updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg) override {}
 
+    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) override;
+    void restoreMessage(const LogMessage &msg) override;
+
     // update internal time
     void updateTime(uint32_t time) override;
 
@@ -66,8 +70,6 @@ class PluggableView : public MeshtasticView
     // initialize all ui screens
     virtual void ui_init(void);
     virtual void init_screens(void);
-    virtual void addMessage(char *msg);
-    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
 
     // update time display on screen
     virtual void updateTime(void);
@@ -116,6 +118,8 @@ class PluggableView : public MeshtasticView
     int32_t signalStrength2Percent(int32_t rx_rssi, float rx_snr);
     void setBellText(bool banner, bool sound);
     void updateLocationMap(uint32_t objects);
+
+    uint32_t timestamp(char *buf, uint32_t time, bool update = false);
 
     // singleton
     static PluggableView *gui;

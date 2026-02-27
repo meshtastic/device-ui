@@ -8,6 +8,7 @@
 #include "images.h"
 #include "input/InputDriver.h"
 #include "lv_i18n.h"
+#include "lvgl.h"
 #include "ui.h"
 #include "util/ILog.h"
 
@@ -67,24 +68,29 @@ void TFTView_480x222::ui_init(void)
     PluggableView::ui_init();
 }
 
-void TFTView_480x222::addMessage(char *text)
+lv_obj_t *TFTView_480x222::createAddMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t requestId, const char *msg)
 {
-    // get message container, TODO: need channel/node id
+    char buf[20];
+    std::tm date_tm{};
+    time_t local = msgTime;
+    localtime_r(&local, &date_tm);
+    strftime(buf, 20, "%H:%M", &date_tm); // TODO: add short name
+
     int startWidgetIndex = 12;
-    lv_obj_t *container = objects.chat_panel;
-    create_user_widget_add_message_entry(container, startWidgetIndex);
+    create_user_widget_add_message_entry(parent, startWidgetIndex);
     lv_obj_t *msgBtn = ((lv_obj_t **)&objects)[startWidgetIndex + 0];
     lv_obj_t *timeLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 1];
     lv_obj_t *msgLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 2];
-    lv_label_set_text(timeLabel, "10:02\nABCD");
+    lv_label_set_text(timeLabel, buf);
     // TODO: set on result: lv_obj_set_style_text_color(timeLabel, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_label_set_text(msgLabel, text);
-    lv_obj_scroll_to_view(msgBtn, LV_ANIM_ON);
+    lv_label_set_text(msgLabel, msg);
+    lv_obj_scroll_to_view(msgBtn, LV_ANIM_ON); // TODO: scroll only when not restoring
+    return parent;
 }
 
-void TFTView_480x222::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg)
+lv_obj_t *TFTView_480x222::createNewMessageWidget(lv_obj_t *parent, uint32_t nodeNum, uint8_t channel, const char *msg)
 {
-    lv_obj_t *obj = lv_btn_create(container);
+    lv_obj_t *obj = lv_btn_create(parent);
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -122,6 +128,12 @@ void TFTView_480x222::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
             }
         }
     }
+    return obj;
+}
+
+lv_obj_t *TFTView_480x222::createChatWidget(lv_obj_t *parent, uint32_t from, uint32_t to, uint8_t ch)
+{
+    return parent;
 }
 
 void TFTView_480x222::task_handler(void)

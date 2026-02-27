@@ -34,8 +34,6 @@ lv_style_t *get_style_page_style_MAIN_DEFAULT();
 void add_style_page_style(lv_obj_t *obj);
 void remove_style_page_style(lv_obj_t *obj);
 
-
-
 #ifdef __cplusplus
 }
 #endif
