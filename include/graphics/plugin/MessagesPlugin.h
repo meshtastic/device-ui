@@ -12,8 +12,9 @@ class IMessagesWidgetFactory
 {
   public:
     virtual lv_obj_t *createAddMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t requestId, const char *msg) = 0;
-    virtual lv_obj_t *createNewMessageWidget(lv_obj_t *parent, uint32_t nodeNum, uint8_t channel, const char *msg) = 0;
-    virtual lv_obj_t *createChatWidget(lv_obj_t *parent, uint32_t from, uint32_t to, uint8_t ch) = 0;
+    virtual lv_obj_t *createNewMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t nodeNum, uint8_t channel,
+                                             const char *msg) = 0;
+    virtual lv_obj_t *createChatWidget(lv_obj_t *parent, uint32_t index) = 0;
     virtual ~IMessagesWidgetFactory() = default;
 };
 
@@ -65,10 +66,8 @@ class MessagesPlugin : public GfxPlugin
 
     // show chats panel
     virtual void showChats(void);
-    // show chat group
-    virtual void showMessages(uint8_t ch);
     // show chat
-    virtual void showMessages(uint32_t nodeId);
+    virtual void showMessages(uint32_t id);
     // add newly received message
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime);
     // restore from saved message
@@ -88,6 +87,7 @@ class MessagesPlugin : public GfxPlugin
     void handleAction(Action actionId, WidgetIndex idx, int event_code) /*override*/;
 
     uint32_t ownNode;
+    uint32_t actTime;
     lv_obj_t *messageInput = nullptr;
     lv_obj_t *chatPanel = nullptr;
     lv_obj_t *chatsPanel = nullptr;
@@ -99,10 +99,11 @@ class MessagesPlugin : public GfxPlugin
   private:
     // lvgl event handlers
     static void ui_event_message_ready(lv_event_t *e);
+    static void ui_event_ChatButton(lv_event_t *e);
 
     // helpers
     virtual void addMessage(lv_obj_t *container, uint32_t time, const char *msg); // newly written message
-    virtual void newMessage(lv_obj_t *container, uint32_t nodeNum, uint8_t ch, const char *msg);
+    virtual void newMessage(lv_obj_t *container, uint32_t msgTime, uint32_t nodeNum, uint8_t ch, const char *msg);
 
     // plugin callback (default implementation can be overwritten by a specific view)
     Callback onMessageInput;

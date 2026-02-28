@@ -2,16 +2,16 @@
 #include "graphics/plugin/PluginRegistry.h"
 #include "lvgl.h"
 
-PluginRegistry registry;
+PluginRegistry pluginRegistry;
 
 GfxPlugin::GfxPlugin(const std::string &name)
 {
-    registry.registerPlugin(name, this);
+    pluginRegistry.registerPlugin(name, this);
 }
 
 GfxPlugin::~GfxPlugin()
 {
-    registry.deregisterPlugin(this);
+    pluginRegistry.deregisterPlugin(this);
 }
 
 void GfxPlugin::init(lv_obj_t *parent, WidgetResolver resolver, std::size_t widgetCount, lv_group_t *group, lv_indev_t *indev,

@@ -1,7 +1,9 @@
 #pragma once
 
+#include "PluginRegistry.h"
 #include "Plugins.h"
 #include "lvgl.h"
+#include "time.h"
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -86,7 +88,7 @@ class GfxPlugin
     virtual void showPanel(void) {}
 
     // periodic task handler called by view; millis is ms since boot (view supplies)
-    virtual void task_handler(uint32_t millis) { (void)millis; }
+    virtual void task_handler(time_t millis) { time(&curtime); }
 
     virtual void onShow() {}
     virtual void onHide() {}
@@ -173,6 +175,7 @@ class GfxPlugin
             actionCallback(action, data);
     }
 
+    time_t curtime = 0;
     lv_obj_t *parent = nullptr;
     lv_group_t *group = nullptr;
     lv_indev_t *indev = nullptr;
@@ -186,3 +189,5 @@ class GfxPlugin
     ActionCb actionCallback;
     LvEventCallback lvEventCb;
 };
+
+extern PluginRegistry pluginRegistry;

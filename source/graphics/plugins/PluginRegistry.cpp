@@ -25,7 +25,7 @@ bool PluginRegistry::deregisterPlugin(GfxPlugin *plugin)
     return false;
 }
 
-void PluginRegistry::task_handler(uint32_t millis)
+void PluginRegistry::task_handler(time_t millis)
 {
     for (auto &it : registeredPlugins) {
         it.second->task_handler(millis);

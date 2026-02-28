@@ -1560,6 +1560,7 @@ void PluggableView::task_handler(void)
         }
 
         if (curtime - lastrun1 >= 1) { // call every 1s
+            pluginRegistry.task_handler(curtime);
             if (map) {
                 lv_group_t *current = lv_group_get_default();
                 lv_group_set_default(mapGroup);

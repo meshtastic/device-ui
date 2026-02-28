@@ -14,7 +14,7 @@ class PluginRegistry
     bool deregisterPlugin(GfxPlugin *plugin);
 
     // Task handler for periodic updates
-    virtual void task_handler(uint32_t millis);
+    virtual void task_handler(time_t millis);
 
     virtual ~PluginRegistry() = default;
 

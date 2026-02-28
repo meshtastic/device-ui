@@ -11,20 +11,22 @@ extern "C" {
 
 enum ScreensEnum {
     _SCREEN_ID_FIRST = 1,
-    SCREEN_ID_BOOT = 1,
-    SCREEN_ID_MENU = 2,
-    SCREEN_ID_HOME = 3,
-    SCREEN_ID_CHATS = 4,
-    SCREEN_ID_NODES = 5,
-    SCREEN_ID_GROUPS = 6,
-    SCREEN_ID_MAP = 7,
-    SCREEN_ID_CLOCK = 8,
-    SCREEN_ID_SETTINGS = 9,
-    SCREEN_ID_BLANK = 10,
-    _SCREEN_ID_LAST = 10
+    SCREEN_ID_WIDGETS = 1,
+    SCREEN_ID_BOOT = 2,
+    SCREEN_ID_MENU = 3,
+    SCREEN_ID_HOME = 4,
+    SCREEN_ID_CHATS = 5,
+    SCREEN_ID_NODES = 6,
+    SCREEN_ID_GROUPS = 7,
+    SCREEN_ID_MAP = 8,
+    SCREEN_ID_CLOCK = 9,
+    SCREEN_ID_SETTINGS = 10,
+    SCREEN_ID_BLANK = 11,
+    _SCREEN_ID_LAST = 11
 };
 
 typedef struct _objects_t {
+    lv_obj_t *widgets;
     lv_obj_t *boot;
     lv_obj_t *menu;
     lv_obj_t *home;
@@ -35,8 +37,21 @@ typedef struct _objects_t {
     lv_obj_t *clock;
     lv_obj_t *settings;
     lv_obj_t *blank;
-    lv_obj_t *poster_meshtastic;
     lv_obj_t *obj0;
+    lv_obj_t *obj0__chat_button;
+    lv_obj_t *obj0__chat_channel_image;
+    lv_obj_t *obj0__chat_id;
+    lv_obj_t *obj0__chat_group_name;
+    lv_obj_t *obj1;
+    lv_obj_t *obj1__add_message_entry_button;
+    lv_obj_t *obj1__add_message_entry_time_label;
+    lv_obj_t *obj1__add_message_entry_text_label;
+    lv_obj_t *obj2;
+    lv_obj_t *obj2__new_message_entry_button;
+    lv_obj_t *obj2__new_message_time_label;
+    lv_obj_t *obj2__new_message_text_label;
+    lv_obj_t *poster_meshtastic;
+    lv_obj_t *obj3;
     lv_obj_t *main_panel;
     lv_obj_t *home_button;
     lv_obj_t *nodes_button;
@@ -50,13 +65,13 @@ typedef struct _objects_t {
     lv_obj_t *apps_button;
     lv_obj_t *settings_button;
     lv_obj_t *power_button;
-    lv_obj_t *obj1;
-    lv_obj_t *obj2;
+    lv_obj_t *obj4;
+    lv_obj_t *obj5;
     lv_obj_t *menu_label;
     lv_obj_t *top_dashboard_panel;
     lv_obj_t *top_home_back_button;
     lv_obj_t *top_home_label;
-    lv_obj_t *obj3;
+    lv_obj_t *obj6;
     lv_obj_t *home_mail_button;
     lv_obj_t *home_mail_label;
     lv_obj_t *home_nodes_button;
@@ -82,30 +97,9 @@ typedef struct _objects_t {
     lv_obj_t *home_memory_label;
     lv_obj_t *home_qr_button;
     lv_obj_t *home_qr_label;
-    lv_obj_t *chats_panel;
-    lv_obj_t *obj4;
-    lv_obj_t *obj4__chat_button;
-    lv_obj_t *obj4__chat_channel_image;
-    lv_obj_t *obj4__chat_id;
-    lv_obj_t *obj4__chat_group_name;
     lv_obj_t *chat_panel;
-    lv_obj_t *message_container;
-    lv_obj_t *obj5;
-    lv_obj_t *obj5__add_message_entry_button;
-    lv_obj_t *obj5__add_message_entry_time_label;
-    lv_obj_t *obj5__add_message_entry_text_label;
-    lv_obj_t *obj6;
-    lv_obj_t *obj6__message_container;
-    lv_obj_t *obj7;
-    lv_obj_t *obj8;
-    lv_obj_t *obj9;
-    lv_obj_t *obj10;
-    lv_obj_t *obj11;
-    lv_obj_t *obj12;
-    lv_obj_t *obj13;
-    lv_obj_t *obj14;
-    lv_obj_t *obj15;
     lv_obj_t *message_input_area;
+    lv_obj_t *chats_panel;
     lv_obj_t *top_chat_panel;
     lv_obj_t *top_chat_back_button;
     lv_obj_t *top_chat_label;
@@ -169,6 +163,9 @@ typedef struct _objects_t {
 } objects_t;
 
 extern objects_t objects;
+
+void create_screen_widgets();
+void tick_screen_widgets();
 
 void create_screen_boot();
 void tick_screen_boot();

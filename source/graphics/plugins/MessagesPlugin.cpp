@@ -111,6 +111,15 @@ void MessagesPlugin::ui_event_message_ready(lv_event_t *e)
     }
 }
 
+void MessagesPlugin::ui_event_ChatButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        uint32_t index = (unsigned long)lv_event_get_user_data(e);
+        p->showMessages(index);
+    }
+}
+
 void MessagesPlugin::handleAction(Action actionId, WidgetIndex /*idx*/, int /*event_code*/)
 {
     switch (actionId) {
@@ -122,37 +131,37 @@ void MessagesPlugin::handleAction(Action actionId, WidgetIndex /*idx*/, int /*ev
 
 void MessagesPlugin::showChats(void)
 {
+    ILOG_DEBUG("showChats %d", chats.size());
+    lv_obj_t *chatsLabel = getWidget(static_cast<WidgetIndex>(Widget::ChatsLabel));
+    lv_label_set_text_fmt(chatsLabel, _("%d active chat(s)"), chats.size());
     lv_obj_add_flag(chatPanel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(chatsPanel, LV_OBJ_FLAG_HIDDEN);
 }
 
-void MessagesPlugin::showMessages(uint8_t ch)
+void MessagesPlugin::showMessages(uint32_t id)
 {
+    ILOG_DEBUG("showMessages: id:0x%08x", id);
     lv_obj_clear_flag(chatPanel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(chatsPanel, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_t *container = nullptr;
     // find and show container
-    auto it = messages.find(ch);
+    auto it = messages.find(id);
     if (it != messages.end() && it->second) {
         lv_obj_clear_flag(it->second, LV_OBJ_FLAG_HIDDEN);
-        if (messageInput) {
-            lv_group_focus_obj(messageInput);
+        container = it->second;
+    } else {
+        if (id < c_max_channels) {
+            container = newMessageContainer(ownNode, 0, id);
+        } else {
+            container = newMessageContainer(ownNode, id, 0); // TODO ch
         }
     }
-}
-
-void MessagesPlugin::showMessages(uint32_t nodeId)
-{
-    ILOG_DEBUG("showMessages: nodeId:0x%08x, to:0x%08x, ch:%d, time:%d", nodeId);
-    lv_obj_clear_flag(chatPanel, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(chatsPanel, LV_OBJ_FLAG_HIDDEN);
-    // find and show container
-    auto it = messages.find(nodeId);
-    if (it != messages.end() && it->second) {
-        lv_obj_clear_flag(it->second, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        // create message container
-        lv_obj_t *container = newMessageContainer(ownNode, nodeId, 0); // TODO ch
-        lv_obj_clear_flag(container, LV_OBJ_FLAG_HIDDEN);
+    if (activeMsgContainer)
+        lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
+    if (container) {
+        activeMsgContainer = container;
+        lv_obj_clear_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     }
     if (messageInput) {
         lv_group_focus_obj(messageInput);
@@ -193,23 +202,29 @@ void MessagesPlugin::newMessage(uint32_t from, uint32_t to, uint8_t ch, const ch
     sprintf(&buf[pos], "%s", msg);
 
     // place message into container
-    widgetFactory.createNewMessageWidget(container, from, ch, buf);
+    widgetFactory.createNewMessageWidget(container, msgTime, from, ch, buf);
 }
 
+/**
+ * @brief insert a message into a <channel group> or <from node> container
+ *
+ * @param from source node
+ * @param to destination node
+ * @param ch channel
+ * @param msg text message
+ * @param msgTime in/out: message time (maybe overwritten when 0)
+ * @param trashFlag marked as delete previous chat
+ */
 void MessagesPlugin::restoreMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t msgTime, bool trashFlag)
 {
-#if 1 // requires restoreMessage impl in PluggableView
     if (from == ownNode) {
         lv_obj_t *container = nullptr;
         if (to == UINT32_MAX) {
-#if 1
             if (trashFlag && chats.find(ch) != chats.end()) {
                 ILOG_DEBUG("trashFlag set for channel %d", ch);
                 eraseChat(ch);
                 return;
-            } else
-#endif
-            {
+            } else {
                 container = newMessageContainer(from, to, ch);
             }
         }
@@ -265,7 +280,7 @@ void MessagesPlugin::restoreMessage(uint32_t from, uint32_t to, uint8_t ch, cons
         strcpy(buf + pos + len, msg);
         lv_obj_t *container = newMessageContainer(from, to, ch);
         lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
-        newMessage(container, from, ch, buf);
+        newMessage(container, msgTime, from, ch, buf);
     }
 
     ILOG_DEBUG("newMessage: from:0x%08x, to:0x%08x, ch:%d, time:%d", from, to, ch, msgTime);
@@ -300,8 +315,7 @@ void MessagesPlugin::restoreMessage(uint32_t from, uint32_t to, uint8_t ch, cons
     sprintf(&buf[pos], "%s", msg);
 
     // place message into container
-    newMessage(container, from, ch, buf);
-#endif
+    newMessage(container, msgTime, from, ch, buf);
 }
 
 void MessagesPlugin::clearChatHistory(void) {}
@@ -310,46 +324,20 @@ void MessagesPlugin::clearChatHistory(void) {}
 
 lv_obj_t *MessagesPlugin::newMessageContainer(uint32_t from, uint32_t to, uint8_t ch)
 {
-    if (to == UINT32_MAX || from == 0) {
-        if (messages[ch] != nullptr)
-            return messages[ch];
-    } else {
-        auto it = messages.find(from);
-        if (it != messages.end() && it->second)
-            return it->second;
-    }
+    ILOG_DEBUG("newMessageContainer: from:0x%08x, to:0x%08x, ch:%d", from, to, ch);
+    lv_obj_t *container = nullptr;
+    uint32_t index = ((to == UINT32_MAX || from == 0) ? ch : from);
 
-    // create container for new messages
-    lv_obj_t *chatPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatPanel));
-    lv_obj_t *container = lv_obj_create(chatPanel);
-#if 0
-    lv_obj_remove_style_all(container);
-    lv_obj_set_width(container, lv_pct(100));
-    lv_obj_set_height(container, lv_pct(88));
-    lv_obj_set_x(container, 0);
-    lv_obj_set_y(container, 0);
-    lv_obj_set_align(container, LV_ALIGN_TOP_MID);
-    lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
-    lv_obj_clear_flag(container, lv_obj_flag_t(LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
-                                               LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC)); /// Flags
-    lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
-    lv_obj_set_scroll_dir(container, LV_DIR_VER);
-    lv_obj_set_style_pad_left(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_row(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_column(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-#endif
-    // store new message container
-    if (to == UINT32_MAX || from == 0) {
-        messages[ch] = container;
-    } else {
-        messages[from] = container;
+    auto it = messages.find(index);
+    if (it != messages.end() && it->second)
+        return it->second;
+    else {
+        ILOG_DEBUG("created new container");
+        lv_obj_t *chatPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatPanel));
+        container = lv_obj_create(chatPanel);
+        messages[index] = container;
     }
-
-    // optionally add chat to chatPanel to access the container
+    // add chat entry to chatPanel to access the container
     addChat(from, to, ch);
 
     return container;
@@ -368,88 +356,11 @@ void MessagesPlugin::addChat(uint32_t from, uint32_t to, uint8_t ch)
 
     //    lv_obj_t *chatDelBtn = nullptr;
     lv_obj_t *chatsPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatsPanel));
-    lv_obj_t *parent_obj = chatsPanel;
-#if 0 // TODO add widget 
-    // ChatsButton
-    lv_obj_t *chatBtn = lv_btn_create(parent_obj);
-    lv_obj_set_pos(chatBtn, 0, 0);
-    lv_obj_set_size(chatBtn, LV_PCT(100), buttonSize);
-    lv_obj_add_flag(chatBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
-    lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_SCROLLABLE);
-    add_style_home_button_style(chatBtn);
-    lv_obj_set_style_align(chatBtn, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(chatBtn, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_ofs_x(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_ofs_y(chatBtn, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(chatBtn, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(chatBtn, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_row(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_column(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_t *btn = widgetFactory.createChatWidget(chatsPanel, index);
 
-    char buf[64];
-    if (to == UINT32_MAX || from == 0) {
-        sprintf(buf, "%d: %s", (int)ch, lv_label_get_text(channel[ch]));
-    } else {
-        auto it = nodes.find(from);
-        if (it != nodes.end()) {
-            sprintf(buf, "%s: %s", lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)),
-                    lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
-        } else {
-            sprintf(buf, "!%08x", from);
-        }
-    }
-
-    {
-        lv_obj_t *parent_obj = chatBtn;
-        {
-            // ChatsButtonLabel
-            lv_obj_t *obj = lv_label_create(parent_obj);
-            objects.chats_button_label = obj;
-            lv_obj_set_pos(obj, 0, 0);
-            lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
-            lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
-            lv_label_set_text(obj, buf);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-        {
-            // ChatDelButton
-            lv_obj_t *obj = lv_btn_create(parent_obj);
-            chatDelBtn = obj;
-            lv_obj_set_pos(obj, -3, -1);
-            lv_obj_set_size(obj, 40, 23);
-            lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-            lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_color(obj, colorDarkRed, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-            {
-                lv_obj_t *parent_obj = obj;
-                {
-                    // DelLabel
-                    lv_obj_t *chatDelBtn = lv_label_create(parent_obj);
-                    lv_obj_set_pos(chatDelBtn, 0, 0);
-                    lv_obj_set_size(chatDelBtn, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_label_set_text(chatDelBtn, _("DEL"));
-                    lv_obj_set_style_align(chatDelBtn, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-                }
-            }
-        }
-    }
-
-    chats[index] = chatBtn;
-    updateActiveChats();
-    if (index > c_max_channels) {
-        if (nodes.find(index) != nodes.end())
-            applyNodesFilter(index);
-    }
-
-    lv_obj_add_event_cb(chatBtn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
-    lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
-#endif
+    chats[index] = btn;
+    lv_obj_add_event_cb(btn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
+    // lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
 }
 
 uint32_t MessagesPlugin::timestamp(char *buf, uint32_t datetime, bool update)
@@ -459,8 +370,8 @@ uint32_t MessagesPlugin::timestamp(char *buf, uint32_t datetime, bool update)
 #ifdef ARCH_PORTDUINO
         time(&local);
 #else
-        if (VALID_TIME(actTime))
-            local = actTime;
+        if (VALID_TIME(curtime))
+            local = curtime;
 #endif
     }
     if (VALID_TIME(local)) {
@@ -485,12 +396,12 @@ void MessagesPlugin::addMessage(lv_obj_t *container, uint32_t time, const char *
     lv_group_set_default(oldGroup);
 }
 
-void MessagesPlugin::newMessage(lv_obj_t *container, uint32_t nodeNum, uint8_t ch, const char *msg)
+void MessagesPlugin::newMessage(lv_obj_t *container, uint32_t time, uint32_t nodeNum, uint8_t ch, const char *msg)
 {
     lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(group);
     lv_indev_set_group(indev, group);
-    lv_obj_t *widget = widgetFactory.createNewMessageWidget(container, nodeNum, ch, msg);
+    lv_obj_t *widget = widgetFactory.createNewMessageWidget(container, time, nodeNum, ch, msg);
     lv_group_set_default(oldGroup);
 }
 
