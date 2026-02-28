@@ -202,7 +202,7 @@ void MessagesPlugin::newMessage(uint32_t from, uint32_t to, uint8_t ch, const ch
     sprintf(&buf[pos], "%s", msg);
 
     // place message into container
-    widgetFactory.createNewMessageWidget(container, msgTime, from, ch, buf);
+    newMessage(container, msgTime, from, ch, buf);
 }
 
 /**
@@ -394,7 +394,7 @@ void MessagesPlugin::addMessage(lv_obj_t *container, uint32_t time, const char *
     lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(group);
     lv_indev_set_group(indev, group);
-    lv_obj_t *widget = widgetFactory.createAddMessageWidget(container, time, 0, msg);
+    widgetFactory.createAddMessageWidget(container, time, 0, msg);
     lv_group_set_default(oldGroup);
 }
 
@@ -403,7 +403,7 @@ void MessagesPlugin::newMessage(lv_obj_t *container, uint32_t time, uint32_t nod
     lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(group);
     lv_indev_set_group(indev, group);
-    lv_obj_t *widget = widgetFactory.createNewMessageWidget(container, time, nodeNum, ch, msg);
+    widgetFactory.createNewMessageWidget(container, time, nodeNum, ch, msg);
     lv_group_set_default(oldGroup);
 }
 
