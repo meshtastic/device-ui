@@ -357,8 +357,11 @@ void MessagesPlugin::addChat(uint32_t from, uint32_t to, uint8_t ch)
         return;
 
     //    lv_obj_t *chatDelBtn = nullptr;
+    lv_group_t *oldGroup = lv_group_get_default();
+    lv_group_set_default(group);
     lv_obj_t *chatsPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatsPanel));
     lv_obj_t *btn = widgetFactory.createChatWidget(chatsPanel, index);
+    lv_group_set_default(oldGroup);
 
     chats[index] = btn;
     lv_obj_add_event_cb(btn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
@@ -393,7 +396,6 @@ void MessagesPlugin::addMessage(lv_obj_t *container, uint32_t time, const char *
 {
     lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(group);
-    lv_indev_set_group(indev, group);
     widgetFactory.createAddMessageWidget(container, time, 0, msg);
     lv_group_set_default(oldGroup);
 }
@@ -402,7 +404,6 @@ void MessagesPlugin::newMessage(lv_obj_t *container, uint32_t time, uint32_t nod
 {
     lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(group);
-    lv_indev_set_group(indev, group);
     widgetFactory.createNewMessageWidget(container, time, nodeNum, ch, msg);
     lv_group_set_default(oldGroup);
 }
