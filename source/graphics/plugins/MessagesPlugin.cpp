@@ -332,9 +332,11 @@ lv_obj_t *MessagesPlugin::newMessageContainer(uint32_t from, uint32_t to, uint8_
     if (it != messages.end() && it->second)
         return it->second;
     else {
-        ILOG_DEBUG("created new container");
+        ILOG_DEBUG("create new container");
         lv_obj_t *chatPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatPanel));
-        container = lv_obj_create(chatPanel);
+        // container = lv_obj_create(chatPanel);
+        // lv_obj_set_size(container, LV_PCT(100), LV_PCT(100));
+        container = widgetFactory.createMessageContainerWidget(chatPanel);
         messages[index] = container;
     }
     // add chat entry to chatPanel to access the container

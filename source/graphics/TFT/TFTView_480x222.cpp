@@ -70,13 +70,14 @@ void TFTView_480x222::ui_init(void)
 
 lv_obj_t *TFTView_480x222::createAddMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t requestId, const char *msg)
 {
+    ILOG_DEBUG("--> createAddMessageWidget %s", msg);
     char buf[20];
     std::tm date_tm{};
     time_t local = msgTime;
     localtime_r(&local, &date_tm);
     strftime(buf, 20, "%H:%M", &date_tm); // TODO: add short name
 
-    int startWidgetIndex = 17;
+    int startWidgetIndex = 17; // check out screen.c:tick_screen_widgets()
     create_user_widget_add_message_entry(parent, startWidgetIndex);
     lv_obj_t *msgBtn = ((lv_obj_t **)&objects)[startWidgetIndex + 0];
     lv_obj_t *timeLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 1];
@@ -97,20 +98,20 @@ lv_obj_t *TFTView_480x222::createNewMessageWidget(lv_obj_t *parent, uint32_t msg
     localtime_r(&local, &date_tm);
     strftime(buf, 20, "%H:%M", &date_tm); // TODO: add short name
 
-    int startWidgetIndex = 21;
+    int startWidgetIndex = 21; // check out screen.c:tick_screen_widgets()
     create_user_widget_add_message_entry(parent, startWidgetIndex);
     lv_obj_t *msgBtn = ((lv_obj_t **)&objects)[startWidgetIndex + 0];
     lv_obj_t *timeLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 1];
     lv_obj_t *msgLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 2];
     lv_label_set_text(timeLabel, buf);
     lv_label_set_text(msgLabel, msg);
-    // lv_obj_scroll_to_view(msgBtn, LV_ANIM_ON); // TODO: scroll only when not restoring
+    lv_obj_scroll_to_view(msgBtn, LV_ANIM_OFF); // TODO scroll anim when view is active
     return msgBtn;
 }
 
 lv_obj_t *TFTView_480x222::createChatWidget(lv_obj_t *parent, uint32_t index)
 {
-    int startWidgetIndex = 12;
+    int startWidgetIndex = 12; // check out screen.c:tick_screen_widgets()
     create_user_widget_add_chat_entry(parent, startWidgetIndex);
     lv_obj_t *chatBtn = ((lv_obj_t **)&objects)[startWidgetIndex + 0];
     lv_obj_t *chImage = ((lv_obj_t **)&objects)[startWidgetIndex + 1];
@@ -128,6 +129,14 @@ lv_obj_t *TFTView_480x222::createChatWidget(lv_obj_t *parent, uint32_t index)
         }
     }
     return chatBtn;
+}
+
+lv_obj_t *TFTView_480x222::createMessageContainerWidget(lv_obj_t *parent)
+{
+    int startWidgetIndex = 25; // check out screen.c:tick_screen_widgets()
+    create_user_widget_message_container(parent, startWidgetIndex);
+    lv_obj_t *obj = ((lv_obj_t **)&objects)[startWidgetIndex + 0];
+    return obj;
 }
 
 void TFTView_480x222::task_handler(void)

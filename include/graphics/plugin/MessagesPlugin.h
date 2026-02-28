@@ -11,10 +11,11 @@
 class IMessagesWidgetFactory
 {
   public:
+    virtual lv_obj_t *createChatWidget(lv_obj_t *parent, uint32_t index) = 0;
+    virtual lv_obj_t *createMessageContainerWidget(lv_obj_t *parent) = 0;
     virtual lv_obj_t *createAddMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t requestId, const char *msg) = 0;
     virtual lv_obj_t *createNewMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t nodeNum, uint8_t channel,
                                              const char *msg) = 0;
-    virtual lv_obj_t *createChatWidget(lv_obj_t *parent, uint32_t index) = 0;
     virtual ~IMessagesWidgetFactory() = default;
 };
 
