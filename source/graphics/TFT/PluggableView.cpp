@@ -1017,14 +1017,18 @@ void PluggableView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, i
 
 // nodes screen
 
-void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node,
+void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &nodei,
                                     const meshtastic_User &cfg)
 {
-    if (nodes.find(nodeNum) == nodes.end()) {
-        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, node.last_heard, (MeshtasticView::eRole)cfg.role,
-                cfg.public_key.size != 0, node.is_favorite, node.is_ignored, cfg.has_is_unmessagable && cfg.is_unmessagable);
+    auto it = nodes.find(nodeNum);
+    if (it == nodes.end()) {
+        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, nodei.last_heard, (MeshtasticView::eRole)cfg.role,
+                cfg.public_key.size != 0, nodei.is_favorite, nodei.is_ignored, cfg.has_is_unmessagable && cfg.is_unmessagable);
     } else {
-        updateNode(nodeNum, channel, cfg);
+        if (it->first == ownNode) {
+            if (node)
+                node->updateName(cfg.short_name, cfg.long_name);
+        }
     }
 }
 
@@ -1034,6 +1038,7 @@ void PluggableView::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort,
     ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s), role=%d", nodeCount, nodeNum, lastHeard, userLong, userShort,
                role);
 
+    lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(nodesGroup);
 
     // NodeButton
@@ -1081,15 +1086,31 @@ void PluggableView::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort,
     nodes[nodeNum] = obj;
     nodeCount++;
     updateNodesStatus();
+    lv_group_set_default(oldGroup);
 }
 
 void PluggableView::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_User &cfg)
 {
+#if 0
     auto it = nodes.find(nodeNum);
     if (it != nodes.end() && it->second) {
         if (it->first == ownNode) {
             if (node)
                 node->updateName(cfg.short_name, cfg.long_name);
+        }
+    }
+#endif
+}
+
+void PluggableView::updateChannelConfig(const meshtastic_Channel &ch)
+{
+    db.channel[ch.index] = ch;
+
+    if (groups) {
+        if (ch.role != meshtastic_Channel_Role_DISABLED) {
+            groups->updateName(ch.index, ch.settings.name);
+        } else {
+            // ?
         }
     }
 }

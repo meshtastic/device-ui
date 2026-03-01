@@ -52,8 +52,12 @@ typedef struct _objects_t {
     lv_obj_t *obj2__new_message_text_label;
     lv_obj_t *obj3;
     lv_obj_t *obj3__message_container;
-    lv_obj_t *poster_meshtastic;
     lv_obj_t *obj4;
+    lv_obj_t *obj4__node_button;
+    lv_obj_t *obj4__node_short_name;
+    lv_obj_t *obj4__node_long_name;
+    lv_obj_t *poster_meshtastic;
+    lv_obj_t *obj5;
     lv_obj_t *main_panel;
     lv_obj_t *home_button;
     lv_obj_t *nodes_button;
@@ -67,13 +71,13 @@ typedef struct _objects_t {
     lv_obj_t *apps_button;
     lv_obj_t *settings_button;
     lv_obj_t *power_button;
-    lv_obj_t *obj5;
     lv_obj_t *obj6;
+    lv_obj_t *obj7;
     lv_obj_t *menu_label;
     lv_obj_t *top_dashboard_panel;
     lv_obj_t *top_home_back_button;
     lv_obj_t *top_home_label;
-    lv_obj_t *obj7;
+    lv_obj_t *obj8;
     lv_obj_t *home_mail_button;
     lv_obj_t *home_mail_label;
     lv_obj_t *home_nodes_button;
@@ -106,6 +110,10 @@ typedef struct _objects_t {
     lv_obj_t *node_button;
     lv_obj_t *node_short_name;
     lv_obj_t *node_long_name;
+    lv_obj_t *obj9;
+    lv_obj_t *obj9__node_button;
+    lv_obj_t *obj9__node_short_name;
+    lv_obj_t *obj9__node_long_name;
     lv_obj_t *top_groups_panel;
     lv_obj_t *top_groups_back_button;
     lv_obj_t *top_groups_label;
@@ -210,6 +218,9 @@ void tick_user_widget_add_chat_entry(int startWidgetIndex);
 
 void create_user_widget_message_container(lv_obj_t *parent_obj, int startWidgetIndex);
 void tick_user_widget_message_container(int startWidgetIndex);
+
+void create_user_widget_node_entry(lv_obj_t *parent_obj, int startWidgetIndex);
+void tick_user_widget_node_entry(int startWidgetIndex);
 
 void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);

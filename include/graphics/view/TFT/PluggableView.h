@@ -42,7 +42,7 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) override;
 
     // methods to update device config
-    void updateChannelConfig(const meshtastic_Channel &ch) override {}
+    void updateChannelConfig(const meshtastic_Channel &ch) override;
     void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) override {}
     void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) override;
     void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) override {}

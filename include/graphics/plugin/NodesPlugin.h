@@ -54,6 +54,9 @@ class NodesPlugin : public GfxPlugin
     // Register widget indices to compact Action values in the base class.
     void registerStandardWidgetActions(void) override;
 
+    const char *getShortName(uint32_t nodeId);
+    const char *getLongName(uint32_t nodeId);
+
     // Business logic methods: update UI
     virtual void updateNodesOnline(uint32_t online, uint32_t nodeCount);
     virtual void updateName(const char *shortName, const char *longName);

@@ -63,7 +63,7 @@ void NodesPlugin::updateNodesOnline(uint32_t online, uint32_t nodeCount)
 {
     lv_obj_t *nodesOnlineLbl = getWidget(static_cast<WidgetIndex>(Widget::NodesOnlineLabel));
     if (nodesOnlineLbl) {
-        lv_label_set_text_fmt(objects.top_home_label, "%d of %d nodes online", online, nodeCount);
+        lv_label_set_text_fmt(objects.top_home_label, _("%d of %d nodes online"), online, nodeCount);
     }
 }
 

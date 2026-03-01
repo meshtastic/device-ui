@@ -9,8 +9,12 @@
 #include "input/InputDriver.h"
 #include "lv_i18n.h"
 #include "lvgl.h"
+#include "lvgl_private.h"
 #include "ui.h"
 #include "util/ILog.h"
+
+// TODO: children index of nodepanel lv objects (see addNode)
+enum NodePanelIdx { node_img_idx, node_lbs_idx, node_lbl_idx };
 
 #define THIS TFTView_480x222::instance() // need to use THIS in all static methods
 
@@ -92,6 +96,7 @@ lv_obj_t *TFTView_480x222::createAddMessageWidget(lv_obj_t *parent, uint32_t msg
 lv_obj_t *TFTView_480x222::createNewMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t nodeNum, uint8_t channel,
                                                   const char *msg)
 {
+    ILOG_DEBUG("--> createNewMessageWidget %s", msg);
     char buf[20];
     std::tm date_tm{};
     time_t local = msgTime;
@@ -120,12 +125,12 @@ lv_obj_t *TFTView_480x222::createChatWidget(lv_obj_t *parent, uint32_t index)
 
     if (index < 8) {
         lv_label_set_text_fmt(chIdLabel, "%d", index);
-        lv_label_set_text(chGroupNameLabel, "createChatWidget channel"); // TODO
+        lv_label_set_text(chGroupNameLabel, db.channel[index].settings.name);
     } else {
         auto it = nodes.find(index);
         if (it != nodes.end()) {
-            lv_label_set_text_fmt(chIdLabel, "%04x", index & 0xffff);     // TODO
-            lv_label_set_text(chGroupNameLabel, "createChatWidget node"); // TODO
+            lv_label_set_text(chIdLabel, lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)));
+            lv_label_set_text(chGroupNameLabel, lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
         }
     }
     return chatBtn;

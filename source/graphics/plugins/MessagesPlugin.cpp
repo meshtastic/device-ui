@@ -114,8 +114,9 @@ void MessagesPlugin::ui_event_message_ready(lv_event_t *e)
 void MessagesPlugin::ui_event_ChatButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED) {
+    if (event_code == LV_EVENT_PRESSED) {
         uint32_t index = (unsigned long)lv_event_get_user_data(e);
+        lv_obj_remove_state(p->chats[index], lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         p->showMessages(index);
     }
 }
@@ -136,6 +137,7 @@ void MessagesPlugin::showChats(void)
     lv_label_set_text_fmt(chatsLabel, _("%d active chat(s)"), chats.size());
     lv_obj_add_flag(chatPanel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(chatsPanel, LV_OBJ_FLAG_HIDDEN);
+    lv_group_focus_obj(objects.top_chat_back_button);
 }
 
 void MessagesPlugin::showMessages(uint32_t id)
@@ -164,6 +166,7 @@ void MessagesPlugin::showMessages(uint32_t id)
         lv_obj_clear_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     }
     if (messageInput) {
+        lv_obj_remove_state(messageInput, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(messageInput);
     }
 }
@@ -282,7 +285,7 @@ void MessagesPlugin::restoreMessage(uint32_t from, uint32_t to, uint8_t ch, cons
         lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
         newMessage(container, msgTime, from, ch, buf);
     }
-
+#if 0
     ILOG_DEBUG("newMessage: from:0x%08x, to:0x%08x, ch:%d, time:%d", from, to, ch, msgTime);
     int pos = 0;
     char buf[284]; // 237 + 4 + 40 + 2 + 1
@@ -316,6 +319,7 @@ void MessagesPlugin::restoreMessage(uint32_t from, uint32_t to, uint8_t ch, cons
 
     // place message into container
     newMessage(container, msgTime, from, ch, buf);
+#endif
 }
 
 void MessagesPlugin::clearChatHistory(void) {}
@@ -365,6 +369,7 @@ void MessagesPlugin::addChat(uint32_t from, uint32_t to, uint8_t ch)
 
     chats[index] = btn;
     lv_obj_add_event_cb(btn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
+    ILOG_DEBUG("added btn ui_event_ChatButton index %d", index);
     // lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
 }
 
