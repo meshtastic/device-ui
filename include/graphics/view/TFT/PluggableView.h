@@ -90,10 +90,6 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
 
     // lvgl event callbacks
     static void ui_event_TopBackButton(lv_event_t *e);
-    static void ui_event_HomeButton(lv_event_t *e);
-    static void ui_event_NodesButton(lv_event_t *e);
-    static void ui_event_GroupsButton(lv_event_t *e);
-    static void ui_event_MessagesButton(lv_event_t *e);
     static void ui_event_MapButton(lv_event_t *e);
     static void ui_event_ClockButton(lv_event_t *e);
     static void ui_event_MusicButton(lv_event_t *e);

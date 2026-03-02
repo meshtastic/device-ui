@@ -5,6 +5,7 @@
 #include "Arduino.h"
 #include "graphics/plugin/MessagesPlugin.h"
 #include "images.h"
+#include "input/InputDriver.h"
 #include "lv_i18n.h"
 #include "lvgl.h"
 #include "util/ILog.h"
@@ -168,6 +169,9 @@ void MessagesPlugin::showMessages(uint32_t id)
     if (messageInput) {
         lv_obj_remove_state(messageInput, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(messageInput);
+        InputDriver *inputdriver = InputDriver::instance();
+        if (inputdriver->hasKeyboardDevice())
+            lv_indev_set_group(inputdriver->getKeyboard(), group);
     }
 }
 
@@ -369,7 +373,6 @@ void MessagesPlugin::addChat(uint32_t from, uint32_t to, uint8_t ch)
 
     chats[index] = btn;
     lv_obj_add_event_cb(btn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
-    ILOG_DEBUG("added btn ui_event_ChatButton index %d", index);
     // lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
 }
 

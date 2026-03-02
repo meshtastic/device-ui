@@ -59,9 +59,43 @@ void GroupsPlugin::registerStandardWidgetActions(void)
 
 void GroupsPlugin::registerStandardEventCallbacks(void)
 {
-    lv_obj_t *group_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group0Button));
-    // if (group_button)
-    //     lv_obj_add_event_cb(group_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onOpenGroup);
+    lv_obj_t *group0_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group0Button));
+    if (group0_button)
+        lv_obj_add_event_cb(group0_button, this->ui_event_button, LV_EVENT_ALL, (void *)0);
+    lv_obj_t *group1_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group1Button));
+    if (group1_button)
+        lv_obj_add_event_cb(group1_button, this->ui_event_button, LV_EVENT_ALL, (void *)1);
+    lv_obj_t *group2_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group2Button));
+    if (group2_button)
+        lv_obj_add_event_cb(group2_button, this->ui_event_button, LV_EVENT_ALL, (void *)2);
+    lv_obj_t *group3_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group3Button));
+    if (group3_button)
+        lv_obj_add_event_cb(group3_button, this->ui_event_button, LV_EVENT_ALL, (void *)3);
+    lv_obj_t *group4_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group4Button));
+    if (group4_button)
+        lv_obj_add_event_cb(group4_button, this->ui_event_button, LV_EVENT_ALL, (void *)4);
+    lv_obj_t *group5_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group5Button));
+    if (group5_button)
+        lv_obj_add_event_cb(group5_button, this->ui_event_button, LV_EVENT_ALL, (void *)5);
+    lv_obj_t *group6_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group6Button));
+    if (group6_button)
+        lv_obj_add_event_cb(group6_button, this->ui_event_button, LV_EVENT_ALL, (void *)6);
+    lv_obj_t *group7_button = p->getWidget(static_cast<WidgetIndex>(Widget::Group7Button));
+    if (group7_button)
+        lv_obj_add_event_cb(group7_button, this->ui_event_button, LV_EVENT_ALL, (void *)7);
+}
+
+void GroupsPlugin::ui_event_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_PRESSED) {
+        ILOG_DEBUG("ui_event_button");
+        if (p->onOpenGroup) {
+            p->onOpenGroup(e);
+        }
+        lv_obj_t *target = lv_event_get_target_obj(e);
+        lv_obj_remove_state(target, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
+    }
 }
 
 void GroupsPlugin::handleAction(Action actionId, WidgetIndex /*idx*/, int /*event_code*/)

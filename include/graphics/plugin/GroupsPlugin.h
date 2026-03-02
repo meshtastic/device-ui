@@ -57,7 +57,7 @@ class GroupsPlugin : public GfxPlugin
               lv_indev_t *indev = nullptr, GfxPlugin::RegisterWidget registerWidget = GfxPlugin::RegisterWidget::All) override;
 
     // Set view-level callbacks for plugin operations
-    void setOnOpenGroups(const Callback &cb) { onOpenGroup = cb; }
+    void setOnOpenGroup(const Callback &cb) { onOpenGroup = cb; }
 
     // Register menu widgets with default names
     void registerStandardWidgets(void) override;
