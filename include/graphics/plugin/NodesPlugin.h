@@ -46,6 +46,7 @@ class NodesPlugin : public GfxPlugin
 
     // Set view-level callbacks for plugin operations
     void setOnOpenNode(const Callback &cb) { onOpenNode = cb; }
+    void setOnNodeButton(const Callback &cb) { onNodeButton = cb; }
 
     // Register menu widgets with default names
     void registerStandardWidgets(void) override;
@@ -72,4 +73,5 @@ class NodesPlugin : public GfxPlugin
     static void ui_event_button(lv_event_t *e);
 
     Callback onOpenNode;
+    Callback onNodeButton;
 };

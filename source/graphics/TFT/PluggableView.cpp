@@ -245,6 +245,11 @@ void PluggableView::ui_events_init(void)
         lv_obj_remove_state(objects.nodes_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(objects.top_nodes_back_button);
     });
+    node->setOnNodeButton([this](lv_event_t *e) {
+        uint32_t nodeId = (unsigned long)lv_event_get_user_data(e);
+        messages->loadScreen();
+        messages->showMessages(nodeId);
+    });
 #endif
 #ifdef MUI_GROUPS_PLUGIN
     menu->setOnOpenGroups(_("Groups"), [this](lv_event_t *e) {
@@ -253,7 +258,7 @@ void PluggableView::ui_events_init(void)
         lv_obj_remove_state(objects.groups_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(objects.top_groups_back_button);
     });
-    groups->setOnOpenGroup([this](lv_event_t *e) {
+    groups->setOnGroupButton([this](lv_event_t *e) {
         uint32_t ch = (unsigned long)lv_event_get_user_data(e);
         messages->loadScreen();
         messages->showMessages(ch);
@@ -747,8 +752,7 @@ void PluggableView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, i
 #endif
 }
 
-// nodes screen
-
+// TODO: move into NodesPlugin
 void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &nodei,
                                     const meshtastic_User &cfg)
 {
@@ -764,6 +768,7 @@ void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const mes
     }
 }
 
+// TODO: move into NodesPlugin
 void PluggableView::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
                             eRole role, bool hasKey, bool isFav, bool isIgnored, bool unmessagable)
 {

@@ -89,9 +89,8 @@ void GroupsPlugin::ui_event_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_PRESSED) {
-        ILOG_DEBUG("ui_event_button");
-        if (p->onOpenGroup) {
-            p->onOpenGroup(e);
+        if (p->onGroupButton) {
+            p->onGroupButton(e);
         }
         lv_obj_t *target = lv_event_get_target_obj(e);
         lv_obj_remove_state(target, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));

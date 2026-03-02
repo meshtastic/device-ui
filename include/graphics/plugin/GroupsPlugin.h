@@ -58,6 +58,7 @@ class GroupsPlugin : public GfxPlugin
 
     // Set view-level callbacks for plugin operations
     void setOnOpenGroup(const Callback &cb) { onOpenGroup = cb; }
+    void setOnGroupButton(const Callback &cb) { onGroupButton = cb; }
 
     // Register menu widgets with default names
     void registerStandardWidgets(void) override;
@@ -82,4 +83,5 @@ class GroupsPlugin : public GfxPlugin
     static void ui_event_button(lv_event_t *e);
 
     Callback onOpenGroup;
+    Callback onGroupButton;
 };

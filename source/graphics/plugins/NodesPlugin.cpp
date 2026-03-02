@@ -46,8 +46,23 @@ void NodesPlugin::registerStandardWidgetActions(void)
 void NodesPlugin::registerStandardEventCallbacks(void)
 {
     lv_obj_t *node_button = p->getWidget(static_cast<WidgetIndex>(Widget::NodeButton));
-    // if (node_button)
-    //     lv_obj_add_event_cb(node_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onOpenNode);
+    if (node_button)
+        lv_obj_add_event_cb(node_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onOpenNode);
+}
+
+void NodesPlugin::ui_event_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_PRESSED) {
+        // TODO
+    } else if (event_code == LV_EVENT_LONG_PRESSED) {
+        if (p->onNodeButton) {
+            p->onNodeButton(e);
+        }
+    } else if (event_code == LV_EVENT_RELEASED) {
+        lv_obj_t *target = lv_event_get_target_obj(e);
+        lv_obj_remove_state(target, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
+    }
 }
 
 void NodesPlugin::handleAction(Action actionId, WidgetIndex /*idx*/, int /*event_code*/)
