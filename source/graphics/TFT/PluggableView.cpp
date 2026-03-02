@@ -165,7 +165,6 @@ void PluggableView::init_screens(void)
 }
 
 /**
- * Overwrite the default generated function ui_init()
  * Assign input groups per screen/plugin.
  */
 void PluggableView::ui_init(void)
@@ -228,89 +227,6 @@ void PluggableView::ui_init(void)
     lv_group_focus_obj(objects.home_button);
 }
 
-// lv_menu test
-/**** !!!!!!!!!!!!  TEMPORARY PLEASE REMOVE BEFORE COMMIT !!!!!!!!!!!!!! */
-/**** !!!!!!!!!!!!  TEMPORARY PLEASE REMOVE BEFORE COMMIT !!!!!!!!!!!!!! */
-/**** !!!!!!!!!!!!  TEMPORARY PLEASE REMOVE BEFORE COMMIT !!!!!!!!!!!!!! */
-/**** !!!!!!!!!!!!  TEMPORARY PLEASE REMOVE BEFORE COMMIT !!!!!!!!!!!!!! */
-/**** !!!!!!!!!!!!  TEMPORARY PLEASE REMOVE BEFORE COMMIT !!!!!!!!!!!!!! */
-/**** !!!!!!!!!!!!  TEMPORARY PLEASE REMOVE BEFORE COMMIT !!!!!!!!!!!!!! */
-typedef enum { LV_MENU_ITEM_BUILDER_VARIANT_1, LV_MENU_ITEM_BUILDER_VARIANT_2 } lv_menu_builder_variant_t;
-
-static lv_obj_t *create_text(lv_obj_t *parent, const char *icon, const char *txt, lv_menu_builder_variant_t builder_variant)
-{
-    lv_obj_t *obj = lv_menu_cont_create(parent);
-
-    lv_obj_t *img = NULL;
-    lv_obj_t *label = NULL;
-
-    if (icon) {
-        img = lv_image_create(obj);
-        lv_image_set_src(img, icon);
-    }
-
-    if (txt) {
-        label = lv_label_create(obj);
-        lv_label_set_text(label, txt);
-        lv_label_set_long_mode(label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
-        lv_obj_set_flex_grow(label, 1);
-    }
-
-    if (builder_variant == LV_MENU_ITEM_BUILDER_VARIANT_2 && icon && txt) {
-        lv_obj_add_flag(img, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
-        lv_obj_swap(img, label);
-    }
-
-    return obj;
-}
-
-static lv_obj_t *create_slider(lv_obj_t *parent, const char *icon, const char *txt, int32_t min, int32_t max, int32_t val)
-{
-    lv_obj_t *obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
-
-    lv_obj_t *slider = lv_slider_create(obj);
-    lv_obj_set_flex_grow(slider, 1);
-    lv_slider_set_range(slider, min, max);
-    lv_slider_set_value(slider, val, LV_ANIM_OFF);
-
-    if (icon == NULL) {
-        lv_obj_add_flag(slider, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
-    }
-
-    return obj;
-}
-
-static lv_obj_t *create_switch(lv_obj_t *parent, const char *icon, const char *txt, bool chk)
-{
-    lv_obj_t *obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_1);
-
-    lv_obj_t *sw = lv_switch_create(obj);
-    lv_obj_add_state(sw, chk ? LV_STATE_CHECKED : LV_STATE_DEFAULT);
-
-    return obj;
-}
-
-static lv_obj_t *root_page = nullptr;
-
-static void switch_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t *menu = (lv_obj_t *)lv_event_get_user_data(e);
-    lv_obj_t *obj = lv_event_get_target_obj(e);
-    if (code == LV_EVENT_VALUE_CHANGED) {
-        if (lv_obj_has_state(obj, LV_STATE_CHECKED)) {
-            lv_menu_set_page(menu, NULL);
-            lv_menu_set_sidebar_page(menu, root_page);
-            lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED,
-                              NULL);
-        } else {
-            lv_menu_set_sidebar_page(menu, NULL);
-            lv_menu_clear_history(menu); /* Clear history because we will be showing the root page later */
-            lv_menu_set_page(menu, root_page);
-        }
-    }
-}
-
 void PluggableView::ui_events_init(void)
 {
     // main button events
@@ -337,6 +253,11 @@ void PluggableView::ui_events_init(void)
         lv_obj_remove_state(objects.groups_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(objects.top_groups_back_button);
     });
+    groups->setOnOpenGroup([this](lv_event_t *e) {
+        uint32_t ch = (unsigned long)lv_event_get_user_data(e);
+        messages->loadScreen();
+        messages->showMessages(ch);
+    });
 #endif
 #ifdef MUI_MESSAGES_PLUGIN
     menu->setOnOpenMessages(_("Messages"), [this](lv_event_t *e) {
@@ -352,11 +273,6 @@ void PluggableView::ui_events_init(void)
 #endif
 
     // TODO: old style, create lambda callbacks as above
-    // lv_obj_add_event_cb(objects.groups_button, this->ui_event_GroupsButton, LV_EVENT_ALL, NULL);
-    // lv_obj_add_event_cb(objects.messages_button, this->ui_event_MessagesButton, LV_EVENT_ALL, NULL);
-    // message text area
-    // lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
-
     lv_obj_add_event_cb(objects.map_button, this->ui_event_MapButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.clock_button, this->ui_event_ClockButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.music_button, this->ui_event_MusicButton, LV_EVENT_ALL, NULL);
@@ -364,13 +280,6 @@ void PluggableView::ui_events_init(void)
     lv_obj_add_event_cb(objects.tools_button, this->ui_event_ToolsButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.power_button, this->ui_event_PowerButton, LV_EVENT_ALL, NULL);
-
-    // dashboard button events
-    //    dashboard->setOnOpenNodes([this](lv_event_t *e) {
-    //        node->loadScreen();
-    //        lv_indev_set_group(THIS->indev, THIS->nodesGroup);
-    //        lv_group_focus_obj(objects.top_nodes_back_button);
-    //    });
 
     // top back buttons of each plugin
     lv_obj_add_event_cb(objects.top_home_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
@@ -380,127 +289,7 @@ void PluggableView::ui_events_init(void)
     lv_obj_add_event_cb(objects.top_map_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(objects.top_clock_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(objects.top_settings_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-
-#if 0
-    // lv_menu test
-    // lv_menu test
-
-    lv_obj_t *sub_mechanics_page = lv_menu_page_create(objects.settings_menu, "TITLE");
-    lv_obj_set_style_pad_hor(sub_mechanics_page,
-                             lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
-    lv_menu_separator_create(sub_mechanics_page);
-    lv_obj_t *section = lv_menu_section_create(sub_mechanics_page);
-    create_slider(section, LV_SYMBOL_SETTINGS, "Velocity", 0, 150, 120);
-    create_slider(section, LV_SYMBOL_SETTINGS, "Acceleration", 0, 150, 50);
-    create_slider(section, LV_SYMBOL_SETTINGS, "Weight limit", 0, 150, 80);
-
-    lv_obj_t *sub_sound_page = lv_menu_page_create(objects.settings_menu, NULL);
-    lv_obj_set_style_pad_hor(sub_sound_page,
-                             lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
-    lv_menu_separator_create(sub_sound_page);
-    section = lv_menu_section_create(sub_sound_page);
-    create_switch(section, LV_SYMBOL_AUDIO, "Sound", false);
-
-    lv_obj_t *sub_display_page = lv_menu_page_create(objects.settings_menu, NULL);
-    lv_obj_set_style_pad_hor(sub_display_page,
-                             lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
-    lv_menu_separator_create(sub_display_page);
-    section = lv_menu_section_create(sub_display_page);
-    create_slider(section, LV_SYMBOL_SETTINGS, "Brightness", 0, 150, 100);
-
-    lv_obj_t *sub_software_info_page = lv_menu_page_create(objects.settings_menu, NULL);
-    lv_obj_set_style_pad_hor(sub_software_info_page,
-                             lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
-    section = lv_menu_section_create(sub_software_info_page);
-    create_text(section, NULL, "Version 1.0", LV_MENU_ITEM_BUILDER_VARIANT_1);
-
-    lv_obj_t *sub_legal_info_page = lv_menu_page_create(objects.settings_menu, NULL);
-    lv_obj_set_style_pad_hor(sub_legal_info_page,
-                             lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
-    section = lv_menu_section_create(sub_legal_info_page);
-    for (uint32_t i = 0; i < 15; i++) {
-        create_text(section, NULL,
-                    "This is a long long long long long long long long long text, if it is long enough it may scroll.",
-                    LV_MENU_ITEM_BUILDER_VARIANT_1);
-    }
-
-    lv_obj_t *sub_about_page = lv_menu_page_create(objects.settings_menu, NULL);
-    lv_obj_set_style_pad_hor(sub_about_page,
-                             lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
-    lv_menu_separator_create(sub_about_page);
-    section = lv_menu_section_create(sub_about_page);
-    lv_obj_t *cont = create_text(section, NULL, "Software information", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(objects.settings_menu, cont, sub_software_info_page);
-    cont = create_text(section, NULL, "Legal information", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(objects.settings_menu, cont, sub_legal_info_page);
-
-    lv_obj_t *sub_menu_mode_page = lv_menu_page_create(objects.settings_menu, NULL);
-    lv_obj_set_style_pad_hor(sub_menu_mode_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
-    lv_menu_separator_create(sub_menu_mode_page);
-    section = lv_menu_section_create(sub_menu_mode_page);
-    cont = create_switch(section, LV_SYMBOL_AUDIO, "Sidebar enable", true);
-    lv_obj_add_event_cb(lv_obj_get_child(cont, 2), switch_handler, LV_EVENT_VALUE_CHANGED, objects.settings_menu);
-
-    /*Create a root page*/
-    root_page = lv_menu_page_create(objects.settings_menu, "Settings");
-    lv_obj_set_style_pad_hor(root_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(objects.settings_menu), LV_PART_MAIN), 0);
-    section = lv_menu_section_create(root_page);
-    cont = create_text(section, LV_SYMBOL_SETTINGS, "Mechanics", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(objects.settings_menu, cont, sub_mechanics_page);
-    cont = create_text(section, LV_SYMBOL_AUDIO, "Sound", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(objects.settings_menu, cont, sub_sound_page);
-    cont = create_text(section, LV_SYMBOL_SETTINGS, "Display", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(objects.settings_menu, cont, sub_display_page);
-
-    create_text(root_page, NULL, "Others", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    section = lv_menu_section_create(root_page);
-    cont = create_text(section, NULL, "About", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(objects.settings_menu, cont, sub_about_page);
-    cont = create_text(section, LV_SYMBOL_SETTINGS, "Menu mode", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(objects.settings_menu, cont, sub_menu_mode_page);
-
-    lv_menu_set_sidebar_page(objects.settings_menu, NULL);
-    lv_menu_clear_history(objects.settings_menu); /* Clear history because we will be showing the root page later */
-    lv_menu_set_page(objects.settings_menu, root_page);
-
-    //    lv_menu_set_sidebar_page(objects.settings_menu, root_page);
-#endif
 }
-
-/**
- * Set focus to first button of a panel
- */
-#if 0
- void PluggableView::setGroupFocus(lv_obj_t *panel)
-{
-    if (panel == objects.home_panel) {
-        lv_group_focus_obj(objects.home_mail_button);
-    } else if (panel == objects.nodes_panel) {
-        lv_group_focus_obj(objects.node_button);
-    } else if (panel == objects.groups_panel) {
-        lv_group_focus_obj(objects.channel_button0);
-    } else if (panel == objects.messages_panel) {
-        lv_group_focus_obj(objects.message_input_area);
-    } else if (panel == objects.chats_panel) {
-        if (chats.size() > 0) {
-            lv_group_focus_obj(panel->spec_attr->children[1]); // TODO: does not work
-        }
-    } else if (panel == objects.map_panel) {
-
-    } else if (panel == objects.settings_screen_lock_panel) {
-        lv_group_focus_obj(objects.screen_lock_button_matrix);
-    } else if (panel == objects.controller_panel) {
-        lv_group_focus_obj(objects.basic_settings_user_button);
-    } else {
-        for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
-            if (panel->spec_attr->children[i]->class_p == &lv_button_class) {
-                lv_group_focus_obj(panel->spec_attr->children[i]);
-                break;
-            }
-        }
-    }
-}
-#endif
 
 /**
  * handle events for virtual keyboard
@@ -550,63 +339,6 @@ void PluggableView::ui_event_Keyboard(lv_event_t *e)
 void PluggableView::ui_event_TopBackButton(lv_event_t *e)
 {
     THIS->menu->loadScreen();
-}
-
-#if 0
-void PluggableView::ui_event_HomeButton(lv_event_t *e)
-{
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
-        lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
-        lv_indev_set_group(THIS->indev, THIS->homeGroup);
-        lv_group_focus_obj(objects.top_home_back_button);
-        lv_obj_remove_state(objects.home_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-    }
-    else if (event_code == LV_EVENT_FOCUSED) {
-        lv_label_set_text(objects.menu_label, "Home");
-    }
-}
-#endif
-
-#if 0
-void PluggableView::ui_event_NodesButton(lv_event_t *e)
-{
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
-        lv_screen_load_anim(objects.nodes, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
-        lv_indev_set_group(THIS->indev, THIS->nodesGroup);
-        lv_group_focus_obj(objects.top_nodes_back_button);
-        lv_obj_remove_state(objects.nodes_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-    }
-    else if (event_code == LV_EVENT_FOCUSED) {
-        lv_label_set_text(objects.menu_label, "Nodes");
-    }
-}
-#endif
-void PluggableView::ui_event_GroupsButton(lv_event_t *e)
-{
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
-        lv_screen_load_anim(objects.groups, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
-        lv_indev_set_group(THIS->indev, THIS->groupsGroup);
-        lv_group_focus_obj(objects.top_groups_back_button);
-        lv_obj_remove_state(objects.groups_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-    } else if (event_code == LV_EVENT_FOCUSED) {
-        lv_label_set_text(objects.menu_label, "Group Channels");
-    }
-}
-
-void PluggableView::ui_event_MessagesButton(lv_event_t *e)
-{
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
-        lv_screen_load_anim(objects.chats, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
-        lv_indev_set_group(THIS->indev, THIS->chatsGroup);
-        lv_group_focus_obj(objects.top_chat_back_button);
-        lv_obj_remove_state(objects.messages_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-    } else if (event_code == LV_EVENT_FOCUSED) {
-        lv_label_set_text(objects.menu_label, "Messages");
-    }
 }
 
 void PluggableView::ui_event_MapButton(lv_event_t *e)
@@ -1091,7 +823,7 @@ void PluggableView::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort,
 
 void PluggableView::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_User &cfg)
 {
-#if 0
+#if 0 // TODO: interface for nodePlugin to pass index
     auto it = nodes.find(nodeNum);
     if (it != nodes.end() && it->second) {
         if (it->first == ownNode) {

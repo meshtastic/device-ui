@@ -96,7 +96,6 @@ lv_obj_t *TFTView_480x222::createAddMessageWidget(lv_obj_t *parent, uint32_t msg
 lv_obj_t *TFTView_480x222::createNewMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t nodeNum, uint8_t channel,
                                                   const char *msg)
 {
-    ILOG_DEBUG("--> createNewMessageWidget %s", msg);
     char buf[20];
     std::tm date_tm{};
     time_t local = msgTime;
