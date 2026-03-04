@@ -96,6 +96,7 @@ lv_obj_t *TFTView_480x222::createAddMessageWidget(lv_obj_t *parent, uint32_t msg
 lv_obj_t *TFTView_480x222::createNewMessageWidget(lv_obj_t *parent, uint32_t msgTime, uint32_t nodeNum, uint8_t channel,
                                                   const char *msg)
 {
+    ILOG_DEBUG("--> createNewMessageWidget %s", msg);
     char buf[20];
     std::tm date_tm{};
     time_t local = msgTime;
@@ -103,7 +104,7 @@ lv_obj_t *TFTView_480x222::createNewMessageWidget(lv_obj_t *parent, uint32_t msg
     strftime(buf, 20, "%H:%M", &date_tm); // TODO: add short name
 
     int startWidgetIndex = 21; // check out screen.c:tick_screen_widgets()
-    create_user_widget_add_message_entry(parent, startWidgetIndex);
+    create_user_widget_new_message_entry(parent, startWidgetIndex);
     lv_obj_t *msgBtn = ((lv_obj_t **)&objects)[startWidgetIndex + 0];
     lv_obj_t *timeLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 1];
     lv_obj_t *msgLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 2];
