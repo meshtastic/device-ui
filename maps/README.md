@@ -51,6 +51,9 @@ Entire France Atlas style zoom 6 to 13: [Torrent Magnet Link](https://tinyurl.co
 ## Netherlands
 Entire Netherlands Standard style zoom 1 to 14 including Amsterdam until zoom 17: [Torrent Magnet Link](https://tinyurl.com/4vpuhd7n) ~956MB md5: 30ccf6484c99ae0b0765cff19acfc67e
 
+## United States of America
+Entire USA (all fifty states) standard OSM-style zoom 1 to 12, downloaded from OSM on 3/3/2026: [Torrent Magnet Link](https://tinyurl.com/339tcx45) ~1.4GB md5: 3e2b9c010949d35710be8bf62f838ecb5e07cff2
+
 <br>Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
 
 ### md5sum calculation
