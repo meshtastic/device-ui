@@ -45,6 +45,9 @@
 #ifdef T_WATCH_S3
 #include "graphics/LGFX/LGFX_T_WATCH_S3.h"
 #endif
+#ifdef T_WATCH_ULTRA
+#include "graphics/LGFX/LGFX_T_WATCH_ULTRA.h"
+#endif
 #ifdef UNPHONE
 #include "graphics/LGFX/LGFX_UNPHONE.h"
 #endif
@@ -155,6 +158,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(TWATCH_S3)
     case DisplayDriverConfig::device_t::TWATCH_S3:
         return new LGFXDriver<LGFX_TWATCH_S3>(cfg.width(), cfg.height());
+        break;
+#elif defined(TWATCH_ULTRA)
+    case DisplayDriverConfig::device_t::TWATCH_ULTRA:
+        return new LGFXDriver<LGFX_TWATCH_ULTRA>(cfg.width(), cfg.height());
         break;
 #elif defined(UNPHONE)
     case DisplayDriverConfig::device_t::UNPHONE_V9:
