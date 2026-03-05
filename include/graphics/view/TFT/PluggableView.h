@@ -63,6 +63,9 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void notifyConnected(const char *info) override;
     void notifyDisconnected(const char *info) override;
 
+    void handleResponse(uint32_t from, const uint32_t id, const meshtastic_Routing &routing,
+                        const meshtastic_MeshPacket &p) override;
+
   protected:
     PluggableView(const DisplayDriverConfig *cfg, DisplayDriver *driver);
     static PluggableView *instance(void);
@@ -116,6 +119,9 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void updateLocationMap(uint32_t objects);
 
     uint32_t timestamp(char *buf, uint32_t time, bool update = false);
+
+    // response handler callback
+    void onTextMessageCallback(const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t result);
 
     // singleton
     static PluggableView *gui;

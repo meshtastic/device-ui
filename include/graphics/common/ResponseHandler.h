@@ -29,7 +29,7 @@ class ResponseHandler
 
     ResponseHandler(uint32_t timeout);
     // add new request, pass optional anytype cookie and optional callback function
-    virtual uint32_t addRequest(uint32_t id, RequestType type, void *cookie = nullptr, Callback cb = nullptr);
+    virtual uint32_t addRequest(RequestType type, void *cookie = nullptr, Callback cb = nullptr);
     // findRequest, call cb on found if pass != -1 and if request type matches
     virtual Request findRequest(uint32_t requestId, RequestType match = anyRequest, int32_t pass = -1);
     // removeRequest, call cb on found if pass != -1) and if event type matches

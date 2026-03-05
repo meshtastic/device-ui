@@ -44,6 +44,7 @@ class MessagesPlugin : public GfxPlugin
     static constexpr std::size_t WIDGET_COUNT = static_cast<std::size_t>(Widget::Count);
 
     using Callback = std::function<void(lv_event_t *)>;
+    using SendCallback = std::function<uint32_t(uint32_t to, uint8_t ch, uint32_t msgTime, const char *msg)>;
 
     MessagesPlugin(IMessagesWidgetFactory &factory);
     virtual ~MessagesPlugin();
@@ -57,6 +58,7 @@ class MessagesPlugin : public GfxPlugin
 
     // Set view-level callbacks for plugin operations
     void setOnCancel(const Callback &cb) { onCancel = cb; }
+    void setOnSendMessage(const SendCallback &cb) { onSendMessage = cb; }
 
     // Register menu widgets with default names
     void registerStandardWidgets(void) override;
@@ -65,15 +67,17 @@ class MessagesPlugin : public GfxPlugin
     // Register widget indices to compact Action values in the base class.
     void registerStandardWidgetActions(void) override;
 
+    virtual void updateChats(void);
     // show chats panel
     virtual void showChats(void);
     // show chat
-    virtual void showMessages(uint32_t id);
+    virtual void showMessages(uint32_t nodeId, uint8_t ch);
     // add newly received message
     virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime);
     // restore from saved message
-    // virtual void restoreMessage(const LogMessage &msg);
     virtual void restoreMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t msgTime, bool trashFlag);
+    // message response
+    virtual void handleResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err);
     // erase chats
     virtual void clearChatHistory(void);
     virtual void eraseChat(uint8_t ch) {}
@@ -103,12 +107,14 @@ class MessagesPlugin : public GfxPlugin
     static void ui_event_ChatButton(lv_event_t *e);
 
     // helpers
-    virtual void addMessage(lv_obj_t *container, uint32_t time, const char *msg); // newly written message
+    virtual void sendMessage(const char *msg);
+    virtual void addMessage(lv_obj_t *container, uint32_t time, uint32_t requestId, const char *msg); // newly written message
     virtual void newMessage(lv_obj_t *container, uint32_t msgTime, uint32_t nodeNum, uint8_t ch, const char *msg);
 
     // plugin callback (default implementation can be overwritten by a specific view)
-    Callback onMessageInput;
-    Callback onCancel;
+    Callback onMessageInput = nullptr;
+    Callback onCancel = nullptr;
+    SendCallback onSendMessage = nullptr;
 
     // view reference that implements the dynamic widget
     IMessagesWidgetFactory &widgetFactory;

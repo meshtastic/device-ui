@@ -3,11 +3,14 @@
 #ifdef MUI_MESSAGES_PLUGIN
 
 #include "Arduino.h"
+#include "graphics/common/ResponseHandler.h"
 #include "graphics/plugin/MessagesPlugin.h"
 #include "images.h"
 #include "input/InputDriver.h"
 #include "lv_i18n.h"
 #include "lvgl.h"
+#include "lvgl_private.h"
+#include "util/Colors.h"
 #include "util/ILog.h"
 #include <ctime>
 #include <locale>
@@ -29,6 +32,7 @@ void MessagesPlugin::init(lv_obj_t *parent, WidgetResolver resolver, std::size_t
                           lv_indev_t *indev, GfxPlugin::RegisterWidget registerWidget)
 {
     p = this;
+    // init the 8 channel containers
     messages[0] = nullptr;
     messages[1] = nullptr;
     messages[2] = nullptr;
@@ -89,12 +93,11 @@ void MessagesPlugin::ui_event_message_ready(lv_event_t *e)
                 }
                 break;
             case 0x0D: { // SYM RETURN
-                const char *txt = lv_textarea_get_text(p->messageInput);
+                char *txt = (char *)lv_textarea_get_text(p->messageInput);
                 uint32_t len = strlen(txt);
-                if (len) {
-                    time_t curTime;
-                    time(&curTime);
-                    p->addMessage(p->activeMsgContainer, (uint32_t)curTime, txt);
+                if (len >= 1) {
+                    txt[len - 1] = '\0'; // overwrite '#' (0x0D)
+                    p->sendMessage(txt);
                 }
                 lv_textarea_set_text(p->messageInput, "");
                 break;
@@ -118,7 +121,7 @@ void MessagesPlugin::ui_event_ChatButton(lv_event_t *e)
     if (event_code == LV_EVENT_PRESSED) {
         uint32_t index = (unsigned long)lv_event_get_user_data(e);
         lv_obj_remove_state(p->chats[index], lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-        p->showMessages(index);
+        p->showMessages(index, (uint8_t)(unsigned long)lv_obj_get_user_data(p->chats[index]));
     }
 }
 
@@ -131,47 +134,54 @@ void MessagesPlugin::handleAction(Action actionId, WidgetIndex /*idx*/, int /*ev
     }
 }
 
+void MessagesPlugin::updateChats(void)
+{
+    lv_obj_t *chatsLabel = getWidget(static_cast<WidgetIndex>(Widget::ChatsLabel));
+    lv_label_set_text_fmt(chatsLabel, _("%d active chat(s)"), chats.size());
+}
+
 void MessagesPlugin::showChats(void)
 {
     ILOG_DEBUG("showChats %d", chats.size());
-    lv_obj_t *chatsLabel = getWidget(static_cast<WidgetIndex>(Widget::ChatsLabel));
-    lv_label_set_text_fmt(chatsLabel, _("%d active chat(s)"), chats.size());
+    updateChats();
     lv_obj_add_flag(chatPanel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(chatsPanel, LV_OBJ_FLAG_HIDDEN);
     lv_group_focus_obj(objects.top_chat_back_button);
 }
 
-void MessagesPlugin::showMessages(uint32_t id)
+void MessagesPlugin::showMessages(uint32_t nodeId, uint8_t ch)
 {
-    ILOG_DEBUG("showMessages: id:0x%08x", id);
+    ILOG_DEBUG("showMessages: nodeId:0x%08x, ch:%d", nodeId, ch);
     lv_obj_clear_flag(chatPanel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(chatsPanel, LV_OBJ_FLAG_HIDDEN);
 
     lv_obj_t *container = nullptr;
     // find and show container
-    auto it = messages.find(id);
+    uint32_t index = (nodeId == 0 ? ch : nodeId);
+    auto it = messages.find(index);
     if (it != messages.end() && it->second) {
         lv_obj_clear_flag(it->second, LV_OBJ_FLAG_HIDDEN);
         container = it->second;
     } else {
-        if (id < c_max_channels) {
-            container = newMessageContainer(ownNode, 0, id);
-        } else {
-            container = newMessageContainer(ownNode, id, 0); // TODO ch
-        }
+        container = newMessageContainer(ownNode, nodeId, ch);
     }
     if (activeMsgContainer)
         lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     if (container) {
         activeMsgContainer = container;
+        lv_obj_set_user_data(activeMsgContainer, (void *)index);
         lv_obj_clear_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     }
+    // activate keyboard for message input
     if (messageInput) {
         lv_obj_remove_state(messageInput, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
         lv_group_focus_obj(messageInput);
         InputDriver *inputdriver = InputDriver::instance();
         if (inputdriver->hasKeyboardDevice())
             lv_indev_set_group(inputdriver->getKeyboard(), group);
+        else {
+            // TODO: virtual keyboard
+        }
     }
 }
 
@@ -255,7 +265,7 @@ void MessagesPlugin::restoreMessage(uint32_t from, uint32_t to, uint8_t ch, cons
         if (container != nullptr) {
             if (container != activeMsgContainer)
                 lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
-            addMessage(container, msgTime, msg);
+            addMessage(container, msgTime, 0, msg); // TODO recover requestId from log
         }
 
     }
@@ -342,9 +352,8 @@ lv_obj_t *MessagesPlugin::newMessageContainer(uint32_t from, uint32_t to, uint8_
     else {
         ILOG_DEBUG("create new container");
         lv_obj_t *chatPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatPanel));
-        // container = lv_obj_create(chatPanel);
-        // lv_obj_set_size(container, LV_PCT(100), LV_PCT(100));
         container = widgetFactory.createMessageContainerWidget(chatPanel);
+        lv_obj_set_user_data(container, (void *)(unsigned long)ch);
         messages[index] = container;
     }
     // add chat entry to chatPanel to access the container
@@ -372,8 +381,10 @@ void MessagesPlugin::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_group_set_default(oldGroup);
 
     chats[index] = btn;
+    lv_obj_set_user_data(btn, (void *)(unsigned long)ch);
     lv_obj_add_event_cb(btn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
     // lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
+    updateChats();
 }
 
 uint32_t MessagesPlugin::timestamp(char *buf, uint32_t datetime, bool update)
@@ -400,20 +411,74 @@ uint32_t MessagesPlugin::timestamp(char *buf, uint32_t datetime, bool update)
 
 // --- private callbacks ---
 
-void MessagesPlugin::addMessage(lv_obj_t *container, uint32_t time, const char *msg)
+void MessagesPlugin::addMessage(lv_obj_t *container, uint32_t time, uint32_t requestId, const char *msg)
 {
+    ILOG_INFO("addMessage %d, %d, '%s'", time, requestId, msg);
     lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(group);
-    widgetFactory.createAddMessageWidget(container, time, 0, msg);
+    lv_obj_t *btn = widgetFactory.createAddMessageWidget(container, time, 0, msg);
+    lv_obj_set_user_data(btn, (void *)requestId);
     lv_group_set_default(oldGroup);
 }
 
 void MessagesPlugin::newMessage(lv_obj_t *container, uint32_t time, uint32_t nodeNum, uint8_t ch, const char *msg)
 {
+    ILOG_INFO("newMessage %d, %d, %d, '%s'", time, nodeNum, (int)ch, msg);
     lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(group);
-    widgetFactory.createNewMessageWidget(container, time, nodeNum, ch, msg);
+    lv_obj_t *btn = widgetFactory.createNewMessageWidget(container, time, nodeNum, ch, msg);
+    lv_obj_set_user_data(btn, (void *)0); // TODO set to recovered requestId
     lv_group_set_default(oldGroup);
+}
+
+void MessagesPlugin::sendMessage(const char *msg)
+{
+    // retrieve nodeNum + channel from activeMsgContainer
+    uint32_t to = UINT32_MAX;
+    uint8_t ch = 0;
+    uint32_t channelOrNode = (unsigned long)lv_obj_get_user_data(activeMsgContainer);
+
+    if (channelOrNode < c_max_channels) {
+        ch = (uint8_t)channelOrNode;
+    } else {
+        ch = 0; // to be set to the node channel by the view callback (onSendMessage)
+        to = channelOrNode;
+    }
+
+    time_t curTime;
+    time(&curTime);
+    if (onSendMessage) {
+        uint32_t requestId = onSendMessage(to, ch, curTime, msg);
+        addMessage(activeMsgContainer, (uint32_t)curTime, requestId, msg);
+    }
+}
+
+void MessagesPlugin::handleResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
+{
+    lv_obj_t *msgContainer = messages[channelOrNode];
+    if (!msgContainer) {
+        ILOG_WARN("received unexpected response nodeNum/channel 0x%08x for request id 0x%08x", channelOrNode, id);
+        return;
+    }
+    // go through all panels(buttons) and search for requestId
+    uint16_t i = msgContainer->spec_attr->child_cnt;
+    while (i-- > 0) {
+        lv_obj_t *panel = msgContainer->spec_attr->children[i];
+        uint32_t requestId = (unsigned long)panel->user_data;
+        if (requestId == id) {
+            ILOG_DEBUG("found requestId %u(%d)", requestId, i);
+            bool ack = ack || (channelOrNode < c_max_channels); // treat messages sent to group channel same as ack
+            // now give the textlabel border another color
+            // lv_obj_t *textLabel = panel->spec_attr->children[0];
+            lv_obj_set_style_border_color(panel,
+                                          err   ? colorRed
+                                          : ack ? colorBlueGreen
+                                                : colorYellow,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(panel, 1, 0);
+            break;
+        }
+    }
 }
 
 #endif

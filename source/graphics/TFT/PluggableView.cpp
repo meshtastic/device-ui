@@ -11,6 +11,7 @@
 #include "input/InputDriver.h"
 #include "lv_i18n.h"
 #include "ui.h"
+#include "util/Colors.h"
 #include "util/ILog.h"
 #include <cstdio>
 #include <ctime>
@@ -40,24 +41,7 @@ LV_IMAGE_DECLARE(img_no_tile_image);
 
 #define THIS PluggableView::instance() // need to use this in all static methods
 
-#define LV_COLOR_HEX(C)                                                                                                          \
-    {                                                                                                                            \
-        .blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff                                               \
-    }
-
 #define VALID_TIME(T) (T > 1000000 && T < UINT32_MAX)
-
-constexpr lv_color_t colorRed = LV_COLOR_HEX(0xff5555);
-constexpr lv_color_t colorDarkRed = LV_COLOR_HEX(0xa70a0a);
-constexpr lv_color_t colorOrange = LV_COLOR_HEX(0xff8c04);
-constexpr lv_color_t colorYellow = LV_COLOR_HEX(0xdbd251);
-constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x05f6cb);
-constexpr lv_color_t colorBlue = LV_COLOR_HEX(0x436C70);
-constexpr lv_color_t colorGray = LV_COLOR_HEX(0x757575);
-constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xAAFBFF);
-constexpr lv_color_t colorMidGray = LV_COLOR_HEX(0x808080);
-constexpr lv_color_t colorDarkGray = LV_COLOR_HEX(0x303030);
-constexpr lv_color_t colorMesh = LV_COLOR_HEX(0x67ea94);
 
 enum ScrollDirection {
     scrollDownLeft = 1,
@@ -248,7 +232,7 @@ void PluggableView::ui_events_init(void)
     node->setOnNodeButton([this](lv_event_t *e) {
         uint32_t nodeId = (unsigned long)lv_event_get_user_data(e);
         messages->loadScreen();
-        messages->showMessages(nodeId);
+        messages->showMessages(nodeId, (uint8_t)(unsigned long)lv_obj_get_user_data(nodes[nodeId]));
     });
 #endif
 #ifdef MUI_GROUPS_PLUGIN
@@ -261,7 +245,7 @@ void PluggableView::ui_events_init(void)
     groups->setOnGroupButton([this](lv_event_t *e) {
         uint32_t ch = (unsigned long)lv_event_get_user_data(e);
         messages->loadScreen();
-        messages->showMessages(ch);
+        messages->showMessages(0, ch);
     });
 #endif
 #ifdef MUI_MESSAGES_PLUGIN
@@ -275,6 +259,20 @@ void PluggableView::ui_events_init(void)
         lv_obj_remove_state(objects.messages_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     });
     messages->setOnCancel([this](lv_event_t *e) { menu->loadScreen(); });
+    messages->setOnSendMessage([this](uint32_t to, uint8_t ch, uint32_t msgTime, const char *msg) -> uint32_t {
+        auto callback = [this](const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t pass) {
+            this->onTextMessageCallback(req, evt, pass);
+        };
+        uint32_t requestId;
+        if (to == UINT32_MAX)
+            requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
+        else {
+            requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)to, callback);
+            ch = (uint8_t)(unsigned long)lv_obj_get_user_data(nodes[to]);
+        }
+        controller->sendTextMessage(to, ch, db.config.lora.hop_limit, msgTime, requestId, true, msg);
+        return requestId;
+    });
 #endif
 
     // TODO: old style, create lambda callbacks as above
@@ -807,7 +805,7 @@ void PluggableView::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort,
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
             lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_label_set_text(obj, userShort);
+            lv_label_set_text_fmt(obj, "%d %s", (int)ch, userShort);
         }
         {
             // NodeLongName
@@ -819,7 +817,7 @@ void PluggableView::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort,
             lv_label_set_text(obj, userLong);
         }
     }
-
+    lv_obj_set_user_data(obj, (void *)(uint32_t)ch);
     nodes[nodeNum] = obj;
     nodeCount++;
     updateNodesStatus();
@@ -1302,6 +1300,113 @@ void PluggableView::packetReceived(const meshtastic_MeshPacket &p)
     }
     if (p.from != ownNode) {
         updateSignalStrength(p.rx_rssi, p.rx_snr);
+    }
+}
+
+/**
+ * handle response from routing
+ */
+void PluggableView::handleResponse(uint32_t from, const uint32_t id, const meshtastic_Routing &routing,
+                                   const meshtastic_MeshPacket &p)
+{
+    ResponseHandler::Request req{};
+    bool ack = false;
+    if (from == ownNode) {
+        req = requests.findRequest(id);
+    } else {
+        req = requests.removeRequest(id);
+        ack = true;
+    }
+
+    if (req.type == ResponseHandler::noRequest) {
+        ILOG_WARN("request id 0x%08x not valid (anymore)", id);
+    } else {
+        ILOG_DEBUG("handleResponse request id 0x%08x", id);
+    }
+    ILOG_DEBUG("routing tag variant: %d, error: %d", routing.which_variant, routing.error_reason);
+    switch (routing.which_variant) {
+    case meshtastic_Routing_error_reason_tag: {
+        if (routing.error_reason == meshtastic_Routing_Error_NONE) {
+            if (req.type == ResponseHandler::TraceRouteRequest) {
+                // handleTraceRouteResponse(routing);
+            } else if (req.type == ResponseHandler::TextMessageRequest) {
+                messages->handleResponse((unsigned long)req.cookie, id, ack, false);
+            } else if (req.type == ResponseHandler::PositionRequest) {
+                // handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
+            }
+        } else if (routing.error_reason == meshtastic_Routing_Error_MAX_RETRANSMIT) {
+            ResponseHandler::Request req = requests.removeRequest(id);
+            if (req.type == ResponseHandler::TraceRouteRequest) {
+                // handleTraceRouteResponse(routing);
+            } else if (req.type == ResponseHandler::TextMessageRequest) {
+                messages->handleResponse((unsigned long)req.cookie, id, ack, true);
+            }
+        } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
+            if (req.type == ResponseHandler::PositionRequest) {
+                // handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
+            }
+        } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL ||
+                   routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY ||
+                   routing.error_reason == meshtastic_Routing_Error_PKI_FAILED ||
+                   routing.error_reason == meshtastic_Routing_Error_NO_INTERFACE) {
+            if (req.type == ResponseHandler::TextMessageRequest) {
+                messages->handleResponse((unsigned long)req.cookie, id, ack, true);
+                // TODO: mark node key as wrong or not usable
+            }
+        } else {
+            ILOG_DEBUG("got Routing_Error %d", routing.error_reason);
+        }
+        break;
+    }
+    case meshtastic_Routing_route_request_tag: {
+        ILOG_ERROR("got meshtastic_Routing_route_request_tag");
+        break;
+    }
+    case meshtastic_Routing_route_reply_tag: {
+        ILOG_DEBUG("got meshtastic_Routing_route_reply_tag");
+        // handleResponse(from, id, routing.route_reply);
+        break;
+    }
+    default:
+        ILOG_ERROR("unhandled meshtastic_Routing tag");
+        break;
+    }
+}
+
+#if 0 // trace route response
+void PluggableView::handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route)
+{
+    ILOG_DEBUG("handleResponse: trace route has %d / %d hops", route.route_count, route.route_back_count);
+    lv_obj_add_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(objects.hop_routes_panel, LV_OBJ_FLAG_HIDDEN);
+
+    if (id && requests.findRequest(id).type == ResponseHandler::TraceRouteRequest) {
+        requests.removeRequest(id);
+    }
+
+    for (int i = route.route_count; i > 0; i--) {
+        addNodeToTraceRoute(route.route[i - 1], objects.route_towards_panel);
+    }
+
+    for (int i = 0; i < route.route_back_count; i++) {
+        addNodeToTraceRoute(route.route_back[i], objects.route_back_panel);
+    }
+
+    // route contains only intermediate nodes, so add our node
+    addNodeToTraceRoute(ownNode, objects.trace_route_panel);
+}
+#endif
+
+void PluggableView::onTextMessageCallback(const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t result)
+{
+    ILOG_DEBUG("onTextMessageCallback: %d %d", evt, result);
+    if (evt == ResponseHandler::found) {
+        // handleTextMessageResponse((unsigned long)req.cookie, req.id, false, result);
+    } else if (evt == ResponseHandler::removed) {
+        // handleTextMessageResponse((unsigned long)req.cookie, req.id, true, result);
+    } else {
+        ILOG_DEBUG("onTextMessageCallback: timeout!");
+        messages->handleResponse((unsigned long)req.cookie, req.id, false, true);
     }
 }
 

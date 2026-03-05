@@ -1034,6 +1034,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                     // invalid channel or interface
                 case meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY:
                     // this response is sent by the other node when encryption keys differ (outdated)
+                case meshtastic_Routing_Error_PKI_FAILED:
                     view->handleResponse(p.from, p.decoded.request_id, routing, p);
                     break;
                 default:
