@@ -167,7 +167,9 @@ void create_screen_menu() {
             objects.main_panel = obj;
             lv_obj_set_pos(obj, 0, LV_PCT(20));
             lv_obj_set_size(obj, LV_PCT(100), LV_PCT(80));
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
+            lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
             add_style_page_style(obj);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1003,7 +1005,7 @@ void create_screen_nodes() {
                             // NodeLongName
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             objects.node_long_name = obj;
-                            lv_obj_set_pos(obj, 70, 0);
+                            lv_obj_set_pos(obj, 75, 0);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                             lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                             lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1905,7 +1907,6 @@ void create_user_widget_new_message_entry(lv_obj_t *parent_obj, int startWidgetI
             lv_obj_set_style_pad_column(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff303030), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_opa(obj, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_radius(obj, 12, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_min_height(obj, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_min_width(obj, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
@@ -1928,7 +1929,7 @@ void create_user_widget_new_message_entry(lv_obj_t *parent_obj, int startWidgetI
                             // NewMessageTextLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             ((lv_obj_t **)&objects)[startWidgetIndex + 2] = obj;
-                            lv_obj_set_pos(obj, 40, 0);
+                            lv_obj_set_pos(obj, 50, 0);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff404b5c), LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_text_color(obj, lv_color_hex(0xff939393), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1965,7 +1966,6 @@ void create_user_widget_add_message_entry(lv_obj_t *parent_obj, int startWidgetI
             lv_obj_set_style_pad_column(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff31363f), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_opa(obj, 180, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_radius(obj, 12, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 static lv_coord_t dsc[] = {0, LV_GRID_TEMPLATE_LAST};
                 lv_obj_set_style_grid_row_dsc_array(obj, dsc, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1996,7 +1996,7 @@ void create_user_widget_add_message_entry(lv_obj_t *parent_obj, int startWidgetI
                             // AddMessageEntryTextLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
                             ((lv_obj_t **)&objects)[startWidgetIndex + 2] = obj;
-                            lv_obj_set_pos(obj, 55, 0);
+                            lv_obj_set_pos(obj, 50, 0);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff404b5c), LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2141,7 +2141,7 @@ void create_user_widget_node_entry(lv_obj_t *parent_obj, int startWidgetIndex) {
                     // NodeLongName
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     ((lv_obj_t **)&objects)[startWidgetIndex + 2] = obj;
-                    lv_obj_set_pos(obj, 70, 0);
+                    lv_obj_set_pos(obj, 75, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                     lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
