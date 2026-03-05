@@ -12,6 +12,10 @@
 #include "screens.h"
 #endif
 
+#ifndef INDEV_EVENT_TRIGGER
+#define INDEV_EVENT_TRIGGER LV_EVENT_PRESSED
+#endif
+
 static ScrollMenuPlugin *p = nullptr;
 
 ScrollMenuPlugin::ScrollMenuPlugin() : GfxPlugin("ScrollMenu") {}
@@ -111,10 +115,16 @@ void ScrollMenuPlugin::registerStandardEventCallbacks(void)
 void ScrollMenuPlugin::ui_event_MenuButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == EVENT_CLICKED) {
+    if (event_code == INDEV_EVENT_TRIGGER) {
         ScrollMenuPlugin::Callback *onPress = (ScrollMenuPlugin::Callback *)(lv_event_get_user_data(e));
         if (onPress && onPress->cb)
             onPress->cb(e);
+    } else if (event_code == LV_EVENT_CLICKED) {
+#ifdef ARCH_PORTDUINO // TODO only if using mouse pointer
+        ScrollMenuPlugin::Callback *onPress = (ScrollMenuPlugin::Callback *)(lv_event_get_user_data(e));
+        if (onPress && onPress->cb)
+            onPress->cb(e);
+#endif
     } else if (event_code == LV_EVENT_FOCUSED || event_code == LV_EVENT_PRESSED) {
         lv_obj_t *menuLbl = p->getWidget(static_cast<WidgetIndex>(Widget::MenuLabel));
         if (menuLbl) {
