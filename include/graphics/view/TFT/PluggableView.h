@@ -98,6 +98,7 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     static void ui_event_MusicButton(lv_event_t *e);
     static void ui_event_StatisticsButton(lv_event_t *e);
     static void ui_event_ToolsButton(lv_event_t *e);
+    static void ui_event_AppsButton(lv_event_t *e);
     static void ui_event_SettingsButton(lv_event_t *e);
     static void ui_event_PowerButton(lv_event_t *e);
 
