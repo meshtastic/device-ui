@@ -281,6 +281,7 @@ void PluggableView::ui_events_init(void)
     lv_obj_add_event_cb(objects.music_button, this->ui_event_MusicButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.statistics_button, this->ui_event_StatisticsButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.tools_button, this->ui_event_ToolsButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.apps_button, this->ui_event_AppsButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.power_button, this->ui_event_PowerButton, LV_EVENT_ALL, NULL);
 
@@ -344,6 +345,7 @@ void PluggableView::ui_event_TopBackButton(lv_event_t *e)
     THIS->menu->loadScreen();
 }
 
+// TODO: will be replaced by 'setOnOpenXXX' callbacks, see above
 void PluggableView::ui_event_MapButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -407,6 +409,19 @@ void PluggableView::ui_event_ToolsButton(lv_event_t *e)
         lv_obj_remove_state(objects.tools_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     } else if (event_code == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Tools");
+    }
+}
+
+void PluggableView::ui_event_AppsButton(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_PRESSED) {
+        lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
+        lv_indev_set_group(THIS->indev, THIS->homeGroup);
+        // lv_group_focus_obj(objects.top_apps_back_button);
+        lv_obj_remove_state(objects.apps_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
+    } else if (event_code == LV_EVENT_FOCUSED) {
+        lv_label_set_text(objects.menu_label, "Apps");
     }
 }
 
@@ -1091,13 +1106,13 @@ void PluggableView::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
             lv_obj_add_event_cb(img, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
             updateLocationMap(map->getObjectsOnMap());
         }
-    } else
-#endif
-    {
+    }
+    else {
         if (map) {
             map->update(it->first, lat * 1e-7, lon * 1e-7);
         }
     }
+#endif
 }
 
 void PluggableView::removeFromMap(uint32_t nodeNum)

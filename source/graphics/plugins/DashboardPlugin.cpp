@@ -173,7 +173,7 @@ void DashboardPlugin::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
         }
         lv_label_set_text(loraLbl, loraFreq);
         // Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
-        // Themes::recolorText(objects.home_lora_label, cfg.tx_enabled);
+        // Themes::recolorText(loraLbl, cfg.tx_enabled);
 #if 0 // TODO
         if (!cfg.tx_enabled) {
             lv_obj_clear_flag(objects.top_lora_tx_panel, LV_OBJ_FLAG_HIDDEN);
