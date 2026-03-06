@@ -115,7 +115,7 @@ class LGFX_TDISPLAY_S3PRO : public LGFX_Touch
             cfg.panel_height = screenWidth;
             cfg.offset_x = 49;
             cfg.offset_y = 0;
-            cfg.offset_rotation = 3;
+            cfg.offset_rotation = 1;
             cfg.dummy_read_pixel = 8;
             cfg.dummy_read_bits = 1;
             cfg.readable = true;
