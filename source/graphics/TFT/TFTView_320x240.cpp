@@ -2873,7 +2873,7 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
                     if (hopsAway < 0)
                         hopsAway = 5;
                     uint8_t hopLimit = (hopsAway < THIS->db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
-                    requestId = THIS->requests.addRequest(to, ResponseHandler::TraceRouteRequest);
+                    requestId = THIS->requests.addRequest(ResponseHandler::TraceRouteRequest, (void *)to);
                     THIS->controller->traceRoute(to, ch, hopLimit, requestId);
                     break;
                 }
@@ -4364,12 +4364,12 @@ void TFTView_320x240::handleAddMessage(char *msg)
 
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
-        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
+        requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
         usePkc = (unsigned long)nodes[to]->LV_OBJ_IDX(node_bat_idx)->user_data; // hasKey
-        requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to, callback);
+        requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)to, callback);
         // trial: hoplimit optimization for direct text messages
         int8_t hopsAway = (signed long)nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
         if (hopsAway < 0)
@@ -4415,7 +4415,8 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
+    lv_text_attributes_t attributes = {0};
+    lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_12, &attributes);
     lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(width, 200) + 10, 40));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
@@ -4532,7 +4533,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_align(sn_lbl, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(sn_lbl, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
     // if short name contains only non-printable glyphs replace with short id
-    if (lv_txt_get_width(userShort, strlen(userShort), &ui_font_montserrat_14, 0) <= 4) {
+    lv_text_attributes_t attributes = {0};
+    if (lv_text_get_width(userShort, strlen(userShort), &ui_font_montserrat_14, &attributes) <= 4) {
         lv_label_set_text_fmt(sn_lbl, "%04x", nodeNum & 0xffff);
     } else {
         lv_label_set_text(sn_lbl, userShort);
@@ -4730,7 +4732,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
 
         if (cfg.public_key.size != 0) {
             // set border color to bg color
-            lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_color_t color =
+                lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), lv_part_t(LV_PART_MAIN | LV_STATE_DEFAULT));
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color, LV_PART_MAIN | LV_STATE_DEFAULT);
         } else {
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -5221,7 +5224,7 @@ void TFTView_320x240::scanSignal(uint32_t scanNo)
         uint32_t requestId;
         uint32_t to = currentNode;
         uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
-        requestId = requests.addRequest(to, ResponseHandler::PositionRequest, (void *)to);
+        requestId = requests.addRequest(ResponseHandler::PositionRequest, (void *)to);
         controller->requestPosition(to, ch, requestId);
         objects.signal_scanner_panel->user_data = (void *)requestId;
     }
@@ -6330,7 +6333,8 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_14, 0);
+    lv_text_attributes_t attributes = {0};
+    lv_coord_t width = lv_text_get_width(msg, strlen(msg), &ui_font_montserrat_14, &attributes);
     lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);

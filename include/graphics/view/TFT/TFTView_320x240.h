@@ -425,6 +425,8 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *qr;                                         // qr code
     MapPanel *map = nullptr;                              // map
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
+    std::unordered_map<uint32_t, lv_obj_t *> messages;    // message containers (within ui_MessagesPanel)
+    std::unordered_map<uint32_t, lv_obj_t *> chats;       // active chats (within ui_ChatPanel)
     // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
         meshtastic_User user;
