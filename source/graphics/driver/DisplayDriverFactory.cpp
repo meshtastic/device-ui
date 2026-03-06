@@ -39,6 +39,9 @@
 #ifdef T_LORA_PAGER
 #include "graphics/LGFX/LGFX_T_LORA_PAGER.h"
 #endif
+#ifdef T_DISPLAY_S3_PRO
+#include "graphics/LGFX/LGFX_T_DISPLAY_S3_PRO.h"
+#endif
 #ifdef PICOMPUTER_S3
 #include "graphics/LGFX/LGFX_PICOMPUTER_S3.h"
 #endif
@@ -138,6 +141,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(T_LORA_PAGER)
     case DisplayDriverConfig::device_t::TLORA_PAGER:
         return new LGFXDriver<LGFX_TLORA_PAGER>(cfg.width(), cfg.height());
+        break;
+#elif defined(T_DISPLAY_S3_PRO)
+    case DisplayDriverConfig::device_t::TDISPLAY_S3PRO:
+        return new LGFXDriver<LGFX_TDISPLAY_S3PRO>(cfg.width(), cfg.height());
         break;
 #elif defined(SENSECAP_INDICATOR)
     case DisplayDriverConfig::device_t::INDICATOR:

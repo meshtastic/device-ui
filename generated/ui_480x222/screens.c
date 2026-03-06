@@ -538,7 +538,7 @@ void create_screen_home() {
             objects.obj8 = obj;
             lv_obj_set_pos(obj, 0, LV_PCT(10));
             lv_obj_set_size(obj, LV_PCT(100), LV_PCT(90));
-            lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
             add_style_page_style(obj);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1918,8 +1918,6 @@ void create_user_widget_new_message_entry(lv_obj_t *parent_obj, int startWidgetI
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_CHECKABLE);
-                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_max_width(obj, 455, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_color(obj, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_label_set_text(obj, "18:41");
@@ -1956,8 +1954,8 @@ void create_user_widget_add_message_entry(lv_obj_t *parent_obj, int startWidgetI
             // AddMessageEntryButton
             lv_obj_t *obj = lv_button_create(parent_obj);
             ((lv_obj_t **)&objects)[startWidgetIndex + 0] = obj;
-            lv_obj_set_pos(obj, 0, 0);
-            lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
+            lv_obj_set_pos(obj, LV_PCT(30), 0);
+            lv_obj_set_size(obj, LV_PCT(70), LV_SIZE_CONTENT);
             lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1987,8 +1985,7 @@ void create_user_widget_add_message_entry(lv_obj_t *parent_obj, int startWidgetI
                     lv_obj_set_pos(obj, 3, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_CHECKABLE);
-                    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff64b246), LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_color(obj, lv_color_hex(0xff67ea94), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_label_set_text(obj, "0:00");
                     {
                         lv_obj_t *parent_obj = obj;
@@ -2056,7 +2053,7 @@ void create_user_widget_add_chat_entry(lv_obj_t *parent_obj, int startWidgetInde
                     // ChatGroupName
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     ((lv_obj_t **)&objects)[startWidgetIndex + 3] = obj;
-                    lv_obj_set_pos(obj, 70, 0);
+                    lv_obj_set_pos(obj, 80, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_SCROLL);
                     lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
