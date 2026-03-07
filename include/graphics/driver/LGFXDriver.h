@@ -123,11 +123,13 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 #endif
                     }
                     if ((pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
-                        (screenTimeout + 50 > lv_display_get_inactive_time(NULL) && !DisplayDriver::view->isScreenLocked())) {
+                        (screenTimeout + 50 > lv_display_get_inactive_time(NULL) && !DisplayDriver::view->isScreenLocked()) ||
+                        DisplayDriver::isWakeRequested()) {
                         delay(2); // let the CPU finish to restore all register in case of light sleep
-                        // woke up by touch or button
+                        // woke up by touch, button, or external wake request
                         ILOG_INFO("leaving powersave");
                         powerSaving = false;
+                        DisplayDriver::clearWakeRequest();
                         DisplayDriver::view->triggerHeartbeat();
                         lgfx->powerSaveOff();
                         lgfx->wakeup();
@@ -153,12 +155,13 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     lgfx->powerSaveOn();
                     powerSaving = true;
                 }
-                if (screenTimeout > lv_display_get_inactive_time(NULL)) {
+                if (screenTimeout > lv_display_get_inactive_time(NULL) || DisplayDriver::isWakeRequested()) {
                     DisplayDriver::view->blankScreen(false);
                     lgfx->powerSaveOff();
                     lgfx->wakeup();
                     powerSaving = false;
-                    lv_disp_trig_activity(NULL);
+                    DisplayDriver::clearWakeRequest();
+                    lv_display_trigger_activity(NULL);
                 }
             }
         }
