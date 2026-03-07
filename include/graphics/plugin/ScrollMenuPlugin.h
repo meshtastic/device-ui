@@ -86,15 +86,15 @@ class ScrollMenuPlugin : public GfxPlugin
     // lvgl event handlers
     static void ui_event_MenuButton(lv_event_t *e);
 
-    Callback onOpenHome;
-    Callback onOpenNodes;
-    Callback onOpenGroups;
-    Callback onOpenMessages;
-    Callback onOpenMap;
-    Callback onOpenClock;
-    Callback onOpenMusic;
-    Callback onOpenStatistics;
-    Callback onOpenTools;
-    Callback onOpenSettings;
-    Callback onPower;
+    Callback onOpenHome{};
+    Callback onOpenNodes{};
+    Callback onOpenGroups{};
+    Callback onOpenMessages{};
+    Callback onOpenMap{};
+    Callback onOpenClock{};
+    Callback onOpenMusic{};
+    Callback onOpenStatistics{};
+    Callback onOpenTools{};
+    Callback onOpenSettings{};
+    Callback onPower{};
 };

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GfxPlugin.h"
+#include "graphics/plugin/GfxPlugin.h"
+#include "input/lv_t9_keyboard.h"
 #include <array>
 #include <cstdint>
 #include <unordered_map>
@@ -33,6 +34,7 @@ class MessagesPlugin : public GfxPlugin
         MessagesLabel,
         MessagesPanel,
         MessageInputArea,
+        KeyboardPanel,
         // add more as required but keep below MAX_WIDGETS
         Count
     };
@@ -93,6 +95,7 @@ class MessagesPlugin : public GfxPlugin
 
     uint32_t ownNode;
     uint32_t actTime;
+    t9_kb_t *kb = nullptr;
     lv_obj_t *messageInput = nullptr;
     lv_obj_t *chatPanel = nullptr;
     lv_obj_t *chatsPanel = nullptr;

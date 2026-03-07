@@ -82,6 +82,6 @@ class GroupsPlugin : public GfxPlugin
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
 
-    Callback onOpenGroup;
-    Callback onGroupButton;
+    Callback onOpenGroup = nullptr;
+    Callback onGroupButton = nullptr;
 };

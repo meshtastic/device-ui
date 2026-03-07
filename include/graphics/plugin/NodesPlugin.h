@@ -72,6 +72,6 @@ class NodesPlugin : public GfxPlugin
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
 
-    Callback onOpenNode;
-    Callback onNodeButton;
+    Callback onOpenNode = nullptr;
+    Callback onNodeButton = nullptr;
 };
