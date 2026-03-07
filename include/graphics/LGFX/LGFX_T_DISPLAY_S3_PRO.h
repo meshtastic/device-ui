@@ -26,7 +26,7 @@ class LGFX_Touch : public lgfx::LGFX_Device
         bool result = LGFX_Device::init_impl(use_reset, use_clear);
         lgfx::pinMode(TOUCH_INT, lgfx::pin_mode_t::input_pullup);
         touchDrv.setPins(TOUCH_RST, TOUCH_INT);
-        result |= touchDrv.begin(Wire, 0x1A, 3, 2);
+        result |= touchDrv.begin(Wire, 0x5A, SDA, SCL);
         if (!result) {
             ILOG_ERROR("Failed to initialise touch panel!");
         } else {
@@ -51,8 +51,13 @@ class LGFX_Touch : public lgfx::LGFX_Device
     {
         EventBits_t bits = xEventGroupGetBits(eventGrp);
         if (bits & HW_IRQ_TOUCHPAD) {
-            uint8_t tp = touchDrv.getPoint((int16_t *)touchX, (int16_t *)touchY, 1);
-            if (tp == 0) {
+            uint16_t x = 0, y = 0;
+            uint8_t tp = touchDrv.getPoint((int16_t *)&x, (int16_t *)&y, 1);
+            if (tp) {
+                // Rotate coordinates by 90 degrees clockwise (-> landscape)
+                *touchX = y;
+                *touchY = 222 - x;
+            } else {
                 xEventGroupClearBits(eventGrp, HW_IRQ_TOUCHPAD);
             }
             return tp;
