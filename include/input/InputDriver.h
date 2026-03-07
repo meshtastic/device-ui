@@ -19,6 +19,8 @@ class InputDriver
     static InputDriver *instance(void);
     virtual void init(void) {}
     virtual void task_handler(void) {}
+    virtual void onScreenSleep(void) {}
+    virtual void onScreenWake(void) {}
     virtual ~InputDriver(void);
 
     virtual std::vector<std::string> getKeyboardDevices(void) { return std::vector<std::string>(); }

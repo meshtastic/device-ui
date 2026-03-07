@@ -15,6 +15,8 @@ class I2CKeyboardInputDriver : public InputDriver
     virtual void init(void) override;
     virtual void task_handler(void) override{};
     virtual void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) = 0;
+    void onScreenSleep(void) override;
+    void onScreenWake(void) override;
     virtual ~I2CKeyboardInputDriver(void) {}
 
     struct KeyboardDefinition {
@@ -31,6 +33,9 @@ class I2CKeyboardInputDriver : public InputDriver
 
   protected:
     bool registerI2CKeyboard(I2CKeyboardInputDriver *driver, std::string name, uint8_t address);
+    void initKeyboardBacklight(uint8_t pin, uint8_t channel = 4);
+    void setKeyboardBacklight(uint8_t brightness);
+    uint8_t kbBlBrightness = 0;
 
     static NavigationCallback navigateHomeCallback;
 
@@ -38,6 +43,9 @@ class I2CKeyboardInputDriver : public InputDriver
     static void keyboard_read(lv_indev_t *indev, lv_indev_data_t *data);
 
     static KeyboardList i2cKeyboardList; // list of registered I2C keyboards
+    uint8_t kbBlPin = 0;
+    uint8_t kbBlChannel = 4;
+    uint8_t kbBlSavedBrightness = 0;
 };
 
 class TDeckKeyboardInputDriver : public I2CKeyboardInputDriver
@@ -64,6 +72,9 @@ class TLoraPagerKeyboardInputDriver : public TCA8418KeyboardInputDriver
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TLoraPagerKeyboardInputDriver(void) {}
+
+  private:
+    uint8_t kbBlStep = 0;
 };
 
 class TDeckProKeyboardInputDriver : public TCA8418KeyboardInputDriver

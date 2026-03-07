@@ -106,6 +106,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         lgfx->sleep();
                         lgfx->powerSaveOn();
                         powerSaving = true;
+                        InputDriver::instance()->onScreenSleep();
                     }
                 }
                 if (powerSaving) {
@@ -134,6 +135,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         lgfx->powerSaveOff();
                         lgfx->wakeup();
                         lgfx->setBrightness(lastBrightness);
+                        InputDriver::instance()->onScreenWake();
                         DisplayDriver::view->screenSaving(false);
                         if (hasTouch() && hasButton()) {
                             ILOG_DEBUG("enable touch, disable button input");

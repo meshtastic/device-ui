@@ -40,6 +40,50 @@ bool I2CKeyboardInputDriver::registerI2CKeyboard(I2CKeyboardInputDriver *driver,
     return true;
 }
 
+void I2CKeyboardInputDriver::initKeyboardBacklight(uint8_t pin, uint8_t channel)
+{
+#ifndef ARCH_PORTDUINO
+    kbBlPin = pin;
+    kbBlChannel = channel;
+    kbBlBrightness = 0;
+    kbBlSavedBrightness = 0;
+    pinMode(kbBlPin, OUTPUT);
+    digitalWrite(kbBlPin, LOW);
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    ledcAttach(kbBlPin, 1000, 8);
+#else
+    ledcSetup(kbBlChannel, 1000, 8);
+    ledcAttachPin(kbBlPin, kbBlChannel);
+#endif
+#endif
+}
+
+void I2CKeyboardInputDriver::setKeyboardBacklight(uint8_t brightness)
+{
+#ifndef ARCH_PORTDUINO
+    if (kbBlPin == 0)
+        return;
+    kbBlBrightness = brightness;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    ledcWrite(kbBlPin, kbBlBrightness);
+#else
+    ledcWrite(kbBlChannel, kbBlBrightness);
+#endif
+    ILOG_DEBUG("KB backlight: %d", kbBlBrightness);
+#endif
+}
+
+void I2CKeyboardInputDriver::onScreenSleep(void)
+{
+    kbBlSavedBrightness = kbBlBrightness;
+    setKeyboardBacklight(0);
+}
+
+void I2CKeyboardInputDriver::onScreenWake(void)
+{
+    setKeyboardBacklight(kbBlSavedBrightness);
+}
+
 void I2CKeyboardInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
     // Read from all registered keyboards
@@ -135,6 +179,10 @@ void TCA8418KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev
 
 // ---------- TLoraPagerKeyboardInputDriver Implementation ----------
 
+#define TLORA_BL_TOGGLE_KEY 0x01
+
+static uint8_t tloraPagerModifierState = 0; // 0=normal, 1=shift, 2=sym
+
 TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address) : TCA8418KeyboardInputDriver(address)
 {
     registerI2CKeyboard(this, "TLora Pager Keyboard", address);
@@ -142,7 +190,10 @@ TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address) : 
 
 void TLoraPagerKeyboardInputDriver::init(void)
 {
-    // Additional initialization for TLora-Pager if needed
+    // Register as the global InputDriver singleton so InputDriver::instance()
+    // dispatches onScreenSleep/Wake() to this driver.
+    driver = this;
+    initKeyboardBacklight(KB_BL_PIN);
     TCA8418KeyboardInputDriver::init();
 }
 
@@ -159,12 +210,12 @@ static const char TLoraPagerKeyMap[31][3] = {
     {'v', 'V', '?'}, {'b', 'B', '!'}, {'n', 'N', ','}, {'m', 'M', '.'},
     {0,    0,    0   }, // Key 29: Shift modifier
     {0x08, 0x08, 0x1B}, // Key 30: Backspace / Backspace (shift) / ESC (sym)
-    {' ', ' ', ' '}  // Key 31: Space
+    {' ', ' ', TLORA_BL_TOGGLE_KEY}  // Key 31: Space / Space (shift) / KB backlight toggle (sym)
 };
 
 static const uint8_t TLORA_MODIFIER_SYM_IDX   = 20; // 0-based index of Sym key
 static const uint8_t TLORA_MODIFIER_SHIFT_IDX = 28; // 0-based index of Shift key
-static uint8_t tloraPagerModifierState = 0;          // 0=normal, 1=shift, 2=sym
+
 
 void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
@@ -221,6 +272,14 @@ void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *in
     uint8_t modUsed = tloraPagerModifierState;
     char keyChar = TLoraPagerKeyMap[keyIndex][modUsed];
     tloraPagerModifierState = 0; // one-shot: clear after regular key
+
+    if (keyChar == TLORA_BL_TOGGLE_KEY) {
+        static const uint8_t kbBlSteps[] = {0, 40, 127, 255};
+        static const uint8_t kbBlStepCount = sizeof(kbBlSteps) / sizeof(kbBlSteps[0]);
+        kbBlStep = (kbBlStep + 1) % kbBlStepCount;
+        setKeyboardBacklight(kbBlSteps[kbBlStep]);
+        return;
+    }
 
     if (keyChar == 0)
         return;
