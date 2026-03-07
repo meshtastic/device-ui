@@ -5,8 +5,17 @@
 #include <Wire.h>
 
 #include "indev/lv_indev_private.h"
+#include "widgets/textarea/lv_textarea.h"
+#include "graphics/driver/DisplayDriver.h"
+
+// TCA8418 register definitions
+#define TCA8418_REG_CFG         0x01
+#define TCA8418_REG_INT_STAT    0x02
+#define TCA8418_REG_KEY_LCK_EC  0x03
+#define TCA8418_REG_KEY_EVENT_A 0x04
 
 I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
+NavigationCallback I2CKeyboardInputDriver::navigateHomeCallback = nullptr;
 
 I2CKeyboardInputDriver::I2CKeyboardInputDriver(void) {}
 
@@ -137,12 +146,106 @@ void TLoraPagerKeyboardInputDriver::init(void)
     TCA8418KeyboardInputDriver::init();
 }
 
+// T-Pager keyboard layout: 4×10 matrix with 31 usable keys
+// Key mapping from TCA8418 key codes to characters [normal, shift, sym]
+static const char TLoraPagerKeyMap[31][3] = {
+    {'q', 'Q', '1'}, {'w', 'W', '2'}, {'e', 'E', '3'}, {'r', 'R', '4'}, {'t', 'T', '5'},
+    {'y', 'Y', '6'}, {'u', 'U', '7'}, {'i', 'I', '8'}, {'o', 'O', '9'}, {'p', 'P', '0'},
+    {'a', 'A', '*'}, {'s', 'S', '/'}, {'d', 'D', '+'}, {'f', 'F', '-'}, {'g', 'G', '='},
+    {'h', 'H', ':'}, {'j', 'J', '\''},  {'k', 'K', '"'}, {'l', 'L', '@'},
+    {0x0D, 0x09, 0x0D}, // Key 20: Enter / Tab (shift) / Enter (sym)
+    {0,    0,    0   }, // Key 21: Sym modifier
+    {'z', 'Z', '_'}, {'x', 'X', '$'}, {'c', 'C', ';'},
+    {'v', 'V', '?'}, {'b', 'B', '!'}, {'n', 'N', ','}, {'m', 'M', '.'},
+    {0,    0,    0   }, // Key 29: Shift modifier
+    {0x08, 0x08, 0x1B}, // Key 30: Backspace / Backspace (shift) / ESC (sym)
+    {' ', ' ', ' '}  // Key 31: Space
+};
+
+static const uint8_t TLORA_MODIFIER_SYM_IDX   = 20; // 0-based index of Sym key
+static const uint8_t TLORA_MODIFIER_SHIFT_IDX = 28; // 0-based index of Shift key
+static uint8_t tloraPagerModifierState = 0;          // 0=normal, 1=shift, 2=sym
+
 void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    // TODO
-    char keyValue = 0;
     data->state = LV_INDEV_STATE_RELEASED;
-    data->key = (uint32_t)keyValue;
+    data->key = 0;
+
+    // Read key count from KEY_LCK_EC register (bits 0-3)
+    Wire.beginTransmission(address);
+    Wire.write(TCA8418_REG_KEY_LCK_EC);
+    Wire.endTransmission();
+    Wire.requestFrom(address, (uint8_t)1);
+    if (!Wire.available())
+        return;
+    uint8_t keyCount = Wire.read() & 0x0F;
+    if (keyCount == 0)
+        return;
+
+    // Read one key event from FIFO
+    Wire.beginTransmission(address);
+    Wire.write(TCA8418_REG_KEY_EVENT_A);
+    Wire.endTransmission();
+    Wire.requestFrom(address, (uint8_t)1);
+    if (!Wire.available())
+        return;
+
+    uint8_t keyEvent = Wire.read();
+    uint8_t keyCode  = keyEvent & 0x7F;
+    bool pressed     = (keyEvent & 0x80) != 0;
+
+    if (keyCode == 0 || keyCode > 31)
+        return;
+
+    uint8_t keyIndex = keyCode - 1;
+
+    if (!pressed) {
+        return; // ignore key releases
+    }
+
+    // Wake the display on any keypress
+    DisplayDriver::requestWake();
+
+    // Modifier key handling (sticky toggle, no key output)
+    if (keyIndex == TLORA_MODIFIER_SHIFT_IDX) {
+        tloraPagerModifierState = (tloraPagerModifierState == 1) ? 0 : 1;
+        ILOG_DEBUG("T-Pager: Shift toggled, mod=%d", tloraPagerModifierState);
+        return;
+    }
+    if (keyIndex == TLORA_MODIFIER_SYM_IDX) {
+        tloraPagerModifierState = (tloraPagerModifierState == 2) ? 0 : 2;
+        ILOG_DEBUG("T-Pager: Sym toggled, mod=%d", tloraPagerModifierState);
+        return;
+    }
+
+    uint8_t modUsed = tloraPagerModifierState;
+    char keyChar = TLoraPagerKeyMap[keyIndex][modUsed];
+    tloraPagerModifierState = 0; // one-shot: clear after regular key
+
+    if (keyChar == 0)
+        return;
+
+    data->state = LV_INDEV_STATE_PRESSED;
+    switch (keyChar) {
+    case 0x0D: data->key = LV_KEY_ENTER;     break;
+    case 0x09: data->key = LV_KEY_NEXT;      break;
+    case 0x1B: data->key = LV_KEY_ESC;       break;
+    case 0x08: {
+        lv_obj_t *focused = lv_group_get_focused(lv_group_get_default());
+        if (focused && lv_obj_check_type(focused, &lv_textarea_class)) {
+            data->key = LV_KEY_BACKSPACE;
+        } else if (navigateHomeCallback) {
+            navigateHomeCallback();
+            data->state = LV_INDEV_STATE_RELEASED;
+            return;
+        } else {
+            data->key = LV_KEY_ESC;
+        }
+        break;
+    }
+    default:   data->key = (uint32_t)keyChar; break;
+    }
+    ILOG_DEBUG("T-Pager key: code=%d mod=%d char=0x%02X lvkey=%d", keyCode, modUsed, keyChar, data->key);
 }
 
 // ---------- TDeckProKeyboardInputDriver Implementation ----------

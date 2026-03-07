@@ -5,6 +5,9 @@
 #include <memory>
 #include <string>
 
+// Callback type for navigation events (e.g., backspace -> focus home button)
+typedef void (*NavigationCallback)(void);
+
 class I2CKeyboardInputDriver : public InputDriver
 {
   public:
@@ -23,8 +26,13 @@ class I2CKeyboardInputDriver : public InputDriver
     using KeyboardList = std::list<std::unique_ptr<KeyboardDefinition>>;
     static KeyboardList &getI2CKeyboardList(void) { return i2cKeyboardList; }
 
+    // Navigation callback for backspace when not in a text field
+    static void setNavigateHomeCallback(NavigationCallback cb) { navigateHomeCallback = cb; }
+
   protected:
     bool registerI2CKeyboard(I2CKeyboardInputDriver *driver, std::string name, uint8_t address);
+
+    static NavigationCallback navigateHomeCallback;
 
   private:
     static void keyboard_read(lv_indev_t *indev, lv_indev_data_t *data);
