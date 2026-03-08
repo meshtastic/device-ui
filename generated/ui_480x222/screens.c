@@ -170,6 +170,7 @@ void create_screen_menu() {
             lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
             lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
+            lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_START);
             add_style_page_style(obj);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_layout(obj, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -193,7 +194,7 @@ void create_screen_menu() {
                     objects.home_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     lv_obj_add_state(obj, LV_STATE_FOCUSED);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_home_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -215,7 +216,7 @@ void create_screen_menu() {
                     objects.nodes_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_nodes_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -236,7 +237,7 @@ void create_screen_menu() {
                     objects.groups_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_people_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -257,7 +258,7 @@ void create_screen_menu() {
                     objects.messages_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_chats_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -278,7 +279,7 @@ void create_screen_menu() {
                     objects.map_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_map_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -299,7 +300,7 @@ void create_screen_menu() {
                     objects.clock_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_clock_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -320,7 +321,7 @@ void create_screen_menu() {
                     objects.music_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_music_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -341,7 +342,7 @@ void create_screen_menu() {
                     objects.statistics_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_statistics_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -362,7 +363,7 @@ void create_screen_menu() {
                     objects.tools_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_tools_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -383,7 +384,7 @@ void create_screen_menu() {
                     objects.apps_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_apps_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -404,7 +405,7 @@ void create_screen_menu() {
                     objects.settings_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_cogs_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -425,7 +426,7 @@ void create_screen_menu() {
                     objects.power_button = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 120, 120);
-                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_main_button_style(obj);
                     lv_obj_set_style_bg_image_src(obj, &img_power_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
@@ -1453,7 +1454,9 @@ void create_screen_chats() {
             lv_textarea_set_one_line(obj, false);
             lv_textarea_set_password_mode(obj, false);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SNAPPABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
+            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
             lv_obj_set_style_pad_top(obj, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_bottom(obj, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_left(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1522,6 +1525,27 @@ void create_screen_chats() {
                     lv_label_set_text(obj, _("1 active chat"));
                 }
             }
+        }
+        {
+            // keyboardPanel
+            lv_obj_t *obj = lv_obj_create(parent_obj);
+            objects.keyboard_panel = obj;
+            lv_obj_set_pos(obj, 0, LV_PCT(0));
+            lv_obj_set_size(obj, LV_PCT(100), LV_PCT(70));
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
+            lv_obj_set_scroll_dir(obj, LV_DIR_VER);
+            lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_row(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_grad_dir(obj, LV_GRAD_DIR_VER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_grad_color(obj, lv_color_hex(0xff061c21), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0xff101010), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     }
     

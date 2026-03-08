@@ -148,6 +148,7 @@ typedef struct _objects_t {
     lv_obj_t *top_chat_panel;
     lv_obj_t *top_chat_back_button;
     lv_obj_t *top_chat_label;
+    lv_obj_t *keyboard_panel;
     lv_obj_t *top_map_panel;
     lv_obj_t *top_map_back_button;
     lv_obj_t *top_map_label;
