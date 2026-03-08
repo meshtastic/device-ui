@@ -155,7 +155,7 @@ void create_screen_menu() {
     objects.menu = obj;
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 480, 222);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_SNAPPABLE|LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
     add_style_screen_style(obj);
     lv_obj_set_style_text_color(obj, lv_color_hex(0xffa6f0ff), LV_PART_MAIN | LV_STATE_DEFAULT);
