@@ -1,4 +1,5 @@
-#if defined(VIEW_160x80) || defined(VIEW_320x170) || defined(VIEW_480x222) || defined(VIEW_410x502) || defined(VIEW_240x135)
+#if defined(VIEW_160x80) || defined(VIEW_320x170) || defined(VIEW_480x222) || defined(VIEW_410x502) || defined(VIEW_240x135) ||  \
+    defined(VIEW_240x320)
 
 #include "graphics/view/TFT/PluggableView.h"
 #include "graphics/common/BatteryLevel.h"
