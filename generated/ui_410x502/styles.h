@@ -35,6 +35,11 @@ lv_style_t *get_style_screen_style_MAIN_PRESSED();
 void add_style_screen_style(lv_obj_t *obj);
 void remove_style_screen_style(lv_obj_t *obj);
 
+// Style: TopButtonStyle
+lv_style_t *get_style_top_button_style_MAIN_DEFAULT();
+void add_style_top_button_style(lv_obj_t *obj);
+void remove_style_top_button_style(lv_obj_t *obj);
+
 #ifdef __cplusplus
 }
 #endif

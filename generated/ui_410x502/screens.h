@@ -53,9 +53,9 @@ typedef struct _objects_t {
     lv_obj_t *obj3;
     lv_obj_t *obj3__message_container;
     lv_obj_t *obj4;
-    lv_obj_t *obj4__node_button_1;
-    lv_obj_t *obj4__node_short_name_1;
-    lv_obj_t *obj4__node_long_name_1;
+    lv_obj_t *obj4__node_button;
+    lv_obj_t *obj4__node_short_name;
+    lv_obj_t *obj4__node_long_name;
     lv_obj_t *poster_meshtastic;
     lv_obj_t *obj5;
     lv_obj_t *main_panel;
@@ -114,9 +114,9 @@ typedef struct _objects_t {
     lv_obj_t *node_short_name;
     lv_obj_t *node_long_name;
     lv_obj_t *obj9;
-    lv_obj_t *obj9__node_button_1;
-    lv_obj_t *obj9__node_short_name_1;
-    lv_obj_t *obj9__node_long_name_1;
+    lv_obj_t *obj9__node_button;
+    lv_obj_t *obj9__node_short_name;
+    lv_obj_t *obj9__node_long_name;
     lv_obj_t *bottom_panel;
     lv_obj_t *top_nodes_online_label;
     lv_obj_t *top_groups_panel;
@@ -165,11 +165,10 @@ typedef struct _objects_t {
     lv_obj_t *top_clock_back_button;
     lv_obj_t *clock_time_label;
     lv_obj_t *clock_seconds_label;
-    lv_obj_t *top_clock_panel_1;
+    lv_obj_t *bottom_clock_panel;
     lv_obj_t *top_clock_label;
     lv_obj_t *top_settings_panel;
     lv_obj_t *top_settings_back_button;
-    lv_obj_t *top_settings_label;
     lv_obj_t *settings_panel;
     lv_obj_t *settings_roller;
     lv_obj_t *settings_user;
@@ -179,6 +178,8 @@ typedef struct _objects_t {
     lv_obj_t *settings_display;
     lv_obj_t *settings_panel_1;
     lv_obj_t *settings_menu;
+    lv_obj_t *bottom_settings_panel;
+    lv_obj_t *top_settings_label_1;
 } objects_t;
 
 extern objects_t objects;

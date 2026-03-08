@@ -161,8 +161,7 @@ void remove_style_top_panel_style(lv_obj_t *obj) {
 
 void init_style_home_button_style_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_bg_color(style, lv_color_hex(0xff303030));
-    lv_style_set_border_color(style, lv_color_hex(0xff303030));
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_border_color(style, lv_color_hex(0xff404040));
     lv_style_set_border_width(style, 1);
 };
 
@@ -231,6 +230,37 @@ void remove_style_screen_style(lv_obj_t *obj) {
 };
 
 //
+// Style: TopButtonStyle
+//
+
+void init_style_top_button_style_MAIN_DEFAULT(lv_style_t *style) {
+    lv_style_set_bg_image_recolor(style, lv_color_hex(0xff67ea38));
+    lv_style_set_bg_image_recolor_opa(style, 200);
+    lv_style_set_bg_color(style, lv_color_hex(0xff404040));
+    lv_style_set_bg_opa(style, 0);
+};
+
+lv_style_t *get_style_top_button_style_MAIN_DEFAULT() {
+    static lv_style_t *style;
+    if (!style) {
+        style = (lv_style_t *)lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_top_button_style_MAIN_DEFAULT(style);
+    }
+    return style;
+};
+
+void add_style_top_button_style(lv_obj_t *obj) {
+    (void)obj;
+    lv_obj_add_style(obj, get_style_top_button_style_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+};
+
+void remove_style_top_button_style(lv_obj_t *obj) {
+    (void)obj;
+    lv_obj_remove_style(obj, get_style_top_button_style_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+};
+
+//
 //
 //
 
@@ -242,6 +272,7 @@ void add_style(lv_obj_t *obj, int32_t styleIndex) {
         add_style_top_panel_style,
         add_style_home_button_style,
         add_style_screen_style,
+        add_style_top_button_style,
     };
     add_style_funcs[styleIndex](obj);
 }
@@ -254,6 +285,7 @@ void remove_style(lv_obj_t *obj, int32_t styleIndex) {
         remove_style_top_panel_style,
         remove_style_home_button_style,
         remove_style_screen_style,
+        remove_style_top_button_style,
     };
     remove_style_funcs[styleIndex](obj);
 }
