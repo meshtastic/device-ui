@@ -59,12 +59,13 @@ void MessagesPlugin::registerStandardWidgets(void)
     setWidget(static_cast<GfxPlugin::WidgetIndex>(MessagesPlugin::Widget::ChatPanel), objects.chat_panel);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(MessagesPlugin::Widget::MessagesLabel), objects.top_chat_label);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(MessagesPlugin::Widget::MessageInputArea), objects.message_input_area);
+    setWidget(static_cast<GfxPlugin::WidgetIndex>(MessagesPlugin::Widget::KeyboardPanel), objects.keyboard_panel);
 #endif
 
     // cache widgets
     messageInput = getWidget(static_cast<WidgetIndex>(Widget::MessageInputArea));
-    chatsPanel = p->getWidget(static_cast<WidgetIndex>(Widget::ChatsPanel));
-    chatPanel = p->getWidget(static_cast<WidgetIndex>(Widget::ChatPanel));
+    chatsPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatsPanel));
+    chatPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatPanel));
 }
 
 void MessagesPlugin::registerStandardWidgetActions(void)
@@ -107,6 +108,26 @@ void MessagesPlugin::ui_event_message_ready(lv_event_t *e)
             }
 
             ILOG_DEBUG("ui_event_message_ready -> LV_EVENT_KEY '%c'(0x%02x)", (char)c, c);
+        } else if (event_code == LV_EVENT_READY) {
+            const char *txt = lv_textarea_get_text(p->messageInput);
+            uint32_t len = strlen(txt);
+            if (len >= 1) {
+                p->sendMessage(txt);
+            }
+            lv_textarea_set_text(p->messageInput, "");
+            if (p->kb) {
+                lv_obj_add_flag(p->kb->container, LV_OBJ_FLAG_HIDDEN);
+                t9_kb_del(p->kb);
+            }
+        } else if (event_code == LV_EVENT_FOCUSED) {
+            if (!InputDriver::instance()->hasKeyboardDevice() && !p->kb) {
+                // create virtual keyboard
+                lv_obj_t *kbPanel = p->getWidget(static_cast<WidgetIndex>(Widget::KeyboardPanel));
+                lv_obj_clear_flag(kbPanel, LV_OBJ_FLAG_HIDDEN);
+                lv_group_set_default(p->group);
+                p->kb = t9_kb_create(kbPanel, p->messageInput);
+                lv_obj_remove_state(p->messageInput, LV_STATE_FOCUSED);
+            }
         }
     } else { // handle by callback if applicable
         MessagesPlugin::Callback *onMessage = (MessagesPlugin::Callback *)(lv_event_get_user_data(e));
@@ -175,12 +196,10 @@ void MessagesPlugin::showMessages(uint32_t nodeId, uint8_t ch)
     // activate keyboard for message input
     if (messageInput) {
         lv_obj_remove_state(messageInput, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-        lv_group_focus_obj(messageInput);
         InputDriver *inputdriver = InputDriver::instance();
-        if (inputdriver->hasKeyboardDevice())
+        if (inputdriver->hasKeyboardDevice()) {
             lv_indev_set_group(inputdriver->getKeyboard(), group);
-        else {
-            // TODO: virtual keyboard
+            lv_group_focus_obj(messageInput);
         }
     }
 }
@@ -351,7 +370,6 @@ lv_obj_t *MessagesPlugin::newMessageContainer(uint32_t from, uint32_t to, uint8_
         return it->second;
     else {
         ILOG_DEBUG("create new container");
-        lv_obj_t *chatPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatPanel));
         container = widgetFactory.createMessageContainerWidget(chatPanel);
         lv_obj_set_user_data(container, (void *)(unsigned long)ch);
         messages[index] = container;
@@ -376,7 +394,6 @@ void MessagesPlugin::addChat(uint32_t from, uint32_t to, uint8_t ch)
     //    lv_obj_t *chatDelBtn = nullptr;
     lv_group_t *oldGroup = lv_group_get_default();
     lv_group_set_default(group);
-    lv_obj_t *chatsPanel = getWidget(static_cast<WidgetIndex>(Widget::ChatsPanel));
     lv_obj_t *btn = widgetFactory.createChatWidget(chatsPanel, index);
     lv_group_set_default(oldGroup);
 
