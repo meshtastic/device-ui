@@ -120,13 +120,18 @@ void MessagesPlugin::ui_event_message_ready(lv_event_t *e)
                 t9_kb_del(p->kb);
             }
         } else if (event_code == LV_EVENT_FOCUSED) {
+            lv_obj_t *kbPanel = p->getWidget(static_cast<WidgetIndex>(Widget::KeyboardPanel));
             if (!InputDriver::instance()->hasKeyboardDevice() && !p->kb) {
                 // create virtual keyboard
-                lv_obj_t *kbPanel = p->getWidget(static_cast<WidgetIndex>(Widget::KeyboardPanel));
                 lv_obj_clear_flag(kbPanel, LV_OBJ_FLAG_HIDDEN);
                 lv_group_set_default(p->group);
                 p->kb = t9_kb_create(kbPanel, p->messageInput);
                 lv_obj_remove_state(p->messageInput, LV_STATE_FOCUSED);
+            }
+            else {
+                // hide keyboard panel
+                lv_obj_add_flag(kbPanel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(p->messageInput, LV_OBJ_FLAG_HIDDEN);
             }
         }
     } else { // handle by callback if applicable
