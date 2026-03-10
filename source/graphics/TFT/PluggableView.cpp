@@ -261,17 +261,20 @@ void PluggableView::ui_events_init(void)
     });
     messages->setOnCancel([this](lv_event_t *e) { menu->loadScreen(); });
     messages->setOnSendMessage([this](uint32_t to, uint8_t ch, uint32_t msgTime, const char *msg) -> uint32_t {
+        bool pki = true;
         auto callback = [this](const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t pass) {
             this->onTextMessageCallback(req, evt, pass);
         };
         uint32_t requestId;
-        if (to == UINT32_MAX)
+        if (to == UINT32_MAX) {
             requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
+            pki = false;
+        }
         else {
             requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)to, callback);
             ch = (uint8_t)(unsigned long)lv_obj_get_user_data(nodes[to]);
         }
-        controller->sendTextMessage(to, ch, db.config.lora.hop_limit, msgTime, requestId, true, msg);
+        controller->sendTextMessage(to, ch, db.config.lora.hop_limit, msgTime, requestId, pki, msg);
         return requestId;
     });
 #endif
