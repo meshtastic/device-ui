@@ -1,191 +1,180 @@
 no:
-  no new messages: Ingen nye meldinger
   1 of 1 nodes online: 1 av 1 noder online
-  'uptime 00:00:00': oppetid 00:00:00
-  'Heap: 0\nLVGL: 0': 'Heap: 0\nLVGL: 0'
-  DEL: SLETT
-  'User name: ': 'Brukernavn: '
-  'Modem Preset: LONG FAST': 'Modem innstilling: LONG FAST'
-  'Channel: LongFast': 'Kanal: LongFast'
-  'Role: Client': 'Rolle: Klient'
-  'Screen Timeout: 60s': 'Skjermtidsavbrudd: 60s'
-  'Screen Lock: off': 'Skjermlås: av'
-  'Screen Brightness: 60%': 'Lysstyrke skjerm: 60%'
-  'Theme: Dark': 'Tema: Mørk'
-  'Screen Calibration: default': 'Skjermkalibering: standard'
-  'Input Control: none/none': 'Input kontroll: ingen/ingen'
-  'Message Alert Buzzer: on': 'Meldingsvarslingslyd: på'
-  'Language: English': 'Språk: Norsk Bokmål'
-  Configuration Reset: Farbrikkinstillinger
-  Reboot / Shutdown: Start på nytt / Skru av
-  Mesh Detector: Meshdetektor
-  Signal Scanner: Signalskanner
-  Trace Route: Spor rute
-  Neighbors: Naboer
-  Statistics: Statistikk
-  Packet Log: Pakke-logg
-  Meshtastic: Meshtastic
-  Group Channels: Kanaler
-  no messages: ingen meldinger
-  Settings & Tools: Innstillinger & Verktøy
-  Settings (advanced): Innstillinger (Avansert)
-  Locations Map: Kart
-  'Locations Map (%d/%d)': 'Kart (%d/%d)'
-  no chats: ingen chats
-  Node Search: Søk node
-  Packet Statistics: Statistikk på pakker
-  Node Options: Node alternativ
-  Short Name: Kort Navn
-  Long Name: Langt Navn
-  <unset>: <ikke satt>
-  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": |-
-    LONG FAST
-    LONG SLOW
-    -- utfaset --
-    MEDIUM SLOW
-    MEDIUM FAST
-    SHORT SLOW
-    SHORT FAST
-    LONG MODERATE
-    SHORT TURBO
-  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": |-
-    Klient
-    Klient Stum
-    Ruter
-    -- utfaset --
-    Repeater
-    Sporer
-    Sensor
-    TAK
-    Klient Gjemt
-    Mistet & Funnet
-    TAK Sporing
-  'Brightness: 60%': 'Lysstyrke: 60%'
-  "Dark\nLight": |-
-    Mørk
-    Lyst
-  'Timeout: 60s': 'Tidsavbrudd: 60s'
-  Screen Lock: Skjermlås
-  Lock PIN: PIN
-  Mouse: Mus
-  none: ingen
-  Keyboard: Tastatur
-  Message Alert: Meldingsvarsel
-  Ringtone: Ringesignal
-  Default: Standard
-  Zone: Sone
-  City: By
-  "NodeDB Reset\nFactory Reset": |-
-    Nullstill NodeDB
-    Fabrikkinstillinger
-  Channel Name: Kanal Navn
-  Pre-shared Key: Delt nøkkel
-  Unknown: Ukjent
-  Offline: Frakoblet
-  Public Key: Offentlig nøkkel
-  Hops away: Hopp bort
-  MQTT: MQTT
-  Position: Posisjon
-  Name: Navn
   Active Chat: Aktiv Chat
-  Telemetry: Telemetri
-  IAQ: IAQ
-  Start: Kjør
-  "New Message from\n": |
-    Ny melding fra
-  Resync...: Synkroniser om...
-  OK: OK
-  Cancel: Avbryt
-  'FrequencySlot: %d (%g MHz)': 'Frekvensplass: %d (%g MHz)'
+  Backup & Restore: Sikkerhetskopi og gjenopprett
+  Backup: Sikkerhetskopi
+  Banner only: Bare banner
+  Banner & Sound: Banner & Lyd
+  'Brightness: 60%': 'Lysstyrke: 60%'
   'Brightness: %d%%': 'Lysstyrke: %d%%'
-  'Timeout: off': 'Tidsavbrudd: av'
-  'Timeout: %ds': 'Tidsavbrudd: %ds'
-  'Screen Calibration: %s': 'Bildskärmens Kalibrering: %s'
-  done: ferdig
-  default: standard
-  Stop: Stopp
-  "choose\nnode": |-
-    velg
-    node
-  choose target node: velg mål-node
-  'heard: !%08x': 'hørt: !%08x'
-  'Packet Log: %d': 'Pakke-loggbok: %d'
-  'Language: %s': 'Språk: %s'
-  'Screen Timeout: off': 'Skjermtidsavbrudd: av'
-  'Screen Timeout: %ds': 'Skjermtidsavbrudd: %ds'
-  'Screen Brightness: %d%%': 'Lysstyrke skjerm: %d%%'
-  'Theme: %s': 'Tema: %s'
-  'User name: %s': 'Brukernavn: %s'
-  'Device Role: %s': 'Rolle: %s'
-  'Region: %s': 'Region: %s'
-  'Modem Preset: %s': 'Modem innstilling: %s'
+  Cancel: Avbryt
+  Channel: Kanal
+  'Channel: LongFast': 'Kanal: LongFast'
+  Channel Name: Kanal Navn
   'Channel: %s': 'Kanal: %s'
-  'Screen Lock: %s': 'Skjermlås: %s'
-  'on': på
-  'off': av
-  'Message Alert: %s': 'Meldingsvarsling: %s'
-  Util %0.1f%%  Air %0.1f%%: Utnyttelse %0.1f%%  Luft %0.1f%%
-  'hops: %d': 'hopp: %d'
-  unknown: ukjent
-  <no name>: <ingen navn>
+  "choose\nnode": "velg\nnode"
+  choose target node: velg mål-node
+  City: By
+  "Client\nClient Mute\nRouter\n-- deprecated --\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Klient\nKlient Stum\nRuter\n-- utfaset --\nRepeater\nSporer\nSensor\nTAK\nKlient Gjemt\nMistet & Funnet\nTAK Sporing"
+  "Client\nClient Mute\nRouter\nRepeater\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker\nRouter Late": "Klient\nKlient Stum\nRuter\nRepeater\nSporer\nSensor\nTAK\nKlient Gjemt\nMistet & Funnet\nTAK Sporing\nRouter forsinket"
+  "Client\nClient Mute\nTracker\nSensor\nTAK\nClient Hidden\nLost & Found\nTAK Tracker": "Klient\nKlient Stum\nSporer\nSensor\nTAK\nKlient Gjemt\nMistet & Funnet\nTAK Sporing"
+  Configuration Reset: Farbrikkinstillinger
+  Connected!: Tilkoblet!
   '%d active chat(s)':
     one: 1 aktiv chat
     other: '%d aktive chat'
-  "New message from \n%s": |-
-    Ny melding fra 
-    %s
-  'Input Control: %s/%s': 'Input kontroll: %s/%s'
-  '%d of %d nodes online':
-    one: 1 node online
-    other: '%d av %d noder online'
-  Filtering ...: Filtrerer ...
-  'Filter: %d of %d nodes': 'Filter: %d av %d noder'
-  now: nå
+  "Dark\nLight": "Mørk\nLyst"
+  default: standard
+  Default: Standard
+  DEL: SLETT
+  'Device Role: %s': 'Rolle: %s'
+  Disconnected!: Frakoblet!
   '%d new message': '%d ny melding'
   '%d new messages': '%d nye meldinger'
-  'uptime: %02d:%02d:%02d': 'oppetid: %02d:%02d:%02d'
-  'Heap: %d (%d%%)\nLVGL: %d (%d%%)': 'Heap: %d (%d%%)\nLVGL: %d (%d%%)'
-  Tools: Verktøy
-  Filter: Filter
-  Highlight: Marker
-  Settings: Innstillinger
-  Primary Channel: Hovedkanal
-  Secondary Channels: Sekunder kanal
-  Resync ...: Synkroniserer ...
-  Rebooting ...: Starter på nytt ...
-  Shutting down ...: Skrur av ...
-  LoRa 0.0 MHz: LoRa 0.0 MHz
-  silent: stille
-  'WiFi: <not setup>': 'WiFi: <ingen innstilling>'
-  'Lock: off/off': 'Lås: av/av'
-  LoRa TX off!: LoRa TX avskrudd!
-  WiFi SSID: WiFi SSID
-  WiFi pre-shared Key: WiFi passord
-  Settings Lock: Innstillingslås
-  'Lock: %s/%s': 'Lås: %s/%s'
-  Enter Text ...: Tekst ...
+  '%d of %d nodes online':
+    one: 1 node online
+    other: '%d av %d noder online
+  done: ferdig
   '!Enter Filter ...': '!Filter ...'
   Enter Filter ...: Filter ...
-  'WiFi: %s': 'WiFi: %s'
-  <not set>: <ikke satt>
-  region unset: ingen region
-  Banner & Sound: Banner & Lyd
-  Banner only: Bare banner
-  Sound only: Bare lyd
-  no signal: ingen signal
-  Restoring messages ...: Gjenoppretter meldinger ...
-  no SD card detected: ingen SD kort funnet
-  map tiles not found!: ingen kartdata funnet!
-  No map tiles found: Ingen kartdata funnet
-  Backup & Restore: Sikkerhetskopi og gjenopprett
-  Backup: Sikkerhetskopi
-  Restore: Gjenopprett
-  Public/Private Key: Åpen/Privat nøkkel
-  "NodeDB Reset\nFactory Reset\nClear Chat History": "Nullstill NodeDB\nFabrikkinnstillinger\nSlett meldingshistorikk"
-  Please set region and name: Sett region og navn
-  '>> Programming mode <<': '>> Programerings-modus <<'
-  Failed to write keys!: Skrive nøkler feilet!
-  Failed to restore keys!: Gjenoppretting av nøkler feilet!
+  Enter Text ...: Tekst ...
   Failed to parse keys!: Analysering av nøkler feilet!
+  Failed to restore keys!: Gjenoppretting av nøkler feilet!
   Failed to retrieve keys!: Mottak av nøkler feilet!
+  Failed to write keys!: Skrive nøkler feilet!
+  'Filter: %d of %d nodes': 'Filter: %d av %d noder'
+  Filter: Filter
+  Filtering ...: Filtrerer ...
+  'FrequencySlot: %d (%g MHz)': 'Frekvensplass: %d (%g MHz)'
+  Group Channels: Gruppekanaler
+  "Heap: 0\nLVGL: 0": "Heap: 0\nLVGL: 0"
+  "Heap: %d (%d%%)\nLVGL: %d (%d%%)": "Heap: %d (%d%%)\nLVGL: %d (%d%%)"
+  'heard: !%08x': 'hørt: !%08x'
+  Highlight: Marker
+  Hops away: Hopp bort
+  'hops: %d': 'hopp: %d'
+  IAQ: IAQ
+  'Input Control: none/none': 'Input kontroll: ingen/ingen'
+  'Input Control: %s/%s': 'Input kontroll: %s/%s'
+  Keyboard: Tastatur
+  'Language: English': 'Språk: Norsk Bokmål'
+  'Language: %s': 'Språk: %s'
+  Locations Map (%d/%d): Kart (%d/%d)
+  Locations Map: Kart
+  'Lock: off/off': 'Lås: av/av'
+  Lock PIN: PIN
+  'Lock: %s/%s': 'Lås: %s/%s'
+  "LONG FAST\nLONG MODERATE\nLONG TURBO\nMEDIUM FAST\nMEDIUM SLOW\nSHORT FAST\nSHORT TURBO\nSHORT SLOW": "LONG FAST\nLONG MODERATE\nLONG TURBO\nMEDIUM FAST\nMEDIUM SLOW\nSHORT FAST\nSHORT TURBO\nSHORT SLOW"
+  "LONG FAST\nLONG SLOW\n-- deprecated --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO": "LONG FAST\nLONG SLOW\n-- utfaset --\nMEDIUM SLOW\nMEDIUM FAST\nSHORT SLOW\nSHORT FAST\nLONG MODERATE\nSHORT TURBO"
+  Long Name: Langt Navn
+  LoRa 0.0 MHz: LoRa 0.0 MHz
+  LoRa TX off!: LoRa TX avskrudd!
+  map tiles not found!: ingen kartdata funnet!
+  Mesh Detector: Meshdetektor
+  Meshtastic: Meshtastic
+  'Message Alert Buzzer: on': 'Meldingsvarslingslyd: på'
+  Message Alert: Meldingsvarsel
+  'Message Alert: %s': 'Meldingsvarsling: %s'
+  'Modem Preset: custom': 'Modem innstilling: tilpasset'
+  'Modem Preset: LONG FAST': 'Modem innstilling: LONG FAST'
+  'Modem Preset: %s': 'Modem innstilling: %s'
+  Mouse: Mus
+  MQTT: MQTT
+  Name: Navn
+  Neighbors: Naboer
+  "New Message from\n": "Ny melding fra\n"
+  "New message from \n%s": |-
+    Ny melding fra
+    %s
+  no chats: ingen meldinger
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "Nullstill NodeDB\nFabrikkinnstillinger\nSlett meldingshistorikk"
+  "NodeDB Reset\nFactory Reset": "Nullstill NodeDB\nFabrikkinstillinger"
+  Node Options: Node alternativ
+  Node Search: Søk node
+  No map tiles found: Ingen kartdata funnet
+  No map tiles found on SDCard!: Map tiles not found!
+  no messages: ingen meldinger
+  <no name>: <ingen navn>
+  none: ingen
+  no new messages: Ingen nye meldinger
+  no public key: ingen offentlig nøkkel
+  no SD card detected: ingen SD kort funnet
+  no signal: ingen signal
+  <not set>: <ikke satt>
+  now: nå
+  'off': av
+  Offline: Frakoblet
+  OK: OK
+  'on': på
+  'Packet Log: %d': 'Pakke-loggbok: %d'
+  Packet Log: Pakke-logg
+  Packet Statistics: Statistikk på pakker
+  Please set region and name: Sett region og navn
+  Position: Posisjon
+  Pre-shared Key: Delt nøkkel
+  Primary Channel: Hovedkanal
+  '>> Programming mode <<': '>> Programerings-modus <<'
+  Public Key: Offentlig nøkkel
+  Public/Private Key: Offentlig/Privat nøkkel
+  Rebooting ...: Starter på nytt ...
+  Reboot into BaseUI?: Start på nytt til BaseUI
+  Reboot / Shutdown: Start på nytt / Skru av
+  Region: Region
+  'Region: %s': 'Region: %s'
+  region unset: ingen region
+  Restore: Gjenopprett
+  Restoring messages ...: Gjenoppretter meldinger ...
+  Resync ...: Synkroniserer ...
+  Resync...: Synkroniser om...
+  Ringtone: Ringesignal
+  'Role: Client': 'Rolle: Klient'
+  'Screen Brightness: 60%': 'Lysstyrke skjerm: 60%'
+  'Screen Brightness: %d%%': 'Lysstyrke skjerm: %d%%'
+  'Screen Calibration: default': 'Skjermkalibering: standard'
+  'Screen Calibration: %s': 'Bildskärmens Kalibrering: %s'
+  'Screen Lock: off': 'Skjermlås: av'
+  Screen Lock: Skjermlås
+  'Screen Lock: %s': 'Skjermlås: %s'
+  'Screen Timeout: 60s': 'Skjermtidsavbrudd: 60s'
+  'Screen Timeout: %ds': 'Skjermtidsavbrudd: %ds'
+  'Screen Timeout: off': 'Skjermtidsavbrudd: av'
+  SD card error: SD kort feil
   "%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)": "%s: %d GB (%s)\nBrukt: %0.2f GB (%d%%)"
+  SD invalid format: Feil format på SD
+  SD mbr not found: MBR ikke funnet på SD
+  SD slot empty: SD-spor tomt
+  SD unknown error: Ukjent feil på SD kort
+  Secondary Channels: Sekunder kanal
+  Settings (advanced): Innstillinger (Avansert)
+  Settings: Innstillinger
+  Settings Lock: Innstillingslås
+  Settings & Tools: Innstillinger & Verktøy
+  Short Name: Kort Navn
+  Shutting down ...: Skrur av ...
+  Signal Scanner: Signalskanner
+  silent: stille
+  Sound only: Bare lyd
+  Start: Kjør
+  Statistics: Statistikk
+  Stop: Stopp
+  Telemetry: Telemetri
+  'Theme: Dark': 'Tema: Mørk'
+  'Theme: %s': 'Tema: %s'
+  'Timeout: 60s': 'Tidsavbrudd: 60s'
+  'Timeout: %ds': 'Tidsavbrudd: %ds'
+  'Timeout: off': 'Tidsavbrudd: av'
+  Tools: Verktøy
+  Trace Route: Spor rute
+  unknown: ukjent
+  Unknown: Ukjent
+  <unset>: <ikke satt>
+  'uptime 00:00:00': oppetid 00:00:00
+  'uptime: %02d:%02d:%02d': 'oppetid: %02d:%02d:%02d'
+  'User name: ': 'Brukernavn: '
+  'User name: %s': 'Brukernavn: %s'
+  Util %0.1f%%  Air %0.1f%%: Utnyttelse %0.1f%%  Luft %0.1f%%
+  'WiFi: <not setup>': 'WiFi: <ingen innstilling>'
+  WiFi pre-shared Key: WiFi passord
+  WiFi SSID: WiFi SSID
+  'WiFi: %s': 'WiFi: %s'
+  Zone: Sone
