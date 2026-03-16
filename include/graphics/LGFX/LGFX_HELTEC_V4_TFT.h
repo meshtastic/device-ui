@@ -19,8 +19,8 @@ class Panel_HELTEC_V4_TFT : public lgfx::Panel_ST7789
 #ifdef CUSTOM_TOUCH_DRIVER
 #include "chsc6x.h"
 
-#define SCREEN_X  240
-#define SCREEN_Y  320
+#define SCREEN_X  320
+#define SCREEN_Y  240
 
 // custom class for redirecting getTouch() calls and to alternative implementation
 class LGFX_Touch : public lgfx::LGFX_Device
@@ -70,7 +70,7 @@ class LGFX_Touch : public lgfx::LGFX_Device
     {
         uint16_t rwa_x,raw_y;
         if (chsc6xTouch->chsc6x_read_touch_info(&rwa_x, &raw_y)==0) {
-            rotate_touch_coord(rwa_x, raw_y,3,touchX, touchY);
+            rotate_touch_coord(rwa_x, raw_y,0,touchX, touchY);
             return true;
         }
         return false;
@@ -133,18 +133,18 @@ class LGFX_HELTEC_V4_TFT : public lgfx::LGFX_Device
 
             cfg.panel_width = screenWidth;    // actual displayable width
             cfg.panel_height = screenHeight;  // actual displayable height
-            cfg.offset_x = 0;           // Panel offset amount in X direction
-            cfg.offset_y = 0;           // Panel offset amount in Y direction
-            cfg.offset_rotation = 3;    // Rotation direction value offset 0~7 (4~7 is upside down)
-            cfg.dummy_read_pixel = 9; // Number of bits for dummy read before pixel readout
-            cfg.dummy_read_bits = 1;   // Number of bits for dummy read before non-pixel data read
-            cfg.readable = false;           // Set to true if data can be read
-            cfg.invert = true;         // Set to true if the light/darkness of the panel is reversed
-            cfg.rgb_order = false;         // Set to true if the panel's red and blue are swapped
-            cfg.dlen_16bit = false;      // Set to true for panels that transmit data length in 16-bit
-                                                    // units with 16-bit parallel or SPI
-            cfg.bus_shared = false;                  // If the bus is shared with the SD card, set to
-                                                    // true (bus control with drawJpgFile etc.)
+            cfg.offset_x = 0;                 // Panel offset amount in X direction
+            cfg.offset_y = 0;                 // Panel offset amount in Y direction
+            cfg.offset_rotation = 0;          // Rotation direction value offset 0~7 (4~7 is upside down)
+            cfg.dummy_read_pixel = 9;         // Number of bits for dummy read before pixel readout
+            cfg.dummy_read_bits = 1;          // Number of bits for dummy read before non-pixel data read
+            cfg.readable = false;             // Set to true if data can be read
+            cfg.invert = true;                // Set to true if the light/darkness of the panel is reversed
+            cfg.rgb_order = false;            // Set to true if the panel's red and blue are swapped
+            cfg.dlen_16bit = false;           // Set to true for panels that transmit data length in 16-bit
+                                              // units with 16-bit parallel or SPI
+            cfg.bus_shared = false;           // If the bus is shared with the SD card, set to
+                                              // true (bus control with drawJpgFile etc.)
 
             // Set the following only when the display is shifted with a driver with a
             // variable number of pixels, such as the ST7735 or ILI9163.
