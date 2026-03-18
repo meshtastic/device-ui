@@ -735,6 +735,7 @@ void init_style_top_panel_style_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_text_color(style, lv_color_hex(0xff212121));
     lv_style_set_border_width(style, 0);
     lv_style_set_radius(style, 0);
+    lv_style_set_text_line_space(style, -7);
 };
 
 lv_style_t *get_style_top_panel_style_MAIN_DEFAULT() {
