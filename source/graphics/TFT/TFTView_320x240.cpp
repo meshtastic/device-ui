@@ -1,4 +1,4 @@
-#if HAS_TFT && defined(VIEW_320x240)
+#if HAS_TFT && defined(VIEW_320x240) || defined(VIEW_240x320)
 
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"
@@ -5822,7 +5822,7 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
     if (ch.role != meshtastic_Channel_Role_DISABLED) {
         setChannelName(ch);
 
-        lv_obj_set_width(btn[ch.index], lv_pct(70));
+        lv_obj_set_width(btn[ch.index], lv_pct(80));
         lv_obj_set_style_pad_left(btn[ch.index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
 
         lv_obj_t *lockImage = NULL;
