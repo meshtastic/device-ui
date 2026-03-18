@@ -1862,12 +1862,19 @@
                       "disabledStateType": "literal",
                       "states": "",
                       "localStyles": {
-                        "objID": "3ddb033d-b40b-42db-cae6-f4b3a05c6727"
+                        "objID": "3ddb033d-b40b-42db-cae6-f4b3a05c6727",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "text_line_space": -4
+                            }
+                          }
+                        }
                       },
                       "groupIndex": 0,
                       "text": "no new messages",
                       "textType": "translated-literal",
-                      "longMode": "CLIP",
+                      "longMode": "WRAP",
                       "recolor": false
                     },
                     {
@@ -1952,12 +1959,19 @@
                       "disabledStateType": "literal",
                       "states": "",
                       "localStyles": {
-                        "objID": "5d9f8b4b-d8ac-444b-d84e-289590cd9b21"
+                        "objID": "5d9f8b4b-d8ac-444b-d84e-289590cd9b21",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "text_line_space": -4
+                            }
+                          }
+                        }
                       },
                       "groupIndex": 0,
                       "text": "1 of 1 nodes online",
                       "textType": "translated-literal",
-                      "longMode": "CLIP",
+                      "longMode": "WRAP",
                       "recolor": false
                     },
                     {
@@ -9051,8 +9065,8 @@
                   "type": "LVGLLabelWidget",
                   "left": 25,
                   "top": 0,
-                  "width": 141,
-                  "height": 20,
+                  "width": 112,
+                  "height": 36,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -9071,6 +9085,7 @@
                   "heightUnit": "content",
                   "children": [],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlag": false,
                   "hiddenFlagType": "literal",
                   "clickableFlagType": "literal",
                   "checkedStateType": "literal",
@@ -9082,7 +9097,8 @@
                       "MAIN": {
                         "DEFAULT": {
                           "text_font": "montserrat_16",
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -9090,7 +9106,7 @@
                   "groupIndex": 0,
                   "text": "1 of 1 nodes online",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -9226,7 +9242,8 @@
                       "MAIN": {
                         "DEFAULT": {
                           "text_font": "montserrat_16",
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -9234,7 +9251,7 @@
                   "groupIndex": 0,
                   "text": "Group Channels",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -9370,7 +9387,8 @@
                       "MAIN": {
                         "DEFAULT": {
                           "text_font": "montserrat_16",
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -9378,7 +9396,7 @@
                   "groupIndex": 0,
                   "text": "no messages",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -9513,7 +9531,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -9521,7 +9540,7 @@
                   "groupIndex": 0,
                   "text": "Settings & Tools",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -9656,7 +9675,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -9799,7 +9819,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -9807,7 +9828,7 @@
                   "groupIndex": 0,
                   "text": "Locations Map",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -9942,7 +9963,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -9950,7 +9972,7 @@
                   "groupIndex": 0,
                   "text": "no chats",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -10085,7 +10107,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -10093,7 +10116,7 @@
                   "groupIndex": 0,
                   "text": "no messages",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -10229,7 +10252,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -10237,7 +10261,7 @@
                   "groupIndex": 0,
                   "text": "Node Search",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -10372,7 +10396,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -10380,7 +10405,7 @@
                   "groupIndex": 0,
                   "text": "Mesh Detector",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -10516,7 +10541,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -10524,7 +10550,7 @@
                   "groupIndex": 0,
                   "text": "Signal Scanner",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -10660,7 +10686,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -10668,7 +10695,7 @@
                   "groupIndex": 0,
                   "text": "Trace Route",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -10803,7 +10830,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -10811,7 +10839,7 @@
                   "groupIndex": 0,
                   "text": "Neighbors",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -10946,7 +10974,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -10954,7 +10983,7 @@
                   "groupIndex": 0,
                   "text": "Packet Statistics",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -11089,7 +11118,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -11097,7 +11127,7 @@
                   "groupIndex": 0,
                   "text": "Packet Log",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -11232,7 +11262,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -11240,7 +11271,7 @@
                   "groupIndex": 0,
                   "text": "Node Options",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -22120,7 +22151,8 @@
                     "definition": {
                       "MAIN": {
                         "DEFAULT": {
-                          "align": "LEFT_MID"
+                          "align": "LEFT_MID",
+                          "max_width": 160
                         }
                       }
                     }
@@ -22128,7 +22160,7 @@
                   "groupIndex": 0,
                   "text": "Please set region and name",
                   "textType": "translated-literal",
-                  "longMode": "SCROLL_CIRCULAR",
+                  "longMode": "WRAP",
                   "recolor": false
                 },
                 {
@@ -23648,7 +23680,8 @@
                 "bg_color": "#67EA94",
                 "text_color": "#212121",
                 "border_width": 0,
-                "radius": 0
+                "radius": 0,
+                "text_line_space": -7
               }
             }
           }
