@@ -34,17 +34,18 @@ SdFatService::~SdFatService()
     SDFs.end();
 }
 
-bool SdFatService::load(const char *name, void *img)
+bool SdFatService::load(uint32_t x, uint32_t y, uint32_t z, void *img)
 {
     char buf[128] = DRIVE_LETTER ":";
-    strcat(&buf[2], name);
-    // ILOG_DEBUG("SdFatService::load(): %s", buf);
+    sprintf(&buf[2], "%s/%s/%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileStyle(), z, x, y,
+            MapTileSettings::getTileFormat());
+    ILOG_DEBUG("SdFatService::load(): %s", buf);
     lv_image_set_src((lv_obj_t *)img, buf);
     if (!lv_image_get_src((lv_obj_t *)img)) {
         ILOG_DEBUG("Failed to load tile %s from SD", buf);
         return false;
     }
-    // ILOG_INFO("*** Tile %s loaded.", buf);
+    ILOG_INFO("SdFatService: Tile %s loaded.", buf);
     return true;
 }
 
