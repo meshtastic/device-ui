@@ -2163,9 +2163,10 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
 
 void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
 {
+    meshtastic_ChannelSettings_psk_t psk{.size = 32};
+
     std::string base64 = lv_textarea_get_text(objects.settings_modify_channel_psk_textarea);
     if (base64.size() == 0 || THIS->qr) {
-        meshtastic_ChannelSettings_psk_t psk{.size = 32};
         std::mt19937 generator(millis() + psk.bytes[7]); // Mersenne Twister number generator
         for (int i = 0; i < 8; i++) {
             int r = generator();
@@ -2173,9 +2174,28 @@ void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
         }
         base64 = THIS->pskToBase64(psk.bytes, psk.size);
         lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
+    } else {
+        // decode base64 PSK
+        if (!THIS->base64ToPsk(base64, psk.bytes, psk.size) || psk.size > 32) {
+            ILOG_ERROR("failed to decode PSK from base64: %s", base64.c_str());
+            return;
+        }
     }
 
-    std::string base64Https = base64;
+    // update channel with text field contents
+    uint32_t btn_id = (unsigned long)objects.settings_modify_channel_name_textarea->user_data;
+    int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
+    meshtastic_Channel channel = THIS->channel_scratch[ch];
+    memcpy(channel.settings.psk.bytes, psk.bytes, psk.size);
+    strcpy(channel.settings.name, lv_textarea_get_text(objects.settings_modify_channel_name_textarea));
+    channel.settings.psk.size = psk.size;
+    channel.has_settings = true;
+
+    meshtastic_Data_payload_t encoded;
+    encoded.size = pb_encode_to_bytes(encoded.bytes, meshtastic_Constants_DATA_PAYLOAD_LEN, &meshtastic_ChannelSettings_msg, &channel.settings);
+
+    // replace + with -, / with _ and remove trailing =
+    std::string base64Https = THIS->pskToBase64(encoded.bytes, encoded.size);
     for (char &c : base64Https) {
         if (c == '+')
             c = '-';
@@ -2189,6 +2209,8 @@ void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
     THIS->qr = THIS->showQrCode(objects.settings_modify_channel_qr_panel, qr.c_str());
     lv_obj_add_state(objects.keyboard_button_3, LV_STATE_DISABLED);
     lv_obj_add_state(objects.keyboard_button_4, LV_STATE_DISABLED);
+    lv_group_focus_obj(THIS->qr);
+    ILOG_DEBUG("QR code: %s", qr.c_str());
 }
 
 void TFTView_320x240::ui_event_qr_code(lv_event_t *e)
