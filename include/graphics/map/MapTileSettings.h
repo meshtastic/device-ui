@@ -42,6 +42,12 @@ class MapTileSettings
     static const char *getTileFormat(void) { return tileFormat; }
     static void setTileFormat(const char *p) { strcpy(tileFormat, p); }
 
+    static uint16_t getTileProvider(void) { return tileProviderId; }
+    static void setTileProvider(uint16_t id) { tileProviderId = id; }
+
+    static bool color(void) { return colorTiles; }
+    static void setColor(bool on) { colorTiles = on; }
+
     static bool getDebug(void) { return debug; }
     static void setDebug(bool on) { debug = on; }
 
@@ -49,6 +55,8 @@ class MapTileSettings
     static uint8_t zoomLevel;
     static uint8_t zoomDefault;
     static uint16_t tileSize;
+    static uint16_t tileProviderId;
+    static bool colorTiles;
     static uint32_t cacheSize;
     static float defaultLat;
     static float defaultLon;
