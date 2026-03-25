@@ -9,6 +9,7 @@
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
 #include "graphics/map/MapPanel.h"
+#include "graphics/map/URLService.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
@@ -2499,12 +2500,14 @@ void TFTView_320x240::loadMap(void)
         map = new MapPanel(objects.raw_map_panel);
 #elif defined(HAS_SD_MMC)
         map = new MapPanel(objects.raw_map_panel, new SDCardService());
+        map->setBackupService(new URLService());
 #elif defined(HAS_SDCARD)
         map = new MapPanel(objects.raw_map_panel, new SdFatService());
+        map->setBackupService(new URLService());
 #elif defined(ARCH_PORTDUINO)
         map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
 #else
-        map = new MapPanel(objects.raw_map_panel);
+        map = new MapPanel(objects.raw_map_panel, new URLService());
 #endif
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
@@ -2623,8 +2626,7 @@ void TFTView_320x240::loadMap(void)
                 }
                 MapTileSettings::setPrefix("/maps");
             } else {
-                messageAlert(_("No map tiles found on SDCard!"), true);
-                map->setNoTileImage(&img_no_tile_image);
+                // messageAlert(_("No map tiles found on SDCard!"), true);
             }
             map->forceRedraw();
         }
@@ -7305,7 +7307,7 @@ void TFTView_320x240::task_handler(void)
     MeshtasticView::task_handler();
 
     if (screensInitialised) {
-        if (map)
+        if (map && activePanel == objects.map_panel)
             map->task_handler();
 
         if (curtime - lastrun1 >= 1) { // call every 1s
