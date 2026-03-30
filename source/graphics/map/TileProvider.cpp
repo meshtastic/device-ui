@@ -5,7 +5,7 @@
 
 std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates = {
     {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"},
-    {"URL: World Topo Map", "http://services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"}};
+    {"URL: Google Satellite", "https://mt0.google.com/vt?lyrs=s&x={x}&s=&y={y}&z={z}"}};
 
 std::string TileProvider::url(const char *filename)
 {
