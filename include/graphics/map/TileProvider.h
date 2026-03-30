@@ -13,10 +13,13 @@ class TileProvider
     static std::string url(int z, int x, int y);
 
     // get all URL templates
-    static const std::vector<std::string> &templates();
+    static const std::vector<std::string> templates(void);
 
-    // add a custom URL template
-    static void addTemplate(const std::string &tmpl);
+    // get all URL providers (separated by newline)
+    static const std::string providers(void);
+
+    // add a custom URL template if not exist
+    static int addTemplate(const std::string &name, const std::string &tmpl);
 
     // select/activate a template by index
     static void selectTemplate(int idx);
@@ -25,5 +28,6 @@ class TileProvider
     static int selectedTemplate(void);
 
   private:
-    static std::vector<std::string> urlTemplates;
+    // list of <map name, url>
+    static std::vector<std::tuple<std::string, std::string>> urlTemplates;
 };

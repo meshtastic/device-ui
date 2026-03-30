@@ -53,6 +53,7 @@ class ISdCard
 
     bool isUpdated(void) { return updated; }
     virtual std::set<std::string> loadMapStyles(const char *folder) = 0;
+    virtual std::string getUrlProvider(const char *folder, const char *style) = 0;
     virtual ~ISdCard(void) {}
 
   protected:
@@ -73,6 +74,7 @@ class SDCard : public ISdCard
     bool format(void) override { return false; };
 
     std::set<std::string> loadMapStyles(const char *folder) override;
+    std::string getUrlProvider(const char *folder, const char *style) override;
     virtual ~SDCard(void);
 };
 
@@ -90,6 +92,7 @@ class SdFsCard : public ISdCard
     bool format(void) override;
 
     std::set<std::string> loadMapStyles(const char *folder) override;
+    std::string getUrlProvider(const char *folder, const char *style) override;
     virtual ~SdFsCard(void) {}
 };
 
@@ -115,6 +118,7 @@ class NoSdCard : public ISdCard
         updated = true;
         return std::set<std::string>{};
     }
+    std::string getUrlProvider(const char *folder, const char *style) override { return {}; }
     virtual ~NoSdCard(void) {}
 };
 
