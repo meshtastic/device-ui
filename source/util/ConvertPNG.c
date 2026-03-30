@@ -18,7 +18,8 @@
 #include <esp_heap_caps.h>
 
 #ifndef STBI_ARENA_SIZE
-#define STBI_ARENA_SIZE (920u * 1024u) /* default for >= 4 MB PSRAM */ #endif
+#define STBI_ARENA_SIZE (920u * 1024u) /* default for >= 4 MB PSRAM */
+#endif
 
 static uint8_t *s_stbi_arena = NULL;
 static size_t s_stbi_arena_used = 0;
