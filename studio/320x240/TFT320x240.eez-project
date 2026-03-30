@@ -4752,7 +4752,7 @@
                 "conditionalStyles": [],
                 "childStyles": []
               },
-              "hiddenInEditor": true,
+              "hiddenInEditor": false,
               "timeline": [],
               "eventHandlers": [],
               "identifier": "MapPanel",
@@ -4776,7 +4776,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "rawMapPanel",
@@ -4800,7 +4800,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "homeLocationImage",
@@ -4847,7 +4847,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "gpsPositionImage",
@@ -4939,7 +4939,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "navigationPanel",
@@ -4963,7 +4963,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowUpButton",
@@ -5013,7 +5013,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowLeftButton",
@@ -5063,7 +5063,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "navButton",
@@ -5113,7 +5113,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowRightButton",
@@ -5163,7 +5163,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowDownButton",
@@ -5249,7 +5249,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomSlider",
@@ -5312,10 +5312,10 @@
                 {
                   "objID": "f4f86fe3-56b2-4921-9c37-68e808a61624",
                   "type": "LVGLImgbuttonWidget",
-                  "left": -5,
+                  "left": 0,
                   "top": 0,
-                  "width": 30,
-                  "height": 30,
+                  "width": 42,
+                  "height": 32,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -5324,7 +5324,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "gpsLockButton",
@@ -5371,10 +5371,10 @@
                 {
                   "objID": "1d74d3ae-716b-49d2-a199-ab3ee0f0d8fc",
                   "type": "LVGLImgbuttonWidget",
-                  "left": -5,
-                  "top": 35,
-                  "width": 30,
-                  "height": 30,
+                  "left": 0,
+                  "top": 32,
+                  "width": 42,
+                  "height": 32,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -5383,7 +5383,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomInButton",
@@ -5421,10 +5421,10 @@
                 {
                   "objID": "74e1fa14-9968-4c93-d5ab-f5371b6641bb",
                   "type": "LVGLImgbuttonWidget",
-                  "left": -5,
-                  "top": 65,
-                  "width": 30,
-                  "height": 30,
+                  "left": 0,
+                  "top": 64,
+                  "width": 42,
+                  "height": 32,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -5433,7 +5433,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomOutButton",
@@ -5483,7 +5483,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "mapOSDPanel",
@@ -5507,7 +5507,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapBrightnessSlider",
@@ -5569,7 +5569,7 @@
                       "objID": "23693717-a8d1-4fbb-aeb6-8fc49620e880",
                       "type": "LVGLSliderWidget",
                       "left": 0,
-                      "top": 40,
+                      "top": 36,
                       "width": 85,
                       "height": 8,
                       "customInputs": [],
@@ -5580,7 +5580,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapContrastSlider",
@@ -5642,7 +5642,7 @@
                       "objID": "0f9894a5-8aff-4ba5-8eef-afb1652c4ede",
                       "type": "LVGLDropdownWidget",
                       "left": 0,
-                      "top": 70,
+                      "top": 58,
                       "width": 85,
                       "height": 27,
                       "customInputs": [],
@@ -5653,7 +5653,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapStyleDropdown",
@@ -5692,6 +5692,65 @@
                       "group": "",
                       "groupIndex": 0,
                       "options": "map tiles not found!",
+                      "optionsType": "translated-literal",
+                      "selected": 0,
+                      "selectedType": "literal",
+                      "direction": "bottom"
+                    },
+                    {
+                      "objID": "a30324ff-18eb-4ec3-bf29-666f7c0009c7",
+                      "type": "LVGLDropdownWidget",
+                      "left": 0,
+                      "top": 92,
+                      "width": 85,
+                      "height": 27,
+                      "customInputs": [],
+                      "customOutputs": [],
+                      "style": {
+                        "objID": "eca92eb2-c8d4-48ca-f6b6-31bc83f0fc93",
+                        "useStyle": "default",
+                        "conditionalStyles": [],
+                        "childStyles": []
+                      },
+                      "hiddenInEditor": false,
+                      "timeline": [],
+                      "eventHandlers": [],
+                      "identifier": "mapUrlDropdown",
+                      "leftUnit": "px",
+                      "topUnit": "px",
+                      "widthUnit": "%",
+                      "heightUnit": "content",
+                      "children": [],
+                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+                      "hiddenFlagType": "literal",
+                      "clickableFlag": true,
+                      "clickableFlagType": "literal",
+                      "flagScrollbarMode": "",
+                      "flagScrollDirection": "",
+                      "scrollSnapX": "",
+                      "scrollSnapY": "",
+                      "checkedStateType": "literal",
+                      "disabledStateType": "literal",
+                      "states": "",
+                      "useStyle": "DropDownStyle",
+                      "localStyles": {
+                        "objID": "718988a3-afc9-49fc-a04a-559f96805acb",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "align": "TOP_MID",
+                              "pad_top": 2,
+                              "pad_bottom": 2,
+                              "pad_left": 4,
+                              "pad_row": 2,
+                              "pad_column": 2
+                            }
+                          }
+                        }
+                      },
+                      "group": "",
+                      "groupIndex": 0,
+                      "options": "Google Maps",
                       "optionsType": "translated-literal",
                       "selected": 0,
                       "selectedType": "literal",
@@ -5748,7 +5807,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "mapLocationLabel",
