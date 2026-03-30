@@ -8,7 +8,8 @@
  * contiguous PSRAM buffer allocated once at boot.
  *
  * Usage per 256x256 tile:  STBI_rgb = 192 KB,  STBI_grey = 64 KB.
- * A 440 KB arena covers both cases with enough headroom for scratch buffers.
+ * A 440 KB arena covers grey Google Maps tiles while 920 kB are required for
+ * much more complex colored png tiles (e.g. OpenCycleMap).
  *
  * The arena is reset (used = 0) after every decode; no individual frees needed
  * because decoding is single-threaded and processes one tile at a time.
@@ -17,8 +18,7 @@
 #include <esp_heap_caps.h>
 
 #ifndef STBI_ARENA_SIZE
-#define STBI_ARENA_SIZE (384u * 1024u) /* NOTE: works only for STBI_rgb */
-#endif
+#define STBI_ARENA_SIZE (920u * 1024u) /* default for >= 4 MB PSRAM */ #endif
 
 static uint8_t *s_stbi_arena = NULL;
 static size_t s_stbi_arena_used = 0;
