@@ -51,6 +51,9 @@ class MapTileSettings
     static bool getDebug(void) { return debug; }
     static void setDebug(bool on) { debug = on; }
 
+    static bool saveOK(void) { return save; }
+    static void setSaveOK(bool ok) { save = ok; }
+
   private:
     static uint8_t zoomLevel;
     static uint8_t zoomDefault;
@@ -64,4 +67,5 @@ class MapTileSettings
     static char tileStyle[];
     static char tileFormat[];
     static bool debug;
+    static bool save;
 };

@@ -12,7 +12,7 @@ bool decodeImgGrey(const void *data, size_t size, lv_img_dsc_t **img);
 bool decodeImgColor(const void *data, size_t size, lv_img_dsc_t **img);
 }
 
-URLService::URLService() : ITileService("HTTP:") {}
+URLService::URLService(Callback cb) : ITileService("HTTP:"), saveCB(cb) {}
 
 URLService::~URLService() {}
 
@@ -58,16 +58,11 @@ bool URLService::load(const char *name, void *img)
     }
     ILOG_DEBUG("SUCCESS: GET %s (%u bytes)", url.c_str(), (unsigned int)bytesRead);
 
-    // TODO: save PNG to SD card if present
-#ifdef SDCARD_WRITE_PNG
-#if defined(HAS_SDCARD) || defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
-    File file = SD.open(name, FILE_WRITE);
-    if (file) {
-        file.write(pngImage, len);
-        file.close();
+    // save png tile to SD card
+    if (saveCB && MapTileSettings::saveOK()) {
+        bool result = saveCB(name, pngImage, len);
+        ILOG_DEBUG("save png to SD -> %s", result ? "OK" : "failed");
     }
-#endif
-#endif
 
     // decode png via STBI library
     lv_img_dsc_t *img_dsc = nullptr;

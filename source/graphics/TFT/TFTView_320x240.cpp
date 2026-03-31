@@ -2342,14 +2342,10 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
     if (!url.empty()) {
         std::string provider = std::string("URL: ") + THIS->db.uiConfig.map_data.style;
         int entry = TileProvider::addTemplate(provider, url);
-        uint32_t count = lv_dropdown_get_option_count(objects.map_url_dropdown);
-        if (count < entry + 1) {
-            ILOG_DEBUG("add/set option %d <= %d -> %s", count, entry, provider.c_str());
-            lv_dropdown_add_option(objects.map_url_dropdown, provider.c_str(), LV_DROPDOWN_POS_LAST);
-        }
         lv_dropdown_set_selected(objects.map_url_dropdown, entry);
         TileProvider::selectTemplate(entry);
     }
+    MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
 
     THIS->controller->storeUIConfig(THIS->db.uiConfig);
     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
@@ -2360,6 +2356,7 @@ void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
 {
     uint32_t urlId = lv_dropdown_get_selected(objects.map_style_dropdown);
     TileProvider::selectTemplate(urlId);
+    MapTileSettings::setSaveOK(false);
     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     THIS->map->forceRedraw();
 }
@@ -2523,11 +2520,15 @@ void TFTView_320x240::loadMap(void)
 #if LV_USE_FS_ARDUINO_SD
         map = new MapPanel(objects.raw_map_panel);
 #elif defined(HAS_SD_MMC)
-        map = new MapPanel(objects.raw_map_panel, new SDCardService());
-        map->setBackupService(new URLService());
+        auto tileService = new SDCardService();
+        map = new MapPanel(objects.raw_map_panel, tileService);
+        map->setBackupService(
+            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #elif defined(HAS_SDCARD)
-        map = new MapPanel(objects.raw_map_panel, new SdFatService());
-        map->setBackupService(new URLService());
+        auto tileService = new SdFatService();
+        map = new MapPanel(objects.raw_map_panel, tileService);
+        map->setBackupService(
+            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #elif defined(ARCH_PORTDUINO)
         map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
 #else
@@ -2641,6 +2642,7 @@ void TFTView_320x240::loadMap(void)
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
+                        ILOG_DEBUG(".url: %s", url.c_str());
                     }
                     lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
                     if (it == db.uiConfig.map_data.style) {
@@ -2649,7 +2651,7 @@ void TFTView_320x240::loadMap(void)
                         savedStyleOK = true;
                         if (urlEntry >= 0) {
                             // set provider url to current style
-                            ILOG_DEBUG("set provider url to ", url.c_str());
+                            ILOG_DEBUG("set provider url to %s", url.c_str());
                             lv_dropdown_set_selected(objects.map_url_dropdown, LV_DROPDOWN_POS_LAST);
                             TileProvider::selectTemplate(urlEntry);
                         }
@@ -2663,6 +2665,7 @@ void TFTView_320x240::loadMap(void)
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
                 }
+                MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
                 MapTileSettings::setPrefix("/maps");
             } else {
                 // messageAlert(_("No map tiles found on SDCard!"), true);
