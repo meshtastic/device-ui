@@ -158,7 +158,7 @@ void MapPanel::drawLocation(void)
         }
     }
     if (objects.map_location_label) {
-        char buf[30];
+        char buf[40];
         sprintf(buf, "%0.4f %0.4f", scrolled.latitude, scrolled.longitude);
         lv_label_set_text(objects.map_location_label, buf);
         lv_obj_move_foreground(objects.map_location_label);

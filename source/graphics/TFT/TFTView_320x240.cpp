@@ -2354,7 +2354,7 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 
 void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
 {
-    uint32_t urlId = lv_dropdown_get_selected(objects.map_style_dropdown);
+    uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
     TileProvider::selectTemplate(urlId);
     MapTileSettings::setSaveOK(false);
     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
@@ -2631,10 +2631,8 @@ void TFTView_320x240::loadMap(void)
                 lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
             } else if (!mapStyles.empty()) {
                 // populate style dropdown
-                uint16_t pos = 0;
                 bool savedStyleOK = false;
                 lv_dropdown_clear_options(objects.map_style_dropdown);
-                lv_dropdown_set_options(objects.map_url_dropdown, TileProvider::providers().c_str());
                 for (auto it : mapStyles) {
                     // add url provider if exist
                     int urlEntry = -1;
@@ -2642,29 +2640,30 @@ void TFTView_320x240::loadMap(void)
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
-                        ILOG_DEBUG(".url: %s", url.c_str());
                     }
-                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
+                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), LV_DROPDOWN_POS_LAST);
                     if (it == db.uiConfig.map_data.style) {
-                        lv_dropdown_set_selected(objects.map_style_dropdown, pos);
+                        lv_dropdown_set_selected(objects.map_style_dropdown, LV_DROPDOWN_POS_LAST);
                         MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
                         savedStyleOK = true;
                         if (urlEntry >= 0) {
                             // set provider url to current style
                             ILOG_DEBUG("set provider url to %s", url.c_str());
-                            lv_dropdown_set_selected(objects.map_url_dropdown, LV_DROPDOWN_POS_LAST);
                             TileProvider::selectTemplate(urlEntry);
                         }
                     }
-                    pos++;
                 }
+                lv_dropdown_set_options(objects.map_url_dropdown, TileProvider::providers().c_str());
+                lv_dropdown_set_selected(objects.map_url_dropdown, TileProvider::selectedTemplate());
+
                 if (!savedStyleOK) {
                     // no such style on SD, pick first one we found
-                    char style[20];
+                    char style[30];
                     lv_dropdown_set_selected(objects.map_style_dropdown, 0);
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
                 }
+
                 MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
                 MapTileSettings::setPrefix("/maps");
             } else {

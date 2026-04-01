@@ -4,8 +4,7 @@
 #include <algorithm>
 
 std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates = {
-    {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"},
-    {"URL: Google Satellite", "https://mt0.google.com/vt?lyrs=s&x={x}&s=&y={y}&z={z}"}};
+    {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"}};
 
 std::string TileProvider::url(const char *filename)
 {
