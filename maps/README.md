@@ -39,6 +39,11 @@ Note: when choosing a region for downloading tiles you're advised to adapt the z
 If you like to check of how many tiles an area is composed of you can make use of this [Tile Calculator](https://tools.geofabrik.de/calc) provided by Geofabrik.
 <br>
 
+## WiFi Download
+
+If WiFi is enabled and an internet connection is present then map tiles that are not found on SD card are downloaded via the internet. The default map
+provider is Google Maps. However, you can provide your own map style URL by putting an .url file into the style folder. This file must contain a single line with the url template to download from. Once an .url file is found all successfully downloaded map tiles are also stored in the style same folder of the SD card.
+
 # Extra maps
 
 A small group of map tile enthusiasts (special thanks to @joyel24 & @teddy1602) like to share their downloaded tiles. In this section you'll find torrents for downloading complete sets of map tiles of various zoom levels.
@@ -49,9 +54,11 @@ Entire France Atlas style zoom 6 to 13: [Torrent Magnet Link](https://tinyurl.co
 <br>Entire France Outdoors style zoom 1 to 13: [Torrent Magnet Link](https://tinyurl.com/3xhpn7j7) ~3.9GB md5: c02b89e9d5d2c7d5b3d902e6429dd5c4
 
 ## Netherlands
+
 Entire Netherlands Standard style zoom 1 to 14 including Amsterdam until zoom 17: [Torrent Magnet Link](https://tinyurl.com/4vpuhd7n) ~956MB md5: 30ccf6484c99ae0b0765cff19acfc67e
 
 ## United States of America
+
 Entire USA (all fifty states) standard OSM-style zoom 1 to 12, downloaded from OSM on 3/3/2026: [Torrent Magnet Link](https://tinyurl.com/339tcx45) ~1.4GB md5: 3e2b9c010949d35710be8bf62f838ecb5e07cff2
 
 <br>Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
@@ -63,9 +70,10 @@ Entire USA (all fifty states) standard OSM-style zoom 1 to 12, downloaded from O
 <br>
 
 # Compatibility
-* 🟢 **LILYGO T-Deck**: Confirmed to work
-* 🟢 **CrowPanel Advance HMI**: Confirmed to work on 2.4", 2.8", and 3.5" models 
-* 🔴 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. It can not be used for showing maps in Meshtastic UI.
+
+- 🟢 **LILYGO T-Deck**: Confirmed to work
+- 🟢 **CrowPanel Advance HMI**: Confirmed to work on 2.4", 2.8", and 3.5" models
+- 🔴 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. It can not be used for showing maps in Meshtastic UI.
 
 # Credits and Attribution
 
