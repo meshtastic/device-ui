@@ -5732,10 +5732,10 @@
                 {
                   "objID": "ca87e45d-1f27-46ed-cc8c-ef55290afa4d",
                   "type": "LVGLImgbuttonWidget",
-                  "left": -5,
+                  "left": 0,
                   "top": 0,
-                  "width": 30,
-                  "height": 30,
+                  "width": 36,
+                  "height": 32,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -5791,10 +5791,10 @@
                 {
                   "objID": "68d3d737-4921-4026-ca3c-1e8bc3c39021",
                   "type": "LVGLImgbuttonWidget",
-                  "left": -5,
-                  "top": 35,
-                  "width": 30,
-                  "height": 30,
+                  "left": 0,
+                  "top": 40,
+                  "width": 36,
+                  "height": 32,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -5841,10 +5841,10 @@
                 {
                   "objID": "86ff4539-dcca-47c9-8755-1f05bb16668c",
                   "type": "LVGLImgbuttonWidget",
-                  "left": -5,
-                  "top": 65,
-                  "width": 30,
-                  "height": 30,
+                  "left": 0,
+                  "top": 72,
+                  "width": 36,
+                  "height": 32,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -5891,7 +5891,7 @@
                 {
                   "objID": "24967938-a47f-4deb-e332-508cfcbb7ef1",
                   "type": "LVGLPanelWidget",
-                  "left": 0,
+                  "left": 10,
                   "top": 5,
                   "width": 80,
                   "height": 180,
@@ -5989,7 +5989,7 @@
                       "objID": "387a5485-a153-4853-b587-6dc2e647a5e9",
                       "type": "LVGLSliderWidget",
                       "left": 0,
-                      "top": 40,
+                      "top": 36,
                       "width": 85,
                       "height": 8,
                       "customInputs": [],
@@ -6062,7 +6062,7 @@
                       "objID": "678cc23d-758e-4431-c0c4-1ac63cce52fd",
                       "type": "LVGLDropdownWidget",
                       "left": 0,
-                      "top": 70,
+                      "top": 58,
                       "width": 85,
                       "height": 27,
                       "customInputs": [],
@@ -6116,6 +6116,65 @@
                       "selected": 0,
                       "selectedType": "literal",
                       "direction": "bottom"
+                    },
+                    {
+                      "objID": "e6199c5b-f0de-4191-9f62-9f6ee2d998e5",
+                      "type": "LVGLDropdownWidget",
+                      "left": 0,
+                      "top": 92,
+                      "width": 85,
+                      "height": 27,
+                      "customInputs": [],
+                      "customOutputs": [],
+                      "style": {
+                        "objID": "bfc229d6-9e6c-47da-9a4a-fb86c249b105",
+                        "useStyle": "default",
+                        "conditionalStyles": [],
+                        "childStyles": []
+                      },
+                      "hiddenInEditor": true,
+                      "timeline": [],
+                      "eventHandlers": [],
+                      "identifier": "mapUrlDropdown",
+                      "leftUnit": "px",
+                      "topUnit": "px",
+                      "widthUnit": "%",
+                      "heightUnit": "content",
+                      "children": [],
+                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+                      "hiddenFlagType": "literal",
+                      "clickableFlag": true,
+                      "clickableFlagType": "literal",
+                      "flagScrollbarMode": "",
+                      "flagScrollDirection": "",
+                      "scrollSnapX": "",
+                      "scrollSnapY": "",
+                      "checkedStateType": "literal",
+                      "disabledStateType": "literal",
+                      "states": "",
+                      "useStyle": "DropDownStyle",
+                      "localStyles": {
+                        "objID": "59b18c84-c093-4b2a-d201-829e2c386aae",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "align": "TOP_MID",
+                              "pad_top": 2,
+                              "pad_bottom": 2,
+                              "pad_left": 4,
+                              "pad_row": 2,
+                              "pad_column": 2
+                            }
+                          }
+                        }
+                      },
+                      "group": "",
+                      "groupIndex": 0,
+                      "options": "Google Maps",
+                      "optionsType": "translated-literal",
+                      "selected": 0,
+                      "selectedType": "literal",
+                      "direction": "bottom"
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6139,7 +6198,7 @@
                           "bg_opa": 1,
                           "border_width": 0,
                           "border_color": "#303030",
-                          "align": "TOP_MID",
+                          "align": "TOP_LEFT",
                           "pad_top": 0,
                           "pad_bottom": 0,
                           "pad_left": 0,
