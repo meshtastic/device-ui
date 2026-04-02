@@ -215,7 +215,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 #else
     bufsize = lgfx->screenWidth * lgfx->screenHeight * sizeof(lv_color_t) / 4;
 #endif
-    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for draw buffer", bufsize);
+    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for draw buffer (max free PSRAM: %u)", bufsize, ESP.getMaxAllocPsram());
     buf1 = (lv_color_t *)LV_MEM_POOL_ALLOC(bufsize);
     assert(buf1 != 0);
     lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);

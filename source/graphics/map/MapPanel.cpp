@@ -27,16 +27,63 @@ void MapPanel::redraw(void)
     static int16_t x = INT16_MAX;
     static int16_t y = INT16_MAX;
 
+    constexpr uint32_t RETRY_MS = 10000;
+    // tile hash -> next retry time (lv_tick_get ms)
+    static std::unordered_map<uint32_t, uint32_t> failedTilesRetryAt;
+
+    auto tickDue = [](uint32_t now, uint32_t due) -> bool {
+        return (int32_t)(now - due) >= 0; // wrap-safe
+    };
+
+    auto scheduleRetry = [&](uint32_t hash) {
+        if (failedTilesRetryAt.find(hash) == failedTilesRetryAt.end()) {
+            failedTilesRetryAt[hash] = lv_tick_get() + RETRY_MS;
+        }
+    };
+
+    auto clearRetry = [&](uint32_t hash) { failedTilesRetryAt.erase(hash); };
+
+    // retry one failed tile per redraw() call
+    auto retryFailedTile = [&]() {
+        if (failedTilesRetryAt.empty())
+            return;
+
+        const uint32_t now = lv_tick_get();
+
+        for (auto it = failedTilesRetryAt.begin(); it != failedTilesRetryAt.end(); ++it) {
+            if (!tickDue(now, it->second))
+                continue;
+
+            auto tileIt = tiles.find(it->first);
+            if (tileIt == tiles.end()) {
+                failedTilesRetryAt.erase(it);
+                return;
+            }
+
+            MapTile &tile = *tileIt->second;
+            bool ok = tile.load(panel, tile.getX(), tile.getY(), noTileImage);
+            if (ok) {
+                failedTilesRetryAt.erase(it);
+            } else {
+                it->second = now + RETRY_MS;
+            }
+            return;
+        }
+    };
+
     if (needsRedraw) {
         needsRedraw = false;
         redrawCompleted = false;
         x = 0;
         y = 0;
         tiles.clear();
+        failedTilesRetryAt.clear();
     }
 
-    if (redrawCompleted)
+    if (redrawCompleted) {
+        retryFailedTile();
         return;
+    }
 
     int16_t size = MapTileSettings::getTileSize();
 #if defined(MAP_FULL_REDRAW)
@@ -49,7 +96,10 @@ void MapPanel::redraw(void)
                 return;
             }
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
-            tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
+            if (tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage))
+                clearRetry(hash);
+            else
+                scheduleRetry(hash);
         }
     }
     redrawCompleted = true;
@@ -60,7 +110,10 @@ void MapPanel::redraw(void)
         if (x < tilesX && y < tilesY) {
             uint32_t hash = HASH(xStart + x, yStart + y);
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
-            tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
+            if (tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage))
+                clearRetry(hash);
+            else
+                scheduleRetry(hash);
             x++;
         } else {
             if (y < tilesY) {
@@ -105,7 +158,7 @@ void MapPanel::drawLocation(void)
         }
     }
     if (objects.map_location_label) {
-        char buf[30];
+        char buf[40];
         sprintf(buf, "%0.4f %0.4f", scrolled.latitude, scrolled.longitude);
         lv_label_set_text(objects.map_location_label, buf);
         lv_obj_move_foreground(objects.map_location_label);

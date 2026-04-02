@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**
@@ -10,10 +11,11 @@ class ITileService
   public:
     // lvgl lv_fs_drv callbacks
     virtual bool load(const char *name, void *img) = 0;
+    virtual bool save(const char *name, void *img, size_t len) { return false; }
     virtual ~ITileService() {}
 
   protected:
-    ITileService(const char *id) : idLetter(id){};
+    ITileService(const char *id) : idLetter(id) {}
 
     const char *idLetter; // LVGL letter for file system drives
 };
@@ -31,7 +33,13 @@ class TileService : public ITileService
 
     bool load(const char *name, void *img) override
     {
-        return service ? service->load(name, img) : backup ? backup->load(name, img) : false;
+        if (service) {
+            if (!service->load(name, img))
+                return backup ? backup->load(name, img) : false;
+            else
+                return true;
+        }
+        return false;
     }
 
     virtual ~TileService();
