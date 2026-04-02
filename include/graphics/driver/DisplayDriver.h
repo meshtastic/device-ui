@@ -2,6 +2,7 @@
 
 #include "graphics/DeviceGUI.h"
 #include "graphics/LVGL/LVGLGraphics.h"
+#include "graphics/driver/ScreenSleepController.h"
 #include <cstdint>
 
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
@@ -25,7 +26,17 @@ class DisplayDriver
     virtual ~DisplayDriver() {}
 
     virtual uint8_t getBrightness() { return 255; }
-    virtual void setBrightness(uint8_t timeout) {}
+    // setBrightness is the user-facing path: updates the wakeBrightness mirror in ScreenSleepController.
+    // setHardwareBrightness is the animation-internal path: drives hardware only, leaves the mirror untouched.
+    virtual void setBrightness(uint8_t brightness) {}
+    virtual void setHardwareBrightness(uint8_t brightness) {}
+
+    virtual void panelSleep(void) {}
+    virtual void panelWake(void) {}
+    virtual void powerSaveOn(void) {}
+    virtual void powerSaveOff(void) {}
+    virtual bool hasBacklight(void) { return false; }
+    virtual int  getTouchIntPin(void) { return -1; }
 
     virtual uint16_t getScreenTimeout() { return 0; }
     virtual void setScreenTimeout(uint16_t timeout) {}
@@ -35,6 +46,13 @@ class DisplayDriver
 
     lv_display_t *getDisplay(void) { return display; }
 
+    ScreenSleepController *sleepController(void) { return _sleepController; }
+
+    // signal wake/sleep from any context (e.g. I2C keyboard driver without GPIO interrupt)
+    static void requestWake(void)      { if (_sleepController) _sleepController->wake(); }
+    static void requestSleep(void)     { if (_sleepController) _sleepController->sleep(); }
+    static bool isScreenSleeping(void) { return _sleepController && _sleepController->isSleeping(); }
+
   protected:
     LVGLGraphics lvgl;
     LVGLDisplay *display;
@@ -42,4 +60,5 @@ class DisplayDriver
     DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;
+    static ScreenSleepController *_sleepController;
 };

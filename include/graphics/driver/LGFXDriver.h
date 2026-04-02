@@ -2,8 +2,10 @@
 
 #include "LovyanGFX.h"
 #include "graphics/driver/DisplayDriverConfig.h"
+#include "graphics/driver/ScreenSleepController.h"
 #include "graphics/driver/TFTDriver.h"
 #include "input/InputDriver.h"
+#include "input/ScreenSleepObserver.h"
 #include "lvgl_private.h"
 #include "util/ILog.h"
 #include <functional>
@@ -12,7 +14,7 @@ constexpr uint32_t defaultLongPressTime = 600; // ms until long press is detecte
 constexpr uint32_t defaultGestureLimit = 10;   // x/y diff pixel until a swipe gesture is detected (lvgl default is 50)
 
 constexpr uint32_t defaultScreenTimeout = 30 * 1000;
-constexpr uint32_t defaultBrightness = 153;
+constexpr uint8_t  defaultBrightness    = 153;
 
 template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
 {
@@ -24,15 +26,23 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     bool hasTouch(void) override;
     bool hasButton(void) override { return lgfx->hasButton(); }
     bool hasLight(void) override { return lgfx->light(); }
-    bool isPowersaving(void) override { return powerSaving; }
+    bool isPowersaving(void) override { return _sleepController.isSleeping(); }
     void printConfig(void) override;
     void task_handler(void) override;
 
-    uint8_t getBrightness(void) override { return lgfx->getBrightness(); }
-    void setBrightness(uint8_t brightness) override;
+    uint8_t getBrightness(void) override                       { return lgfx->getBrightness(); }
+    void    setHardwareBrightness(uint8_t brightness) override { lgfx->setBrightness(brightness); }
+    void    setBrightness(uint8_t brightness) override;
 
     uint16_t getScreenTimeout() override { return screenTimeout / 1000; }
-    void setScreenTimeout(uint16_t timeout) override { screenTimeout = timeout * 1000; };
+    void setScreenTimeout(uint16_t timeout) override { screenTimeout = (uint32_t)timeout * 1000; };
+
+    void panelSleep(void) override    { lgfx->sleep(); }
+    void panelWake(void) override     { lgfx->wakeup(); }
+    void powerSaveOn(void) override   { lgfx->powerSaveOn(); }
+    void powerSaveOff(void) override  { lgfx->powerSaveOff(); }
+    bool hasBacklight(void) override  { return lgfx->light() != nullptr; }
+    int  getTouchIntPin(void) override;
 
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++
@@ -41,13 +51,12 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
 
     uint32_t screenTimeout;
-    uint32_t lastBrightness;
-    bool powerSaving;
 
   private:
     void init_lgfx(void);
 
     static LGFX *lgfx;
+    ScreenSleepController _sleepController;
     size_t bufsize;
     lv_color_t *buf1;
     lv_color_t *buf2;
@@ -59,7 +68,8 @@ template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
     : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), screenTimeout(defaultScreenTimeout),
-      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
+      _sleepController(this, defaultBrightness),
+      bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
 {
     lgfx = this->tft;
 }
@@ -67,7 +77,8 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
     : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), screenTimeout(defaultScreenTimeout),
-      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
+      _sleepController(this, defaultBrightness),
+      bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
 {
     lgfx = this->tft;
 }
@@ -81,91 +92,18 @@ template <class LGFX> bool LGFXDriver<LGFX>::hasTouch(void)
 #endif
 }
 
+template <class LGFX> int LGFXDriver<LGFX>::getTouchIntPin(void)
+{
+#ifndef CUSTOM_TOUCH_DRIVER
+    return lgfx->touch() ? lgfx->touch()->config().pin_int : -1;
+#else
+    return lgfx->getTouchInt();
+#endif
+}
+
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
-    // handle display timeout
-    if ((screenTimeout > 0 && lv_display_get_inactive_time(NULL) > screenTimeout) || powerSaving ||
-        (DisplayDriver::view->isScreenLocked())) {
-        // sleep screen only if there are means for wakeup
-        if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
-            DisplayDriver::view->getInputDriver()->hasKeyboardDevice() || hasButton()) {
-            if (hasLight()) {
-                if (!powerSaving) {
-                    // dim display brightness slowly down
-                    uint32_t brightness = lgfx->getBrightness();
-                    if (brightness > 0) {
-                        lgfx->setBrightness(brightness - 1);
-                    } else {
-                        ILOG_INFO("enter powersave");
-                        DisplayDriver::view->screenSaving(true);
-                        if (hasTouch() && hasButton()) {
-                            ILOG_DEBUG("disable touch, enable button input");
-                            lv_indev_enable(DisplayDriver::touch, false);
-                            lv_indev_enable(InputDriver::instance()->getButton(), true);
-                        }
-                        lgfx->sleep();
-                        lgfx->powerSaveOn();
-                        powerSaving = true;
-                    }
-                }
-                if (powerSaving) {
-                    int pin_int = -1;
-                    if (hasTouch()) {
-#ifndef CUSTOM_TOUCH_DRIVER
-                        pin_int = lgfx->touch()->config().pin_int;
-#else
-                        pin_int = lgfx->getTouchInt();
-#endif
-                    }
-                    if (hasButton()) {
-#ifdef BUTTON_PIN // only relevant for CYD scenario
-                        pin_int = BUTTON_PIN;
-#endif
-                    }
-                    if ((pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
-                        (screenTimeout + 50 > lv_display_get_inactive_time(NULL) && !DisplayDriver::view->isScreenLocked())) {
-                        delay(2); // let the CPU finish to restore all register in case of light sleep
-                        // woke up by touch or button
-                        ILOG_INFO("leaving powersave");
-                        powerSaving = false;
-                        DisplayDriver::view->triggerHeartbeat();
-                        lgfx->powerSaveOff();
-                        lgfx->wakeup();
-                        lgfx->setBrightness(lastBrightness);
-                        DisplayDriver::view->screenSaving(false);
-                        if (hasTouch() && hasButton()) {
-                            ILOG_DEBUG("enable touch, disable button input");
-                            lv_indev_enable(DisplayDriver::touch, true);
-                            lv_indev_enable(InputDriver::instance()->getButton(), false);
-                        }
-                        lv_display_trigger_activity(NULL);
-                    } else {
-                        // we woke up due to e.g. serial traffic (or sleep() simply not implemented)
-                        // continue with processing loop and enter sleep() again next round
-                    }
-                }
-            }
-            // no BL pin defined to control brightness, so show blank screen instead
-            else {
-                if (!powerSaving) {
-                    DisplayDriver::view->blankScreen(true);
-                    lgfx->sleep();
-                    lgfx->powerSaveOn();
-                    powerSaving = true;
-                }
-                if (screenTimeout > lv_display_get_inactive_time(NULL)) {
-                    DisplayDriver::view->blankScreen(false);
-                    lgfx->powerSaveOff();
-                    lgfx->wakeup();
-                    powerSaving = false;
-                    lv_disp_trig_activity(NULL);
-                }
-            }
-        }
-    } else if (lgfx->getBrightness() < lastBrightness) {
-        lgfx->setBrightness(lastBrightness);
-        lastBrightness = lgfx->getBrightness();
-    }
+    _sleepController.tick(screenTimeout, hasTouch(), hasButton());
 
     if (!calibrating) {
         DisplayDriver::task_handler();
@@ -337,6 +275,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         lv_timer_set_period(timer, 10); // 100Hz as I2C touch controllers support
 #endif
     }
+
+    _sleepController.setContext(DisplayDriver::view, DisplayDriver::touch);
+    DisplayDriver::_sleepController = &_sleepController;
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
@@ -413,8 +354,8 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
 
 template <class LGFX> void LGFXDriver<LGFX>::setBrightness(uint8_t brightness)
 {
-    lgfx->setBrightness(brightness);
-    lastBrightness = brightness;
+    setHardwareBrightness(brightness);
+    _sleepController.setWakeBrightness(brightness);
 }
 
 template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
