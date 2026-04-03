@@ -25,7 +25,7 @@ lint:
     - trivy@0.69.3
     #- trufflehog@3.63.2-rc0
     - taplo@0.10.0
-    - ruff@0.15.8
+    - ruff@0.15.9
     - isort@8.0.1
     - markdownlint@0.48.0
     - oxipng@10.1.0
