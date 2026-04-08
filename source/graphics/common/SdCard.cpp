@@ -1,6 +1,11 @@
 #include "graphics/common/SdCard.h"
 #include "util/ILog.h"
 
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+#include <dirent.h>
+#include <cstring>
+#endif
+
 #ifndef SD_SPI_FREQUENCY
 #define SD_SPI_FREQUENCY 50000000
 #endif
@@ -65,15 +70,101 @@ SDCard::~SDCard(void) {}
 
 #elif defined(HAS_SD_MMC)
 
+// On ESP32-P4, SDMMC Slot 0 IO_MUX pins include D4=GPIO45 (I2C SDA) and D5=GPIO46 (I2C SCL).
+// Using Slot 0 causes hardware-level interference with I2C even in 1-bit mode because the SDMMC
+// peripheral claims those IO_MUX entries. Use Slot 1 (GPIO matrix) instead — it uses the GPIO
+// matrix with no fixed pin assignments and leaves GPIO45/46 exclusively for I2C.
+#if defined(CONFIG_IDF_TARGET_ESP32P4)
+#include "driver/sdmmc_host.h"
+#include "esp_vfs_fat.h"
+#include "sdmmc_cmd.h"
+#include "sd_protocol_defs.h"
+
+static sdmmc_card_t *s_sdmmc_card = nullptr;
+
 bool SDCard::init(void)
 {
-    // #ifndef BOARD_HAS_1BIT_SDMMC
-    //     SDFs.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_D0, SDMMC_D1, SDMMC_D2, SDMMC_D3);
-    //     return SDFs.begin("/sdcard", false);
-    // #else
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = false,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024,
+    };
+
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    host.slot = SDMMC_HOST_SLOT_1; // Slot 1 = GPIO matrix; no IO_MUX conflict with I2C GPIO45/46
+    host.flags = SDMMC_HOST_FLAG_1BIT;
+#ifdef BOARD_MAX_SDMMC_FREQ
+    host.max_freq_khz = BOARD_MAX_SDMMC_FREQ;
+#endif
+
+    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    slot_config.clk = (gpio_num_t)SD_SCLK_PIN;
+    slot_config.cmd = (gpio_num_t)SD_MOSI_PIN;
+    slot_config.d0 = (gpio_num_t)SD_MISO_PIN;
+    slot_config.width = 1;
+    slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
+
+    s_sdmmc_card = nullptr;
+    esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &s_sdmmc_card);
+    if (ret != ESP_OK) {
+        ILOG_ERROR("SDCard (P4): mount failed: 0x%x %s", (int)ret, esp_err_to_name(ret));
+        s_sdmmc_card = nullptr;
+        return false;
+    }
+    return true;
+}
+
+ISdCard::CardType SDCard::cardType(void)
+{
+    if (!s_sdmmc_card) return CardType::eNone;
+    if (s_sdmmc_card->is_mmc) return CardType::eMMC;
+    return (s_sdmmc_card->ocr & SD_OCR_SDHC_CAP) ? CardType::eSDHC : CardType::eSD;
+}
+
+ISdCard::FatType SDCard::fatType(void)
+{
+    if (!s_sdmmc_card) return FatType::eNA;
+    uint64_t sz = cardSize();
+    return sz > 32ULL * 1024 * 1024 * 1024 ? FatType::eExFat :
+           sz > 4ULL * 1024 * 1024 * 1024  ? FatType::eFat32 :
+                                              FatType::eFat16;
+}
+
+ISdCard::ErrorType SDCard::errorType(void)
+{
+    return s_sdmmc_card ? ErrorType::eNoError : ErrorType::eSlotEmpty;
+}
+
+uint64_t SDCard::usedBytes(void)
+{
+    return SDFs.usedBytes(); // uses f_getfree() internally, works without _card
+}
+
+uint64_t SDCard::freeBytes(void)
+{
+    return SDFs.totalBytes() - SDFs.usedBytes();
+}
+
+uint64_t SDCard::cardSize(void)
+{
+    if (!s_sdmmc_card) return 0;
+    return (uint64_t)s_sdmmc_card->csd.capacity * s_sdmmc_card->csd.sector_size;
+}
+
+SDCard::~SDCard(void)
+{
+    if (s_sdmmc_card) {
+        esp_vfs_fat_sdcard_unmount("/sdcard", s_sdmmc_card);
+        s_sdmmc_card = nullptr;
+    }
+}
+
+#else // non-P4 HAS_SD_MMC
+
+bool SDCard::init(void)
+{
     SDFs.setPins(SD_SCLK_PIN, SD_MOSI_PIN, SD_MISO_PIN);
     return SDFs.begin("/sdcard", true);
-    // #endif
 }
 
 ISdCard::CardType SDCard::cardType(void)
@@ -96,7 +187,7 @@ ISdCard::CardType SDCard::cardType(void)
 
 ISdCard::FatType SDCard::fatType(void)
 {
-    return SDFs.cardSize() > 4Ull * 1024Ull * 1024Ull * 1024Ull ? FatType::eFat32 : FatType::eFat16;
+    return SDFs.cardSize() > 4ULL * 1024ULL * 1024ULL * 1024ULL ? FatType::eFat32 : FatType::eFat16;
 }
 
 ISdCard::ErrorType SDCard::errorType(void)
@@ -130,12 +221,83 @@ SDCard::~SDCard(void)
 {
     SDFs.end();
 }
+
+#endif // CONFIG_IDF_TARGET_ESP32P4
 #endif
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+// P4 implementation: use POSIX directory and file functions via VFS at /sdcard
+
 std::set<std::string> SDCard::loadMapStyles(const char *folder)
 {
+    ILOG_DEBUG("SDCard::loadMapStyles %s", folder);
     std::set<std::string> styles;
+
+    std::string mountedFolder = "/sdcard";
+    mountedFolder += folder;
+
+    DIR *dir = opendir(mountedFolder.c_str());
+    if (dir) {
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            if (entry->d_name[0] != '.') {
+                ILOG_DEBUG("SD: found map style: %s", entry->d_name);
+                styles.insert(entry->d_name);
+            }
+        }
+        closedir(dir);
+    } else {
+        ILOG_DEBUG("SD: %s not found", mountedFolder.c_str());
+    }
+
+    if (styles.empty()) {
+        dir = opendir("/sdcard/map");
+        if (dir) {
+            ILOG_DEBUG("SD: found /map dir");
+            styles.insert("/map");
+            closedir(dir);
+        } else {
+            ILOG_INFO("SD: no maps found");
+        }
+    }
+
+    updated = true;
+    return styles;
+}
+
+std::string SDCard::getUrlProvider(const char *folder, const char *style)
+{
+    std::string filename = "/sdcard";
+    filename += folder;
+    filename += "/";
+    filename += style;
+    filename += "/.url";
+    
+    FILE *file = fopen(filename.c_str(), "r");
+    if (file) {
+        char buffer[256];
+        if (fgets(buffer, sizeof(buffer), file) != nullptr) {
+            // Remove trailing newline
+            size_t len = strlen(buffer);
+            if (len > 0 && buffer[len - 1] == '\n') {
+                buffer[len - 1] = '\0';
+            }
+            fclose(file);
+            return std::string{buffer};
+        }
+        fclose(file);
+    }
+    return {};
+}
+
+#elif defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+// Non-P4 implementation: use Arduino File API
+
+std::set<std::string> SDCard::loadMapStyles(const char *folder)
+{
+    ILOG_DEBUG("SDCard::loadMapStyles %s", folder);
+    std::set<std::string> styles;
+
     File maps = SDFs.open(folder);
     if (maps) {
         do {
@@ -153,6 +315,9 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
         } while (true);
         maps.close();
     }
+    else {
+        ILOG_DEBUG("SD: /maps not found");
+    }
     if (styles.empty()) {
         File map = SDFs.open("/map");
         if (map) {
@@ -163,6 +328,7 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
             ILOG_INFO("SD: no maps found");
         }
     }
+
     updated = true;
     return styles;
 }
@@ -178,7 +344,7 @@ std::string SDCard::getUrlProvider(const char *folder, const char *style)
     return {};
 }
 
-#elif defined(HAS_SDCARD)
+#elif defined(HAS_SDCARD) // not ARCH_PORTDUINO and not MMC
 bool SdFsCard::init(void)
 {
     // TODO: allow specification of SPI bus

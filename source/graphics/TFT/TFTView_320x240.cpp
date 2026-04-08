@@ -44,7 +44,11 @@ fs::FS &fileSystem = LittleFS;
 // #include "graphics/map/LinuxFileSystemService.h"
 #include "graphics/map/SDCardService.h"
 #elif defined(HAS_SD_MMC)
+#if defined(CONFIG_IDF_TARGET_ESP32P4)
+#include "graphics/map/SDMMCCardService.h"
+#else
 #include "graphics/map/SDCardService.h"
+#endif
 #else
 #include "graphics/map/SdFatService.h"
 #endif
@@ -2517,23 +2521,29 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
 void TFTView_320x240::loadMap(void)
 {
     if (!map) {
-#if LV_USE_FS_ARDUINO_SD
-        map = new MapPanel(objects.raw_map_panel);
+        ITileService* tileService = nullptr;
+#if defined(ARCH_PORTDUINO)
+        tileService = new SDCardService(); // TODO: LinuxFileSystemService
 #elif defined(HAS_SD_MMC)
-        auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
-#elif defined(HAS_SDCARD)
-        auto tileService = new SdFatService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
-#elif defined(ARCH_PORTDUINO)
-        map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
+#if defined(CONFIG_IDF_TARGET_ESP32P4)
+        tileService = new SDMMCCardService();
 #else
-        map = new MapPanel(objects.raw_map_panel, new URLService());
+        tileService = new SDCardService(); // MMC driver does not support exFat
 #endif
+#elif defined(HAS_SDCARD)
+        tileService = new SdFatService();
+#endif
+        map = new MapPanel(objects.raw_map_panel, tileService);
+
+#if !defined(ARCH_PORTDUINO)
+        if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
+            map->setBackupService(
+                new URLService([tileService](const char *name, void *img, size_t len) { 
+                    return tileService->save(name, img, len); 
+                }));
+        }
+#endif
+
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(objects.home_location_image, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)ownNode);
