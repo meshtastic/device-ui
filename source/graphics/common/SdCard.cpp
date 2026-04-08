@@ -80,6 +80,10 @@ SDCard::~SDCard(void) {}
 #include "sdmmc_cmd.h"
 #include "sd_protocol_defs.h"
 
+#ifndef BOARD_MAX_SDMMC_FREQ
+#define BOARD_MAX_SDMMC_FREQ 40000
+#endif
+
 static sdmmc_card_t *s_sdmmc_card = nullptr;
 
 bool SDCard::init(void)
@@ -93,9 +97,7 @@ bool SDCard::init(void)
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     host.slot = SDMMC_HOST_SLOT_1; // Slot 1 = GPIO matrix; no IO_MUX conflict with I2C GPIO45/46
     host.flags = SDMMC_HOST_FLAG_1BIT;
-#ifdef BOARD_MAX_SDMMC_FREQ
     host.max_freq_khz = BOARD_MAX_SDMMC_FREQ;
-#endif
 
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
     slot_config.clk = (gpio_num_t)SD_SCLK_PIN;
