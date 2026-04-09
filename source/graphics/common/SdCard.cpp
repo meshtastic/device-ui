@@ -167,6 +167,17 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
     return styles;
 }
 
+std::string SDCard::getUrlProvider(const char *folder, const char *style)
+{
+    String filename = String(folder) + "/" + String(style) + "/.url";
+    File file = SDFs.open(filename.c_str(), FILE_READ);
+    if (file) {
+        String url = file.readStringUntil('\n');
+        return std::string{url.c_str()};
+    }
+    return {};
+}
+
 #elif defined(HAS_SDCARD)
 bool SdFsCard::init(void)
 {
@@ -295,4 +306,14 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
     return styles;
 }
 
+std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
+{
+    String filename = String(folder) + "/" + String(style) + "/.url";
+    File file = SDFs.open(filename.c_str(), FILE_READ);
+    if (file) {
+        String url = file.readStringUntil('\n');
+        return std::string{url.c_str()};
+    }
+    return {};
+}
 #endif // HAS_SDCARD
