@@ -2,8 +2,8 @@
 #include "util/ILog.h"
 
 #if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
-#include <dirent.h>
 #include <cstring>
+#include <dirent.h>
 #endif
 
 #ifndef SD_SPI_FREQUENCY
@@ -77,8 +77,8 @@ SDCard::~SDCard(void) {}
 #if defined(CONFIG_IDF_TARGET_ESP32P4)
 #include "driver/sdmmc_host.h"
 #include "esp_vfs_fat.h"
-#include "sdmmc_cmd.h"
 #include "sd_protocol_defs.h"
+#include "sdmmc_cmd.h"
 
 #ifndef BOARD_MAX_SDMMC_FREQ
 #define BOARD_MAX_SDMMC_FREQ 40000
@@ -118,18 +118,19 @@ bool SDCard::init(void)
 
 ISdCard::CardType SDCard::cardType(void)
 {
-    if (!s_sdmmc_card) return CardType::eNone;
-    if (s_sdmmc_card->is_mmc) return CardType::eMMC;
+    if (!s_sdmmc_card)
+        return CardType::eNone;
+    if (s_sdmmc_card->is_mmc)
+        return CardType::eMMC;
     return (s_sdmmc_card->ocr & SD_OCR_SDHC_CAP) ? CardType::eSDHC : CardType::eSD;
 }
 
 ISdCard::FatType SDCard::fatType(void)
 {
-    if (!s_sdmmc_card) return FatType::eNA;
+    if (!s_sdmmc_card)
+        return FatType::eNA;
     uint64_t sz = cardSize();
-    return sz > 32ULL * 1024 * 1024 * 1024 ? FatType::eExFat :
-           sz > 4ULL * 1024 * 1024 * 1024  ? FatType::eFat32 :
-                                              FatType::eFat16;
+    return sz > 32ULL * 1024 * 1024 * 1024 ? FatType::eExFat : sz > 4ULL * 1024 * 1024 * 1024 ? FatType::eFat32 : FatType::eFat16;
 }
 
 ISdCard::ErrorType SDCard::errorType(void)
@@ -149,7 +150,8 @@ uint64_t SDCard::freeBytes(void)
 
 uint64_t SDCard::cardSize(void)
 {
-    if (!s_sdmmc_card) return 0;
+    if (!s_sdmmc_card)
+        return 0;
     return (uint64_t)s_sdmmc_card->csd.capacity * s_sdmmc_card->csd.sector_size;
 }
 
@@ -274,7 +276,7 @@ std::string SDCard::getUrlProvider(const char *folder, const char *style)
     filename += "/";
     filename += style;
     filename += "/.url";
-    
+
     FILE *file = fopen(filename.c_str(), "r");
     if (file) {
         char buffer[256];
@@ -316,8 +318,7 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
             style.close();
         } while (true);
         maps.close();
-    }
-    else {
+    } else {
         ILOG_DEBUG("SD: /maps not found");
     }
     if (styles.empty()) {

@@ -5,7 +5,7 @@
 
 /**
  * @brief POSIX file system implementation for ESP32-P4
- * 
+ *
  * Uses POSIX file APIs (fopen, fprintf, fgets, etc.) which work with
  * ESP-IDF's VFS-mounted file systems at /sdcard.
  */

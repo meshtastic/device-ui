@@ -7,24 +7,26 @@
 #include <Arduino.h>
 #include <esp_log.h>
 
-#if !defined (CONFIG_IDF_TARGET_ESP32P4) && !defined(__INTELLISENSE__)
-  #error "CONFIG_IDF_TARGET_ESP32P4 should be set"
+#if !defined(CONFIG_IDF_TARGET_ESP32P4) && !defined(__INTELLISENSE__)
+#error "CONFIG_IDF_TARGET_ESP32P4 should be set"
 #endif
 
 #include "graphics/LGFX/experimental/esp32p4/Bus_RGB_P4.hpp"
 #include "graphics/LGFX/experimental/esp32p4/Panel_RGB_P4.hpp"
 
 #define STC8_I2C_SLAVE_DEV_ADDR 0x2F
-#define STC8_REG_ADDR_SET_PWM   0x20
-#define STC8_I2C_PORT           1
-#define STC8_I2C_SDA_PIN        45
-#define STC8_I2C_SCL_PIN        46
-#define STC8_I2C_FREQ_HZ        400000
+#define STC8_REG_ADDR_SET_PWM 0x20
+#define STC8_I2C_PORT 1
+#define STC8_I2C_SDA_PIN 45
+#define STC8_I2C_SCL_PIN 46
+#define STC8_I2C_FREQ_HZ 400000
 
-namespace lgfx {
+namespace lgfx
+{
 
 class Panel_EK79007 : public lgfx::Panel_RGB_P4
-{};
+{
+};
 
 class Elecrow_P4_Light : public ILight
 {
@@ -36,7 +38,8 @@ class Elecrow_P4_Light : public ILight
     const config_t &config(void) const { return _cfg; }
     void config(const config_t &cfg) { _cfg = cfg; }
 
-    bool init(uint8_t brightness) override {
+    bool init(uint8_t brightness) override
+    {
         auto init_res = lgfx::i2c::init(STC8_I2C_PORT, STC8_I2C_SDA_PIN, STC8_I2C_SCL_PIN);
         if (init_res.has_error()) {
             ESP_LOGE("LGFX", "Elecrow_P4_Light: failed to init i2c port %d", STC8_I2C_PORT);
@@ -50,7 +53,8 @@ class Elecrow_P4_Light : public ILight
         return true;
     }
 
-    void setBrightness(uint8_t brightness) override {
+    void setBrightness(uint8_t brightness) override
+    {
         uint8_t duty = (static_cast<uint16_t>(brightness) * 100 + 127u) / 255u;
         sendI2CCommand(STC8_REG_ADDR_SET_PWM, duty);
         _cfg.brightness = brightness;
@@ -61,17 +65,13 @@ class Elecrow_P4_Light : public ILight
     virtual ~Elecrow_P4_Light(void) = default;
 
   private:
-
     uint8_t sendI2CCommand(uint8_t cmd, uint8_t data)
     {
         uint8_t error = 4;
         if (_i2cInitialized) {
             uint8_t payload[2] = {cmd, data};
-            auto write_res = lgfx::i2c::transactionWrite(STC8_I2C_PORT,
-                                                         STC8_I2C_SLAVE_DEV_ADDR,
-                                                         payload,
-                                                         sizeof(payload),
-                                                         STC8_I2C_FREQ_HZ);
+            auto write_res =
+                lgfx::i2c::transactionWrite(STC8_I2C_PORT, STC8_I2C_SLAVE_DEV_ADDR, payload, sizeof(payload), STC8_I2C_FREQ_HZ);
             error = write_res.has_value() ? 0 : 4;
             if (error != 0) {
                 ESP_LOGE("LGFX", "Elecrow_P4_Light: failed to send command 0x%02x: %d (I2C error)", (int)cmd, (int)error);
@@ -84,22 +84,21 @@ class Elecrow_P4_Light : public ILight
     config_t _cfg;
 };
 
-}
-
+} // namespace lgfx
 
 class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
 {
-    lgfx::Bus_RGB_P4       _bus_instance;
+    lgfx::Bus_RGB_P4 _bus_instance;
     lgfx::Elecrow_P4_Light _light_instance;
-    lgfx::Panel_EK79007    _panel_instance;
-    lgfx::Touch_GT911      _touch_instance;
+    lgfx::Panel_EK79007 _panel_instance;
+    lgfx::Touch_GT911 _touch_instance;
 
   public:
     const uint32_t screenWidth = 800;
     const uint32_t screenHeight = 480;
-  
+
     bool hasButton(void) { return false; }
-  
+
     bool init_impl(bool use_reset, bool use_clear) override
     {
 #if !CONFIG_SPIRAM
@@ -107,13 +106,14 @@ class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
 #elif CONFIG_SPIRAM_SPEED <= 80
         ESP_LOGE("LGFX", "ELECROW_P4 need PSRAM SPEED 200MHz");
 #endif
-      return lgfx::LGFX_Device::init_impl(use_reset, use_clear);
+        return lgfx::LGFX_Device::init_impl(use_reset, use_clear);
     }
 
-    LGFX_ELECROW_P4(void) {
+    LGFX_ELECROW_P4(void)
+    {
         {
             auto cfg = _panel_instance.config();
-    
+
             cfg.memory_width = screenWidth;
             cfg.memory_height = screenHeight;
             cfg.panel_width = screenWidth;
@@ -128,7 +128,7 @@ class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
             cfg.pin_rst = GPIO_NUM_NC;
             _panel_instance.config(cfg);
         }
-    
+
         {
             auto cfg = _panel_instance.config_detail();
             cfg.pin_cs = GPIO_NUM_NC;
@@ -182,7 +182,7 @@ class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
             _bus_instance.config(cfg);
         }
         _panel_instance.setBus(&_bus_instance);
-    
+
         {
             auto cfg = _touch_instance.config();
             cfg.x_min = 0;
@@ -193,7 +193,7 @@ class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
             cfg.pin_rst = GPIO_NUM_36;
             cfg.bus_shared = false;
             cfg.offset_rotation = 0;
-    
+
             cfg.i2c_port = 1;
             cfg.i2c_addr = 0x5D;
             cfg.pin_sda = GPIO_NUM_45;
@@ -202,11 +202,10 @@ class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
             _touch_instance.config(cfg);
             _panel_instance.setTouch(&_touch_instance);
         }
-    
+
         // Backlight configuration.
         _panel_instance.light(&_light_instance);
-    
+
         setPanel(&_panel_instance);
     }
 };
-  

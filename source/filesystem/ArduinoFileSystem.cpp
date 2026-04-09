@@ -3,8 +3,8 @@
 #if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)) && !defined(CONFIG_IDF_TARGET_ESP32P4)
 
 #include "filesystem/ArduinoFileSystem.h"
-#include <stdarg.h>
 #include <cstdarg>
+#include <stdarg.h>
 
 bool ArduinoFileSystem::open(const std::string &path, const std::string &mode)
 {

@@ -1,8 +1,8 @@
 #if defined(HAS_SDCARD) && !defined(HAS_SD_MMC)
 
 #include "filesystem/SdFatFileSystem.h"
-#include <stdarg.h>
 #include <cstdarg>
+#include <stdarg.h>
 
 bool SdFatFileSystem::open(const std::string &path, const std::string &mode)
 {

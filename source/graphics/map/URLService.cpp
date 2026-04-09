@@ -1,7 +1,7 @@
 #include "graphics/map/URLService.h"
+#include "WiFiClient.h"
 #include "graphics/map/MapTileSettings.h"
 #include "graphics/map/TileProvider.h"
-#include "WiFiClient.h"
 #include "lvgl.h"
 #include "util/ILog.h"
 

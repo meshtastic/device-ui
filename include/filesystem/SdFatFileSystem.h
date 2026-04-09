@@ -7,7 +7,7 @@
 
 /**
  * @brief SdFat library implementation
- * 
+ *
  * Uses the SdFat library's FsFile interface, typically used on
  * platforms with dedicated SD card SPI connections.
  */

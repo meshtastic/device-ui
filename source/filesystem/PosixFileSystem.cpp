@@ -1,7 +1,7 @@
 #include "filesystem/PosixFileSystem.h"
 #include <cerrno>
-#include <sys/stat.h>
 #include <stdarg.h>
+#include <sys/stat.h>
 
 PosixFileSystem::~PosixFileSystem()
 {
@@ -98,4 +98,3 @@ std::string PosixFileSystem::getLastError() const
 {
     return lastError;
 }
-

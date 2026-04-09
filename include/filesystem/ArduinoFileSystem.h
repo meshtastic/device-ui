@@ -7,7 +7,7 @@
 
 /**
  * @brief Arduino File API implementation
- * 
+ *
  * Uses Arduino's File API (via SDFs) which provides a common interface
  * for ESP32, nRF52, and Portduino platforms.
  */
