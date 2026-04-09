@@ -230,7 +230,7 @@
   Trace Route: Spor rute
   unknown: ukjent
   Unknown: Ukjent
-  <unset>: <ikke satt>
+  '<unset>': '<ikke satt>'
   'uptime 00:00:00': 'oppetid 00:00:00'
   'uptime: %02d:%02d:%02d': 'oppetid: %02d:%02d:%02d'
   'User name: ': 'Brukernavn: '
