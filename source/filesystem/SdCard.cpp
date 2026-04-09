@@ -1,4 +1,4 @@
-#include "graphics/common/SdCard.h"
+#include "filesystem/SdCard.h"
 #include "util/ILog.h"
 
 #if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
