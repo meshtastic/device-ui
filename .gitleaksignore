@@ -1,0 +1,6 @@
+# Additional configuration to ignore generic API key warnings
+rules:
+  - description: "Generic API Key Ignore"
+    rule: "generic-api-key"
+    paths:
+      - "locale/no.yml"
