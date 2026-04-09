@@ -32,10 +32,10 @@ no:
   '%d new message': '%d ny melding'
   '%d new messages': '%d nye meldinger'
   '%d of %d nodes online':
-    one: 1 node online
-    other: '%d av %d noder online
+    one: '%d av %d node online'
+    other: '%d av %d noder online'
   done: ferdig
-  '!Enter Filter ...': '!Filter ...'
+  "!Enter Filter ...": "!Filter ..."
   Enter Filter ...: Filter ...
   Enter Text ...: Tekst ...
   Failed to parse keys!: Analysering av nøkler feilet!
