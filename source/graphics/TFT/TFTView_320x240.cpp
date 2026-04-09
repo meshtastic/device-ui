@@ -2,6 +2,7 @@
 
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"
+#include "filesystem/IFileSystem.h"
 #include "graphics/common/BatteryLevel.h"
 #include "graphics/common/LoRaPresets.h"
 #include "graphics/common/Ringtones.h"
@@ -20,7 +21,6 @@
 #include "ui.h"
 #include "util/FileLoader.h"
 #include "util/ILog.h"
-#include "filesystem/IFileSystem.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -2522,7 +2522,7 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
 void TFTView_320x240::loadMap(void)
 {
     if (!map) {
-        ITileService* tileService = nullptr;
+        ITileService *tileService = nullptr;
 #if defined(ARCH_PORTDUINO)
         tileService = new SDCardService(); // TODO: LinuxFileSystemService
 #elif defined(HAS_SD_MMC)
@@ -2538,10 +2538,8 @@ void TFTView_320x240::loadMap(void)
 
 #if !defined(ARCH_PORTDUINO)
         if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
-            map->setBackupService(
-                new URLService([tileService](const char *name, void *img, size_t len) { 
-                    return tileService->save(name, img, len); 
-                }));
+            map->setBackupService(new URLService(
+                [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
         }
 #endif
 
