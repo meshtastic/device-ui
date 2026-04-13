@@ -95,7 +95,7 @@ bool SDCard::init(void)
     };
 
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    host.slot = SDMMC_HOST_SLOT_1; // Slot 1 = GPIO matrix; no IO_MUX conflict with I2C GPIO45/46
+    host.slot = SD_MMC_HOST_SLOT;
     host.flags = SDMMC_HOST_FLAG_1BIT;
     host.max_freq_khz = BOARD_MAX_SDMMC_FREQ;
 
@@ -104,7 +104,14 @@ bool SDCard::init(void)
     slot_config.cmd = (gpio_num_t)SD_MOSI_PIN;
     slot_config.d0 = (gpio_num_t)SD_MISO_PIN;
     slot_config.width = 1;
+    // In 1-bit mode, force unused data lines to NC so slot defaults don't claim unrelated GPIOs.
+    slot_config.d1 = GPIO_NUM_NC;
+    slot_config.d2 = GPIO_NUM_NC;
+    slot_config.d3 = GPIO_NUM_NC;
     slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
+
+    ILOG_DEBUG("SDCard (P4): slot=%d clk=%d cmd=%d d0=%d freq_khz=%d", host.slot, (int)slot_config.clk, (int)slot_config.cmd,
+               (int)slot_config.d0, (int)host.max_freq_khz);
 
     s_sdmmc_card = nullptr;
     esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &s_sdmmc_card);
