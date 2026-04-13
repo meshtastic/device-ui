@@ -70,10 +70,6 @@ SDCard::~SDCard(void) {}
 
 #elif defined(HAS_SD_MMC)
 
-// On ESP32-P4, SDMMC Slot 0 IO_MUX pins include D4=GPIO45 (I2C SDA) and D5=GPIO46 (I2C SCL).
-// Using Slot 0 causes hardware-level interference with I2C even in 1-bit mode because the SDMMC
-// peripheral claims those IO_MUX entries. Use Slot 1 (GPIO matrix) instead — it uses the GPIO
-// matrix with no fixed pin assignments and leaves GPIO45/46 exclusively for I2C.
 #if defined(CONFIG_IDF_TARGET_ESP32P4)
 #include "driver/sdmmc_host.h"
 #include "esp_vfs_fat.h"
