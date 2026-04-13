@@ -86,7 +86,7 @@ class Elecrow_P4_Light : public ILight
 
 } // namespace lgfx
 
-class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
+class LGFX_ELECROW_P4_50 : public lgfx::LGFX_Device
 {
     lgfx::Bus_RGB_P4 _bus_instance;
     lgfx::Elecrow_P4_Light _light_instance;
@@ -109,7 +109,7 @@ class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
         return lgfx::LGFX_Device::init_impl(use_reset, use_clear);
     }
 
-    LGFX_ELECROW_P4(void)
+    LGFX_ELECROW_P4_50(void)
     {
         {
             auto cfg = _panel_instance.config();
@@ -121,7 +121,7 @@ class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
             cfg.readable = true;
             cfg.rgb_order = false;
             cfg.bus_shared = false;
-            cfg.offset_x = 0;
+            cfg.offset_x = -8;
             cfg.offset_y = 0;
             cfg.offset_rotation = 0;
             cfg.pin_cs = GPIO_NUM_NC;
@@ -164,7 +164,7 @@ class LGFX_ELECROW_P4 : public lgfx::LGFX_Device
             cfg.pin_vsync = GPIO_NUM_41;
             cfg.pin_hsync = GPIO_NUM_40;
             cfg.pin_pclk = GPIO_NUM_3;
-            cfg.freq_write = 18000000;
+            cfg.freq_write = 25000000;
 
             cfg.hsync_polarity = false;
             cfg.hsync_pulse_width = 4;
