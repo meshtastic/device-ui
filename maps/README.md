@@ -73,7 +73,8 @@ Entire USA (all fifty states) standard OSM-style zoom 1 to 12, downloaded from O
 
 - 🟢 **LILYGO T-Deck**: Confirmed to work
 - 🟢 **CrowPanel Advance HMI**: Confirmed to work on 2.4", 2.8", and 3.5" models
-- 🔴 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. It can not be used for showing maps in Meshtastic UI.
+- 🟡 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. It can not be used for showing maps in Meshtastic UI. However, when WiFi is enabled then map tiles are downloaded via the internet.
+- 🟡 **Heltec V4 Kit**: The current version does not have a MicroSD card slot and the available PSRAM is only 2 MB. When WiFi is enabled then map tiles are downloaded via the internet and converted into grayscale tiles to lower the memory consumption.
 
 # Credits and Attribution
 
