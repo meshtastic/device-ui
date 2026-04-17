@@ -2,6 +2,7 @@
 
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"
+#include "filesystem/IFileSystem.h"
 #include "graphics/common/BatteryLevel.h"
 #include "graphics/common/LoRaPresets.h"
 #include "graphics/common/Ringtones.h"
@@ -44,11 +45,15 @@ fs::FS &fileSystem = LittleFS;
 // #include "graphics/map/LinuxFileSystemService.h"
 #include "graphics/map/SDCardService.h"
 #elif defined(HAS_SD_MMC)
+#if defined(CONFIG_IDF_TARGET_ESP32P4)
+#include "graphics/map/SDMMCCardService.h"
+#else
 #include "graphics/map/SDCardService.h"
+#endif
 #else
 #include "graphics/map/SdFatService.h"
 #endif
-#include "graphics/common/SdCard.h"
+#include "filesystem/SdCard.h"
 
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
@@ -2517,23 +2522,27 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
 void TFTView_320x240::loadMap(void)
 {
     if (!map) {
-#if LV_USE_FS_ARDUINO_SD
-        map = new MapPanel(objects.raw_map_panel);
+        ITileService *tileService = nullptr;
+#if defined(ARCH_PORTDUINO)
+        tileService = new SDCardService(); // TODO: LinuxFileSystemService
 #elif defined(HAS_SD_MMC)
-        auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
-#elif defined(HAS_SDCARD)
-        auto tileService = new SdFatService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
-#elif defined(ARCH_PORTDUINO)
-        map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
+#if defined(CONFIG_IDF_TARGET_ESP32P4)
+        tileService = new SDMMCCardService();
 #else
-        map = new MapPanel(objects.raw_map_panel, new URLService());
+        tileService = new SDCardService(); // MMC driver does not support exFat
 #endif
+#elif defined(HAS_SDCARD)
+        tileService = new SdFatService();
+#endif
+        map = new MapPanel(objects.raw_map_panel, tileService);
+
+#if !defined(ARCH_PORTDUINO)
+        if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
+            map->setBackupService(new URLService(
+                [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+        }
+#endif
+
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(objects.home_location_image, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)ownNode);
@@ -6125,26 +6134,38 @@ void TFTView_320x240::backup(uint32_t option)
 
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
-    SDFs.mkdir("/keys");
-    File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
+
+    auto fs = createFileSystem();
+    if (!fs) {
+        ILOG_ERROR("Failed to create file system");
+        return;
+    }
+
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+    std::string fullPath = std::string("/sdcard") + path.str();
+    std::string keyDir = "/sdcard/keys";
 #else
-    SDFs.mkdir("/keys");
-    FsFile sd = SDFs.open(path.str().c_str(), O_RDWR | O_CREAT);
+    std::string fullPath = path.str();
+    std::string keyDir = "/keys";
 #endif
-    if (sd) {
-        sd.println("config:");
-        sd.println("  security:");
-        sd.print("      privateKey: base64:");
-        sd.println(pskToBase64(privkey.bytes, privkey.size).c_str());
-        sd.print("      publicKey: base64:");
-        sd.println(pskToBase64(pubkey.bytes, pubkey.size).c_str());
+
+    // Create keys directory
+    if (!fs->mkdir(keyDir)) {
+        ILOG_WARN("mkdir %s: %s", keyDir.c_str(), fs->getLastError().c_str());
+    }
+
+    // Write keys to file
+    if (fs->open(fullPath, "w")) {
+        fs->printf("config:\n");
+        fs->printf("  security:\n");
+        fs->printf("      privateKey: base64:%s\n", pskToBase64(privkey.bytes, privkey.size).c_str());
+        fs->printf("      publicKey: base64:%s\n", pskToBase64(pubkey.bytes, pubkey.size).c_str());
+        fs->close();
         ILOG_INFO("backup pub/priv keys done.");
     } else {
-        ILOG_ERROR("open file %s for backup failed", path.str().c_str());
+        ILOG_ERROR("open file %s for backup failed: %s", fullPath.c_str(), fs->getLastError().c_str());
         messageAlert(_("Failed to write keys!"), true);
     }
-    sd.close();
 #endif
 }
 
@@ -6157,22 +6178,56 @@ void TFTView_320x240::restore(uint32_t option)
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
-    File sd = SDFs.open(path.str().c_str(), FILE_READ);
+    auto fs = createFileSystem();
+    if (!fs) {
+        ILOG_ERROR("Failed to create file system");
+        return;
+    }
+
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+    std::string fullPath = std::string("/sdcard") + path.str();
 #else
-    FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
+    std::string fullPath = path.str();
 #endif
-    if (sd) {
-        // TODO: improve parsing file contents
-        sd.readStringUntil('\n');                  // config:
-        sd.readStringUntil('\n');                  // security:
-        String privKey = sd.readStringUntil('\n'); // privateKey: base64:
-        String pubKey = sd.readStringUntil('\n');  // publicKey: base64:
-        if (privKey.indexOf("privateKey:") > 0 && pubKey.indexOf("publicKey:") > 0) {
-            String b64priv = privKey.substring(privKey.lastIndexOf(":") + 1);
-            String b64pub = pubKey.substring(pubKey.lastIndexOf(":") + 1);
-            b64priv.trim();
-            b64pub.trim();
+
+    // read and parse the YAML file for keys
+    if (fs->open(fullPath, "r")) {
+        std::string privateLine;
+        std::string publicLine;
+        char line[320];
+
+        // read file line by line
+        while (fs->readLine(line, sizeof(line))) {
+            if (strstr(line, "privateKey:") != nullptr) {
+                privateLine = line;
+            } else if (strstr(line, "publicKey:") != nullptr) {
+                publicLine = line;
+            }
+        }
+        fs->close();
+
+        // process if both keys found
+        if (!privateLine.empty() && !publicLine.empty()) {
+            // trim whitespace and extract base64 values
+            auto trim = [](std::string &s) {
+                while (!s.empty() && (s.back() == '\n' || s.back() == '\r' || s.back() == ' ' || s.back() == '\t')) {
+                    s.pop_back();
+                }
+                size_t p = 0;
+                while (p < s.size() && (s[p] == ' ' || s[p] == '\t')) {
+                    p++;
+                }
+                if (p > 0) {
+                    s.erase(0, p);
+                }
+            };
+
+            std::string b64priv = privateLine.substr(privateLine.find_last_of(':') + 1);
+            std::string b64pub = publicLine.substr(publicLine.find_last_of(':') + 1);
+            trim(b64priv);
+            trim(b64pub);
+
+            // decode and send to radio
             if (base64ToPsk(b64priv.c_str(), privkey.bytes, privkey.size) &&
                 base64ToPsk(b64pub.c_str(), pubkey.bytes, pubkey.size) &&
                 controller->sendConfig(meshtastic_Config_SecurityConfig{db.config.security})) {
@@ -6182,14 +6237,13 @@ void TFTView_320x240::restore(uint32_t option)
                 messageAlert(_("Failed to restore keys!"), true);
             }
         } else {
-            ILOG_ERROR("file %s contents don't match backup", path.str().c_str());
+            ILOG_ERROR("file %s contents don't match backup", fullPath.c_str());
             messageAlert(_("Failed to parse keys!"), true);
         }
     } else {
-        ILOG_ERROR("open file %s failed", path.str().c_str());
+        ILOG_ERROR("open file %s failed: %s", fullPath.c_str(), fs->getLastError().c_str());
         messageAlert(_("Failed to retrieve keys!"), true);
     }
-    sd.close();
 #endif
 }
 
