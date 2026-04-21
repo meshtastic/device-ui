@@ -8,7 +8,7 @@ bool SdFatFileSystem::open(const std::string &path, const std::string &mode)
 {
     close(); // Close any previously opened file
 
-    uint8_t oflag;
+    oflag_t oflag;
     if (mode == "r") {
         oflag = O_RDONLY;
     } else if (mode == "w") {
