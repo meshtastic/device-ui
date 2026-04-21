@@ -178,7 +178,9 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+#if !defined(LGFX_SKIP_RGB565_SWAP)
     lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
     lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
     lv_display_flush_ready(disp);
 }
@@ -188,7 +190,9 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+#if !defined(LGFX_SKIP_RGB565_SWAP)
     lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
     if (lgfx->getStartCount() == 0) { // Processing if not yet started
         lgfx->startWrite();
     }
