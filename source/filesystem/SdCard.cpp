@@ -401,7 +401,6 @@ ISdCard::ErrorType SdFsCard::errorType(void)
     else {
         // check mbr type
         MbrSector_t mbr;
-        bool valid = true;
         if (SDFs.card()) {
             if (!SDFs.card()->readSector(0, (uint8_t *)&mbr)) {
                 // read MBR failed
