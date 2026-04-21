@@ -40,26 +40,35 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
 
     bool init_impl(bool use_reset, bool use_clear) override
     {
-        // Probe for the STC8H1K28 MCU (V1.2+) first. If present, we must not
-        // touch the TCA9534 path because those boards wire the backlight
-        // enable through the MCU instead of the I/O expander.
-        Wire.beginTransmission(CROW_MCU_I2C_ADDR);
-        hasMcu = (Wire.endTransmission() == 0);
+        // Distinguish hardware revisions by probing for the TCA9534 I/O
+        // expander at 0x18: present on V1.0/V1.1, absent on V1.2+ where
+        // its role has been taken over by the STC8H1K28 microcontroller
+        // at 0x30. Probing 0x18 is reliable even on cold boot — the
+        // TCA9534 is passive and responds immediately, unlike the MCU
+        // which needs a wake sequence before it ACKs.
+        Wire.beginTransmission(0x18);
+        bool hasExpander = (Wire.endTransmission() == 0);
+        hasMcu = !hasExpander;
 
         if (hasMcu) {
-            // V1.3+ some boards require pulsing GPIO1 low for the MCU to
-            // latch the first command after power-on (per Elecrow's
-            // reference code in CrowPanel-Advance-7 / lesson-03).
-            pinMode(1, OUTPUT);
-            digitalWrite(1, LOW);
-            delay(20);
-            pinMode(1, INPUT);
-            delay(100);
-
-            writeMcu(CROW_MCU_TOUCH_ACTIVATE); // activate touch controller
-            writeMcu(CROW_MCU_BL_MAX);         // backlight fully on
+            // V1.2+ wake sequence, mirrors Elecrow's CrowPanel-Advance-7
+            // reference code. The first write may NACK because the MCU
+            // is still booting; the GPIO1 pulse then latches/wakes it,
+            // and subsequent writes set the desired state. Repeat the
+            // command a few times so we don't rely on any single
+            // transmission succeeding.
+            for (int attempt = 0; attempt < 5; ++attempt) {
+                writeMcu(CROW_MCU_TOUCH_ACTIVATE);
+                pinMode(1, OUTPUT);
+                digitalWrite(1, LOW);
+                delay(120);
+                pinMode(1, INPUT);
+                delay(100);
+                writeMcu(CROW_MCU_BL_MAX);
+                delay(20);
+            }
         } else {
-            // V1.0/V1.1 fallback: TCA9534 I/O expander at 0x18.
+            // V1.0/V1.1: TCA9534 I/O expander at 0x18.
             ioex.attach(Wire);
             ioex.setDeviceAddress(0x18);
             ioex.config(1, TCA9534::Config::OUT);
