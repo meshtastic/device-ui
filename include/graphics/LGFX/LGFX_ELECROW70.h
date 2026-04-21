@@ -10,6 +10,22 @@
 #define FREQ_WRITE 14000000
 #endif
 
+// Backlight / buzzer / speaker / touch control on CrowPanel Advance 4.3"/5.0"/7.0":
+//   - HW rev V1.0/V1.1: TCA9534 I/O expander at I2C 0x18 (pin 1 gates backlight).
+//   - HW rev V1.2+ (incl. V1.3/V1.4): STC8H1K28 microcontroller at I2C 0x30.
+//     Writing a single byte selects the function, per Elecrow's reference code:
+//       V1.2:  0x05..0x10  (0x05 = off, 0x10 = max)
+//       V1.3+: 0..245      (0 = max, 244 = min, 245 = off)
+//       Both:  246/247 buzzer on/off, 248/249 speaker on/off, 250 activate touch
+//   Sending a value in the V1.3+ scale to a V1.2 board is a no-op (undefined
+//   commands are ignored), so we send the V1.3+ "max brightness" byte and let
+//   V1.2 hardware stay dark rather than risk flipping buzzer/speaker pins by
+//   reusing bytes with overlapping meanings.
+#define CROW_MCU_I2C_ADDR 0x30
+#define CROW_MCU_BL_MAX 0
+#define CROW_MCU_BL_OFF 245
+#define CROW_MCU_TOUCH_ACTIVATE 250
+
 class LGFX_ELECROW70 : public lgfx::LGFX_Device
 {
     lgfx::Bus_RGB _bus_instance;
@@ -24,24 +40,45 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
 
     bool init_impl(bool use_reset, bool use_clear) override
     {
-        ioex.attach(Wire);
-        ioex.setDeviceAddress(0x18);
-        ioex.config(1, TCA9534::Config::OUT);
-        ioex.config(2, TCA9534::Config::OUT);
-        ioex.config(3, TCA9534::Config::OUT);
-        ioex.config(4, TCA9534::Config::OUT);
+        // Probe for the STC8H1K28 MCU (V1.2+) first. If present, we must not
+        // touch the TCA9534 path because those boards wire the backlight
+        // enable through the MCU instead of the I/O expander.
+        Wire.beginTransmission(CROW_MCU_I2C_ADDR);
+        hasMcu = (Wire.endTransmission() == 0);
 
-        ioex.output(1, TCA9534::Level::H);
-        ioex.output(3, TCA9534::Level::L);
-        ioex.output(4, TCA9534::Level::H);
+        if (hasMcu) {
+            // V1.3+ some boards require pulsing GPIO1 low for the MCU to
+            // latch the first command after power-on (per Elecrow's
+            // reference code in CrowPanel-Advance-7 / lesson-03).
+            pinMode(1, OUTPUT);
+            digitalWrite(1, LOW);
+            delay(20);
+            pinMode(1, INPUT);
+            delay(100);
 
-        pinMode(1, OUTPUT);
-        digitalWrite(1, LOW);
-        ioex.output(2, TCA9534::Level::L);
-        delay(20);
-        ioex.output(2, TCA9534::Level::H);
-        delay(100);
-        pinMode(1, INPUT);
+            writeMcu(CROW_MCU_TOUCH_ACTIVATE); // activate touch controller
+            writeMcu(CROW_MCU_BL_MAX);         // backlight fully on
+        } else {
+            // V1.0/V1.1 fallback: TCA9534 I/O expander at 0x18.
+            ioex.attach(Wire);
+            ioex.setDeviceAddress(0x18);
+            ioex.config(1, TCA9534::Config::OUT);
+            ioex.config(2, TCA9534::Config::OUT);
+            ioex.config(3, TCA9534::Config::OUT);
+            ioex.config(4, TCA9534::Config::OUT);
+
+            ioex.output(1, TCA9534::Level::H);
+            ioex.output(3, TCA9534::Level::L);
+            ioex.output(4, TCA9534::Level::H);
+
+            pinMode(1, OUTPUT);
+            digitalWrite(1, LOW);
+            ioex.output(2, TCA9534::Level::L);
+            delay(20);
+            ioex.output(2, TCA9534::Level::H);
+            delay(100);
+            pinMode(1, INPUT);
+        }
 
         return LGFX_Device::init_impl(use_reset, use_clear);
     }
@@ -137,15 +174,31 @@ class LGFX_ELECROW70 : public lgfx::LGFX_Device
 
     void sleep(void)
     {
-        ioex.output(1, TCA9534::Level::L);
+        if (hasMcu) {
+            writeMcu(CROW_MCU_BL_OFF);
+        } else {
+            ioex.output(1, TCA9534::Level::L);
+        }
         _panel->setSleep(true);
     }
     void wakeup(void)
     {
-        ioex.output(1, TCA9534::Level::H);
+        if (hasMcu) {
+            writeMcu(CROW_MCU_BL_MAX);
+        } else {
+            ioex.output(1, TCA9534::Level::H);
+        }
         _panel->setSleep(false);
     }
 
   private:
+    void writeMcu(uint8_t cmd)
+    {
+        Wire.beginTransmission(CROW_MCU_I2C_ADDR);
+        Wire.write(cmd);
+        Wire.endTransmission();
+    }
+
     TCA9534 ioex;
+    bool hasMcu = false;
 };
