@@ -80,6 +80,9 @@
 #endif
 #ifdef HELTEC_V4_TFT
 #include "graphics/LGFX/LGFX_HELTEC_V4_TFT.h"
+#ifdef HELTEC_V4_R8_TFT
+#include "graphics/LGFX/LGFX_HELTEC_V4_R8_TFT.h"
+#endif
 #endif
 #endif
 
@@ -213,6 +216,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(HELTEC_V4_TFT)
     case DisplayDriverConfig::device_t::HELTECV4_TFT:
         return new LGFXDriver<LGFX_HELTEC_V4_TFT>(cfg.width(), cfg.height());
+        break;
+#elif defined(HELTEC_V4_R8_TFT)
+    case DisplayDriverConfig::device_t::HELTECV4_R8_TFT:
+        return new LGFXDriver<LGFX_HELTEC_V4_R8_TFT>(cfg.width(), cfg.height());
         break;
 #endif
     default:
