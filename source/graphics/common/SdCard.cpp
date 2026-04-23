@@ -190,7 +190,12 @@ bool SdFsCard::init(void)
 #elif defined(SDCARD_USE_SOFT_SPI)
     return SDFs.begin(SdSpiConfig(SDCARD_CS, DEDICATED_SPI, SD_SCK_MHZ(0), &SDHandler));
 #else
+#if defined(HELTEC_V4_R8_TFT)
+    // The screen has already initialized its SPI; re-initializing it will result in an error.
+    return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI | USER_SPI_BEGIN, SD_SPI_FREQUENCY, &SDHandler));
+#else
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
+#endif
 #endif
 }
 
