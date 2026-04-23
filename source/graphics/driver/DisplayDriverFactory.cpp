@@ -80,9 +80,9 @@
 #endif
 #ifdef HELTEC_V4_TFT
 #include "graphics/LGFX/LGFX_HELTEC_V4_TFT.h"
+#endif
 #ifdef HELTEC_V4_R8_TFT
 #include "graphics/LGFX/LGFX_HELTEC_V4_R8_TFT.h"
-#endif
 #endif
 #endif
 
