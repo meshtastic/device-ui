@@ -191,7 +191,8 @@ bool SdFsCard::init(void)
     return SDFs.begin(SdSpiConfig(SDCARD_CS, DEDICATED_SPI, SD_SCK_MHZ(0), &SDHandler));
 #else
 #if defined(HELTEC_V4_R8_TFT)
-    // The screen has already initialized its SPI; re-initializing it will result in an error.
+    // fix : HSPI Does not have default pins on ESP32S3!
+    SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS);
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI | USER_SPI_BEGIN, SD_SPI_FREQUENCY, &SDHandler));
 #else
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
