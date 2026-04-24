@@ -72,9 +72,9 @@ class LGFX_Touch : public lgfx::LGFX_Device
 
     bool getTouchXY(uint16_t *touchX, uint16_t *touchY)
     {
-        uint16_t rwa_x, raw_y;
-        if (chsc6xTouch->chsc6x_read_touch_info(&rwa_x, &raw_y) == 0) {
-            rotate_touch_coord(rwa_x, raw_y, 0, touchX, touchY);
+        uint16_t raw_x, raw_y;
+        if (chsc6xTouch->chsc6x_read_touch_info(&raw_x, &raw_y) == 0) {
+            rotate_touch_coord(raw_x, raw_y, 0, touchX, touchY);
             return true;
         }
         return false;
