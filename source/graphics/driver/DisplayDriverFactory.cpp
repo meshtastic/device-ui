@@ -78,11 +78,8 @@
 #ifdef NODEMCU_32S
 #include "graphics/LGFX/LGFX_ESPILI9341XPT2046.h"
 #endif
-#ifdef HELTEC_V4_TFT
+#if defined(HELTEC_V4_TFT) || defined(HELTEC_V4_R8_TFT)
 #include "graphics/LGFX/LGFX_HELTEC_V4_TFT.h"
-#endif
-#ifdef HELTEC_V4_R8_TFT
-#include "graphics/LGFX/LGFX_HELTEC_V4_R8_TFT.h"
 #endif
 #endif
 
@@ -204,6 +201,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::ESPJC4827W543C:
         return new LGFXDriver<LGFX_JC4827W543C>(cfg.width(), cfg.height());
         break;
+#elif defined(HELTEC_V4_TFT) || defined(HELTEC_V4_R8_TFT)
+    case DisplayDriverConfig::device_t::HELTECV4_TFT:
+        return new LGFXDriver<LGFX_HELTEC_V4_TFT>(cfg.width(), cfg.height());
+        break;
 #endif
 #elif defined(USE_FRAMEBUFFER)
     case DisplayDriverConfig::device_t::FB:
@@ -212,14 +213,6 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:
         return &X11Driver::create(cfg.width(), cfg.height());
-        break;
-#elif defined(HELTEC_V4_TFT)
-    case DisplayDriverConfig::device_t::HELTECV4_TFT:
-        return new LGFXDriver<LGFX_HELTEC_V4_TFT>(cfg.width(), cfg.height());
-        break;
-#elif defined(HELTEC_V4_R8_TFT)
-    case DisplayDriverConfig::device_t::HELTECV4_R8_TFT:
-        return new LGFXDriver<LGFX_HELTEC_V4_R8_TFT>(cfg.width(), cfg.height());
         break;
 #endif
     default:
