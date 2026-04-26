@@ -190,7 +190,7 @@ bool SdFsCard::init(void)
 #elif defined(SDCARD_USE_SOFT_SPI)
     return SDFs.begin(SdSpiConfig(SDCARD_CS, DEDICATED_SPI, SD_SCK_MHZ(0), &SDHandler));
 #else
-#if defined(HELTEC_V4_R8_TFT)
+#if defined(SDCARD_USER_SPI_BEGIN)
     // fix : HSPI Does not have default pins on ESP32S3!
     SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS);
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI | USER_SPI_BEGIN, SD_SPI_FREQUENCY, &SDHandler));
