@@ -2,7 +2,7 @@
 # trunk-ignore-all(trivy/DS002)
 # trunk-ignore-all(checkov/CKV_DOCKER_2)
 # trunk-ignore-all(checkov/CKV_DOCKER_3)
-FROM mcr.microsoft.com/devcontainers/cpp:1-debian-12
+FROM mcr.microsoft.com/devcontainers/cpp:2.0-debian-13
 
 # trunk-ignore(terrascan/AC_DOCKER_0002)
 # trunk-ignore(hadolint/DL3008)
