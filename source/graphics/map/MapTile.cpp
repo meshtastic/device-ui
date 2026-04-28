@@ -36,7 +36,8 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
         lbl = lv_label_create(img);
         lv_obj_set_pos(lbl, 0, 0);
         lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-        lv_obj_set_style_text_color(lbl, lv_color_hex(0xff101010), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_text_color(lbl, lv_color_hex(0xff101010),
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_label_set_text_fmt(lbl, "(%d/%d/%d) -> %d,%d", MapTileSettings::getZoomLevel(), xTile, yTile, posx, posy);
     }
 
@@ -66,7 +67,8 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
                     lv_obj_set_pos(lbl, 0, 50);
                     lv_obj_set_align(lbl, LV_ALIGN_CENTER);
                     lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_obj_set_style_text_color(lbl, lv_color_hex(0xff505050), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                    lv_obj_set_style_text_color(lbl, lv_color_hex(0xff505050),
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                     lv_label_set_text_fmt(lbl, "(%d/%d/%d)", MapTileSettings::getZoomLevel(), xTile, yTile);
                 }
             }

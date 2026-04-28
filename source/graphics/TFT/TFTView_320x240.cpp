@@ -246,7 +246,8 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     Themes::recolorButton(objects.home_bell_button, false);
     Themes::recolorText(objects.home_bell_label, false);
 
-    lv_obj_set_style_bg_img_recolor(objects.home_button, colorMesh, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor(objects.home_button, colorMesh,
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     // set brightness
     if (displaydriver->hasLight())
@@ -326,14 +327,16 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
             lv_img_set_zoom(img, 256);
             lv_obj_set_pos(img, x - 20, y - 24); // img has 40x35 size, needle at 24
             lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);
-            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_BOTTOM_MID, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_BOTTOM_MID, ((lv_style_selector_t)LV_PART_MAIN |
+            // (lv_style_selector_t)LV_STATE_DEFAULT));
         } else {
             // circle image
             lv_img_set_src(img, &img_circle_image);
             lv_img_set_zoom(img, (zoom - 1) * 50 + 80);
             lv_obj_set_pos(img, x - 20, y - 17); // img has 40x35 size, circle at center
             lv_image_set_inner_align(img, LV_IMAGE_ALIGN_CENTER);
-            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_CENTER, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_CENTER, ((lv_style_selector_t)LV_PART_MAIN |
+            // (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     };
 
@@ -416,14 +419,16 @@ void TFTView_320x240::init_screens(void)
     lv_slider_set_range(objects.rssi_slider, -150, -50);
     lv_label_set_text(objects.signal_scanner_snr_scale_label,
                       "14.0\n12.0\n10.0\n8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0");
-    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2,
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_slider_set_range(objects.snr_slider, -17, 15);
 #else
     lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-20\n-30\n-40\n-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120");
     lv_slider_set_range(objects.rssi_slider, -125, -25);
     lv_label_set_text(objects.signal_scanner_snr_scale_label,
                       "8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0\n-18.0");
-    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2,
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_slider_set_range(objects.snr_slider, -20, 9);
 #endif
 
@@ -462,10 +467,13 @@ void TFTView_320x240::init_screens(void)
 void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 {
     if (activeButton) {
-        lv_obj_set_style_border_width(activeButton, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_border_width(activeButton, 0,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         if (Themes::get() == Themes::eDark)
-            lv_obj_set_style_bg_img_recolor_opa(activeButton, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-        lv_obj_set_style_bg_img_recolor(activeButton, colorGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_img_recolor_opa(activeButton, 0,
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_bg_img_recolor(activeButton, colorGray,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
     lv_obj_set_style_border_width(b, 3, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_obj_set_style_bg_img_recolor(b, colorMesh, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
@@ -540,7 +548,8 @@ void TFTView_320x240::enterProgrammingMode(void)
         state = MeshtasticView::eProgrammingMode;
         lv_label_set_text(objects.meshtastic_url, _(">> Programming mode <<"));
         lv_label_set_text_fmt(objects.firmware_label, "%06d", db.config.bluetooth.fixed_pin);
-        lv_obj_set_style_text_font(objects.firmware_label, &ui_font_montserrat_20, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_text_font(objects.firmware_label, &ui_font_montserrat_20,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_add_flag(objects.boot_logo, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
@@ -590,7 +599,8 @@ void TFTView_320x240::apply_hotfix(void)
         buttonSize = 36;
     }
     if (h > 400) {
-        lv_obj_set_style_text_font(objects.home_qr_label, &ui_font_montserrat_16, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_text_font(objects.home_qr_label, &ui_font_montserrat_16,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
 
     lv_obj_move_foreground(objects.keyboard);
@@ -681,12 +691,18 @@ void TFTView_320x240::updateTheme(void)
     Themes::recolorText(objects.home_memory_label, (bool)objects.home_memory_button->user_data);
 
     lv_opa_t opa = (Themes::get() == Themes::eDark) ? 0 : 255;
-    lv_obj_set_style_bg_img_recolor_opa(objects.home_button, opa, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_bg_img_recolor_opa(objects.nodes_button, opa, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_bg_img_recolor_opa(objects.groups_button, opa, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_bg_img_recolor_opa(objects.messages_button, opa, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_bg_img_recolor_opa(objects.map_button, opa, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.home_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.nodes_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.groups_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.messages_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.map_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     for (int i = 0; i < c_max_channels; i++) {
         if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
@@ -1221,7 +1237,8 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
             ignoreClicked = false;
             return;
         }
-        lv_obj_set_style_border_color(target, colorMidGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_border_color(target, colorMidGray,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
         uint32_t channelOrNode = (unsigned long)e->user_data;
         if (channelOrNode < c_max_channels) {
@@ -2327,8 +2344,10 @@ void TFTView_320x240::ui_event_lockGps(lv_event_t *e)
 void TFTView_320x240::ui_event_mapBrightnessSlider(lv_event_t *e)
 {
     uint32_t br = lv_slider_get_value(objects.map_brightness_slider);
-    lv_obj_set_style_bg_color(objects.map_panel, lv_color_make(br, br, br), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_bg_color(objects.raw_map_panel, lv_color_make(br, br, br), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_color(objects.map_panel, lv_color_make(br, br, br),
+                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_color(objects.raw_map_panel, lv_color_make(br, br, br),
+                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 }
 
 void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
@@ -2707,7 +2726,8 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
         lv_img_set_src(img, &img_circle_image);
         lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);
         lv_obj_set_style_opa(img, 180, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-        lv_obj_set_style_image_recolor(img, lv_color_hex(bgColor), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_image_recolor(img, lv_color_hex(bgColor),
+                                       ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_set_style_image_recolor_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_set_style_pad_top(img, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_set_style_pad_bottom(img, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
@@ -2717,12 +2737,16 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
         lv_obj_t *lbl = lv_label_create(img);
         lv_obj_set_pos(lbl, 0, 0);
         lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-        lv_obj_set_style_text_color(lbl, lv_color_black(), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_text_color(lbl, lv_color_black(),
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_set_style_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_set_style_image_recolor_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-        lv_obj_set_style_text_font(lbl, &lv_font_montserrat_10, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_text_font(lbl, &lv_font_montserrat_10,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID,
+                               ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID,
+                               ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
         lv_obj_t *p = nodes[nodeNum];
         lv_label_set_text_fmt(lbl, "%s", lv_label_get_text(p->LV_OBJ_IDX(node_lbs_idx)));
@@ -2844,7 +2868,8 @@ void TFTView_320x240::ui_event_signal_scanner_start(lv_event_t *e)
             lv_spinner_set_anim_params(obj, 5000, 300);
             lv_obj_set_pos(obj, 0, -50);
             lv_obj_set_size(obj, 68, 68);
-            lv_obj_set_style_align(obj, LV_ALIGN_CENTER, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_align(obj, LV_ALIGN_CENTER,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             add_style_spinner_style(obj);
             lv_label_set_text(objects.signal_scanner_start_label, "30s");
             THIS->scans = 6 + 1;
@@ -2929,7 +2954,8 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
             lv_spinner_set_anim_params(obj, 5000, 300);
             lv_obj_set_pos(obj, 0, 0);
             lv_obj_set_size(obj, 68, 68);
-            lv_obj_set_style_align(obj, LV_ALIGN_CENTER, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_align(obj, LV_ALIGN_CENTER,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             add_style_spinner_style(obj);
             lv_label_set_text(objects.trace_route_start_label, "30s");
 
@@ -3160,8 +3186,10 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
     lv_obj_set_size(pLabel, LV_PCT(100), LV_SIZE_CONTENT);
     uint32_t bgColor, fgColor;
     std::tie(bgColor, fgColor) = nodeColor(p.from);
-    lv_obj_set_style_bg_color(pLabel, lv_color_hex(bgColor), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_text_color(pLabel, lv_color_hex(fgColor), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_color(pLabel, lv_color_hex(bgColor),
+                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_color(pLabel, lv_color_hex(fgColor),
+                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_obj_set_style_bg_opa(pLabel, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_label_set_text(pLabel, buf);
 
@@ -3383,7 +3411,8 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
             lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_weak_signal_image,
                                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else {
-            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     }
 }
@@ -4069,7 +4098,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->setTheme(value);
                 THIS->db.uiConfig.theme = meshtastic_Theme(value);
                 THIS->controller->storeUIConfig(THIS->db.uiConfig);
-                lv_obj_set_style_bg_img_recolor(objects.settings_button, colorMesh, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_bg_img_recolor(objects.settings_button, colorMesh,
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             }
 
             lv_obj_add_flag(objects.settings_theme_panel, LV_OBJ_FLAG_HIDDEN);
@@ -4540,13 +4570,16 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 
     switch (status) {
     case LogMessage::eHeard:
-        lv_obj_set_style_border_color(textLabel, colorYellow, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_border_color(textLabel, colorYellow,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         break;
     case LogMessage::eAcked:
-        lv_obj_set_style_border_color(textLabel, colorBlueGreen, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_border_color(textLabel, colorBlueGreen,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         break;
     case LogMessage::eFailed:
-        lv_obj_set_style_border_color(textLabel, colorRed, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_border_color(textLabel, colorRed,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         break;
     default:
         break;
@@ -4633,15 +4666,18 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_label_set_long_mode(ln_lbl, LV_LABEL_LONG_SCROLL);
     lv_label_set_text(ln_lbl, userLong);
     ln_lbl->user_data = (void *)nodeNum;
-    lv_obj_set_style_align(ln_lbl, LV_ALIGN_TOP_LEFT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_align(ln_lbl, LV_ALIGN_TOP_LEFT,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     // UserNameShortLabel
     lv_obj_t *sn_lbl = lv_label_create(p);
     lv_obj_set_pos(sn_lbl, 30, 10);
     lv_obj_set_size(sn_lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_label_set_long_mode(sn_lbl, LV_LABEL_LONG_WRAP);
-    lv_obj_set_style_align(sn_lbl, LV_ALIGN_TOP_LEFT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_text_font(sn_lbl, &ui_font_montserrat_14, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_align(sn_lbl, LV_ALIGN_TOP_LEFT,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_font(sn_lbl, &ui_font_montserrat_14,
+                               ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     // if short name contains only non-printable glyphs replace with short id
     if (lv_txt_get_width(userShort, strlen(userShort), &ui_font_montserrat_14, 0) <= 4) {
         lv_label_set_text_fmt(sn_lbl, "%04x", nodeNum & 0xffff);
@@ -4671,13 +4707,15 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_size(ui_BatteryLabel, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_align(ui_BatteryLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_BatteryLabel, "");
-    lv_obj_set_style_text_align(ui_BatteryLabel, LV_TEXT_ALIGN_RIGHT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_align(ui_BatteryLabel, LV_TEXT_ALIGN_RIGHT,
+                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     ui_BatteryLabel->user_data = (void *)hasKey;
     // LastHeardLabel
     lv_obj_t *ui_lastHeardLabel = lv_label_create(p);
     lv_obj_set_pos(ui_lastHeardLabel, 8, 33);
     lv_obj_set_size(ui_lastHeardLabel, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_align(ui_lastHeardLabel, LV_ALIGN_TOP_RIGHT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_align(ui_lastHeardLabel, LV_ALIGN_TOP_RIGHT,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_label_set_long_mode(ui_lastHeardLabel, LV_LABEL_LONG_CLIP);
 
     // TODO: devices without actual time will report all nodes as lastseen = now
@@ -4694,7 +4732,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
         lv_label_set_text(ui_lastHeardLabel, "");
     }
 
-    lv_obj_set_style_text_align(ui_lastHeardLabel, LV_TEXT_ALIGN_RIGHT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_align(ui_lastHeardLabel, LV_TEXT_ALIGN_RIGHT,
+                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     ui_lastHeardLabel->user_data = (void *)lastHeard;
     // SignalLabel / hopsAway
     lv_obj_t *ui_SignalLabel = lv_label_create(p);
@@ -4710,8 +4749,10 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_size(ui_PositionLabel, 120, LV_SIZE_CONTENT);
     lv_label_set_long_mode(ui_PositionLabel, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_PositionLabel, "");
-    lv_obj_set_style_align(ui_PositionLabel, LV_ALIGN_TOP_LEFT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_text_color(ui_PositionLabel, colorBlueGreen, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_align(ui_PositionLabel, LV_ALIGN_TOP_LEFT,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_color(ui_PositionLabel, colorBlueGreen,
+                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     ui_PositionLabel->user_data = 0; // store latitude
     // Position2Label
     lv_obj_t *ui_Position2Label = lv_label_create(p);
@@ -4719,7 +4760,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_size(ui_Position2Label, 108, LV_SIZE_CONTENT);
     lv_label_set_long_mode(ui_Position2Label, LV_LABEL_LONG_SCROLL);
     lv_label_set_text(ui_Position2Label, "");
-    lv_obj_set_style_align(ui_Position2Label, LV_ALIGN_TOP_LEFT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_align(ui_Position2Label, LV_ALIGN_TOP_LEFT,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     ui_Position2Label->user_data = 0; // store longitude
     // Telemetry1Label
     lv_obj_t *ui_Telemetry1Label = lv_label_create(p);
@@ -4727,16 +4769,20 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_size(ui_Telemetry1Label, 130, LV_SIZE_CONTENT);
     lv_label_set_long_mode(ui_Telemetry1Label, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_Telemetry1Label, "");
-    lv_obj_set_style_align(ui_Telemetry1Label, LV_ALIGN_TOP_RIGHT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_text_align(ui_Telemetry1Label, LV_TEXT_ALIGN_RIGHT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_align(ui_Telemetry1Label, LV_ALIGN_TOP_RIGHT,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_align(ui_Telemetry1Label, LV_TEXT_ALIGN_RIGHT,
+                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     // Telemetry2Label
     lv_obj_t *ui_Telemetry2Label = lv_label_create(p);
     lv_obj_set_pos(ui_Telemetry2Label, 8, 63);
     lv_obj_set_size(ui_Telemetry2Label, 130, LV_SIZE_CONTENT);
     lv_label_set_long_mode(ui_Telemetry2Label, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_Telemetry2Label, "");
-    lv_obj_set_style_align(ui_Telemetry2Label, LV_ALIGN_TOP_RIGHT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_text_align(ui_Telemetry2Label, LV_TEXT_ALIGN_RIGHT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_align(ui_Telemetry2Label, LV_ALIGN_TOP_RIGHT,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_align(ui_Telemetry2Label, LV_TEXT_ALIGN_RIGHT,
+                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     // optimisation: hide all four extended labels by default; enable only when set
     lv_obj_add_flag(ui_PositionLabel, LV_OBJ_FLAG_HIDDEN);
@@ -4847,10 +4893,14 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
 
         if (cfg.public_key.size != 0) {
             // set border color to bg color
-            lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_color_t color =
+                lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx),
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color,
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else {
-            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), colorRed, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), colorRed,
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
 
         // update chat name
@@ -5023,10 +5073,12 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                     break;
                 case BatteryLevel::Mid:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_mid_image, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_mid_image,
+                                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                     break;
                 case BatteryLevel::Low:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_low_image, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_low_image,
+                                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                     break;
                 case BatteryLevel::Empty:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_image,
@@ -5043,7 +5095,8 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                     break;
                 }
                 Themes::recolorTopLabel(objects.battery_percentage_label, alert);
-                lv_obj_set_style_bg_image_recolor_opa(objects.battery_image, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_bg_image_recolor_opa(
+                    objects.battery_image, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 lv_label_set_text(objects.battery_percentage_label, buf);
             }
         }
@@ -5182,7 +5235,8 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                 Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled, 100);
                 Themes::recolorText(objects.home_mqtt_label, false);
             }
-            lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     } else {
         lv_obj_add_flag(objects.home_wlan_label, LV_OBJ_FLAG_HIDDEN);
@@ -5194,24 +5248,30 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
             if (status.bluetooth.is_connected) {
                 char buf[20];
                 uint32_t mac = ownNode;
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorLightGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorLightGray,
+                                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff, (mac & 0xff00) >> 8, (mac & 0xff0000) >> 16,
                         (mac & 0xff000000) >> 24);
                 lv_label_set_text(objects.home_bluetooth_label, buf);
-                lv_obj_set_style_bg_opa(objects.home_bluetooth_button, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_bg_opa(objects.home_bluetooth_button, 0,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
                                             ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             } else {
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray,
+                                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
                                             ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-                lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255,
+                                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             }
         } else {
-            lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_off_button_image,
                                         ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255,
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     } else {
         lv_obj_add_flag(objects.home_bluetooth_label, LV_OBJ_FLAG_HIDDEN);
@@ -5224,11 +5284,15 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
             uint32_t mac = ownNode;
             sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
             lv_label_set_text(objects.home_ethernet_label, buf);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, colorLightGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_bg_opa(objects.home_ethernet_button, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_text_color(objects.home_ethernet_label, colorLightGray,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_opa(objects.home_ethernet_button, 0,
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else {
-            lv_obj_set_style_bg_img_recolor_opa(objects.home_ethernet_button, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_text_color(objects.home_ethernet_label, colorMidGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_img_recolor_opa(objects.home_ethernet_button, 255,
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_text_color(objects.home_ethernet_label, colorMidGray,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     } else {
         lv_obj_add_flag(objects.home_ethernet_label, LV_OBJ_FLAG_HIDDEN);
@@ -5443,8 +5507,10 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
             lv_obj_set_size(img, 32, 32);
             lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_border_width(img, 3, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_image_recolor_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_align(img, LV_ALIGN_TOP_LEFT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_image_recolor_opa(img, 255,
+                                               ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_align(img, LV_ALIGN_TOP_LEFT,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             lv_obj_set_style_radius(img, 6, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             lv_obj_set_style_bg_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
@@ -5471,8 +5537,10 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
                 } else
                     lv_label_set_text(label, _("unknown"));
             }
-            lv_obj_set_style_align(label, LV_ALIGN_TOP_LEFT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_align(label, LV_ALIGN_TOP_LEFT,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     }
 }
@@ -5632,20 +5700,24 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         if (lv_obj_has_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED)) {
             auto it = chats.find(nodeNum);
             if (it != nodes.end()) {
-                lv_obj_set_style_border_color(panel, colorOrange, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_border_color(panel, colorOrange,
+                                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 highlight = true;
             }
         }
         if (lv_obj_has_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] != '\0') {
-                lv_obj_set_style_border_color(panel, colorBlueGreen, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_border_color(panel, colorBlueGreen,
+                                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 highlight = true;
             }
         }
         if (lv_obj_has_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm1_idx))[0] != '\0') {
-                lv_obj_set_style_border_color(panel, colorBlue, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-                lv_obj_set_style_border_width(panel, 2, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_border_color(panel, colorBlue,
+                                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_border_width(panel, 2,
+                                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 highlight = true;
             }
         }
@@ -5673,11 +5745,16 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
                     fg = lv_color_hex(0xffffffff);
                     bg = lv_color_hex(0x001d1414);
                 }
-                lv_obj_set_style_text_color(panel->LV_OBJ_IDX(node_tm2_idx), fg, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-                lv_obj_set_style_bg_color(panel->LV_OBJ_IDX(node_tm2_idx), bg, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-                lv_obj_set_style_bg_opa(panel->LV_OBJ_IDX(node_tm2_idx), 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-                lv_obj_set_style_border_color(panel, bg, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-                lv_obj_set_style_border_width(panel, 2, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_text_color(panel->LV_OBJ_IDX(node_tm2_idx), fg,
+                                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_bg_color(panel->LV_OBJ_IDX(node_tm2_idx), bg,
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_bg_opa(panel->LV_OBJ_IDX(node_tm2_idx), 255,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_border_color(panel, bg,
+                                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_border_width(panel, 2,
+                                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 highlight = true;
             }
         }
@@ -5685,13 +5762,15 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         if (name[0] != '\0') {
             if (strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) ||
                 strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), name)) {
-                lv_obj_set_style_border_color(panel, colorMesh, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_border_color(panel, colorMesh,
+                                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 highlight = true;
             }
         }
     }
     if (!highlight) {
-        lv_obj_set_style_border_color(panel, colorMidGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_border_color(panel, colorMidGray,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_set_style_border_width(panel, 1, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
     return hide; // TODO || filter.active;
@@ -5900,8 +5979,10 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_set_align(lockImage, LV_ALIGN_LEFT_MID);
         lv_obj_add_flag(lockImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-        lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-        lv_obj_set_style_img_recolor_opa(lockImage, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor),
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_img_recolor_opa(lockImage, 255,
+                                         ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
         lv_obj_t *bellImage = NULL;
         if (lv_obj_get_child_cnt(btn[ch.index]) < 3)
@@ -5913,7 +5994,8 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_set_align(bellImage, LV_ALIGN_RIGHT_MID);
         lv_obj_add_flag(bellImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
         lv_obj_clear_flag(bellImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-        lv_obj_set_style_img_recolor_opa(bellImage, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_img_recolor_opa(bellImage, 255,
+                                         ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         updateGroupChannel(ch.index);
     } else {
         // display smaller button with just the channel number
@@ -5937,7 +6019,8 @@ void TFTView_320x240::updateGroupChannel(uint8_t chId)
 
     lv_obj_t *bellImage = lv_obj_get_child(btn[chId], 2);
     if (db.channel[chId].settings.module_settings.is_muted) {
-        lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000),
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_image_set_src(bellImage, &img_groups_bell_slash_image);
     } else {
         Themes::recolorImage(bellImage, true);
@@ -6642,8 +6725,10 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_add_flag(chatBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
     lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_SCROLLABLE);
     add_style_home_button_style(chatBtn);
-    lv_obj_set_style_align(chatBtn, LV_ALIGN_TOP_MID, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_border_color(chatBtn, colorMidGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_align(chatBtn, LV_ALIGN_TOP_MID,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_border_color(chatBtn, colorMidGray,
+                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_obj_set_style_border_width(chatBtn, 1, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_obj_set_style_shadow_ofs_x(chatBtn, 1, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_obj_set_style_shadow_ofs_y(chatBtn, 2, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
@@ -6679,8 +6764,10 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
             lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
             lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
             lv_label_set_text(obj, buf);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
         {
             // ChatDelButton
@@ -6689,8 +6776,10 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
             lv_obj_set_pos(obj, -3, -1);
             lv_obj_set_size(obj, 40, 23);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-            lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-            lv_obj_set_style_bg_color(obj, colorDarkRed, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_color(obj, colorDarkRed,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             {
                 lv_obj_t *parent_obj = obj;
@@ -6700,7 +6789,8 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
                     lv_obj_set_pos(chatDelBtn, 0, 0);
                     lv_obj_set_size(chatDelBtn, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(chatDelBtn, _("DEL"));
-                    lv_obj_set_style_align(chatDelBtn, LV_ALIGN_CENTER, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                    lv_obj_set_style_align(chatDelBtn, LV_ALIGN_CENTER,
+                                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 }
             }
         }
@@ -6723,7 +6813,8 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
     auto it = chats.find(index);
     if (it != chats.end()) {
         // mark chat in color
-        lv_obj_set_style_border_color(it->second, colorOrange, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_border_color(it->second, colorOrange,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
 }
 
@@ -7061,9 +7152,12 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool unmessagab
     std::tie(bgColor, fgColor) = nodeColor(nodeNum);
     if (unmessagable) {
         lv_image_set_src(img, &img_unmessagable_image);
-        lv_obj_set_style_border_color(img, lv_color_hex(bgColor), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-        lv_obj_set_style_bg_color(img, lv_color_hex(0x202020), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-        lv_obj_set_style_img_recolor(img, lv_color_hex(0xFF5555), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_border_color(img, lv_color_hex(bgColor),
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_bg_color(img, lv_color_hex(0x202020),
+                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_img_recolor(img, lv_color_hex(0xFF5555),
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_set_style_img_recolor_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         return;
     } else {
@@ -7101,9 +7195,12 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool unmessagab
             break;
         }
     }
-    lv_obj_set_style_bg_color(img, lv_color_hex(bgColor), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_border_color(img, lv_color_hex(bgColor), ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
-    lv_obj_set_style_img_recolor_opa(img, fgColor ? 0 : 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_color(img, lv_color_hex(bgColor),
+                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_border_color(img, lv_color_hex(bgColor),
+                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_img_recolor_opa(img, fgColor ? 0 : 255,
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 }
 
 void TFTView_320x240::updateNodesStatus(void)
@@ -7213,7 +7310,8 @@ void TFTView_320x240::updateUnreadMessages(void)
                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     } else {
         strcpy(buf, _("no new messages"));
-        lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_button_image, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_button_image,
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
     lv_label_set_text(objects.home_mail_label, buf);
 }
@@ -7423,8 +7521,9 @@ void TFTView_320x240::task_handler(void)
                 if (startTime) {
                     if (curtime - startTime > 30) {
                         lv_label_set_text(objects.trace_route_start_label, _("Start"));
-                        lv_obj_set_style_outline_color(objects.trace_route_start_button, colorMesh,
-                                                       ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                        lv_obj_set_style_outline_color(
+                            objects.trace_route_start_button, colorMesh,
+                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                         removeSpinner();
                     } else {
                         char buf[16];
