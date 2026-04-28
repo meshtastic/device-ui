@@ -164,7 +164,7 @@ class LGFX_ELECROW_P4_50 : public lgfx::LGFX_Device
             cfg.pin_vsync = GPIO_NUM_41;
             cfg.pin_hsync = GPIO_NUM_40;
             cfg.pin_pclk = GPIO_NUM_3;
-            cfg.freq_write = 25000000;
+            cfg.freq_write = 16000000;
 
             cfg.hsync_polarity = false;
             cfg.hsync_pulse_width = 4;
