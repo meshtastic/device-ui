@@ -11,9 +11,8 @@
 #error "CONFIG_IDF_TARGET_ESP32P4 should be set"
 #endif
 
+// TODO: replace when lovyanGFX fixed lvgl.h issue
 #include "graphics/LGFX/experimental/esp32p4/Panel_EK79007D.hpp"
-#include "lgfx/v1/platforms/esp32p4/Bus_DSI.hpp"
-#include "lgfx/v1/platforms/esp32p4/Panel_DSI.hpp"
 
 class LGFX_ELECROW_P4_70_90_101 : public lgfx::LGFX_Device
 {
