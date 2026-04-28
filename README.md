@@ -132,7 +132,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
     - [x] Map
       - [x] Tiles dynamic loading
         - [x] SD card
-        - [ ] WLAN
+        - [x] WLAN
       - [x] Pan & Zoom
       - [x] Node locations
       - [ ] Location precision
