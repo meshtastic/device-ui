@@ -642,6 +642,10 @@ void ViewController::restoreTextMessages(void)
     LogMessageEnv msg;
 
     if (log.readNext(msg)) {
+        if (msg.ch >= c_max_channels) {
+            ILOG_WARN("skipping stored message with invalid channel %d", (int)msg.ch);
+            return;
+        }
         msgCounter++;
         msgTotalSize += msg.size();
         view->restoreMessage(msg);
@@ -935,6 +939,10 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             }
         }
         uint32_t time = p.rx_time;
+        if (p.channel >= c_max_channels) {
+            ILOG_WARN("ignoring message with invalid channel %d", (int)p.channel);
+            break;
+        }
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
         log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
                                 (const uint8_t *)p.decoded.payload.bytes));
