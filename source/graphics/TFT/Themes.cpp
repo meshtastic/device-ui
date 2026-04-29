@@ -461,8 +461,8 @@ void Themes::recolorButton(lv_obj_t *obj, bool enabled, lv_opa_t opa)
     default:
         break;
     }
-    lv_obj_set_style_bg_image_recolor(obj, color, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_image_recolor_opa(obj, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_image_recolor(obj, color, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_image_recolor_opa(obj, opa, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 }
 
 void Themes::recolorImage(lv_obj_t *obj, bool enabled)
@@ -478,7 +478,7 @@ void Themes::recolorImage(lv_obj_t *obj, bool enabled)
     default:
         break;
     }
-    lv_obj_set_style_image_recolor(obj, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_image_recolor(obj, color, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 }
 
 void Themes::recolorText(lv_obj_t *obj, bool enabled)
@@ -494,7 +494,7 @@ void Themes::recolorText(lv_obj_t *obj, bool enabled)
     default:
         break;
     }
-    lv_obj_set_style_text_color(obj, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(obj, color, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 }
 
 void Themes::recolorTopLabel(lv_obj_t *obj, bool alert)
@@ -510,7 +510,7 @@ void Themes::recolorTopLabel(lv_obj_t *obj, bool alert)
     default:
         break;
     }
-    lv_obj_set_style_text_color(obj, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(obj, color, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 }
 
 void Themes::recolorTableRow(lv_draw_fill_dsc_t *fill_draw_dsc, bool odd)

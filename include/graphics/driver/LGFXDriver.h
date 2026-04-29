@@ -8,9 +8,7 @@
 #include "util/ILog.h"
 #include <functional>
 
-constexpr uint32_t defaultLongPressTime = 600; // ms until long press is detected (lvgl default is 400)
-constexpr uint32_t defaultGestureLimit = 10;   // x/y diff pixel until a swipe gesture is detected (lvgl default is 50)
-
+constexpr uint32_t defaultLongPressTime = 800; // ms until long press is detected (lvgl default is 400)
 constexpr uint32_t defaultScreenTimeout = 30 * 1000;
 constexpr uint32_t defaultBrightness = 153;
 
@@ -178,7 +176,9 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+#if !defined(LGFX_SKIP_RGB565_SWAP)
     lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
     lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
     lv_display_flush_ready(disp);
 }
@@ -188,7 +188,9 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+#if !defined(LGFX_SKIP_RGB565_SWAP)
     lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
     if (lgfx->getStartCount() == 0) { // Processing if not yet started
         lgfx->startWrite();
     }
@@ -323,7 +325,6 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 
     if (hasTouch()) {
         DisplayDriver::touch = lv_indev_create();
-        DisplayDriver::touch->gesture_limit = defaultGestureLimit;
         lv_indev_set_type(DisplayDriver::touch, LV_INDEV_TYPE_POINTER);
         lv_indev_set_read_cb(DisplayDriver::touch, touchpad_read);
         lv_indev_set_display(DisplayDriver::touch, this->display);
