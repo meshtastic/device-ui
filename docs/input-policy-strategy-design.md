@@ -59,22 +59,28 @@ Fields:
 
 1. `sourceId`
 2. `rawKeyCode`
-3. `pressed`
-4. `pressKind` (`Press`, `Release`, `LongPress`, `LongPressRepeat`)
-5. `modifiers`
-6. `timestampMs`
+3. `resolvedKeyCode`
+4. `action` (`InputAction`)
+5. `unicode`
+6. `modifiers`
+7. `pressKind` (`Press`, `Release`, `LongPress`, `LongPressRepeat`)
+8. `timestampMs`
 
 ### InputCapabilities
 
 Fields:
 
 1. `hasArrowKeys`
-2. `hasCancelKey`
-3. `hasEnterKey`
-4. `hasModifiers`
-5. `supportsLongPress`
-6. `supportsRepeat`
-7. `supportsTextEntry`
+2. `hasTabKey`
+3. `hasHomeKey`
+4. `hasEndKey`
+5. `hasPgUpPgDownKeys`
+6. `hasCancelKey`
+7. `hasEnterKey`
+8. `hasModifiers`
+9. `supportsLongPress`
+10. `supportsRepeat`
+11. `supportsTextEntry`
 
 ### InputContextSnapshot
 
@@ -88,13 +94,22 @@ Fields:
 
 ### InputAction (abstract intent)
 
-Examples:
+Navigation:
 
 1. `NavigateUp`, `NavigateDown`, `NavigateLeft`, `NavigateRight`
-2. `Activate`
-3. `LeaveEditMode`
-4. `Back`, `Cancel`
-5. `CommandHome`, `CommandOpenChats`, `CommandOpenMap`, `CommandToggleGps`
+2. `NavigateHome`, `NavigateEnd`, `NavigatePgUp`, `NavigatePgDown`
+
+Interaction:
+
+1. `Activate`, `Back`, `Cancel`, `LeaveEditMode`, `Character`
+
+UI commands (dedicated hardware keys → `UICommand` via dispatcher):
+
+1. `CommandHome` → `UICommand::GoHome`
+2. `CommandOpenChats` → `UICommand::OpenChats`
+3. `CommandOpenMap` → `UICommand::OpenMap`
+4. `CommandToggleGps` → `UICommand::ToggleGps`
+5. `CommandSendPing` → `UICommand::SendPing`
 
 ### StrategyDecision
 
@@ -133,6 +148,35 @@ Important boundary:
 - Dispatcher executes commands.
 - Input drivers do not call `ViewController` directly.
 
+### `UICommandDispatcher` (concrete singleton)
+
+`UICommandDispatcher` is the process-wide singleton implementation of `IUICommandDispatcher`.
+It holds one `std::function` callback per `UICommand` value.
+
+Key design decisions:
+
+- Views register lambdas on `UICommandDispatcher::instance()` — no dependency on any driver.
+- Drivers wire `UICommandDispatcher::instance()` into the pipeline as a non-owning `shared_ptr<IUICommandDispatcher>` — no dependency on any view.
+- Neither side knows about the other. The singleton is the only shared point.
+- Unregistered commands are silently ignored (logged at debug level).
+
+View registration (inside `setupUIConfig`):
+
+```cpp
+auto &dispatcher = input_policy::UICommandDispatcher::instance();
+dispatcher.registerHandler(UICommand::GoHome,    [this](...){ ui_set_active(...); });
+dispatcher.registerHandler(UICommand::OpenChats, [this](...){ ui_set_active(...); });
+dispatcher.registerHandler(UICommand::OpenMap,   [this](...){ ui_set_active(...); });
+// stubs for ToggleGps, SendPing, LeaveEditMode
+```
+
+Driver wiring (inside `KeyMatrixInputDriver::init`):
+
+```cpp
+commandDispatcher = std::shared_ptr<IUICommandDispatcher>(
+   &UICommandDispatcher::instance(), [](IUICommandDispatcher*){});
+```
+
 ## UML Class Diagram
 
 The following class diagram shows inheritance, ownership, aggregation, and the main assembly/runtime relationships in the current policy layer.
@@ -155,12 +199,14 @@ classDiagram
    class FocusTraversalPolicy
    class PassthroughPolicy
    class InputPolicyBuildResult
+   class UICommandDispatcher
 
    DefaultBindingResolver ..|> IActionBindingResolver
    InputContextState ..|> IInputContextProvider
    FocusTraversalPolicy ..|> IInputPolicy
    PassthroughPolicy ..|> IInputPolicy
    DefaultInputPolicyFactory ..|> InputPolicyFactory
+   UICommandDispatcher ..|> IUICommandDispatcher
 
    InputPipeline *-- PolicyChain
    PolicyChain o-- IInputPolicy
@@ -175,12 +221,15 @@ classDiagram
    InputPolicyFactory --> IUICommandDispatcher
    InputPolicyFactory --> InputPolicyBuildResult
    InputPolicyBuildResult --> IActionBindingResolver
+
+   note for UICommandDispatcher "Singleton. Driver and View\\nboth access instance()\\nwith no coupling to each other."
+   note for InputContextState "Singleton. Shared\\nread/write context."
 ```
 
 ## Typical Input Flow
 
-The following sequence diagram shows a typical runtime path from a hardware-backed input driver through the policy layer and into LVGL.
-It also shows the alternate path where the policy layer consumes an event or emits a UI command instead of forwarding a key to LVGL.
+The following sequence diagram shows a typical runtime path from a hardware-backed input driver through the policy layer into LVGL.
+It also shows how the view registers callbacks on the dispatcher singleton, and how a command decision reaches the view without any driver–view coupling.
 
 ```mermaid
 sequenceDiagram
@@ -191,11 +240,17 @@ sequenceDiagram
    participant Resolver as DefaultBindingResolver
    participant Context as InputContextState
    participant Chain as PolicyChain
-   participant Dispatcher as IUICommandDispatcher
+   participant Dispatcher as UICommandDispatcher
+   actor View
    actor LVGL
 
-   Note over InputDriver,Factory: Startup composition
-   InputDriver->>Registry: registerSource(source)
+   Note over View,Dispatcher: View startup
+   View->>Dispatcher: instance().registerHandler(GoHome, lambda)
+   View->>Dispatcher: instance().registerHandler(OpenChats, lambda)
+   View->>Dispatcher: instance().registerHandler(OpenMap, lambda)
+
+   Note over InputDriver,Factory: Driver startup
+   InputDriver->>Dispatcher: instance() as shared_ptr IUICommandDispatcher
    InputDriver->>Factory: build(registry, contextProvider, commandDispatcher)
    Factory-->>InputDriver: InputPolicyBuildResult
    InputDriver->>Pipeline: setPolicyChain(result.chain)
@@ -216,6 +271,7 @@ sequenceDiagram
       end
    else Decision is EmitCommand
       Pipeline->>Dispatcher: dispatch(command, payload)
+      Dispatcher->>View: registered lambda(payload)
    else Decision is Consume
       Pipeline-->>InputDriver: no forwarded event
    end
@@ -237,16 +293,23 @@ Conflict rule: first non-pass decision wins.
 ## Special Key Support
 
 Dedicated device keys are modeled as commands, not plain LVGL nav keys.
+The key matrix assigns raw key codes in the `0x100+` range (above all LVGL key values) to avoid conflicts.
 
-Examples:
+Current raw code assignments in `DefaultBindingResolver`:
 
-1. `Home` key -> `GoHome`
-2. `Chat` key -> `OpenChats`
-3. `Map` key -> `OpenMap`
-4. `Location` key short press -> `SendPing`
-5. `Location` key long press -> `ToggleGps`
+| Raw key code | `InputAction`      | `UICommand` |
+| :----------: | ------------------ | ----------- |
+|   `0x100`    | `CommandHome`      | `GoHome`    |
+|   `0x101`    | `CommandOpenChats` | `OpenChats` |
+|   `0x102`    | `CommandOpenMap`   | `OpenMap`   |
+|   `0x103`    | `CommandToggleGps` | `ToggleGps` |
+|   `0x104`    | `CommandSendPing`  | `SendPing`  |
 
-This supports device-specific behavior while keeping the driver generic.
+`DefaultBindingResolver` converts the raw code to `InputAction`.
+The policy chain emits `DecisionType::EmitCommand`.
+`UICommandDispatcher::instance()` calls the lambda registered by the view.
+
+This path keeps the driver generic — adding a new dedicated key only requires a new entry in the `KeyMap` array and a new `case` in `DefaultBindingResolver`.
 
 ## TextEdit Behavior Rule
 
@@ -327,11 +390,12 @@ Touch these parts:
 ### Review checklist for new keyboard integration
 
 1. Does the source report truthful `InputCapabilities`?
-2. Are raw key codes mapped to `InputAction` in `DefaultBindingResolver`?
+2. Are raw key codes mapped to `InputAction` in `DefaultBindingResolver`? Use `0x100+` range for dedicated command keys.
 3. Is the source registered in `InputSourceRegistry` during startup?
 4. Does factory-built policy chain still match capability expectations?
-5. In logs, do you see full flow: source -> resolver -> policy -> pipeline decision?
+5. In logs, do you see full flow: source → resolver → policy → pipeline decision → dispatcher callback?
 6. Do TextEdit and Map contexts still behave correctly for arrows and cancel/leave-edit?
+7. For command keys: is the corresponding handler registered on `UICommandDispatcher::instance()` in the view?
 
 ## Configuration Model
 
