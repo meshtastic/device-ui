@@ -10,6 +10,11 @@ InputAction DefaultBindingResolver::resolveAction(const InputEvent &event, const
 {
     constexpr uint32_t KEY_PAGE_UP = 0x21;
     constexpr uint32_t KEY_PAGE_DOWN = 0x22;
+    constexpr uint32_t KEY_CMD_HOME = 0x100;
+    constexpr uint32_t KEY_CMD_CHATS = 0x101;
+    constexpr uint32_t KEY_CMD_MAP = 0x102;
+    constexpr uint32_t KEY_CMD_TOGGLE_GPS = 0x103;
+    constexpr uint32_t KEY_CMD_SEND_PING = 0x104;
 
     if (event.action != InputAction::None) {
         ILOG_DEBUG("[Resolver] Action already set to %d", (int)event.action);
@@ -18,6 +23,21 @@ InputAction DefaultBindingResolver::resolveAction(const InputEvent &event, const
 
     InputAction action = InputAction::None;
     switch (event.rawKeyCode) {
+    case KEY_CMD_HOME:
+        action = InputAction::CommandHome;
+        break;
+    case KEY_CMD_CHATS:
+        action = InputAction::CommandOpenChats;
+        break;
+    case KEY_CMD_MAP:
+        action = InputAction::CommandOpenMap;
+        break;
+    case KEY_CMD_TOGGLE_GPS:
+        action = InputAction::CommandToggleGps;
+        break;
+    case KEY_CMD_SEND_PING:
+        action = InputAction::CommandSendPing;
+        break;
     case KEY_PAGE_UP:
         action = InputAction::NavigatePgUp;
         break;
