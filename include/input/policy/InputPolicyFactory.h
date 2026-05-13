@@ -16,11 +16,17 @@ struct InputPolicyBuildResult {
     PolicyChain chain;
 };
 
+/**
+ * Defines how input policy components are assembled for runtime use.
+ * Implementations provide a resolver and ordered policy chain.
+ */
 class InputPolicyFactory
 {
   public:
+    // Virtual destructor for safe polymorphic cleanup.
     virtual ~InputPolicyFactory() = default;
 
+    // Builds a resolver and policy chain for the provided source registry and context.
     virtual InputPolicyBuildResult build(const InputSourceRegistry &registry,
                                          std::shared_ptr<IInputContextProvider> contextProvider,
                                          std::shared_ptr<IUICommandDispatcher> commandDispatcher) const = 0;
