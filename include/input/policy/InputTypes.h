@@ -1,0 +1,99 @@
+#pragma once
+
+#include <cstdint>
+#include <string>
+
+namespace input_policy
+{
+
+enum class PressKind {
+    Press,
+    Release,
+    LongPress,
+    LongPressRepeat,
+};
+
+enum class FocusSemantic {
+    Unknown,
+    TextEdit,
+    Button,
+    List,
+    Map,
+    Menu,
+    Slider,
+};
+
+enum class InputAction {
+    None,
+    Character,
+    Activate,
+    Back,
+    Cancel,
+    LeaveEditMode,
+    NavigateHome,
+    NavigateEnd,
+    NavigatePgUp,
+    NavigatePgDown,
+    NavigateUp,
+    NavigateDown,
+    NavigateLeft,
+    NavigateRight,
+    CommandHome,
+    CommandOpenChats,
+    CommandOpenMap,
+    CommandToggleGps,
+    CommandSendPing,
+};
+
+enum class UICommand {
+    None,
+    GoHome,
+    OpenChats,
+    OpenMap,
+    ToggleGps,
+    SendPing,
+    LeaveEditMode,
+};
+
+enum class DecisionType {
+    Pass,
+    Remap,
+    Consume,
+    EmitCommand,
+    EmitSequence,
+};
+
+struct InputCapabilities {
+    bool hasArrowKeys = false;
+    bool hasTabKey = false;
+    bool hasHomeKey = false;
+    bool hasEndKey = false;
+    bool hasPgUpPgDownKeys = false;
+    bool hasCancelKey = false;
+    bool hasEnterKey = false;
+    bool hasModifiers = false;
+    bool supportsLongPress = false;
+    bool supportsRepeat = false;
+    bool supportsTextEntry = false;
+};
+
+struct InputContextSnapshot {
+    FocusSemantic focusSemantic = FocusSemantic::Unknown;
+    bool isEditMode = false;
+    bool canLeaveEditMode = false;
+    uint32_t activePanelId = 0;
+    std::string focusedClassHint;
+};
+
+struct InputEvent {
+    std::string sourceId;
+    uint32_t rawKeyCode = 0;
+    uint32_t resolvedKeyCode = 0;
+    InputAction action = InputAction::None;
+    uint32_t unicode = 0;
+    uint16_t modifiers = 0;
+    PressKind pressKind = PressKind::Press;
+    uint32_t timestampMs = 0;
+};
+
+} // namespace input_policy

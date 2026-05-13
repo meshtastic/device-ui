@@ -147,8 +147,6 @@ lv_style_t *get_style_map_arrow_style_MAIN_PRESSED();
 void add_style_map_arrow_style(lv_obj_t *obj);
 void remove_style_map_arrow_style(lv_obj_t *obj);
 
-
-
 #ifdef __cplusplus
 }
 #endif

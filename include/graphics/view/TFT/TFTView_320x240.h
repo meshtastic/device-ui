@@ -277,6 +277,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_NodesButton(lv_event_t *e);
     static void ui_event_GroupsButton(lv_event_t *e);
     static void ui_event_MessagesButton(lv_event_t *e);
+    static void ui_event_MapPanel(lv_event_t *e);
     static void ui_event_MapButton(lv_event_t *e);
     static void ui_event_SettingsButton(lv_event_t *e);
 
@@ -309,6 +310,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_Keyboard(lv_event_t *e);
 
     static void ui_event_message_ready(lv_event_t *e);
+    static void ui_event_textarea_edit_mode(lv_event_t *e);
 
     static void ui_event_user_button(lv_event_t *e);
     static void ui_event_role_button(lv_event_t *e);

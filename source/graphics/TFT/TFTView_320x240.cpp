@@ -14,6 +14,7 @@
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
+#include "input/policy/InputContextState.h"
 #include "lv_i18n.h"
 #include "lvgl_private.h"
 #include "styles.h"
@@ -502,6 +503,15 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 
     activeButton = b;
     activePanel = p;
+    input_policy::InputContextState::instance().setActivePanelId((uint32_t)(uintptr_t)activePanel);
+    if (activePanel == objects.map_panel) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Map);
+    } else {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+    }
+    input_policy::InputContextState::instance().setEditMode(false);
+    input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+
     if (activePanel == objects.messages_panel) {
         lv_group_focus_obj(objects.message_input_area);
     } else if (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice()) {
@@ -550,6 +560,18 @@ void TFTView_320x240::enterProgrammingMode(void)
  */
 void TFTView_320x240::apply_hotfix(void)
 {
+    // lv_imagebutton widgets are not group-default in LVGL, so add map controls explicitly.
+    if (lv_group_t *group = lv_group_get_default()) {
+        lv_group_add_obj(group, objects.nav_button);
+        lv_group_add_obj(group, objects.arrow_up_button);
+        lv_group_add_obj(group, objects.arrow_left_button);
+        lv_group_add_obj(group, objects.arrow_right_button);
+        lv_group_add_obj(group, objects.arrow_down_button);
+        lv_group_add_obj(group, objects.gps_lock_button);
+        lv_group_add_obj(group, objects.zoom_in_button);
+        lv_group_add_obj(group, objects.zoom_out_button);
+    }
+
     // adapt screens to custom display resolution
     uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
@@ -711,6 +733,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.nodes_button, this->ui_event_NodesButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.groups_button, this->ui_event_GroupsButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.messages_button, this->ui_event_MessagesButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.map_panel, this->ui_event_MapPanel, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.map_button, this->ui_event_MapButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
 
@@ -765,6 +788,19 @@ void TFTView_320x240::ui_events_init(void)
 
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
+
+    // text area edit-mode tracking (focus-driven, independent from virtual keyboard visibility)
+    lv_obj_add_event_cb(objects.settings_user_short_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.settings_user_long_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.settings_modify_channel_name_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.settings_modify_channel_psk_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.nodes_filter_name_area, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.nodes_hl_name_area, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.settings_screen_lock_password_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.settings_wifi_ssid_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.settings_wifi_password_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.setup_user_short_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.setup_user_long_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
@@ -1133,6 +1169,76 @@ void TFTView_320x240::ui_event_MessagesButton(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_MapPanel(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_KEY) {
+        const void *param = lv_event_get_param(e);
+        if (!param) {
+            ILOG_WARN("ui_event_MapPanel -> no param");
+            return;
+        }
+        uint32_t c = *(const uint32_t *)param;
+
+        const auto context = input_policy::InputContextState::instance().getSnapshot();
+        if (context.focusSemantic != input_policy::FocusSemantic::Map) {
+            lv_obj_t *focus = lv_group_get_focused(lv_group_get_default());
+            if (c != LV_KEY_ENTER || focus != objects.map_button) {
+                ILOG_DEBUG("ui_event_MapPanel -> ignoring key '%c'(0x%02x), semantic=%d", (char)c, c, (int)context.focusSemantic);
+                return;
+            }
+
+            ILOG_DEBUG("ui_event_MapPanel -> allowing enter on map_button while semantic=%d", (int)context.focusSemantic);
+        }
+        ILOG_DEBUG("ui_event_MapPanel -> processing key '%c'(0x%02x)", (char)c, c);
+        switch (c) {
+        case LV_KEY_UP:
+            e->user_data = (void *)scrollUp;
+            lv_obj_send_event(objects.arrow_up_button, LV_EVENT_CLICKED, (void *)param);
+            break;
+        case LV_KEY_DOWN:
+            e->user_data = (void *)scrollDown;
+            lv_obj_send_event(objects.arrow_down_button, LV_EVENT_CLICKED, (void *)param);
+            break;
+        case LV_KEY_LEFT:
+            e->user_data = (void *)scrollLeft;
+            lv_obj_send_event(objects.arrow_left_button, LV_EVENT_CLICKED, (void *)param);
+            break;
+        case LV_KEY_RIGHT:
+            e->user_data = (void *)scrollRight;
+            lv_obj_send_event(objects.arrow_right_button, LV_EVENT_CLICKED, (void *)param);
+            break;
+        case LV_KEY_NEXT:
+        case 0x21: // KEY_PAGE_UP
+        case '+':
+            lv_obj_send_event(objects.zoom_in_button, LV_EVENT_CLICKED, (void *)param);
+            break;
+        case LV_KEY_PREV:
+        case 0x22: // KEY_PAGE_DOWN
+        case '-':
+            lv_obj_send_event(objects.zoom_out_button, LV_EVENT_CLICKED, (void *)param);
+            break;
+        case LV_KEY_HOME:
+            lv_obj_send_event(objects.nav_button, LV_EVENT_CLICKED, (void *)param);
+            break;
+        case LV_KEY_ENTER:
+            lv_obj_send_event(objects.nav_button, LV_EVENT_LONG_PRESSED, (void *)param);
+            break;
+        case LV_KEY_ESC:
+        case LV_KEY_BACKSPACE:
+            input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+            lv_group_focus_obj(objects.map_button);
+            break;
+        default:
+            ILOG_DEBUG("ui_event_MapPanel -> unhandled key '%c'(0x%02x)", (char)c, c);
+            break;
+        }
+        lv_event_stop_processing(e);
+    } else {
+        ILOG_DEBUG("ui_event_MapPanel -> got event %d", (int)event_code);
+    }
+}
+
 void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
 {
     static bool ignoreClicked = false;
@@ -1143,6 +1249,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
             return;
         }
         if (THIS->activePanel == objects.map_panel) {
+            input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Map);
             // toggle navigation and zoom slider
             static bool toggle = true;
             toggle = !toggle;
@@ -1152,6 +1259,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
                 lv_obj_clear_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_clear_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_clear_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
+                lv_group_focus_obj(objects.nav_button);
             } else {
                 lv_obj_add_flag(objects.zoom_slider, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
@@ -1163,10 +1271,14 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
             THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
             THIS->loadMap();
             lv_group_focus_obj(objects.nav_button);
+            lv_obj_t *focus = lv_group_get_focused(lv_group_get_default());
+            ILOG_DEBUG("focused object is%s hidden", lv_obj_has_flag(focus, LV_OBJ_FLAG_HIDDEN) ? "" : " not");
+            ILOG_DEBUG("focused object is%s nav_button", focus == objects.nav_button ? "" : " not");
         }
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eNone) {
         lv_obj_clear_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.map_brightness_slider);
         ignoreClicked = true;
     }
 }
@@ -1678,7 +1790,25 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_FOCUSED) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::TextEdit);
+        input_policy::InputContextState::instance().setEditMode(true);
+        input_policy::InputContextState::instance().setCanLeaveEditMode(true);
+        return;
+    }
+
+    if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_CANCEL) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+        input_policy::InputContextState::instance().setEditMode(false);
+        input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+        return;
+    }
+
     if (event_code == LV_EVENT_READY) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+        input_policy::InputContextState::instance().setEditMode(false);
+        input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+
         char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
         uint32_t len = strlen(txt);
         if (len) {
@@ -1693,6 +1823,22 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
                 lv_group_focus_obj(objects.message_input_area);
             }
         }
+    }
+}
+
+void TFTView_320x240::ui_event_textarea_edit_mode(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if (event_code == LV_EVENT_FOCUSED) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::TextEdit);
+        input_policy::InputContextState::instance().setEditMode(true);
+        input_policy::InputContextState::instance().setCanLeaveEditMode(true);
+    } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_READY ||
+               event_code == LV_EVENT_CANCEL) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+        input_policy::InputContextState::instance().setEditMode(false);
+        input_policy::InputContextState::instance().setCanLeaveEditMode(false);
     }
 }
 
@@ -6953,7 +7099,7 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
             lv_group_focus_obj(panel->spec_attr->children[1]); // TODO: does not work
         }
     } else if (panel == objects.map_panel) {
-
+        lv_group_focus_obj(objects.nav_button);
     } else if (panel == objects.settings_screen_lock_panel) {
         lv_group_focus_obj(objects.screen_lock_button_matrix);
     } else if (panel == objects.controller_panel) {
