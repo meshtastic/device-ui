@@ -135,8 +135,7 @@ Important boundary:
 
 ## UML Class Diagram
 
-The following Mermaid class diagram is kept intentionally simple so GitHub renders it reliably.
-It shows inheritance, ownership, aggregation, and the main assembly/runtime relationships in the current policy layer.
+The following class diagram shows inheritance, ownership, aggregation, and the main assembly/runtime relationships in the current policy layer.
 
 ```mermaid
 classDiagram
