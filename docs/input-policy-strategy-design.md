@@ -133,6 +133,95 @@ Important boundary:
 - Dispatcher executes commands.
 - Input drivers do not call `ViewController` directly.
 
+## UML Class Diagram
+
+The following Mermaid class diagram is kept intentionally simple so GitHub renders it reliably.
+It shows inheritance, ownership, aggregation, and the main assembly/runtime relationships in the current policy layer.
+
+```mermaid
+classDiagram
+   class IActionBindingResolver
+   class IInputContextProvider
+   class IInputPolicy
+   class IInputSource
+   class IUICommandDispatcher
+
+   class InputPipeline
+   class PolicyChain
+   class InputSourceRegistry
+   class InputPolicyFactory
+   class DefaultInputPolicyFactory
+   class DefaultBindingResolver
+   class InputContextState
+   class FocusTraversalPolicy
+   class PassthroughPolicy
+   class InputPolicyBuildResult
+
+   DefaultBindingResolver ..|> IActionBindingResolver
+   InputContextState ..|> IInputContextProvider
+   FocusTraversalPolicy ..|> IInputPolicy
+   PassthroughPolicy ..|> IInputPolicy
+   DefaultInputPolicyFactory ..|> InputPolicyFactory
+
+   InputPipeline *-- PolicyChain
+   PolicyChain o-- IInputPolicy
+   InputSourceRegistry o-- IInputSource
+   InputPolicyBuildResult *-- PolicyChain
+
+   InputPipeline --> IActionBindingResolver
+   InputPipeline --> IInputContextProvider
+   InputPipeline --> IUICommandDispatcher
+   InputPolicyFactory --> InputSourceRegistry
+   InputPolicyFactory --> IInputContextProvider
+   InputPolicyFactory --> IUICommandDispatcher
+   InputPolicyFactory --> InputPolicyBuildResult
+   InputPolicyBuildResult --> IActionBindingResolver
+```
+
+## Typical Input Flow
+
+The following sequence diagram shows a typical runtime path from a hardware-backed input driver through the policy layer and into LVGL.
+It also shows the alternate path where the policy layer consumes an event or emits a UI command instead of forwarding a key to LVGL.
+
+```mermaid
+sequenceDiagram
+   actor InputDriver
+   participant Registry as InputSourceRegistry
+   participant Factory as DefaultInputPolicyFactory
+   participant Pipeline as InputPipeline
+   participant Resolver as DefaultBindingResolver
+   participant Context as InputContextState
+   participant Chain as PolicyChain
+   participant Dispatcher as IUICommandDispatcher
+   actor LVGL
+
+   Note over InputDriver,Factory: Startup composition
+   InputDriver->>Registry: registerSource(source)
+   InputDriver->>Factory: build(registry, contextProvider, commandDispatcher)
+   Factory-->>InputDriver: InputPolicyBuildResult
+   InputDriver->>Pipeline: setPolicyChain(result.chain)
+
+   Note over InputDriver,LVGL: Runtime event handling
+   InputDriver->>Pipeline: process(event, capabilities, outEvents)
+   Pipeline->>Context: getSnapshot()
+   Context-->>Pipeline: InputContextSnapshot
+   Pipeline->>Resolver: resolveAction(event, context, capabilities)
+   Resolver-->>Pipeline: InputAction
+   Pipeline->>Chain: evaluate(event, context, capabilities)
+   Chain-->>Pipeline: PolicyDecision
+
+   alt Decision is Pass or Remap or EmitSequence
+      Pipeline-->>InputDriver: outEvents
+      loop for each forwarded event
+         InputDriver->>LVGL: send key event
+      end
+   else Decision is EmitCommand
+      Pipeline->>Dispatcher: dispatch(command, payload)
+   else Decision is Consume
+      Pipeline-->>InputDriver: no forwarded event
+   end
+```
+
 ## Policy Order (Precedence)
 
 Recommended order from highest to lowest:
