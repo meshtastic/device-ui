@@ -15,6 +15,7 @@
 #include "images.h"
 #include "input/InputDriver.h"
 #include "input/policy/InputContextState.h"
+#include "input/policy/UICommandDispatcher.h"
 #include "lv_i18n.h"
 #include "lvgl_private.h"
 #include "styles.h"
@@ -333,7 +334,26 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         }
     };
 
+    // Register command dispatcher handlers so dedicated input keys navigate the UI.
+    {
+        auto &dispatcher = input_policy::UICommandDispatcher::instance();
+        dispatcher.registerHandler(input_policy::UICommand::GoHome, [this](const input_policy::CommandPayload &) {
+            ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
+        });
+        dispatcher.registerHandler(input_policy::UICommand::OpenChats, [this](const input_policy::CommandPayload &) {
+            ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+        });
+        dispatcher.registerHandler(input_policy::UICommand::OpenMap, [this](const input_policy::CommandPayload &) {
+            ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
+        });
+        // TODO: implement ToggleGps, SendPing, LeaveEditMode
+        dispatcher.registerHandler(input_policy::UICommand::ToggleGps, [](const input_policy::CommandPayload &) {});
+        dispatcher.registerHandler(input_policy::UICommand::SendPing, [](const input_policy::CommandPayload &) {});
+        dispatcher.registerHandler(input_policy::UICommand::LeaveEditMode, [](const input_policy::CommandPayload &) {});
+    }
+
     lv_disp_trig_activity(NULL);
+
     return true;
 }
 

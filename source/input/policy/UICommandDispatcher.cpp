@@ -4,6 +4,12 @@
 namespace input_policy
 {
 
+UICommandDispatcher &UICommandDispatcher::instance()
+{
+    static UICommandDispatcher singleton;
+    return singleton;
+}
+
 bool UICommandDispatcher::registerHandler(UICommand command, CommandHandler handler)
 {
     const int idx = commandIndex(command);

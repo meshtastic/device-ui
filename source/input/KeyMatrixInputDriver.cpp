@@ -3,10 +3,10 @@
 #include "input/KeyMatrixInputDriver.h"
 #include "Arduino.h"
 #include "input/policy/DefaultInputPolicyFactory.h"
-#include "input/policy/IUICommandDispatcher.h"
 #include "input/policy/InputContextState.h"
 #include "input/policy/InputPipeline.h"
 #include "input/policy/InputSourceRegistry.h"
+#include "input/policy/UICommandDispatcher.h"
 #include "util/ILog.h"
 #include <memory>
 #include <vector>
@@ -42,12 +42,6 @@ constexpr unsigned char KeyMap[3][sizeof(keys_rows)][sizeof(keys_cols)] = {
 
 namespace
 {
-
-class NullUICommandDispatcher : public input_policy::IUICommandDispatcher
-{
-  public:
-    void dispatch(input_policy::UICommand, const input_policy::CommandPayload &) override {}
-};
 
 std::shared_ptr<input_policy::InputPipeline> matrixPipeline;
 std::shared_ptr<input_policy::IInputContextProvider> contextProvider;
@@ -96,7 +90,8 @@ void KeyMatrixInputDriver::init(void)
                                                                                [](input_policy::IInputContextProvider *) {});
     }
     if (!commandDispatcher) {
-        commandDispatcher = std::make_shared<NullUICommandDispatcher>();
+        commandDispatcher = std::shared_ptr<input_policy::IUICommandDispatcher>(&input_policy::UICommandDispatcher::instance(),
+                                                                                [](input_policy::IUICommandDispatcher *) {});
     }
     if (!matrixPipeline) {
         // Use factory to build pipeline with capability-driven policy composition

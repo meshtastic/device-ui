@@ -16,6 +16,9 @@ class UICommandDispatcher : public IUICommandDispatcher
   public:
     using CommandHandler = std::function<void(const CommandPayload &)>;
 
+    // Returns the process-wide singleton instance.
+    static UICommandDispatcher &instance();
+
     // Registers or replaces a callback handler for the given command.
     bool registerHandler(UICommand command, CommandHandler handler);
     // Removes a callback handler for the given command.
