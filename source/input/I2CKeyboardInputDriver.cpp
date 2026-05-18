@@ -1,10 +1,8 @@
 
 #include "input/I2CKeyboardInputDriver.h"
+#include "indev/lv_indev_private.h"
 #include "util/ILog.h"
 #include <Arduino.h>
-#include <Wire.h>
-
-#include "indev/lv_indev_private.h"
 
 I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
 
@@ -81,7 +79,7 @@ TDeckKeyboardInputDriver::TDeckKeyboardInputDriver(uint8_t address)
 void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    uint8_t bytes = Wire.requestFrom(address, 1);
+    uint8_t bytes = Wire.requestFrom(address, (uint8_t)1);
     if (Wire.available() > 0 && bytes > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
@@ -182,7 +180,7 @@ void BBQ10KeyboardInputDriver::init(void)
 void BBQ10KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    uint8_t bytes = Wire.requestFrom(address, 1);
+    uint8_t bytes = Wire.requestFrom(address, (uint8_t)1);
     if (Wire.available() > 0 && bytes > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
@@ -206,7 +204,7 @@ void BBQ10KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
 
 // ---------- CardKBInputDriver Implementation ----------
 
-CardKBInputDriver::CardKBInputDriver(uint8_t address)
+CardKBInputDriver::CardKBInputDriver(uint8_t address, TwoWire &wire_) : wire(wire_)
 {
     registerI2CKeyboard(this, "Card Keyboard", address);
 }
@@ -214,7 +212,7 @@ CardKBInputDriver::CardKBInputDriver(uint8_t address)
 void CardKBInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    Wire.requestFrom(address, 1);
+    Wire.requestFrom(address, (uint8_t)1);
     if (Wire.available() > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224 which causes internal issues
@@ -289,3 +287,94 @@ void MPR121KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev,
     data->state = LV_INDEV_STATE_RELEASED;
     data->key = (uint32_t)keyValue;
 }
+
+#ifdef SCAN_STC8H_KB
+// ---------- STC8HKeyboardInputDriver Implementation ----------
+
+#define STC8_REG_ADDR_MATRIX_KEY 0x05
+
+#ifndef KB_INT
+#define KB_INT 12
+#endif
+
+#ifndef PIN_LED
+#define PIN_LED 13
+#endif
+
+#ifndef KB_LED
+#define KB_LED 46
+#endif
+
+volatile bool STC8HKeyboardInputDriver::keyEvent = false;
+
+STC8HKeyboardInputDriver::STC8HKeyboardInputDriver(uint8_t address, TwoWire &wire_) : wire(wire_)
+{
+    registerI2CKeyboard(this, "STC8H Keyboard", address);
+}
+
+void STC8HKeyboardInputDriver::init(void)
+{
+    I2CKeyboardInputDriver::init();
+    pinMode(KB_INT, INPUT);
+    pinMode(KB_LED, OUTPUT);
+    attachInterrupt(
+        KB_INT, [] { keyEvent = true; }, FALLING);
+}
+
+uint8_t STC8HKeyboardInputDriver::readRegister(uint8_t address, uint8_t reg)
+{
+    wire.beginTransmission(address);
+    wire.write(reg);
+    if (wire.endTransmission(false) != 0)
+        return 0xFF;
+    if (wire.requestFrom(address, (uint8_t)1) != 1)
+        return 0xFF;
+    return wire.read();
+}
+
+void STC8HKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
+{
+    uint32_t keyValue = 0;
+    if (keyEvent) {
+        keyEvent = false;
+        uint8_t bytes = readRegister(address, STC8_REG_ADDR_MATRIX_KEY);
+        if (bytes != 0xFF) {
+            keyValue = bytes;
+            data->state = LV_INDEV_STATE_PRESSED;
+            ILOG_DEBUG("key press value: %d", keyValue);
+            switch (keyValue) {
+            case 0x0D:
+                keyValue = LV_KEY_ENTER;
+                break;
+            case 0x82: // home
+                keyValue = LV_KEY_HOME;
+                break;
+            case 0x83: // time
+                // keyValue = LV_KEY_XXX;
+                break;
+            case 0x84: // light -> KB_LED
+                keyValue = 0;
+                digitalWrite(KB_LED, !digitalRead(KB_LED));
+                break;
+            case 0xb5: // Up
+                keyValue = LV_KEY_PREV;
+                break;
+            case 0xb4: // Left
+                keyValue = LV_KEY_LEFT;
+                break;
+            case 0xb6: // Down
+                keyValue = LV_KEY_NEXT;
+                break;
+            case 0xb7: // Right
+                keyValue = LV_KEY_RIGHT;
+                break;
+            default:
+                break;
+            }
+        } else {
+            data->state = LV_INDEV_STATE_RELEASED;
+        }
+    }
+    data->key = (uint32_t)keyValue;
+}
+#endif

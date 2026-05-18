@@ -1,9 +1,12 @@
 #pragma once
 
+#include "Wire.h"
 #include "input/InputDriver.h"
 #include <list>
 #include <memory>
 #include <string>
+
+class TwoWire;
 
 class I2CKeyboardInputDriver : public InputDriver
 {
@@ -79,9 +82,12 @@ class BBQ10KeyboardInputDriver : public I2CKeyboardInputDriver
 class CardKBInputDriver : public I2CKeyboardInputDriver
 {
   public:
-    CardKBInputDriver(uint8_t address);
+    CardKBInputDriver(uint8_t address, TwoWire &wire = Wire);
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~CardKBInputDriver(void) {}
+
+  private:
+    TwoWire &wire;
 };
 
 class MPR121KeyboardInputDriver : public I2CKeyboardInputDriver
@@ -91,4 +97,18 @@ class MPR121KeyboardInputDriver : public I2CKeyboardInputDriver
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~MPR121KeyboardInputDriver(void) {}
+};
+
+class STC8HKeyboardInputDriver : public I2CKeyboardInputDriver
+{
+  public:
+    STC8HKeyboardInputDriver(uint8_t address, TwoWire &wire = Wire);
+    void init(void) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
+    virtual ~STC8HKeyboardInputDriver(void) {}
+
+  private:
+    uint8_t readRegister(uint8_t address, uint8_t reg);
+    volatile static bool keyEvent;
+    TwoWire &wire;
 };
