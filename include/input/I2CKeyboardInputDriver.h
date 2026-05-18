@@ -1,12 +1,11 @@
 #pragma once
 
+#include "Arduino.h"
 #include "Wire.h"
 #include "input/InputDriver.h"
 #include <list>
 #include <memory>
 #include <string>
-
-class TwoWire;
 
 class I2CKeyboardInputDriver : public InputDriver
 {
