@@ -288,7 +288,7 @@ void MPR121KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev,
     data->key = (uint32_t)keyValue;
 }
 
-#ifdef SCAN_STC8H_KB
+#ifdef HAS_STC8H_KB
 // ---------- STC8HKeyboardInputDriver Implementation ----------
 
 #define STC8_REG_ADDR_MATRIX_KEY 0x05
