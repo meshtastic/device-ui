@@ -6,6 +6,8 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
+#include "WiFi.h"
+
 // from ConvertPNG.c
 extern "C" {
 bool decodeImgGrey(const void *data, size_t size, lv_img_dsc_t **img);
@@ -23,6 +25,13 @@ bool URLService::load(const char *name, void *img)
         ~HttpEndGuard() { client.end(); }
     } httpGuard{http};
 
+    http.setReuse(false);
+
+    if (WiFi.status() != WL_CONNECTED) {
+        ILOG_DEBUG("URLService::load skipped (WiFi not connected)");
+        return false;
+    }
+
     struct LvFreeGuard {
         uint8_t *&ptr;
         ~LvFreeGuard() { lv_free(ptr); }
@@ -30,6 +39,11 @@ bool URLService::load(const char *name, void *img)
 
     // transform filename to provider url
     std::string url = TileProvider::url(name);
+    if (url.empty()) {
+        ILOG_ERROR("empty URL for tile %s", name ? name : "(null)");
+        return false;
+    }
+
     http.begin(url.c_str());
     int httpCode = http.GET();
     if (httpCode != HTTP_CODE_OK) {
