@@ -23,9 +23,11 @@ PolicyDecision PolicyChain::evaluate(const InputEvent &event, const InputContext
             continue;
         }
         PolicyDecision decision = policy->evaluate(event, context, capabilities);
-        if (decision.type != DecisionType::Pass) {
-            return decision;
+        if (decision.type == DecisionType::Pass) {
+            continue;
         }
+
+        return decision;
     }
 
     return PolicyDecision{};

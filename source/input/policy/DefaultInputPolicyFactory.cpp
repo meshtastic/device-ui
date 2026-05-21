@@ -1,4 +1,5 @@
 #include "input/policy/DefaultInputPolicyFactory.h"
+#include "input/policy/CommandDispatchPolicy.h"
 #include "input/policy/DefaultBindingResolver.h"
 #include "input/policy/FocusTraversalPolicy.h"
 #include "input/policy/PassthroughPolicy.h"
@@ -38,6 +39,10 @@ InputPolicyBuildResult DefaultInputPolicyFactory::build(const InputSourceRegistr
 
     // Conditional policies: add special key policies when available
     // (Future expansion point for Home/Chat/Location/GPS toggle policies)
+    if (commandDispatcher) {
+        ILOG_DEBUG("[InputFactory] Adding CommandDispatchPolicy");
+        chain.addPolicy(std::make_shared<CommandDispatchPolicy>());
+    }
 
     // Fallback policy: pass through all unhandled events to LVGL
     // This must be last in the chain to ensure everything gets a chance

@@ -9,7 +9,8 @@ namespace input_policy
 
 /**
  * Stores policy instances in evaluation order for event processing.
- * The chain returns the first non-pass decision produced by a policy.
+ * Pass means "not handled here", so evaluation continues until a policy emits
+ * a non-pass decision or the chain is exhausted.
  */
 class PolicyChain
 {
