@@ -1,8 +1,17 @@
 
 #include "input/I2CKeyboardInputDriver.h"
 #include "indev/lv_indev_private.h"
+#include "input/policy/DefaultInputPolicyFactory.h"
+#include "input/policy/InputContextState.h"
+#include "input/policy/InputPipeline.h"
+#include "input/policy/InputSourceRegistry.h"
+#include "input/policy/UICommandDispatcher.h"
 #include "util/ILog.h"
 #include <Arduino.h>
+
+std::shared_ptr<input_policy::InputPipeline> matrixPipeline;
+std::shared_ptr<input_policy::IInputContextProvider> contextProvider;
+std::shared_ptr<input_policy::IUICommandDispatcher> commandDispatcher;
 
 I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
 
@@ -307,6 +316,20 @@ void MPR121KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev,
 
 volatile bool STC8HKeyboardInputDriver::keyEvent = false;
 
+const input_policy::InputCapabilities matrixCapabilities = {
+    true,  // hasArrowKeys
+    false, // hasTabKey
+    false, // hasHomeKey
+    false, // hasEndKey
+    false, // hasPgUpPgDownKeys
+    false, // hasCancelKey
+    true,  // hasEnterKey
+    true,  // hasModifiers
+    false, // supportsLongPress
+    false, // supportsRepeat
+    true   // supportsTextEntry
+};
+
 STC8HKeyboardInputDriver::STC8HKeyboardInputDriver(uint8_t address, TwoWire &wire_) : wire(wire_)
 {
     registerI2CKeyboard(this, "STC8H Keyboard", address);
@@ -315,10 +338,30 @@ STC8HKeyboardInputDriver::STC8HKeyboardInputDriver(uint8_t address, TwoWire &wir
 void STC8HKeyboardInputDriver::init(void)
 {
     I2CKeyboardInputDriver::init();
+
     pinMode(KB_INT, INPUT);
     pinMode(KB_LED, OUTPUT);
     attachInterrupt(
         KB_INT, [] { keyEvent = true; }, FALLING);
+
+    if (!contextProvider) {
+        contextProvider = std::shared_ptr<input_policy::IInputContextProvider>(&input_policy::InputContextState::instance(),
+                                                                               [](input_policy::IInputContextProvider *) {});
+    }
+    if (!commandDispatcher) {
+        commandDispatcher = std::shared_ptr<input_policy::IUICommandDispatcher>(&input_policy::UICommandDispatcher::instance(),
+                                                                                [](input_policy::IUICommandDispatcher *) {});
+    }
+    if (!matrixPipeline) {
+        // Use factory to build pipeline with capability-driven policy composition
+        input_policy::InputSourceRegistry registry;
+        input_policy::DefaultInputPolicyFactory factory;
+        auto result = factory.build(registry, contextProvider, commandDispatcher);
+
+        matrixPipeline =
+            std::make_shared<input_policy::InputPipeline>(result.bindingResolver, contextProvider, commandDispatcher);
+        matrixPipeline->setPolicyChain(std::move(result.chain));
+    }
 }
 
 uint8_t STC8HKeyboardInputDriver::readRegister(uint8_t address, uint8_t reg)
@@ -347,23 +390,27 @@ void STC8HKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
                 keyValue = LV_KEY_ENTER;
                 break;
             case 0x82: // home
-                keyValue = LV_KEY_HOME;
+                keyValue = 0x100;
                 break;
-            case 0x83: // time
-                // keyValue = LV_KEY_XXX;
+            case 0x83: // time -> chat
+                keyValue = 0x101;
                 break;
-            case 0x84: // light -> KB_LED
+            case 0x85: // location -> map
+                keyValue = 0x102;
+                break;
+            case 0x88: // light, speaker, ... (= bug)
                 keyValue = 0;
+                data->state = LV_INDEV_STATE_RELEASED;
                 digitalWrite(KB_LED, !digitalRead(KB_LED));
                 break;
             case 0xb5: // Up
-                keyValue = LV_KEY_PREV;
+                keyValue = LV_KEY_UP;
                 break;
             case 0xb4: // Left
                 keyValue = LV_KEY_LEFT;
                 break;
             case 0xb6: // Down
-                keyValue = LV_KEY_NEXT;
+                keyValue = LV_KEY_DOWN;
                 break;
             case 0xb7: // Right
                 keyValue = LV_KEY_RIGHT;
@@ -376,5 +423,40 @@ void STC8HKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
         }
     }
     data->key = (uint32_t)keyValue;
+
+    if (data->key != 0 && matrixPipeline) {
+        input_policy::InputEvent event{};
+        event.sourceId = "stc8";
+        event.rawKeyCode = data->key;
+        event.resolvedKeyCode = data->key;
+        event.pressKind =
+            (data->state == LV_INDEV_STATE_PRESSED) ? input_policy::PressKind::Press : input_policy::PressKind::Release;
+        event.timestampMs = millis();
+
+        ILOG_DEBUG("[KeyMatrix] Raw event: key=0x%x state=%s", data->key,
+                   data->state == LV_INDEV_STATE_PRESSED ? "PRESSED" : "RELEASED");
+
+        std::vector<input_policy::InputEvent> output;
+        bool forward = matrixPipeline->process(event, matrixCapabilities, output);
+        if (!forward || output.empty()) {
+            ILOG_DEBUG("[KeyMatrix] Pipeline consumed event, not forwarding");
+            data->key = 0;
+            data->state = LV_INDEV_STATE_RELEASED;
+            return;
+        }
+
+        const auto &outEvent = output.front();
+        uint32_t outKey = outEvent.resolvedKeyCode != 0 ? outEvent.resolvedKeyCode : outEvent.rawKeyCode;
+        if (outKey == 0) {
+            ILOG_DEBUG("[KeyMatrix] No output key from pipeline");
+            data->key = 0;
+            data->state = LV_INDEV_STATE_RELEASED;
+            return;
+        }
+
+        ILOG_DEBUG("[KeyMatrix] Pipeline output: key=0x%x state=%s (remapped from 0x%x)", outKey,
+                   outEvent.pressKind == input_policy::PressKind::Press ? "PRESSED" : "RELEASED", data->key);
+        data->key = outKey;
+    }
 }
 #endif
