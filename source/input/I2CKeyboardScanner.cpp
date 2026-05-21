@@ -122,7 +122,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
             case SCAN_CARDKB_ADDR:
                 driver = new CardKBInputDriver(address, Wire1);
                 break;
-#ifdef SCAN_STC8H_KB
+#ifdef HAS_STC8H_KB
             case SCAN_STC8H_KB_ADDR:
                 driver = new STC8HKeyboardInputDriver(address, Wire1);
                 break;
