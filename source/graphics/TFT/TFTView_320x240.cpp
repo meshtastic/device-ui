@@ -341,14 +341,14 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
             ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
         });
         dispatcher.registerHandler(input_policy::UICommand::OpenChats, [this](const input_policy::CommandPayload &) {
-            ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+            lv_obj_send_event(objects.messages_button, LV_EVENT_CLICKED, NULL);
         });
         dispatcher.registerHandler(input_policy::UICommand::QuickChat, [this](const input_policy::CommandPayload &) {
             // TODO: open most recent received or sent chat (last chat)
-            ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+            lv_obj_send_event(objects.messages_button, LV_EVENT_CLICKED, NULL);
         });
         dispatcher.registerHandler(input_policy::UICommand::OpenMap, [this](const input_policy::CommandPayload &) {
-            ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
+            lv_obj_send_event(objects.map_button, LV_EVENT_CLICKED, NULL);
         });
         // TODO: implement ToggleGps, SendPing, LeaveEditMode
         dispatcher.registerHandler(input_policy::UICommand::ToggleGps, [](const input_policy::CommandPayload &) {});
@@ -378,11 +378,8 @@ void TFTView_320x240::updateBootMessage(const char *msg)
 void TFTView_320x240::init_screens(void)
 {
     ILOG_DEBUG("init screens...");
-    delay(10);
     state = MeshtasticView::eInitScreens;
     ui_init();
-    ILOG_DEBUG("apply hotfix...");
-    delay(10);
     apply_hotfix();
 
     activeMsgContainer = objects.messages_container;
@@ -4103,7 +4100,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
-                THIS->notifyReboot(true);
             }
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_region_button);
@@ -7386,6 +7382,7 @@ bool TFTView_320x240::updateSDCard(void)
     sdCard = new SdFsCard;
 #endif
     ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
+    ILOG_DEBUG("init SDCard");
     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
         ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
         ISdCard::CardType cardType = sdCard->cardType();
