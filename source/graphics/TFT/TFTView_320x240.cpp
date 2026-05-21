@@ -343,6 +343,10 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         dispatcher.registerHandler(input_policy::UICommand::OpenChats, [this](const input_policy::CommandPayload &) {
             ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
         });
+        dispatcher.registerHandler(input_policy::UICommand::QuickChat, [this](const input_policy::CommandPayload &) {
+            // TODO: open most recent received or sent chat (last chat)
+            ui_set_active(objects.messages_button, objects.chats_panel, objects.top_chats_panel);
+        });
         dispatcher.registerHandler(input_policy::UICommand::OpenMap, [this](const input_policy::CommandPayload &) {
             ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
         });
@@ -374,8 +378,11 @@ void TFTView_320x240::updateBootMessage(const char *msg)
 void TFTView_320x240::init_screens(void)
 {
     ILOG_DEBUG("init screens...");
+    delay(10);
     state = MeshtasticView::eInitScreens;
     ui_init();
+    ILOG_DEBUG("apply hotfix...");
+    delay(10);
     apply_hotfix();
 
     activeMsgContainer = objects.messages_container;

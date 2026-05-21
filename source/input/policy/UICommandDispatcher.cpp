@@ -76,6 +76,8 @@ UICommand UICommandDispatcher::toUICommand(InputAction action)
         return UICommand::GoHome;
     case InputAction::CommandOpenChats:
         return UICommand::OpenChats;
+    case InputAction::CommandQuickChat:
+        return UICommand::QuickChat;
     case InputAction::CommandOpenMap:
         return UICommand::OpenMap;
     case InputAction::CommandToggleGps:
