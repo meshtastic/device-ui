@@ -67,6 +67,8 @@ KeyMatrixInputDriver::KeyMatrixInputDriver(void) {}
 
 void KeyMatrixInputDriver::init(void)
 {
+    I2CKeyboardInputDriver::init();
+
     for (byte i = 0; i < sizeof(keys_rows); i++) {
         pinMode(keys_rows[i], OUTPUT);
         digitalWrite(keys_rows[i], HIGH);
@@ -74,16 +76,6 @@ void KeyMatrixInputDriver::init(void)
     for (byte i = 0; i < sizeof(keys_cols); i++) {
         pinMode(keys_cols[i], INPUT_PULLUP);
     }
-
-    keyboard = lv_indev_create();
-    lv_indev_set_type(keyboard, LV_INDEV_TYPE_KEYPAD);
-    lv_indev_set_read_cb(keyboard, keyboard_read);
-
-    if (!inputGroup) {
-        inputGroup = lv_group_create();
-        lv_group_set_default(inputGroup);
-    }
-    lv_indev_set_group(keyboard, inputGroup);
 
     if (!contextProvider) {
         contextProvider = std::shared_ptr<input_policy::IInputContextProvider>(&input_policy::InputContextState::instance(),
