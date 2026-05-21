@@ -15,6 +15,7 @@ InputAction DefaultBindingResolver::resolveAction(const InputEvent &event, const
     constexpr uint32_t KEY_CMD_MAP = 0x102;
     constexpr uint32_t KEY_CMD_TOGGLE_GPS = 0x103;
     constexpr uint32_t KEY_CMD_SEND_PING = 0x104;
+    constexpr uint32_t KEY_CMD_QUICK = 0x105;
 
     if (event.action != InputAction::None) {
         ILOG_DEBUG("[Resolver] Action already set to %d", (int)event.action);
@@ -28,6 +29,9 @@ InputAction DefaultBindingResolver::resolveAction(const InputEvent &event, const
         break;
     case KEY_CMD_CHATS:
         action = InputAction::CommandOpenChats;
+        break;
+    case KEY_CMD_QUICK:
+        action = InputAction::CommandQuickChat;
         break;
     case KEY_CMD_MAP:
         action = InputAction::CommandOpenMap;
