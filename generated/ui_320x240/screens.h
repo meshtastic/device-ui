@@ -132,6 +132,8 @@ typedef struct _objects_t {
     lv_obj_t *home_bluetooth_label;
     lv_obj_t *home_mqtt_button;
     lv_obj_t *home_mqtt_label;
+    lv_obj_t *home_web_dav_button;
+    lv_obj_t *home_web_dav_label;
     lv_obj_t *home_sd_card_button;
     lv_obj_t *home_sd_card_label;
     lv_obj_t *home_memory_button;
@@ -188,9 +190,9 @@ typedef struct _objects_t {
     lv_obj_t *arrow_right_button;
     lv_obj_t *arrow_down_button;
     lv_obj_t *gps_lock_button;
-    lv_obj_t *zoom_slider;
     lv_obj_t *zoom_in_button;
     lv_obj_t *zoom_out_button;
+    lv_obj_t *zoom_slider;
     lv_obj_t *map_osd_panel;
     lv_obj_t *map_brightness_slider;
     lv_obj_t *map_contrast_slider;
@@ -589,6 +591,16 @@ void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);
 
 void create_screens();
+
+// Groups
+
+typedef struct _groups_t {
+    lv_group_t *mainButtons;
+} groups_t;
+
+extern groups_t groups;
+
+void ui_create_groups();
 
 #ifdef __cplusplus
 }
