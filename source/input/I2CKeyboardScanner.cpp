@@ -30,12 +30,14 @@ bool readRegisterByte(TwoWire &bus, uint8_t address, uint8_t reg, uint8_t &value
     return true;
 }
 
+#if defined T_DECK
 bool isBQ27220(TwoWire &bus, uint8_t address)
 {
     uint8_t value = 0;
     // Mirrors firmware scanner logic: non-zero at reg 0x04 indicates BQ27220.
     return readRegisterByte(bus, address, 0x04, value) && value != 0;
 }
+#endif
 
 bool isTCA8418(TwoWire &bus, uint8_t address)
 {
