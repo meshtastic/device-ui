@@ -164,7 +164,7 @@ class LGFX_WIO_TRACKER_L2 : public lgfx::LGFX_Device
             cfg.rgb_order = true;    // Set to true if the panel's red and blue are swapped
             cfg.dlen_16bit = false;  // Set to true for panels that transmit data length in 16-bit
                                      // units with 16-bit parallel or SPI
-            cfg.bus_shared = true;   // If the bus is shared with the SD card, set to
+            cfg.bus_shared = false;  // If the bus is shared with the SD card, set to
                                      // true (bus control with drawJpgFile etc.)
 
             _panel_instance.config(cfg);
@@ -186,7 +186,7 @@ class LGFX_WIO_TRACKER_L2 : public lgfx::LGFX_Device
             cfg.i2c_addr = 0x5D;
             cfg.pin_sda = 47;
             cfg.pin_scl = 48;
-            cfg.bus_shared = true;
+            cfg.bus_shared = false;
             cfg.freq = 400000;
 
             _touch_instance.config(cfg);
