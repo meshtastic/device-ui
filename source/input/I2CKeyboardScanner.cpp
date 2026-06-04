@@ -10,7 +10,7 @@ enum KeyboardAddresses {
     SCAN_CARDKB_ADDR = 0x5F,
     SCAN_BBQ10_KB_ADDR = 0x1F,
     SCAN_MPR121_KB_ADDR = 0x5A, // also DRV2605
-    SCAN_STC8H_KB_ADDR = 0x6C   // Thinknode-M9
+    SCAN_TM9_KB_ADDR = 0x6C
 };
 
 namespace
@@ -64,7 +64,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
     uint8_t i2cKeyboards_bus0[] = {SCAN_TDECK_KB_ADDR, SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR, SCAN_BBQ10_KB_ADDR,
                                    SCAN_MPR121_KB_ADDR};
 #if WIRE_INTERFACES_COUNT >= 2
-    uint8_t i2cKeyboards_bus1[] = {SCAN_CARDKB_ADDR, SCAN_STC8H_KB_ADDR};
+    uint8_t i2cKeyboards_bus1[] = {SCAN_CARDKB_ADDR, SCAN_TM9_KB_ADDR};
 #endif
 
     ILOG_DEBUG("I2CKeyboardScanner scanning bus 0 ...");
@@ -123,6 +123,9 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
             switch (address) {
             case SCAN_CARDKB_ADDR:
                 driver = new CardKBInputDriver(address, Wire1);
+                break;
+            case SCAN_TM9_KB_ADDR:
+                driver = new TM9KeyboardInputDriver(address, Wire1);
                 break;
 #ifdef HAS_STC8H_KB
             case SCAN_STC8H_KB_ADDR:

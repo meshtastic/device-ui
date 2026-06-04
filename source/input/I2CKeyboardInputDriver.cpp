@@ -291,10 +291,189 @@ void MPR121KeyboardInputDriver::init(void)
 
 void MPR121KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    // TODO
     char keyValue = 0;
     data->state = LV_INDEV_STATE_RELEASED;
     data->key = (uint32_t)keyValue;
+}
+
+// ---------- TM9KeyboardInputDriver Implementation ----------
+
+const input_policy::InputCapabilities TM9Capabilities = {
+    true,  // hasArrowKeys
+    false, // hasTabKey
+    true,  // hasHomeKey
+    true,  // hasEndKey
+    true,  // hasPgUpPgDownKeys
+    true,  // hasCancelKey
+    true,  // hasEnterKey
+    true,  // hasModifiers
+    true,  // supportsLongPress
+    true,  // supportsRepeat
+    true   // supportsTextEntry
+};
+
+TM9KeyboardInputDriver::TM9KeyboardInputDriver(uint8_t address, TwoWire &wire_) : wire(wire_)
+{
+    registerI2CKeyboard(this, "TM9 Keyboard", address);
+}
+
+void TM9KeyboardInputDriver::init(void)
+{
+    // Additional initialization for ThinkNodeM9 if needed
+    I2CKeyboardInputDriver::init();
+
+    if (!contextProvider) {
+        contextProvider = std::shared_ptr<input_policy::IInputContextProvider>(&input_policy::InputContextState::instance(),
+                                                                               [](input_policy::IInputContextProvider *) {});
+    }
+
+    if (!commandDispatcher) {
+        commandDispatcher = std::shared_ptr<input_policy::IUICommandDispatcher>(&input_policy::UICommandDispatcher::instance(),
+                                                                                [](input_policy::IUICommandDispatcher *) {});
+    }
+
+    if (!matrixPipeline) {
+        input_policy::InputSourceRegistry registry;
+        input_policy::DefaultInputPolicyFactory factory;
+        auto result = factory.build(registry, contextProvider, commandDispatcher);
+
+        matrixPipeline =
+            std::make_shared<input_policy::InputPipeline>(result.bindingResolver, contextProvider, commandDispatcher);
+        matrixPipeline->setPolicyChain(std::move(result.chain));
+    }
+}
+
+void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
+{
+    uint32_t keyValue = 0;
+    static uint32_t prevKey = 0;
+    bool isSyntheticLongPress = false;
+
+    wire.beginTransmission(address);
+    wire.write(0x01);
+    if (wire.endTransmission(false) == 0) {
+        uint8_t bytes = wire.requestFrom(address, 1);
+        if (wire.available() > 0 && bytes > 0) {
+            keyValue = wire.read();
+            if (keyValue != 0x00) {
+                data->state = LV_INDEV_STATE_PRESSED;
+                ILOG_DEBUG("key press value: 0x%02X", keyValue);
+
+                switch (keyValue) {
+                case 0x0D: // Enter
+                    keyValue = LV_KEY_ENTER;
+                    break;
+                case 0x81: // Chat boxes
+                    keyValue = 0x100;
+                    break;
+                case 0x82: // Home
+                    keyValue = 0x101;
+                    break;
+                case 0x83: // Preset -> quick chat
+                    keyValue = 0x102;
+                    break;
+                case 0x84: // location -> send ping
+                    keyValue = 0x103;
+                    break;
+                case 0x85: // MAP
+                    keyValue = 0x104;
+                    break;
+                case 0x86: // BACK
+                    keyValue = LV_KEY_ESC;
+                    break;
+                case 0x87: // long-press location -> toggle GPS
+                    keyValue = 0x105;
+                    break;
+                case 0x88: // button 1st code / location 2nd code -> ignore
+                    keyValue = 0;
+                    data->state = LV_INDEV_STATE_RELEASED;
+                    break;
+                case 0xB4: // Left
+                    keyValue = LV_KEY_LEFT;
+                    break;
+                case 0xB5: // Up
+                    keyValue = LV_KEY_UP;
+                    break;
+                case 0xB6: // Down
+                    keyValue = LV_KEY_DOWN;
+                    break;
+                case 0xB7: // Right
+                    keyValue = LV_KEY_RIGHT;
+                    break;
+                case 0x08: // Del
+                    keyValue = LV_KEY_BACKSPACE;
+                    break;
+                case 0xA3: // LONG ENTER
+                    // simulate a long press (see indev_keypad_proc() in indev.c)
+                    if (indev != nullptr) {
+                        indev->wait_until_release = 0;
+                        indev->pr_timestamp = lv_tick_get() - indev->long_press_time - 1;
+                        indev->long_pr_sent = 0;
+                        indev->keypad.last_state = LV_INDEV_STATE_PRESSED;
+                        indev->keypad.last_key = LV_KEY_ENTER;
+                    }
+                    isSyntheticLongPress = true;
+                    keyValue = LV_KEY_ENTER;
+                    break;
+                default:
+                    break;
+                }
+            } else {
+                data->state = LV_INDEV_STATE_RELEASED;
+            }
+        }
+    }
+    data->key = keyValue;
+
+    if (keyValue != 0 && matrixPipeline) {
+        input_policy::InputEvent event{};
+        event.sourceId = "TM9_keyboard";
+        event.rawKeyCode = keyValue;
+        event.resolvedKeyCode = keyValue;
+        event.pressKind = (data->state == LV_INDEV_STATE_PRESSED)
+                              ? (isSyntheticLongPress ? input_policy::PressKind::LongPress : input_policy::PressKind::Press)
+                              : input_policy::PressKind::Release;
+        event.timestampMs = millis();
+
+        std::vector<input_policy::InputEvent> output;
+        bool forward = matrixPipeline->process(event, TM9Capabilities, output);
+        if (!forward || output.empty()) {
+            // ILOG_DEBUG("[TM9-KeyMatrix] Pipeline consumed event, not forwarding");
+            data->key = 0;
+            data->state = LV_INDEV_STATE_RELEASED;
+            return;
+        }
+
+        const auto &outEvent = output.front();
+        uint32_t outKey = outEvent.resolvedKeyCode != 0 ? outEvent.resolvedKeyCode : outEvent.rawKeyCode;
+        if (outKey == 0) {
+            // ILOG_DEBUG("[TM9-KeyMatrix] No output key from pipeline");
+            data->key = 0;
+            data->state = LV_INDEV_STATE_RELEASED;
+            return;
+        }
+        data->state = (outEvent.pressKind == input_policy::PressKind::Release) ? LV_INDEV_STATE_RELEASED : LV_INDEV_STATE_PRESSED;
+#if 0
+        const char *pressKindName = "PRESS";
+        switch (outEvent.pressKind) {
+        case input_policy::PressKind::Press:
+            pressKindName = "PRESS";
+            break;
+        case input_policy::PressKind::Release:
+            pressKindName = "RELEASE";
+            break;
+        case input_policy::PressKind::LongPress:
+            pressKindName = "LONG_PRESS";
+            break;
+        case input_policy::PressKind::LongPressRepeat:
+            pressKindName = "LONG_PRESS_REPEAT";
+            break;
+        }
+        ILOG_DEBUG("[TM9-KeyMatrix] Pipeline output: key=0x%x kind=%s state=%s (remapped from 0x%x)", outKey,
+                   pressKindName, data->state == LV_INDEV_STATE_PRESSED ? "PRESSED" : "RELEASED", data->key);
+#endif
+        data->key = outKey;
+    }
 }
 
 #ifdef HAS_STC8H_KB
