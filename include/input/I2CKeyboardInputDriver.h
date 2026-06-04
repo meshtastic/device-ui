@@ -98,6 +98,18 @@ class MPR121KeyboardInputDriver : public I2CKeyboardInputDriver
     virtual ~MPR121KeyboardInputDriver(void) {}
 };
 
+class TM9KeyboardInputDriver : public I2CKeyboardInputDriver
+{
+  public:
+    TM9KeyboardInputDriver(uint8_t address, TwoWire &wire = Wire);
+    void init(void) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
+    virtual ~TM9KeyboardInputDriver(void) {}
+
+  private:
+    TwoWire &wire;
+};
+
 class STC8HKeyboardInputDriver : public I2CKeyboardInputDriver
 {
   public:
