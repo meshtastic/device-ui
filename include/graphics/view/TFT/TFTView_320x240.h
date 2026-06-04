@@ -24,10 +24,7 @@ class GroupGuard
         }
     }
 
-    ~GroupGuard()
-    {
-        lv_group_set_default(saved_group);
-    }
+    ~GroupGuard() { lv_group_set_default(saved_group); }
 
     // Prevent copying
     GroupGuard(const GroupGuard &) = delete;
@@ -211,7 +208,7 @@ class TFTView_320x240 : public MeshtasticView
     // update time display on home screen
     virtual void updateTime(void);
     // update the webDAV status on home screen
-    virtual void updateWebDAVStatus(bool ready);
+    virtual void updateWebDAVStatus(void);
     // update SD card slot info
     virtual bool updateSDCard(void);
     // format SD card if invalid
@@ -430,7 +427,7 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *input_group = nullptr;
-    lv_group_t *defaultPanelGroup = nullptr;  // The default LVGL group for panel content widgets
+    lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets
 
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
