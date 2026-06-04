@@ -35,6 +35,7 @@ void remove_style_node_panel_style(lv_obj_t *obj);
 
 // Style: HomeButtonStyle
 lv_style_t *get_style_home_button_style_MAIN_DEFAULT();
+lv_style_t *get_style_home_button_style_MAIN_FOCUS_KEY();
 void add_style_home_button_style(lv_obj_t *obj);
 void remove_style_home_button_style(lv_obj_t *obj);
 
