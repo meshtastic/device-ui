@@ -27,8 +27,10 @@ Long pressing the Map button allows to choose between the map styles found on SD
 
 The map tiles are in .png format of size 256x256 pixel and zoom levels 1 - 20, where 1 represents the entire earth and 20 a mid-sized building.
 
-A graphical tool for convenient downloading of further map tiles can be found here: [map-tile-downloader](https://github.com/mattdrum/map-tile-downloader)
-It provides an automated download of MUI compatible map tiles using map raster tile APIs from different configurable providers. With this downloader tool you can extent the existing map styles by further zoom levels or download your favorite map styles according your preference.
+A web tool for convenient downloading of further map tiles, run by community member @zmiguel, can be found here: [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/). 
+It provides automated downloading of MUI-compatible map tiles in 8-bit format. It uses its own tile server with data from OpenStreetMap. Tiles are updated every week and cached for 1 week.
+
+This service is not affiliated with Meshtastic, and the tile server is not guaranteed to have 99% uptime. Pre-generated bundles for the most popular regions are also available for download on this tool indefinitely.
 
 Please read the instructions carefully and don't abuse the freely provided services.
 
@@ -46,7 +48,7 @@ provider is Google Maps. However, you can provide your own map style URL by putt
 
 # Extra maps
 
-A small group of map tile enthusiasts (special thanks to @joyel24 & @teddy1602) like to share their downloaded tiles. In this section you'll find torrents for downloading complete sets of map tiles of various zoom levels.
+A small group of map tile enthusiasts (special thanks to @joyel24, @teddy1602 & @zmiguel) like to share their downloaded tiles. In this section you'll find torrents or direct links for downloading complete sets of map tiles of various zoom levels.
 
 ## France
 
@@ -60,6 +62,12 @@ Entire Netherlands Standard style zoom 1 to 14 including Amsterdam until zoom 17
 ## United States of America
 
 Entire USA (all fifty states) standard OSM-style zoom 1 to 12, downloaded from OSM on 3/3/2026: [Torrent Magnet Link](https://tinyurl.com/339tcx45) ~1.4GB md5: 3e2b9c010949d35710be8bf62f838ecb5e07cff2
+
+## Oxed's Map tiles
+
+Multiple bundles available (World 0-9, EU 0-13, US 0-13, EU countries 0-15, US states 0-15) along with a self-checkout tool to download 8-bit optimized tiles for your selected area
+
+Bundles can be found [here](https://download.tiles.coalition.space/bundles) and the self-checkout map can be found [here](https://download.tiles.coalition.space)
 
 <br>Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
 
