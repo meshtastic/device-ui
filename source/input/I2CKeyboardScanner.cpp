@@ -61,8 +61,8 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 {
     I2CKeyboardInputDriver *driver = nullptr;
 #ifndef ARCH_PORTDUINO
-    uint8_t i2cKeyboards_bus0[] = {SCAN_TDECK_KB_ADDR, SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR, SCAN_BBQ10_KB_ADDR,
-                                   SCAN_MPR121_KB_ADDR};
+    uint8_t i2cKeyboards_bus0[] = {SCAN_TDECK_KB_ADDR, SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR,
+                                   SCAN_BBQ10_KB_ADDR, SCAN_TM9_KB_ADDR,     SCAN_MPR121_KB_ADDR};
 #if WIRE_INTERFACES_COUNT >= 2
     uint8_t i2cKeyboards_bus1[] = {SCAN_CARDKB_ADDR, SCAN_TM9_KB_ADDR};
 #endif
@@ -95,6 +95,11 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
                 }
 #endif
                 break;
+#ifdef ELECROW_ThinkNode_M9
+            case SCAN_TM9_KB_ADDR:
+                driver = new TM9KeyboardInputDriver(address);
+                break;
+#endif
             case SCAN_CARDKB_ADDR:
                 driver = new CardKBInputDriver(address);
                 break;
@@ -125,13 +130,10 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
                 driver = new CardKBInputDriver(address, Wire1);
                 break;
             case SCAN_TM9_KB_ADDR:
-                driver = new TM9KeyboardInputDriver(address, Wire1);
-                break;
 #ifdef HAS_STC8H_KB
-            case SCAN_TM9_KB_ADDR:
                 driver = new STC8HKeyboardInputDriver(address, Wire1);
-                break;
 #endif
+                break;
             default:
                 break;
             }
