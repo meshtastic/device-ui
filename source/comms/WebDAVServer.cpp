@@ -1,6 +1,39 @@
 #ifndef ARCH_PORTDUINO
 
 #include "comms/WebDAVServer.h"
+
+#if !__has_include(<ESPWebDAV.h>) || !defined(HAS_SDCARD)
+
+class ESPWebDAV
+{
+};
+WebDAVServer *WebDAVServer::instance()
+{
+    return nullptr;
+}
+bool WebDAVServer::initWiFi(const char *, const char *)
+{
+    return false;
+}
+bool WebDAVServer::isWiFiConnected() const
+{
+    return false;
+}
+bool WebDAVServer::isTransferInProgress()
+{
+    return false;
+}
+bool WebDAVServer::start(fs::FS *)
+{
+    return false;
+}
+void WebDAVServer::stop() {}
+void WebDAVServer::deinitWiFi() {}
+WebDAVServer::WebDAVServer() {}
+WebDAVServer::~WebDAVServer() {}
+
+#else
+
 #include "util/ILog.h"
 #include <Arduino.h>
 #include <ESPWebDAV.h>
@@ -15,6 +48,14 @@ WebDAVServer *WebDAVServer::instance()
     return webdavServer;
 }
 
+WebDAVServer::WebDAVServer() : tcpServer(nullptr), filesystem(nullptr) {}
+
+WebDAVServer::~WebDAVServer()
+{
+    stop();
+    deinitWiFi();
+}
+
 void WebDAVServer::serverThreadTaskWrapper(void *pvParameters)
 {
     WebDAVServer *pThis = static_cast<WebDAVServer *>(pvParameters);
@@ -22,14 +63,6 @@ void WebDAVServer::serverThreadTaskWrapper(void *pvParameters)
     pThis->serverThread();
     ILOG_INFO("[WebDAV] Server thread stopped.");
     vTaskDelete(nullptr); // Delete self on exit
-}
-
-WebDAVServer::WebDAVServer() : tcpServer(nullptr), filesystem(nullptr) {}
-
-WebDAVServer::~WebDAVServer()
-{
-    stop();
-    deinitWiFi();
 }
 
 bool WebDAVServer::initWiFi(const char *ssid, const char *password)
@@ -298,5 +331,7 @@ void WebDAVServer::serverThread()
         taskYIELD();
     }
 }
+
+#endif // has_include(ESPWebDAV)
 
 #endif // ARCH_PORTDUINO

@@ -445,6 +445,10 @@ void TFTView_320x240::init_screens(void)
 #endif
 
 #ifdef HAS_SDCARD
+    if (WebDAVServer::instance()) {
+        lv_obj_clear_flag(objects.home_web_dav_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(objects.home_web_dav_button, LV_OBJ_FLAG_HIDDEN);
+    }
     lv_obj_clear_flag(objects.basic_settings_backup_restore_button, LV_OBJ_FLAG_HIDDEN);
 #else
     lv_obj_add_flag(objects.home_web_dav_label, LV_OBJ_FLAG_HIDDEN);
@@ -1851,7 +1855,7 @@ void TFTView_320x240::ui_event_webDAVButton(lv_event_t *e)
     if (event_code == LV_EVENT_LONG_PRESSED && !THIS->db.config.network.wifi_enabled) {
         // Check prerequisites
         if ((THIS->db.config.network.wifi_ssid[0] == '\0' || THIS->db.config.network.wifi_psk[0] == '\0')) {
-            lv_label_set_text(objects.home_web_dav_label, _("No WiFi credentials"));
+            lv_label_set_text(objects.home_web_dav_label, _("No WiFi login details"));
             return;
         }
         // if (sdCard->errorType() != ISdCard::ErrorType::eNoError) {
@@ -1872,13 +1876,13 @@ void TFTView_320x240::ui_event_webDAVButton(lv_event_t *e)
             if (webdav->initWiFi(THIS->db.config.network.wifi_ssid, THIS->db.config.network.wifi_psk)) {
                 // Wrap SdFs into fs::FS using the exFat impl pattern
                 static fs::FS wrapped_fs(fs::FSImplPtr(new SdFsExFatImpl(SDFs)));
-#if 0 // currently crashing
+#if 1 // currently crashing
       // Try to start server
                 if (webdav->start(&wrapped_fs)) {
                     lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready"));
                 } else {
                     lv_label_set_text(objects.home_web_dav_label, _("WebDAV failed"));
-                    objects.home_web_dav_button->user_data = (void *)toggle;  // Revert toggle
+                    objects.home_web_dav_button->user_data = (void *)toggle; // Revert toggle
                 }
 #endif
             } else {
@@ -5730,6 +5734,8 @@ void TFTView_320x240::updateWebDAVStatus(void)
 #ifdef HAS_SDCARD
     // Check WebDAV status and transfer progress (polled every 1s)
     WebDAVServer *webdav = WebDAVServer::instance();
+    if (!webdav)
+        return;
     if (webdav->checkStatusChanged()) {
         bool wifiConnected = webdav->isWiFiConnected();
         bool serverRunning = webdav->isRunning();
