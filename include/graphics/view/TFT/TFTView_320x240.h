@@ -5,6 +5,7 @@
 #include <set>
 
 class MapPanel;
+class TFTView_Debug;
 
 /**
  * @brief RAII helper to temporarily change the default LVGL input group
@@ -232,6 +233,7 @@ class TFTView_320x240 : public MeshtasticView
   private:
     // view creation only via ViewFactory
     friend class ViewFactory;
+    friend class TFTView_Debug;
     static TFTView_320x240 *instance(void);
     static TFTView_320x240 *instance(const DisplayDriverConfig &cfg);
     TFTView_320x240();
@@ -311,6 +313,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ScreenKey(lv_event_t *e);
     static void ui_event_MapPanel(lv_event_t *e);
     static void ui_event_ButtonPanel(lv_event_t *e);
+    static void ui_event_tab_page(lv_event_t *e);
 
     static void ui_event_NodeButton(lv_event_t *e);
     static void ui_event_ChannelButton(lv_event_t *e);
@@ -396,6 +399,7 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_pin_screen_button(lv_event_t *e);
     static void ui_event_statistics_table(lv_event_t *e);
+    static void ui_event_screen_focus_policy(lv_event_t *e);
 
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);

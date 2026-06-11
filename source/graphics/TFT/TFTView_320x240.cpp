@@ -11,6 +11,7 @@
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
+#include "graphics/view/TFT/TFTView_Debug.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
@@ -345,19 +346,29 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     {
         auto &dispatcher = input_policy::UICommandDispatcher::instance();
         dispatcher.registerHandler(input_policy::UICommand::GoHome, [this](const input_policy::CommandPayload &) {
+            if (screenLocked)
+                return;
             ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
         });
         dispatcher.registerHandler(input_policy::UICommand::OpenChats, [this](const input_policy::CommandPayload &) {
+            if (screenLocked)
+                return;
             lv_obj_send_event(objects.messages_button, LV_EVENT_CLICKED, NULL);
         });
         dispatcher.registerHandler(input_policy::UICommand::QuickChat, [this](const input_policy::CommandPayload &) {
+            if (screenLocked)
+                return;
             // TODO: open most recent received or sent chat (last chat)
             lv_obj_send_event(objects.messages_button, LV_EVENT_CLICKED, NULL);
         });
         dispatcher.registerHandler(input_policy::UICommand::OpenMap, [this](const input_policy::CommandPayload &) {
+            if (screenLocked)
+                return;
             lv_obj_send_event(objects.map_button, LV_EVENT_CLICKED, NULL);
         });
         dispatcher.registerHandler(input_policy::UICommand::ToggleGps, [this](const input_policy::CommandPayload &) {
+            if (screenLocked)
+                return;
             meshtastic_Config_PositionConfig &position = db.config.position;
             if (position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT ||
                 position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_DISABLED)
@@ -372,8 +383,16 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
             controller->sendConfig(meshtastic_Config_PositionConfig{position});
             notifyReboot(true); // TODO: remove when firmware supports enable/disable GPS w/o reboot over protobuf API
         });
-        dispatcher.registerHandler(input_policy::UICommand::SendPing,
-                                   [this](const input_policy::CommandPayload &) { controller->sendPing(); });
+        dispatcher.registerHandler(input_policy::UICommand::SendPing, [this](const input_policy::CommandPayload &) {
+            if (screenLocked)
+                return;
+            const auto context = input_policy::InputContextState::instance().getSnapshot();
+            if (context.focusSemantic == input_policy::FocusSemantic::Map) {
+                lv_obj_send_event(objects.gps_lock_button, LV_EVENT_CLICKED, NULL);
+            } else {
+                controller->sendPing();
+            }
+        });
         // TODO: implement LeaveEditMode
         dispatcher.registerHandler(input_policy::UICommand::LeaveEditMode, [](const input_policy::CommandPayload &) {});
     }
@@ -413,7 +432,6 @@ void TFTView_320x240::init_screens(void)
                 objects.settings_channel6_label, objects.settings_channel7_label};
 
     channelGroup = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-    ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
     ui_events_init();
 
     // load main screen
@@ -479,7 +497,7 @@ void TFTView_320x240::init_screens(void)
 #endif
 
     setInputButtonLabel();
-    lv_group_focus_obj(objects.home_button);
+    ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
 
     // remember position of top node panel button for group linked list
     lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
@@ -654,8 +672,30 @@ void TFTView_320x240::apply_hotfix(void)
 
     // Save the current default group (panel content group) before switching to mainButtons
     defaultPanelGroup = lv_group_get_default();
-    setInputGroup(groups.mainButtons);
-    //}
+    if (defaultPanelGroup) {
+        // These live on non-active screens and should never be reached by keyboard NEXT/PREV traversal.
+        lv_group_remove_obj(objects.boot_logo_button);
+        lv_group_remove_obj(objects.blank_screen_button);
+        lv_group_remove_obj(objects.screen_lock_button_matrix);
+#if defined(LVGL_DEBUG_FOCUS)
+        lv_group_set_focus_cb(defaultPanelGroup, TFTView_Debug::ui_group_focus_debug_cb);
+#endif
+    }
+
+    // Keep click/touch behavior, but prevent these controls from becoming focus targets.
+    lv_obj_clear_flag(objects.boot_logo_button, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+    lv_obj_clear_flag(objects.blank_screen_button, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+    lv_obj_clear_flag(objects.screen_lock_button_matrix, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+
+    // Keep screen-specific controls focusable only on their own screen.
+    lv_obj_add_event_cb(objects.boot_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
+    lv_obj_add_event_cb(objects.main_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
+    lv_obj_add_event_cb(objects.blank_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
+    lv_obj_add_event_cb(objects.lock_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
+    lv_obj_add_event_cb(objects.calibration_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
+
+    // setInputGroup(groups.mainButtons);
+    // }
 
     // adapt screens to custom display resolution
     uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
@@ -722,6 +762,11 @@ void TFTView_320x240::apply_hotfix(void)
     applyStyle(tab_buttons);
     tab_buttons = lv_tabview_get_tab_bar(ui_SettingsTabView);
     applyStyle(tab_buttons);
+    // prevent left/right key on tabview
+    lv_obj_add_event_cb(objects.tab_page_basic_settings, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.tab_page_tools, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.tab_page_filter, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.tab_page_highlight, ui_event_tab_page, LV_EVENT_KEY, NULL);
 
     // add event callback to to apply custom drawing for statistics table
     lv_obj_add_event_cb(objects.statistics_table, ui_event_statistics_table, LV_EVENT_DRAW_TASK_ADDED, NULL);
@@ -761,6 +806,9 @@ void TFTView_320x240::apply_hotfix(void)
 
     lv_obj_add_style(objects.settings_backup_checkbox, &style_radio, LV_PART_INDICATOR);
     lv_obj_add_style(objects.settings_restore_checkbox, &style_radio, LV_PART_INDICATOR);
+
+    lv_obj_remove_flag(objects.snr_slider, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(objects.rssi_slider, LV_OBJ_FLAG_CLICKABLE);
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -1347,6 +1395,49 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
     }
 }
 
+// capture tabview keys
+void TFTView_320x240::ui_event_tab_page(lv_event_t *e)
+{
+    uint32_t key = lv_event_get_key(e);
+    if (key == LV_KEY_LEFT || key == LV_KEY_RIGHT) {
+        lv_event_stop_processing(e);
+        lv_obj_send_event(objects.main_screen, LV_EVENT_KEY, lv_event_get_param(e));
+    }
+}
+
+void TFTView_320x240::ui_event_screen_focus_policy(lv_event_t *e)
+{
+    lv_obj_t *screen = lv_event_get_target_obj(e);
+    if (!screen) {
+        return;
+    }
+
+    auto applyButtonPolicy = [&](lv_obj_t *obj, bool enableForScreen) {
+        if (!obj) {
+            return;
+        }
+
+        if (enableForScreen) {
+            lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+            if (THIS->defaultPanelGroup) {
+                lv_group_add_obj(THIS->defaultPanelGroup, obj);
+            }
+        } else {
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+            if (THIS->defaultPanelGroup) {
+                lv_group_remove_obj(obj);
+            }
+        }
+    };
+
+    if (lv_obj_has_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN))
+        applyButtonPolicy(objects.boot_logo_button, screen == objects.boot_screen);
+    applyButtonPolicy(objects.blank_screen_button, screen == objects.blank_screen);
+    applyButtonPolicy(objects.screen_lock_button_matrix, screen == objects.lock_screen);
+}
+
 void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -1516,6 +1607,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
         }
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eNone) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
         lv_obj_clear_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.map_brightness_slider);
         ignoreClicked = true;
@@ -6385,11 +6477,12 @@ void TFTView_320x240::blankScreen(bool enable)
 void TFTView_320x240::screenSaving(bool enabled)
 {
     if (enabled) {
-        // overlay main screen with blank screen to prevent accidentally pressing buttons
-        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 0, 0, false);
+        ILOG_DEBUG("showing blank screen");
         // switch the keyboard indev to mainButtons now; the SCREEN_LOAD_START handler will
         // add blank_screen_button to the group and focus it once the screen starts loading
         THIS->setInputGroup(groups.mainButtons);
+        // overlay main screen with blank screen to prevent accidentally pressing buttons
+        lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 0, 0, false);
         screenLocked = true;
         screenUnlockRequest = false;
     } else {
@@ -7602,6 +7695,7 @@ void TFTView_320x240::setInputGroup(lv_group_t *group)
     // LV_STATE_FOCUSED, LV_STATE_EDITED, and LV_STATE_FOCUS_KEY (the last one drives the
     // default-theme outline ring; lv_obj_clear_state alone cannot reach it).
     if (old_focused) {
+        lv_obj_remove_state(old_focused, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY);
         lv_obj_send_event(old_focused, LV_EVENT_DEFOCUSED, NULL);
         lv_obj_invalidate(old_focused);
     }
