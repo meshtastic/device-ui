@@ -61,45 +61,35 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 {
     I2CKeyboardInputDriver *driver = nullptr;
 #ifndef ARCH_PORTDUINO
-    uint8_t i2cKeyboards_bus0[] = {SCAN_TDECK_KB_ADDR, SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR,
-                                   SCAN_BBQ10_KB_ADDR, SCAN_TM9_KB_ADDR,     SCAN_MPR121_KB_ADDR};
+    uint8_t i2cKeyboards_bus0[] = {SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR, SCAN_BBQ10_KB_ADDR, SCAN_MPR121_KB_ADDR};
 #if WIRE_INTERFACES_COUNT >= 2
     uint8_t i2cKeyboards_bus1[] = {SCAN_CARDKB_ADDR, SCAN_TM9_KB_ADDR};
 #endif
 
+    // skip scanning for keyboard devices
+#if defined(T_DECK)
+    driver = new TDeckKeyboardInputDriver(SCAN_TDECK_KB_ADDR);
+#elif defined(T_LORA_PAGER)
+    driver = new TLoraPagerKeyboardInputDriver(SCAN_TCA8418_KB_ADDR);
+#elif defined(T_DECK_PRO)
+    driver = new TDeckProKeyboardInputDriver(SCAN_TCA8418_KB_ADDR);
+#elif defined(ELECROW_ThinkNode_M9)
+    driver = new TM9KeyboardInputDriver(SCAN_TM9_KB_ADDR);
+#else
     ILOG_DEBUG("I2CKeyboardScanner scanning bus 0 ...");
     for (uint8_t i = 0; i < sizeof(i2cKeyboards_bus0); i++) {
         uint8_t address = i2cKeyboards_bus0[i];
+        ILOG_DEBUG("trying address 0x%02X...", address);
         Wire.beginTransmission(address);
         if (Wire.endTransmission() == 0) {
             switch (address) {
-#if defined T_DECK
-            case SCAN_TDECK_KB_ADDR:
-                if (isBQ27220(Wire, address)) {
-                    ILOG_DEBUG("Address 0x%02X appears to be BQ27220, skipping T-Deck keyboard", address);
-                } else {
-                    driver = new TDeckKeyboardInputDriver(address);
-                }
-                break;
-#endif
             case SCAN_TCA8418_KB_ADDR:
-#if defined(T_LORA_PAGER)
-                driver = new TLoraPagerKeyboardInputDriver(address);
-#elif defined(T_DECK_PRO)
-                driver = new TDeckProKeyboardInputDriver(address);
-#else
                 if (isTCA8418(Wire, address)) {
                     driver = new TCA8418KeyboardInputDriver(address);
                 } else {
                     ILOG_DEBUG("Address 0x%02X is not TCA8418 signature, skipping keyboard attach", address);
                 }
-#endif
                 break;
-#ifdef ELECROW_ThinkNode_M9
-            case SCAN_TM9_KB_ADDR:
-                driver = new TM9KeyboardInputDriver(address);
-                break;
-#endif
             case SCAN_CARDKB_ADDR:
                 driver = new CardKBInputDriver(address);
                 break;
@@ -118,6 +108,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
             }
         }
     }
+#endif
 
 #if WIRE_INTERFACES_COUNT >= 2
     ILOG_DEBUG("I2CKeyboardScanner scanning bus 1 ...");
