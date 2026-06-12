@@ -194,8 +194,27 @@ void TFTView_320x240::init(IClientBase *client)
     time(&lastrun5);
     time(&lastrun1);
 
+    defaultPanelGroup = lv_group_get_default();
     lv_obj_add_event_cb(objects.boot_logo_button, ui_event_LogoButton, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(objects.blank_screen_button, ui_event_BlankScreenButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.blank_screen_button, ui_event_BlankScreenButton, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.boot_screen, ui_event_ScreenKey, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.boot_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
+    lv_obj_add_event_cb(objects.blank_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
+#if defined(LVGL_DEBUG_FOCUS)
+    lv_group_set_focus_cb(lv_group_get_default(), TFTView_Debug::ui_group_focus_debug_cb);
+#endif
+    // The generated blank_screen SCREEN_LOAD_START handler clears mainButtons but adds nothing back.
+    // Register a second handler (fires after the generated one) to populate the group with the
+    // wakeup button so keyboard ENTER can click it.
+    lv_obj_add_event_cb(
+        objects.blank_screen,
+        [](lv_event_t *e) {
+            if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOAD_START) {
+                lv_group_add_obj(groups.mainButtons, objects.blank_screen_button);
+                lv_group_focus_obj(objects.blank_screen_button);
+            }
+        },
+        LV_EVENT_SCREEN_LOAD_START, NULL);
 
     lv_timer_create(timer_event_programming_mode, 3000, NULL); // timer for programming mode button active
 }
@@ -626,9 +645,13 @@ void TFTView_320x240::enterProgrammingMode(void)
         lv_label_set_text_fmt(objects.firmware_label, "%06d", db.config.bluetooth.fixed_pin);
         lv_obj_set_style_text_font(objects.firmware_label, &ui_font_montserrat_20,
                                    (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+        lv_group_remove_obj(objects.boot_logo_button);
         lv_obj_add_flag(objects.boot_logo, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(objects.boot_logo_button, LV_OBJ_FLAG_CLICK_FOCUSABLE);
         lv_obj_remove_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
+        lv_group_add_obj(lv_group_get_default(), objects.bluetooth_button);
+        lv_group_focus_obj(objects.bluetooth_button);
         lv_obj_add_event_cb(objects.bluetooth_button, ui_event_BluetoothButton, LV_EVENT_LONG_PRESSED, NULL);
         ILOG_INFO("### MUI programming mode entered (nodeId=!%08x) ###", ownNode);
     }
@@ -670,25 +693,24 @@ void TFTView_320x240::apply_hotfix(void)
     lv_group_add_obj(groups.mainButtons, objects.map_button);
     lv_group_add_obj(groups.mainButtons, objects.settings_button);
 
-    // Save the current default group (panel content group) before switching to mainButtons
-    defaultPanelGroup = lv_group_get_default();
     if (defaultPanelGroup) {
         // These live on non-active screens and should never be reached by keyboard NEXT/PREV traversal.
+        lv_group_remove_obj(objects.bluetooth_button);
         lv_group_remove_obj(objects.boot_logo_button);
         lv_group_remove_obj(objects.blank_screen_button);
         lv_group_remove_obj(objects.screen_lock_button_matrix);
 #if defined(LVGL_DEBUG_FOCUS)
-        lv_group_set_focus_cb(defaultPanelGroup, TFTView_Debug::ui_group_focus_debug_cb);
+// remove line 202        lv_group_set_focus_cb(defaultPanelGroup, TFTView_Debug::ui_group_focus_debug_cb);
 #endif
     }
 
     // Keep click/touch behavior, but prevent these controls from becoming focus targets.
+    lv_obj_clear_flag(objects.bluetooth_button, LV_OBJ_FLAG_CLICK_FOCUSABLE);
     lv_obj_clear_flag(objects.boot_logo_button, LV_OBJ_FLAG_CLICK_FOCUSABLE);
     lv_obj_clear_flag(objects.blank_screen_button, LV_OBJ_FLAG_CLICK_FOCUSABLE);
     lv_obj_clear_flag(objects.screen_lock_button_matrix, LV_OBJ_FLAG_CLICK_FOCUSABLE);
 
     // Keep screen-specific controls focusable only on their own screen.
-    lv_obj_add_event_cb(objects.boot_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(objects.main_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(objects.blank_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(objects.lock_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
@@ -882,7 +904,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // Global screen key handler for ESC key navigation
     lv_obj_add_event_cb(objects.main_screen, this->ui_event_ScreenKey, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(objects.boot_screen, this->ui_event_ScreenKey, LV_EVENT_KEY, NULL);
+    // remove line 199 lv_obj_add_event_cb(objects.boot_screen, this->ui_event_ScreenKey, LV_EVENT_KEY, NULL);
 
     // home buttons
     lv_obj_add_event_cb(objects.home_mail_button, this->ui_event_EnvelopeButton, LV_EVENT_CLICKED, NULL);
@@ -1093,26 +1115,13 @@ void TFTView_320x240::ui_events_init(void)
             }
         },
         LV_EVENT_SCREEN_LOAD_START, NULL);
-
-    // The generated blank_screen SCREEN_LOAD_START handler clears mainButtons but adds nothing back.
-    // Register a second handler (fires after the generated one) to populate the group with the
-    // wakeup button so keyboard ENTER can click it.
-    lv_obj_add_event_cb(
-        objects.blank_screen,
-        [](lv_event_t *e) {
-            if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOAD_START) {
-                lv_group_add_obj(groups.mainButtons, objects.blank_screen_button);
-                lv_group_focus_obj(objects.blank_screen_button);
-            }
-        },
-        LV_EVENT_SCREEN_LOAD_START, NULL);
 }
 
 #if 0 // defined above as lambda function for tests
-void TDeckGUI::ui_event_HomeButton(lv_event_t * e) {
+void TFTView_320x240::ui_event_HomeButton(lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        TDeckGUI::instance()->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
+        TFTView_320x240::instance()->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
     }
 }
 #endif
@@ -1160,7 +1169,6 @@ void TFTView_320x240::timer_event_programming_mode(lv_timer_t *timer)
 
 void TFTView_320x240::ui_event_LogoButton(lv_event_t *e)
 {
-
     static uint32_t start = 0;
     static lv_anim_t anim;
     static auto animCB = [](void *var, int32_t v) { lv_arc_set_bg_end_angle((lv_obj_t *)var, v); };
@@ -1200,7 +1208,7 @@ void TFTView_320x240::ui_event_BluetoothButton(lv_event_t *e)
         ILOG_INFO("leaving programming mode");
         lv_label_set_text(objects.meshtastic_url, _("Rebooting ..."));
         lv_label_set_text(objects.firmware_label, "");
-        lv_obj_remove_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(objects.boot_logo, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
 
         meshtastic_Config_BluetoothConfig &bluetooth = THIS->db.config.bluetooth;
@@ -1432,8 +1440,6 @@ void TFTView_320x240::ui_event_screen_focus_policy(lv_event_t *e)
         }
     };
 
-    if (lv_obj_has_flag(objects.reboot_panel, LV_OBJ_FLAG_HIDDEN))
-        applyButtonPolicy(objects.boot_logo_button, screen == objects.boot_screen);
     applyButtonPolicy(objects.blank_screen_button, screen == objects.blank_screen);
     applyButtonPolicy(objects.screen_lock_button_matrix, screen == objects.lock_screen);
 }
@@ -6499,6 +6505,7 @@ void TFTView_320x240::screenSaving(bool enabled)
             screenLocked = false;
         } else {
             ILOG_DEBUG("showing boot screen");
+            THIS->setInputGroup(defaultPanelGroup);
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
             screenLocked = false;
         }
