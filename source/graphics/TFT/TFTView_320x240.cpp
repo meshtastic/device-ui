@@ -816,6 +816,10 @@ void TFTView_320x240::apply_hotfix(void)
     lv_table_set_cell_value(objects.statistics_table, 0, 5, "Nbr");
     lv_table_set_cell_value(objects.statistics_table, 0, 6, "All");
 
+    // remove signal scanner sliders from focus group
+    lv_group_remove_obj(objects.rssi_slider);
+    lv_group_remove_obj(objects.snr_slider);
+
     // transform checkbox into radio button
     static lv_style_t style_radio;
     lv_style_init(&style_radio);
