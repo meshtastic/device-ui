@@ -197,22 +197,17 @@ void TFTView_320x240::init(IClientBase *client)
     defaultPanelGroup = lv_group_get_default();
     lv_obj_add_event_cb(objects.boot_logo_button, ui_event_LogoButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.blank_screen_button, ui_event_BlankScreenButton, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(objects.boot_screen, ui_event_ScreenKey, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.boot_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(objects.blank_screen, ui_event_screen_focus_policy, LV_EVENT_SCREEN_LOAD_START, NULL);
-#if defined(LVGL_DEBUG_FOCUS)
-    lv_group_set_focus_cb(lv_group_get_default(), TFTView_Debug::ui_group_focus_debug_cb);
-#endif
+
     // The generated blank_screen SCREEN_LOAD_START handler clears mainButtons but adds nothing back.
     // Register a second handler (fires after the generated one) to populate the group with the
     // wakeup button so keyboard ENTER can click it.
     lv_obj_add_event_cb(
         objects.blank_screen,
         [](lv_event_t *e) {
-            if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOAD_START) {
-                lv_group_add_obj(groups.mainButtons, objects.blank_screen_button);
-                lv_group_focus_obj(objects.blank_screen_button);
-            }
+            lv_group_add_obj(groups.mainButtons, objects.blank_screen_button);
+            lv_group_focus_obj(objects.blank_screen_button);
         },
         LV_EVENT_SCREEN_LOAD_START, NULL);
 
@@ -700,7 +695,7 @@ void TFTView_320x240::apply_hotfix(void)
         lv_group_remove_obj(objects.blank_screen_button);
         lv_group_remove_obj(objects.screen_lock_button_matrix);
 #if defined(LVGL_DEBUG_FOCUS)
-// remove line 202        lv_group_set_focus_cb(defaultPanelGroup, TFTView_Debug::ui_group_focus_debug_cb);
+        lv_group_set_focus_cb(defaultPanelGroup, TFTView_Debug::ui_group_focus_debug_cb);
 #endif
     }
 
@@ -904,7 +899,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // Global screen key handler for ESC key navigation
     lv_obj_add_event_cb(objects.main_screen, this->ui_event_ScreenKey, LV_EVENT_KEY, NULL);
-    // remove line 199 lv_obj_add_event_cb(objects.boot_screen, this->ui_event_ScreenKey, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.boot_screen, this->ui_event_ScreenKey, LV_EVENT_KEY, NULL);
 
     // home buttons
     lv_obj_add_event_cb(objects.home_mail_button, this->ui_event_EnvelopeButton, LV_EVENT_CLICKED, NULL);
@@ -1428,13 +1423,13 @@ void TFTView_320x240::ui_event_screen_focus_policy(lv_event_t *e)
         if (enableForScreen) {
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
-            if (THIS->defaultPanelGroup) {
-                lv_group_add_obj(THIS->defaultPanelGroup, obj);
+            if (groups.mainButtons) {
+                lv_group_add_obj(groups.mainButtons, obj);
             }
         } else {
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE);
-            if (THIS->defaultPanelGroup) {
+            if (groups.mainButtons) {
                 lv_group_remove_obj(obj);
             }
         }
@@ -5053,6 +5048,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_width(hiddenPanel, lv_pct(100));
     lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT);
     lv_obj_set_align(hiddenPanel, LV_ALIGN_CENTER);
+    lv_obj_add_flag(hiddenPanel, LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(hiddenPanel, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_radius(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     add_style_panel_style(hiddenPanel);
@@ -5071,6 +5067,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     strcat(&buf[len], msg);
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
+    lv_group_add_obj(defaultPanelGroup, textLabel);
     // calculate expected size of text bubble, to make it look nicer
 #if LV_VERSION_CHECK(9, 3, 0)
     lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
@@ -5082,6 +5079,8 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
+    lv_obj_add_flag(textLabel, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
+                                             LV_OBJ_FLAG_SCROLL_ON_FOCUS));
     lv_label_set_text(textLabel, buf);
 
     add_style_chat_message_style(textLabel);
@@ -7038,6 +7037,7 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
     lv_obj_set_align(container, LV_ALIGN_TOP_MID);
     lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+    lv_obj_add_flag(container, LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(container, lv_obj_flag_t(LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
                                                LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC)); /// Flags
     lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
@@ -7146,6 +7146,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_set_width(hiddenPanel, lv_pct(100));
     lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT); /// 50
     lv_obj_set_align(hiddenPanel, LV_ALIGN_CENTER);
+    lv_obj_add_flag(hiddenPanel, LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(hiddenPanel, LV_OBJ_FLAG_SCROLLABLE); /// Flags
     lv_obj_set_style_radius(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     add_style_panel_style(hiddenPanel);
@@ -7155,6 +7156,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_set_style_pad_bottom(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
+    lv_group_add_obj(defaultPanelGroup, msgLabel);
     // calculate expected size of text bubble, to make it look nicer
 #if LV_VERSION_CHECK(9, 3, 0)
     lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_14, 0);
@@ -7165,6 +7167,8 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
+    lv_obj_add_flag(msgLabel, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
+                                            LV_OBJ_FLAG_SCROLL_ON_FOCUS));
     lv_label_set_text(msgLabel, msg);
     add_style_new_message_style(msgLabel);
 

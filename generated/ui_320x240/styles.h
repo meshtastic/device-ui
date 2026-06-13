@@ -52,11 +52,13 @@ void remove_style_main_button_style(lv_obj_t *obj);
 
 // Style: NewMessageStyle
 lv_style_t *get_style_new_message_style_MAIN_DEFAULT();
+lv_style_t *get_style_new_message_style_MAIN_FOCUS_KEY();
 void add_style_new_message_style(lv_obj_t *obj);
 void remove_style_new_message_style(lv_obj_t *obj);
 
 // Style: ChatMessageStyle
 lv_style_t *get_style_chat_message_style_MAIN_DEFAULT();
+lv_style_t *get_style_chat_message_style_MAIN_FOCUS_KEY();
 void add_style_chat_message_style(lv_obj_t *obj);
 void remove_style_chat_message_style(lv_obj_t *obj);
 

@@ -23600,6 +23600,11 @@
                 "text_align": "LEFT",
                 "bg_opa": 255,
                 "text_color": "#294337"
+              },
+              "FOCUS_KEY": {
+                "border_color": "#2196f3",
+                "border_opa": 180,
+                "border_width": 3
               }
             }
           }
@@ -23626,6 +23631,11 @@
                 "bg_color": "#fbfce9",
                 "bg_opa": 255,
                 "text_align": "LEFT"
+              },
+              "FOCUS_KEY": {
+                "border_color": "#2196f3",
+                "border_opa": 180,
+                "border_width": 3
               }
             }
           }
