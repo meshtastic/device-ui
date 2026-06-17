@@ -372,8 +372,27 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         dispatcher.registerHandler(input_policy::UICommand::QuickChat, [this](const input_policy::CommandPayload &) {
             if (screenLocked)
                 return;
-            // TODO: open most recent received or sent chat (last chat)
-            lv_obj_send_event(objects.messages_button, LV_EVENT_CLICKED, NULL);
+            // open most recent received or sent chat (last chat)
+            if (!lv_obj_has_flag(objects.messages_panel, LV_OBJ_FLAG_HIDDEN)) {
+                lv_obj_send_event(objects.msg_popup_button, LV_EVENT_CLICKED, NULL);
+            } else {
+                if (activeMsgContainer) {
+                    uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+                    if (channelOrNode < c_max_channels) {
+                        uint8_t ch = (uint8_t)channelOrNode;
+                        THIS->showMessages(ch);
+                        THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_group_chat_panel);
+                    } else {
+                        uint32_t nodeNum = channelOrNode;
+                        THIS->showMessages(nodeNum);
+                        THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
+                    }
+                    lv_obj_set_style_border_color(chats[channelOrNode], colorGray,
+                                                  (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+                } else {
+                    lv_obj_send_event(objects.messages_button, LV_EVENT_CLICKED, NULL);
+                }
+            }
         });
         dispatcher.registerHandler(input_policy::UICommand::OpenMap, [this](const input_policy::CommandPayload &) {
             if (screenLocked)
@@ -5424,8 +5443,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
 
         if (cfg.public_key.size != 0) {
             // set border color to bg color
-            lv_color_t color =
-                lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), (lv_part_t)(LV_PART_MAIN | LV_STATE_DEFAULT));
+            lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx),
+                                                         (lv_part_t)LV_PART_MAIN | (lv_part_t)LV_STATE_DEFAULT);
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color,
                                           (lv_style_selector_t)(LV_PART_MAIN | LV_STATE_DEFAULT));
         } else {
@@ -7125,8 +7144,14 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
             }
             lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
         }
-        if (container != activeMsgContainer)
+        if (container != activeMsgContainer) {
             highlightChat(from, to, ch);
+            if (activePanel != objects.messages_panel) {
+                lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
+                activeMsgContainer = container;
+                activeMsgContainer->user_data = (to == UINT32_MAX) ? (void *)(uint32_t)ch : (void *)from;
+            }
+        }
     } else {
         if (container != activeMsgContainer)
             lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
