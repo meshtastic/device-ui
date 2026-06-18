@@ -23496,6 +23496,18 @@
                 "radius": 10,
                 "text_font": "montserrat_12",
                 "text_color": "#212121"
+              },
+              "FOCUS_KEY": {
+                "outline_width": 3,
+                "outline_color": "#2196f3",
+                "outline_opa": 180,
+                "border_width": 1
+              },
+              "FOCUSED": {
+                "outline_width": 0,
+                "border_width": 3,
+                "border_opa": 180,
+                "border_color": "#2196f3"
               }
             }
           }
@@ -23807,6 +23819,9 @@
               "DEFAULT": {
                 "bg_color": "#fffff8",
                 "bg_opa": 0
+              },
+              "FOCUS_KEY": {
+                "outline_width": 0
               }
             }
           }

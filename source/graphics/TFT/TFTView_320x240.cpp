@@ -1401,8 +1401,9 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
             }
         }
 
-        if ((c == LV_KEY_LEFT || c == LV_KEY_BACKSPACE) && THIS->activeSettings != eNone) {
-            // we're in a settings dialog
+        if ((c == LV_KEY_LEFT || c == LV_KEY_BACKSPACE) &&
+            (THIS->activeSettings != eNone || THIS->activePanel == objects.node_options_panel)) {
+            // we're in a settings/options dialog
             return;
         }
 
@@ -1418,6 +1419,7 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
         }
 
         // All other keys propagate normally to focused widget
+        ILOG_DEBUG("ui_event_ScreenKey: pass key to widget: 0x%02x", c);
     }
 }
 
@@ -2926,8 +2928,10 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
     lv_obj_t *panel = THIS->nodes[nodeNum];
     THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
     lv_obj_scroll_to_view(panel, LV_ANIM_ON);
-    if (panel != currentPanel)
+    if (panel != currentPanel) {
+        lv_obj_add_state(panel, LV_STATE_FOCUSED);
         ui_event_NodeButton(e);
+    }
 }
 
 void TFTView_320x240::ui_event_chatNodeButton(lv_event_t *e)
@@ -2938,8 +2942,10 @@ void TFTView_320x240::ui_event_chatNodeButton(lv_event_t *e)
         lv_obj_t *panel = it->second;
         THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
         lv_obj_scroll_to_view(panel, LV_ANIM_ON);
-        if (panel != currentPanel)
+        if (panel != currentPanel) {
+            lv_obj_add_state(panel, LV_STATE_FOCUSED);
             ui_event_NodeButton(e);
+        }
     }
 }
 

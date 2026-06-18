@@ -18,6 +18,7 @@ enum class PressKind {
 enum class FocusSemantic {
     Unknown,
     TextEdit,
+    TextAreaMultiLine,
     Button,
     List,
     Map,
