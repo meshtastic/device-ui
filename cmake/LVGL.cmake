@@ -1,5 +1,5 @@
 message(STATUS "Fetching LVGL ...")
-set(LV_BUILD_CONF_DIR "include")
+set(LV_BUILD_CONF_DIR "include" CACHE PATH "Can be used to specify the include dir containing lv_conf.h, to be used in conjuction with LV_CONF_INCLUDE_SIMPLE" FORCE)
 add_compile_definitions(LV_LVGL_H_INCLUDE_SIMPLE)
 add_compile_definitions(LV_CONF_INCLUDE_SIMPLE)
 add_compile_definitions(LV_COMP_CONF_INCLUDE_SIMPLE)

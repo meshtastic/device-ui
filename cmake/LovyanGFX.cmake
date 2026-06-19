@@ -2,7 +2,7 @@ message(STATUS "Fetching LovyanGFX ...")
 FetchContent_Declare(
     LovyanGFX
     GIT_REPOSITORY "https://github.com/lovyan03/LovyanGFX"
-    GIT_TAG  1.2.0
+    GIT_TAG  1.2.21
 )
 FetchContent_MakeAvailable(LovyanGFX)
 include_directories(${lovyangfx_SOURCE_DIR}/src)
