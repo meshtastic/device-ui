@@ -1402,8 +1402,9 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
         }
 
         if ((c == LV_KEY_LEFT || c == LV_KEY_BACKSPACE) &&
-            (THIS->activeSettings != eNone || THIS->activePanel == objects.node_options_panel)) {
-            // we're in a settings/options dialog
+            (THIS->activeSettings != eNone || THIS->activePanel == objects.node_options_panel ||
+             !lv_obj_has_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN))) {
+            // we're in a settings/options/osd dialog
             return;
         }
 
@@ -1635,6 +1636,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eNone) {
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
         lv_obj_clear_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->setInputGroup(THIS->defaultPanelGroup);
         lv_group_focus_obj(objects.map_brightness_slider);
         ignoreClicked = true;
     }
