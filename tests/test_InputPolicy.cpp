@@ -51,8 +51,8 @@ TEST_CASE("DefaultInputPolicyFactory dispatches command actions")
 
     InputEvent event{};
     event.sourceId = "test";
-    event.rawKeyCode = 0x100;
-    event.resolvedKeyCode = 0x100;
+    event.rawKeyCode = 0x101;
+    event.resolvedKeyCode = 0x101;
     event.pressKind = PressKind::Press;
 
     std::vector<InputEvent> output;
