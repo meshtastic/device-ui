@@ -8,7 +8,7 @@ on:
       - master
     paths-ignore:
       - '**.md'
-      - 'docs/**'
+      - docs/**
 
   workflow_dispatch: # Adds the manual run button in GitHub web UI
 
@@ -53,8 +53,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
-          cache: 'pip' # Automatically caches grpcio-tools downloads
+          python-version: 3.x
+          cache: pip # Automatically caches grpcio-tools downloads
 
       - name: Install Python Dependencies
         run: |
