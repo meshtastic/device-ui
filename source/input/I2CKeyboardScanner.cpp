@@ -57,6 +57,26 @@ bool isDRV2605(TwoWire &bus, uint8_t address)
 
 I2CKeyboardScanner::I2CKeyboardScanner(void) {}
 
+static bool probeTDeckKeyboardWithRegisterRead(uint8_t address)
+{
+    // Mirror firmware scanner behavior on 0x55:
+    // 0x00 => T-Deck keyboard, non-zero => BQ battery gauge.
+    Wire.beginTransmission(address);
+    Wire.write((uint8_t)0x04);
+    if (Wire.endTransmission() != 0) {
+        return false;
+    }
+
+    if (Wire.requestFrom((int)address, 1) != 1) {
+        return false;
+    }
+    if (!Wire.available()) {
+        return false;
+    }
+
+    return Wire.read() == 0;
+}
+
 I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 {
     I2CKeyboardInputDriver *driver = nullptr;
@@ -66,7 +86,13 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
     uint8_t i2cKeyboards_bus1[] = {SCAN_CARDKB_ADDR, SCAN_TM9_KB_ADDR};
 #endif
 
-    // skip scanning for keyboard devices
+    // Reset I2C bus to clear any stuck state left by touch driver LovyanGFX operations
+    Wire.end();
+    delay(10);
+    Wire.begin(I2C_SDA, I2C_SCL, 100000);
+    delay(10);
+  
+    // skip scanning for known keyboard devices
 #if defined(T_DECK)
     driver = new TDeckKeyboardInputDriver(SCAN_TDECK_KB_ADDR);
 #elif defined(T_LORA_PAGER)
@@ -106,6 +132,10 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
             default:
                 break;
             }
+        }
+
+        if (I2CKeyboardInputDriver::getI2CKeyboardList().empty() && pass + 1 < kScanPasses) {
+            delay(kInterPassDelayMs);
         }
     }
 #endif

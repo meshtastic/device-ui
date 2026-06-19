@@ -8,7 +8,7 @@
 #include "util/ILog.h"
 #include <functional>
 
-constexpr uint32_t defaultLongPressTime = 600; // ms until long press is detected (lvgl default is 400)
+constexpr uint32_t defaultLongPressTime = 700; // ms until long press is detected (lvgl default is 400)
 constexpr uint32_t defaultGestureLimit = 10;   // x/y diff pixel until a swipe gesture is detected (lvgl default is 50)
 
 constexpr uint32_t defaultScreenTimeout = 30 * 1000;

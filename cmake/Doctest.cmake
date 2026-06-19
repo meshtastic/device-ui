@@ -4,7 +4,7 @@ if(ENABLE_DOCTESTS)
     FetchContent_Declare(
         DocTest
         GIT_REPOSITORY "https://github.com/onqtam/doctest"
-        GIT_TAG v2.4.11
+        GIT_TAG v2.5.2
     )
 
     FetchContent_MakeAvailable(DocTest)
