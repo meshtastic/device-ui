@@ -37,7 +37,6 @@ jobs:
             build-essential \
             openssl \
             libssl-dev \
-            libcurl4-openssl-dev \
             libgpiod-dev \
             libyaml-cpp-dev \
             libbluetooth-dev \
@@ -47,9 +46,8 @@ jobs:
             libsqlite3-dev \
             liborcania-dev \
             libxkbcommon-dev \
-            libinput-dev
-          # 💡 TIP: Replace 'libssl-dev' and 'libcurl4-openssl-dev' above 
-          # with the exact apt packages your project needs.
+            libinput-dev \
+            libx11-dev
 
       # Step 3: Set up grpc-tools for Nanopb
       - name: Set up Python
