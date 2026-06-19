@@ -421,6 +421,9 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
                 return;
             const auto context = input_policy::InputContextState::instance().getSnapshot();
             if (context.focusSemantic == input_policy::FocusSemantic::Map) {
+                // toggle gpsLock checked state
+                lv_obj_set_state(objects.gps_lock_button, LV_STATE_CHECKED,
+                                 !lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED));
                 lv_obj_send_event(objects.gps_lock_button, LV_EVENT_CLICKED, NULL);
             } else {
                 controller->sendPing();
