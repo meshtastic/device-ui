@@ -220,12 +220,12 @@ CardKBInputDriver::CardKBInputDriver(uint8_t address, TwoWire &wire_) : wire(wir
 
 void CardKBInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    char keyValue = 0;
+    uint32_t keyValue = 0;
     Wire.requestFrom(address, (uint8_t)1);
     if (Wire.available() > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224 which causes internal issues
-        if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
+        if (keyValue != 0x00 && keyValue != 0xE0) {
             data->state = LV_INDEV_STATE_PRESSED;
             ILOG_DEBUG("key press value: %d", (int)keyValue);
 
@@ -346,7 +346,6 @@ void TM9KeyboardInputDriver::init(void)
 void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     uint32_t keyValue = 0;
-    static uint32_t prevKey = 0;
     bool isSyntheticLongPress = false;
 
     wire.beginTransmission(address);
