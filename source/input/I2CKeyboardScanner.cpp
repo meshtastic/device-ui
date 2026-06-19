@@ -91,7 +91,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
     delay(10);
     Wire.begin(I2C_SDA, I2C_SCL, 100000);
     delay(10);
-  
+
     // skip scanning for known keyboard devices
 #if defined(T_DECK)
     driver = new TDeckKeyboardInputDriver(SCAN_TDECK_KB_ADDR);
