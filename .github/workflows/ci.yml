@@ -1,0 +1,76 @@
+name: CI Pipeline
+concurrency:
+  group: ci-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+on:
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - docs/**
+
+  workflow_dispatch: # Adds the manual run button in GitHub web UI
+
+permissions: read-all
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      CTEST_OUTPUT_ON_FAILURE: 1
+
+    steps:
+      # Step 1: Download your repository code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Install core build tools AND your 3rd party apt packages
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            ninja-build \
+            python3-pip \
+            build-essential \
+            openssl \
+            libssl-dev \
+            libgpiod-dev \
+            libyaml-cpp-dev \
+            libbluetooth-dev \
+            libusb-1.0-0-dev \
+            libi2c-dev \
+            libuv1-dev \
+            libsqlite3-dev \
+            liborcania-dev \
+            libxkbcommon-dev \
+            libinput-dev \
+            libx11-dev
+
+      # Step 3: Set up grpc-tools for Nanopb
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+          cache: pip # Automatically caches grpcio-tools downloads
+
+      - name: Install Python Dependencies
+        run: |
+          pip3 install --root-user-action=ignore --break-system-packages -r requirements.txt
+
+      # Step 4: Configure CMake (FetchContent runs automatically here)
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G Ninja
+
+      # Step 5: Compile the project, FetchContent code, and tests
+      - name: Build Project
+        run: |
+          cmake --build build
+
+      # Step 6: Execute doctest suites via CTest
+      - name: Run Unit Tests
+        run: |
+          ctest --test-dir build
