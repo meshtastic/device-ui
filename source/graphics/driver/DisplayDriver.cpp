@@ -1,6 +1,8 @@
 #include "graphics/driver/DisplayDriver.h"
 #include "util/ILog.h"
 
+ScreenSleepController *DisplayDriver::_sleepController = nullptr;
+
 #if LV_USE_PROFILER
 #if defined(ARCH_PORTDUINO)
 #include <sys/syscall.h>
