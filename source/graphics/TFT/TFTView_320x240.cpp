@@ -693,7 +693,7 @@ void TFTView_320x240::apply_hotfix(void)
     }
 
     // for keyboard control
-    lv_indev_t *keyboard = inputdriver->getKeyboard();
+    // lv_indev_t *keyboard = inputdriver->getKeyboard();
     // if (keyboard && groups.mainButtons) {
     //  main menu button are moved into own group
     lv_group_remove_obj(objects.home_button);
@@ -892,6 +892,22 @@ void TFTView_320x240::updateTheme(void)
     for (int i = 0; i < c_max_channels; i++) {
         if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
             updateGroupChannel(i);
+    }
+
+    // Re-apply PRESSED-state override after every theme change. Themes::initStyles() resets
+    // shared style objects, so the per-object local override must be refreshed here.
+    // Without this, a gap touch on nodes_panel (between child buttons) resolves to the
+    // panel itself and the PRESSED->DEFAULT style delta triggers lv_obj_refresh_style
+    // with PROP_ANY, cascading LV_EVENT_STYLE_CHANGED to all ~200 child labels (~1900
+    // mark-dirty calls per event) and causing visible scroll lag.
+    if (objects.nodes_panel) {
+        const lv_style_selector_t def = (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT;
+        const lv_style_selector_t pressed = (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_PRESSED;
+        lv_obj_set_style_bg_color(objects.nodes_panel, lv_obj_get_style_bg_color(objects.nodes_panel, def), pressed);
+        lv_obj_set_style_bg_opa(objects.nodes_panel, lv_obj_get_style_bg_opa(objects.nodes_panel, def), pressed);
+        lv_obj_set_style_border_color(objects.nodes_panel, lv_obj_get_style_border_color(objects.nodes_panel, def), pressed);
+        lv_obj_set_style_border_opa(objects.nodes_panel, lv_obj_get_style_border_opa(objects.nodes_panel, def), pressed);
+        lv_obj_set_style_border_width(objects.nodes_panel, lv_obj_get_style_border_width(objects.nodes_panel, def), pressed);
     }
 }
 
@@ -5182,7 +5198,8 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_pad_top(p, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(p, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_remove_flag(p, lv_obj_flag_t(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE |
-                                        LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE));
+                                        LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE |
+                                        LV_OBJ_FLAG_SCROLL_CHAIN_HOR));
     add_style_node_panel_style(p);
 
     // NodeImage
@@ -5266,6 +5283,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_BatteryLabel = lv_label_create(p);
     lv_obj_set_pos(ui_BatteryLabel, 8, 17);
     lv_obj_set_size(ui_BatteryLabel, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_clear_flag(ui_BatteryLabel, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_align(ui_BatteryLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_BatteryLabel, "");
     lv_obj_set_style_text_align(ui_BatteryLabel, LV_TEXT_ALIGN_RIGHT,
@@ -5275,6 +5293,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_lastHeardLabel = lv_label_create(p);
     lv_obj_set_pos(ui_lastHeardLabel, 8, 33);
     lv_obj_set_size(ui_lastHeardLabel, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_clear_flag(ui_lastHeardLabel, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_align(ui_lastHeardLabel, LV_ALIGN_TOP_RIGHT,
                            (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_label_set_long_mode(ui_lastHeardLabel, LV_LABEL_LONG_CLIP);
@@ -5300,6 +5319,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_SignalLabel = lv_label_create(p);
     lv_obj_set_width(ui_SignalLabel, LV_SIZE_CONTENT);
     lv_obj_set_height(ui_SignalLabel, LV_SIZE_CONTENT);
+    lv_obj_clear_flag(ui_SignalLabel, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_pos(ui_SignalLabel, 8, 1);
     lv_obj_set_align(ui_SignalLabel, LV_ALIGN_TOP_RIGHT);
     lv_label_set_text(ui_SignalLabel, "");
@@ -5308,6 +5328,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_PositionLabel = lv_label_create(p);
     lv_obj_set_pos(ui_PositionLabel, -5, 49);
     lv_obj_set_size(ui_PositionLabel, 120, LV_SIZE_CONTENT);
+    lv_obj_clear_flag(ui_PositionLabel, LV_OBJ_FLAG_SCROLLABLE);
     lv_label_set_long_mode(ui_PositionLabel, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_PositionLabel, "");
     lv_obj_set_style_align(ui_PositionLabel, LV_ALIGN_TOP_LEFT,
@@ -5319,6 +5340,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_Position2Label = lv_label_create(p);
     lv_obj_set_pos(ui_Position2Label, -5, 63);
     lv_obj_set_size(ui_Position2Label, 108, LV_SIZE_CONTENT);
+    lv_obj_clear_flag(ui_Position2Label, LV_OBJ_FLAG_SCROLLABLE);
     lv_label_set_long_mode(ui_Position2Label, LV_LABEL_LONG_SCROLL);
     lv_label_set_text(ui_Position2Label, "");
     lv_obj_set_style_align(ui_Position2Label, LV_ALIGN_TOP_LEFT,
@@ -5328,6 +5350,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_Telemetry1Label = lv_label_create(p);
     lv_obj_set_pos(ui_Telemetry1Label, 8, 49);
     lv_obj_set_size(ui_Telemetry1Label, 130, LV_SIZE_CONTENT);
+    lv_obj_clear_flag(ui_Telemetry1Label, LV_OBJ_FLAG_SCROLLABLE);
     lv_label_set_long_mode(ui_Telemetry1Label, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_Telemetry1Label, "");
     lv_obj_set_style_align(ui_Telemetry1Label, LV_ALIGN_TOP_RIGHT,
@@ -5338,6 +5361,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_t *ui_Telemetry2Label = lv_label_create(p);
     lv_obj_set_pos(ui_Telemetry2Label, 8, 63);
     lv_obj_set_size(ui_Telemetry2Label, 130, LV_SIZE_CONTENT);
+    lv_obj_clear_flag(ui_Telemetry2Label, LV_OBJ_FLAG_SCROLLABLE);
     lv_label_set_long_mode(ui_Telemetry2Label, LV_LABEL_LONG_CLIP);
     lv_label_set_text(ui_Telemetry2Label, "");
     lv_obj_set_style_align(ui_Telemetry2Label, LV_ALIGN_TOP_RIGHT,
@@ -5460,7 +5484,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
             lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx),
                                                          (lv_part_t)LV_PART_MAIN | (lv_part_t)LV_STATE_DEFAULT);
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color,
-                                          (lv_style_selector_t)(LV_PART_MAIN | LV_STATE_DEFAULT));
+                                          (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         } else {
             lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), colorRed,
                                           (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
@@ -6228,6 +6252,10 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
 {
     lv_obj_t *panel = nodes[nodeNum];
     bool hide = false;
+    bool visibilityChanged = false;
+    lv_color_t targetBorderColor = colorMidGray;
+    lv_coord_t targetBorderWidth = 1;
+    const lv_style_selector_t sel = (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT;
     if (nodeNum != ownNode /* && filter.active*/) { // TODO
         if (lv_obj_has_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED)) {
             if (lv_img_get_src(panel->LV_OBJ_IDX(node_img_idx)) == &img_circle_question_image) {
@@ -6295,38 +6323,39 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         if (reset || !lv_obj_has_flag(panel, LV_OBJ_FLAG_HIDDEN)) {
             lv_obj_add_flag(panel, LV_OBJ_FLAG_HIDDEN);
             nodesFiltered++;
+            visibilityChanged = true;
         }
     } else {
-        lv_obj_clear_flag(panel, LV_OBJ_FLAG_HIDDEN);
+        if (lv_obj_has_flag(panel, LV_OBJ_FLAG_HIDDEN)) {
+            lv_obj_clear_flag(panel, LV_OBJ_FLAG_HIDDEN);
+            visibilityChanged = true;
+        }
     }
 
     // hide node location if filtered
-    if (map)
+    if (map && visibilityChanged) {
         map->update(nodeNum, hide);
+    }
 
     bool highlight = false;
     if (true /*highlight.active*/) { // TODO
         if (lv_obj_has_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED)) {
             auto it = chats.find(nodeNum);
             if (it != nodes.end()) {
-                lv_obj_set_style_border_color(panel, colorOrange,
-                                              (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+                targetBorderColor = colorOrange;
                 highlight = true;
             }
         }
         if (lv_obj_has_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] != '\0') {
-                lv_obj_set_style_border_color(panel, colorBlueGreen,
-                                              (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+                targetBorderColor = colorBlueGreen;
                 highlight = true;
             }
         }
         if (lv_obj_has_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm1_idx))[0] != '\0') {
-                lv_obj_set_style_border_color(panel, colorBlue,
-                                              (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-                lv_obj_set_style_border_width(panel, 2,
-                                              (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+                targetBorderColor = colorBlue;
+                targetBorderWidth = 2;
                 highlight = true;
             }
         }
@@ -6354,16 +6383,18 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
                     fg = lv_color_hex(0xffffffff);
                     bg = lv_color_hex(0x001d1414);
                 }
-                lv_obj_set_style_text_color(panel->LV_OBJ_IDX(node_tm2_idx), fg,
-                                            (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_color(panel->LV_OBJ_IDX(node_tm2_idx), bg,
-                                          (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_opa(panel->LV_OBJ_IDX(node_tm2_idx), 255,
-                                        (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-                lv_obj_set_style_border_color(panel, bg,
-                                              (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-                lv_obj_set_style_border_width(panel, 2,
-                                              (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+                lv_obj_t *iaqLabel = panel->LV_OBJ_IDX(node_tm2_idx);
+                if (lv_color_to_int(lv_obj_get_style_text_color(iaqLabel, (lv_part_t)sel)) != lv_color_to_int(fg)) {
+                    lv_obj_set_style_text_color(iaqLabel, fg, sel);
+                }
+                if (lv_color_to_int(lv_obj_get_style_bg_color(iaqLabel, (lv_part_t)sel)) != lv_color_to_int(bg)) {
+                    lv_obj_set_style_bg_color(iaqLabel, bg, sel);
+                }
+                if (lv_obj_get_style_bg_opa(iaqLabel, (lv_part_t)sel) != 255) {
+                    lv_obj_set_style_bg_opa(iaqLabel, 255, sel);
+                }
+                targetBorderColor = bg;
+                targetBorderWidth = 2;
                 highlight = true;
             }
         }
@@ -6371,17 +6402,23 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         if (name[0] != '\0') {
             if (strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) ||
                 strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), name)) {
-                lv_obj_set_style_border_color(panel, colorMesh,
-                                              (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+                targetBorderColor = colorMesh;
                 highlight = true;
             }
         }
     }
     if (!highlight) {
-        lv_obj_set_style_border_color(panel, colorMidGray,
-                                      (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-        lv_obj_set_style_border_width(panel, 1, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+        targetBorderColor = colorMidGray;
+        targetBorderWidth = 1;
     }
+
+    if (lv_color_to_int(lv_obj_get_style_border_color(panel, (lv_part_t)sel)) != lv_color_to_int(targetBorderColor)) {
+        lv_obj_set_style_border_color(panel, targetBorderColor, sel);
+    }
+    if (lv_obj_get_style_border_width(panel, (lv_part_t)sel) != targetBorderWidth) {
+        lv_obj_set_style_border_width(panel, targetBorderWidth, sel);
+    }
+
     return hide; // TODO || filter.active;
 }
 
@@ -6525,26 +6562,26 @@ void TFTView_320x240::screenSaving(bool enabled)
         ILOG_DEBUG("showing blank screen");
         // switch the keyboard indev to mainButtons now; the SCREEN_LOAD_START handler will
         // add blank_screen_button to the group and focus it once the screen starts loading
-        THIS->setInputGroup(groups.mainButtons);
+        setInputGroup(groups.mainButtons);
         // overlay main screen with blank screen to prevent accidentally pressing buttons
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 0, 0, false);
         screenLocked = true;
         screenUnlockRequest = false;
     } else {
-        if (THIS->db.uiConfig.screen_lock) {
+        if (db.uiConfig.screen_lock) {
             ILOG_DEBUG("showing lock screen");
             lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         } else if (objects.main_screen) {
             ILOG_DEBUG("showing main screen");
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-            if (THIS->activeSettings != eNone) {
+            if (activeSettings != eNone) {
                 lv_event_t e = {.code = LV_EVENT_CLICKED};
                 ui_event_cancel(&e);
             }
             screenLocked = false;
         } else {
             ILOG_DEBUG("showing boot screen");
-            THIS->setInputGroup(defaultPanelGroup);
+            setInputGroup(defaultPanelGroup);
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
             screenLocked = false;
         }
@@ -7743,19 +7780,16 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
 void TFTView_320x240::setInputGroup(lv_group_t *group)
 {
     // defocus old object in current group if it changed
-    lv_group_t *old_group = lv_indev_get_group(lv_indev_get_act());
-    lv_obj_t *old_focused = lv_group_get_focused(old_group);
-
-    if (old_group == group)
-        return;
-    // LVGL 9's lv_indev_set_group() only reassigns a pointer — it never sends DEFOCUSED to
-    // the old group's focused object. Send it manually so LVGL's own handler removes
-    // LV_STATE_FOCUSED, LV_STATE_EDITED, and LV_STATE_FOCUS_KEY (the last one drives the
-    // default-theme outline ring; lv_obj_clear_state alone cannot reach it).
-    if (old_focused) {
-        lv_obj_remove_state(old_focused, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY);
-        lv_obj_send_event(old_focused, LV_EVENT_DEFOCUSED, NULL);
-        lv_obj_invalidate(old_focused);
+    if (inputdriver->hasKeyboardDevice()) {
+        lv_group_t *old_group = lv_indev_get_group(inputdriver->getKeyboard());
+        if (old_group == nullptr || old_group == group)
+            return;
+        lv_obj_t *old_focused = lv_group_get_focused(old_group);
+        if (old_focused) {
+            lv_obj_remove_state(old_focused, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY);
+            lv_obj_send_event(old_focused, LV_EVENT_DEFOCUSED, NULL);
+            lv_obj_invalidate(old_focused);
+        }
     }
 
     lv_group_t *inputGroup = nullptr;

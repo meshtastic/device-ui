@@ -3527,7 +3527,7 @@
                   "groupIndex": 0
                 }
               ],
-              "widgetFlags": "PRESS_LOCK|CLICK_FOCUSABLE|SNAPPABLE|SCROLL_CHAIN|SCROLLABLE|SCROLL_WITH_ARROW|SCROLL_MOMENTUM|SCROLL_ELASTIC|EVENT_BUBBLE",
+              "widgetFlags": "CLICK_FOCUSABLE|SCROLL_CHAIN|SCROLLABLE|SCROLL_WITH_ARROW|SCROLL_MOMENTUM|SCROLL_ELASTIC|EVENT_BUBBLE|SCROLL_ON_FOCUS",
               "hiddenFlag": true,
               "hiddenFlagType": "literal",
               "clickableFlag": true,
