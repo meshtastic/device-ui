@@ -29,6 +29,7 @@ bool WebDAVServer::start(fs::FS *)
 }
 void WebDAVServer::stop() {}
 void WebDAVServer::deinitWiFi() {}
+void WebDAVServer::initMDNS() {}
 WebDAVServer::WebDAVServer() {}
 WebDAVServer::~WebDAVServer() {}
 

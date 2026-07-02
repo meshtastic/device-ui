@@ -2008,6 +2008,8 @@ void TFTView_320x240::ui_event_webDAVButton(lv_event_t *e)
         objects.home_web_dav_button->user_data = (void *)(1 - toggle);
 
         WebDAVServer *webdav = WebDAVServer::instance();
+        if (!webdav)
+            return;
 
         if (shouldEnable) {
             // ENABLE WebDAV - Initialize WiFi for device-ui to prevent conflict with firmware WiFi
