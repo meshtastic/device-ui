@@ -1,5 +1,6 @@
 // https://github.com/greiman/SdFat/issues/471#issuecomment-2001960350
 // usage:  static fs::FS wrapped_fs(fs::FSImplPtr(new SdFsExFatImpl(SDFs)));
+#pragma once
 
 #include <FS.h>
 #include <FSImpl.h>
