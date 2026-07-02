@@ -299,11 +299,12 @@ Current raw code assignments in `DefaultBindingResolver`:
 
 | Raw key code | `InputAction`      | `UICommand` |
 | :----------: | ------------------ | ----------- |
-|   `0x100`    | `CommandHome`      | `GoHome`    |
-|   `0x101`    | `CommandOpenChats` | `OpenChats` |
-|   `0x102`    | `CommandOpenMap`   | `OpenMap`   |
-|   `0x103`    | `CommandToggleGps` | `ToggleGps` |
-|   `0x104`    | `CommandSendPing`  | `SendPing`  |
+|   `0x100`    | `CommandOpenChats` | `OpenChats` |
+|   `0x101`    | `CommandHome`      | `GoHome`    |
+|   `0x102`    | `CommandQuickChat` | `QuickChat` |
+|   `0x103`    | `CommandSendPing`  | `SendPing`  |
+|   `0x104`    | `CommandOpenMap`   | `OpenMap`   |
+|   `0x105`    | `CommandToggleGps` | `ToggleGps` |
 
 `DefaultBindingResolver` converts the raw code to `InputAction`.
 The policy chain emits `DecisionType::EmitCommand`.
