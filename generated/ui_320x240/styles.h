@@ -30,11 +30,14 @@ void remove_style_settings_panel_style(lv_obj_t *obj);
 
 // Style: NodePanelStyle
 lv_style_t *get_style_node_panel_style_MAIN_DEFAULT();
+lv_style_t *get_style_node_panel_style_MAIN_FOCUS_KEY();
+lv_style_t *get_style_node_panel_style_MAIN_FOCUSED();
 void add_style_node_panel_style(lv_obj_t *obj);
 void remove_style_node_panel_style(lv_obj_t *obj);
 
 // Style: HomeButtonStyle
 lv_style_t *get_style_home_button_style_MAIN_DEFAULT();
+lv_style_t *get_style_home_button_style_MAIN_FOCUS_KEY();
 void add_style_home_button_style(lv_obj_t *obj);
 void remove_style_home_button_style(lv_obj_t *obj);
 
@@ -45,16 +48,19 @@ void remove_style_settings_button_style(lv_obj_t *obj);
 
 // Style: MainButtonStyle
 lv_style_t *get_style_main_button_style_MAIN_DEFAULT();
+lv_style_t *get_style_main_button_style_MAIN_FOCUS_KEY();
 void add_style_main_button_style(lv_obj_t *obj);
 void remove_style_main_button_style(lv_obj_t *obj);
 
 // Style: NewMessageStyle
 lv_style_t *get_style_new_message_style_MAIN_DEFAULT();
+lv_style_t *get_style_new_message_style_MAIN_FOCUS_KEY();
 void add_style_new_message_style(lv_obj_t *obj);
 void remove_style_new_message_style(lv_obj_t *obj);
 
 // Style: ChatMessageStyle
 lv_style_t *get_style_chat_message_style_MAIN_DEFAULT();
+lv_style_t *get_style_chat_message_style_MAIN_FOCUS_KEY();
 void add_style_chat_message_style(lv_obj_t *obj);
 void remove_style_chat_message_style(lv_obj_t *obj);
 
@@ -105,6 +111,7 @@ void remove_style_main_screen_style(lv_obj_t *obj);
 
 // Style: NodeButtonStyle
 lv_style_t *get_style_node_button_style_MAIN_DEFAULT();
+lv_style_t *get_style_node_button_style_MAIN_FOCUS_KEY();
 void add_style_node_button_style(lv_obj_t *obj);
 void remove_style_node_button_style(lv_obj_t *obj);
 
@@ -144,10 +151,9 @@ void remove_style_statistics_table_style(lv_obj_t *obj);
 // Style: MapArrowStyle
 lv_style_t *get_style_map_arrow_style_MAIN_DEFAULT();
 lv_style_t *get_style_map_arrow_style_MAIN_PRESSED();
+lv_style_t *get_style_map_arrow_style_MAIN_FOCUS_KEY();
 void add_style_map_arrow_style(lv_obj_t *obj);
 void remove_style_map_arrow_style(lv_obj_t *obj);
-
-
 
 #ifdef __cplusplus
 }

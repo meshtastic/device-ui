@@ -7,7 +7,6 @@
 extern "C" {
 #endif
 
-
 // advanced settings
 extern lv_obj_t * ui_AdvancedSettingsPanel;
 extern lv_obj_t * ui_SettingsTabView;
@@ -65,6 +64,18 @@ extern lv_obj_t * ui_RemoteHardwareLabel;
 
 void create_tabview_settings(void);
 
+// Screens
+
+enum ScreensEnum {
+    _SCREEN_ID_FIRST = 1,
+    SCREEN_ID_BOOT_SCREEN = 1,
+    SCREEN_ID_MAIN_SCREEN = 2,
+    SCREEN_ID_BLANK_SCREEN = 3,
+    SCREEN_ID_LOCK_SCREEN = 4,
+    SCREEN_ID_CALIBRATION_SCREEN = 5,
+    _SCREEN_ID_LAST = 5
+};
+
 typedef struct _objects_t {
     lv_obj_t *boot_screen;
     lv_obj_t *main_screen;
@@ -121,6 +132,8 @@ typedef struct _objects_t {
     lv_obj_t *home_bluetooth_label;
     lv_obj_t *home_mqtt_button;
     lv_obj_t *home_mqtt_label;
+    lv_obj_t *home_web_dav_button;
+    lv_obj_t *home_web_dav_label;
     lv_obj_t *home_sd_card_button;
     lv_obj_t *home_sd_card_label;
     lv_obj_t *home_memory_button;
@@ -171,15 +184,15 @@ typedef struct _objects_t {
     lv_obj_t *home_location_image;
     lv_obj_t *gps_position_image;
     lv_obj_t *navigation_panel;
+    lv_obj_t *nav_button;
     lv_obj_t *arrow_up_button;
     lv_obj_t *arrow_left_button;
-    lv_obj_t *nav_button;
     lv_obj_t *arrow_right_button;
     lv_obj_t *arrow_down_button;
-    lv_obj_t *zoom_slider;
     lv_obj_t *gps_lock_button;
     lv_obj_t *zoom_in_button;
     lv_obj_t *zoom_out_button;
+    lv_obj_t *zoom_slider;
     lv_obj_t *map_osd_panel;
     lv_obj_t *map_brightness_slider;
     lv_obj_t *map_contrast_slider;
@@ -556,14 +569,6 @@ typedef struct _objects_t {
 
 extern objects_t objects;
 
-enum ScreensEnum {
-    SCREEN_ID_BOOT_SCREEN = 1,
-    SCREEN_ID_MAIN_SCREEN = 2,
-    SCREEN_ID_BLANK_SCREEN = 3,
-    SCREEN_ID_LOCK_SCREEN = 4,
-    SCREEN_ID_CALIBRATION_SCREEN = 5,
-};
-
 void create_screen_boot_screen();
 void tick_screen_boot_screen();
 
@@ -587,6 +592,15 @@ void tick_screen(int screen_index);
 
 void create_screens();
 
+// Groups
+
+typedef struct _groups_t {
+    lv_group_t *mainButtons;
+} groups_t;
+
+extern groups_t groups;
+
+void ui_create_groups();
 
 #ifdef __cplusplus
 }

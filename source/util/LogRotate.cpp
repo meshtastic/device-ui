@@ -83,7 +83,7 @@ bool LogRotate::readNext(ILogEntry &entry)
 
 bool LogRotate::write(const ILogEntry &entry)
 {
-    time_t start = millis();
+    // time_t start = millis();
     if (currentSize + entry.size() >= c_maxFileSize || totalSize + entry.size() >= c_maxSize) {
         // log rotation
         ILOG_DEBUG("LogRotation: %d >= %d || %d >= %d", currentSize + entry.size(), c_maxFileSize, totalSize + entry.size(),

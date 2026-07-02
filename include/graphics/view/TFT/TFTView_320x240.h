@@ -5,6 +5,32 @@
 #include <set>
 
 class MapPanel;
+class TFTView_Debug;
+
+/**
+ * @brief RAII helper to temporarily change the default LVGL input group
+ * Saves current group in ctor and restores it in dtor automatically.
+ * Ensures correct group assignment for dynamically created widgets.
+ */
+class GroupGuard
+{
+  private:
+    lv_group_t *saved_group;
+
+  public:
+    GroupGuard(lv_group_t *target_group) : saved_group(lv_group_get_default())
+    {
+        if (target_group) {
+            lv_group_set_default(target_group);
+        }
+    }
+
+    ~GroupGuard() { lv_group_set_default(saved_group); }
+
+    // Prevent copying
+    GroupGuard(const GroupGuard &) = delete;
+    GroupGuard &operator=(const GroupGuard &) = delete;
+};
 
 /**
  * @brief GUI view for e.g. T-Deck
@@ -182,6 +208,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateUnreadMessages(void);
     // update time display on home screen
     virtual void updateTime(void);
+    // update the webDAV status on home screen
+    virtual void updateWebDAVStatus(void);
     // update SD card slot info
     virtual bool updateSDCard(void);
     // format SD card if invalid
@@ -205,6 +233,7 @@ class TFTView_320x240 : public MeshtasticView
   private:
     // view creation only via ViewFactory
     friend class ViewFactory;
+    friend class TFTView_Debug;
     static TFTView_320x240 *instance(void);
     static TFTView_320x240 *instance(const DisplayDriverConfig &cfg);
     TFTView_320x240();
@@ -221,7 +250,8 @@ class TFTView_320x240 : public MeshtasticView
     void enablePanel(lv_obj_t *panel);
     void disablePanel(lv_obj_t *panel);
     void setGroupFocus(lv_obj_t *panel);
-    void setInputGroup(void);
+    void setInputGroup(lv_group_t *group = nullptr);
+    void cleanupAllOverlays(void);
     void setInputButtonLabel(void);
     void updateGroupChannel(uint8_t chId);
 
@@ -280,6 +310,11 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_MapButton(lv_event_t *e);
     static void ui_event_SettingsButton(lv_event_t *e);
 
+    static void ui_event_ScreenKey(lv_event_t *e);
+    static void ui_event_MapPanel(lv_event_t *e);
+    static void ui_event_ButtonPanel(lv_event_t *e);
+    static void ui_event_tab_page(lv_event_t *e);
+
     static void ui_event_NodeButton(lv_event_t *e);
     static void ui_event_ChannelButton(lv_event_t *e);
     static void ui_event_ChatButton(lv_event_t *e);
@@ -296,6 +331,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_BellButton(lv_event_t *e);
     static void ui_event_LocationButton(lv_event_t *e);
     static void ui_event_WLANButton(lv_event_t *e);
+    static void ui_event_webDAVButton(lv_event_t *e);
     static void ui_event_MQTTButton(lv_event_t *e);
     static void ui_event_SDCardButton(lv_event_t *e);
     static void ui_event_MemoryButton(lv_event_t *e);
@@ -309,6 +345,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_Keyboard(lv_event_t *e);
 
     static void ui_event_message_ready(lv_event_t *e);
+    static void ui_event_textarea_edit_mode(lv_event_t *e);
 
     static void ui_event_user_button(lv_event_t *e);
     static void ui_event_role_button(lv_event_t *e);
@@ -362,6 +399,7 @@ class TFTView_320x240 : public MeshtasticView
 
     static void ui_event_pin_screen_button(lv_event_t *e);
     static void ui_event_statistics_table(lv_event_t *e);
+    static void ui_event_screen_focus_policy(lv_event_t *e);
 
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);
@@ -388,10 +426,12 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *activeButton = nullptr;
     lv_obj_t *activePanel = nullptr;
     lv_obj_t *activeTopPanel = nullptr;
+    lv_obj_t *lastMainButton = nullptr;
     lv_obj_t *activeMsgContainer = nullptr;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *input_group = nullptr;
+    lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets
 
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 

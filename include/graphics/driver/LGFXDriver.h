@@ -8,8 +8,9 @@
 #include "util/ILog.h"
 #include <functional>
 
-constexpr uint32_t defaultLongPressTime = 700; // ms until long press is detected (lvgl default is 400)
-constexpr uint32_t defaultGestureLimit = 10;   // x/y diff pixel until a swipe gesture is detected (lvgl default is 50)
+constexpr uint32_t defaultLongPressTime = 700;    // ms until long press is detected (lvgl default is 400)
+constexpr uint32_t defaultGestureLimit = 10;      // drag threshold in px before scroll starts (lvgl default is 10)
+constexpr uint32_t defaultTouchReadPeriodMs = 20; // 50Hz
 
 constexpr uint32_t defaultScreenTimeout = 30 * 1000;
 constexpr uint32_t defaultBrightness = 153;
@@ -334,7 +335,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         }
 #else
         lv_timer_t *timer = lv_indev_get_read_timer(DisplayDriver::touch);
-        lv_timer_set_period(timer, 10); // 100Hz as I2C touch controllers support
+        if (timer) {
+            lv_timer_set_period(timer, defaultTouchReadPeriodMs);
+        }
 #endif
     }
 }
