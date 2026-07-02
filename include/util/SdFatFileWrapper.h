@@ -15,9 +15,9 @@ inline oflag_t _convert_access_mode_to_flag(const char *mode, const bool create 
         if (mode[0] == 'r')
             return O_RDONLY;
         if (mode[0] == 'w')
-            return O_WRONLY | create ? O_CREAT : 0;
+            return O_WRONLY | (create ? O_CREAT : 0);
         if (mode[0] == 'a')
-            return O_APPEND | create ? O_CREAT : 0;
+            return O_APPEND | (create ? O_CREAT : 0);
     }
     if (mode_chars == 2) {
         if (mode[1] == '+') {
