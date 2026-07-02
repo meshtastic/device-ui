@@ -7782,13 +7782,15 @@ void TFTView_320x240::setInputGroup(lv_group_t *group)
     // defocus old object in current group if it changed
     if (inputdriver->hasKeyboardDevice()) {
         lv_group_t *old_group = lv_indev_get_group(inputdriver->getKeyboard());
-        if (old_group == nullptr || old_group == group)
+        if (old_group == group)
             return;
-        lv_obj_t *old_focused = lv_group_get_focused(old_group);
-        if (old_focused) {
-            lv_obj_remove_state(old_focused, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY);
-            lv_obj_send_event(old_focused, LV_EVENT_DEFOCUSED, NULL);
-            lv_obj_invalidate(old_focused);
+        if (old_group) {
+            lv_obj_t *old_focused = lv_group_get_focused(old_group);
+            if (old_focused) {
+                lv_obj_remove_state(old_focused, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY);
+                lv_obj_send_event(old_focused, LV_EVENT_DEFOCUSED, NULL);
+                lv_obj_invalidate(old_focused);
+            }
         }
     }
 
