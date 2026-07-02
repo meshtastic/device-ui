@@ -22,7 +22,7 @@ bool InputPipeline::process(InputEvent &event, const InputCapabilities &capabili
     outEvents.clear();
 
     ILOG_DEBUG("[Pipeline] Processing event: rawKey=0x%x action=%d press=%d source=%s", event.rawKeyCode, event.action,
-               (int)event.pressKind, event.sourceId.c_str());
+               (int)event.pressKind, event.sourceId);
 
     InputContextSnapshot context{};
     if (contextProvider) {
