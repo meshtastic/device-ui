@@ -60,6 +60,7 @@ enum class UICommand {
     ToggleGps,
     SendPing,
     LeaveEditMode,
+    Count // number of enums
 };
 
 // Defines how a policy handled an evaluated input event.
@@ -94,7 +95,7 @@ struct InputContextSnapshot {
 };
 
 struct InputEvent {
-    std::string sourceId;
+    const char *sourceId;
     uint32_t rawKeyCode = 0;
     uint32_t resolvedKeyCode = 0;
     InputAction action = InputAction::None;

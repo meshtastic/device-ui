@@ -38,7 +38,7 @@ class UICommandDispatcher : public IUICommandDispatcher
     // Returns array index for a UI command, or -1 when invalid.
     static int commandIndex(UICommand command);
 
-    std::array<CommandHandler, static_cast<size_t>(UICommand::LeaveEditMode) + 1> handlers{};
+    std::array<CommandHandler, static_cast<size_t>(UICommand::Count)> handlers{};
 };
 
 } // namespace input_policy
