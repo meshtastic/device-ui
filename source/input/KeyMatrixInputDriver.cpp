@@ -67,7 +67,15 @@ KeyMatrixInputDriver::KeyMatrixInputDriver(void) {}
 
 void KeyMatrixInputDriver::init(void)
 {
-    I2CKeyboardInputDriver::init();
+    keyboard = lv_indev_create();
+    lv_indev_set_type(keyboard, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(keyboard, KeyMatrixInputDriver::keyboard_read);
+
+    if (!inputGroup) {
+        inputGroup = lv_group_create();
+        lv_group_set_default(inputGroup);
+    }
+    lv_indev_set_group(keyboard, inputGroup);
 
     for (byte i = 0; i < sizeof(keys_rows); i++) {
         pinMode(keys_rows[i], OUTPUT);
@@ -135,21 +143,23 @@ void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *dat
 
     if (INPUTDRIVER_MATRIX_TYPE == 1) {
         // scan for keypresses
-        for (byte i = 0; i < sizeof(keys_rows); i++) {
+        bool keyFound = false;
+        for (byte i = 0; i < sizeof(keys_rows) && !keyFound; i++) {
             digitalWrite(keys_rows[i], LOW);
             for (byte j = 0; j < sizeof(keys_cols); j++) {
                 if (digitalRead(keys_cols[j]) == LOW) {
                     data->key = (uint32_t)KeyMap[shift][i][j];
+                    keyFound = true;
                     break;
                 }
             }
             digitalWrite(keys_rows[i], HIGH);
         }
 
-        // suppress repeating key, only repeat five times/s
+        // suppress repeating key, only repeat three times/s
         // the enter key is an exception for LONG_PRESSED monitoring
         static uint32_t lastPressed = millis();
-        if (data->key != 0 && (data->key == LV_KEY_ENTER || (millis() > lastPressed + 200))) {
+        if (data->key != 0 && (data->key == LV_KEY_ENTER || (millis() > lastPressed + 300))) {
             lastPressed = millis();
             prevkey = data->key;
 
@@ -171,6 +181,9 @@ void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *dat
                 data->key = prevkey; // must provide released key here!
                 // ILOG_DEBUG("Key 0x%x released", prevkey);
                 prevkey = 0;
+            } else {
+                // Suppress synthetic RELEASE events while key repeat is rate-limited.
+                data->key = 0;
             }
         }
     }
@@ -207,6 +220,7 @@ void KeyMatrixInputDriver::keyboard_read(lv_indev_t *indev, lv_indev_data_t *dat
 
         ILOG_DEBUG("[KeyMatrix] Pipeline output: key=0x%x state=%s (remapped from 0x%x)", outKey,
                    outEvent.pressKind == input_policy::PressKind::Press ? "PRESSED" : "RELEASED", data->key);
+        data->state = (outEvent.pressKind == input_policy::PressKind::Release) ? LV_INDEV_STATE_RELEASED : LV_INDEV_STATE_PRESSED;
         data->key = outKey;
     }
 }
