@@ -8,7 +8,9 @@
 #include "input/policy/UICommandDispatcher.h"
 #include "util/ILog.h"
 #include <Arduino.h>
+#include <Wire.h>
 
+// for use with input policy processing
 std::shared_ptr<input_policy::InputPipeline> matrixPipeline;
 std::shared_ptr<input_policy::IInputContextProvider> contextProvider;
 std::shared_ptr<input_policy::IUICommandDispatcher> commandDispatcher;
@@ -568,10 +570,10 @@ void STC8HKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
                 keyValue = LV_KEY_ENTER;
                 break;
             case 0x82: // home
-                keyValue = 0x100;
+                keyValue = 0x101;
                 break;
             case 0x83: // time -> chat
-                keyValue = 0x101;
+                keyValue = 0x100;
                 break;
             case 0x85: // location -> map
                 keyValue = 0x102;
@@ -634,6 +636,7 @@ void STC8HKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
 
         ILOG_DEBUG("[KeyMatrix] Pipeline output: key=0x%x state=%s (remapped from 0x%x)", outKey,
                    outEvent.pressKind == input_policy::PressKind::Press ? "PRESSED" : "RELEASED", data->key);
+        data->state = (outEvent.pressKind == input_policy::PressKind::Release) ? LV_INDEV_STATE_RELEASED : LV_INDEV_STATE_PRESSED;
         data->key = outKey;
     }
 }
