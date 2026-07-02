@@ -192,7 +192,8 @@ void WebDAVServer::notifyStatusChange()
 {
     // Signal UI thread that status has changed
     // UI thread will poll checkStatusChanged() and call updateWebDAVStatus()
-    ILOG_DEBUG("[WebDAV] Status changed: WiFi %sconnected, server %s", isWiFiConnected() ? "" : "not ", running ? "" : "not ");
+    ILOG_DEBUG("[WebDAV] Status changed: WiFi %sconnected, server %s", WiFi.status() == WL_CONNECTED ? "" : "not ",
+               running ? "" : "not ");
     statusChanged = true;
 }
 
