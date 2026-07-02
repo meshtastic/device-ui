@@ -3517,9 +3517,6 @@
                           "radius": 10,
                           "pad_top": 0,
                           "pad_bottom": 0
-                        },
-                        "PRESSED": {
-                          "bg_color": "#fffff4"
                         }
                       }
                     }
