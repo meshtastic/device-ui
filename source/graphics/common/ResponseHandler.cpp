@@ -18,7 +18,8 @@ uint32_t ResponseHandler::addRequest(uint32_t id, RequestType type, void *cookie
 {
     requestIdCounter++;
     uint32_t requestId = generatePacketId();
-    pendingRequest[requestId] = Request{.id = id, .timestamp = millis(), .type = type, .cookie = cookie, .cb = cb};
+    pendingRequest[requestId] =
+        Request{.requestId = requestId, .id = id, .timestamp = millis(), .type = type, .cookie = cookie, .cb = cb};
     return requestId;
 }
 

@@ -5286,20 +5286,25 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
 void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t result)
 {
     ILOG_DEBUG("onTextMessageCallback: %d %d", evt, result);
+    const uint32_t requestId = req.requestId;
     bool channelMessage = (unsigned long)req.cookie < c_max_channels;
     if (evt == ResponseHandler::found) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id,
+        handleTextMessageResponse((unsigned long)req.cookie, requestId,
                                   result ? MessageStatus::State::NoAck
                                          : MessageStatus::deliveredState(channelMessage, false),
                                   false);
     } else if (evt == ResponseHandler::removed) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id,
+        handleTextMessageResponse((unsigned long)req.cookie, requestId,
                                   result ? MessageStatus::State::NoAck
                                          : MessageStatus::deliveredState(channelMessage, true),
                                   true);
     } else {
         ILOG_DEBUG("onTextMessageCallback: timeout!");
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, MessageStatus::State::NoAck, true);
+        MessageStatus::State status = MessageStatus::State::NoAck;
+        const auto pendingStatus = controller->pendingTextMessageStatus(requestId);
+        if (pendingStatus && MessageStatus::isImplicitDelivery(*pendingStatus))
+            status = *pendingStatus;
+        handleTextMessageResponse((unsigned long)req.cookie, requestId, status, true);
     }
 }
 

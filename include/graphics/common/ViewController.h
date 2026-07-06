@@ -2,6 +2,7 @@
 
 #include "comms/IClientBase.h"
 #include "util/LogRotate.h"
+#include <optional>
 #include <time.h>
 #include <unordered_map>
 
@@ -72,6 +73,7 @@ class ViewController
     virtual void sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t msgTime, uint32_t requestId, bool usePkc,
                                  const char *textmsg);
     virtual bool updateTextMessageStatus(uint32_t requestId, MessageStatus::State status, bool finalStatus);
+    virtual std::optional<MessageStatus::State> pendingTextMessageStatus(uint32_t requestId) const;
     virtual void removeTextMessages(uint32_t from, uint32_t to, uint8_t ch);
     virtual bool requestPosition(uint32_t to, uint8_t ch, uint32_t requestId);
     virtual void traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId);
@@ -114,6 +116,7 @@ class ViewController
 
     struct PendingTextMessage {
         LogRotate::EntryPosition logPosition;
+        std::optional<MessageStatus::State> status;
     };
     std::unordered_map<uint32_t, PendingTextMessage> pendingTextMessages;
 

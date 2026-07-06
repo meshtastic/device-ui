@@ -52,6 +52,11 @@ State deliveredState(bool channelMessage, bool explicitAck)
     return explicitAck ? State::ExplicitAck : State::DirectImplicitAck;
 }
 
+bool isImplicitDelivery(State state)
+{
+    return state == State::ChannelImplicitAck || state == State::DirectImplicitAck;
+}
+
 LogMessage::MsgStatus logStatusForState(State state)
 {
     switch (state) {

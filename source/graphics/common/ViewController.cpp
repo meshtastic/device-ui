@@ -497,7 +497,7 @@ bool ViewController::updateTextMessageStatus(uint32_t requestId, MessageStatus::
     if (pendingIt == pendingTextMessages.end())
         return false;
 
-    const PendingTextMessage pending = pendingIt->second;
+    PendingTextMessage &pending = pendingIt->second;
     LogMessageEnv msg;
     const bool updated = log.update(
         pending.logPosition, msg,
@@ -511,10 +511,22 @@ bool ViewController::updateTextMessageStatus(uint32_t requestId, MessageStatus::
         ILOG_WARN("failed to persist text message status for request id 0x%08x", requestId);
     }
 
+    if (updated && !finalStatus)
+        pending.status = status;
+
     if (finalStatus)
         pendingTextMessages.erase(pendingIt);
 
     return updated;
+}
+
+std::optional<MessageStatus::State> ViewController::pendingTextMessageStatus(uint32_t requestId) const
+{
+    const auto pendingIt = pendingTextMessages.find(requestId);
+    if (pendingIt == pendingTextMessages.end())
+        return std::nullopt;
+
+    return pendingIt->second.status;
 }
 
 bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId)

@@ -39,6 +39,11 @@ TEST_CASE("MessageStatus maps delivery context")
     CHECK(MessageStatus::deliveredState(true, true) == State::ChannelImplicitAck);
     CHECK(MessageStatus::deliveredState(false, false) == State::DirectImplicitAck);
     CHECK(MessageStatus::deliveredState(false, true) == State::ExplicitAck);
+
+    CHECK(MessageStatus::isImplicitDelivery(State::ChannelImplicitAck));
+    CHECK(MessageStatus::isImplicitDelivery(State::DirectImplicitAck));
+    CHECK_FALSE(MessageStatus::isImplicitDelivery(State::ExplicitAck));
+    CHECK_FALSE(MessageStatus::isImplicitDelivery(State::NoAck));
 }
 
 TEST_CASE("MessageStatus maps log status only when inline status is meaningful")
