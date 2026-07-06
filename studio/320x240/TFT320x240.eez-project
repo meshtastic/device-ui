@@ -2492,7 +2492,7 @@
                       "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
-                      "identifier": "HomeWebDAVButton",
+                      "identifier": "HomeTransferButton",
                       "leftUnit": "px",
                       "topUnit": "px",
                       "widthUnit": "px",
@@ -2544,7 +2544,7 @@
                       "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
-                      "identifier": "HomeWebDAVLabel",
+                      "identifier": "HomeTransferLabel",
                       "leftUnit": "px",
                       "topUnit": "px",
                       "widthUnit": "%",
@@ -2560,7 +2560,7 @@
                         "objID": "a0788973-7a73-4966-a337-d77b9339ea7e"
                       },
                       "groupIndex": 0,
-                      "text": "WebDAV not ready",
+                      "text": "FTP server off",
                       "textType": "literal",
                       "longMode": "WRAP",
                       "recolor": false

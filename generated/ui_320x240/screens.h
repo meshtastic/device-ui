@@ -132,8 +132,8 @@ typedef struct _objects_t {
     lv_obj_t *home_bluetooth_label;
     lv_obj_t *home_mqtt_button;
     lv_obj_t *home_mqtt_label;
-    lv_obj_t *home_web_dav_button;
-    lv_obj_t *home_web_dav_label;
+    lv_obj_t *home_transfer_button;
+    lv_obj_t *home_transfer_label;
     lv_obj_t *home_sd_card_button;
     lv_obj_t *home_sd_card_label;
     lv_obj_t *home_memory_button;

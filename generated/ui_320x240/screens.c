@@ -767,9 +767,9 @@ void create_screen_main_screen() {
                             lv_label_set_text_static(obj, "mqtt");
                         }
                         {
-                            // HomeWebDAVButton
+                            // HomeTransferButton
                             lv_obj_t *obj = lv_button_create(parent_obj);
-                            objects.home_web_dav_button = obj;
+                            objects.home_transfer_button = obj;
                             lv_obj_set_pos(obj, 0, 0);
                             lv_obj_set_size(obj, 36, 36);
                             lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_EVENT_BUBBLE);
@@ -784,12 +784,12 @@ void create_screen_main_screen() {
                             lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_PRESSED);
                         }
                         {
-                            // HomeWebDAVLabel
+                            // HomeTransferLabel
                             lv_obj_t *obj = lv_label_create(parent_obj);
-                            objects.home_web_dav_label = obj;
+                            objects.home_transfer_label = obj;
                             lv_obj_set_pos(obj, 105, 50);
                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
-                            lv_label_set_text_static(obj, "WebDAV not ready");
+                            lv_label_set_text_static(obj, "FTP server off");
                         }
                         {
                             // HomeSDCardButton

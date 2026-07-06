@@ -49,11 +49,13 @@ fs::FS &fileSystem = LittleFS;
 #elif defined(HAS_SD_MMC)
 #include "graphics/map/SDCardService.h"
 #elif defined(SDCARD_SHARE_SPI)
-#include "comms/WebDAVServer.h"
+// #include "comms/WebDAVServer.h"
+#include "comms/UiFtpServer.h"
 #include "graphics/map/SDCardService.h"
 #else
 #if defined(HAS_SDCARD)
-#include "comms/WebDAVServer.h"
+// #include "comms/WebDAVServer.h"
+#include "comms/UiFtpServer.h"
 #include "util/SdFatFileWrapper.h"
 #endif
 #include "graphics/map/SdFatService.h"
@@ -502,14 +504,14 @@ void TFTView_320x240::init_screens(void)
 #endif
 
 #ifdef HAS_SDCARD
-    if (WebDAVServer::instance()) {
-        lv_obj_clear_flag(objects.home_web_dav_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(objects.home_web_dav_button, LV_OBJ_FLAG_HIDDEN);
+    if (UiFtpServer::instance()) {
+        lv_obj_clear_flag(objects.home_transfer_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(objects.home_transfer_button, LV_OBJ_FLAG_HIDDEN);
     }
     lv_obj_clear_flag(objects.basic_settings_backup_restore_button, LV_OBJ_FLAG_HIDDEN);
 #else
-    lv_obj_add_flag(objects.home_web_dav_label, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(objects.home_web_dav_button, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.home_transfer_label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(objects.home_transfer_button, LV_OBJ_FLAG_HIDDEN);
 #endif
 
     if (controller->isStandalone()) {
@@ -551,7 +553,7 @@ void TFTView_320x240::init_screens(void)
     // user data
     objects.home_time_button->user_data = (void *)0;
     objects.home_wlan_button->user_data = (void *)0;
-    objects.home_web_dav_button->user_data = (void *)0;
+    objects.home_transfer_button->user_data = (void *)0;
     objects.home_memory_button->user_data = (void *)0;
 
     updateFreeMem();
@@ -873,7 +875,7 @@ void TFTView_320x240::updateTheme(void)
     Themes::recolorText(objects.home_location_label,
                         db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorText(objects.home_wlan_label, db.config.network.wifi_enabled);
-    Themes::recolorText(objects.home_web_dav_label, false);
+    Themes::recolorText(objects.home_transfer_label, false);
     Themes::recolorText(objects.home_mqtt_label, db.module_config.mqtt.enabled);
     Themes::recolorText(objects.home_sd_card_label, cardDetected);
     Themes::recolorText(objects.home_memory_label, (bool)objects.home_memory_button->user_data);
@@ -955,7 +957,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(objects.home_web_dav_button, this->ui_event_webDAVButton, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.home_transfer_button, this->home_transfer_button, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_sd_card_button, this->ui_event_SDCardButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_qr_button, this->ui_event_QrButton, LV_EVENT_CLICKED, NULL);
@@ -1990,41 +1992,41 @@ void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
     }
 }
 
-void TFTView_320x240::ui_event_webDAVButton(lv_event_t *e)
+void TFTView_320x240::home_transfer_button(lv_event_t *e)
 {
 #if defined(HAS_SDCARD) && !defined(ARCH_PORTDUINO)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_LONG_PRESSED) {
         if (THIS->db.config.network.wifi_enabled) {
-            lv_label_set_text(objects.home_web_dav_label, _("WiFi must be disabled"));
+            lv_label_set_text(objects.home_transfer_label, _("WiFi must be disabled"));
             return;
         }
         // Check prerequisites
         if ((THIS->db.config.network.wifi_ssid[0] == '\0' || THIS->db.config.network.wifi_psk[0] == '\0')) {
-            lv_label_set_text(objects.home_web_dav_label, _("No WiFi login details"));
+            lv_label_set_text(objects.home_transfer_label, _("No WiFi login details"));
             return;
         }
         if (sdCard->errorType() != ISdCard::ErrorType::eNoError) {
-            lv_label_set_text(objects.home_web_dav_label, _("SD card error"));
+            lv_label_set_text(objects.home_transfer_label, _("SD card error"));
             return;
         }
 
-        WebDAVServer *webdav = WebDAVServer::instance();
-        if (!webdav) {
-            lv_label_set_text(objects.home_web_dav_label, _("WebDAV not available"));
+        UiFtpServer *ftpServer = UiFtpServer::instance();
+        if (!ftpServer) {
+            lv_label_set_text(objects.home_transfer_label, _("FTP not available"));
             return;
         }
 
-        // Toggle WebDAV on/off
-        uint32_t toggle = (unsigned long)objects.home_web_dav_button->user_data;
+        // Toggle FTP on/off
+        uint32_t toggle = (unsigned long)objects.home_transfer_button->user_data;
         bool shouldEnable = !toggle;
-        objects.home_web_dav_button->user_data = (void *)(1 - toggle);
+        objects.home_transfer_button->user_data = (void *)(1 - toggle);
 
         bool highlight = false;
         if (shouldEnable) {
             // ENABLE WebDAV - Initialize WiFi for device-ui to prevent conflict with firmware WiFi
             // Initialize WiFi (will be no-op if already initialized)
-            if (webdav->initWiFi(THIS->db.config.network.wifi_ssid, THIS->db.config.network.wifi_psk)) {
+            if (ftpServer->initWiFi(THIS->db.config.network.wifi_ssid, THIS->db.config.network.wifi_psk)) {
 #if defined(SD_MMC)
                 static fs::FS &fs = SD_MMC;
 #elif defined(SDCARD_SHARE_SPI)
@@ -2034,27 +2036,27 @@ void TFTView_320x240::ui_event_webDAVButton(lv_event_t *e)
                 static fs::FS fs(fs::FSImplPtr(new SdFsExFatImpl(SDFs)));
 #endif
                 // Try to start server
-                if (webdav->start(&fs)) {
-                    lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready"));
+                if (ftpServer->start(&fs)) {
+                    lv_label_set_text(objects.home_transfer_label, _("FTP server ready"));
                     highlight = true;
                 } else {
-                    lv_label_set_text(objects.home_web_dav_label, _("WebDAV start failed"));
-                    objects.home_web_dav_button->user_data = (void *)toggle; // Revert toggle
+                    lv_label_set_text(objects.home_transfer_label, _("FTP start failed"));
+                    objects.home_transfer_button->user_data = (void *)toggle; // Revert toggle
                 }
             } else {
-                lv_label_set_text(objects.home_web_dav_label, _("WiFi failed"));
-                objects.home_web_dav_button->user_data = (void *)toggle; // Revert toggle
+                lv_label_set_text(objects.home_transfer_label, _("WiFi failed"));
+                objects.home_transfer_button->user_data = (void *)toggle; // Revert toggle
             }
-            ILOG_DEBUG("ui_event_webDAVButton: webDAV initialized");
+            ILOG_DEBUG("home_transfer_button: FTP initialized");
         } else {
             // DISABLE WebDAV
-            webdav->stop();
-            webdav->deinitWiFi();
-            lv_label_set_text(objects.home_web_dav_label, _("WebDAV off"));
-            ILOG_DEBUG("ui_event_webDAVButton: webDAV disabled");
+            ftpServer->stop();
+            ftpServer->deinitWiFi();
+            lv_label_set_text(objects.home_transfer_label, _("FTP server off"));
+            ILOG_DEBUG("home_transfer_button: FTP disabled");
         }
-        Themes::recolorText(objects.home_web_dav_label, highlight);
-        Themes::recolorButton(objects.home_web_dav_button, highlight);
+        Themes::recolorText(objects.home_transfer_label, highlight);
+        Themes::recolorButton(objects.home_transfer_button, highlight);
     }
 #endif
 }
@@ -5909,7 +5911,8 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
     }
 }
 
-void TFTView_320x240::updateWebDAVStatus(void)
+#if 0
+void TFTView_320x240::updateTransferStatus(void)
 {
 #if defined(HAS_SDCARD)
     // Check WebDAV status and transfer progress (polled every 1s)
@@ -5931,17 +5934,17 @@ void TFTView_320x240::updateWebDAVStatus(void)
         }
 
         if (wifiConnected && serverRunning) {
-            lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
+            lv_label_set_text(objects.home_transfer_label, _("WebDAV server ready\n://" WEBDAV_HOSTNAME ".local"));
         } else if (serverRunning) {
-            lv_label_set_text(objects.home_web_dav_label, _("Connecting..."));
+            lv_label_set_text(objects.home_transfer_label, _("Connecting..."));
         } else if (wifiConnected) {
-            lv_label_set_text(objects.home_web_dav_label, _("WebDAV not ready"));
+            lv_label_set_text(objects.home_transfer_label, _("WebDAV not ready"));
         } else {
-            lv_label_set_text(objects.home_web_dav_label, _("WebDAV off"));
+            lv_label_set_text(objects.home_transfer_label, _("WebDAV off"));
         }
 
         // Update label color based on status
-        Themes::recolorText(objects.home_web_dav_label, wifiConnected && serverRunning);
+        Themes::recolorText(objects.home_transfer_label, wifiConnected && serverRunning);
     }
     // check for ongoing transfers
     else {
@@ -5950,9 +5953,9 @@ void TFTView_320x240::updateWebDAVStatus(void)
         transferring = webdav->isTransferInProgress();
         if (transferring != previous) {
             if (transferring) {
-                lv_label_set_text(objects.home_web_dav_label, _("Transfer in progress..."));
+                lv_label_set_text(objects.home_transfer_label, _("Transfer in progress..."));
             } else {
-                lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
+                lv_label_set_text(objects.home_transfer_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
             }
         }
 
@@ -5962,12 +5965,80 @@ void TFTView_320x240::updateWebDAVStatus(void)
             uint32_t rssi = webdav->RSSI();
             if (rssi > -70) {
                 if (degraded) {
-                    lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
+                    lv_label_set_text(objects.home_transfer_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
                     degraded = false;
                 }
             } else {
                 if (!degraded) {
-                    lv_label_set_text_fmt(objects.home_web_dav_label, _("Weak WiFi Signal\nRSSI: %d dBm"), rssi);
+                    lv_label_set_text_fmt(objects.home_transfer_label, _("Weak WiFi Signal\nRSSI: %d dBm"), rssi);
+                    degraded = true;
+                }
+            }
+        }
+    }
+#endif
+}
+#endif
+
+void TFTView_320x240::updateTransferStatus(void)
+{
+#if defined(HAS_SDCARD)
+    // Check WebDAV status and transfer progress (polled every 1s)
+    UiFtpServer *ftpServer = UiFtpServer::instance();
+    if (!ftpServer)
+        return;
+
+    bool wifiConnected = ftpServer->isWiFiConnected();
+    bool serverRunning = ftpServer->isRunning();
+
+    if (ftpServer->checkStatusChanged()) {
+        // Initialize mDNS only once WiFi is actually connected
+        static bool mdnsInitialized = false;
+        if (wifiConnected && serverRunning && !mdnsInitialized) {
+            ftpServer->initMDNS();
+            mdnsInitialized = true;
+        } else if (!wifiConnected) {
+            mdnsInitialized = false;
+        }
+
+        if (wifiConnected && serverRunning) {
+            lv_label_set_text(objects.home_transfer_label, _("FTP server ready\nftp://" FTP_HOSTNAME ".local"));
+        } else if (serverRunning) {
+            lv_label_set_text(objects.home_transfer_label, _("Connecting..."));
+        } else if (wifiConnected) {
+            lv_label_set_text(objects.home_transfer_label, _("FTP not ready"));
+        } else {
+            lv_label_set_text(objects.home_transfer_label, _("FTP server off"));
+        }
+
+        // Update label color based on status
+        Themes::recolorText(objects.home_transfer_label, wifiConnected && serverRunning);
+    }
+    // check for ongoing transfers
+    else {
+        static bool transferring = false;
+        bool previous = transferring;
+        transferring = ftpServer->isTransferInProgress();
+        if (transferring != previous) {
+            if (transferring) {
+                lv_label_set_text(objects.home_transfer_label, _("Transfer in progress..."));
+            } else {
+                lv_label_set_text(objects.home_transfer_label, _("FTP server ready\nftp://" FTP_HOSTNAME ".local"));
+            }
+        }
+
+        // check for degraded wifi signal
+        static bool degraded = false;
+        if (wifiConnected && serverRunning) {
+            uint32_t rssi = ftpServer->RSSI();
+            if (rssi > -70) {
+                if (degraded) {
+                    lv_label_set_text(objects.home_transfer_label, _("FTP server ready\nftp://" FTP_HOSTNAME ".local"));
+                    degraded = false;
+                }
+            } else {
+                if (!degraded) {
+                    lv_label_set_text_fmt(objects.home_transfer_label, _("Weak WiFi Signal\nRSSI: %d dBm"), rssi);
                     degraded = true;
                 }
             }
@@ -8250,7 +8321,7 @@ void TFTView_320x240::task_handler(void)
             lastrun1 = curtime;
             actTime++;
             updateTime();
-            updateWebDAVStatus();
+            updateTransferStatus();
 
             if (curtime - lastrun5 >= 5) { // call every 5s
                 lastrun5 = curtime;

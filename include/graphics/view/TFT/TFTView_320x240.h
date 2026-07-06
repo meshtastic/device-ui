@@ -209,7 +209,7 @@ class TFTView_320x240 : public MeshtasticView
     // update time display on home screen
     virtual void updateTime(void);
     // update the webDAV status on home screen
-    virtual void updateWebDAVStatus(void);
+    virtual void updateTransferStatus(void);
     // update SD card slot info
     virtual bool updateSDCard(void);
     // format SD card if invalid
@@ -331,7 +331,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_BellButton(lv_event_t *e);
     static void ui_event_LocationButton(lv_event_t *e);
     static void ui_event_WLANButton(lv_event_t *e);
-    static void ui_event_webDAVButton(lv_event_t *e);
+    static void home_transfer_button(lv_event_t *e);
     static void ui_event_MQTTButton(lv_event_t *e);
     static void ui_event_SDCardButton(lv_event_t *e);
     static void ui_event_MemoryButton(lv_event_t *e);
