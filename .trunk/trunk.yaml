@@ -17,15 +17,15 @@ runtimes:
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
-    - trufflehog@3.95.3
+    - trufflehog@3.95.5
     - yamllint@1.38.0
     - bandit@1.9.4
-    - checkov@3.2.529
+    - checkov@3.2.533
     - terrascan@1.19.9
-    - trivy@0.70.0
+    - trivy@0.71.0
     #- trufflehog@3.63.2-rc0
     - taplo@0.10.0
-    - ruff@0.15.14
+    - ruff@0.15.16
     - isort@8.0.1
     - markdownlint@0.48.0
     - oxipng@10.1.1
