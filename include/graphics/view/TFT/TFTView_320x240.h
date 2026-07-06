@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics/common/MeshtasticView.h"
+#include "graphics/common/MessageStatus.h"
 #include "meshtastic/clientonly.pb.h"
 #include <set>
 
@@ -168,8 +169,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual bool applyNodesFilter(uint32_t nodeNum, bool reset = false);
     // display message alert popup
     virtual void messageAlert(const char *alert, bool show);
-    // mark sent message as received
-    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err);
+    // mark sent message with its delivery status
+    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, MessageStatus::State status);
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img);
     // apply filter and count number of filtered nodes
