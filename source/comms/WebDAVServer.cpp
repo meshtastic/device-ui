@@ -84,6 +84,14 @@ void WebDAVServer::serverThreadTaskWrapper(void *pvParameters)
     vTaskDelete(nullptr); // Delete self on exit
 }
 
+namespace
+{
+constexpr TickType_t WEBDAV_NO_WIFI_DELAY = pdMS_TO_TICKS(100);
+constexpr TickType_t WEBDAV_IDLE_DELAY = pdMS_TO_TICKS(20);
+constexpr TickType_t WEBDAV_SPI_BUSY_DELAY = pdMS_TO_TICKS(2);
+constexpr TickType_t WEBDAV_AFTER_HANDLE_DELAY = pdMS_TO_TICKS(1);
+} // namespace
+
 bool WebDAVServer::initWiFi(const char *ssid, const char *password)
 {
     std::lock_guard<std::mutex> lock(mutex);
@@ -256,17 +264,17 @@ bool WebDAVServer::start(fs::FS *filesystem_)
     dav->setTransferStatusCallback(
         std::bind(&WebDAVServer::onTransferProgress, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-    // Start the server task using FreeRTOS
-    // Priority 0 (tskIDLE_PRIORITY) - lower than loopTask (priority 1)
-    // Stack 10240 bytes (10 KB) - sufficient for WebDAV protocol and file operations
+    // Start the server task using FreeRTOS.
+    // Run on CPU1 with idle priority so loopTask (also CPU1, higher prio) keeps precedence.
+    // Stack 10240 bytes (10 KB) - sufficient for WebDAV protocol and file operations.
     running = true;
     BaseType_t result = xTaskCreatePinnedToCore(serverThreadTaskWrapper,   // Task function
                                                 "WebDAVServer",            // Task name (for debugging)
                                                 10240,                     // Stack size in bytes (10 KB)
                                                 static_cast<void *>(this), // Parameter (pass 'this')
-                                                1,                         // Priority: tskIDLE_PRIORITY (lower than UI)
+                                                1,                         // Lower priority than loopTask
                                                 &serverTaskHandle,         // Task handle output
-                                                tskNO_AFFINITY             // Let scheduler choose core
+                                                1                          // Pin to CPU1 for tighter UI/WebDAV scheduling
     );
 
     if (result != pdPASS) {
@@ -335,7 +343,7 @@ void WebDAVServer::serverThread()
     while (running) {
         // Wait for WiFi to connect if not yet ready
         if (!serverReady) {
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(WEBDAV_NO_WIFI_DELAY);
             continue;
         }
 
@@ -347,8 +355,8 @@ void WebDAVServer::serverThread()
 
         if (!clientWaiting) {
             // Idle State: No data is being transferred over WebDAV.
-            // Sleep for 40ms. This keeps your LVGL/TFT graphics running fluidly.
-            vTaskDelay(pdMS_TO_TICKS(40));
+            // Sleep briefly so loopTask stays responsive and can service watchdog.
+            vTaskDelay(WEBDAV_IDLE_DELAY);
             continue;
         }
 
@@ -356,7 +364,7 @@ void WebDAVServer::serverThread()
         // block the UI task while probing the socket state.
         if (!spiLock->lock(500)) {
             // SPI Bus busy (TFT or LoRa using it); yield and retry immediately
-            vTaskDelay(pdMS_TO_TICKS(2));
+            vTaskDelay(WEBDAV_SPI_BUSY_DELAY);
             continue;
         }
 
@@ -372,10 +380,10 @@ void WebDAVServer::serverThread()
         spiLock->unlock();
 
         if (handledClient) {
-            // Yield briefly during active transfers to keep the network stable
-            vTaskDelay(pdMS_TO_TICKS(1));
+            // Leave a small inter-request gap so loopTask can run between many tiny requests.
+            vTaskDelay(WEBDAV_AFTER_HANDLE_DELAY);
         } else {
-            vTaskDelay(pdMS_TO_TICKS(2));
+            vTaskDelay(WEBDAV_SPI_BUSY_DELAY);
         }
     }
 }
