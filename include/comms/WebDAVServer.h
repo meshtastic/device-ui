@@ -75,7 +75,7 @@ class WebDAVServer
 
     /**
      * @brief Check if status has changed (WiFi or WebDAV)
-     * UI thread should poll this and call updateWebDAVStatus() when true
+     * UI thread should poll this and call updateTransferStatus() when true
      * @return true if status changed since last check, false otherwise
      */
     bool checkStatusChanged() { return statusChanged.exchange(false); }
