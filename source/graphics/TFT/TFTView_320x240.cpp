@@ -48,6 +48,9 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SDCardService.h"
 #elif defined(HAS_SD_MMC)
 #include "graphics/map/SDCardService.h"
+#elif defined(SDCARD_SHARE_SPI)
+#include "comms/WebDAVServer.h"
+#include "graphics/map/SDCardService.h"
 #else
 #if defined(HAS_SDCARD)
 #include "comms/WebDAVServer.h"
@@ -870,7 +873,7 @@ void TFTView_320x240::updateTheme(void)
     Themes::recolorText(objects.home_location_label,
                         db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorText(objects.home_wlan_label, db.config.network.wifi_enabled);
-    Themes::recolorText(objects.home_web_dav_label, db.config.network.wifi_enabled);
+    Themes::recolorText(objects.home_web_dav_label, false);
     Themes::recolorText(objects.home_mqtt_label, db.module_config.mqtt.enabled);
     Themes::recolorText(objects.home_sd_card_label, cardDetected);
     Themes::recolorText(objects.home_memory_label, (bool)objects.home_memory_button->user_data);
@@ -1989,55 +1992,69 @@ void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_webDAVButton(lv_event_t *e)
 {
-#if defined(HAS_SDCARD) && !defined(HAS_SD_MMC)
+#if defined(HAS_SDCARD) && !defined(ARCH_PORTDUINO)
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_LONG_PRESSED && !THIS->db.config.network.wifi_enabled) {
+    if (event_code == LV_EVENT_LONG_PRESSED) {
+        if (THIS->db.config.network.wifi_enabled) {
+            lv_label_set_text(objects.home_web_dav_label, _("WiFi must be disabled"));
+            return;
+        }
         // Check prerequisites
         if ((THIS->db.config.network.wifi_ssid[0] == '\0' || THIS->db.config.network.wifi_psk[0] == '\0')) {
             lv_label_set_text(objects.home_web_dav_label, _("No WiFi login details"));
             return;
         }
-        // if (sdCard->errorType() != ISdCard::ErrorType::eNoError) {
-        //     lv_label_set_text(objects.home_web_dav_label, _("SD card error"));
-        //     return;
-        // }
+        if (sdCard->errorType() != ISdCard::ErrorType::eNoError) {
+            lv_label_set_text(objects.home_web_dav_label, _("SD card error"));
+            return;
+        }
+
+        WebDAVServer *webdav = WebDAVServer::instance();
+        if (!webdav) {
+            lv_label_set_text(objects.home_web_dav_label, _("WebDAV not available"));
+            return;
+        }
 
         // Toggle WebDAV on/off
         uint32_t toggle = (unsigned long)objects.home_web_dav_button->user_data;
         bool shouldEnable = !toggle;
         objects.home_web_dav_button->user_data = (void *)(1 - toggle);
 
-        WebDAVServer *webdav = WebDAVServer::instance();
-        if (!webdav)
-            return;
-
+        bool highlight = false;
         if (shouldEnable) {
             // ENABLE WebDAV - Initialize WiFi for device-ui to prevent conflict with firmware WiFi
             // Initialize WiFi (will be no-op if already initialized)
             if (webdav->initWiFi(THIS->db.config.network.wifi_ssid, THIS->db.config.network.wifi_psk)) {
+#if defined(SD_MMC)
+                static fs::FS &fs = SD_MMC;
+#elif defined(SDCARD_SHARE_SPI)
+                static fs::FS &fs = SD;
+#else
                 // Wrap SdFs into fs::FS using the exFat impl pattern
-                static fs::FS wrapped_fs(fs::FSImplPtr(new SdFsExFatImpl(SDFs)));
-#if 1 // currently crashing
-      // Try to start server
-                if (webdav->start(&wrapped_fs)) {
+                static fs::FS fs(fs::FSImplPtr(new SdFsExFatImpl(SDFs)));
+#endif
+                // Try to start server
+                if (webdav->start(&fs)) {
                     lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready"));
+                    highlight = true;
                 } else {
-                    lv_label_set_text(objects.home_web_dav_label, _("WebDAV failed"));
+                    lv_label_set_text(objects.home_web_dav_label, _("WebDAV start failed"));
                     objects.home_web_dav_button->user_data = (void *)toggle; // Revert toggle
                 }
-#endif
             } else {
                 lv_label_set_text(objects.home_web_dav_label, _("WiFi failed"));
                 objects.home_web_dav_button->user_data = (void *)toggle; // Revert toggle
             }
-            ILOG_DEBUG("ui_event_webDAVButton: webdav initialized");
+            ILOG_DEBUG("ui_event_webDAVButton: webDAV initialized");
         } else {
             // DISABLE WebDAV
             webdav->stop();
             webdav->deinitWiFi();
             lv_label_set_text(objects.home_web_dav_label, _("WebDAV off"));
-            Themes::recolorButton(objects.home_web_dav_button, false);
+            ILOG_DEBUG("ui_event_webDAVButton: webDAV disabled");
         }
+        Themes::recolorText(objects.home_web_dav_label, highlight);
+        Themes::recolorButton(objects.home_web_dav_button, highlight);
     }
 #endif
 }
@@ -3105,7 +3122,7 @@ void TFTView_320x240::loadMap(void)
     if (!map) {
 #if LV_USE_FS_ARDUINO_SD
         map = new MapPanel(objects.raw_map_panel);
-#elif defined(HAS_SD_MMC)
+#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
         auto tileService = new SDCardService();
         map = new MapPanel(objects.raw_map_panel, tileService);
         map->setBackupService(
@@ -5894,28 +5911,29 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
 
 void TFTView_320x240::updateWebDAVStatus(void)
 {
-#ifdef HAS_SDCARD
+#if defined(HAS_SDCARD)
     // Check WebDAV status and transfer progress (polled every 1s)
     WebDAVServer *webdav = WebDAVServer::instance();
     if (!webdav)
         return;
-    if (webdav->checkStatusChanged()) {
-        bool wifiConnected = webdav->isWiFiConnected();
-        bool serverRunning = webdav->isRunning();
 
+    bool wifiConnected = webdav->isWiFiConnected();
+    bool serverRunning = webdav->isRunning();
+
+    if (webdav->checkStatusChanged()) {
         // Initialize mDNS only once WiFi is actually connected
         static bool mdnsInitialized = false;
         if (wifiConnected && serverRunning && !mdnsInitialized) {
-            // webdav->initMDNS();
+            webdav->initMDNS();
             mdnsInitialized = true;
         } else if (!wifiConnected) {
             mdnsInitialized = false;
         }
 
         if (wifiConnected && serverRunning) {
-            lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready\ndav://meshtastic.local"));
+            lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
         } else if (serverRunning) {
-            lv_label_set_text(objects.home_web_dav_label, _("Not connected"));
+            lv_label_set_text(objects.home_web_dav_label, _("Connecting..."));
         } else if (wifiConnected) {
             lv_label_set_text(objects.home_web_dav_label, _("WebDAV not ready"));
         } else {
@@ -5925,9 +5943,35 @@ void TFTView_320x240::updateWebDAVStatus(void)
         // Update label color based on status
         Themes::recolorText(objects.home_web_dav_label, wifiConnected && serverRunning);
     }
-    // check for ongoing transfers to show simple progress message
-    else if (webdav->isTransferInProgress()) {
-        lv_label_set_text(objects.home_web_dav_label, _("Transfer in progress..."));
+    // check for ongoing transfers
+    else {
+        static bool transferring = false;
+        bool previous = transferring;
+        transferring = webdav->isTransferInProgress();
+        if (transferring != previous) {
+            if (transferring) {
+                lv_label_set_text(objects.home_web_dav_label, _("Transfer in progress..."));
+            } else {
+                lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
+            }
+        }
+
+        // check for degraded wifi signal
+        static bool degraded = false;
+        if (wifiConnected && serverRunning) {
+            uint32_t rssi = webdav->RSSI();
+            if (rssi > -70) {
+                if (degraded) {
+                    lv_label_set_text(objects.home_web_dav_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
+                    degraded = false;
+                }
+            } else {
+                if (!degraded) {
+                    lv_label_set_text_fmt(objects.home_web_dav_label, _("Weak WiFi Signal\nRSSI: %d dBm"), rssi);
+                    degraded = true;
+                }
+            }
+        }
     }
 #endif
 }
@@ -6869,7 +6913,7 @@ void TFTView_320x240::backup(uint32_t option)
 
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
     SDFs.mkdir("/keys");
     File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
 #else
@@ -6901,7 +6945,7 @@ void TFTView_320x240::restore(uint32_t option)
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
     File sd = SDFs.open(path.str().c_str(), FILE_READ);
 #else
     FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
@@ -8053,7 +8097,7 @@ bool TFTView_320x240::updateSDCard(void)
     }
 #ifdef HAS_SDCARD
     char buf[64];
-#ifdef HAS_SD_MMC
+#if defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
     sdCard = new SDCard;
 #else
     sdCard = new SdFsCard;
@@ -8085,7 +8129,7 @@ bool TFTView_320x240::updateSDCard(void)
         Themes::recolorText(objects.home_sd_card_label, true);
         cardDetected = true;
     } else {
-        ILOG_DEBUG("SdFsCard init failed");
+        ILOG_DEBUG("SdCard init failed");
         err = sdCard->errorType();
         delete sdCard;
         sdCard = nullptr;
@@ -8145,7 +8189,7 @@ void TFTView_320x240::formatSDCard(void)
         sdCard = nullptr;
     }
 #ifdef HAS_SDCARD
-#ifdef HAS_SD_MMC
+#if defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
     sdCard = new SDCard;
 #else
     sdCard = new SdFsCard;
