@@ -234,8 +234,6 @@ bool SdFsCard::init(void)
     return SDFs.begin(SdioConfig(FIFO_SDIO));
 #elif defined(SDCARD_USE_SOFT_SPI)
     return SDFs.begin(SdSpiConfig(SDCARD_CS, DEDICATED_SPI, SD_SCK_MHZ(0), &SDHandler));
-#elif defined(SDCARD_USE_EXT_SDHANDLER)
-
 #else
 #if defined(SDCARD_USER_SPI_BEGIN)
     // fix : HSPI Does not have default pins on ESP32S3!
