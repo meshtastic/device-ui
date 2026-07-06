@@ -223,9 +223,9 @@ CardKBInputDriver::CardKBInputDriver(uint8_t address, TwoWire &wire_) : wire(wir
 void CardKBInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     uint32_t keyValue = 0;
-    Wire.requestFrom(address, (uint8_t)1);
-    if (Wire.available() > 0) {
-        keyValue = Wire.read();
+    const uint8_t bytes = wire.requestFrom(address, (uint8_t)1);
+    if (wire.available() > 0 && bytes > 0) {
+        keyValue = wire.read();
         // ignore empty reads and keycode 224 which causes internal issues
         if (keyValue != 0x00 && keyValue != 0xE0) {
             data->state = LV_INDEV_STATE_PRESSED;
