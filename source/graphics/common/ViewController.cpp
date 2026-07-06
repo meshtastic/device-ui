@@ -1,5 +1,6 @@
 #include "graphics/common/ViewController.h"
 #include "assert.h"
+#include "graphics/common/MessageStatus.h"
 #include "graphics/common/MeshtasticView.h"
 #include "util/ILog.h"
 #include "util/LogMessage.h"
@@ -478,8 +479,42 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, 
 
     if (send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen)) {
         // ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);
-        log.write(LogMessageEnv(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen, (const uint8_t *)textmsg));
+        LogRotate::EntryPosition position;
+        if (log.write(LogMessageEnv(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen,
+                                    (const uint8_t *)textmsg),
+                      &position) &&
+            requestId != 0) {
+            PendingTextMessage pending{};
+            pending.logPosition = position;
+            pendingTextMessages[requestId] = pending;
+        }
     }
+}
+
+bool ViewController::updateTextMessageStatus(uint32_t requestId, MessageStatus::State status, bool finalStatus)
+{
+    const auto pendingIt = pendingTextMessages.find(requestId);
+    if (pendingIt == pendingTextMessages.end())
+        return false;
+
+    const PendingTextMessage pending = pendingIt->second;
+    LogMessageEnv msg;
+    const bool updated = log.update(
+        pending.logPosition, msg,
+        [status](ILogEntry &entry) {
+            LogMessage &candidate = static_cast<LogMessage &>(entry);
+            candidate.status = MessageStatus::logStatusForState(status);
+            candidate.reserved = MessageStatus::persistedLogState(status);
+        });
+
+    if (!updated) {
+        ILOG_WARN("failed to persist text message status for request id 0x%08x", requestId);
+    }
+
+    if (finalStatus)
+        pendingTextMessages.erase(pendingIt);
+
+    return updated;
 }
 
 bool ViewController::requestPosition(uint32_t to, uint8_t ch, uint32_t requestId)

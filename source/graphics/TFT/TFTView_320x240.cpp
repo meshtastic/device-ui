@@ -4516,7 +4516,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
  * display message that has just been written and sent out
  */
 void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
-                                 LogMessage::MsgStatus status)
+                                 LogMessage::MsgStatus status, uint32_t persistedStatus)
 {
     lv_obj_t *hiddenPanel = lv_obj_create(container);
     lv_obj_set_width(hiddenPanel, lv_pct(100));
@@ -4553,7 +4553,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 
     add_style_chat_message_style(textLabel);
 
-    const auto messageState = MessageStatus::inlineStateForLogStatus(status, requestId != 0);
+    const auto messageState = MessageStatus::inlineStateForLogStatus(status, persistedStatus, requestId != 0);
     if (messageState.has_value()) {
         lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
         lv_obj_set_width(statusLabel, 200);
@@ -4569,21 +4569,26 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);
 
-    switch (status) {
-    case LogMessage::eHeard:
-        lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::Warning),
+    if (const auto restoredState = MessageStatus::stateFromPersistedLogState(persistedStatus)) {
+        lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::presentation(*restoredState).tone),
                                       LV_PART_MAIN | LV_STATE_DEFAULT);
-        break;
-    case LogMessage::eAcked:
-        lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::Success),
-                                      LV_PART_MAIN | LV_STATE_DEFAULT);
-        break;
-    case LogMessage::eFailed:
-        lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::RetryableFailure),
-                                      LV_PART_MAIN | LV_STATE_DEFAULT);
-        break;
-    default:
-        break;
+    } else {
+        switch (status) {
+        case LogMessage::eHeard:
+            lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::Warning),
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case LogMessage::eAcked:
+            lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::Success),
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case LogMessage::eFailed:
+            lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::RetryableFailure),
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        default:
+            break;
+        }
     }
 }
 
@@ -5283,14 +5288,18 @@ void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req,
     ILOG_DEBUG("onTextMessageCallback: %d %d", evt, result);
     bool channelMessage = (unsigned long)req.cookie < c_max_channels;
     if (evt == ResponseHandler::found) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, result ? MessageStatus::State::NoAck
-                                                                             : MessageStatus::deliveredState(channelMessage, false));
+        handleTextMessageResponse((unsigned long)req.cookie, req.id,
+                                  result ? MessageStatus::State::NoAck
+                                         : MessageStatus::deliveredState(channelMessage, false),
+                                  false);
     } else if (evt == ResponseHandler::removed) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, result ? MessageStatus::State::NoAck
-                                                                             : MessageStatus::deliveredState(channelMessage, true));
+        handleTextMessageResponse((unsigned long)req.cookie, req.id,
+                                  result ? MessageStatus::State::NoAck
+                                         : MessageStatus::deliveredState(channelMessage, true),
+                                  true);
     } else {
         ILOG_DEBUG("onTextMessageCallback: timeout!");
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, MessageStatus::State::NoAck);
+        handleTextMessageResponse((unsigned long)req.cookie, req.id, MessageStatus::State::NoAck, true);
     }
 }
 
@@ -5326,7 +5335,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
                 handleTraceRouteResponse(routing);
             } else if (req.type == ResponseHandler::TextMessageRequest) {
                 bool channelMessage = (unsigned long)req.cookie < c_max_channels;
-                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::deliveredState(channelMessage, ack));
+                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::deliveredState(channelMessage, ack), ack);
             } else if (req.type == ResponseHandler::PositionRequest) {
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             }
@@ -5336,7 +5345,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             } else if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::State::NoAck);
+                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::State::NoAck, true);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
             if (req.type == ResponseHandler::PositionRequest) {
@@ -5346,7 +5355,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (!ack)
                 req = requests.removeRequest(id);
             if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::State::MessageTooLarge);
+                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::State::MessageTooLarge, true);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL ||
                    routing.error_reason == meshtastic_Routing_Error_NO_INTERFACE ||
@@ -5363,7 +5372,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
                     status = MessageStatus::State::RecipientKeyUnavailable;
                 if (routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY)
                     status = MessageStatus::State::RecipientNeedsSenderKey;
-                handleTextMessageResponse((unsigned long)req.cookie, id, status);
+                handleTextMessageResponse((unsigned long)req.cookie, id, status, true);
                 // we probably have a wrong key; mark it as bad and don't use in future
                 if (nodes.find(from) != nodes.end() && (unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
                     ILOG_DEBUG("public key mismatch");
@@ -5777,8 +5786,12 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
  * @param id
  * @param status
  */
-void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, MessageStatus::State status)
+void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, MessageStatus::State status,
+                                                bool finalStatus)
 {
+    if (id != 0)
+        controller->updateTextMessageStatus(id, status, finalStatus);
+
     lv_obj_t *msgContainer;
     if (channelOrNode < c_max_channels) {
         msgContainer = channelGroup[(uint8_t)channelOrNode];
@@ -5808,7 +5821,6 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
                                             LV_PART_MAIN | LV_STATE_DEFAULT);
             }
 
-            // store message
             break;
         }
     }
@@ -6610,7 +6622,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         if (container) {
             if (container != activeMsgContainer)
                 lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
-            addMessage(container, msg.time, 0, (char *)msg.bytes, msg.status);
+            addMessage(container, msg.time, 0, (char *)msg.bytes, msg.status, msg.reserved);
         }
     } else if (nodes.find(msg.from) != nodes.end()) {
         if (msg.trashFlag && chats.find(msg.from) != chats.end()) {

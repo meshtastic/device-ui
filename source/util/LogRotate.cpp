@@ -83,6 +83,11 @@ bool LogRotate::readNext(ILogEntry &entry)
 
 bool LogRotate::write(const ILogEntry &entry)
 {
+    return write(entry, nullptr);
+}
+
+bool LogRotate::write(const ILogEntry &entry, EntryPosition *position)
+{
     time_t start = millis();
     if (currentSize + entry.size() >= c_maxFileSize || totalSize + entry.size() >= c_maxSize) {
         // log rotation
@@ -96,6 +101,11 @@ bool LogRotate::write(const ILogEntry &entry)
             ;
     }
 
+    if (position) {
+        position->logNum = currentLogWrite;
+        position->offset = currentSize;
+    }
+
     // elegant way to let the logentry do its work it knows best and pass just a temporary function for writing
     File file = _fs.open(currentLogName, FILE_APPEND);
     entry.serialize([&file](const uint8_t *buf, size_t size) { return file.write(buf, size); });
@@ -107,6 +117,36 @@ bool LogRotate::write(const ILogEntry &entry)
     // ILOG_DEBUG("LogRotate: %d bytes written in %d ms to %s (%d/%d bytes, total: %d)", entry.size(), millis() - start,
     //            currentLogName.c_str(), currentSize, c_maxFileSize, totalSize);
     return true;
+}
+
+bool LogRotate::update(const EntryPosition &position, ILogEntry &entry, std::function<void(ILogEntry &)> update)
+{
+    if (position.logNum == 0)
+        return false;
+
+    const String logName = logFileName(position.logNum);
+    File file = _fs.open(logName, "r+");
+    if (!file) {
+        ILOG_WARN("failed to open %s for update", logName.c_str());
+        return false;
+    }
+
+    if (!file.seek(position.offset) ||
+        !entry.deserialize([&file](uint8_t *buf, size_t size) { return file.read(buf, size); })) {
+        file.close();
+        return false;
+    }
+
+    const size_t originalSize = entry.size();
+    update(entry);
+    if (entry.size() != originalSize || !file.seek(position.offset)) {
+        file.close();
+        return false;
+    }
+
+    const size_t written = entry.serialize([&file](const uint8_t *buf, size_t size) { return file.write(buf, size); });
+    file.close();
+    return written == originalSize;
 }
 
 /**

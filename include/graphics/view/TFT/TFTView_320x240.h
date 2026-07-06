@@ -160,7 +160,8 @@ class TFTView_320x240 : public MeshtasticView
     // own chat message
     virtual void handleAddMessage(char *msg);
     // add own message to current chat
-    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status);
+    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status,
+                            uint32_t persistedStatus = 0);
     // add new message to container
     virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
     // create empty message container for node or group channel
@@ -170,7 +171,8 @@ class TFTView_320x240 : public MeshtasticView
     // display message alert popup
     virtual void messageAlert(const char *alert, bool show);
     // mark sent message with its delivery status
-    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, MessageStatus::State status);
+    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, MessageStatus::State status,
+                                           bool finalStatus = true);
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img);
     // apply filter and count number of filtered nodes

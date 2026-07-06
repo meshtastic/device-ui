@@ -3,8 +3,13 @@
 #include "comms/IClientBase.h"
 #include "util/LogRotate.h"
 #include <time.h>
+#include <unordered_map>
 
 class MeshtasticView;
+namespace MessageStatus
+{
+enum class State;
+}
 
 class ViewController
 {
@@ -66,6 +71,7 @@ class ViewController
     virtual bool sendConfig(const char ringtone[231], uint32_t nodeId = 0);
     virtual void sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t msgTime, uint32_t requestId, bool usePkc,
                                  const char *textmsg);
+    virtual bool updateTextMessageStatus(uint32_t requestId, MessageStatus::State status, bool finalStatus);
     virtual void removeTextMessages(uint32_t from, uint32_t to, uint8_t ch);
     virtual bool requestPosition(uint32_t to, uint8_t ch, uint32_t requestId);
     virtual void traceRoute(uint32_t to, uint8_t ch, uint8_t hopLimit, uint32_t requestId);
@@ -105,6 +111,12 @@ class ViewController
     MeshtasticView *view;
     LogRotate log;
     IClientBase *client;
+
+    struct PendingTextMessage {
+        LogRotate::EntryPosition logPosition;
+    };
+    std::unordered_map<uint32_t, PendingTextMessage> pendingTextMessages;
+
     uint32_t sendId;
     uint32_t myNodeNum;
     time_t lastrun1;

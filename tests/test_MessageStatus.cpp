@@ -54,3 +54,29 @@ TEST_CASE("MessageStatus maps log status only when inline status is meaningful")
     CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eNoResponse, false) == State::NoAck);
     CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eFailed, false) == State::NoAck);
 }
+
+TEST_CASE("MessageStatus persists final inline status")
+{
+    CHECK(MessageStatus::logStatusForState(State::ChannelImplicitAck) == LogMessage::eHeard);
+    CHECK(MessageStatus::logStatusForState(State::DirectImplicitAck) == LogMessage::eHeard);
+    CHECK(MessageStatus::logStatusForState(State::ExplicitAck) == LogMessage::eAcked);
+    CHECK(MessageStatus::logStatusForState(State::NoAck) == LogMessage::eNoResponse);
+    CHECK(MessageStatus::logStatusForState(State::RecipientKeyUnavailable) == LogMessage::eFailed);
+    CHECK(MessageStatus::logStatusForState(State::MessageTooLarge) == LogMessage::eFailed);
+
+    const uint32_t channelImplicitAck = MessageStatus::persistedLogState(State::ChannelImplicitAck);
+    const uint32_t recipientKeyUnavailable = MessageStatus::persistedLogState(State::RecipientKeyUnavailable);
+    const uint32_t messageTooLarge = MessageStatus::persistedLogState(State::MessageTooLarge);
+
+    CHECK(MessageStatus::stateFromPersistedLogState(channelImplicitAck) == State::ChannelImplicitAck);
+    CHECK(MessageStatus::stateFromPersistedLogState(recipientKeyUnavailable) == State::RecipientKeyUnavailable);
+    CHECK(MessageStatus::stateFromPersistedLogState(messageTooLarge) == State::MessageTooLarge);
+    CHECK_FALSE(MessageStatus::stateFromPersistedLogState(0).has_value());
+
+    CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eHeard, channelImplicitAck, false) ==
+          State::ChannelImplicitAck);
+    CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eFailed, recipientKeyUnavailable, false) ==
+          State::RecipientKeyUnavailable);
+    CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eFailed, messageTooLarge, false) ==
+          State::MessageTooLarge);
+}
