@@ -62,6 +62,12 @@ class WebDAVServer
     bool isWiFiConnected() const;
 
     /**
+     * @brief Get WiFi connection quality
+     * @return RSSI value
+     */
+    uint32_t RSSI() const;
+
+    /**
      * @brief Check if server is currently running
      * @return true if running, false otherwise
      */

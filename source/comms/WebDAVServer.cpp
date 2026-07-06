@@ -19,6 +19,10 @@ bool WebDAVServer::isWiFiConnected() const
 {
     return false;
 }
+uint32_t WebDAVServer::RSSI() const
+{
+    return 0;
+}
 bool WebDAVServer::isTransferInProgress()
 {
     return false;
@@ -40,6 +44,20 @@ WebDAVServer::~WebDAVServer() {}
 #include <ESPWebDAV.h>
 #include <ESPmDNS.h>
 
+// Explicitly defining the missing method for the library class
+bool ESPWebDAV::isClientWaiting()
+{
+    if (!this->server) {
+        return false;
+    }
+
+    if (this->locClient.fd() >= 0 && this->locClient.available() > 0) {
+        return true;
+    }
+
+    return this->server->hasClient();
+}
+
 WebDAVServer *WebDAVServer::instance()
 {
     static WebDAVServer *webdavServer = nullptr;
@@ -49,7 +67,7 @@ WebDAVServer *WebDAVServer::instance()
     return webdavServer;
 }
 
-WebDAVServer::WebDAVServer() : tcpServer(nullptr), filesystem(nullptr) {}
+WebDAVServer::WebDAVServer() : filesystem(nullptr), tcpServer(nullptr) {}
 
 WebDAVServer::~WebDAVServer()
 {
@@ -88,6 +106,7 @@ bool WebDAVServer::initWiFi(const char *ssid, const char *password)
         WiFi.setHostname(WEBDAV_HOSTNAME);
         WiFi.setAutoReconnect(true);
         WiFi.setSleep(false);
+        WiFi.setTxPower(WIFI_POWER_11dBm); // wifi + writing SD uses alot of power, so reduce wifi
 
         // Register event handlers
         WiFi.onEvent(WiFiEventHandler, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
@@ -125,7 +144,7 @@ void WebDAVServer::deinitWiFi()
 void WebDAVServer::initMDNS(void)
 {
     MDNS.begin(WEBDAV_HOSTNAME);
-    ILOG_INFO("[WebDAV] MDNS started.");
+    ILOG_INFO("[WebDAV] MDNS started. Advertising %s", WEBDAV_HOSTNAME ".local");
 }
 
 void WebDAVServer::onTransferProgress(const char *filename, int percent, bool receive)
@@ -160,6 +179,11 @@ bool WebDAVServer::isWiFiConnected() const
     return WiFi.status() == WL_CONNECTED;
 }
 
+uint32_t WebDAVServer::RSSI() const
+{
+    return WiFi.RSSI();
+}
+
 void WebDAVServer::WiFiEventHandler(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     WebDAVServer *server = WebDAVServer::instance();
@@ -170,13 +194,18 @@ void WebDAVServer::WiFiEventHandler(WiFiEvent_t event, WiFiEventInfo_t info)
         server->onWiFiConnected();
     } else if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
         server->onWiFiDisconnected();
+    } else if (event == ARDUINO_EVENT_WIFI_STA_CONNECTED) {
+        ILOG_INFO("[WiFi] connected");
+    } else {
+        ILOG_WARN("[WiFi] event: %d", (int)event);
     }
 }
 
 void WebDAVServer::onWiFiConnected()
 {
     serverReady = true;
-    ILOG_INFO("[WebDAV] WiFi connected (%s), server ready to accept connections", WiFi.localIP().toString().c_str());
+    ILOG_INFO("[WebDAV] WiFi connected (%s), server ready to accept connections (RSSI=%d)", WiFi.localIP().toString().c_str(),
+              WiFi.RSSI());
 
     notifyStatusChange();
 }
@@ -235,7 +264,7 @@ bool WebDAVServer::start(fs::FS *filesystem_)
                                                 "WebDAVServer",            // Task name (for debugging)
                                                 10240,                     // Stack size in bytes (10 KB)
                                                 static_cast<void *>(this), // Parameter (pass 'this')
-                                                0,                         // Priority: tskIDLE_PRIORITY (lower than UI)
+                                                1,                         // Priority: tskIDLE_PRIORITY (lower than UI)
                                                 &serverTaskHandle,         // Task handle output
                                                 tskNO_AFFINITY             // Let scheduler choose core
     );
@@ -300,37 +329,54 @@ void WebDAVServer::stop()
     notifyStatusChange();
 }
 
+#include "SPILock.h"
 void WebDAVServer::serverThread()
 {
     while (running) {
         // Wait for WiFi to connect if not yet ready
         if (!serverReady) {
-            vTaskDelay(pdMS_TO_TICKS(100)); // Poll every 100ms for WiFi connection
+            vTaskDelay(pdMS_TO_TICKS(100));
             continue;
         }
 
-        // Scope: Copy pointer WITHIN lock, then release BEFORE blocking I/O
-        // This prevents task starvation when we do socket operations
-        ESPWebDAV *dav_copy = nullptr;
+        bool clientWaiting = false;
         {
             std::lock_guard<std::mutex> lock(mutex);
-
-            if (!running || !dav || !tcpServer || !serverReady) {
-                break;
-            }
-
-            // Copy pointer for use outside lock
-            dav_copy = dav.get();
+            clientWaiting = running && serverReady && dav && dav->isClientWaiting();
         }
-        // Lock is now released - other tasks can acquire it anytime
 
-        // Handle client WITHOUT holding mutex (blocking I/O is safe now)
-        // dav_copy is guaranteed non-null because we only assign when dav != nullptr
-        dav_copy->handleClient();
+        if (!clientWaiting) {
+            // Idle State: No data is being transferred over WebDAV.
+            // Sleep for 40ms. This keeps your LVGL/TFT graphics running fluidly.
+            vTaskDelay(pdMS_TO_TICKS(40));
+            continue;
+        }
 
-        // Let FreeRTOS scheduler run other tasks
-        // The scheduler will preempt this task if higher priority tasks are ready
-        taskYIELD();
+        // Lock the SPI bus only after a passive readiness check so we do not
+        // block the UI task while probing the socket state.
+        if (!spiLock->lock(500)) {
+            // SPI Bus busy (TFT or LoRa using it); yield and retry immediately
+            vTaskDelay(pdMS_TO_TICKS(2));
+            continue;
+        }
+
+        bool handledClient = false;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (running && serverReady && dav && dav->isClientWaiting()) {
+                dav->handleClient();
+                handledClient = true;
+            }
+        }
+
+        spiLock->unlock();
+
+        if (handledClient) {
+            // Yield briefly during active transfers to keep the network stable
+            vTaskDelay(pdMS_TO_TICKS(1));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(2));
+        }
     }
 }
 
