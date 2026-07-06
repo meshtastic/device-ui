@@ -1,5 +1,8 @@
 #pragma once
 
+#include "util/LogMessage.h"
+#include <optional>
+
 namespace MessageStatus
 {
 enum class State {
@@ -31,4 +34,5 @@ struct Presentation {
 
 const Presentation &presentation(State state);
 State deliveredState(bool channelMessage, bool explicitAck);
+std::optional<State> inlineStateForLogStatus(LogMessage::MsgStatus status, bool livePending);
 } // namespace MessageStatus

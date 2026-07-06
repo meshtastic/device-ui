@@ -4553,19 +4553,18 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 
     add_style_chat_message_style(textLabel);
 
-    lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
-    lv_obj_set_width(statusLabel, 200);
-    lv_label_set_long_mode(statusLabel, LV_LABEL_LONG_WRAP);
-    lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(statusLabel, &ui_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(statusLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    const MessageStatus::State messageState = status == LogMessage::eHeard    ? MessageStatus::State::DirectImplicitAck
-                                            : status == LogMessage::eAcked    ? MessageStatus::State::ExplicitAck
-                                            : status == LogMessage::eFailed   ? MessageStatus::State::NoAck
-                                                                              : MessageStatus::State::Sending;
-    const MessageStatus::Presentation &messageStatus = MessageStatus::presentation(messageState);
-    lv_label_set_text(statusLabel, _(messageStatus.text));
-    lv_obj_set_style_text_color(statusLabel, messageStatusColor(messageStatus.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
+    const auto messageState = MessageStatus::inlineStateForLogStatus(status, requestId != 0);
+    if (messageState.has_value()) {
+        lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
+        lv_obj_set_width(statusLabel, 200);
+        lv_label_set_long_mode(statusLabel, LV_LABEL_LONG_WRAP);
+        lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(statusLabel, &ui_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_top(statusLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+        const MessageStatus::Presentation &messageStatus = MessageStatus::presentation(*messageState);
+        lv_label_set_text(statusLabel, _(messageStatus.text));
+        lv_obj_set_style_text_color(statusLabel, messageStatusColor(messageStatus.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);

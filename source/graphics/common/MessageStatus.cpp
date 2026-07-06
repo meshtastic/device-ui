@@ -49,4 +49,21 @@ State deliveredState(bool channelMessage, bool explicitAck)
         return State::ChannelImplicitAck;
     return explicitAck ? State::ExplicitAck : State::DirectImplicitAck;
 }
+
+std::optional<State> inlineStateForLogStatus(LogMessage::MsgStatus status, bool livePending)
+{
+    switch (status) {
+    case LogMessage::eNone:
+        return livePending ? std::optional<State>(State::Sending) : std::nullopt;
+    case LogMessage::eHeard:
+        return State::DirectImplicitAck;
+    case LogMessage::eAcked:
+        return State::ExplicitAck;
+    case LogMessage::eNoResponse:
+    case LogMessage::eFailed:
+        return State::NoAck;
+    default:
+        return std::nullopt;
+    }
+}
 } // namespace MessageStatus

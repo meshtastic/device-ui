@@ -40,3 +40,17 @@ TEST_CASE("MessageStatus maps delivery context")
     CHECK(MessageStatus::deliveredState(false, false) == State::DirectImplicitAck);
     CHECK(MessageStatus::deliveredState(false, true) == State::ExplicitAck);
 }
+
+TEST_CASE("MessageStatus maps log status only when inline status is meaningful")
+{
+    CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eNone, true) == State::Sending);
+    CHECK_FALSE(MessageStatus::inlineStateForLogStatus(LogMessage::eNone, false).has_value());
+    CHECK_FALSE(MessageStatus::inlineStateForLogStatus(LogMessage::eDefault, false).has_value());
+    CHECK_FALSE(MessageStatus::inlineStateForLogStatus(LogMessage::eDeleted, false).has_value());
+    CHECK_FALSE(MessageStatus::inlineStateForLogStatus(LogMessage::eUnread, false).has_value());
+
+    CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eHeard, false) == State::DirectImplicitAck);
+    CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eAcked, false) == State::ExplicitAck);
+    CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eNoResponse, false) == State::NoAck);
+    CHECK(MessageStatus::inlineStateForLogStatus(LogMessage::eFailed, false) == State::NoAck);
+}
