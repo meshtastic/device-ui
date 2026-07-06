@@ -1,13 +1,18 @@
 #pragma once
 
+#define FS_NO_GLOBALS
+
 #if defined(ARCH_PORTDUINO)
 #include "PortduinoFS.h"
 extern fs::FS &SDFs;
 
 #elif defined(HAS_SD_MMC)
-#include "SD_MMC.h" // TODO: replace by SdFat SDIO
+#include "SD_MMC.h"             // TODO: replace by SdFat SDIO
 extern fs::SDMMCFS &SDFs;
-
+#elif defined(SDCARD_SHARE_SPI) // share SPI instance with main project
+#include "SD.h"
+#include <stdint.h>
+extern fs::SDFS &SDFs;
 #elif defined(HAS_SDCARD)
 #include "SdFat.h"
 extern SdFs SDFs;
@@ -60,7 +65,7 @@ class ISdCard
     bool updated = false;
 };
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
 class SDCard : public ISdCard
 {
   public:
