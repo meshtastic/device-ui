@@ -30,7 +30,11 @@ class LGFX_Touch : public lgfx::LGFX_Device
     {
         bool result = LGFX_Device::init_impl(use_reset, use_clear);
         if (chsc6xTouch == nullptr) {
+#if (TOUCH_I2C_PORT == 1)
             chsc6xTouch = new chsc6x(&Wire1, TOUCH_SDA_PIN, TOUCH_SCL_PIN, TOUCH_INT_PIN, TOUCH_RST_PIN);
+#else
+            chsc6xTouch = new chsc6x(&Wire, TOUCH_SDA_PIN, TOUCH_SCL_PIN, TOUCH_INT_PIN, TOUCH_RST_PIN);
+#endif
         }
         chsc6xTouch->chsc6x_init();
         return result;
@@ -68,9 +72,9 @@ class LGFX_Touch : public lgfx::LGFX_Device
 
     bool getTouchXY(uint16_t *touchX, uint16_t *touchY)
     {
-        uint16_t rwa_x, raw_y;
-        if (chsc6xTouch->chsc6x_read_touch_info(&rwa_x, &raw_y) == 0) {
-            rotate_touch_coord(rwa_x, raw_y, 0, touchX, touchY);
+        uint16_t raw_x, raw_y;
+        if (chsc6xTouch->chsc6x_read_touch_info(&raw_x, &raw_y) == 0) {
+            rotate_touch_coord(raw_x, raw_y, 0, touchX, touchY);
             return true;
         }
         return false;
@@ -103,19 +107,19 @@ class LGFX_HELTEC_V4_TFT : public lgfx::LGFX_Device
             auto cfg = _bus_instance.config();
 
             // SPI
-            cfg.spi_host = SPI3_HOST;
+            cfg.spi_host = ST7789_SPI_HOST;
             cfg.spi_mode = 0;
-            cfg.freq_write = 80000000; // SPI clock for transmission (up to 80MHz, rounded to
-                                       // the value obtained by dividing 80MHz by an integer)
-            cfg.freq_read = 16000000;  // SPI clock when receiving
-            cfg.spi_3wire = true;
+            cfg.freq_write = SPI_FREQUENCY;     // SPI clock for transmission (up to 80MHz, rounded to
+                                                // the value obtained by dividing 80MHz by an integer)
+            cfg.freq_read = SPI_READ_FREQUENCY; // SPI clock when receiving
+            cfg.spi_3wire = LGFX_SPI_3WIRE;
             cfg.use_lock = true;               // Set to true to use transaction locking
             cfg.dma_channel = SPI_DMA_CH_AUTO; // SPI_DMA_CH_AUTO; // Set DMA channel
                                                // to use (0=not use DMA / 1=1ch / 2=ch
                                                // / SPI_DMA_CH_AUTO=auto setting)
             cfg.pin_sclk = LGFX_PIN_SCK;       // Set SPI SCLK pin number
             cfg.pin_mosi = LGFX_PIN_MOSI;      // Set SPI MOSI pin number
-            cfg.pin_miso = -1;                 // Set SPI MISO pin number (-1 = disable)
+            cfg.pin_miso = LGFX_PIN_MISO;      // Set SPI MISO pin number (-1 = disable)
             cfg.pin_dc = LGFX_PIN_DC;          // Set SPI DC pin number (-1 = disable)
 
             _bus_instance.config(cfg);              // applies the set value to the bus.
@@ -144,7 +148,7 @@ class LGFX_HELTEC_V4_TFT : public lgfx::LGFX_Device
             cfg.rgb_order = false;           // Set to true if the panel's red and blue are swapped
             cfg.dlen_16bit = false;          // Set to true for panels that transmit data length in 16-bit
                                              // units with 16-bit parallel or SPI
-            cfg.bus_shared = false;          // If the bus is shared with the SD card, set to
+            cfg.bus_shared = true;           // If the bus is shared with the SD card, set to
                                              // true (bus control with drawJpgFile etc.)
 
             // Set the following only when the display is shifted with a driver with a
@@ -159,8 +163,8 @@ class LGFX_HELTEC_V4_TFT : public lgfx::LGFX_Device
         {
             auto cfg = _light_instance.config(); // Gets a structure for backlight settings.
 
-            cfg.pin_bl = 21;    // Pin number to which the backlight is connected
-            cfg.invert = false; // true to invert the brightness of the backlight
+            cfg.pin_bl = LGFX_PIN_BL; // Pin number to which the backlight is connected
+            cfg.invert = false;       // true to invert the brightness of the backlight
             cfg.freq = 44100;
             cfg.pwm_channel = 7;
 

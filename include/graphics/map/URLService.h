@@ -4,7 +4,6 @@
 #include <functional>
 
 #ifdef ARDUINO_ARCH_ESP32
-#include "HTTPClient.h" // not available on Linux/Portduino
 
 class URLService : public ITileService
 {
@@ -16,7 +15,6 @@ class URLService : public ITileService
     virtual ~URLService();
 
   private:
-    HTTPClient http;
     Callback saveCB = nullptr;
 };
 
