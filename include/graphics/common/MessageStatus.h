@@ -35,6 +35,7 @@ struct Presentation {
 const Presentation &presentation(State state);
 State deliveredState(bool channelMessage, bool explicitAck);
 bool isImplicitDelivery(State state);
+State preserveImplicitDelivery(std::optional<State> pendingStatus, State fallbackStatus);
 LogMessage::MsgStatus logStatusForState(State state);
 uint32_t persistedLogState(State state);
 std::optional<State> stateFromPersistedLogState(uint32_t state);

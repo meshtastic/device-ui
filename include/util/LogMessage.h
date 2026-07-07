@@ -6,6 +6,12 @@
 #include <memory.h>
 
 constexpr uint32_t messagePayloadSize = 233;
+constexpr uint32_t maxLogMessagePayloadLength = messagePayloadSize - 1;
+
+constexpr bool fitsLogMessagePayload(size_t len)
+{
+    return len <= maxLogMessagePayloadLength;
+}
 
 /**
  * @brief Header for storing message logs containing the actual size of the payload
@@ -42,7 +48,7 @@ class LogMessageEnv : public LogMessage
     LogMessageEnv(uint32_t _from, uint32_t _to, uint16_t _ch, time_t _time, MsgStatus _status, bool _trashFlag, uint32_t _len,
                   const uint8_t *msg)
     {
-        assert(_len < messagePayloadSize);
+        assert(fitsLogMessagePayload(_len));
         _size = (uint16_t)_len;
         time = _time;
         from = _from;
@@ -64,7 +70,7 @@ class LogMessageEnv : public LogMessage
     virtual size_t deserialize(std::function<size_t(uint8_t *, size_t)> read) override
     {
         size_t len = read((uint8_t *)&_size, sizeof(LogMessageHeader) - 8);
-        if (len && _size < messagePayloadSize) {
+        if (len && fitsLogMessagePayload(_size)) {
             len += read(bytes, _size);
             bytes[_size] = 0;
         } else {

@@ -1,5 +1,6 @@
 #include "graphics/common/MessageStatus.h"
 #include <doctest/doctest.h>
+#include <optional>
 #include <string>
 
 using MessageStatus::State;
@@ -44,6 +45,11 @@ TEST_CASE("MessageStatus maps delivery context")
     CHECK(MessageStatus::isImplicitDelivery(State::DirectImplicitAck));
     CHECK_FALSE(MessageStatus::isImplicitDelivery(State::ExplicitAck));
     CHECK_FALSE(MessageStatus::isImplicitDelivery(State::NoAck));
+
+    CHECK(MessageStatus::preserveImplicitDelivery(State::ChannelImplicitAck, State::NoAck) == State::ChannelImplicitAck);
+    CHECK(MessageStatus::preserveImplicitDelivery(State::DirectImplicitAck, State::NoAck) == State::DirectImplicitAck);
+    CHECK(MessageStatus::preserveImplicitDelivery(State::ExplicitAck, State::NoAck) == State::NoAck);
+    CHECK(MessageStatus::preserveImplicitDelivery(std::nullopt, State::NoAck) == State::NoAck);
 }
 
 TEST_CASE("MessageStatus maps log status only when inline status is meaningful")

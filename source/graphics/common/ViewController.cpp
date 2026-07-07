@@ -475,7 +475,7 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, 
                                      const char *textmsg)
 {
     size_t msgLen = strlen(textmsg);
-    assert(msgLen <= (size_t)DATA_PAYLOAD_LEN);
+    assert(fitsLogMessagePayload(msgLen));
 
     if (send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen)) {
         // ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);

@@ -57,6 +57,13 @@ bool isImplicitDelivery(State state)
     return state == State::ChannelImplicitAck || state == State::DirectImplicitAck;
 }
 
+State preserveImplicitDelivery(std::optional<State> pendingStatus, State fallbackStatus)
+{
+    if (pendingStatus && isImplicitDelivery(*pendingStatus))
+        return *pendingStatus;
+    return fallbackStatus;
+}
+
 LogMessage::MsgStatus logStatusForState(State state)
 {
     switch (state) {

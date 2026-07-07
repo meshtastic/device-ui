@@ -4491,11 +4491,12 @@ void TFTView_320x240::handleAddMessage(char *msg)
     }
 
     // tweak to allow multiple lines in single line text area
-    for (int i = 0; i < strlen(msg); i++)
+    const size_t msgLen = strlen(msg);
+    for (size_t i = 0; i < msgLen; i++)
         if (msg[i] == CR_REPLACEMENT)
             msg[i] = '\n';
 
-    if (strlen(msg) > meshtastic_Constants_DATA_PAYLOAD_LEN) {
+    if (!fitsLogMessagePayload(msgLen)) {
         addMessage(activeMsgContainer, actTime, 0, msg, LogMessage::eFailed);
         handleTextMessageResponse(channelOrNode, 0, MessageStatus::State::MessageTooLarge);
         messageAlert(_(MessageStatus::presentation(MessageStatus::State::MessageTooLarge).text), true);
@@ -5300,10 +5301,8 @@ void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req,
                                   true);
     } else {
         ILOG_DEBUG("onTextMessageCallback: timeout!");
-        MessageStatus::State status = MessageStatus::State::NoAck;
-        const auto pendingStatus = controller->pendingTextMessageStatus(requestId);
-        if (pendingStatus && MessageStatus::isImplicitDelivery(*pendingStatus))
-            status = *pendingStatus;
+        const MessageStatus::State status = MessageStatus::preserveImplicitDelivery(
+            controller->pendingTextMessageStatus(requestId), MessageStatus::State::NoAck);
         handleTextMessageResponse((unsigned long)req.cookie, requestId, status, true);
     }
 }
@@ -5350,7 +5349,9 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             } else if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::State::NoAck, true);
+                const MessageStatus::State status = MessageStatus::preserveImplicitDelivery(
+                    controller->pendingTextMessageStatus(id), MessageStatus::State::NoAck);
+                handleTextMessageResponse((unsigned long)req.cookie, id, status, true);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
             if (req.type == ResponseHandler::PositionRequest) {
