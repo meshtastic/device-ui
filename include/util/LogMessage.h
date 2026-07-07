@@ -2,6 +2,7 @@
 
 #include "ILogEntry.h"
 #include <assert.h>
+#include <cstring>
 #include <ctime>
 #include <memory.h>
 
