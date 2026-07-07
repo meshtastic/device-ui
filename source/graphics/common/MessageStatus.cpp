@@ -14,6 +14,14 @@ constexpr Presentation genericEncryptedSendFailure{"Could not send encrypted mes
 constexpr Presentation recipientKeyUnavailable{"Recipient key unavailable", Tone::RetryableFailure, true};
 constexpr Presentation recipientNeedsSenderKey{"Recipient needs your key", Tone::RetryableFailure, true};
 constexpr Presentation messageTooLarge{"Message is too large to send", Tone::PermanentFailure, false};
+constexpr Presentation noRadioInterface{"No radio interface", Tone::RetryableFailure, true};
+constexpr Presentation dutyCycleLimit{"Duty cycle limit", Tone::RetryableFailure, true};
+constexpr Presentation rateLimited{"Rate limited", Tone::RetryableFailure, true};
+constexpr Presentation noAppResponse{"No app response", Tone::RetryableFailure, true};
+constexpr Presentation invalidRequest{"Invalid request", Tone::RetryableFailure, true};
+constexpr Presentation notAuthorized{"Not authorized", Tone::RetryableFailure, true};
+constexpr Presentation adminSessionExpired{"Admin session expired", Tone::RetryableFailure, true};
+constexpr Presentation adminKeyNotAuthorized{"Admin key not authorized", Tone::RetryableFailure, true};
 constexpr uint32_t persistedLogStateMagic = 0x4d535400; // "MST" + state byte
 constexpr uint32_t persistedLogStateMask = 0xffffff00;
 } // namespace
@@ -41,6 +49,22 @@ const Presentation &presentation(State state)
         return recipientNeedsSenderKey;
     case State::MessageTooLarge:
         return messageTooLarge;
+    case State::NoRadioInterface:
+        return noRadioInterface;
+    case State::DutyCycleLimit:
+        return dutyCycleLimit;
+    case State::RateLimited:
+        return rateLimited;
+    case State::NoAppResponse:
+        return noAppResponse;
+    case State::InvalidRequest:
+        return invalidRequest;
+    case State::NotAuthorized:
+        return notAuthorized;
+    case State::AdminSessionExpired:
+        return adminSessionExpired;
+    case State::AdminKeyNotAuthorized:
+        return adminKeyNotAuthorized;
     }
     return noAck;
 }
@@ -81,6 +105,14 @@ LogMessage::MsgStatus logStatusForState(State state)
     case State::RecipientKeyUnavailable:
     case State::RecipientNeedsSenderKey:
     case State::MessageTooLarge:
+    case State::NoRadioInterface:
+    case State::DutyCycleLimit:
+    case State::RateLimited:
+    case State::NoAppResponse:
+    case State::InvalidRequest:
+    case State::NotAuthorized:
+    case State::AdminSessionExpired:
+    case State::AdminKeyNotAuthorized:
         return LogMessage::eFailed;
     }
     return LogMessage::eFailed;
@@ -97,7 +129,7 @@ std::optional<State> stateFromPersistedLogState(uint32_t state)
         return std::nullopt;
 
     const uint32_t value = state & ~persistedLogStateMask;
-    if (value == 0 || value > static_cast<uint32_t>(State::MessageTooLarge) + 1)
+    if (value == 0 || value > static_cast<uint32_t>(State::AdminKeyNotAuthorized) + 1)
         return std::nullopt;
 
     return static_cast<State>(value - 1);

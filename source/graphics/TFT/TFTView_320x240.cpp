@@ -5291,18 +5291,16 @@ void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req,
     bool channelMessage = (unsigned long)req.cookie < c_max_channels;
     if (evt == ResponseHandler::found) {
         handleTextMessageResponse((unsigned long)req.cookie, requestId,
-                                  result ? MessageStatus::State::NoAck
-                                         : MessageStatus::deliveredState(channelMessage, false),
+                                  result ? MessageStatus::State::NoAck : MessageStatus::deliveredState(channelMessage, false),
                                   false);
     } else if (evt == ResponseHandler::removed) {
         handleTextMessageResponse((unsigned long)req.cookie, requestId,
-                                  result ? MessageStatus::State::NoAck
-                                         : MessageStatus::deliveredState(channelMessage, true),
+                                  result ? MessageStatus::State::NoAck : MessageStatus::deliveredState(channelMessage, true),
                                   true);
     } else {
         ILOG_DEBUG("onTextMessageCallback: timeout!");
-        const MessageStatus::State status = MessageStatus::preserveImplicitDelivery(
-            controller->pendingTextMessageStatus(requestId), MessageStatus::State::NoAck);
+        const MessageStatus::State status =
+            MessageStatus::preserveImplicitDelivery(controller->pendingTextMessageStatus(requestId), MessageStatus::State::NoAck);
         handleTextMessageResponse((unsigned long)req.cookie, requestId, status, true);
     }
 }
@@ -5353,10 +5351,8 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
                     controller->pendingTextMessageStatus(id), MessageStatus::State::NoAck);
                 handleTextMessageResponse((unsigned long)req.cookie, id, status, true);
             }
-        } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
-            if (req.type == ResponseHandler::PositionRequest) {
-                handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
-            }
+        } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE && req.type == ResponseHandler::PositionRequest) {
+            handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
         } else if (routing.error_reason == meshtastic_Routing_Error_TOO_LARGE) {
             if (!ack)
                 req = requests.removeRequest(id);
@@ -5365,22 +5361,50 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL ||
                    routing.error_reason == meshtastic_Routing_Error_NO_INTERFACE ||
+                   routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE ||
+                   routing.error_reason == meshtastic_Routing_Error_DUTY_CYCLE_LIMIT ||
+                   routing.error_reason == meshtastic_Routing_Error_RATE_LIMIT_EXCEEDED ||
+                   routing.error_reason == meshtastic_Routing_Error_BAD_REQUEST ||
+                   routing.error_reason == meshtastic_Routing_Error_NOT_AUTHORIZED ||
                    routing.error_reason == meshtastic_Routing_Error_PKI_FAILED ||
                    routing.error_reason == meshtastic_Routing_Error_PKI_SEND_FAIL_PUBLIC_KEY ||
-                   routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY) {
+                   routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY ||
+                   routing.error_reason == meshtastic_Routing_Error_ADMIN_BAD_SESSION_KEY ||
+                   routing.error_reason == meshtastic_Routing_Error_ADMIN_PUBLIC_KEY_UNAUTHORIZED) {
             if (!ack)
                 req = requests.removeRequest(id);
             if (req.type == ResponseHandler::TextMessageRequest) {
                 MessageStatus::State status = MessageStatus::State::NoChannel;
+                if (routing.error_reason == meshtastic_Routing_Error_NO_INTERFACE)
+                    status = MessageStatus::State::NoRadioInterface;
+                if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE)
+                    status = MessageStatus::State::NoAppResponse;
+                if (routing.error_reason == meshtastic_Routing_Error_DUTY_CYCLE_LIMIT)
+                    status = MessageStatus::State::DutyCycleLimit;
+                if (routing.error_reason == meshtastic_Routing_Error_RATE_LIMIT_EXCEEDED)
+                    status = MessageStatus::State::RateLimited;
+                if (routing.error_reason == meshtastic_Routing_Error_BAD_REQUEST)
+                    status = MessageStatus::State::InvalidRequest;
+                if (routing.error_reason == meshtastic_Routing_Error_NOT_AUTHORIZED)
+                    status = MessageStatus::State::NotAuthorized;
                 if (routing.error_reason == meshtastic_Routing_Error_PKI_FAILED)
                     status = MessageStatus::State::GenericEncryptedSendFailure;
                 if (routing.error_reason == meshtastic_Routing_Error_PKI_SEND_FAIL_PUBLIC_KEY)
                     status = MessageStatus::State::RecipientKeyUnavailable;
                 if (routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY)
                     status = MessageStatus::State::RecipientNeedsSenderKey;
+                if (routing.error_reason == meshtastic_Routing_Error_ADMIN_BAD_SESSION_KEY)
+                    status = MessageStatus::State::AdminSessionExpired;
+                if (routing.error_reason == meshtastic_Routing_Error_ADMIN_PUBLIC_KEY_UNAUTHORIZED)
+                    status = MessageStatus::State::AdminKeyNotAuthorized;
                 handleTextMessageResponse((unsigned long)req.cookie, id, status, true);
                 // we probably have a wrong key; mark it as bad and don't use in future
-                if (nodes.find(from) != nodes.end() && (unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
+                const bool keyMismatch = routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL ||
+                                         routing.error_reason == meshtastic_Routing_Error_PKI_FAILED ||
+                                         routing.error_reason == meshtastic_Routing_Error_PKI_SEND_FAIL_PUBLIC_KEY ||
+                                         routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY;
+                if (keyMismatch && nodes.find(from) != nodes.end() &&
+                    (unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
                     ILOG_DEBUG("public key mismatch");
                     nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
                     lv_obj_set_style_border_color(nodes[from]->LV_OBJ_IDX(node_img_idx), colorRed,
@@ -5823,8 +5847,7 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
             if (panel->spec_attr->child_cnt > 1) {
                 lv_obj_t *statusLabel = panel->spec_attr->children[1];
                 lv_label_set_text(statusLabel, _(messageStatus.text));
-                lv_obj_set_style_text_color(statusLabel, messageStatusColor(messageStatus.tone),
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_text_color(statusLabel, messageStatusColor(messageStatus.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
             }
 
             break;

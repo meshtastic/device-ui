@@ -1,7 +1,7 @@
 #include "graphics/common/ViewController.h"
 #include "assert.h"
-#include "graphics/common/MessageStatus.h"
 #include "graphics/common/MeshtasticView.h"
+#include "graphics/common/MessageStatus.h"
 #include "util/ILog.h"
 #include "util/LogMessage.h"
 #include <algorithm>
@@ -480,8 +480,7 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, 
     if (send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen)) {
         // ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);
         LogRotate::EntryPosition position;
-        if (log.write(LogMessageEnv(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen,
-                                    (const uint8_t *)textmsg),
+        if (log.write(LogMessageEnv(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen, (const uint8_t *)textmsg),
                       &position) &&
             requestId != 0) {
             PendingTextMessage pending{};
@@ -499,13 +498,11 @@ bool ViewController::updateTextMessageStatus(uint32_t requestId, MessageStatus::
 
     PendingTextMessage &pending = pendingIt->second;
     LogMessageEnv msg;
-    const bool updated = log.update(
-        pending.logPosition, msg,
-        [status](ILogEntry &entry) {
-            LogMessage &candidate = static_cast<LogMessage &>(entry);
-            candidate.status = MessageStatus::logStatusForState(status);
-            candidate.reserved = MessageStatus::persistedLogState(status);
-        });
+    const bool updated = log.update(pending.logPosition, msg, [status](ILogEntry &entry) {
+        LogMessage &candidate = static_cast<LogMessage &>(entry);
+        candidate.status = MessageStatus::logStatusForState(status);
+        candidate.reserved = MessageStatus::persistedLogState(status);
+    });
 
     if (!updated) {
         ILOG_WARN("failed to persist text message status for request id 0x%08x", requestId);
@@ -1081,20 +1078,19 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                 case meshtastic_Routing_Error_MAX_RETRANSMIT:
                     view->handleResponse(p.from, p.decoded.request_id, routing, p);
                     break;
-                case meshtastic_Routing_Error_NO_RESPONSE:
-                    ILOG_DEBUG("Routing error: no response");
-                    // this response is sent by the other node when position is not availble
-                    // however, it contains valid rssi/snr, so use these
-                    view->handlePositionResponse(p.from, p.decoded.request_id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
-                    break;
                 case meshtastic_Routing_Error_NO_INTERFACE:
                 case meshtastic_Routing_Error_NO_CHANNEL:
-                    // invalid channel or interface
+                case meshtastic_Routing_Error_NO_RESPONSE:
+                case meshtastic_Routing_Error_DUTY_CYCLE_LIMIT:
+                case meshtastic_Routing_Error_RATE_LIMIT_EXCEEDED:
                 case meshtastic_Routing_Error_TOO_LARGE:
+                case meshtastic_Routing_Error_BAD_REQUEST:
+                case meshtastic_Routing_Error_NOT_AUTHORIZED:
                 case meshtastic_Routing_Error_PKI_FAILED:
                 case meshtastic_Routing_Error_PKI_SEND_FAIL_PUBLIC_KEY:
                 case meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY:
-                    // this response is sent by the other node when encryption keys differ (outdated)
+                case meshtastic_Routing_Error_ADMIN_BAD_SESSION_KEY:
+                case meshtastic_Routing_Error_ADMIN_PUBLIC_KEY_UNAUTHORIZED:
                     view->handleResponse(p.from, p.decoded.request_id, routing, p);
                     break;
                 default:

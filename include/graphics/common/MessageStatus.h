@@ -16,6 +16,14 @@ enum class State {
     RecipientKeyUnavailable,
     RecipientNeedsSenderKey,
     MessageTooLarge,
+    NoRadioInterface,
+    DutyCycleLimit,
+    RateLimited,
+    NoAppResponse,
+    InvalidRequest,
+    NotAuthorized,
+    AdminSessionExpired,
+    AdminKeyNotAuthorized,
 };
 
 enum class Tone {
