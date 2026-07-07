@@ -131,8 +131,7 @@ bool LogRotate::update(const EntryPosition &position, ILogEntry &entry, std::fun
         return false;
     }
 
-    if (!file.seek(position.offset) ||
-        !entry.deserialize([&file](uint8_t *buf, size_t size) { return file.read(buf, size); })) {
+    if (!file.seek(position.offset) || !entry.deserialize([&file](uint8_t *buf, size_t size) { return file.read(buf, size); })) {
         file.close();
         return false;
     }
