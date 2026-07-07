@@ -1,5 +1,4 @@
 #include "graphics/common/ViewController.h"
-#include "assert.h"
 #include "graphics/common/MeshtasticView.h"
 #include "graphics/common/MessageStatus.h"
 #include "util/ILog.h"
@@ -475,7 +474,10 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, 
                                      const char *textmsg)
 {
     size_t msgLen = strlen(textmsg);
-    assert(fitsLogMessagePayload(msgLen));
+    if (!fitsLogMessagePayload(msgLen)) {
+        ILOG_WARN("text message payload too large to persist: %u bytes", (unsigned)msgLen);
+        return;
+    }
 
     if (send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen)) {
         // ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);

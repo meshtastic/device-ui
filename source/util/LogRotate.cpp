@@ -88,31 +88,38 @@ bool LogRotate::write(const ILogEntry &entry)
 
 bool LogRotate::write(const ILogEntry &entry, EntryPosition *position)
 {
-    time_t start = millis();
-    if (currentSize + entry.size() >= c_maxFileSize || totalSize + entry.size() >= c_maxSize) {
+    const size_t entrySize = entry.size();
+    if (currentSize + entrySize >= c_maxFileSize || totalSize + entrySize >= c_maxSize) {
         // log rotation
-        ILOG_DEBUG("LogRotation: %d >= %d || %d >= %d", currentSize + entry.size(), c_maxFileSize, totalSize + entry.size(),
-                   c_maxSize);
+        ILOG_DEBUG("LogRotation: %d >= %d || %d >= %d", currentSize + entrySize, c_maxFileSize, totalSize + entrySize, c_maxSize);
         numFiles++;
         currentSize = 0;
         currentLogWrite++;
         currentLogName = logFileName(currentLogWrite);
-        while ((numFiles >= c_maxFiles || totalSize + entry.size() > c_maxSize) && removeLog())
+        while ((numFiles >= c_maxFiles || totalSize + entrySize > c_maxSize) && removeLog())
             ;
-    }
-
-    if (position) {
-        position->logNum = currentLogWrite;
-        position->offset = currentSize;
     }
 
     // elegant way to let the logentry do its work it knows best and pass just a temporary function for writing
     File file = _fs.open(currentLogName, FILE_APPEND);
-    entry.serialize([&file](const uint8_t *buf, size_t size) { return file.write(buf, size); });
-    file.close();
+    if (!file) {
+        ILOG_WARN("failed to open %s for append", currentLogName.c_str());
+        return false;
+    }
 
-    currentSize += entry.size();
-    totalSize += entry.size();
+    const EntryPosition writtenPosition{currentLogWrite, currentSize};
+    const size_t written = entry.serialize([&file](const uint8_t *buf, size_t size) { return file.write(buf, size); });
+    file.close();
+    if (written != entrySize) {
+        ILOG_WARN("failed to append complete log entry to %s", currentLogName.c_str());
+        return false;
+    }
+
+    if (position)
+        *position = writtenPosition;
+
+    currentSize += entrySize;
+    totalSize += entrySize;
 
     // ILOG_DEBUG("LogRotate: %d bytes written in %d ms to %s (%d/%d bytes, total: %d)", entry.size(), millis() - start,
     //            currentLogName.c_str(), currentSize, c_maxFileSize, totalSize);

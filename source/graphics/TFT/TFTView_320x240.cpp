@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <iomanip>
 #include <list>
@@ -4497,7 +4498,11 @@ void TFTView_320x240::handleAddMessage(char *msg)
             msg[i] = '\n';
 
     if (!fitsLogMessagePayload(msgLen)) {
-        addMessage(activeMsgContainer, actTime, 0, msg, LogMessage::eFailed);
+        char displayMsg[maxLogMessagePayloadLength + 1];
+        const size_t displayLen = std::min(msgLen, static_cast<size_t>(maxLogMessagePayloadLength));
+        memcpy(displayMsg, msg, displayLen);
+        displayMsg[displayLen] = '\0';
+        addMessage(activeMsgContainer, actTime, 0, displayMsg, LogMessage::eFailed);
         handleTextMessageResponse(channelOrNode, 0, MessageStatus::State::MessageTooLarge);
         messageAlert(_(MessageStatus::presentation(MessageStatus::State::MessageTooLarge).text), true);
         return;
