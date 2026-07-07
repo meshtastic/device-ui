@@ -14,7 +14,7 @@ TEST_CASE("MessageStatus canonical inline text")
           std::string("Relayed, not confirmed by recipient"));
     CHECK(MessageStatus::presentation(State::ExplicitAck).text == std::string("Delivered to recipient"));
     CHECK(MessageStatus::presentation(State::NoAck).text == std::string("Failed to deliver to mesh"));
-    CHECK(MessageStatus::presentation(State::NoChannel).text == std::string("No channel selected"));
+    CHECK(MessageStatus::presentation(State::NoChannel).text == std::string("Channel/key mismatch"));
     CHECK(MessageStatus::presentation(State::GenericEncryptedSendFailure).text ==
           std::string("Could not send encrypted message"));
     CHECK(MessageStatus::presentation(State::RecipientKeyUnavailable).text == std::string("Recipient key unavailable"));

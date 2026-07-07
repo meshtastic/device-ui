@@ -9,7 +9,7 @@ constexpr Presentation channelImplicitAck{"Delivered to mesh", Tone::Success, fa
 constexpr Presentation directImplicitAck{"Relayed, not confirmed by recipient", Tone::Warning, true};
 constexpr Presentation explicitAck{"Delivered to recipient", Tone::Success, false};
 constexpr Presentation noAck{"Failed to deliver to mesh", Tone::RetryableFailure, true};
-constexpr Presentation noChannel{"No channel selected", Tone::RetryableFailure, true};
+constexpr Presentation noChannel{"Channel/key mismatch", Tone::RetryableFailure, true};
 constexpr Presentation genericEncryptedSendFailure{"Could not send encrypted message", Tone::RetryableFailure, true};
 constexpr Presentation recipientKeyUnavailable{"Recipient key unavailable", Tone::RetryableFailure, true};
 constexpr Presentation recipientNeedsSenderKey{"Recipient needs your key", Tone::RetryableFailure, true};
