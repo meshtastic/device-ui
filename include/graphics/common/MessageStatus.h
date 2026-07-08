@@ -36,6 +36,7 @@ enum class Tone {
 
 struct Presentation {
     const char *text;
+    const char *detail;
     Tone tone;
     bool retryable;
 };

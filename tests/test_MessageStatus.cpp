@@ -53,6 +53,22 @@ TEST_CASE("MessageStatus distinguishes retryable and permanent failures")
     CHECK(MessageStatus::presentation(State::MessageTooLarge).tone == Tone::PermanentFailure);
 }
 
+TEST_CASE("MessageStatus provides detail text for statuses that can open a popup")
+{
+    CHECK(MessageStatus::presentation(State::Sending).detail == nullptr);
+    CHECK(MessageStatus::presentation(State::ExplicitAck).detail == nullptr);
+
+    CHECK(MessageStatus::presentation(State::DirectImplicitAck).detail ==
+          std::string("A node relayed this message, but the recipient has not confirmed it."));
+    CHECK(MessageStatus::presentation(State::NoAck).detail ==
+          std::string("No node confirmed this message. Try again when you have better signal or more mesh coverage."));
+    CHECK(MessageStatus::presentation(State::NoChannel).detail ==
+          std::string("The sender or recipient could not use a matching channel/key for this message."));
+    CHECK(MessageStatus::presentation(State::RecipientKeyUnavailable).detail ==
+          std::string("Your node does not have the recipient's public key yet. Wait for node info to sync, then try again."));
+    CHECK(MessageStatus::presentation(State::MessageTooLarge).detail == std::string("Shorten the message and send it again."));
+}
+
 TEST_CASE("MessageStatus maps delivery context")
 {
     CHECK(MessageStatus::deliveredState(true, false) == State::ChannelImplicitAck);

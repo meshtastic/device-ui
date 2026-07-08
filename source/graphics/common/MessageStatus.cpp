@@ -4,24 +4,48 @@ namespace MessageStatus
 {
 namespace
 {
-constexpr Presentation sending{"Sending...", Tone::Pending, false};
-constexpr Presentation channelImplicitAck{"Delivered to mesh", Tone::Success, false};
-constexpr Presentation directImplicitAck{"Relayed, not confirmed by recipient", Tone::Warning, true};
-constexpr Presentation explicitAck{"Delivered to recipient", Tone::Success, false};
-constexpr Presentation noAck{"Failed to deliver to mesh", Tone::RetryableFailure, true};
-constexpr Presentation noChannel{"Channel/key mismatch", Tone::RetryableFailure, true};
-constexpr Presentation genericEncryptedSendFailure{"Could not send encrypted message", Tone::RetryableFailure, true};
-constexpr Presentation recipientKeyUnavailable{"Recipient key unavailable", Tone::RetryableFailure, true};
-constexpr Presentation recipientNeedsSenderKey{"Recipient needs your key", Tone::RetryableFailure, true};
-constexpr Presentation messageTooLarge{"Message is too large to send", Tone::PermanentFailure, false};
-constexpr Presentation noRadioInterface{"No radio interface", Tone::RetryableFailure, true};
-constexpr Presentation dutyCycleLimit{"Duty cycle limit", Tone::RetryableFailure, true};
-constexpr Presentation rateLimited{"Rate limited", Tone::RetryableFailure, true};
-constexpr Presentation noAppResponse{"No app response", Tone::RetryableFailure, true};
-constexpr Presentation invalidRequest{"Invalid request", Tone::RetryableFailure, true};
-constexpr Presentation notAuthorized{"Not authorized", Tone::RetryableFailure, true};
-constexpr Presentation adminSessionExpired{"Admin session expired", Tone::RetryableFailure, true};
-constexpr Presentation adminKeyNotAuthorized{"Admin key not authorized", Tone::RetryableFailure, true};
+constexpr Presentation sending{"Sending...", nullptr, Tone::Pending, false};
+constexpr Presentation channelImplicitAck{"Delivered to mesh", nullptr, Tone::Success, false};
+constexpr Presentation directImplicitAck{"Relayed, not confirmed by recipient",
+                                         "A node relayed this message, but the recipient has not confirmed it.", Tone::Warning,
+                                         true};
+constexpr Presentation explicitAck{"Delivered to recipient", nullptr, Tone::Success, false};
+constexpr Presentation noAck{"Failed to deliver to mesh",
+                             "No node confirmed this message. Try again when you have better signal or more mesh coverage.",
+                             Tone::RetryableFailure, true};
+constexpr Presentation noChannel{"Channel/key mismatch",
+                                 "The sender or recipient could not use a matching channel/key for this message.",
+                                 Tone::RetryableFailure, true};
+constexpr Presentation genericEncryptedSendFailure{"Could not send encrypted message",
+                                                   "The radio could not send this as an encrypted message. Wait for key info "
+                                                   "to sync, then try again.",
+                                                   Tone::RetryableFailure, true};
+constexpr Presentation recipientKeyUnavailable{
+    "Recipient key unavailable",
+    "Your node does not have the recipient's public key yet. Wait for node info to sync, then try again.", Tone::RetryableFailure,
+    true};
+constexpr Presentation recipientNeedsSenderKey{
+    "Recipient needs your key",
+    "The recipient does not know your public key yet. Your node may share its info automatically; try again after it syncs.",
+    Tone::RetryableFailure, true};
+constexpr Presentation messageTooLarge{"Message is too large to send", "Shorten the message and send it again.",
+                                       Tone::PermanentFailure, false};
+constexpr Presentation noRadioInterface{"No radio interface", "No usable radio interface was available to transmit this message.",
+                                        Tone::RetryableFailure, true};
+constexpr Presentation dutyCycleLimit{"Duty cycle limit", "The radio hit its airtime duty-cycle limit. Try again later.",
+                                      Tone::RetryableFailure, true};
+constexpr Presentation rateLimited{"Rate limited",
+                                   "The app sent too quickly and the radio rate limited this request. Try again shortly.",
+                                   Tone::RetryableFailure, true};
+constexpr Presentation noAppResponse{"No app response", "The destination received the request, but no app or module responded.",
+                                     Tone::RetryableFailure, true};
+constexpr Presentation invalidRequest{"Invalid request", "The destination rejected this message request as invalid.",
+                                      Tone::RetryableFailure, true};
+constexpr Presentation notAuthorized{"Not authorized", "The destination refused this request.", Tone::RetryableFailure, true};
+constexpr Presentation adminSessionExpired{"Admin session expired", "The admin session expired. Try the request again.",
+                                           Tone::RetryableFailure, true};
+constexpr Presentation adminKeyNotAuthorized{"Admin key not authorized", "The destination refused this admin key.",
+                                             Tone::RetryableFailure, true};
 constexpr uint32_t persistedLogStateMagic = 0x4d535400; // "MST" + state byte
 constexpr uint32_t persistedLogStateMask = 0xffffff00;
 } // namespace

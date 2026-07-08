@@ -288,6 +288,11 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ChatButton(lv_event_t *e);
     static void ui_event_ChatDelButton(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
+    static void ui_event_MessageStatus(lv_event_t *e);
+    static void ui_event_MessageStatusClose(lv_event_t *e);
+    static void ui_event_MessageStatusRetry(lv_event_t *e);
+    static void ui_event_MessageStatusDialogDelete(lv_event_t *e);
+    static void ui_event_SentMessageDelete(lv_event_t *e);
     static void ui_event_MsgRestoreButton(lv_event_t *e);
     static void ui_event_AlertButton(lv_event_t *e);
 

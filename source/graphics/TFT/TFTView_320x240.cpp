@@ -31,6 +31,7 @@
 #include <locale>
 #include <random>
 #include <sstream>
+#include <string>
 #include <time.h>
 
 #if defined(ARCH_PORTDUINO)
@@ -100,6 +101,22 @@ static lv_color_t messageStatusColor(MessageStatus::Tone tone)
         return colorRed;
     }
     return colorLightGray;
+}
+
+struct SentMessageContext {
+    uint32_t requestId;
+    MessageStatus::State status;
+    std::string text;
+};
+
+struct MessageStatusDialogContext {
+    MessageStatus::State status;
+    std::string text;
+};
+
+static bool hasMessageStatusDetails(const MessageStatus::Presentation &status)
+{
+    return status.detail != nullptr && status.detail[0] != '\0';
 }
 
 // children index of nodepanel lv objects (see addNode)
@@ -1298,6 +1315,139 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
             THIS->showMessages(nodeNum);
         }
     }
+}
+
+void TFTView_320x240::ui_event_MessageStatus(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        return;
+
+    auto *message = static_cast<SentMessageContext *>(lv_event_get_user_data(e));
+    if (message == nullptr)
+        return;
+
+    const MessageStatus::Presentation &status = MessageStatus::presentation(message->status);
+    if (!hasMessageStatusDetails(status))
+        return;
+
+    if (THIS->activeWidget != nullptr) {
+        lv_obj_delete(THIS->activeWidget);
+        THIS->activeWidget = nullptr;
+    }
+
+    auto *dialog = new MessageStatusDialogContext{message->status, message->text};
+
+    lv_obj_t *panel = lv_obj_create(objects.main_screen);
+    THIS->activeWidget = panel;
+    lv_obj_set_pos(panel, 20, 32);
+    lv_obj_set_size(panel, 280, 170);
+    lv_obj_clear_flag(panel, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_layout(panel, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(panel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_left(panel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(panel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(panel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(panel, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(panel, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(panel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(panel, messageStatusColor(status.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(panel, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(panel, ui_event_MessageStatusDialogDelete, LV_EVENT_DELETE, dialog);
+
+    lv_obj_t *title = lv_label_create(panel);
+    lv_obj_set_width(title, LV_PCT(100));
+    lv_label_set_long_mode(title, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(title, _(status.text));
+    lv_obj_set_style_text_color(title, messageStatusColor(status.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(title, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *detail = lv_label_create(panel);
+    lv_obj_set_width(detail, LV_PCT(100));
+    lv_obj_set_height(detail, 64);
+    lv_label_set_long_mode(detail, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(detail, _(status.detail));
+    lv_obj_set_style_text_color(detail, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(detail, &ui_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(detail, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *actions = lv_obj_create(panel);
+    lv_obj_remove_style_all(actions);
+    lv_obj_set_width(actions, LV_PCT(100));
+    lv_obj_set_height(actions, 36);
+    lv_obj_set_layout(actions, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(actions, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(actions, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_column(actions, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    if (status.retryable) {
+        lv_obj_t *retry = lv_btn_create(actions);
+        lv_obj_set_size(retry, 88, 32);
+        lv_obj_set_style_bg_color(retry, colorBlue, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_shadow_width(retry, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_radius(retry, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_add_event_cb(retry, ui_event_MessageStatusRetry, LV_EVENT_CLICKED, dialog);
+
+        lv_obj_t *retryLabel = lv_label_create(retry);
+        lv_label_set_text(retryLabel, _("Retry"));
+        lv_obj_center(retryLabel);
+    }
+
+    lv_obj_t *close = lv_btn_create(actions);
+    lv_obj_set_size(close, 88, 32);
+    lv_obj_set_style_bg_color(close, colorBlue, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(close, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(close, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(close, ui_event_MessageStatusClose, LV_EVENT_CLICKED, nullptr);
+
+    lv_obj_t *closeLabel = lv_label_create(close);
+    lv_label_set_text(closeLabel, _("Close"));
+    lv_obj_center(closeLabel);
+}
+
+void TFTView_320x240::ui_event_MessageStatusClose(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        return;
+
+    if (THIS->activeWidget != nullptr) {
+        lv_obj_delete(THIS->activeWidget);
+        THIS->activeWidget = nullptr;
+    }
+}
+
+void TFTView_320x240::ui_event_MessageStatusRetry(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        return;
+
+    auto *dialog = static_cast<MessageStatusDialogContext *>(lv_event_get_user_data(e));
+    if (dialog == nullptr)
+        return;
+
+    std::string retryText = dialog->text;
+    if (THIS->activeWidget != nullptr) {
+        lv_obj_delete(THIS->activeWidget);
+        THIS->activeWidget = nullptr;
+    }
+
+    char buf[maxLogMessagePayloadLength + 1];
+    snprintf(buf, sizeof(buf), "%s", retryText.c_str());
+    THIS->handleAddMessage(buf);
+}
+
+void TFTView_320x240::ui_event_MessageStatusDialogDelete(lv_event_t *e)
+{
+    if (lv_event_get_target_obj(e) == THIS->activeWidget)
+        THIS->activeWidget = nullptr;
+    delete static_cast<MessageStatusDialogContext *>(lv_event_get_user_data(e));
+}
+
+void TFTView_320x240::ui_event_SentMessageDelete(lv_event_t *e)
+{
+    delete static_cast<SentMessageContext *>(lv_event_get_user_data(e));
 }
 
 /**
@@ -4502,8 +4652,8 @@ void TFTView_320x240::handleAddMessage(char *msg)
         const size_t displayLen = std::min(msgLen, static_cast<size_t>(maxLogMessagePayloadLength));
         memcpy(displayMsg, msg, displayLen);
         displayMsg[displayLen] = '\0';
-        addMessage(activeMsgContainer, actTime, 0, displayMsg, LogMessage::eFailed);
-        handleTextMessageResponse(channelOrNode, 0, MessageStatus::State::MessageTooLarge);
+        addMessage(activeMsgContainer, actTime, 0, displayMsg, LogMessage::eFailed,
+                   MessageStatus::persistedLogState(MessageStatus::State::MessageTooLarge));
         messageAlert(_(MessageStatus::presentation(MessageStatus::State::MessageTooLarge).text), true);
         return;
     }
@@ -4540,7 +4690,13 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_style_pad_right(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     hiddenPanel->user_data = (void *)requestId;
+
+    const auto messageState = MessageStatus::inlineStateForLogStatus(status, persistedStatus, requestId != 0);
+    auto *messageContext =
+        new SentMessageContext{requestId, messageState.value_or(MessageStatus::State::Sending), std::string(msg)};
+    lv_obj_add_event_cb(hiddenPanel, ui_event_SentMessageDelete, LV_EVENT_DELETE, messageContext);
 
     // add timestamp
     char buf[284]; // 237 + 4 + 40 + 2 + 1
@@ -4558,15 +4714,21 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_label_set_text(textLabel, buf);
 
     add_style_chat_message_style(textLabel);
+    textLabel->user_data = messageContext;
+    lv_obj_add_flag(textLabel, lv_obj_flag_t(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE));
+    lv_obj_add_event_cb(textLabel, ui_event_MessageStatus, LV_EVENT_CLICKED, messageContext);
 
-    const auto messageState = MessageStatus::inlineStateForLogStatus(status, persistedStatus, requestId != 0);
     if (messageState.has_value()) {
         lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
         lv_obj_set_width(statusLabel, 200);
         lv_label_set_long_mode(statusLabel, LV_LABEL_LONG_WRAP);
         lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_font(statusLabel, &ui_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_top(statusLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(statusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_top(statusLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_bottom(statusLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        statusLabel->user_data = messageContext;
+        lv_obj_add_flag(statusLabel, lv_obj_flag_t(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE));
+        lv_obj_add_event_cb(statusLabel, ui_event_MessageStatus, LV_EVENT_CLICKED, messageContext);
         const MessageStatus::Presentation &messageStatus = MessageStatus::presentation(*messageState);
         lv_label_set_text(statusLabel, _(messageStatus.text));
         lv_obj_set_style_text_color(statusLabel, messageStatusColor(messageStatus.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -5847,6 +6009,9 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
 
             // now give the textlabel border another color
             lv_obj_t *textLabel = panel->spec_attr->children[0];
+            auto *messageContext = static_cast<SentMessageContext *>(textLabel->user_data);
+            if (messageContext != nullptr)
+                messageContext->status = status;
             lv_obj_set_style_border_color(textLabel, messageStatusColor(messageStatus.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
 
             if (panel->spec_attr->child_cnt > 1) {
