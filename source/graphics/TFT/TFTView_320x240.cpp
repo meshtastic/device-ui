@@ -11,6 +11,8 @@
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
+#include "graphics/view/TFT/PacketAuthPolicy.h"
+#include "graphics/view/TFT/PacketAuthUI.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
@@ -83,6 +85,29 @@ constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xAAFBFF);
 constexpr lv_color_t colorMidGray = LV_COLOR_HEX(0x808080);
 constexpr lv_color_t colorDarkGray = LV_COLOR_HEX(0x303030);
 constexpr lv_color_t colorMesh = LV_COLOR_HEX(0x67ea94);
+
+namespace
+{
+const char *packetAuthLabel(PacketAuthPolicy::Selection policy)
+{
+    switch (policy) {
+    case PacketAuthPolicy::Selection::Compatible:
+        return _("Compatible");
+    case PacketAuthPolicy::Selection::Strict:
+        return _("Strict");
+    case PacketAuthPolicy::Selection::Balanced:
+    default:
+        return _("Balanced");
+    }
+}
+
+void setPacketAuthButtonLabel(PacketAuthPolicy::Selection policy)
+{
+    char label[48];
+    lv_snprintf(label, sizeof(label), _("Packet authenticity: %s"), packetAuthLabel(policy));
+    lv_label_set_text(ui_PacketAuthLabel, label);
+}
+} // namespace
 
 // children index of nodepanel lv objects (see addNode)
 enum NodePanelIdx {
@@ -776,6 +801,10 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_channel_button, ui_event_channel_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_timeout_button, ui_event_timeout_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_screen_lock_button, ui_event_screen_lock_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(ui_PacketAuthButton, ui_event_packet_auth_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(ui_PacketAuthDropdown, ui_event_packet_auth_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_PacketAuthOkButton, ui_event_packet_auth_ok, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(ui_PacketAuthCancelButton, ui_event_packet_auth_cancel, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_brightness_button, ui_event_brightness_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_theme_button, ui_event_theme_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_calibration_button, ui_event_calibration_button, LV_EVENT_CLICKED, NULL);
@@ -1909,6 +1938,119 @@ void TFTView_320x240::ui_event_screen_lock_button(lv_event_t *e)
         THIS->disablePanel(objects.controller_panel);
         THIS->disablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eScreenLock;
+    }
+}
+
+void TFTView_320x240::ui_event_packet_auth_button(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != eNone || !THIS->hasXeddsa ||
+        !THIS->db.config.has_security || THIS->state == MeshtasticView::eDisconnected) {
+        return;
+    }
+
+    PacketAuthPolicy::Selection policy = PacketAuthPolicy::fromWireValue(THIS->db.config.security.packet_signature_policy);
+    lv_dropdown_set_selected(ui_PacketAuthDropdown, PacketAuthPolicy::toWireValue(policy));
+    THIS->strictConfirmationPending = false;
+    lv_label_set_text(ui_PacketAuthOkLabel, _("Save"));
+    lv_obj_add_flag(ui_PacketAuthWarning, LV_OBJ_FLAG_HIDDEN);
+    ui_event_packet_auth_dropdown(e);
+
+    lv_obj_clear_flag(ui_PacketAuthPanel, LV_OBJ_FLAG_HIDDEN);
+    THIS->disablePanel(objects.controller_panel);
+    THIS->disablePanel(objects.tab_page_basic_settings);
+    THIS->activeSettings = ePacketAuthPolicy;
+    lv_group_focus_obj(ui_PacketAuthDropdown);
+}
+
+void TFTView_320x240::ui_event_packet_auth_dropdown(lv_event_t *e)
+{
+    PacketAuthPolicy::Selection policy = PacketAuthPolicy::fromWireValue(lv_dropdown_get_selected(ui_PacketAuthDropdown));
+    THIS->strictConfirmationPending = false;
+    lv_label_set_text(ui_PacketAuthOkLabel, _("Save"));
+
+    switch (policy) {
+    case PacketAuthPolicy::Selection::Compatible:
+        lv_label_set_text(ui_PacketAuthDescription, _("Accept unsigned packets for maximum compatibility."));
+        lv_obj_add_flag(ui_PacketAuthWarning, LV_OBJ_FLAG_HIDDEN);
+        break;
+    case PacketAuthPolicy::Selection::Strict:
+        lv_label_set_text(ui_PacketAuthDescription, _("Require verified signatures for remote mesh packets."));
+        lv_obj_clear_flag(ui_PacketAuthWarning, LV_OBJ_FLAG_HIDDEN);
+        break;
+    case PacketAuthPolicy::Selection::Balanced:
+    default:
+        lv_label_set_text(ui_PacketAuthDescription, _("Prefer signed packets (recommended)."));
+        lv_obj_add_flag(ui_PacketAuthWarning, LV_OBJ_FLAG_HIDDEN);
+        break;
+    }
+}
+
+void TFTView_320x240::ui_event_packet_auth_ok(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != ePacketAuthPolicy) {
+        return;
+    }
+
+    if (!THIS->hasXeddsa || !THIS->db.config.has_security || THIS->state == MeshtasticView::eDisconnected) {
+        THIS->closePacketAuthPanel();
+        return;
+    }
+
+    PacketAuthPolicy::Selection current = PacketAuthPolicy::fromWireValue(THIS->db.config.security.packet_signature_policy);
+    PacketAuthPolicy::Selection requested = PacketAuthPolicy::fromWireValue(lv_dropdown_get_selected(ui_PacketAuthDropdown));
+    if (PacketAuthPolicy::requiresStrictConfirmation(current, requested) && !THIS->strictConfirmationPending) {
+        THIS->strictConfirmationPending = true;
+        lv_label_set_text(ui_PacketAuthOkLabel, _("Confirm Strict"));
+        lv_group_focus_obj(ui_PacketAuthOkButton);
+        return;
+    }
+
+    if (requested != current) {
+        meshtastic_Config_SecurityConfig security = THIS->db.config.security;
+        security.packet_signature_policy =
+            static_cast<meshtastic_Config_SecurityConfig_PacketSignaturePolicy>(PacketAuthPolicy::toWireValue(requested));
+        if (!THIS->controller->sendConfig(meshtastic_Config_SecurityConfig{security}, THIS->ownNode)) {
+            lv_label_set_text(ui_PacketAuthDescription, _("Unable to save while disconnected."));
+            return;
+        }
+        THIS->db.config.security = security;
+        setPacketAuthButtonLabel(requested);
+    }
+
+    THIS->closePacketAuthPanel();
+}
+
+void TFTView_320x240::ui_event_packet_auth_cancel(lv_event_t *e)
+{
+    if (lv_event_get_code(e) == LV_EVENT_CLICKED && THIS->activeSettings == ePacketAuthPolicy) {
+        THIS->closePacketAuthPanel();
+    }
+}
+
+void TFTView_320x240::closePacketAuthPanel(void)
+{
+    lv_obj_add_flag(ui_PacketAuthPanel, LV_OBJ_FLAG_HIDDEN);
+    strictConfirmationPending = false;
+    enablePanel(objects.controller_panel);
+    enablePanel(objects.tab_page_basic_settings);
+    activeSettings = eNone;
+    if (hasXeddsa && state != MeshtasticView::eDisconnected) {
+        lv_group_focus_obj(ui_PacketAuthButton);
+    }
+}
+
+void TFTView_320x240::updatePacketAuthAvailability(void)
+{
+    const bool available = hasXeddsa && db.config.has_security && state != MeshtasticView::eDisconnected;
+    if (available) {
+        lv_obj_clear_flag(ui_PacketAuthButton, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_state(ui_PacketAuthButton, LV_STATE_DISABLED);
+    } else {
+        lv_obj_add_flag(ui_PacketAuthButton, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_state(ui_PacketAuthButton, LV_STATE_DISABLED);
+        if (activeSettings == ePacketAuthPolicy) {
+            closePacketAuthPanel();
+        }
     }
 }
 
@@ -4769,8 +4911,10 @@ void TFTView_320x240::setMyInfo(uint32_t nodeNum)
 }
 
 void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
-                                        bool can_shutdown)
+                                        bool can_shutdown, bool has_xeddsa)
 {
+    hasXeddsa = has_xeddsa;
+    updatePacketAuthAvailability();
 }
 
 void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg)
@@ -5774,6 +5918,7 @@ void TFTView_320x240::notifyConnected(const char *info)
             THIS->controller->setConfigRequested(true);
         }
         state = MeshtasticView::eRunning;
+        updatePacketAuthAvailability();
     }
 }
 
@@ -5785,7 +5930,12 @@ void TFTView_320x240::notifyDisconnected(const char *info)
         if (state == MeshtasticView::eRunning) {
             messageAlert(_("Disconnected!"), true);
         }
-        state = MeshtasticView::eDisconnected;
+    }
+    state = MeshtasticView::eDisconnected;
+    hasXeddsa = false;
+    db.config.has_security = false;
+    if (screensInitialised) {
+        updatePacketAuthAvailability();
     }
 }
 
@@ -6265,6 +6415,8 @@ void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfi
 {
     db.config.security = cfg;
     db.config.has_security = true;
+    setPacketAuthButtonLabel(PacketAuthPolicy::fromWireValue(cfg.packet_signature_policy));
+    updatePacketAuthAvailability();
 
     // display public key in qr code label
     char buf[64];

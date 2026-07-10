@@ -874,7 +874,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
             case meshtastic_FromRadio_metadata_tag: {
                 const meshtastic_DeviceMetadata &meta = from.metadata;
                 view->setDeviceMetaData(meta.hw_model, meta.firmware_version, meta.hasBluetooth, meta.hasWifi, meta.hasEthernet,
-                                        meta.canShutdown);
+                                        meta.canShutdown, meta.has_xeddsa);
                 break;
             }
             case meshtastic_FromRadio_config_complete_id_tag: {
