@@ -322,4 +322,102 @@ std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
     }
     return {};
 }
+
+#elif defined(SENSECAP_INDICATOR)
+
+#include "graphics/map/RemoteSDService.h"
+#include <cstring>
+
+bool RemoteSdCard::init(void)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs)
+        return false;
+    if (!fs->sdInfo(info))
+        return false;
+    return info.present;
+}
+
+ISdCard::CardType RemoteSdCard::cardType(void)
+{
+    // numeric values follow the meshtastic.SdCardInfo protobuf enum
+    switch (info.cardType) {
+    case 1:
+        return eMMC;
+    case 2:
+        return eSD;
+    case 3:
+        return eSDHC;
+    case 4:
+        return eSDXC;
+    case 5:
+        return eUnknown;
+    default:
+        return eNone;
+    }
+}
+
+ISdCard::FatType RemoteSdCard::fatType(void)
+{
+    switch (info.fatType) {
+    case 1:
+        return eFat16;
+    case 2:
+        return eFat32;
+    case 3:
+        return eExFat;
+    default:
+        return eNA;
+    }
+}
+
+std::set<std::string> RemoteSdCard::loadMapStyles(const char *folder)
+{
+    std::set<std::string> styles;
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (fs) {
+        std::set<std::string> entries;
+        if (fs->listDir(folder, entries)) {
+            for (auto &entry : entries) {
+                if (entry.empty() || entry[0] == '.')
+                    continue;
+                std::string dir = entry;
+                if (dir.back() == '/') // subdirectories carry a trailing slash
+                    dir.pop_back();
+                ILOG_DEBUG("remote SD: found map style: %s", dir.c_str());
+                styles.insert(dir);
+            }
+        }
+        if (styles.empty()) {
+            std::set<std::string> mapDir;
+            if (fs->listDir("/map", mapDir)) {
+                ILOG_DEBUG("remote SD: found /map dir");
+                styles.insert("/map");
+            } else {
+                ILOG_INFO("remote SD: no maps found");
+            }
+        }
+    }
+    updated = true;
+    return styles;
+}
+
+std::string RemoteSdCard::getUrlProvider(const char *folder, const char *style)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs)
+        return {};
+    std::string filename = std::string(folder) + "/" + style + "/.url";
+    uint8_t buf[256];
+    uint32_t bytesRead = 0, fileSize = 0;
+    if (!fs->readChunk(filename.c_str(), 0, buf, sizeof(buf) - 1, &bytesRead, &fileSize) || bytesRead == 0)
+        return {};
+    buf[bytesRead] = '\0';
+    // first line only
+    char *nl = strpbrk((char *)buf, "\r\n");
+    if (nl)
+        *nl = '\0';
+    return std::string{(char *)buf};
+}
+
 #endif // HAS_SDCARD

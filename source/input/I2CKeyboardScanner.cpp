@@ -46,6 +46,15 @@ bool isDRV2605(TwoWire &bus, uint8_t address)
 
 } // namespace
 
+#ifdef SENSECAP_INDICATOR
+TwoWire *I2CKeyboardScanner::secondaryBus = nullptr;
+
+void I2CKeyboardScanner::setSecondaryBus(TwoWire *bus)
+{
+    secondaryBus = bus;
+}
+#endif
+
 I2CKeyboardScanner::I2CKeyboardScanner(void) {}
 
 I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
@@ -115,18 +124,24 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 
 #if WIRE_INTERFACES_COUNT >= 2
     if (driver == nullptr) {
+#ifdef SENSECAP_INDICATOR
+        TwoWire &bus1 = secondaryBus ? *secondaryBus : Wire1;
+        ILOG_DEBUG("I2CKeyboardScanner scanning bus 1%s ...", secondaryBus ? " (bridged)" : "");
+#else
+        TwoWire &bus1 = Wire1;
         ILOG_DEBUG("I2CKeyboardScanner scanning bus 1 ...");
+#endif
         for (uint8_t i = 0; i < sizeof(i2cKeyboards_bus1); i++) {
             uint8_t address = i2cKeyboards_bus1[i];
-            Wire1.beginTransmission(address);
-            if (Wire1.endTransmission() == 0) {
+            bus1.beginTransmission(address);
+            if (bus1.endTransmission() == 0) {
                 switch (address) {
                 case SCAN_CARDKB_ADDR:
-                    driver = new CardKBInputDriver(address, Wire1);
+                    driver = new CardKBInputDriver(address, bus1);
                     break;
                 case SCAN_TM9_KB_ADDR:
 #ifdef HAS_STC8H_KB
-                    driver = new STC8HKeyboardInputDriver(address, Wire1);
+                    driver = new STC8HKeyboardInputDriver(address, bus1);
 #endif
                     break;
                 default:

@@ -96,6 +96,33 @@ class SdFsCard : public ISdCard
     virtual ~SdFsCard(void) {}
 };
 
+#elif defined(SENSECAP_INDICATOR)
+#include "graphics/map/RemoteSDService.h"
+
+/**
+ * SD card behind a co-processor, accessed through the RemoteSDService
+ * IRemoteFS backend. Statistics are fetched once over the link on init().
+ */
+class RemoteSdCard : public ISdCard
+{
+  public:
+    bool init(void) override;
+    CardType cardType(void) override;
+    FatType fatType(void) override;
+    ErrorType errorType(void) override { return info.present ? eNoError : eSlotEmpty; }
+    uint64_t usedBytes(void) override { return info.usedBytes; }
+    uint64_t freeBytes(void) override { return info.freeBytes; }
+    uint64_t cardSize(void) override { return info.cardSize; }
+    bool format(void) override { return false; }
+
+    std::set<std::string> loadMapStyles(const char *folder) override;
+    std::string getUrlProvider(const char *folder, const char *style) override;
+    virtual ~RemoteSdCard(void) {}
+
+  private:
+    RemoteSdInfo info;
+};
+
 #endif
 
 /**

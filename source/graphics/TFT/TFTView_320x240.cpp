@@ -45,6 +45,8 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SDCardService.h"
 #elif defined(HAS_SD_MMC)
 #include "graphics/map/SDCardService.h"
+#elif defined(SENSECAP_INDICATOR)
+#include "graphics/map/RemoteSDService.h"
 #else
 #include "graphics/map/SdFatService.h"
 #endif
@@ -2521,6 +2523,12 @@ void TFTView_320x240::loadMap(void)
         map = new MapPanel(objects.raw_map_panel);
 #elif defined(HAS_SD_MMC)
         auto tileService = new SDCardService();
+        map = new MapPanel(objects.raw_map_panel, tileService);
+        map->setBackupService(
+            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+#elif defined(SENSECAP_INDICATOR)
+        // tiles live on the SD card behind the RP2040, fetched chunk-wise over the interdevice link
+        auto tileService = new RemoteSDService();
         map = new MapPanel(objects.raw_map_panel, tileService);
         map->setBackupService(
             new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
@@ -7212,10 +7220,12 @@ bool TFTView_320x240::updateSDCard(void)
         delete sdCard;
         sdCard = nullptr;
     }
-#ifdef HAS_SDCARD
+#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
     char buf[64];
 #ifdef HAS_SD_MMC
     sdCard = new SDCard;
+#elif defined(SENSECAP_INDICATOR)
+    sdCard = new RemoteSdCard; // SD card behind the co-processor
 #else
     sdCard = new SdFsCard;
 #endif
@@ -7281,8 +7291,13 @@ bool TFTView_320x240::updateSDCard(void)
         // allow backup/restore only if there is an SD card detected
         lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
     } else {
+#if defined(SENSECAP_INDICATOR)
+        // backup/restore writes locally, which the bridged SD does not support yet
+        lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
+#else
         // enable backup/restore
         lv_obj_clear_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
+#endif
     }
     lv_label_set_text(objects.home_sd_card_label, buf);
 #else
