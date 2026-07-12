@@ -7238,19 +7238,24 @@ bool TFTView_320x240::updateSDCard(void)
         uint32_t totalSpace = sdCard->cardSize() / (1024 * 1024);
         uint32_t totalSpaceGB = (sdCard->cardSize() + 500000000ULL) / (1000ULL * 1000ULL * 1000ULL);
 
-        sprintf(buf, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"),
-                cardType == ISdCard::eMMC    ? "MMC"
-                : cardType == ISdCard::eSD   ? "SDSC"
-                : cardType == ISdCard::eSDHC ? "SDHC"
-                : cardType == ISdCard::eSDXC ? "SDXC"
-                                             : "UNKN",
-                totalSpaceGB,
-                fatType == ISdCard::eExFat   ? "exFAT"
-                : fatType == ISdCard::eFat32 ? "FAT32"
-                : fatType == ISdCard::eFat16 ? "FAT16"
-                                             : "???",
-                float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
-                totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
+        const char *cardTypeStr = cardType == ISdCard::eMMC    ? "MMC"
+                                  : cardType == ISdCard::eSD   ? "SDSC"
+                                  : cardType == ISdCard::eSDHC ? "SDHC"
+                                  : cardType == ISdCard::eSDXC ? "SDXC"
+                                                               : "UNKN";
+        const char *fatTypeStr = fatType == ISdCard::eExFat   ? "exFAT"
+                                 : fatType == ISdCard::eFat32 ? "FAT32"
+                                 : fatType == ISdCard::eFat16 ? "FAT16"
+                                                              : "???";
+        if (sdCard->statsValid()) {
+            sprintf(buf, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"), cardTypeStr, totalSpaceGB, fatTypeStr,
+                    float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
+                    totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
+        } else {
+            // used/free are still being computed in the background on the
+            // co-processor; a later tap on the SD button shows real values
+            sprintf(buf, _("%s: %d GB (%s)\nUsed: ..."), cardTypeStr, totalSpaceGB, fatTypeStr);
+        }
         Themes::recolorButton(objects.home_sd_card_button, true);
         Themes::recolorText(objects.home_sd_card_label, true);
         cardDetected = true;

@@ -48,6 +48,9 @@ class ISdCard
 
     virtual uint64_t usedBytes(void) = 0;
     virtual uint64_t freeBytes(void) = 0;
+    // false while used/free are not known yet (e.g. a background scan on a
+    // co-processor has not finished); local cards always know them
+    virtual bool statsValid(void) { return true; }
     virtual uint64_t cardSize(void) = 0;
     virtual bool format(void) = 0;
 
@@ -60,7 +63,9 @@ class ISdCard
     bool updated = false;
 };
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+// SENSECAP_INDICATOR takes precedence: the SD card sits behind the
+// co-processor even when a generic SD define is also set
+#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)) && !defined(SENSECAP_INDICATOR)
 class SDCard : public ISdCard
 {
   public:
@@ -78,7 +83,7 @@ class SDCard : public ISdCard
     virtual ~SDCard(void);
 };
 
-#elif defined(HAS_SDCARD)
+#elif defined(HAS_SDCARD) && !defined(SENSECAP_INDICATOR)
 class SdFsCard : public ISdCard
 {
   public:
@@ -112,6 +117,7 @@ class RemoteSdCard : public ISdCard
     ErrorType errorType(void) override { return info.present ? eNoError : eSlotEmpty; }
     uint64_t usedBytes(void) override { return info.usedBytes; }
     uint64_t freeBytes(void) override { return info.freeBytes; }
+    bool statsValid(void) override { return info.statsValid; }
     uint64_t cardSize(void) override { return info.cardSize; }
     bool format(void) override { return false; }
 

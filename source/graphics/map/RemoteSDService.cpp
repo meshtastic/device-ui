@@ -23,7 +23,10 @@ RemoteSDService::RemoteSDService() : ITileService(DRIVE_LETTER ":")
     static lv_fs_drv_t drv;
     lv_fs_drv_init(&drv);
     drv.letter = DRIVE_LETTER[0];
-    drv.cache_size = MapTileSettings::getCacheSize();
+    // No LVGL-level cache: it would service small header reads by pulling
+    // cache_size bytes over the UART link, roughly doubling the transfer
+    // per tile. fs_read keeps its own chunk-sized read-ahead instead.
+    drv.cache_size = 0;
     drv.ready_cb = nullptr;
     drv.open_cb = fs_open;
     drv.close_cb = fs_close;
@@ -63,6 +66,10 @@ bool RemoteSDService::save(const char *name, void *img, size_t len)
         uint32_t chunk = (len - offset > CHUNK_SIZE) ? CHUNK_SIZE : len - offset;
         if (!remoteFS->writeChunk(name, offset, data + offset, chunk, offset == 0)) {
             ILOG_ERROR("failed to write %s at offset %u", name, offset);
+            // don't leave a truncated tile behind: it would satisfy the
+            // existence check on the next load and never be re-fetched
+            if (offset > 0)
+                remoteFS->remove(name);
             return false;
         }
         offset += chunk;
@@ -108,6 +115,11 @@ lv_fs_res_t RemoteSDService::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, 
             uint32_t got = 0, fsize = 0;
             if (!remoteFS || !remoteFS->readChunk(rf->path, off, rf->chunk, CHUNK_SIZE, &got, &fsize) || got == 0)
                 return LV_FS_RES_UNKNOWN; // transport or backend error mid-file
+            // A chunk that does not cover pos (file shrank or replaced since
+            // open) would loop forever or underflow the avail math below
+            if (got <= rf->pos - off)
+                return LV_FS_RES_UNKNOWN;
+            rf->size = fsize; // pick up a changed file size
             rf->chunkOffset = off;
             rf->chunkLen = got;
         }
@@ -140,7 +152,9 @@ lv_fs_res_t RemoteSDService::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t po
         rf->pos += pos;
         break;
     case LV_FS_SEEK_END:
-        rf->pos = (pos <= rf->size) ? rf->size - pos : 0;
+        // LVGL convention (matching its stdio/FATFS drivers): the position
+        // is size + pos; reads past the end return zero bytes
+        rf->pos = rf->size + pos;
         break;
     default:
         return LV_FS_RES_INV_PARAM;

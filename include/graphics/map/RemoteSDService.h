@@ -17,6 +17,9 @@ struct RemoteSdInfo {
     uint64_t cardSize = 0;
     uint64_t usedBytes = 0;
     uint64_t freeBytes = 0;
+    // usedBytes/freeBytes are only meaningful when true; the scan behind
+    // them runs in the background on the co-processor after mount
+    bool statsValid = false;
 };
 
 /**
@@ -41,6 +44,11 @@ class IRemoteFS
      */
     virtual bool writeChunk(const char *path, uint32_t offset, const uint8_t *buf, uint32_t len, bool create) = 0;
     /**
+     * Delete a file. Returns false on transport error or when the file
+     * does not exist.
+     */
+    virtual bool remove(const char *path) = 0;
+    /**
      * List all entries of a directory; subdirectories carry a trailing
      * slash. Returns false on transport error or when path is not a
      * directory.
@@ -48,9 +56,9 @@ class IRemoteFS
     virtual bool listDir(const char *path, std::set<std::string> &entries) = 0;
     /**
      * Card statistics, answered from a cache on the co-processor so the
-     * call stays fast. usedBytes/freeBytes may still read zero while the
-     * background FAT scan runs; a later call returns real values.
-     * Returns false on transport error.
+     * call stays fast. usedBytes/freeBytes carry real values once
+     * statsValid is true; a later call returns them when the background
+     * scan has finished. Returns false on transport error.
      */
     virtual bool sdInfo(RemoteSdInfo &info) = 0;
     virtual ~IRemoteFS() {}

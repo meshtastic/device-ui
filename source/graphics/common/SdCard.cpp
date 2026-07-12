@@ -132,7 +132,9 @@ SDCard::~SDCard(void)
 }
 #endif
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+// SENSECAP_INDICATOR takes precedence: the SD card sits behind the
+// co-processor even when a generic SD define is also set
+#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)) && !defined(SENSECAP_INDICATOR)
 std::set<std::string> SDCard::loadMapStyles(const char *folder)
 {
     std::set<std::string> styles;
@@ -178,7 +180,7 @@ std::string SDCard::getUrlProvider(const char *folder, const char *style)
     return {};
 }
 
-#elif defined(HAS_SDCARD)
+#elif defined(HAS_SDCARD) && !defined(SENSECAP_INDICATOR)
 bool SdFsCard::init(void)
 {
     // TODO: allow specification of SPI bus
@@ -381,9 +383,11 @@ std::set<std::string> RemoteSdCard::loadMapStyles(const char *folder)
             for (auto &entry : entries) {
                 if (entry.empty() || entry[0] == '.')
                     continue;
-                std::string dir = entry;
-                if (dir.back() == '/') // subdirectories carry a trailing slash
-                    dir.pop_back();
+                // only subdirectories (trailing slash) are map styles; plain
+                // files in the maps folder must not show up in the selection
+                if (entry.back() != '/')
+                    continue;
+                std::string dir = entry.substr(0, entry.size() - 1);
                 ILOG_DEBUG("remote SD: found map style: %s", dir.c_str());
                 styles.insert(dir);
             }
@@ -408,11 +412,26 @@ std::string RemoteSdCard::getUrlProvider(const char *folder, const char *style)
     if (!fs)
         return {};
     std::string filename = std::string(folder) + "/" + style + "/.url";
-    uint8_t buf[256];
-    uint32_t bytesRead = 0, fileSize = 0;
-    if (!fs->readChunk(filename.c_str(), 0, buf, sizeof(buf) - 1, &bytesRead, &fileSize) || bytesRead == 0)
+    // read until the first line is complete instead of trusting a single
+    // chunk, so a long URL template does not get silently truncated
+    uint8_t buf[1024];
+    uint32_t total = 0, fileSize = 0;
+    while (total < sizeof(buf) - 1) {
+        uint32_t bytesRead = 0;
+        if (!fs->readChunk(filename.c_str(), total, buf + total, sizeof(buf) - 1 - total, &bytesRead, &fileSize) ||
+            bytesRead == 0)
+            break;
+        if (memchr(buf + total, '\n', bytesRead)) {
+            total += bytesRead;
+            break;
+        }
+        total += bytesRead;
+        if (fileSize > 0 && total >= fileSize)
+            break;
+    }
+    if (total == 0)
         return {};
-    buf[bytesRead] = '\0';
+    buf[total] = '\0';
     // first line only
     char *nl = strpbrk((char *)buf, "\r\n");
     if (nl)
