@@ -43,10 +43,10 @@ fs::FS &fileSystem = LittleFS;
 #include "util/LinuxHelper.h"
 // #include "graphics/map/LinuxFileSystemService.h"
 #include "graphics/map/SDCardService.h"
-#elif defined(HAS_SD_MMC)
-#include "graphics/map/SDCardService.h"
 #elif defined(SENSECAP_INDICATOR)
 #include "graphics/map/RemoteSDService.h"
+#elif defined(HAS_SD_MMC)
+#include "graphics/map/SDCardService.h"
 #else
 #include "graphics/map/SdFatService.h"
 #endif
@@ -2521,14 +2521,14 @@ void TFTView_320x240::loadMap(void)
     if (!map) {
 #if LV_USE_FS_ARDUINO_SD
         map = new MapPanel(objects.raw_map_panel);
-#elif defined(HAS_SD_MMC)
-        auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #elif defined(SENSECAP_INDICATOR)
         // tiles live on the SD card behind the RP2040, fetched chunk-wise over the interdevice link
         auto tileService = new RemoteSDService();
+        map = new MapPanel(objects.raw_map_panel, tileService);
+        map->setBackupService(
+            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+#elif defined(HAS_SD_MMC)
+        auto tileService = new SDCardService();
         map = new MapPanel(objects.raw_map_panel, tileService);
         map->setBackupService(
             new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
@@ -7222,10 +7222,10 @@ bool TFTView_320x240::updateSDCard(void)
     }
 #if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
     char buf[64];
-#ifdef HAS_SD_MMC
-    sdCard = new SDCard;
-#elif defined(SENSECAP_INDICATOR)
+#if defined(SENSECAP_INDICATOR)
     sdCard = new RemoteSdCard; // SD card behind the co-processor
+#elif defined(HAS_SD_MMC)
+    sdCard = new SDCard;
 #else
     sdCard = new SdFsCard;
 #endif
