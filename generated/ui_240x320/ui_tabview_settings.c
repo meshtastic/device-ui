@@ -773,14 +773,17 @@ void create_tabview_settings()
     lv_obj_set_style_align(ui_PacketAuthLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_PacketAuthPanel = lv_obj_create(objects.main_screen);
-    lv_obj_set_size(ui_PacketAuthPanel, lv_pct(90), 190);
+    // Keep enough vertical room for the expanded selector, wrapped copy, and
+    // actions.  236px fits the 240px landscape display with a small margin.
+    lv_obj_set_size(ui_PacketAuthPanel, lv_pct(90), 236);
     lv_obj_set_style_align(ui_PacketAuthPanel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_flag(ui_PacketAuthPanel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(ui_PacketAuthPanel, LV_OBJ_FLAG_SCROLLABLE);
     add_style_settings_panel_style(ui_PacketAuthPanel);
     lv_obj_set_style_border_width(ui_PacketAuthPanel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(ui_PacketAuthPanel, lv_color_hex(0x216ad8), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_PacketAuthPanel, 250, LV_PART_MAIN | LV_STATE_DEFAULT);
+    // This is a modal settings panel; keep the form beneath it from bleeding through its text.
+    lv_obj_set_style_bg_opa(ui_PacketAuthPanel, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *title = lv_label_create(ui_PacketAuthPanel);
     lv_label_set_text(title, _("Packet authenticity"));
@@ -790,9 +793,17 @@ void create_tabview_settings()
     lv_dropdown_set_options(ui_PacketAuthDropdown, _("Balanced\nCompatible\nStrict"));
     lv_obj_set_pos(ui_PacketAuthDropdown, 0, 25);
     lv_obj_set_size(ui_PacketAuthDropdown, lv_pct(100), 30);
+    // The default theme adds generous line spacing, causing the list to
+    // cover the description and action buttons.  Compact the list so all
+    // three choices stay inside the modal's reserved selector area.
+    lv_obj_t *packetAuthList = lv_dropdown_get_list(ui_PacketAuthDropdown);
+    lv_obj_set_style_text_line_space(packetAuthList, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(packetAuthList, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(packetAuthList, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_PacketAuthDescription = lv_label_create(ui_PacketAuthPanel);
-    lv_obj_set_pos(ui_PacketAuthDescription, 0, 62);
+    // Leave the selector's expanded list clear of the explanatory copy.
+    lv_obj_set_pos(ui_PacketAuthDescription, 0, 112);
     lv_obj_set_width(ui_PacketAuthDescription, lv_pct(100));
     lv_label_set_long_mode(ui_PacketAuthDescription, LV_LABEL_LONG_WRAP);
     lv_label_set_text(ui_PacketAuthDescription, _("Prefer signed packets (recommended)."));
@@ -801,8 +812,7 @@ void create_tabview_settings()
     lv_obj_set_pos(ui_PacketAuthWarning, 0, 98);
     lv_obj_set_width(ui_PacketAuthWarning, lv_pct(100));
     lv_label_set_long_mode(ui_PacketAuthWarning, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(ui_PacketAuthWarning,
-                      _("Strict may hide older, ham, no-key, and oversized unsigned broadcasts. Direct PKI messages are unaffected."));
+    lv_label_set_text(ui_PacketAuthWarning, _("Unsigned broadcasts filtered."));
     lv_obj_set_style_text_color(ui_PacketAuthWarning, lv_color_hex(0xeb533f), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_flag(ui_PacketAuthWarning, LV_OBJ_FLAG_HIDDEN);
 

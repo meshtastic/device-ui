@@ -107,6 +107,22 @@ void setPacketAuthButtonLabel(PacketAuthPolicy::Selection policy)
     lv_snprintf(label, sizeof(label), _("Packet authenticity: %s"), packetAuthLabel(policy));
     lv_label_set_text(ui_PacketAuthLabel, label);
 }
+
+// The packet-auth panel contains copy that can wrap differently across the
+// 240x320 and 320x240 layouts.  Reflow the warning below the measured
+// description instead of relying on fixed coordinates that can collide with
+// the action buttons.
+void layoutPacketAuthPanel(void)
+{
+    if (!ui_PacketAuthDescription || !ui_PacketAuthWarning) {
+        return;
+    }
+
+    lv_obj_update_layout(ui_PacketAuthDescription);
+    const lv_coord_t descriptionBottom = lv_obj_get_y(ui_PacketAuthDescription) + lv_obj_get_height(ui_PacketAuthDescription);
+    lv_obj_set_y(ui_PacketAuthWarning, descriptionBottom + 6);
+    lv_obj_update_layout(ui_PacketAuthWarning);
+}
 } // namespace
 
 // children index of nodepanel lv objects (see addNode)
@@ -1983,6 +1999,12 @@ void TFTView_320x240::ui_event_packet_auth_dropdown(lv_event_t *e)
         lv_obj_add_flag(ui_PacketAuthWarning, LV_OBJ_FLAG_HIDDEN);
         break;
     }
+
+    // Strict mode adds a warning line.  Pull the description up once the
+    // selector closes so the warning has a clear gap above the actions; keep
+    // the lower position while the selector is open so its list has room.
+    lv_obj_set_y(ui_PacketAuthDescription, policy == PacketAuthPolicy::Selection::Strict ? 76 : 112);
+    layoutPacketAuthPanel();
 }
 
 void TFTView_320x240::ui_event_packet_auth_ok(lv_event_t *e)
