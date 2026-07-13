@@ -24,7 +24,9 @@ using File = FsFile;
 
 ISdCard *sdCard = nullptr;
 
-#if defined(ARCH_PORTDUINO)
+// SENSECAP_INDICATOR takes precedence over the generic SD classes, matching
+// the declarations in SdCard.h: the card sits behind the co-processor
+#if defined(ARCH_PORTDUINO) && !defined(SENSECAP_INDICATOR)
 
 bool SDCard::init(void)
 {
@@ -63,7 +65,7 @@ uint64_t SDCard::cardSize(void)
 
 SDCard::~SDCard(void) {}
 
-#elif defined(HAS_SD_MMC)
+#elif defined(HAS_SD_MMC) && !defined(SENSECAP_INDICATOR)
 
 bool SDCard::init(void)
 {
@@ -338,6 +340,20 @@ bool RemoteSdCard::init(void)
     if (!fs->sdInfo(info))
         return false;
     return info.present;
+}
+
+bool RemoteSdCard::refreshStats(void)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    RemoteSdInfo fresh;
+    if (!fs || !fs->sdInfo(fresh) || !fresh.present)
+        return false;
+    // card identity does not change while it stays mounted, only the
+    // numbers the co-processor computes in the background
+    info.usedBytes = fresh.usedBytes;
+    info.freeBytes = fresh.freeBytes;
+    info.statsValid = fresh.statsValid;
+    return info.statsValid;
 }
 
 ISdCard::CardType RemoteSdCard::cardType(void)

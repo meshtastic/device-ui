@@ -7253,20 +7253,9 @@ bool TFTView_320x240::updateSDCard(void)
                     totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
         } else {
             // used/free are still being computed in the background on the
-            // co-processor; show a placeholder and poll again until the
-            // scan is done
+            // co-processor; show a placeholder and poll until they arrive
             sprintf(buf, _("%s: %d GB (%s)\nUsed: ..."), cardTypeStr, totalSpaceGB, fatTypeStr);
-            static bool refreshPending = false;
-            if (!refreshPending) {
-                refreshPending = true;
-                lv_timer_t *refresh = lv_timer_create(
-                    [](lv_timer_t *) {
-                        refreshPending = false;
-                        TFTView_320x240::instance()->updateSDCard();
-                    },
-                    10 * 1000, NULL);
-                lv_timer_set_repeat_count(refresh, 1);
-            }
+            armSDCardStatsPoll();
         }
         Themes::recolorButton(objects.home_sd_card_button, true);
         Themes::recolorText(objects.home_sd_card_label, true);
@@ -7328,6 +7317,58 @@ bool TFTView_320x240::updateSDCard(void)
     if (!sdCard)
         sdCard = new NoSdCard;
     return cardDetected;
+}
+
+/**
+ * Poll the card statistics until the co-processor has finished computing
+ * them. Only the numbers are re-read: recreating the card object would
+ * reset its updated flag and make the next loadMap() rescan the styles.
+ */
+void TFTView_320x240::armSDCardStatsPoll(void)
+{
+    static bool pollPending = false;
+    if (pollPending)
+        return;
+    pollPending = true;
+    lv_timer_t *poll = lv_timer_create(
+        [](lv_timer_t *) {
+            pollPending = false;
+            TFTView_320x240::instance()->refreshSDCardStats();
+        },
+        10 * 1000, NULL);
+    lv_timer_set_repeat_count(poll, 1);
+}
+
+void TFTView_320x240::refreshSDCardStats(void)
+{
+#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
+    if (!sdCard || !cardDetected)
+        return;
+    if (!sdCard->refreshStats()) {
+        armSDCardStatsPoll();
+        return;
+    }
+    char buf[64];
+    ISdCard::CardType cardType = sdCard->cardType();
+    ISdCard::FatType fatType = sdCard->fatType();
+    uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
+    uint32_t totalSpace = sdCard->cardSize() / (1024 * 1024);
+    uint32_t totalSpaceGB = (sdCard->cardSize() + 500000000ULL) / (1000ULL * 1000ULL * 1000ULL);
+    sprintf(buf, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"),
+            cardType == ISdCard::eMMC    ? "MMC"
+            : cardType == ISdCard::eSD   ? "SDSC"
+            : cardType == ISdCard::eSDHC ? "SDHC"
+            : cardType == ISdCard::eSDXC ? "SDXC"
+                                         : "UNKN",
+            totalSpaceGB,
+            fatType == ISdCard::eExFat   ? "exFAT"
+            : fatType == ISdCard::eFat32 ? "FAT32"
+            : fatType == ISdCard::eFat16 ? "FAT16"
+                                         : "???",
+            float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
+            totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
+    lv_label_set_text(objects.home_sd_card_label, buf);
+#endif
 }
 
 void TFTView_320x240::formatSDCard(void)
