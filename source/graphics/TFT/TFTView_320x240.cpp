@@ -7253,8 +7253,20 @@ bool TFTView_320x240::updateSDCard(void)
                     totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
         } else {
             // used/free are still being computed in the background on the
-            // co-processor; a later tap on the SD button shows real values
+            // co-processor; show a placeholder and poll again until the
+            // scan is done
             sprintf(buf, _("%s: %d GB (%s)\nUsed: ..."), cardTypeStr, totalSpaceGB, fatTypeStr);
+            static bool refreshPending = false;
+            if (!refreshPending) {
+                refreshPending = true;
+                lv_timer_t *refresh = lv_timer_create(
+                    [](lv_timer_t *) {
+                        refreshPending = false;
+                        TFTView_320x240::instance()->updateSDCard();
+                    },
+                    10 * 1000, NULL);
+                lv_timer_set_repeat_count(refresh, 1);
+            }
         }
         Themes::recolorButton(objects.home_sd_card_button, true);
         Themes::recolorText(objects.home_sd_card_label, true);
