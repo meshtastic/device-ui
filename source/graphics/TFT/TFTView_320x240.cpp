@@ -7216,6 +7216,7 @@ void TFTView_320x240::updateTime(void)
 bool TFTView_320x240::updateSDCard(void)
 {
     formatSD = false;
+    sdStatsPolls = 0; // a fresh detection gets a fresh poll budget
     if (sdCard) {
         delete sdCard;
         sdCard = nullptr;
@@ -7232,39 +7233,21 @@ bool TFTView_320x240::updateSDCard(void)
     ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
         ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
-        ISdCard::CardType cardType = sdCard->cardType();
-        ISdCard::FatType fatType = sdCard->fatType();
-        uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
-        uint32_t totalSpace = sdCard->cardSize() / (1024 * 1024);
-        uint32_t totalSpaceGB = (sdCard->cardSize() + 500000000ULL) / (1000ULL * 1000ULL * 1000ULL);
-
-        const char *cardTypeStr = cardType == ISdCard::eMMC    ? "MMC"
-                                  : cardType == ISdCard::eSD   ? "SDSC"
-                                  : cardType == ISdCard::eSDHC ? "SDHC"
-                                  : cardType == ISdCard::eSDXC ? "SDXC"
-                                                               : "UNKN";
-        const char *fatTypeStr = fatType == ISdCard::eExFat   ? "exFAT"
-                                 : fatType == ISdCard::eFat32 ? "FAT32"
-                                 : fatType == ISdCard::eFat16 ? "FAT16"
-                                                              : "???";
-        if (sdCard->statsValid()) {
-            sprintf(buf, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"), cardTypeStr, totalSpaceGB, fatTypeStr,
-                    float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
-                    totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
-        } else {
+        cardDetected = true;
+        formatSDCardLabel(buf, sizeof(buf));
+        if (!sdCard->statsValid()) {
             // used/free are still being computed in the background on the
-            // co-processor; show a placeholder and poll until they arrive
-            sprintf(buf, _("%s: %d GB (%s)\nUsed: ..."), cardTypeStr, totalSpaceGB, fatTypeStr);
+            // co-processor; the label shows a placeholder until they arrive
             armSDCardStatsPoll();
         }
         Themes::recolorButton(objects.home_sd_card_button, true);
         Themes::recolorText(objects.home_sd_card_label, true);
-        cardDetected = true;
     } else {
-        ILOG_DEBUG("SdFsCard init failed");
+        ILOG_DEBUG("SdCard init failed");
         err = sdCard->errorType();
         delete sdCard;
         sdCard = nullptr;
+        cardDetected = false; // a poll must not paint stats over the error
     }
 
     if (!cardDetected || err != ISdCard::ErrorType::eNoError) {
@@ -7329,13 +7312,21 @@ void TFTView_320x240::armSDCardStatsPoll(void)
     static bool pollPending = false;
     if (pollPending)
         return;
-    pollPending = true;
+    // a scan of a large card takes a while, but not forever: give up rather
+    // than block the UI thread with a link round trip every 10s for good
+    if (++sdStatsPolls > 30) {
+        ILOG_WARN("SD card statistics never became available");
+        return;
+    }
     lv_timer_t *poll = lv_timer_create(
         [](lv_timer_t *) {
             pollPending = false;
             TFTView_320x240::instance()->refreshSDCardStats();
         },
         10 * 1000, NULL);
+    if (!poll)
+        return; // out of timers, the label just keeps its placeholder
+    pollPending = true;
     lv_timer_set_repeat_count(poll, 1);
 }
 
@@ -7344,32 +7335,52 @@ void TFTView_320x240::refreshSDCardStats(void)
 #if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
     if (!sdCard || !cardDetected)
         return;
-    if (!sdCard->refreshStats()) {
+    switch (sdCard->refreshStats()) {
+    case ISdCard::eStatsPending:
         armSDCardStatsPoll();
         return;
+    case ISdCard::eStatsUnavailable:
+        // the card is gone or the link is down: re-detect, which paints the
+        // proper error state instead of stale numbers
+        updateSDCard();
+        return;
+    case ISdCard::eStatsValid:
+        break;
     }
     char buf[64];
+    formatSDCardLabel(buf, sizeof(buf));
+    lv_label_set_text(objects.home_sd_card_label, buf);
+#endif
+}
+
+#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
+// caller guarantees a detected card; used/free are only printed once the
+// card knows them (a co-processor computes them in the background)
+void TFTView_320x240::formatSDCardLabel(char *buf, size_t len)
+{
     ISdCard::CardType cardType = sdCard->cardType();
     ISdCard::FatType fatType = sdCard->fatType();
     uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
     uint32_t totalSpace = sdCard->cardSize() / (1024 * 1024);
     uint32_t totalSpaceGB = (sdCard->cardSize() + 500000000ULL) / (1000ULL * 1000ULL * 1000ULL);
-    sprintf(buf, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"),
-            cardType == ISdCard::eMMC    ? "MMC"
-            : cardType == ISdCard::eSD   ? "SDSC"
-            : cardType == ISdCard::eSDHC ? "SDHC"
-            : cardType == ISdCard::eSDXC ? "SDXC"
-                                         : "UNKN",
-            totalSpaceGB,
-            fatType == ISdCard::eExFat   ? "exFAT"
-            : fatType == ISdCard::eFat32 ? "FAT32"
-            : fatType == ISdCard::eFat16 ? "FAT16"
-                                         : "???",
-            float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
-            totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
-    lv_label_set_text(objects.home_sd_card_label, buf);
-#endif
+    const char *cardTypeStr = cardType == ISdCard::eMMC    ? "MMC"
+                              : cardType == ISdCard::eSD   ? "SDSC"
+                              : cardType == ISdCard::eSDHC ? "SDHC"
+                              : cardType == ISdCard::eSDXC ? "SDXC"
+                                                           : "UNKN";
+    const char *fatTypeStr = fatType == ISdCard::eExFat   ? "exFAT"
+                             : fatType == ISdCard::eFat32 ? "FAT32"
+                             : fatType == ISdCard::eFat16 ? "FAT16"
+                                                          : "???";
+    if (sdCard->statsValid()) {
+        lv_snprintf(buf, len, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"), cardTypeStr, totalSpaceGB, fatTypeStr,
+                    float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
+                    totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
+    } else {
+        lv_snprintf(buf, len, "%s: %d GB (%s)\n%s", cardTypeStr, totalSpaceGB, fatTypeStr, _("Used: ..."));
+    }
 }
+#endif
 
 void TFTView_320x240::formatSDCard(void)
 {

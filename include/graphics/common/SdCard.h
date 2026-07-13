@@ -51,9 +51,14 @@ class ISdCard
     // false while used/free are not known yet (e.g. a background scan on a
     // co-processor has not finished); local cards always know them
     virtual bool statsValid(void) { return true; }
-    // Re-read used/free without re-detecting the card. Returns false while
-    // they are still unavailable, so the caller can poll.
-    virtual bool refreshStats(void) { return true; }
+
+    enum StatsResult {
+        eStatsValid,       // used/free are up to date
+        eStatsPending,     // still being computed, ask again later
+        eStatsUnavailable, // card or link gone, stop asking
+    };
+    // Re-read used/free without re-detecting the card
+    virtual StatsResult refreshStats(void) { return eStatsValid; }
     virtual uint64_t cardSize(void) = 0;
     virtual bool format(void) = 0;
 
@@ -121,7 +126,7 @@ class RemoteSdCard : public ISdCard
     uint64_t usedBytes(void) override { return info.usedBytes; }
     uint64_t freeBytes(void) override { return info.freeBytes; }
     bool statsValid(void) override { return info.statsValid; }
-    bool refreshStats(void) override;
+    StatsResult refreshStats(void) override;
     uint64_t cardSize(void) override { return info.cardSize; }
     bool format(void) override { return false; }
 

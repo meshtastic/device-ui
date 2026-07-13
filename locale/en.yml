@@ -161,6 +161,7 @@ en:
   '%d new messages': ~
   'uptime: %02d:%02d:%02d': ~
   "%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)": ~
+  'Used: ...': ~
   SD slot empty: ~
   SD invalid format: ~
   SD mbr not found: ~

@@ -342,18 +342,17 @@ bool RemoteSdCard::init(void)
     return info.present;
 }
 
-bool RemoteSdCard::refreshStats(void)
+ISdCard::StatsResult RemoteSdCard::refreshStats(void)
 {
     IRemoteFS *fs = RemoteSDService::backend();
     RemoteSdInfo fresh;
+    // a card that is gone (or a link that is down) is not a pending scan:
+    // the caller must stop polling and re-detect instead
     if (!fs || !fs->sdInfo(fresh) || !fresh.present)
-        return false;
-    // card identity does not change while it stays mounted, only the
-    // numbers the co-processor computes in the background
-    info.usedBytes = fresh.usedBytes;
-    info.freeBytes = fresh.freeBytes;
-    info.statsValid = fresh.statsValid;
-    return info.statsValid;
+        return eStatsUnavailable;
+    // takes the identity along: the card may have been swapped
+    info = fresh;
+    return info.statsValid ? eStatsValid : eStatsPending;
 }
 
 ISdCard::CardType RemoteSdCard::cardType(void)
