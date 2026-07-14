@@ -30,12 +30,18 @@ bool readRegisterByte(TwoWire &bus, uint8_t address, uint8_t reg, uint8_t &value
     return true;
 }
 
-#if defined T_DECK
-bool isBQ27220(TwoWire &bus, uint8_t address)
+bool isTCA8418(TwoWire &bus, uint8_t address)
 {
     uint8_t value = 0;
-    // Mirrors firmware scanner logic: non-zero at reg 0x04 indicates BQ27220.
-    return readRegisterByte(bus, address, 0x04, value) && value != 0;
+    // Mirrors firmware scanner logic at address 0x34: reg 0x90 == 0 for TCA8418.
+    return readRegisterByte(bus, address, 0x90, value) && value == 0x00;
+}
+
+bool isDRV2605(TwoWire &bus, uint8_t address)
+{
+    uint8_t value = 0;
+    // Mirrors firmware scanner logic at address 0x5A: status reg 0x00 == 0xE0 for DRV2605.
+    return readRegisterByte(bus, address, 0x00, value) && value == 0xE0;
 }
 #endif
 
@@ -57,6 +63,10 @@ bool isDRV2605(TwoWire &bus, uint8_t address)
 
 I2CKeyboardScanner::I2CKeyboardScanner(void) {}
 
+} // namespace
+
+I2CKeyboardScanner::I2CKeyboardScanner(void) {}
+
 I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 {
     I2CKeyboardInputDriver *driver = nullptr;
@@ -67,13 +77,12 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 #endif
 
     // Reset I2C bus to clear any stuck state left by touch driver LovyanGFX operations
-#if defined(I2C_SDA) && defined(I2C_SCL)
+#ifdef SCAN_I2C_BUS_RESET
+    ILOG_DEBUG("Resetting I2C bus ...");
     Wire.end();
     delay(10);
     Wire.begin(I2C_SDA, I2C_SCL, 100000);
     delay(10);
-#else
-#warning "I2C_SDA and/or I2C_SCL undefined!"
 #endif
 
     // skip scanning for known keyboard devices
@@ -117,25 +126,36 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
                 break;
             }
         }
+        if (driver != nullptr) {
+            break;
+        }
     }
 #endif
 
 #if WIRE_INTERFACES_COUNT >= 2
-    ILOG_DEBUG("I2CKeyboardScanner scanning bus 1 ...");
-    for (uint8_t i = 0; i < sizeof(i2cKeyboards_bus1); i++) {
-        uint8_t address = i2cKeyboards_bus1[i];
-        Wire1.beginTransmission(address);
-        if (Wire1.endTransmission() == 0) {
-            switch (address) {
-            case SCAN_CARDKB_ADDR:
-                driver = new CardKBInputDriver(address, Wire1);
-                break;
-            case SCAN_TM9_KB_ADDR:
+    if (driver == nullptr) {
+        ILOG_DEBUG("I2CKeyboardScanner scanning bus 1 ...");
+        for (uint8_t i = 0; i < sizeof(i2cKeyboards_bus1); i++) {
+            uint8_t address = i2cKeyboards_bus1[i];
+            Wire1.beginTransmission(address);
+            if (Wire1.endTransmission() == 0) {
+                switch (address) {
+                case SCAN_CARDKB_ADDR:
+                    driver = new CardKBInputDriver(address, Wire1);
+                    break;
+                case SCAN_TM9_KB_ADDR:
 #ifdef HAS_STC8H_KB
-                driver = new STC8HKeyboardInputDriver(address, Wire1);
+                    driver = new STC8HKeyboardInputDriver(address, Wire1);
 #endif
+                    break;
+                default:
+                    break;
+                }
                 break;
             default:
+                break;
+            }
+            if (driver != nullptr) {
                 break;
             }
         }

@@ -81,7 +81,7 @@ class BBQ10KeyboardInputDriver : public I2CKeyboardInputDriver
 class CardKBInputDriver : public I2CKeyboardInputDriver
 {
   public:
-    CardKBInputDriver(uint8_t address, TwoWire &wire = Wire);
+    CardKBInputDriver(uint8_t address, TwoWire &wire_ = Wire);
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~CardKBInputDriver(void) {}
 
