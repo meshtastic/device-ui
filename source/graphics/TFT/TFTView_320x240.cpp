@@ -5675,6 +5675,8 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                 case BatteryLevel::Charging:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image,
                                                   (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+                    if (shown_level == 100)
+                        buf[0] = '\0';
                     break;
                 case BatteryLevel::Full:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_full_image,
