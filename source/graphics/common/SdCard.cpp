@@ -76,7 +76,7 @@ SDCard::~SDCard(void) {}
 #if defined(SDCARD_SHARE_SPI)
 bool SDCard::init(void)
 {
-#if 1 // #ifdef SDCARD_INIT_SPI
+#ifdef SDCARD_INIT_SPI
     SDHandler.end();
     SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     SD.end();
