@@ -20,6 +20,8 @@ struct RemoteSdInfo {
     // usedBytes/freeBytes are only meaningful when true; the scan behind
     // them runs in the background on the co-processor after mount
     bool statsValid = false;
+    // a card is in the slot but carries no filesystem (present is false)
+    bool unformatted = false;
 };
 
 /**
@@ -61,6 +63,16 @@ class IRemoteFS
      * scan has finished. Returns false on transport error.
      */
     virtual bool sdInfo(RemoteSdInfo &info) = 0;
+    /**
+     * Release the card so it can be pulled safely, or mount it again. The
+     * co-processor keeps it released until a mount is asked for.
+     */
+    virtual bool sdEject(void) = 0;
+    virtual bool sdMount(void) = 0;
+    /**
+     * Put a fresh filesystem on the card, destroying what is on it.
+     */
+    virtual bool sdFormat(void) = 0;
     virtual ~IRemoteFS() {}
 };
 

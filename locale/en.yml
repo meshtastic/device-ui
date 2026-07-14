@@ -163,6 +163,7 @@ en:
   "%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)": ~
   'Used: ...': ~
   SD slot empty: ~
+  SD ejected: ~
   SD invalid format: ~
   SD mbr not found: ~
   SD card error: ~

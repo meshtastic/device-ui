@@ -1512,6 +1512,11 @@ void TFTView_320x240::ui_event_SDCardButton(lv_event_t *e)
         if (THIS->formatSD) {
             ignoreClicked = true;
             THIS->formatSDCard();
+        } else if (THIS->cardDetected) {
+            // release a healthy card so it can be pulled without corrupting
+            // it; a tap mounts it again
+            ignoreClicked = true;
+            THIS->ejectSDCard();
         }
     }
 }
@@ -7388,12 +7393,14 @@ void TFTView_320x240::formatSDCard(void)
         delete sdCard;
         sdCard = nullptr;
     }
-#ifdef HAS_SDCARD
-#ifdef HAS_SD_MMC
+#if defined(SENSECAP_INDICATOR)
+    sdCard = new RemoteSdCard;
+#elif defined(HAS_SD_MMC)
     sdCard = new SDCard;
-#else
+#elif defined(HAS_SDCARD)
     sdCard = new SdFsCard;
 #endif
+#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
     ILOG_DEBUG("formatting SD card");
     if (sdCard->format()) {
         updateSDCard();
@@ -7403,6 +7410,28 @@ void TFTView_320x240::formatSDCard(void)
 #endif
     if (!sdCard)
         sdCard = new NoSdCard;
+}
+
+/**
+ * Release the card so it can be pulled without corrupting it. A tap on the
+ * button mounts whatever is in the slot again.
+ */
+void TFTView_320x240::ejectSDCard(void)
+{
+#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
+    if (!sdCard || !sdCard->eject())
+        return;
+    ILOG_DEBUG("SD card ejected");
+    cardDetected = false;
+    formatSD = false;
+    sdStatsPolls = 0;
+    delete sdCard;
+    sdCard = new NoSdCard;
+    lv_label_set_text(objects.home_sd_card_label, _("SD ejected"));
+    Themes::recolorButton(objects.home_sd_card_button, false);
+    Themes::recolorText(objects.home_sd_card_label, false);
+    lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
+#endif
 }
 
 void TFTView_320x240::updateFreeMem(void)

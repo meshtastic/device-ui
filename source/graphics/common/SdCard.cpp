@@ -337,9 +337,29 @@ bool RemoteSdCard::init(void)
     IRemoteFS *fs = RemoteSDService::backend();
     if (!fs)
         return false;
+    // a mount here is what makes the button revive a card that was ejected
+    // (or replaced) since the last look; mounting a mounted card is a no-op
+    fs->sdMount();
     if (!fs->sdInfo(info))
         return false;
     return info.present;
+}
+
+bool RemoteSdCard::eject(void)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs || !fs->sdEject())
+        return false;
+    info = RemoteSdInfo(); // gone until it is mounted again
+    return true;
+}
+
+bool RemoteSdCard::format(void)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs)
+        return false;
+    return fs->sdFormat();
 }
 
 ISdCard::StatsResult RemoteSdCard::refreshStats(void)

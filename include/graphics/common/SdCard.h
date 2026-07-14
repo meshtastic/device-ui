@@ -59,6 +59,9 @@ class ISdCard
     };
     // Re-read used/free without re-detecting the card
     virtual StatsResult refreshStats(void) { return eStatsValid; }
+    // Release the card so it can be pulled safely. False when the card cannot
+    // be ejected (locally mounted cards are simply not held open).
+    virtual bool eject(void) { return false; }
     virtual uint64_t cardSize(void) = 0;
     virtual bool format(void) = 0;
 
@@ -122,13 +125,21 @@ class RemoteSdCard : public ISdCard
     bool init(void) override;
     CardType cardType(void) override;
     FatType fatType(void) override;
-    ErrorType errorType(void) override { return info.present ? eNoError : eSlotEmpty; }
+    ErrorType errorType(void) override
+    {
+        if (info.present)
+            return eNoError;
+        // a card that is in there but has no filesystem can be formatted,
+        // just like a local one
+        return info.unformatted ? eFormatError : eSlotEmpty;
+    }
     uint64_t usedBytes(void) override { return info.usedBytes; }
     uint64_t freeBytes(void) override { return info.freeBytes; }
     bool statsValid(void) override { return info.statsValid; }
     StatsResult refreshStats(void) override;
+    bool eject(void) override;
     uint64_t cardSize(void) override { return info.cardSize; }
-    bool format(void) override { return false; }
+    bool format(void) override;
 
     std::set<std::string> loadMapStyles(const char *folder) override;
     std::string getUrlProvider(const char *folder, const char *style) override;

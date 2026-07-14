@@ -188,6 +188,8 @@ class TFTView_320x240 : public MeshtasticView
     // the background), polling a bounded number of times until they arrive
     void refreshSDCardStats(void);
     void armSDCardStatsPoll(void);
+    // release the card so it can be pulled safely; a tap mounts it again
+    void ejectSDCard(void);
 #if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
     void formatSDCardLabel(char *buf, size_t len);
 #endif
