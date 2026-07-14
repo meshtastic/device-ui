@@ -110,9 +110,14 @@ class RemoteSDService : public ITileService
         char path[256]; // full FAT LFN paths round-trip
         uint32_t pos;
         uint32_t size;
-        // single chunk read-ahead cache
-        uint32_t chunkOffset;
-        uint32_t chunkLen;
-        uint8_t chunk[CHUNK_SIZE];
     } RemoteFile;
+
+    // One chunk for all open files: the image decoder opens the same tile
+    // three times and reads it front to back, so they all want the same bytes.
+    static uint8_t cachedChunk[CHUNK_SIZE];
+    static char cachedPath[256];
+    static uint32_t cachedOffset;
+    static uint32_t cachedLen;
+    static uint32_t cachedSize;
+    static uint32_t chunkAt(const char *path, uint32_t pos, uint32_t *fileSize);
 };
