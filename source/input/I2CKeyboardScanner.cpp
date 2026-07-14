@@ -43,25 +43,6 @@ bool isDRV2605(TwoWire &bus, uint8_t address)
     // Mirrors firmware scanner logic at address 0x5A: status reg 0x00 == 0xE0 for DRV2605.
     return readRegisterByte(bus, address, 0x00, value) && value == 0xE0;
 }
-#endif
-
-bool isTCA8418(TwoWire &bus, uint8_t address)
-{
-    uint8_t value = 0;
-    // Mirrors firmware scanner logic at address 0x34: reg 0x90 == 0 for TCA8418.
-    return readRegisterByte(bus, address, 0x90, value) && value == 0x00;
-}
-
-bool isDRV2605(TwoWire &bus, uint8_t address)
-{
-    uint8_t value = 0;
-    // Mirrors firmware scanner logic at address 0x5A: status reg 0x00 == 0xE0 for DRV2605.
-    return readRegisterByte(bus, address, 0x00, value) && value == 0xE0;
-}
-
-} // namespace
-
-I2CKeyboardScanner::I2CKeyboardScanner(void) {}
 
 } // namespace
 
@@ -151,9 +132,6 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
                 default:
                     break;
                 }
-                break;
-            default:
-                break;
             }
             if (driver != nullptr) {
                 break;
