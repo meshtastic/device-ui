@@ -7378,9 +7378,11 @@ void TFTView_320x240::formatSDCardLabel(char *buf, size_t len)
                              : fatType == ISdCard::eFat16 ? "FAT16"
                                                           : "???";
     if (sdCard->statsValid()) {
-        lv_snprintf(buf, len, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"), cardTypeStr, totalSpaceGB, fatTypeStr,
-                    float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
-                    totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
+        // snprintf, not lv_snprintf: the LVGL one has no %f unless LVGL is
+        // built with float support, and prints the conversion verbatim
+        snprintf(buf, len, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"), cardTypeStr, totalSpaceGB, fatTypeStr,
+                 float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
+                 totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
     } else {
         lv_snprintf(buf, len, "%s: %d GB (%s)\n%s", cardTypeStr, totalSpaceGB, fatTypeStr, _("Used: ..."));
     }
