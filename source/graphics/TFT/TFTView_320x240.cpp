@@ -1678,6 +1678,15 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_KEY) {
+        // LVGL's X11 driver maps only keypad enter to LV_KEY_ENTER; the main Return
+        // key arrives as raw '\r' and is silently dropped by the one-line textarea.
+        // Treat it as ready-to-send so a physical Enter submits the message.
+        uint32_t *key = (uint32_t *)lv_event_get_param(e);
+        if (!key || *key != '\r')
+            return;
+        event_code = LV_EVENT_READY;
+    }
     if (event_code == LV_EVENT_READY) {
         char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
         uint32_t len = strlen(txt);
