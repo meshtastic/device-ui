@@ -587,13 +587,14 @@ bool ViewController::receive(void)
 {
     bool gotPacket = false;
     if (client->isConnected()) {
+        uint16_t received = 0;
         do {
             meshtastic_FromRadio from = client->receive();
             if (from.which_payload_variant) {
                 handleFromRadio(from);
             }
             gotPacket = from.which_payload_variant != 0;
-        } while (gotPacket);
+        } while (gotPacket && received++ < 7); // handle max 7 packets in one go
         return true;
     }
     return false;
@@ -641,6 +642,10 @@ void ViewController::restoreTextMessages(void)
     LogMessageEnv msg;
 
     if (log.readNext(msg)) {
+        if (msg.ch >= c_max_channels) {
+            ILOG_WARN("skipping stored message with invalid channel %d", (int)msg.ch);
+            return;
+        }
         msgCounter++;
         msgTotalSize += msg.size();
         view->restoreMessage(msg);
@@ -934,6 +939,10 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             }
         }
         uint32_t time = p.rx_time;
+        if (p.channel >= c_max_channels) {
+            ILOG_WARN("ignoring message with invalid channel %d", (int)p.channel);
+            break;
+        }
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
         log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
                                 (const uint8_t *)p.decoded.payload.bytes));

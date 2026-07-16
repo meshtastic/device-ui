@@ -58,6 +58,7 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
         result = osm->load(*this, img);
         if (!result) {
             if (img_src) {
+                // ILOG_DEBUG("set no-tile-image (%d/%d/%d)", MapTileSettings::getZoomLevel(), xTile, yTile);
                 lv_image_set_src((lv_obj_t *)img, img_src);
                 lv_obj_set_style_opa(img, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
                 if (!MapTileSettings::getDebug()) {
@@ -88,11 +89,31 @@ bool MapTile::move(int16_t posx, int16_t posy)
 
 void MapTile::removeImage(void)
 {
-    if (img) {
-        // ILOG_DEBUG("remove image %d/%d", xTile, yTile);
-        lv_obj_delete(img);
-        img = nullptr;
+    if (!img) {
+        return;
     }
+
+    const void *src = lv_image_get_src(img);
+    /* clear the source first so LVGL stops referencing it */
+    lv_image_set_src(img, NULL);
+
+    if (src && lv_image_src_get_type(src) == LV_IMAGE_SRC_VARIABLE) {
+        const lv_image_dsc_t *img_dsc = (const lv_image_dsc_t *)src;
+        const bool ownedByMapTile =
+            (img_dsc->header.magic == LV_IMAGE_HEADER_MAGIC) && (img_dsc->header.flags & LV_IMAGE_FLAGS_USER1);
+        if (ownedByMapTile) {
+            // ILOG_INFO("%d/%d: free tile image %d bytes", xTile, yTile, img_dsc->data_size);
+            if (img_dsc->data) {
+                lv_free((void *)img_dsc->data);
+            }
+            lv_free((void *)img_dsc);
+        } else {
+            // ILOG_INFO("%d/%d: tile image %d bytes -> not owned", xTile, yTile, img_dsc->data_size);
+        }
+    }
+
+    lv_obj_delete(img);
+    img = nullptr;
 }
 
 MapTile::~MapTile()

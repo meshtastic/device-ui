@@ -3,6 +3,8 @@
 #include "graphics/driver/FBDriver.h"
 #include "src/core/lv_global.h"
 #include "util/ILog.h"
+#include <cstdlib>
+#include <cstring>
 
 LV_IMG_DECLARE(mouse_cursor_icon);
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Arduino.h"
+#include "Wire.h"
 #include "input/InputDriver.h"
 #include <list>
 #include <memory>
@@ -79,9 +81,12 @@ class BBQ10KeyboardInputDriver : public I2CKeyboardInputDriver
 class CardKBInputDriver : public I2CKeyboardInputDriver
 {
   public:
-    CardKBInputDriver(uint8_t address);
+    CardKBInputDriver(uint8_t address, TwoWire &wire_ = Wire);
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~CardKBInputDriver(void) {}
+
+  private:
+    TwoWire &wire;
 };
 
 class MPR121KeyboardInputDriver : public I2CKeyboardInputDriver

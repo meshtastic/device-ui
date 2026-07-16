@@ -6,6 +6,7 @@
 #include "graphics/map/MapTileSettings.h"
 #include "graphics/map/SdFatService.h"
 #include "util/ILog.h"
+#include <string>
 #include <utility>
 
 #define DRIVE_LETTER "S"
@@ -46,6 +47,32 @@ bool SdFatService::load(const char *name, void *img)
     }
     // ILOG_INFO("*** Tile %s loaded.", buf);
     return true;
+}
+
+bool SdFatService::save(const char *name, void *img, size_t len)
+{
+    ILOG_DEBUG("SdFatService::save(%s): %d", name, len);
+    // create intermediate directories for path (e.g. /maps/atlas/12/2198/1341.png)
+    std::string directory;
+    std::string filename(name);
+    const size_t last_slash_idx = filename.rfind('/');
+    if (std::string::npos == last_slash_idx) {
+        // something went wrong
+        return false;
+    }
+    directory = filename.substr(0, last_slash_idx);
+    SDFs.mkdir(directory.c_str());
+
+    // write image
+    FsFile file = SDFs.open(name, O_RDWR | O_CREAT);
+    if (file) {
+        size_t written = file.write(static_cast<uint8_t *>(img), len);
+        file.close();
+        return written == len;
+    } else {
+        ILOG_ERROR("failed to write %s", name);
+    }
+    return false;
 }
 
 void *SdFatService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode)

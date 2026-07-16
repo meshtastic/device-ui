@@ -14,6 +14,7 @@ class SdFatService : public ITileService
     virtual ~SdFatService();
 
     bool load(const char *name, void *img) override;
+    bool save(const char *name, void *img, size_t len) override;
 
   protected:
     static void *fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode);

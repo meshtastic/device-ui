@@ -57,7 +57,7 @@ void SerialClient::init(void)
  * @brief Do light sleep, wake on pin GPIO (touch IRQ or button press)
  *
  * @param pin
- * @return true - wake reason was due to pin GPIO
+ * @return true - wake reason was due to (button) pin GPIO
  * @return false - other reason (received serial data)
  */
 bool SerialClient::sleep(int16_t pin)
@@ -100,9 +100,21 @@ bool SerialClient::sleep(int16_t pin)
         ILOG_ERROR("esp_light_sleep_start result %d", res);
     }
 
-    // esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
-    // ILOG_INFO("Exit light sleep cause: %d, gpio=%d", cause, digitalRead((uint8_t)pin));
-    return digitalRead((uint8_t)pin) == 0;
+    esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
+    ILOG_INFO("Exit light sleep cause: %d, gpio=%d", (int)cause, (int)digitalRead((uint8_t)pin));
+
+#ifdef BUTTON_PIN
+    gpio_wakeup_disable((gpio_num_t)pin);
+#endif
+#if defined(WAKE_ON_SERIAL)
+#if defined(USE_SERIAL0)
+    esp_sleep_disable_uart_wakeup(UART_NUM_0);
+#elif defined(USE_SERIAL1)
+    esp_sleep_disable_uart_wakeup(UART_NUM_1);
+#endif
+#endif
+
+    return cause == ESP_SLEEP_WAKEUP_GPIO;
 #else
     return false;
 #endif

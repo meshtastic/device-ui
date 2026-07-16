@@ -167,6 +167,17 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
     return styles;
 }
 
+std::string SDCard::getUrlProvider(const char *folder, const char *style)
+{
+    String filename = String(folder) + "/" + String(style) + "/.url";
+    File file = SDFs.open(filename.c_str(), FILE_READ);
+    if (file) {
+        String url = file.readStringUntil('\n');
+        return std::string{url.c_str()};
+    }
+    return {};
+}
+
 #elif defined(HAS_SDCARD)
 bool SdFsCard::init(void)
 {
@@ -179,7 +190,13 @@ bool SdFsCard::init(void)
 #elif defined(SDCARD_USE_SOFT_SPI)
     return SDFs.begin(SdSpiConfig(SDCARD_CS, DEDICATED_SPI, SD_SCK_MHZ(0), &SDHandler));
 #else
+#if defined(SDCARD_USER_SPI_BEGIN)
+    // fix : HSPI Does not have default pins on ESP32S3!
+    SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS);
+    return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI | USER_SPI_BEGIN, SD_SPI_FREQUENCY, &SDHandler));
+#else
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
+#endif
 #endif
 }
 
@@ -295,4 +312,14 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
     return styles;
 }
 
+std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
+{
+    String filename = String(folder) + "/" + String(style) + "/.url";
+    File file = SDFs.open(filename.c_str(), FILE_READ);
+    if (file) {
+        String url = file.readStringUntil('\n');
+        return std::string{url.c_str()};
+    }
+    return {};
+}
 #endif // HAS_SDCARD

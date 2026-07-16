@@ -1,4 +1,4 @@
-#if HAS_TFT && defined(VIEW_320x240)
+#if HAS_TFT && defined(VIEW_320x240) || defined(VIEW_240x320)
 
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"
@@ -9,6 +9,8 @@
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
 #include "graphics/map/MapPanel.h"
+#include "graphics/map/TileProvider.h"
+#include "graphics/map/URLService.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
@@ -169,7 +171,8 @@ void TFTView_320x240::init(IClientBase *client)
 
     ui_init_boot();
     FileLoader::init(&fileSystem);
-    FileLoader::loadBootImage(objects.boot_logo);
+    if (!FileLoader::loadBootImage(objects.boot_logo))
+        lv_image_set_src(objects.boot_logo, &img_meshtastic_boot_logo_image);
     // if boot logo is too big remove the label and center the image
     lv_obj_update_layout(objects.boot_logo);
     if (lv_obj_get_height(objects.boot_logo) > lv_display_get_vertical_resolution(displaydriver->getDisplay()) / 2) {
@@ -872,6 +875,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.map_brightness_slider, ui_event_mapBrightnessSlider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_contrast_slider, ui_event_mapContrastSlider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 
     // tools buttons
     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
@@ -918,7 +922,7 @@ void TFTView_320x240::timer_event_shutdown(lv_timer_t *timer)
     THIS->controller->stop();
     delay(1000);
 #if defined(ARCH_PORTDUINO)
-    exit(0);
+    exit(2);
 #elif defined(ARCH_ESP32)
     esp_deep_sleep_start();
 #else
@@ -1739,7 +1743,7 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.lora.use_preset) {
         THIS->activeSettings = eModemPreset;
-        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->db.config.lora.modem_preset);
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->preset2val(THIS->db.config.lora.modem_preset));
 
         char buf[60];
         sprintf(buf, _("FrequencySlot: %d (%g MHz)"), THIS->db.config.lora.channel_num,
@@ -2333,7 +2337,26 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
     lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
                                  sizeof(THIS->db.uiConfig.map_data.style));
     MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
+    // set url provider if exist
+    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), THIS->db.uiConfig.map_data.style);
+    if (!url.empty()) {
+        std::string provider = std::string("URL: ") + THIS->db.uiConfig.map_data.style;
+        int entry = TileProvider::addTemplate(provider, url);
+        lv_dropdown_set_selected(objects.map_url_dropdown, entry);
+        TileProvider::selectTemplate(entry);
+    }
+    MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
+
     THIS->controller->storeUIConfig(THIS->db.uiConfig);
+    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+    THIS->map->forceRedraw();
+}
+
+void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
+{
+    uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
+    TileProvider::selectTemplate(urlId);
+    MapTileSettings::setSaveOK(false);
     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     THIS->map->forceRedraw();
 }
@@ -2497,13 +2520,19 @@ void TFTView_320x240::loadMap(void)
 #if LV_USE_FS_ARDUINO_SD
         map = new MapPanel(objects.raw_map_panel);
 #elif defined(HAS_SD_MMC)
-        map = new MapPanel(objects.raw_map_panel, new SDCardService());
+        auto tileService = new SDCardService();
+        map = new MapPanel(objects.raw_map_panel, tileService);
+        map->setBackupService(
+            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #elif defined(HAS_SDCARD)
-        map = new MapPanel(objects.raw_map_panel, new SdFatService());
+        auto tileService = new SdFatService();
+        map = new MapPanel(objects.raw_map_panel, tileService);
+        map->setBackupService(
+            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #elif defined(ARCH_PORTDUINO)
         map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
 #else
-        map = new MapPanel(objects.raw_map_panel);
+        map = new MapPanel(objects.raw_map_panel, new URLService());
 #endif
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
@@ -2599,31 +2628,46 @@ void TFTView_320x240::loadMap(void)
                 MapTileSettings::setPrefix("/map");
                 MapTileSettings::setTileStyle("");
                 lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
             } else if (!mapStyles.empty()) {
-                // populate dropdown
-                uint16_t pos = 0;
+                // populate style dropdown
                 bool savedStyleOK = false;
-                lv_dropdown_set_options(objects.map_style_dropdown, "");
+                lv_dropdown_clear_options(objects.map_style_dropdown);
                 for (auto it : mapStyles) {
-                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
+                    // add url provider if exist
+                    int urlEntry = -1;
+                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), it.c_str());
+                    if (!url.empty()) {
+                        urlEntry = TileProvider::addTemplate("URL: " + it, url);
+                        lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
+                    }
+                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), LV_DROPDOWN_POS_LAST);
                     if (it == db.uiConfig.map_data.style) {
-                        lv_dropdown_set_selected(objects.map_style_dropdown, pos);
+                        lv_dropdown_set_selected(objects.map_style_dropdown, LV_DROPDOWN_POS_LAST);
                         MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
                         savedStyleOK = true;
+                        if (urlEntry >= 0) {
+                            // set provider url to current style
+                            ILOG_DEBUG("set provider url to %s", url.c_str());
+                            TileProvider::selectTemplate(urlEntry);
+                        }
                     }
-                    pos++;
                 }
+                lv_dropdown_set_options(objects.map_url_dropdown, TileProvider::providers().c_str());
+                lv_dropdown_set_selected(objects.map_url_dropdown, TileProvider::selectedTemplate());
+
                 if (!savedStyleOK) {
                     // no such style on SD, pick first one we found
-                    char style[20];
+                    char style[30];
                     lv_dropdown_set_selected(objects.map_style_dropdown, 0);
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
                 }
+
+                MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
                 MapTileSettings::setPrefix("/maps");
             } else {
-                messageAlert(_("No map tiles found on SDCard!"), true);
-                map->setNoTileImage(&img_no_tile_image);
+                // messageAlert(_("No map tiles found on SDCard!"), true);
             }
             map->forceRedraw();
         }
@@ -3331,6 +3375,37 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
 }
 
 /**
+ * Translate proto modem preset enum value to numerical position in dropdown menu
+ */
+uint32_t TFTView_320x240::preset2val(meshtastic_Config_LoRaConfig_ModemPreset preset)
+{
+    int32_t val[] = {0, -1, -1, 4, 3, 7, 5, 1, 6, 2};
+
+    if (preset > (sizeof(val) / sizeof(val[0]) - 1) || val[preset] == -1) {
+        ILOG_WARN("unknown or deprecated preset value: %d", preset);
+        return 0;
+    }
+    return uint32_t(val[preset]);
+}
+
+/**
+ * Translate value from dropdown menu to modem preset proto enum
+ */
+meshtastic_Config_LoRaConfig_ModemPreset TFTView_320x240::val2preset(uint32_t val)
+{
+    meshtastic_Config_LoRaConfig_ModemPreset preset[] = {
+        meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,   meshtastic_Config_LoRaConfig_ModemPreset_LONG_MODERATE,
+        meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO,  meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_SLOW};
+    if (val > (sizeof(preset) / sizeof(preset[0]) - 1)) {
+        ILOG_ERROR("unknown preset value: %d", val);
+        return meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
+    }
+    return preset[val];
+}
+
+/**
  * Translate proto role enum value to numerical position in dropdown menu
  */
 uint32_t TFTView_320x240::role2val(meshtastic_Config_DeviceConfig_Role role)
@@ -3859,7 +3934,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         case eModemPreset: {
             meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
             meshtastic_Config_LoRaConfig_ModemPreset preset =
-                (meshtastic_Config_LoRaConfig_ModemPreset)(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
+                THIS->val2preset(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
             uint16_t channelNum = lv_slider_get_value(objects.frequency_slot_slider);
             if (preset != lora.modem_preset || lora.channel_num != channelNum) {
                 char buf1[16], buf2[32];
@@ -4303,10 +4378,9 @@ void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
     char buf[40];
     uint32_t channel = (uint32_t)lv_slider_get_value(slider);
     sprintf(buf, _("FrequencySlot: %d (%g MHz)"), channel,
-            LoRaPresets::getRadioFreq(
-                THIS->db.config.lora.region,
-                (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(objects.settings_modem_preset_dropdown),
-                channel));
+            LoRaPresets::getRadioFreq(THIS->db.config.lora.region,
+                                      THIS->val2preset(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown)),
+                                      channel));
     lv_label_set_text(objects.frequency_slot_label, buf);
 }
 
@@ -4316,8 +4390,8 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
     meshtastic_Config_LoRaConfig_ModemPreset preset =
         (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown);
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
-    if (preset == meshtastic_Config_LoRaConfig_ModemPreset_VERY_LONG_SLOW || numChannels == 0) {
-        // preset deprecated or not possible for this region, revert
+    if (numChannels == 0) {
+        // preset not possible for this region, revert
         lv_dropdown_set_selected(dropdown, THIS->db.config.lora.modem_preset);
         numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset);
         return;
@@ -4652,6 +4726,15 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_set_style_align(ui_Telemetry2Label, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
     lv_obj_set_style_text_align(ui_Telemetry2Label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
 
+    // optimisation: hide all 6ix extended labels by default; enable only when set
+    // lv_obj_add_flag(ui_lastHeardLabel, LV_OBJ_FLAG_HIDDEN); // lastHeard
+    lv_obj_add_flag(ui_BatteryLabel, LV_OBJ_FLAG_HIDDEN); // Autohide battery
+    lv_obj_add_flag(ui_SignalLabel, LV_OBJ_FLAG_HIDDEN);  // Autohide signal/hops
+    lv_obj_add_flag(ui_PositionLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_Position2Label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_Telemetry1Label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_Telemetry2Label, LV_OBJ_FLAG_HIDDEN);
+
     lv_obj_add_event_cb(nodeButton, ui_event_NodeButton, LV_EVENT_ALL, (void *)nodeNum);
 
     // move node into new position within nodePanel
@@ -4849,6 +4932,8 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
         // store lat/lon in user_data, because we need these values later to calculate the distance to us
         panel->LV_OBJ_IDX(node_pos1_idx)->user_data = (void *)lat;
         panel->LV_OBJ_IDX(node_pos2_idx)->user_data = (void *)lon;
+        lv_obj_remove_flag(panel->LV_OBJ_IDX(node_pos1_idx), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(panel->LV_OBJ_IDX(node_pos2_idx), LV_OBJ_FLAG_HIDDEN);
     }
 
     applyNodesFilter(nodeNum);
@@ -4953,6 +5038,7 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
             bat_level = std::min(bat_level, (uint32_t)100);
             sprintf(buf, "%d%% %0.2fV", bat_level, voltage);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_bat_idx), buf);
+            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_bat_idx), LV_OBJ_FLAG_HIDDEN);
         }
     }
 }
@@ -4978,11 +5064,13 @@ void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtasti
             }
         }
         lv_label_set_text(it->second->LV_OBJ_IDX(node_tm1_idx), buf);
+        lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_tm1_idx), LV_OBJ_FLAG_HIDDEN);
 
         if (metrics.iaq > 0 && metrics.iaq < 1000) {
             sprintf(buf, "IAQ: %d %.1fV %.1fmA", metrics.iaq, metrics.voltage, metrics.current);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_tm2_idx), buf);
             it->second->LV_OBJ_IDX(node_tm2_idx)->user_data = (void *)(uint32_t)metrics.iaq;
+            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_tm2_idx), LV_OBJ_FLAG_HIDDEN);
         }
         applyNodesFilter(nodeNum);
     }
@@ -5026,6 +5114,7 @@ void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float
             }
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
             it->second->LV_OBJ_IDX(node_sig_idx)->user_data = 0;
+            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_sig_idx), LV_OBJ_FLAG_HIDDEN);
         }
     }
 }
@@ -5039,6 +5128,7 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
             sprintf(buf, _("hops: %d"), (int)hopsAway);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
             it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)(unsigned long)hopsAway;
+            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_sig_idx), LV_OBJ_FLAG_HIDDEN);
         }
     }
 }
@@ -5761,8 +5851,8 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
     if (ch.role != meshtastic_Channel_Role_DISABLED) {
         setChannelName(ch);
 
-        lv_obj_set_width(btn[ch.index], lv_pct(70));
-        lv_obj_set_style_pad_left(btn[ch.index], 8, LV_PART_MAIN);
+        lv_obj_set_width(btn[ch.index], lv_pct(80));
+        lv_obj_set_style_pad_left(btn[ch.index], 8, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
 
         lv_obj_t *lockImage = NULL;
         if (lv_obj_get_child_cnt(btn[ch.index]) == 1)
@@ -5897,7 +5987,7 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
                                                                      THIS->db.channel[0].settings.name);
         }
         char buf1[20], buf2[32];
-        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
+        lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, preset2val(cfg.modem_preset));
         lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
         lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
         lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
@@ -6385,12 +6475,13 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
     add_style_new_message_style(msgLabel);
+    lv_obj_add_flag(msgLabel, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+    lv_obj_add_event_cb(msgLabel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 
     if (state == MeshtasticView::eRunning) {
         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
         lv_obj_move_foreground(objects.message_input_area);
     }
-    lv_obj_add_event_cb(hiddenPanel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 }
 
 /**
@@ -7241,7 +7332,7 @@ void TFTView_320x240::task_handler(void)
     MeshtasticView::task_handler();
 
     if (screensInitialised) {
-        if (map)
+        if (map && activePanel == objects.map_panel)
             map->task_handler();
 
         if (curtime - lastrun1 >= 1) { // call every 1s

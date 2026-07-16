@@ -1,4 +1,4 @@
-#ifdef VIEW_320x240
+#if defined(VIEW_320x240) || defined(VIEW_240x320)
 
 #include "graphics/view/TFT/Themes.h"
 #include "stdint.h"
