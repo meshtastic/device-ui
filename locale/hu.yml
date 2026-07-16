@@ -1,7 +1,7 @@
 hu:
   Reboot into BaseUI?: Újraindítás BaseUI módba?
   no new messages: nincs új üzenet
-  1 of 1 nodes online: 1 / 1 csomópont online
+  1 of 1 nodes online: 1 / 1 node-ok online
   uptime 00:00:00: üzemidő 00:00:00
   LoRa 0.0 MHz: LoRa 0.0 MHz
   no signal: nincs jel
@@ -128,7 +128,7 @@ hu:
   'Region: %s': 'Régió: %s'
   'User name: %s': 'Felhasználónév: %s'
   'Device Role: %s': 'Eszköz szerepe: %s'
-  'Modem Preset: %s': 'Modem profil: %s'
+  'Modem Preset: %s': 'Modem preset: %s'
   'WiFi: %s': 'WiFi: %s'
   <not set>: <nincs beállítva>
   Util %0.1f%%  Air %0.1f%%: Használat %0.1f%%  Levegő %0.1f%%
@@ -137,7 +137,7 @@ hu:
   Connected!: Csatlakoztatva!
   Disconnected!: Leválasztva!
   Shutting down ...: Kikapcsolás...
-  'Modem Preset: custom': 'Modem profil: egyéni'
+  'Modem Preset: custom': 'Modem preset: egyéni'
   region unset: régió nincs beállítva
   Banner & Sound: Értesítés és hang
   Banner only: Csak értesítés
@@ -154,9 +154,9 @@ hu:
   "New message from \n%s": "Új üzenet innen:\n%s"
   'Input Control: %s/%s': 'Bemeneti vezérlés: %s/%s'
   '%d of %d nodes online':
-    one: '%d / %d csomópont online'
-    other: '%d / %d csomópont online'
-  'Filter: %d of %d nodes': 'Szűrő: %d / %d csomópont'
+    one: '%d / %d node online'
+    other: '%d / %d node online'
+  'Filter: %d of %d nodes': 'Szűrő: %d / %d node'
   '%d new message': '%d új üzenet'
   '%d new messages': '%d új üzenet'
   'uptime: %02d:%02d:%02d': 'üzemidő: %02d:%02d:%02d'
