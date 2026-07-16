@@ -128,7 +128,7 @@ hu:
   'Region: %s': 'Régió: %s'
   'User name: %s': 'Felhasználónév: %s'
   'Device Role: %s': 'Eszköz szerepe: %s'
-  'Modem Preset: %s': 'Modem profil: %s'
+  'Modem Preset: %s': 'Modem preset: %s'
   'WiFi: %s': 'WiFi: %s'
   <not set>: <nincs beállítva>
   Util %0.1f%%  Air %0.1f%%: Használat %0.1f%%  Levegő %0.1f%%
