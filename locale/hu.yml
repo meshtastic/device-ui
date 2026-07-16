@@ -24,7 +24,7 @@ hu:
   'Screen Calibration: default': 'Képernyő kalibrálás: alap'
   'Input Control: none/none': 'Bemeneti vezérlés: nincs/nincs'
   'Message Alert Buzzer: on': 'Üzenetjel. hang: be'
-  'Language: English': 'Nyelv: magyar'
+  'Language: Hungarian': 'Nyelv: magyar'
   Configuration Reset: Beállítások visszaállítása
   Backup & Restore: Mentés és visszaállítás
   Reboot / Shutdown: Újraindítás / Kikapcsolás
@@ -155,7 +155,7 @@ hu:
   'Input Control: %s/%s': 'Bemeneti vezérlés: %s/%s'
   '%d of %d nodes online':
     one: '%d / %d node online'
-    other: '%d / %d node online'
+    other: '%d / %d nodes online'
   'Filter: %d of %d nodes': 'Szűrő: %d / %d node-ok'
   '%d new message': '%d új üzenet'
   '%d new messages': '%d új üzenet'
