@@ -325,7 +325,7 @@
 #define LV_USE_DRAW_DAVE2D 0
 
 /* Draw using cached SDL textures*/
-#ifndef USE_SDL
+#if !defined(USE_SDL) || USE_SDL == 0
 #define LV_USE_SDL              0
 #else
 #define LV_USE_SDL              USE_SDL
