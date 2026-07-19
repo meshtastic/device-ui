@@ -3,6 +3,7 @@
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"
 #include "graphics/common/BatteryLevel.h"
+#include "graphics/common/ChannelShareURL.h"
 #include "graphics/common/LoRaPresets.h"
 #include "graphics/common/Ringtones.h"
 #include "graphics/common/ViewController.h"
@@ -2178,18 +2179,101 @@ void TFTView_320x240::ui_event_generate_psk(lv_event_t *e)
         lv_textarea_set_text(objects.settings_modify_channel_psk_textarea, base64.c_str());
     }
 
-    std::string base64Https = base64;
-    for (char &c : base64Https) {
-        if (c == '+')
-            c = '-';
-        else if (c == '/')
-            c = '_';
-        else if (c == '=')
-            c = '\0'; // remove paddings at the end of the url
+    THIS->showChannelShareModePicker();
+}
+
+void TFTView_320x240::showChannelShareModePicker(void)
+{
+    if (channelShareModePanel) {
+        lv_obj_delete(channelShareModePanel);
     }
-    std::string qr = "https://meshtastic.org/e/#" + base64Https;
+
+    channelShareModePanel = lv_obj_create(objects.settings_modify_channel_panel);
+    lv_obj_set_size(channelShareModePanel, LV_PCT(92), 115);
+    lv_obj_center(channelShareModePanel);
+    lv_obj_clear_flag(channelShareModePanel, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *title = lv_label_create(channelShareModePanel);
+    lv_label_set_text(title, _("Share channel"));
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 0);
+
+    lv_obj_t *description = lv_label_create(channelShareModePanel);
+    lv_label_set_text(description, _("Replace sends channel and radio. Add keeps receiver channels and radio."));
+    lv_label_set_long_mode(description, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(description, LV_PCT(100));
+    lv_obj_align(description, LV_ALIGN_TOP_MID, 0, 24);
+    lv_obj_set_style_text_align(description, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *replaceButton = lv_btn_create(channelShareModePanel);
+    lv_obj_set_size(replaceButton, 76, 30);
+    lv_obj_align(replaceButton, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_obj_add_event_cb(replaceButton, ui_event_channel_share_mode, LV_EVENT_CLICKED, nullptr);
+    lv_obj_t *replaceLabel = lv_label_create(replaceButton);
+    lv_label_set_text(replaceLabel, _("Replace"));
+    lv_obj_center(replaceLabel);
+
+    lv_obj_t *addButton = lv_btn_create(channelShareModePanel);
+    lv_obj_set_size(addButton, 58, 30);
+    lv_obj_align(addButton, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_add_event_cb(addButton, ui_event_channel_share_mode, LV_EVENT_CLICKED, (void *)1);
+    lv_obj_t *addLabel = lv_label_create(addButton);
+    lv_label_set_text(addLabel, _("Add"));
+    lv_obj_center(addLabel);
+
+    lv_obj_t *cancelButton = lv_btn_create(channelShareModePanel);
+    lv_obj_set_size(cancelButton, 58, 30);
+    lv_obj_align(cancelButton, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+    lv_obj_add_event_cb(cancelButton, ui_event_channel_share_cancel, LV_EVENT_CLICKED, nullptr);
+    lv_obj_t *cancelLabel = lv_label_create(cancelButton);
+    lv_label_set_text(cancelLabel, _("Cancel"));
+    lv_obj_center(cancelLabel);
+
+    lv_group_focus_obj(replaceButton);
+}
+
+void TFTView_320x240::ui_event_channel_share_mode(lv_event_t *e)
+{
+    if (THIS->channelShareModePanel) {
+        lv_obj_delete(THIS->channelShareModePanel);
+        THIS->channelShareModePanel = nullptr;
+    }
+    const auto mode = lv_event_get_user_data(e) ? ChannelShareMode::Add : ChannelShareMode::Replace;
+    THIS->showChannelShareQRCode(mode);
+}
+
+void TFTView_320x240::ui_event_channel_share_cancel(lv_event_t *e)
+{
+    if (THIS->channelShareModePanel) {
+        lv_obj_delete(THIS->channelShareModePanel);
+        THIS->channelShareModePanel = nullptr;
+    }
+}
+
+void TFTView_320x240::showChannelShareQRCode(ChannelShareMode mode)
+{
+    const uint8_t buttonId = (unsigned long)objects.settings_modify_channel_name_textarea->user_data;
+    const int8_t channelIndex = (signed long)ch_label[buttonId]->user_data;
+    if (channelIndex < 0 || !channel_scratch) {
+        messageAlert(_("Unable to create channel QR"), true);
+        return;
+    }
+
+    meshtastic_ChannelSettings settings = channel_scratch[channelIndex].settings;
+    snprintf(settings.name, sizeof(settings.name), "%s", lv_textarea_get_text(objects.settings_modify_channel_name_textarea));
+    if (!base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), settings.psk.bytes, settings.psk.size,
+                     sizeof(settings.psk.bytes))) {
+        messageAlert(_("Invalid channel key"), true);
+        return;
+    }
+
+    const std::string url = ChannelShareURL::make(&settings, 1, db.config.lora, mode);
+    if (url.empty()) {
+        messageAlert(_("Unable to create channel QR"), true);
+        return;
+    }
+
     lv_obj_remove_flag(objects.settings_modify_channel_qr_panel, LV_OBJ_FLAG_HIDDEN);
-    THIS->qr = THIS->showQrCode(objects.settings_modify_channel_qr_panel, qr.c_str());
+    qr = showQrCode(objects.settings_modify_channel_qr_panel, url.c_str());
     lv_obj_add_state(objects.keyboard_button_3, LV_STATE_DISABLED);
     lv_obj_add_state(objects.keyboard_button_4, LV_STATE_DISABLED);
 }
@@ -4204,7 +4288,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     lv_textarea_add_text(objects.settings_modify_channel_psk_textarea, "=");
                 }
 
-                if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk.bytes, psk.size)) {
+                if (THIS->base64ToPsk(lv_textarea_get_text(objects.settings_modify_channel_psk_textarea), psk.bytes, psk.size,
+                                       sizeof(psk.bytes))) {
                     if (strlen(name) || psk.size) {
                         // TODO: fill temp storage -> user data
                         lv_label_set_text(THIS->ch_label[btn_id], name);
@@ -6179,8 +6264,8 @@ void TFTView_320x240::restore(uint32_t option)
             String b64pub = pubKey.substring(pubKey.lastIndexOf(":") + 1);
             b64priv.trim();
             b64pub.trim();
-            if (base64ToPsk(b64priv.c_str(), privkey.bytes, privkey.size) &&
-                base64ToPsk(b64pub.c_str(), pubkey.bytes, pubkey.size) &&
+            if (base64ToPsk(b64priv.c_str(), privkey.bytes, privkey.size, sizeof(privkey.bytes)) &&
+                base64ToPsk(b64pub.c_str(), pubkey.bytes, pubkey.size, sizeof(pubkey.bytes)) &&
                 controller->sendConfig(meshtastic_Config_SecurityConfig{db.config.security})) {
                 ILOG_INFO("restore pub/priv keys sent to radio");
             } else {

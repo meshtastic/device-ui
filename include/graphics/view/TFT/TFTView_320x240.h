@@ -5,6 +5,7 @@
 #include <set>
 
 class MapPanel;
+enum class ChannelShareMode;
 
 /**
  * @brief GUI view for e.g. T-Deck
@@ -217,6 +218,8 @@ class TFTView_320x240 : public MeshtasticView
     void showKeyboard(lv_obj_t *textArea);
     void hideKeyboard(lv_obj_t *panel);
     lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
+    void showChannelShareModePicker(void);
+    void showChannelShareQRCode(ChannelShareMode mode);
 
     void enablePanel(lv_obj_t *panel);
     void disablePanel(lv_obj_t *panel);
@@ -335,6 +338,8 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_modify_channel(lv_event_t *e);
     static void ui_event_delete_channel(lv_event_t *e);
     static void ui_event_generate_psk(lv_event_t *e);
+    static void ui_event_channel_share_mode(lv_event_t *e);
+    static void ui_event_channel_share_cancel(lv_event_t *e);
     static void ui_event_qr_code(lv_event_t *e);
 
     static void ui_event_screen_timeout_slider(lv_event_t *e);
@@ -428,6 +433,7 @@ class TFTView_320x240 : public MeshtasticView
     std::array<lv_obj_t *, c_max_channels> ch_label;      // indexable label list for settings
     meshtastic_Channel *channel_scratch;                  // temporary scratch copy of channel db
     lv_obj_t *qr;                                         // qr code
+    lv_obj_t *channelShareModePanel = nullptr;            // Replace/Add channel QR choice
     MapPanel *map = nullptr;                              // map
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
     // extended default device profile struct with additional required data

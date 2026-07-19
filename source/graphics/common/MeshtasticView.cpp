@@ -209,16 +209,21 @@ std::string MeshtasticView::pskToBase64(uint8_t *bytes, uint32_t size)
     }
 }
 
-bool MeshtasticView::base64ToPsk(const std::string &base64, uint8_t *bytes, uint16_t &size)
+bool MeshtasticView::base64ToPsk(const std::string &base64, uint8_t *bytes, uint16_t &size, uint16_t capacity)
 {
     std::string out;
     auto error = macaron::Base64::Decode(base64, out);
     if (!error.empty()) {
         ILOG_ERROR("Cannot decode '%s'", base64);
         return false;
-    } else {
-        memcpy((char *)bytes, out.data(), out.size());
-        size = out.size();
     }
+
+    if (out.size() > capacity) {
+        ILOG_ERROR("Decoded key is too large: %u", static_cast<unsigned int>(out.size()));
+        return false;
+    }
+
+    memcpy(bytes, out.data(), out.size());
+    size = out.size();
     return true;
 }
