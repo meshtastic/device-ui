@@ -21,8 +21,11 @@
 #include "util/FileLoader.h"
 #include "util/ILog.h"
 #include <algorithm>
+#include <cctype>
+#include <cstdint>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <iomanip>
 #include <list>
@@ -30,6 +33,35 @@
 #include <random>
 #include <sstream>
 #include <time.h>
+
+#if defined(_WIN32)
+static const char *strcasestr(const char *haystack, const char *needle)
+{
+    if (!haystack || !needle)
+        return nullptr;
+
+    const size_t needleLen = std::strlen(needle);
+    if (needleLen == 0)
+        return haystack;
+
+    for (const char *p = haystack; *p; ++p) {
+        size_t i = 0;
+        while (i < needleLen && p[i] && std::tolower(static_cast<unsigned char>(p[i])) ==
+                                       std::tolower(static_cast<unsigned char>(needle[i]))) {
+            ++i;
+        }
+        if (i == needleLen)
+            return p;
+    }
+
+    return nullptr;
+}
+
+static tm *localtime_r(const time_t *source, tm *result)
+{
+    return (source && result && localtime_s(result, source) == 0) ? result : nullptr;
+}
+#endif
 
 #if defined(ARCH_PORTDUINO)
 #include "PortduinoFS.h"
@@ -473,7 +505,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
             if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
                 hideKeyboard(objects.messages_panel);
             }
-            uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+            uint32_t channelOrNode = (uintptr_t)activeMsgContainer->user_data;
             // remove empty messageContainer if we are leaving messages panel
             if (channelOrNode >= c_max_channels) {
                 if (activeMsgContainer->spec_attr->child_cnt == 0) {
@@ -1026,7 +1058,7 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
     static auto deleted_cb = [](_lv_anim_t *) { animRunning = false; };
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && !animRunning) {
-        uint32_t nodeNum = (unsigned long)e->user_data;
+        uint32_t nodeNum = (uintptr_t)e->user_data;
         if (!nodeNum) // event-handler for own node has value 0 in user_data
             nodeNum = THIS->ownNode;
         lv_obj_t *panel = THIS->nodes[nodeNum];
@@ -1076,8 +1108,8 @@ void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
         }
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         //  set color and text of clicked node
-        uint32_t nodeNum = (unsigned long)e->user_data;
-        bool isMessagable = !((unsigned long)(THIS->nodes[nodeNum]->LV_OBJ_IDX(node_img_idx)->user_data) == eRole::unmessagable);
+        uint32_t nodeNum = (uintptr_t)e->user_data;
+        bool isMessagable = !((uintptr_t)(THIS->nodes[nodeNum]->LV_OBJ_IDX(node_img_idx)->user_data) == eRole::unmessagable);
         if (nodeNum != THIS->ownNode && isMessagable)
             THIS->showMessages(nodeNum);
     }
@@ -1100,7 +1132,7 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
             ignoreClicked = false;
             return;
         }
-        uint8_t ch = (uint8_t)(unsigned long)e->user_data;
+        uint8_t ch = (uint8_t)(uintptr_t)e->user_data;
         if (THIS->db.channel[ch].role != meshtastic_Channel_Role_DISABLED) {
             if (THIS->messagesRestored) {
                 THIS->showMessages(ch);
@@ -1111,7 +1143,7 @@ void TFTView_320x240::ui_event_ChannelButton(lv_event_t *e)
         }
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         // toggle mute channel
-        uint8_t ch = (uint8_t)(unsigned long)e->user_data;
+        uint8_t ch = (uint8_t)(uintptr_t)e->user_data;
         bool mute = THIS->db.channel[ch].settings.module_settings.is_muted;
         THIS->db.channel[ch].settings.module_settings.is_muted = !mute;
         THIS->updateChannelConfig(THIS->db.channel[ch]);
@@ -1218,7 +1250,7 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
         }
         lv_obj_set_style_border_color(target, colorMidGray, LV_PART_MAIN);
 
-        uint32_t channelOrNode = (unsigned long)e->user_data;
+        uint32_t channelOrNode = (uintptr_t)e->user_data;
         if (channelOrNode < c_max_channels) {
             uint8_t ch = (uint8_t)channelOrNode;
             THIS->showMessages(ch);
@@ -1243,7 +1275,7 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
         lv_obj_t *target = lv_event_get_target_obj(e);
         lv_obj_add_flag(target, LV_OBJ_FLAG_HIDDEN);
 
-        uint32_t channelOrNode = (unsigned long)e->user_data;
+        uint32_t channelOrNode = (uintptr_t)e->user_data;
         if (channelOrNode < c_max_channels) {
             THIS->eraseChat(channelOrNode);
             THIS->controller->removeTextMessages(THIS->ownNode, UINT32_MAX, channelOrNode);
@@ -1271,7 +1303,7 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
     if (target == objects.msg_popup_panel) {
         THIS->hideMessagePopup();
     } else { // msg button was clicked
-        uint32_t channelOrNode = (unsigned long)objects.msg_popup_button->user_data;
+        uint32_t channelOrNode = (uintptr_t)objects.msg_popup_button->user_data;
         if (channelOrNode < c_max_channels) {
             uint8_t ch = (uint8_t)channelOrNode;
             THIS->showMessages(ch);
@@ -1342,7 +1374,7 @@ void TFTView_320x240::ui_event_TimeButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
         // toggle date/time <-> uptime display
-        uint32_t toggle = (unsigned long)objects.home_time_button->user_data;
+        uint32_t toggle = (uintptr_t)objects.home_time_button->user_data;
         objects.home_time_button->user_data = (void *)(1 - toggle);
         THIS->updateTime();
     }
@@ -1431,12 +1463,12 @@ void TFTView_320x240::ui_event_LocationButton(lv_event_t *e)
     if (event_code == LV_EVENT_PRESSED && THIS->configComplete) {
         // TODO: figure out if there is a way to enabled GPS without a reboot (ala triple-click)
         // over phone api and switch between enabled/disabled with short press
-        // uint32_t toggle = (unsigned long)objects.home_location_button->user_data;
+        // uint32_t toggle = (uintptr_t)objects.home_location_button->user_data;
         // objects.home_location_button->user_data = (void *)(1 - toggle);
         // Themes::recolorButton(objects.home_location_button, toggle);
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->configComplete) {
         // toggle GPS not_present <-> enabled
-        uint32_t toggle = (unsigned long)objects.home_location_button->user_data;
+        uint32_t toggle = (uintptr_t)objects.home_location_button->user_data;
         objects.home_location_button->user_data = (void *)(1 - toggle);
 
         meshtastic_Config_PositionConfig &position = THIS->db.config.position;
@@ -1469,7 +1501,7 @@ void TFTView_320x240::ui_event_WLANButton(lv_event_t *e)
             THIS->activeSettings = eWifi;
         } else {
             // toggle WLAN on/off
-            uint32_t toggle = (unsigned long)objects.home_wlan_button->user_data;
+            uint32_t toggle = (uintptr_t)objects.home_wlan_button->user_data;
             objects.home_wlan_button->user_data = (void *)(1 - toggle);
             meshtastic_Config_NetworkConfig &network = THIS->db.config.network;
             network.wifi_enabled = !network.wifi_enabled;
@@ -1485,7 +1517,7 @@ void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_LONG_PRESSED && THIS->configComplete) {
         // toggle MQTT on/off
-        uint32_t toggle = (unsigned long)objects.home_mqtt_button->user_data;
+        uint32_t toggle = (uintptr_t)objects.home_mqtt_button->user_data;
         objects.home_mqtt_button->user_data = (void *)(1 - toggle);
 
         meshtastic_ModuleConfig_MQTTConfig &mqtt = THIS->db.module_config.mqtt;
@@ -1519,11 +1551,11 @@ void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
         // toggle memory display updates
-        uint32_t toggle = (unsigned long)objects.home_memory_button->user_data;
+        uint32_t toggle = (uintptr_t)objects.home_memory_button->user_data;
         objects.home_memory_button->user_data = (void *)(1 - toggle);
         Themes::recolorButton(objects.home_memory_button, !toggle);
         Themes::recolorText(objects.home_memory_label, !toggle);
-        if ((unsigned long)objects.home_memory_button->user_data) {
+        if ((uintptr_t)objects.home_memory_button->user_data) {
             THIS->updateFreeMem();
         }
     }
@@ -1569,7 +1601,7 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
-        uint32_t keyBtnIdx = (unsigned long)e->user_data;
+        uint32_t keyBtnIdx = (uintptr_t)e->user_data;
         switch (keyBtnIdx) {
         case 0:
             if (lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
@@ -2110,8 +2142,8 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
             ignoreClicked = false;
             return;
         }
-        uint32_t btn_id = (unsigned long)e->user_data;
-        int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
+        uint32_t btn_id = (uintptr_t)e->user_data;
+        int8_t ch = (intptr_t)THIS->ch_label[btn_id]->user_data;
         if (ch != -1) {
             meshtastic_ChannelSettings_psk_t &psk = THIS->channel_scratch[ch].settings.psk;
             std::string base64 = THIS->pskToBase64(psk.bytes, psk.size);
@@ -2158,10 +2190,10 @@ void TFTView_320x240::ui_event_modify_channel(lv_event_t *e)
     else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eChannel) {
         ignoreClicked = true;
         // make channel primary on long press; swap with current primary (role, id and name)
-        uint8_t btn_id = (uint8_t)(unsigned long)e->user_data;
-        int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
+        uint8_t btn_id = (uint8_t)(uintptr_t)e->user_data;
+        int8_t ch = (intptr_t)THIS->ch_label[btn_id]->user_data;
         if (btn_id != 0 && ch != -1) {
-            int32_t primary_id = (signed long)THIS->ch_label[0]->user_data;
+            int32_t primary_id = (intptr_t)THIS->ch_label[0]->user_data;
             THIS->channel_scratch[primary_id].role = meshtastic_Channel_Role_SECONDARY;
             THIS->channel_scratch[ch].role = meshtastic_Channel_Role_PRIMARY;
             THIS->ch_label[0]->user_data = (void *)(uint32_t)ch;
@@ -2373,7 +2405,7 @@ void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
 void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
 {
     // navigate to node in node list
-    uint32_t nodeNum = (unsigned long)e->user_data;
+    uint32_t nodeNum = (uintptr_t)e->user_data;
     ILOG_DEBUG("map node %08x", nodeNum);
     lv_obj_t *panel = THIS->nodes[nodeNum];
     THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
@@ -2384,7 +2416,7 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_chatNodeButton(lv_event_t *e)
 {
-    uint32_t nodeNum = (unsigned long)e->user_data;
+    uint32_t nodeNum = (uintptr_t)e->user_data;
     auto it = THIS->nodes.find(nodeNum);
     if (it != THIS->nodes.end()) {
         lv_obj_t *panel = it->second;
@@ -2399,8 +2431,8 @@ void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
 {
     // navigate to position in map
     lv_obj_t *p = (lv_obj_t *)e->user_data;
-    int32_t lat = (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-    int32_t lon = (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
+    int32_t lat = (intptr_t)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
+    int32_t lon = (intptr_t)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
     if (lat && lon) {
         THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
         if (!THIS->map) {
@@ -2440,7 +2472,7 @@ void TFTView_320x240::ui_event_arrow(lv_event_t *e)
     if (THIS->map && THIS->map->redrawComplete()) {
         uint16_t deltaX = 0;
         uint16_t deltaY = 0;
-        ScrollDirection direction = (ScrollDirection)(unsigned long)e->user_data;
+        ScrollDirection direction = (ScrollDirection)(uintptr_t)e->user_data;
         switch (direction) {
         case scrollDownLeft:
             deltaX = 1;
@@ -2575,8 +2607,8 @@ void TFTView_320x240::loadMap(void)
             sortedLon.reserve(nodeObjects.size());
             for (auto it : nodeObjects) {
                 lv_obj_t *p = nodes[it.first];
-                int32_t lat = (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                int32_t lon = (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
+                int32_t lat = (intptr_t)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
+                int32_t lon = (intptr_t)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
                 if (lat && lon) {
                     sortedLat.push_back(lat);
                     sortedLon.push_back(lon);
@@ -2618,8 +2650,8 @@ void TFTView_320x240::loadMap(void)
         if (!nodeObjects.empty()) {
             for (auto it : nodeObjects) {
                 lv_obj_t *p = nodes[it.first];
-                float lat = 1e-7 * (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                float lon = 1e-7 * (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
+                float lat = 1e-7 * (intptr_t)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
+                float lon = 1e-7 * (intptr_t)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
                 map->add(it.first, lat, lon, drawObjectCB);
                 lv_obj_add_flag(it.second, LV_OBJ_FLAG_CLICKABLE);
                 lv_obj_add_event_cb(it.second, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)it.first);
@@ -2795,7 +2827,7 @@ void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t *e)
 void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
 {
     if (currentPanel) {
-        THIS->setNodeImage(currentNode, (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data,
+        THIS->setNodeImage(currentNode, (MeshtasticView::eRole)(uintptr_t)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data,
                            false, objects.signal_scanner_node_image);
         const char *lbs = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbs_idx));
         lv_label_set_text(objects.signal_scanner_node_button_label, lbs);
@@ -2898,7 +2930,7 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
 
     if (currentPanel) {
         THIS->setNodeImage(THIS->currentNode,
-                           (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
+                           (MeshtasticView::eRole)(uintptr_t)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
                            objects.trace_route_to_image);
         const char *lbl = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbl_idx));
         lv_label_set_text(objects.trace_route_to_button_label, lbl);
@@ -2939,9 +2971,9 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
                 if (it.second == currentPanel) {
                     uint32_t requestId;
                     uint32_t to = it.first;
-                    uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
+                    uint8_t ch = (uint8_t)(uintptr_t)currentPanel->user_data;
                     // trial: hoplimit optimization for direct messages
-                    int8_t hopsAway = (signed long)THIS->nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
+                    int8_t hopsAway = (intptr_t)THIS->nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
                     if (hopsAway < 0)
                         hopsAway = 5;
                     uint8_t hopLimit = (hopsAway < THIS->db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
@@ -3019,7 +3051,7 @@ void TFTView_320x240::packetDetected(const meshtastic_MeshPacket &p)
             lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
 
-            setNodeImage(p.from, (MeshtasticView::eRole)(unsigned long)nodes[p.from]->LV_OBJ_IDX(node_img_idx)->user_data, false,
+            setNodeImage(p.from, (MeshtasticView::eRole)(uintptr_t)nodes[p.from]->LV_OBJ_IDX(node_img_idx)->user_data, false,
                          objects.detector_contact_image);
             const char *lbl = lv_label_get_text(nodes[p.from]->LV_OBJ_IDX(node_lbl_idx));
 
@@ -3971,7 +4003,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 }
             }
 
-            int8_t ch = (signed long)THIS->ch_label[0]->user_data;
+            int8_t ch = (intptr_t)THIS->ch_label[0]->user_data;
             THIS->setChannelName(THIS->db.channel[ch]);
             lv_obj_clear_state(objects.settings_channel_panel, LV_STATE_DISABLED);
             lv_obj_add_flag(objects.settings_channel_panel, LV_OBJ_FLAG_HIDDEN);
@@ -4190,8 +4222,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             meshtastic_ChannelSettings_psk_t psk = {};
             const char *name = lv_textarea_get_text(objects.settings_modify_channel_name_textarea);
             const char *base64 = lv_textarea_get_text(objects.settings_modify_channel_psk_textarea);
-            uint8_t btn_id = (unsigned long)objects.settings_modify_channel_name_textarea->user_data;
-            int8_t ch = (signed long)THIS->ch_label[btn_id]->user_data;
+            uint8_t btn_id = (uintptr_t)objects.settings_modify_channel_name_textarea->user_data;
+            int8_t ch = (intptr_t)THIS->ch_label[btn_id]->user_data;
 
             if (strlen(base64) == 0 && strlen(name) == 0) {
                 // delete channel
@@ -4461,7 +4493,7 @@ void TFTView_320x240::handleAddMessage(char *msg)
     uint8_t ch = 0;
     uint8_t hopLimit = db.config.lora.hop_limit;
     uint32_t requestId;
-    uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+    uint32_t channelOrNode = (uintptr_t)activeMsgContainer->user_data;
     bool usePkc = false;
 
     auto callback = [this](const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t pass) {
@@ -4470,14 +4502,14 @@ void TFTView_320x240::handleAddMessage(char *msg)
 
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
-        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
+        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)(intptr_t)ch, callback);
     } else {
-        ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
+        ch = (uint8_t)(uintptr_t)nodes[channelOrNode]->user_data;
         to = channelOrNode;
-        usePkc = (unsigned long)nodes[to]->LV_OBJ_IDX(node_bat_idx)->user_data; // hasKey
+        usePkc = (uintptr_t)nodes[to]->LV_OBJ_IDX(node_bat_idx)->user_data; // hasKey
         requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to, callback);
         // trial: hoplimit optimization for direct text messages
-        int8_t hopsAway = (signed long)nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
+        int8_t hopsAway = (intptr_t)nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
         if (hopsAway < 0)
             hopsAway = db.config.lora.hop_limit;
         hopLimit = (hopsAway < db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
@@ -4909,8 +4941,8 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
             // TODO: need incremental update!?
             for (auto &it : nodes) {
                 if (it.first != ownNode) {
-                    int32_t nlat = (long)it.second->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                    int32_t nlon = (long)it.second->LV_OBJ_IDX(node_pos2_idx)->user_data;
+                    int32_t nlat = (intptr_t)it.second->LV_OBJ_IDX(node_pos1_idx)->user_data;
+                    int32_t nlon = (intptr_t)it.second->LV_OBJ_IDX(node_pos2_idx)->user_data;
                     if (nlat != 0 && nlon != 0) {
                         updateDistance(it.first, nlat, nlon);
                     }
@@ -5136,7 +5168,7 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
             char buf[32];
             sprintf(buf, _("hops: %d"), (int)hopsAway);
             lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
-            it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)(unsigned long)hopsAway;
+            it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)(uintptr_t)hopsAway;
             lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_sig_idx), LV_OBJ_FLAG_HIDDEN);
         }
     }
@@ -5235,9 +5267,9 @@ void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req,
 {
     ILOG_DEBUG("onTextMessageCallback: %d %d", evt, result);
     if (evt == ResponseHandler::found) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, false, result);
+        handleTextMessageResponse((uintptr_t)req.cookie, req.id, false, result);
     } else if (evt == ResponseHandler::removed) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, true, result);
+        handleTextMessageResponse((uintptr_t)req.cookie, req.id, true, result);
     } else {
         ILOG_DEBUG("onTextMessageCallback: timeout!");
     }
@@ -5274,7 +5306,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             } else if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false);
+                handleTextMessageResponse((uintptr_t)req.cookie, id, ack, false);
             } else if (req.type == ResponseHandler::PositionRequest) {
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             }
@@ -5283,7 +5315,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             } else if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+                handleTextMessageResponse((uintptr_t)req.cookie, id, ack, true);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
             if (req.type == ResponseHandler::PositionRequest) {
@@ -5292,9 +5324,9 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL ||
                    routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY) {
             if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+                handleTextMessageResponse((uintptr_t)req.cookie, id, ack, true);
                 // we probably have a wrong key; mark it as bad and don't use in future
-                if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
+                if ((uintptr_t)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
                     ILOG_DEBUG("public key mismatch");
                     nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
                     lv_obj_set_style_border_color(nodes[from]->LV_OBJ_IDX(node_img_idx), colorRed, LV_PART_MAIN);
@@ -5332,7 +5364,7 @@ void TFTView_320x240::scanSignal(uint32_t scanNo)
     } else {
         uint32_t requestId;
         uint32_t to = currentNode;
-        uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
+        uint8_t ch = (uint8_t)(uintptr_t)currentPanel->user_data;
         requestId = requests.addRequest(to, ResponseHandler::PositionRequest, (void *)to);
         controller->requestPosition(to, ch, requestId);
         objects.signal_scanner_panel->user_data = (void *)requestId;
@@ -5341,7 +5373,7 @@ void TFTView_320x240::scanSignal(uint32_t scanNo)
 
 void TFTView_320x240::handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor)
 {
-    if (request_id == (unsigned long)objects.signal_scanner_panel->user_data) {
+    if (request_id == (uintptr_t)objects.signal_scanner_panel->user_data) {
         requests.removeRequest(request_id);
 
         if (from == currentNode && isNeighbor) {
@@ -5424,7 +5456,7 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
         {
             lv_obj_t *img = lv_img_create(btn);
             if (nodePanel) {
-                setNodeImage(nodeNum, (MeshtasticView::eRole)(unsigned long)nodePanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
+                setNodeImage(nodeNum, (MeshtasticView::eRole)(uintptr_t)nodePanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
                              img);
             } else {
                 setNodeImage(0, eRole::unknown, false, img);
@@ -5488,10 +5520,10 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
     curr_time = actTime;
 #endif
     // prefer purging older unknown nodes first (but not the brand new ones)
-    while ((eRole)(long)(children[i]->LV_OBJ_IDX(node_img_idx)->user_data) != eRole::unknown ||
+    while ((eRole)(intptr_t)(children[i]->LV_OBJ_IDX(node_img_idx)->user_data) != eRole::unknown ||
            curr_time < (time_t)(children[i]->LV_OBJ_IDX(node_lh_idx)->user_data) + 120 ||
-           (unsigned long)(children[i]->LV_OBJ_IDX(node_lbl_idx)->user_data) == nodeNum ||
-           chats.find((unsigned long)(children[i]->LV_OBJ_IDX(node_lbl_idx)->user_data)) != chats.end()) {
+           (uintptr_t)(children[i]->LV_OBJ_IDX(node_lbl_idx)->user_data) == nodeNum ||
+           chats.find((uintptr_t)(children[i]->LV_OBJ_IDX(node_lbl_idx)->user_data)) != chats.end()) {
         if (i < (last + 1) / 5) { // keep 80% named nodes and 20% unknown (not fresh) nodes
             i = last;
             break;
@@ -5500,8 +5532,8 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
     }
 #endif
     lv_obj_t *p = children[i];
-    uint32_t oldest = (unsigned long)(p->LV_OBJ_IDX(node_lbl_idx)->user_data);
-    uint32_t lastHeard = (unsigned long)p->LV_OBJ_IDX(node_lh_idx)->user_data;
+    uint32_t oldest = (uintptr_t)(p->LV_OBJ_IDX(node_lbl_idx)->user_data);
+    uint32_t lastHeard = (uintptr_t)p->LV_OBJ_IDX(node_lh_idx)->user_data;
     if (lastHeard > 0 && (curtime - lastHeard <= secs_until_offline))
         nodesOnline--;
 
@@ -5553,20 +5585,20 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
                 hide = true;
         }
         if (lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED)) {
-            bool hasKey = (unsigned long)panel->LV_OBJ_IDX(node_bat_idx)->user_data == 1;
+            bool hasKey = (uintptr_t)panel->LV_OBJ_IDX(node_bat_idx)->user_data == 1;
             if (!hasKey)
                 hide = true;
         }
         if (lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown) != 0) {
             int selected = lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown);
             if (selected != 0) {
-                uint8_t ch = (uint8_t)(unsigned long)panel->user_data;
+                uint8_t ch = (uint8_t)(uintptr_t)panel->user_data;
                 if (selected - 1 != ch)
                     hide = true;
             }
         }
         if (lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown) != 0) {
-            int32_t hopsAway = (signed long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
+            int32_t hopsAway = (intptr_t)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
             int selected = lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown) - 7;
             if (hopsAway < 0)
                 hide = true;
@@ -5580,7 +5612,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         }
 #if 0
         if (lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED)) {
-            bool viaMqtt = false; // TODO (unsigned long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
+            bool viaMqtt = false; // TODO (uintptr_t)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
             if (viaMqtt)
                 hide = true;
         }
@@ -5641,7 +5673,7 @@ bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
         }
         if (lv_obj_has_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED)) {
             if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm2_idx))[0] != '\0') {
-                uint32_t iaq = (unsigned long)panel->LV_OBJ_IDX(node_tm2_idx)->user_data;
+                uint32_t iaq = (uintptr_t)panel->LV_OBJ_IDX(node_tm2_idx)->user_data;
                 // IAQ color code
                 lv_color_t fg, bg;
                 if (iaq <= 50) {
@@ -5720,7 +5752,7 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
     uint16_t i = msgContainer->spec_attr->child_cnt;
     while (i-- > 0) {
         lv_obj_t *panel = msgContainer->spec_attr->children[i];
-        uint32_t requestId = (unsigned long)panel->user_data;
+        uint32_t requestId = (uintptr_t)panel->user_data;
         if (requestId == id) {
             // now give the textlabel border another color
             lv_obj_t *textLabel = panel->spec_attr->children[0];
@@ -6769,7 +6801,7 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     if (p) {
         lv_label_set_text(objects.top_messages_node_label, lv_label_get_text(p->LV_OBJ_IDX(node_lbl_idx)));
         ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
-        switch ((unsigned long)p->LV_OBJ_IDX(node_bat_idx)->user_data) {
+        switch ((uintptr_t)p->LV_OBJ_IDX(node_bat_idx)->user_data) {
         case 0:
             lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_channel_image, LV_PART_MAIN);
             break;
@@ -7173,7 +7205,7 @@ void TFTView_320x240::updateTime(void)
     tm *curr_tm = localtime(&curr_time);
 
     int len = 0;
-    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0) {
+    if (VALID_TIME(curr_time) && (uintptr_t)objects.home_time_button->user_data == 0) {
         if (db.config.display.use_12h_clock) {
             len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
         } else {
@@ -7310,7 +7342,7 @@ void TFTView_320x240::formatSDCard(void)
 void TFTView_320x240::updateFreeMem(void)
 {
     // only update if HomePanel is active (since this is some critical code that did crash sporadically)
-    if (activePanel == objects.home_panel && (unsigned long)objects.home_memory_button->user_data) {
+    if (activePanel == objects.home_panel && (uintptr_t)objects.home_memory_button->user_data) {
         char buf[64];
         uint32_t freeHeap = 0;
         uint32_t freeHeap_pct = 0;
