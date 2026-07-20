@@ -13,10 +13,10 @@
 #if defined(USE_FRAMEBUFFER)
 #include "graphics/driver/FBDriver.h"
 #endif
-#if defined(USE_X11)
+#if defined(USE_X11) && USE_X11
 #include "graphics/driver/X11Driver.h"
 #endif
-#if defined(USE_SDL)
+#if defined(USE_SDL) && USE_SDL
 #include "graphics/driver/SDLDriver.h"
 #endif
 
@@ -93,8 +93,10 @@ DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 #if defined(USE_FRAMEBUFFER)
     return &FBDriver::create(width, height);
 #endif
-#if defined(USE_X11)
+#if defined(USE_X11) && USE_X11
     return &X11Driver::create(width, height);
+#elif defined(USE_SDL) && USE_SDL
+    return &SDLDriver::create(width, height);
 #elif defined(LGFX_DRIVER)
     return new LGFXDriver<LGFX_DRIVER>(width, height);
 #endif
@@ -126,9 +128,14 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         return &FBDriver::create(cfg.width(), cfg.height());
     }
 #endif
-#if defined(USE_X11)
+#if defined(USE_X11) && USE_X11
     if (cfg._device == DisplayDriverConfig::device_t::X11) {
         return &X11Driver::create(cfg.width(), cfg.height());
+    }
+#endif
+#if defined(USE_SDL) && USE_SDL
+    if (cfg._device == DisplayDriverConfig::device_t::SDL) {
+        return &SDLDriver::create(cfg.width(), cfg.height());
     }
 #endif
     switch (cfg._device) {
@@ -215,12 +222,12 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         return &FBDriver::create(cfg.width(), cfg.height());
         break;
 #endif
-#if defined(USE_X11)
+#if defined(USE_X11) && USE_X11
     case DisplayDriverConfig::device_t::X11:
         return &X11Driver::create(cfg.width(), cfg.height());
         break;
 #endif
-#if defined(USE_SDL)
+#if defined(USE_SDL) && USE_SDL
     case DisplayDriverConfig::device_t::SDL:
         return &SDLDriver::create(cfg.width(), cfg.height());
         break;

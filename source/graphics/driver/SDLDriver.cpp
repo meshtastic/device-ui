@@ -1,4 +1,4 @@
-#ifdef USE_SDL
+#if defined(USE_SDL) && USE_SDL
 #include "graphics/driver/SDLDriver.h"
 #include "util/ILog.h"
 #include <SDL2/SDL.h>
