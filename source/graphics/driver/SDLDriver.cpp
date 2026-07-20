@@ -29,6 +29,7 @@ void SDLDriver::init(DeviceGUI *gui)
     char title[25];
     sprintf(title, "Meshtastic (%dx%d)", screenWidth, screenHeight);
     lv_sdl_window_set_title(display, title);
+    lv_sdl_window_set_resizeable(display, true);
     lv_sdl_mouse_create();
     lv_sdl_mousewheel_create();
     lv_sdl_keyboard_create();
