@@ -1,5 +1,6 @@
 #if defined(USE_SDL) && USE_SDL
 #include "graphics/driver/SDLDriver.h"
+#include "input/InputDriver.h"
 #include "util/ILog.h"
 #include <SDL2/SDL.h>
 #include <stdio.h>
@@ -30,25 +31,32 @@ void SDLDriver::init(DeviceGUI *gui)
     sprintf(title, "Meshtastic (%dx%d)", screenWidth, screenHeight);
     lv_sdl_window_set_title(display, title);
     lv_sdl_window_set_resizeable(display, true);
-    lv_sdl_mouse_create();
-    lv_sdl_mousewheel_create();
-    lv_sdl_keyboard_create();
+
+    lv_indev_t *mouse = lv_sdl_mouse_create();
+    lv_indev_t *wheel = lv_sdl_mousewheel_create();
+    lv_indev_t *keyboard = lv_sdl_keyboard_create();
+
+    // SDL key events are delivered as KEYPAD input; they need a focused group.
+    lv_group_t *group = lv_group_get_default();
+    if (!group) {
+        group = lv_group_create();
+        lv_group_set_default(group);
+    }
+
+    if (keyboard)
+        lv_indev_set_group(keyboard, group);
+    if (mouse)
+        lv_indev_set_group(mouse, group);
+    if (wheel)
+        lv_indev_set_group(wheel, group);
 }
 
 void SDLDriver::task_handler(void)
 {
-    const int ms = 10;
-    auto start = std::chrono::high_resolution_clock::now();
-    DisplayDriver::task_handler();
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    if (duration.count() < ms) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(ms - duration.count()));
-        lv_tick_inc(ms);
-    } else {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        lv_tick_inc(duration.count() + 1);
-    }
+    uint32_t waitMs = lv_timer_handler();
+    if (waitMs > 5)
+        waitMs = 5;
+    std::this_thread::sleep_for(std::chrono::milliseconds(waitMs));
 }
 
 #endif
