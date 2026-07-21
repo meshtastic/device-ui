@@ -63,6 +63,20 @@ static tm *localtime_r(const time_t *source, tm *result)
 }
 #endif
 
+static void normalizeShortName4(char out[5], const char *text)
+{
+    out[0] = ' ';
+    out[1] = ' ';
+    out[2] = ' ';
+    out[3] = ' ';
+    out[4] = '\0';
+    if (!text)
+        return;
+
+    for (size_t i = 0; i < 4 && text[i] != '\0'; ++i)
+        out[i] = text[i];
+}
+
 #if defined(ARCH_PORTDUINO)
 #include "PortduinoFS.h"
 fs::FS &fileSystem = PortduinoFS;
@@ -1838,9 +1852,14 @@ void TFTView_320x240::ui_event_channel_button(lv_event_t *e)
         for (int i = 0; i < c_max_channels; i++) {
             meshtastic_Channel &ch = THIS->db.channel[i];
             if (ch.has_settings && ch.role != meshtastic_Channel_Role_DISABLED) {
-                const char *channelName = ch.settings.name;
-                if (ch.settings.name[0] == '\0' && ch.settings.psk.size == 1 && ch.settings.psk.bytes[0] == 0x01) {
-                    channelName = LoRaPresets::modemPresetToString(THIS->db.config.lora.modem_preset);
+                char channelName[32];
+                const size_t nameLen = strnlen(ch.settings.name, sizeof(ch.settings.name));
+                if (nameLen == 0 && ch.settings.psk.size == 1 && ch.settings.psk.bytes[0] == 0x01) {
+                    lv_snprintf(channelName, sizeof(channelName), "%s",
+                                LoRaPresets::modemPresetToString(THIS->db.config.lora.modem_preset));
+                } else {
+                    lv_snprintf(channelName, sizeof(channelName), "%.*s",
+                                static_cast<int>(std::min<size_t>(nameLen, sizeof(channelName) - 1)), ch.settings.name);
                 }
                 if (ch.role == meshtastic_Channel_Role_PRIMARY) {
                     THIS->ch_label[0]->user_data = (void *)i;
@@ -3056,13 +3075,11 @@ void TFTView_320x240::packetDetected(const meshtastic_MeshPacket &p)
             const char *lbl = lv_label_get_text(nodes[p.from]->LV_OBJ_IDX(node_lbl_idx));
 
             char from[5];
-            char *userShort = (char *)&(nodes[p.from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-            int pos = 0;
-            while (pos < 4 && userShort[pos] != 0) {
-                from[pos] = userShort[pos];
-                pos++;
-            }
-            from[pos] = '\0';
+            auto sit = nodeShortNames.find(p.from);
+            if (sit != nodeShortNames.end())
+                memcpy(from, sit->second.value, sizeof(from));
+            else
+                lv_snprintf(from, sizeof(from), "%04x", p.from & 0xffff);
 
             char buf[64];
             lv_snprintf(buf, 64, "%s(%04x)\n%s", from, p.from & 0xffff, lbl);
@@ -3108,13 +3125,11 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
 
     // get node name from
     char from[5];
-    char *userShort = (char *)&(nodes[p.from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-    int pos = 0;
-    while (pos < 4 && userShort[pos] != 0) {
-        from[pos] = userShort[pos];
-        pos++;
-    }
-    from[pos] = '\0';
+    auto sit = nodeShortNames.find(p.from);
+    if (sit != nodeShortNames.end())
+        memcpy(from, sit->second.value, sizeof(from));
+    else
+        lv_snprintf(from, sizeof(from), "%04x", p.from & 0xffff);
 
     char buf[256];
     if (p.to == 0xffffffff)
@@ -3315,14 +3330,9 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
             buf[0] = '\0';
             auto it = nodes.find(it2.id); // node may have been removed from nodes, so check if still there
             if (it != nodes.end() && it->second) {
-                char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
-                if (userData) {
-                    buf[0] = userData[0];
-                    buf[1] = userData[1];
-                    buf[2] = userData[2];
-                    buf[3] = userData[3];
-                    buf[4] = '\0';
-                }
+                auto sit = nodeShortNames.find(it2.id);
+                if (sit != nodeShortNames.end())
+                    memcpy(buf, sit->second.value, 5);
             }
 
             lv_table_set_cell_value(objects.statistics_table, row, 0, buf);
@@ -3834,6 +3844,7 @@ void TFTView_320x240::clearChatHistory(void)
             lv_obj_delete(messages[it.first]);
         }
     }
+    activeMsgContainer = objects.messages_container;
     chats.clear();
     messages.clear();
     updateActiveChats();
@@ -4679,20 +4690,10 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     }
     char *modUserShort = lv_label_get_text(sn_lbl);
 
-    // keep a copy of the (4-byte) short name for use in many other widgets
-    char *userData = (char *)&(sn_lbl->user_data);
-    userData[0] = modUserShort[0];
-    if (userData[0] == 0x00)
-        userData[0] = ' ';
-    userData[1] = modUserShort[1];
-    if (userData[1] == 0x00)
-        userData[1] = ' ';
-    userData[2] = modUserShort[2];
-    if (userData[2] == 0x00)
-        userData[2] = ' ';
-    userData[3] = modUserShort[3];
-    if (userData[3] == 0x00)
-        userData[3] = ' ';
+    // Keep a stable short name copy outside LVGL object internals.
+    ShortName4 shortName{};
+    normalizeShortName4(shortName.value, modUserShort);
+    nodeShortNames[nodeNum] = shortName;
 
     //  BatteryLabel
     lv_obj_t *ui_BatteryLabel = lv_label_create(p);
@@ -4860,19 +4861,9 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), cfg.long_name);
         it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)nodeNum;
         lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), cfg.short_name);
-        char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
-        userData[0] = cfg.short_name[0];
-        if (userData[0] == 0x00)
-            userData[0] = ' ';
-        userData[1] = cfg.short_name[1];
-        if (userData[1] == 0x00)
-            userData[1] = ' ';
-        userData[2] = cfg.short_name[2];
-        if (userData[2] == 0x00)
-            userData[2] = ' ';
-        userData[3] = cfg.short_name[3];
-        if (userData[3] == 0x00)
-            userData[3] = ' ';
+        ShortName4 shortName{};
+        normalizeShortName4(shortName.value, lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)));
+        nodeShortNames[nodeNum] = shortName;
 
         setNodeImage(nodeNum, (MeshtasticView::eRole)cfg.role, cfg.has_is_unmessagable && cfg.is_unmessagable,
                      it->second->LV_OBJ_IDX(node_img_idx));
@@ -4989,11 +4980,15 @@ void TFTView_320x240::updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon)
 
     // add distance to user short field
     char buf[32];
-    char *userData = (char *)&(nodes[nodeNum]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-    buf[0] = userData[0];
-    buf[1] = userData[1];
-    buf[2] = userData[2];
-    buf[3] = userData[3];
+    auto sit = nodeShortNames.find(nodeNum);
+    if (sit != nodeShortNames.end()) {
+        buf[0] = sit->second.value[0];
+        buf[1] = sit->second.value[1];
+        buf[2] = sit->second.value[2];
+        buf[3] = sit->second.value[3];
+    } else {
+        lv_snprintf(buf, 5, "%04x", nodeNum & 0xffff);
+    }
     buf[4] = '\n';
 
     if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
@@ -5556,6 +5551,7 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
         }
     }
     removeFromMap(oldest);
+    nodeShortNames.erase(oldest);
     nodes.erase(oldest);
     nodeCount--;
     nodesChanged = true; // flag to force re-apply node filter
@@ -6001,7 +5997,12 @@ void TFTView_320x240::updateNetworkConfig(const meshtastic_Config_NetworkConfig 
     db.config.has_network = true;
 
     char buf[40];
-    lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), cfg.wifi_ssid[0] ? cfg.wifi_ssid : _("<not set>"));
+    const size_t ssidLen = strnlen(cfg.wifi_ssid, sizeof(cfg.wifi_ssid));
+    if (ssidLen > 0) {
+        lv_snprintf(buf, sizeof(buf), _("WiFi: %.*s"), static_cast<int>(std::min<size_t>(ssidLen, 24)), cfg.wifi_ssid);
+    } else {
+        lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), _("<not set>"));
+    }
     lv_label_set_text(objects.basic_settings_wifi_label, buf);
 }
 
@@ -6111,25 +6112,39 @@ void TFTView_320x240::setBellText(bool banner, bool sound)
  */
 void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
 {
+    if (ch.index >= c_max_channels) {
+        ILOG_ERROR("setChannelName invalid channel index=%u", ch.index);
+        return;
+    }
+    const size_t rawNameLen = strnlen(ch.settings.name, sizeof(ch.settings.name));
+
     char buf[40];
     if (ch.role == meshtastic_Channel_Role_PRIMARY) {
-        sprintf(buf, _("Channel: %s"),
-                strlen(ch.settings.name) ? ch.settings.name
-                : db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
-                    ? ("<unset>")
-                    : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
+        if (rawNameLen > 0) {
+            lv_snprintf(buf, sizeof(buf), _("Channel: %.*s"), static_cast<int>(std::min<size_t>(rawNameLen, 24)),
+                        ch.settings.name);
+        } else {
+            const char *fallback = db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
+                                       ? "<unset>"
+                                       : LoRaPresets::modemPresetToString(db.config.lora.modem_preset);
+            lv_snprintf(buf, sizeof(buf), _("Channel: %s"), fallback);
+        }
         lv_label_set_text(objects.basic_settings_channel_label, buf);
 
-        sprintf(buf, "*%s",
-                strlen(ch.settings.name) ? ch.settings.name
-                : db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
-                    ? ("<unset>")
-                    : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
-    } else {
-        if (ch.settings.name[0] == '\0' && ch.settings.psk.size == 1 && ch.settings.psk.bytes[0] == 0x01) {
-            sprintf(buf, "%s", LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
+        if (rawNameLen > 0) {
+            lv_snprintf(buf, sizeof(buf), "*%.*s", static_cast<int>(std::min<size_t>(rawNameLen, 31)), ch.settings.name);
         } else {
-            strcpy(buf, ch.settings.name);
+            const char *fallback = db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
+                                       ? "<unset>"
+                                       : LoRaPresets::modemPresetToString(db.config.lora.modem_preset);
+            lv_snprintf(buf, sizeof(buf), "*%s", fallback);
+        }
+    } else {
+        if (rawNameLen == 0 && ch.settings.psk.size == 1 && ch.settings.psk.bytes[0] == 0x01) {
+            lv_snprintf(buf, sizeof(buf), "%s", LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
+        } else {
+            lv_snprintf(buf, sizeof(buf), "%.*s", static_cast<int>(std::min<size_t>(rawNameLen, sizeof(buf) - 1)),
+                        ch.settings.name);
         }
     }
 
@@ -6139,7 +6154,7 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
     auto it = chats.find(ch.index);
     if (it != chats.end()) {
         char buf2[64];
-        sprintf(buf2, "%d: %s", (int)ch.index, buf);
+        lv_snprintf(buf2, sizeof(buf2), "%d: %s", (int)ch.index, buf);
         lv_label_set_text(it->second->spec_attr->children[0], buf2);
     }
 }
@@ -6305,8 +6320,10 @@ void TFTView_320x240::updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig 
     db.module_config.mqtt = cfg;
     db.module_config.has_mqtt = true;
 
+    const size_t rootLen = strnlen(db.module_config.mqtt.root, sizeof(db.module_config.mqtt.root));
     char buf[32];
-    lv_snprintf(buf, sizeof(buf), "%s", db.module_config.mqtt.root);
+    lv_snprintf(buf, sizeof(buf), "%.*s", static_cast<int>(std::min<size_t>(rootLen, sizeof(buf) - 1)),
+                db.module_config.mqtt.root);
     lv_label_set_text(objects.home_mqtt_label, buf);
 
     if (!db.module_config.mqtt.enabled) {
@@ -6442,11 +6459,14 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         if (nodes.find(from) == nodes.end()) {
             pos += sprintf(buf, "%04x ", from & 0xffff);
         } else {
-            // original short name is held in userData, extract it and add msg
-            char *userData = (char *)&(nodes[from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-            while (pos < 4 && userData[pos] != 0) {
-                buf[pos] = userData[pos];
-                pos++;
+            auto sit = nodeShortNames.find(from);
+            if (sit != nodeShortNames.end()) {
+                while (pos < 4 && sit->second.value[pos] != 0) {
+                    buf[pos] = sit->second.value[pos];
+                    pos++;
+                }
+            } else {
+                pos += sprintf(buf, "%04x", from & 0xffff);
             }
         }
         buf[pos++] = ' ';
@@ -7024,6 +7044,7 @@ void TFTView_320x240::removeNode(uint32_t nodeNum)
 {
     auto it = nodes.find(nodeNum);
     if (it != nodes.end()) {
+        nodeShortNames.erase(nodeNum);
     }
 }
 
