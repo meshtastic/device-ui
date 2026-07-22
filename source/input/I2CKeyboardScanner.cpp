@@ -73,7 +73,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
     driver = new TLoraPagerKeyboardInputDriver(SCAN_TCA8418_KB_ADDR);
 #elif defined(T_DECK_PRO)
     driver = new TDeckProKeyboardInputDriver(SCAN_TCA8418_KB_ADDR);
-#elif defined(ELECROW_ThinkNode_M9)
+#elif defined(ELECROW_ThinkNode_M9) && !defined(HAS_STC8H_KB)
     driver = new TM9KeyboardInputDriver(SCAN_TM9_KB_ADDR);
 #else
     ILOG_DEBUG("I2CKeyboardScanner scanning bus 0 ...");
