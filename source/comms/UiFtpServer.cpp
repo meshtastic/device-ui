@@ -139,7 +139,7 @@ bool UiFtpServer::initWiFi(const char *ssid, const char *password_)
         WiFi.setHostname(FTP_HOSTNAME);
         WiFi.setAutoReconnect(true);
         WiFi.setSleep(false);
-        WiFi.setTxPower(WIFI_POWER_11dBm); // Balance throughput and power while transferring files
+        // WiFi.setTxPower(WIFI_POWER_11dBm); // Balance throughput and power while transferring files
 
         WiFi.onEvent(WiFiEventHandler, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
         WiFi.onEvent(WiFiEventHandler, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
