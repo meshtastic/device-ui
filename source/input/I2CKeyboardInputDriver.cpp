@@ -357,6 +357,7 @@ void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv
         if (wire.available() > 0 && bytes > 0) {
             keyValue = wire.read();
             if (keyValue != 0x00) {
+                lv_disp_trig_activity(NULL);
                 data->state = LV_INDEV_STATE_PRESSED;
                 ILOG_DEBUG("key press value: 0x%02X", keyValue);
 
