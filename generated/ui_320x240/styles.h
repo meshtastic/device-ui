@@ -46,6 +46,11 @@ lv_style_t *get_style_settings_button_style_MAIN_DEFAULT();
 void add_style_settings_button_style(lv_obj_t *obj);
 void remove_style_settings_button_style(lv_obj_t *obj);
 
+// Style: QuickChatButtonStyle
+lv_style_t *get_style_quick_chat_button_style_MAIN_DEFAULT();
+void add_style_quick_chat_button_style(lv_obj_t *obj);
+void remove_style_quick_chat_button_style(lv_obj_t *obj);
+
 // Style: MainButtonStyle
 lv_style_t *get_style_main_button_style_MAIN_DEFAULT();
 lv_style_t *get_style_main_button_style_MAIN_FOCUS_KEY();
@@ -154,6 +159,10 @@ lv_style_t *get_style_map_arrow_style_MAIN_PRESSED();
 lv_style_t *get_style_map_arrow_style_MAIN_FOCUS_KEY();
 void add_style_map_arrow_style(lv_obj_t *obj);
 void remove_style_map_arrow_style(lv_obj_t *obj);
+
+// Style: TabStyle
+void add_style_tab_style(lv_obj_t *obj);
+void remove_style_tab_style(lv_obj_t *obj);
 
 #ifdef __cplusplus
 }

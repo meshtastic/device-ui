@@ -280,6 +280,43 @@ void remove_style_settings_button_style(lv_obj_t *obj) {
 };
 
 //
+// Style: QuickChatButtonStyle
+//
+
+void init_style_quick_chat_button_style_MAIN_DEFAULT(lv_style_t *style) {
+    lv_style_set_bg_color(style, lv_color_hex(0xfafaf4));
+    lv_style_set_bg_image_recolor_opa(style, 255);
+    lv_style_set_bg_image_recolor(style, lv_color_hex(0x67ea94));
+    lv_style_set_border_width(style, 1);
+    lv_style_set_border_color(style, lv_color_hex(0xd0d0d0));
+    lv_style_set_text_color(style, lv_color_hex(0x294337));
+    lv_style_set_pad_top(style, 6);
+    lv_style_set_pad_bottom(style, 6);
+    lv_style_set_pad_left(style, 5);
+    lv_style_set_pad_right(style, 5);
+};
+
+lv_style_t *get_style_quick_chat_button_style_MAIN_DEFAULT() {
+    static lv_style_t *style;
+    if (!style) {
+        style = (lv_style_t *)lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_quick_chat_button_style_MAIN_DEFAULT(style);
+    }
+    return style;
+};
+
+void add_style_quick_chat_button_style(lv_obj_t *obj) {
+    (void)obj;
+    lv_obj_add_style(obj, get_style_quick_chat_button_style_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+};
+
+void remove_style_quick_chat_button_style(lv_obj_t *obj) {
+    (void)obj;
+    lv_obj_remove_style(obj, get_style_quick_chat_button_style_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+};
+
+//
 // Style: MainButtonStyle
 //
 
@@ -455,7 +492,7 @@ void remove_style_chat_message_style(lv_obj_t *obj) {
 
 void init_style_tab_view_style_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_bg_color(style, lv_color_hex(0xf4f4f4));
-    lv_style_set_text_color(style, lv_color_hex(0x003c9f));
+    lv_style_set_text_color(style, lv_color_hex(0x606060));
 };
 
 lv_style_t *get_style_tab_view_style_MAIN_DEFAULT() {
@@ -1060,6 +1097,18 @@ void remove_style_map_arrow_style(lv_obj_t *obj) {
 };
 
 //
+// Style: TabStyle
+//
+
+void add_style_tab_style(lv_obj_t *obj) {
+    (void)obj;
+};
+
+void remove_style_tab_style(lv_obj_t *obj) {
+    (void)obj;
+};
+
+//
 //
 //
 
@@ -1072,6 +1121,7 @@ void add_style(lv_obj_t *obj, int32_t styleIndex) {
         add_style_node_panel_style,
         add_style_home_button_style,
         add_style_settings_button_style,
+        add_style_quick_chat_button_style,
         add_style_main_button_style,
         add_style_new_message_style,
         add_style_chat_message_style,
@@ -1092,6 +1142,7 @@ void add_style(lv_obj_t *obj, int32_t styleIndex) {
         add_style_positive_image_style,
         add_style_statistics_table_style,
         add_style_map_arrow_style,
+        add_style_tab_style,
     };
     add_style_funcs[styleIndex](obj);
 }
@@ -1105,6 +1156,7 @@ void remove_style(lv_obj_t *obj, int32_t styleIndex) {
         remove_style_node_panel_style,
         remove_style_home_button_style,
         remove_style_settings_button_style,
+        remove_style_quick_chat_button_style,
         remove_style_main_button_style,
         remove_style_new_message_style,
         remove_style_chat_message_style,
@@ -1125,6 +1177,7 @@ void remove_style(lv_obj_t *obj, int32_t styleIndex) {
         remove_style_positive_image_style,
         remove_style_statistics_table_style,
         remove_style_map_arrow_style,
+        remove_style_tab_style,
     };
     remove_style_funcs[styleIndex](obj);
 }

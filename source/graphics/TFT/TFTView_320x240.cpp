@@ -377,27 +377,40 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         dispatcher.registerHandler(input_policy::UICommand::QuickChat, [this](const input_policy::CommandPayload &) {
             if (screenLocked)
                 return;
-            // open most recent received or sent chat (last chat)
-            if (!lv_obj_has_flag(objects.messages_panel, LV_OBJ_FLAG_HIDDEN)) {
-                lv_obj_send_event(objects.msg_popup_button, LV_EVENT_CLICKED, NULL);
-            } else {
-                if (activeMsgContainer) {
-                    uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
-                    if (channelOrNode < c_max_channels) {
-                        uint8_t ch = (uint8_t)channelOrNode;
-                        THIS->showMessages(ch);
-                        THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_group_chat_panel);
-                    } else {
-                        uint32_t nodeNum = channelOrNode;
-                        THIS->showMessages(nodeNum);
-                        THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
-                    }
-                    lv_obj_set_style_border_color(chats[channelOrNode], colorGray,
-                                                  (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+            if (activePanel != objects.messages_panel) {
+                // open most recent received or sent chat (last chat)
+                if (!lv_obj_has_flag(objects.messages_panel, LV_OBJ_FLAG_HIDDEN)) {
+                    lv_obj_send_event(objects.msg_popup_button, LV_EVENT_CLICKED, NULL);
                 } else {
-                    lv_obj_send_event(objects.messages_button, LV_EVENT_CLICKED, NULL);
+                    if (activeMsgContainer) {
+                        uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+                        if (channelOrNode < c_max_channels) {
+                            uint8_t ch = (uint8_t)channelOrNode;
+                            THIS->showMessages(ch);
+                            THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_group_chat_panel);
+                        } else {
+                            uint32_t nodeNum = channelOrNode;
+                            THIS->showMessages(nodeNum);
+                            THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
+                        }
+                        lv_obj_set_style_border_color(chats[channelOrNode], colorGray,
+                                                      (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+                    } else {
+                        lv_obj_send_event(objects.messages_button, LV_EVENT_CLICKED, NULL);
+                    }
                 }
             }
+#ifdef QUICK_CHAT
+            else {
+                // we are on a message panel; toggle quick chat tabview
+                if (lv_obj_has_flag(objects.quick_chat_tab_view, LV_OBJ_FLAG_HIDDEN)) {
+                    lv_obj_remove_flag(objects.quick_chat_tab_view, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_move_foreground(objects.quick_chat_tab_view);
+                } else {
+                    lv_obj_add_flag(objects.quick_chat_tab_view, LV_OBJ_FLAG_HIDDEN);
+                }
+            }
+#endif
         });
         dispatcher.registerHandler(input_policy::UICommand::OpenMap, [this](const input_policy::CommandPayload &) {
             if (screenLocked)
@@ -806,9 +819,9 @@ void TFTView_320x240::apply_hotfix(void)
     applyStyle(tab_buttons);
     tab_buttons = lv_tabview_get_tab_bar(ui_SettingsTabView);
     applyStyle(tab_buttons);
-    // prevent left/right key on tabview
-    lv_obj_add_event_cb(objects.tab_page_basic_settings, ui_event_tab_page, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(objects.tab_page_tools, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    // prevent left/right key on tabview with controls
+    // TODO lv_obj_add_event_cb(objects.tab_page_basic_settings, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    // TODO lv_obj_add_event_cb(objects.tab_page_tools, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_filter, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_highlight, ui_event_tab_page, LV_EVENT_KEY, NULL);
 
@@ -1138,6 +1151,18 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.signal_scanner_start_button, ui_event_signal_scanner_start, LV_EVENT_ALL, 0);
     lv_obj_add_event_cb(objects.trace_route_to_button, ui_event_trace_route_to, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.trace_route_start_button, ui_event_trace_route_start, LV_EVENT_CLICKED, 0);
+
+    // all quick chat buttons
+    lv_obj_t *tabs = lv_tabview_get_content(objects.quick_chat_tab_view);
+    for (int i = 0; i < lv_obj_get_child_count(tabs); i++) {
+        lv_obj_t *tab = tabs->spec_attr->children[i];
+        for (int j = 0; j < lv_obj_get_child_count(tab); j++) {
+            lv_obj_t *btn = tab->spec_attr->children[j];
+            if (btn->class_p == &lv_button_class) {
+                lv_obj_add_event_cb(btn, ui_event_quick_chat_button, LV_EVENT_ALL, btn->spec_attr->children[0]);
+            }
+        }
+    }
 
     // The generated screens.c SCREEN_LOAD_START handler calls lv_group_remove_all_objs(groups.mainButtons),
     // stripping all nav buttons from the group on every screen load. Register a second handler here
@@ -2276,6 +2301,24 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
                 lv_group_focus_obj(objects.message_input_area);
             }
         }
+    }
+}
+
+void TFTView_320x240::ui_event_quick_chat_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED || event_code == LV_EVENT_LONG_PRESSED) {
+        lv_obj_add_flag(objects.quick_chat_tab_view, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_t *btn = lv_event_get_target_obj(e);
+        if (btn && btn->spec_attr && btn->spec_attr->children[0]) {
+            char *quickMsg = lv_label_get_text(btn->spec_attr->children[0]);
+            lv_textarea_add_text(objects.message_input_area, quickMsg);
+        }
+        if (event_code == LV_EVENT_LONG_PRESSED) {
+            lv_obj_send_event(objects.message_input_area, LV_EVENT_READY, nullptr);
+            lv_event_stop_processing(e);
+        }
+        lv_group_focus_obj(objects.message_input_area);
     }
 }
 
@@ -4386,8 +4429,11 @@ void TFTView_320x240::eraseChat(uint32_t channelOrNode)
         } else {
             lv_obj_del(chats.at(ch));
         }
-        lv_obj_del(channelGroup.at(ch));
-        channelGroup[ch] = nullptr;
+        lv_obj_t *chGrp = channelGroup.at(ch);
+        if (chGrp) {
+            lv_obj_del(chGrp);
+            channelGroup[ch] = nullptr;
+        }
         chats.erase(ch);
     } else {
         uint32_t nodeNum = channelOrNode;
@@ -5712,8 +5758,11 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
         }
 
         if (bat_level != 0 || voltage != 0) {
-            bat_level = std::min(bat_level, (uint32_t)100);
-            sprintf(buf, "%d%% %0.2fV", bat_level, voltage);
+            if (bat_level > 100) {
+                sprintf(buf, "%0.2fV", voltage);
+            } else {
+                sprintf(buf, "%d%% %0.2fV", bat_level, voltage);
+            }
             lv_label_set_text(it->second->LV_OBJ_IDX(node_bat_idx), buf);
             lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_bat_idx), LV_OBJ_FLAG_HIDDEN);
         }
