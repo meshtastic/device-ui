@@ -3629,7 +3629,7 @@ void create_screen_main_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DISABLED);
-                    lv_label_set_text(obj, _("Enter one-time password"));
+                    lv_label_set_text(obj, _("Enter session PSK:"));
                 }
                 {
                     // homeFtpPasswordTextArea

@@ -13011,7 +13011,7 @@
                     }
                   },
                   "groupIndex": 0,
-                  "text": "Enter one-time password",
+                  "text": "Enter session PSK:",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
                   "recolor": false
