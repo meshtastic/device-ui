@@ -11,6 +11,32 @@
 
 #define DRIVE_LETTER "S"
 
+static bool ensureParentDirectories(const char *path)
+{
+    std::string fullPath(path);
+    const size_t lastSlash = fullPath.rfind('/');
+    if (lastSlash == std::string::npos || lastSlash == 0) {
+        return true;
+    }
+
+    const std::string directory = fullPath.substr(0, lastSlash);
+    size_t searchPos = 1;
+    while (searchPos <= directory.size()) {
+        const size_t slashPos = directory.find('/', searchPos);
+        const std::string currentDir = slashPos == std::string::npos ? directory : directory.substr(0, slashPos);
+        if (!currentDir.empty() && !SDFs.exists(currentDir.c_str()) && !SDFs.mkdir(currentDir.c_str())) {
+            ILOG_ERROR("failed to create directory %s", currentDir.c_str());
+            return false;
+        }
+        if (slashPos == std::string::npos) {
+            break;
+        }
+        searchPos = slashPos + 1;
+    }
+
+    return true;
+}
+
 SdFatService::SdFatService() : ITileService(DRIVE_LETTER ":")
 {
     static lv_fs_drv_t drv;
@@ -52,16 +78,9 @@ bool SdFatService::load(const char *name, void *img)
 bool SdFatService::save(const char *name, void *img, size_t len)
 {
     ILOG_DEBUG("SdFatService::save(%s): %d", name, len);
-    // create intermediate directories for path (e.g. /maps/atlas/12/2198/1341.png)
-    std::string directory;
-    std::string filename(name);
-    const size_t last_slash_idx = filename.rfind('/');
-    if (std::string::npos == last_slash_idx) {
-        // something went wrong
+    if (!ensureParentDirectories(name)) {
         return false;
     }
-    directory = filename.substr(0, last_slash_idx);
-    SDFs.mkdir(directory.c_str());
 
     // write image
     FsFile file = SDFs.open(name, O_RDWR | O_CREAT);
@@ -81,7 +100,7 @@ void *SdFatService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mod
     SdFile *lf = new SdFile;
     lf->file = SDFs.open(path, mode == LV_FS_MODE_RD ? O_RDONLY : O_WRONLY); // NOTE: O_RDWR
     if (!lf->file) {
-        // ILOG_DEBUG("FsSD.open() %s failed!", path);
+        // ILOG_DEBUG("SDFs.open() %s failed!", path);
         delete lf;
         return nullptr;
     } else {
@@ -91,7 +110,7 @@ void *SdFatService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mod
 
 lv_fs_res_t SdFatService::fs_close(lv_fs_drv_t *drv, void *file_p)
 {
-    // ILOG_DEBUG("FsSD.close()");
+    // ILOG_DEBUG("SDFs.close()");
     SdFile *lf = static_cast<SdFile *>(file_p);
     lf->file.close();
     delete lf;
@@ -101,20 +120,20 @@ lv_fs_res_t SdFatService::fs_close(lv_fs_drv_t *drv, void *file_p)
 lv_fs_res_t SdFatService::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t btr, uint32_t *br)
 {
     *br = static_cast<SdFile *>(file_p)->file.read((uint8_t *)buf, btr);
-    // ILOG_DEBUG("FsSD.read(): %d/%d bytes", *br, btr);
+    // ILOG_DEBUG("SDFs.read(): %d/%d bytes", *br, btr);
     return (*br <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
 }
 
 lv_fs_res_t SdFatService::fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf, uint32_t btw, uint32_t *bw)
 {
     *bw = static_cast<SdFile *>(file_p)->file.write((uint8_t *)buf, btw);
-    // ILOG_DEBUG("FsSD.write(): %d/btw bytes", *bw, btw);
+    // ILOG_DEBUG("SDFs.write(): %d/btw bytes", *bw, btw);
     return (*bw <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
 }
 
 lv_fs_res_t SdFatService::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence)
 {
-    // ILOG_DEBUG("FsSD.seek(): pos %d", pos);
+    // ILOG_DEBUG("SDFs.seek(): pos %d", pos);
     if (whence == LV_FS_SEEK_SET) {
         return static_cast<SdFile *>(file_p)->file.seekSet(pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN;
     } else if (whence == LV_FS_SEEK_END) {
@@ -127,7 +146,7 @@ lv_fs_res_t SdFatService::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, 
 lv_fs_res_t SdFatService::fs_tell(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_p)
 {
     *pos_p = static_cast<SdFile *>(file_p)->file.position();
-    // ILOG_DEBUG("FsSD.tell(): pos %d", *pos_p);
+    // ILOG_DEBUG("SDFs.tell(): pos %d", *pos_p);
     return (int32_t)(*pos_p) < 0 ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
 }
 
