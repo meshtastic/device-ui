@@ -2,8 +2,8 @@
 
 DisplayDriverConfig::DisplayDriverConfig(void) : _device(device_t::NONE), _width(c_default_width), _height(c_default_height) {}
 
-DisplayDriverConfig::DisplayDriverConfig(enum device_t device, uint16_t width, uint16_t height)
-    : _device(device), _width(width), _height(height)
+DisplayDriverConfig::DisplayDriverConfig(enum device_t device, uint16_t width, uint16_t height, float zoom)
+    : _device(device), _width(width), _height(height), _zoom(zoom)
 {
 }
 
@@ -24,6 +24,7 @@ DisplayDriverConfig &DisplayDriverConfig::panel(panel_config_t &&cfg)
     _panel = cfg;
     _width = _panel.panel_width;
     _height = _panel.panel_height;
+    _zoom = _panel.zoom;
     return *this;
 }
 

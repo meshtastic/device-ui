@@ -11,14 +11,14 @@ LV_IMG_DECLARE(mouse_cursor_icon);
 
 SDLDriver *SDLDriver::SDLdriver = nullptr;
 
-SDLDriver &SDLDriver::create(uint16_t width, uint16_t height)
+SDLDriver &SDLDriver::create(uint16_t width, uint16_t height, float zoom)
 {
     if (!SDLdriver)
-        SDLdriver = new SDLDriver(width, height);
+        SDLdriver = new SDLDriver(width, height, zoom);
     return *SDLdriver;
 }
 
-SDLDriver::SDLDriver(uint16_t width, uint16_t height) : DisplayDriver(width, height) {}
+SDLDriver::SDLDriver(uint16_t width, uint16_t height, float zoom) : DisplayDriver(width, height), zoom(zoom) {}
 
 void SDLDriver::init(DeviceGUI *gui)
 {
@@ -28,9 +28,10 @@ void SDLDriver::init(DeviceGUI *gui)
 
     display = lv_sdl_window_create(screenWidth, screenHeight);
     char title[25];
-    sprintf(title, "Meshtastic (%dx%d)", screenWidth, screenHeight);
+    sprintf(title, "Meshtastic (%dx%dx%0.1f)", screenWidth, screenHeight, zoom);
     lv_sdl_window_set_title(display, title);
     lv_sdl_window_set_resizeable(display, true);
+    lv_sdl_window_set_zoom(display, zoom);
 
     lv_indev_t *mouse = lv_sdl_mouse_create();
     lv_indev_t *wheel = lv_sdl_mousewheel_create();

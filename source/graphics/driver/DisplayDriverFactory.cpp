@@ -135,7 +135,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #endif
 #if defined(USE_SDL) && USE_SDL
     if (cfg._device == DisplayDriverConfig::device_t::SDL) {
-        return &SDLDriver::create(cfg.width(), cfg.height());
+        return &SDLDriver::create(cfg.width(), cfg.height(), cfg.zoom());
     }
 #endif
     switch (cfg._device) {
@@ -229,7 +229,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #endif
 #if defined(USE_SDL) && USE_SDL
     case DisplayDriverConfig::device_t::SDL:
-        return &SDLDriver::create(cfg.width(), cfg.height());
+        return &SDLDriver::create(cfg.width(), cfg.height(), cfg.zoom());
         break;
 #endif
     default:
