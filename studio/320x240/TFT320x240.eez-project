@@ -12943,6 +12943,217 @@
               "groupIndex": 0
             },
             {
+              "objID": "a576f84c-d703-4dcb-cc67-cc0f39501118",
+              "type": "LVGLPanelWidget",
+              "left": 0,
+              "top": 20,
+              "width": 240,
+              "height": 140,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "205689f6-2f73-4c0d-b789-8e534f451d77",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "hiddenInEditor": false,
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "HomeFtpPasswordPanel",
+              "leftUnit": "%",
+              "topUnit": "%",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "765c83ce-7973-4c6a-c0ce-480d7ed4504f",
+                  "type": "LVGLLabelWidget",
+                  "left": 0,
+                  "top": 10,
+                  "width": 200,
+                  "height": 16,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "e778d17f-223a-4536-e0a7-9f41318de32e",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "hiddenInEditor": false,
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "px",
+                  "heightUnit": "content",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlag": false,
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "ef813346-6d18-41a9-f1ef-884e442d229c",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "TOP_MID",
+                          "text_align": "CENTER"
+                        },
+                        "DISABLED": {
+                          "align": "TOP_LEFT"
+                        }
+                      }
+                    }
+                  },
+                  "groupIndex": 0,
+                  "text": "Enter one-time password",
+                  "textType": "translated-literal",
+                  "longMode": "CLIP",
+                  "recolor": false
+                },
+                {
+                  "objID": "94d3c0a3-2dd2-471c-ecbe-161584fbd8a6",
+                  "type": "LVGLTextareaWidget",
+                  "left": 0,
+                  "top": -5,
+                  "width": 180,
+                  "height": 18,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "65117e12-de08-4fa4-fb10-546a9422e1ac",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "identifier": "homeFtpPasswordTextArea",
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlag": true,
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "6bef1874-95ef-4dd8-ed09-d9eabd60831d",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "CENTER",
+                          "pad_top": 6,
+                          "pad_bottom": 6,
+                          "pad_left": 6,
+                          "pad_right": 6
+                        }
+                      }
+                    }
+                  },
+                  "group": "",
+                  "groupIndex": 0,
+                  "text": "",
+                  "textType": "literal",
+                  "placeholder": "Enter password",
+                  "oneLineMode": true,
+                  "passwordMode": false,
+                  "acceptedCharacters": "",
+                  "maxTextLength": 12
+                },
+                {
+                  "objID": "8c8f1583-040e-4e48-8651-9ceb7cc6b490",
+                  "type": "LVGLUserWidgetWidget",
+                  "left": 4,
+                  "top": 5,
+                  "width": 160,
+                  "height": 50,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "907b575a-6d83-41a3-c672-e9a00436fd21",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "hiddenInEditor": false,
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlag": true,
+                  "clickableFlagType": "literal",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "0a0926cc-a9bf-4884-8476-712ce13650c2",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "BOTTOM_MID"
+                        }
+                      }
+                    }
+                  },
+                  "groupIndex": 0,
+                  "userWidgetPageName": "OkCancelWidget",
+                  "userPropertyValues": {
+                    "objID": "56a9f358-efc7-4272-ddcc-cac8f55fdc2c",
+                    "values": {}
+                  }
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlag": true,
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "useStyle": "SettingsPanelStyle",
+              "localStyles": {
+                "objID": "277c8313-3c44-4834-dd76-b55460b96d8f",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "border_width": 2,
+                      "radius": 12,
+                      "border_color": "#216ad8",
+                      "align": "TOP_MID",
+                      "border_opa": 255,
+                      "bg_opa": 250,
+                      "layout": "NONE",
+                      "pad_top": 6,
+                      "pad_bottom": 10,
+                      "pad_left": 5,
+                      "pad_right": 5
+                    }
+                  }
+                }
+              },
+              "groupIndex": 0
+            },
+            {
               "objID": "2744a12f-98cb-4983-d0e8-f86291bd9dd7",
               "type": "LVGLPanelWidget",
               "left": 5,

@@ -17,10 +17,6 @@
 #define FTP_DEFAULT_USERNAME "admin"
 #endif
 
-#ifndef FTP_DEFAULT_PASSWORD
-#define FTP_DEFAULT_PASSWORD "password123"
-#endif
-
 class UiFtpServer
 {
   public:
@@ -131,5 +127,5 @@ class UiFtpServer
     std::atomic<uint32_t> lastTransfer100Time{0}; // millis() when we last saw 100% completion
     TaskHandle_t serverTaskHandle = nullptr;      // FreeRTOS task handle
     std::string username{FTP_DEFAULT_USERNAME};
-    std::string password{FTP_DEFAULT_PASSWORD};
+    std::string password;
 };

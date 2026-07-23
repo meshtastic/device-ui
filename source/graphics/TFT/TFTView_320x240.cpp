@@ -970,7 +970,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(objects.home_transfer_button, this->home_transfer_button, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.home_transfer_button, this->ui_event_home_transfer_button, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_sd_card_button, this->ui_event_SDCardButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_qr_button, this->ui_event_QrButton, LV_EVENT_CLICKED, NULL);
@@ -1095,10 +1095,12 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj17__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj18__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj18__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj21__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj21__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj27__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
-    lv_obj_add_event_cb(objects.obj27__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj19__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj19__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj22__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj22__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj28__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.obj28__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -1457,8 +1459,9 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
             return;
         }
 
-        // Handle ESC/BACKSPACE/LEFT to return to main menu from any right panel.
-        if (c == LV_KEY_ESC || c == LV_KEY_BACKSPACE || c == LV_KEY_LEFT) {
+        // Handle ESC/LEFT to return to main menu from any right panel.
+        // TODO: Check for devices that have only a backspace key
+        if (c == LV_KEY_ESC || c == LV_KEY_LEFT) {
             // Clean up any overlays (keyboard, QR code, popups, settings dialogs) before returning to menu
             THIS->cleanupAllOverlays();
             THIS->setInputGroup(groups.mainButtons);
@@ -1477,7 +1480,7 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
 void TFTView_320x240::ui_event_tab_page(lv_event_t *e)
 {
     uint32_t key = lv_event_get_key(e);
-    if (key == LV_KEY_LEFT || key == LV_KEY_RIGHT) {
+    if (key == LV_KEY_LEFT || key == LV_KEY_RIGHT || key == LV_KEY_ESC) {
         lv_event_stop_processing(e);
         lv_obj_send_event(objects.main_screen, LV_EVENT_KEY, lv_event_get_param(e));
     }
@@ -1724,12 +1727,12 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
     static bool ignoreClicked = false;
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target_obj(e);
+    lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
     if (event_code == LV_EVENT_LONG_PRESSED) {
         ignoreClicked = true;
         lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
         lv_obj_clear_flag(delBtn, LV_OBJ_FLAG_HIDDEN);
-    } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE) {
-        lv_obj_t *delBtn = target->LV_OBJ_IDX(1);
+    } else if ((event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE)) {
         lv_obj_add_flag(delBtn, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_CLICKED) {
         if (ignoreClicked) { // prevent long press to enter this setting
@@ -2017,7 +2020,7 @@ void TFTView_320x240::ui_event_MQTTButton(lv_event_t *e)
     }
 }
 
-void TFTView_320x240::home_transfer_button(lv_event_t *e)
+void TFTView_320x240::ui_event_home_transfer_button(lv_event_t *e)
 {
 #if defined(HAS_SDCARD) && !defined(ARCH_PORTDUINO)
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -2042,47 +2045,73 @@ void TFTView_320x240::home_transfer_button(lv_event_t *e)
             return;
         }
 
-        // Toggle FTP on/off
-        uint32_t toggle = (unsigned long)objects.home_transfer_button->user_data;
-        bool shouldEnable = !toggle;
-        objects.home_transfer_button->user_data = (void *)(1 - toggle);
-
-        bool highlight = false;
-        if (shouldEnable) {
-            // ENABLE WebDAV - Initialize WiFi for device-ui to prevent conflict with firmware WiFi
-            // Initialize WiFi (will be no-op if already initialized)
-            if (ftpServer->initWiFi(THIS->db.config.network.wifi_ssid, THIS->db.config.network.wifi_psk)) {
-#if defined(SD_MMC)
-                static fs::FS &fs = SD_MMC;
-#elif defined(SDCARD_SHARE_SPI)
-                static fs::FS &fs = SD;
-#else
-                // Wrap SdFs into fs::FS using the exFat impl pattern
-                static fs::FS fs(fs::FSImplPtr(new SdFsExFatImpl(SDFs)));
+        uint32_t ftpStatus = (unsigned long)objects.home_transfer_button->user_data;
+        if (!ftpStatus) {
+            // enter password dialog
+            lv_obj_remove_flag(objects.home_ftp_password_panel, LV_OBJ_FLAG_HIDDEN);
+            THIS->activeSettings = eFtpPassword;
+            THIS->disablePanel(objects.home_panel);
+            lv_group_focus_obj(objects.home_ftp_password_text_area);
+        } else {
+            // switch ftp server off
+            THIS->toggleFtpServer();
+        }
+    }
 #endif
-                // Try to start server
-                if (ftpServer->start(&fs)) {
-                    lv_label_set_text(objects.home_transfer_label, _("FTP server ready"));
-                    highlight = true;
-                } else {
-                    lv_label_set_text(objects.home_transfer_label, _("FTP start failed"));
-                    objects.home_transfer_button->user_data = (void *)toggle; // Revert toggle
-                }
+}
+
+void TFTView_320x240::toggleFtpServer(void)
+{
+#if defined(HAS_SDCARD) && !defined(ARCH_PORTDUINO)
+    const char *pw = lv_textarea_get_text(objects.home_ftp_password_text_area);
+    if (!pw || strlen(pw) < 3) {
+        lv_label_set_text(objects.home_transfer_label, _("password too short"));
+        return;
+    }
+
+    UiFtpServer *ftpServer = UiFtpServer::instance();
+    ftpServer->setCredentials(NULL, pw);
+
+    // Toggle FTP on/off
+    uint32_t toggle = (unsigned long)objects.home_transfer_button->user_data;
+    bool shouldEnable = !toggle;
+    objects.home_transfer_button->user_data = (void *)(1 - toggle);
+
+    bool highlight = false;
+    if (shouldEnable) {
+        // Initialize WiFi (will be no-op if already initialized)
+        if (ftpServer->initWiFi(THIS->db.config.network.wifi_ssid, THIS->db.config.network.wifi_psk)) {
+#if defined(SD_MMC)
+            static fs::FS &fs = SD_MMC;
+#elif defined(SDCARD_SHARE_SPI)
+            static fs::FS &fs = SD;
+#else
+            // Wrap SdFs into fs::FS using the exFat impl pattern
+            static fs::FS fs(fs::FSImplPtr(new SdFsExFatImpl(SDFs)));
+#endif
+            // Try to start server
+            if (ftpServer->start(&fs)) {
+                lv_label_set_text(objects.home_transfer_label, _("FTP server ready"));
+                highlight = true;
             } else {
-                lv_label_set_text(objects.home_transfer_label, _("WiFi failed"));
+                lv_label_set_text(objects.home_transfer_label, _("FTP start failed"));
                 objects.home_transfer_button->user_data = (void *)toggle; // Revert toggle
             }
-            ILOG_DEBUG("home_transfer_button: FTP initialized");
         } else {
-            // DISABLE WebDAV
-            ftpServer->stop();
-            ftpServer->deinitWiFi();
-            lv_label_set_text(objects.home_transfer_label, _("FTP server off"));
-            ILOG_DEBUG("home_transfer_button: FTP disabled");
+            lv_label_set_text(objects.home_transfer_label, _("WiFi failed"));
+            objects.home_transfer_button->user_data = (void *)toggle; // Revert toggle
         }
-        Themes::recolorText(objects.home_transfer_label, highlight);
-        Themes::recolorButton(objects.home_transfer_button, highlight);
+        MeshtasticView::mustSendHeartbeat = true;
+        ILOG_DEBUG("home_transfer_button: FTP initialized");
+    } else {
+        ftpServer->stop();
+        ftpServer->deinitWiFi();
+        lv_label_set_text(objects.home_transfer_label, _("FTP server off"));
+        MeshtasticView::mustSendHeartbeat = false;
+        ILOG_DEBUG("home_transfer_button: FTP disabled");
     }
+    Themes::recolorText(objects.home_transfer_label, highlight);
+    Themes::recolorButton(objects.home_transfer_button, highlight);
 #endif
 }
 
@@ -4887,6 +4916,13 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
             return;
         }
+        case TFTView_320x240::eFtpPassword: {
+            lv_obj_add_flag(objects.home_ftp_password_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.home_transfer_button);
+            THIS->enablePanel(objects.home_panel);
+            THIS->toggleFtpServer();
+            return;
+        }
         default:
             ILOG_ERROR("Unhandled ok event");
             break;
@@ -5003,6 +5039,13 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             lv_group_focus_obj(objects.settings_channel0_button);
             THIS->enablePanel(objects.settings_channel_panel);
             THIS->activeSettings = eChannel;
+            return;
+        }
+        case TFTView_320x240::eFtpPassword: {
+            lv_obj_add_flag(objects.home_ftp_password_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.home_transfer_button);
+            THIS->enablePanel(objects.home_panel);
+            THIS->activeSettings = eNone;
             return;
         }
         default:
@@ -5861,6 +5904,7 @@ void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
 
 void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
 {
+    ILOG_DEBUG("connection status: has_wifi:%d has_status:%d", status.has_wifi, status.wifi.has_status);
     db.connectionStatus = status;
     if (status.has_wifi) {
         if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
@@ -5886,6 +5930,8 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                     Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
                     Themes::recolorText(objects.home_mqtt_label, false);
                 }
+            } else {
+                LOG_WARN("wifi has_status is false");
             }
         } else {
             Themes::recolorButton(objects.home_wlan_button, false);
@@ -6034,7 +6080,7 @@ void TFTView_320x240::updateTransferStatus(void)
 void TFTView_320x240::updateTransferStatus(void)
 {
 #if defined(HAS_SDCARD)
-    // Check WebDAV status and transfer progress (polled every 1s)
+    // Check ftp server status and transfer progress (polled every 1s)
     UiFtpServer *ftpServer = UiFtpServer::instance();
     if (!ftpServer)
         return;

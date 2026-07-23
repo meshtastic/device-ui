@@ -132,7 +132,8 @@ class TFTView_320x240 : public MeshtasticView
         eReset,
         eReboot,
         eDisplayMode,
-        eModifyChannel
+        eModifyChannel,
+        eFtpPassword
     };
 
   protected:
@@ -224,6 +225,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
     // remove objects from map
     virtual void removeFromMap(uint32_t nodeNum);
+    // start ftp server for SD card file transfer
+    virtual void toggleFtpServer(void);
 
     std::function<void(uint32_t id, uint16_t x, uint16_t y, uint8_t)> drawObjectCB;
 
@@ -331,7 +334,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_BellButton(lv_event_t *e);
     static void ui_event_LocationButton(lv_event_t *e);
     static void ui_event_WLANButton(lv_event_t *e);
-    static void home_transfer_button(lv_event_t *e);
+    static void ui_event_home_transfer_button(lv_event_t *e);
     static void ui_event_MQTTButton(lv_event_t *e);
     static void ui_event_SDCardButton(lv_event_t *e);
     static void ui_event_MemoryButton(lv_event_t *e);

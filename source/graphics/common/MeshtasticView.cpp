@@ -28,7 +28,7 @@ void MeshtasticView::task_handler(void)
     if (curtime - lastrun20 >= 20) {
         lastrun20 = curtime;
         // send heartbeat to server every 20s
-        if (!displaydriver->isPowersaving() || state == eProgrammingMode) {
+        if (mustSendHeartbeat || (!displaydriver->isPowersaving() || state == eProgrammingMode)) {
             controller->sendHeartbeat();
         }
 

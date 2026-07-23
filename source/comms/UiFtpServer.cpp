@@ -192,7 +192,10 @@ void UiFtpServer::setCredentials(const char *username_, const char *password_)
     }
 
     username = (username_ && username_[0]) ? username_ : FTP_DEFAULT_USERNAME;
-    password = (password_ && password_[0]) ? password_ : FTP_DEFAULT_PASSWORD;
+    if (password_ && password_[0])
+        password = password_;
+    else
+        ILOG_ERROR("setCredentials: too short password");
 }
 
 void UiFtpServer::setProgressCallback(ProgressCallback callback)
@@ -298,6 +301,11 @@ bool UiFtpServer::start(fs::FS *filesystem_)
 
     if (!filesystem_) {
         ILOG_WARN("[FTP] start() called without filesystem");
+        return false;
+    }
+
+    if (password.empty()) {
+        ILOG_WARN("[FTP] start() called with empty password");
         return false;
     }
 
