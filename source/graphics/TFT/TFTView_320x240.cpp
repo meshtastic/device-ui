@@ -2311,6 +2311,16 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
         return;
     }
 
+    if (event_code == LV_EVENT_KEY) {
+        // LVGL's X11 driver maps only keypad enter to LV_KEY_ENTER; the main Return
+        // key arrives as raw '\r' and is silently dropped by the one-line textarea.
+        // Treat it as ready-to-send so a physical Enter submits the message.
+        uint32_t *key = (uint32_t *)lv_event_get_param(e);
+        if (!key || *key != '\r')
+            return;
+        event_code = LV_EVENT_READY;
+    }
+  
     if (event_code == LV_EVENT_READY) {
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
         input_policy::InputContextState::instance().setEditMode(false);
