@@ -28,6 +28,7 @@ class CURLService : public ITileService
   private:
     Callback saveCB = nullptr;
     CURL *curlHandle = nullptr;
+    uint64_t offlineUntilMs = 0;
 };
 
 #endif

@@ -6,7 +6,29 @@
 
 #ifdef ARCH_PORTDUINO
 
+#include <chrono>
 #include <curl/curl.h>
+
+namespace {
+constexpr long CURL_CONNECT_TIMEOUT_MS = 500L;
+constexpr long CURL_REQUEST_TIMEOUT_MS = 900L;
+constexpr long CURL_LOW_SPEED_LIMIT_BYTES = 1L;
+constexpr long CURL_LOW_SPEED_TIME_S = 1L;
+constexpr uint64_t CURL_OFFLINE_BACKOFF_MS = 5000ULL;
+
+uint64_t monotonicMs()
+{
+    using namespace std::chrono;
+    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
+bool isNetworkUnavailable(CURLcode code)
+{
+    return code == CURLE_OPERATION_TIMEDOUT || code == CURLE_COULDNT_RESOLVE_HOST || code == CURLE_COULDNT_CONNECT ||
+           code == CURLE_GOT_NOTHING || code == CURLE_RECV_ERROR || code == CURLE_SEND_ERROR ||
+           code == CURLE_COULDNT_RESOLVE_PROXY;
+}
+} // namespace
 
 // from ConvertPNG.c
 extern "C" {
@@ -61,6 +83,11 @@ CURLService::~CURLService()
 
 bool CURLService::load(const char *name, void *img)
 {
+    const uint64_t nowMs = monotonicMs();
+    if (nowMs < offlineUntilMs) {
+        return false;
+    }
+
     std::string url = TileProvider::url(name);
     if (url.empty()) {
         ILOG_ERROR("empty URL for tile %s", name ? name : "(null)");
@@ -98,8 +125,10 @@ bool CURLService::load(const char *name, void *img)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers.list);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "MUI/1.0 (+https://meshtastic.org)");
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, CURL_CONNECT_TIMEOUT_MS);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, CURL_REQUEST_TIMEOUT_MS);
+    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, CURL_LOW_SPEED_LIMIT_BYTES);
+    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, CURL_LOW_SPEED_TIME_S);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);
@@ -114,6 +143,10 @@ bool CURLService::load(const char *name, void *img)
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
 
     if (res != CURLE_OK) {
+        if (isNetworkUnavailable(res)) {
+            offlineUntilMs = monotonicMs() + CURL_OFFLINE_BACKOFF_MS;
+            ILOG_WARN("Network unavailable, pausing HTTP tile fetches for %lu ms", (unsigned long)CURL_OFFLINE_BACKOFF_MS);
+        }
         ILOG_ERROR("ERROR GET %s : %s (HTTP %ld)", url.c_str(), curl_easy_strerror(res), httpCode);
         lv_free(buf.data);
         return false;
@@ -132,6 +165,7 @@ bool CURLService::load(const char *name, void *img)
     }
 
     ILOG_DEBUG("SUCCESS: GET %s (%u bytes, HTTP %ld)", url.c_str(), (unsigned int)buf.size, httpCode);
+    offlineUntilMs = 0;
 
     // save png tile (e.g. to filesystem cache)
     if (saveCB && MapTileSettings::saveOK()) {
