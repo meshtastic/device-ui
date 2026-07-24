@@ -17,6 +17,32 @@ static fs::SDMMCFS &SD = SD_MMC;
 
 #define DRIVE_LETTER "S"
 
+static bool ensureParentDirectories(const char *path)
+{
+    std::string fullPath(path);
+    const size_t lastSlash = fullPath.rfind('/');
+    if (lastSlash == std::string::npos || lastSlash == 0) {
+        return true;
+    }
+
+    const std::string directory = fullPath.substr(0, lastSlash);
+    size_t searchPos = 1;
+    while (searchPos <= directory.size()) {
+        const size_t slashPos = directory.find('/', searchPos);
+        const std::string currentDir = slashPos == std::string::npos ? directory : directory.substr(0, slashPos);
+        if (!currentDir.empty() && !SD.exists(currentDir.c_str()) && !SD.mkdir(currentDir.c_str())) {
+            ILOG_ERROR("failed to create directory %s", currentDir.c_str());
+            return false;
+        }
+        if (slashPos == std::string::npos) {
+            break;
+        }
+        searchPos = slashPos + 1;
+    }
+
+    return true;
+}
+
 SDCardService::SDCardService() : ITileService(DRIVE_LETTER ":")
 {
     static lv_fs_drv_t drv;
@@ -60,16 +86,14 @@ bool SDCardService::load(const char *name, void *img)
 bool SDCardService::save(const char *name, void *img, size_t len)
 {
     ILOG_DEBUG("SDCardService::save(%s): %d", name, len);
-    // create intermediate directories for path (e.g. /maps/atlas/12/2198/1341.png)
-    std::string directory;
-    std::string filename(name);
-    const size_t last_slash_idx = filename.rfind('/');
-    if (std::string::npos == last_slash_idx) {
-        // something went wrong
+    if (!ensureParentDirectories(name)) {
         return false;
     }
-    directory = filename.substr(0, last_slash_idx);
-    SD.mkdir(directory.c_str());
+
+    // FILE_WRITE appends for SD, so remove first to rewrite the tile atomically.
+    if (SD.exists(name)) {
+        SD.remove(name);
+    }
 
     // write image
     File file = SD.open(name, FILE_WRITE);
