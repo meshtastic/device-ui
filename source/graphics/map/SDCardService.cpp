@@ -90,9 +90,10 @@ bool SDCardService::save(const char *name, void *img, size_t len)
         return false;
     }
 
-    // FILE_WRITE appends for SD, so remove first to rewrite the tile atomically.
-    if (SD.exists(name)) {
-        SD.remove(name);
+    // FILE_WRITE appends for SD, so remove first to rewrite the tile.
+    if (SD.exists(name) && !SD.remove(name)) {
+        ILOG_ERROR("failed to replace %s", name);
+        return false;
     }
 
     // write image
