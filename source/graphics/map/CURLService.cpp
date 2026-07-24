@@ -9,7 +9,8 @@
 #include <chrono>
 #include <curl/curl.h>
 
-namespace {
+namespace
+{
 constexpr long CURL_CONNECT_TIMEOUT_MS = 500L;
 constexpr long CURL_REQUEST_TIMEOUT_MS = 900L;
 constexpr long CURL_LOW_SPEED_LIMIT_BYTES = 1L;

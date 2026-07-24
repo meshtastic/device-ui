@@ -8,10 +8,10 @@
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
+#include "graphics/map/CURLService.h"
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
-#include "graphics/map/CURLService.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
@@ -2542,8 +2542,8 @@ void TFTView_320x240::loadMap(void)
 #elif defined(ARCH_PORTDUINO)
         auto tileService = new SDCardService();
         map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
-        map->setBackupService(
-            new CURLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+        map->setBackupService(new CURLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #else
         map = new MapPanel(objects.raw_map_panel, new URLService());
 #endif
