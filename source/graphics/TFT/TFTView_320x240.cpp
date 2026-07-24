@@ -2542,7 +2542,8 @@ void TFTView_320x240::loadMap(void)
 #elif defined(ARCH_PORTDUINO)
         auto tileService = new SDCardService();
         map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
-        map->setBackupService(new CURLService());
+        map->setBackupService(
+            new CURLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #else
         map = new MapPanel(objects.raw_map_panel, new URLService());
 #endif
