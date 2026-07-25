@@ -69,8 +69,12 @@
     /*Instead of an address give a memory allocator that will be called to get a memory pool for LVGL. E.g. my_malloc*/
     #if LV_MEM_ADR == 0
         #if defined BOARD_HAS_PSRAM
-          #define LV_MEM_POOL_INCLUDE     <esp_heap_caps.h>
-          #define LV_MEM_POOL_ALLOC(size) heap_caps_aligned_alloc(32, size, MALLOC_CAP_SPIRAM)
+          /* CONFIG_SPIRAM_USE_MALLOC=y integrates PSRAM into the regular heap so
+           * MALLOC_CAP_SPIRAM capability is not set; heap_caps_aligned_alloc with
+           * that cap returns NULL. Use plain malloc() — large allocations route to
+           * PSRAM automatically. */
+          #define LV_MEM_POOL_INCLUDE     <stdlib.h>
+          #define LV_MEM_POOL_ALLOC(size) malloc(size)
         #else
           #undef LV_MEM_POOL_INCLUDE
           #undef LV_MEM_POOL_ALLOC
