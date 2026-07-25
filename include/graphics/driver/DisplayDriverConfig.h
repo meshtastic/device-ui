@@ -181,7 +181,7 @@ class DisplayDriverConfig
     touch_config_t _touch;
     input_config_t _input;
     light_config_t _light;
-    uint16_t _width;
-    uint16_t _height;
-    float _zoom;
+    uint16_t _width = c_default_width;
+    uint16_t _height = c_default_height;
+    float _zoom = 1.0;
 };
