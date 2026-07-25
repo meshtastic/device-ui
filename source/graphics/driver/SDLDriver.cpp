@@ -27,8 +27,8 @@ void SDLDriver::init(DeviceGUI *gui)
     DisplayDriver::init(gui);
 
     display = lv_sdl_window_create(screenWidth, screenHeight);
-    char title[25];
-    sprintf(title, "Meshtastic (%dx%dx%0.1f)", screenWidth, screenHeight, zoom);
+    char title[48];
+    snprintf(title, sizeof(title), "Meshtastic (%dx%dx%0.1f)", screenWidth, screenHeight, zoom);
     lv_sdl_window_set_title(display, title);
     lv_sdl_window_set_resizeable(display, true);
     lv_sdl_window_set_zoom(display, zoom);
