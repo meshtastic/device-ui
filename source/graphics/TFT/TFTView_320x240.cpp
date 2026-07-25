@@ -22,8 +22,8 @@
 #include "util/ILog.h"
 #include <algorithm>
 #include <cctype>
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <functional>
@@ -46,8 +46,8 @@ static const char *strcasestr(const char *haystack, const char *needle)
 
     for (const char *p = haystack; *p; ++p) {
         size_t i = 0;
-        while (i < needleLen && p[i] && std::tolower(static_cast<unsigned char>(p[i])) ==
-                                       std::tolower(static_cast<unsigned char>(needle[i]))) {
+        while (i < needleLen && p[i] &&
+               std::tolower(static_cast<unsigned char>(p[i])) == std::tolower(static_cast<unsigned char>(needle[i]))) {
             ++i;
         }
         if (i == needleLen)
@@ -2948,9 +2948,8 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
     lv_obj_add_flag(objects.hop_routes_panel, LV_OBJ_FLAG_HIDDEN);
 
     if (currentPanel) {
-        THIS->setNodeImage(THIS->currentNode,
-                           (MeshtasticView::eRole)(uintptr_t)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
-                           objects.trace_route_to_image);
+        THIS->setNodeImage(THIS->currentNode, (MeshtasticView::eRole)(uintptr_t)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data,
+                           false, objects.trace_route_to_image);
         const char *lbl = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbl_idx));
         lv_label_set_text(objects.trace_route_to_button_label, lbl);
         lv_obj_clear_state(objects.trace_route_start_button, LV_STATE_DISABLED);

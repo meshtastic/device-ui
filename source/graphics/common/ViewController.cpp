@@ -689,7 +689,8 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
     if (view->getState() == MeshtasticView::eProgrammingMode)
         return false;
 
-    ILOG_DEBUG("handleFromRadio variant %u, id=%d", from.which_payload_variant, from.id); delay(5);
+    ILOG_DEBUG("handleFromRadio variant %u, id=%d", from.which_payload_variant, from.id);
+    delay(5);
     if (from.which_payload_variant == meshtastic_FromRadio_deviceuiConfig_tag) {
         setupDone = view->setupUIConfig(from.deviceuiConfig);
     } else if (from.which_payload_variant == meshtastic_FromRadio_my_info_tag) {
@@ -730,7 +731,8 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
             }
             case meshtastic_FromRadio_config_tag: {
                 const meshtastic_Config &config = from.config;
-                ILOG_DEBUG("handleFromRadio config subtype=%u", config.which_payload_variant); delay(5);
+                ILOG_DEBUG("handleFromRadio config subtype=%u", config.which_payload_variant);
+                delay(5);
                 switch (config.which_payload_variant) {
                 case meshtastic_Config_device_tag: {
                     const meshtastic_Config_DeviceConfig &cfg = config.payload_variant.device;
@@ -789,7 +791,8 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
             }
             case meshtastic_FromRadio_moduleConfig_tag: {
                 const meshtastic_ModuleConfig &module = from.moduleConfig;
-                ILOG_DEBUG("handleFromRadio module subtype=%u", module.which_payload_variant); delay(5);
+                ILOG_DEBUG("handleFromRadio module subtype=%u", module.which_payload_variant);
+                delay(5);
                 switch (module.which_payload_variant) {
                 case meshtastic_ModuleConfig_mqtt_tag: {
                     const meshtastic_ModuleConfig_MQTTConfig &cfg = module.payload_variant.mqtt;
@@ -871,9 +874,11 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                 const meshtastic_Channel &ch = from.channel;
                 const size_t channelNameLen = strnlen(ch.settings.name, sizeof(ch.settings.name));
                 ILOG_DEBUG("handleFromRadio channel idx=%u role=%u has_settings=%u name_len=%u psk_size=%u", ch.index, ch.role,
-                           ch.has_settings, (unsigned)channelNameLen, (unsigned)ch.settings.psk.size); delay(5);
+                           ch.has_settings, (unsigned)channelNameLen, (unsigned)ch.settings.psk.size);
+                delay(5);
                 if (ch.index >= c_max_channels) {
-                    ILOG_ERROR("dropping channel update with invalid index=%u (max=%u)", ch.index, c_max_channels - 1); delay(5);
+                    ILOG_ERROR("dropping channel update with invalid index=%u (max=%u)", ch.index, c_max_channels - 1);
+                    delay(5);
                     break;
                 }
                 if (ch.has_settings) {

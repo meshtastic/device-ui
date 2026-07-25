@@ -152,7 +152,8 @@ class DisplayDriverConfig
     };
 
     DisplayDriverConfig(void);
-    DisplayDriverConfig(enum device_t device, uint16_t width = c_default_width, uint16_t height = c_default_height, float zoom = 1.0);
+    DisplayDriverConfig(enum device_t device, uint16_t width = c_default_width, uint16_t height = c_default_height,
+                        float zoom = 1.0);
     DisplayDriverConfig(struct panel_config_t &&panel, struct bus_config_t &&bus, struct light_config_t &&light,
                         struct touch_config_t &&touch, struct input_config_t &&input);
 

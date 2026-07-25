@@ -431,7 +431,7 @@ class TFTView_320x240 : public MeshtasticView
     MapPanel *map = nullptr;                              // map
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
     struct ShortName4 {
-      char value[5];
+        char value[5];
     };
     std::unordered_map<uint32_t, ShortName4> nodeShortNames; // 4-char short names + NUL
     // extended default device profile struct with additional required data
