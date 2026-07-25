@@ -12,7 +12,7 @@
 namespace
 {
 constexpr long CURL_CONNECT_TIMEOUT_MS = 500L;
-constexpr long CURL_REQUEST_TIMEOUT_MS = 900L;
+constexpr long CURL_REQUEST_TIMEOUT_MS = 1500L;
 constexpr long CURL_LOW_SPEED_LIMIT_BYTES = 1L;
 constexpr long CURL_LOW_SPEED_TIME_S = 1L;
 constexpr uint64_t CURL_OFFLINE_BACKOFF_MS = 5000ULL;
@@ -144,9 +144,10 @@ bool CURLService::load(const char *name, void *img)
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
 
     if (res != CURLE_OK) {
-        if (isNetworkUnavailable(res)) {
+        if (isNetworkUnavailable(res) && (monotonicMs() - nowMs > CURL_CONNECT_TIMEOUT_MS)) {
             offlineUntilMs = monotonicMs() + CURL_OFFLINE_BACKOFF_MS;
-            ILOG_WARN("Network unavailable, pausing HTTP tile fetches for %lu ms", (unsigned long)CURL_OFFLINE_BACKOFF_MS);
+            ILOG_WARN("Network error(%d), pausing HTTP tile fetches for %lu ms", (int)res,
+                      (unsigned long)CURL_OFFLINE_BACKOFF_MS);
         }
         ILOG_ERROR("ERROR GET %s : %s (HTTP %ld)", url.c_str(), curl_easy_strerror(res), httpCode);
         lv_free(buf.data);
