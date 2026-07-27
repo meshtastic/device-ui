@@ -3,6 +3,7 @@
 #include "graphics/map/TileProvider.h"
 #include "lvgl.h"
 #include "util/ILog.h"
+#include "util/PNGDecoder.h"
 
 #ifdef ARCH_PORTDUINO
 
@@ -30,12 +31,6 @@ bool isNetworkUnavailable(CURLcode code)
            code == CURLE_COULDNT_RESOLVE_PROXY;
 }
 } // namespace
-
-// from ConvertPNG.c
-extern "C" {
-bool decodeImgGrey(const void *data, size_t size, lv_img_dsc_t **img);
-bool decodeImgColor(const void *data, size_t size, lv_img_dsc_t **img);
-}
 
 // libcurl write callback: appends received data into a std::vector<uint8_t>
 struct CurlBuffer {
@@ -71,6 +66,7 @@ CURLService::CURLService(Callback cb) : ITileService("HTTP:"), saveCB(cb)
     if (!curlHandle) {
         ILOG_ERROR("curl_easy_init failed in CURLService ctor");
     }
+    initPNGDecoder();
 }
 
 CURLService::~CURLService()
