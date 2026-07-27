@@ -40,6 +40,7 @@ include(LovyanGFX)
 include(LVGL)
 include(protobuf)
 include(nanopb)
+include(PNGdec)
 include(Doctest)
 
 find_package(CURL REQUIRED)
