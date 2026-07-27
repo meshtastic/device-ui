@@ -45,6 +45,13 @@ std::string TileProvider::url(int z, int x, int y)
     return url;
 }
 
+const std::string TileProvider::url(void)
+{
+    std::string provider, url;
+    std::tie(provider, url) = urlTemplates[MapTileSettings::getTileProvider()];
+    return url;
+}
+
 const std::vector<std::string> TileProvider::templates(void)
 {
     std::vector<std::string> templates;

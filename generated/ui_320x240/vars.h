@@ -3,6 +3,4 @@
 
 #include <stdint.h>
 
-
-
 #endif /*EEZ_LVGL_UI_VARS_H*/
