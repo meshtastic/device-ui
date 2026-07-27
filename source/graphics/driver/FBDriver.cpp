@@ -36,6 +36,12 @@ void FBDriver::init(DeviceGUI *gui)
         return;
     }
     lv_linux_fbdev_set_file(display, device);
+    /* Config-driven rotation: (0/1/2/3 = 0/90/180/270)
+     * from the YAML (Display.Rotate + OffsetRotate)*/
+    const char *fbrot = getenv("MESHTASTIC_FB_ROTATION");
+    int rot = fbrot ? atoi(fbrot) : 0;
+    if (rot)
+        lv_display_set_rotation(display, (lv_display_rotation_t)(rot & 3));
 
 #if LV_USE_EVDEV
     // discover input devices
