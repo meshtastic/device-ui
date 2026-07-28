@@ -3,19 +3,17 @@
 #include "graphics/map/TileProvider.h"
 #include "lvgl.h"
 #include "util/ILog.h"
+#include "util/PNGDecoder.h"
 
 #ifdef ARDUINO_ARCH_ESP32
 
 #include "HTTPClient.h" // not available on Linux/Portduino
 #include "WiFi.h"
 
-// from ConvertPNG.c
-extern "C" {
-bool decodeImgGrey(const void *data, size_t size, lv_img_dsc_t **img);
-bool decodeImgColor(const void *data, size_t size, lv_img_dsc_t **img);
+URLService::URLService(Callback cb) : ITileService("HTTP:"), saveCB(cb)
+{
+    initPNGDecoder();
 }
-
-URLService::URLService(Callback cb) : ITileService("HTTP:"), saveCB(cb) {}
 
 URLService::~URLService() {}
 
@@ -109,7 +107,7 @@ bool URLService::load(const char *name, void *img)
         ILOG_DEBUG("save png to SD -> %s", result ? "OK" : "failed");
     }
 
-    // decode png via STBI library
+    // decode png
     lv_img_dsc_t *img_dsc = nullptr;
     bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
     if (decoded) {

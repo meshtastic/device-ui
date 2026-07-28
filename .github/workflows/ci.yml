@@ -36,6 +36,7 @@ jobs:
             python3-pip \
             build-essential \
             openssl \
+            libcurl4-openssl-dev \
             libssl-dev \
             libgpiod-dev \
             libyaml-cpp-dev \

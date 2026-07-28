@@ -97,6 +97,7 @@ extern const lv_img_dsc_t img_lock_slash_image;
 extern const lv_img_dsc_t img_unmessagable_image;
 extern const lv_img_dsc_t img_no_tile_image;
 extern const lv_img_dsc_t img_circle_image;
+extern const lv_img_dsc_t img_map_google_logo_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -106,8 +107,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[88];
-
+extern const ext_img_desc_t images[89];
 
 #ifdef __cplusplus
 }
