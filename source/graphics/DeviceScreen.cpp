@@ -15,14 +15,23 @@ DeviceScreen &DeviceScreen::create(void)
     return *new DeviceScreen(nullptr);
 }
 
-DeviceScreen &DeviceScreen::create(const DisplayDriverConfig *cfg)
+DeviceScreen &DeviceScreen::create(ISpiLock &spiLock)
+{
+    // Installed before anything is constructed, so even panel init is guarded.
+    ISpiLock::install(&spiLock);
+    return *new DeviceScreen(nullptr);
+}
+
+DeviceScreen &DeviceScreen::create(const DisplayDriverConfig *cfg, ISpiLock *spiLock)
 {
     ILOG_DEBUG("creating DeviceScreen %dx%d ...", cfg ? cfg->width() : 0, cfg ? cfg->height() : 0);
+    ISpiLock::install(spiLock);
     return *new DeviceScreen(cfg);
 }
 
-DeviceScreen &DeviceScreen::create(DisplayDriverConfig &&cfg)
+DeviceScreen &DeviceScreen::create(DisplayDriverConfig &&cfg, ISpiLock *spiLock)
 {
+    ISpiLock::install(spiLock);
     return *new DeviceScreen(std::move(cfg));
 }
 
