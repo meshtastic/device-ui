@@ -22,6 +22,15 @@
 #include "util/FileLoader.h"
 #include "util/ILog.h"
 #include "util/ISpiLock.h"
+#ifdef MUI_RUNTIME_ROTATION
+#include "graphics/ScreenRotation.h"
+// secondary (renamed) generated tree plus the generated field-wise bridge
+extern "C" {
+void MUI2_ui_init_boot(void);
+void MUI2_ui_init(void);
+void mui_bridge_publish_secondary(void);
+}
+#endif
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -126,7 +135,14 @@ bool TFTView_320x240::screenUnlockRequest = false;
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
     if (!gui) {
+#ifdef MUI_RUNTIME_ROTATION
+        // the driver applies the stored rotation during init(); these sizes
+        // only seed DisplayDriver's members, so they come from the same source
+        ScreenRotation::load();
+        gui = new TFTView_320x240(nullptr, DisplayDriverFactory::create(ScreenRotation::width(), ScreenRotation::height()));
+#else
         gui = new TFTView_320x240(nullptr, DisplayDriverFactory::create(320, 240));
+#endif
     }
     return gui;
 }
@@ -171,7 +187,16 @@ void TFTView_320x240::init(IClientBase *client)
 
     MeshtasticView::init(client);
 
+#ifdef MUI_RUNTIME_ROTATION
+    if (ScreenRotation::usesSecondaryTree()) {
+        MUI2_ui_init_boot();
+        mui_bridge_publish_secondary(); // must precede any objects.* deref
+    } else {
+        ui_init_boot();
+    }
+#else
     ui_init_boot();
+#endif
     FileLoader::init(&fileSystem);
     if (!FileLoader::loadBootImage(objects.boot_logo))
         lv_image_set_src(objects.boot_logo, &img_meshtastic_boot_logo_image);
@@ -356,7 +381,16 @@ void TFTView_320x240::init_screens(void)
 {
     ILOG_DEBUG("init screens...");
     state = MeshtasticView::eInitScreens;
+#ifdef MUI_RUNTIME_ROTATION
+    if (ScreenRotation::usesSecondaryTree()) {
+        MUI2_ui_init();
+        mui_bridge_publish_secondary(); // before apply_hotfix caches pointers
+    } else {
+        ui_init();
+    }
+#else
     ui_init();
+#endif
     apply_hotfix();
 
     activeMsgContainer = objects.messages_container;

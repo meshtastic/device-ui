@@ -1,6 +1,9 @@
 #pragma once
 
 #include "LovyanGFX.h"
+#ifdef MUI_RUNTIME_ROTATION
+#include "graphics/ScreenRotation.h"
+#endif
 #include "graphics/driver/DisplayDriverConfig.h"
 #include "graphics/driver/TFTDriver.h"
 #include "input/InputDriver.h"
@@ -321,7 +324,19 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     lv_display_add_event_cb(this->display, rounder_cb, LV_EVENT_INVALIDATE_AREA, this->display);
 #endif
 
-#if defined(DISPLAY_SET_RESOLUTION)
+#if defined(MUI_RUNTIME_ROTATION)
+    // Rotate before any layout exists, then take the resolution from the
+    // rotated panel itself: the layout's nominal size must not be substituted
+    // here, or panels larger than the layout (e.g. 320x480) would be told the
+    // wrong size.
+    ScreenRotation::load();
+    {
+        ISpiLock::Guard bus; // setRotation talks to the panel
+        lgfx->setRotation(ScreenRotation::panelRotation());
+    }
+    ILOG_DEBUG("Set display resolution: %dx%d, rotation %d", lgfx->width(), lgfx->height(), ScreenRotation::panelRotation());
+    lv_display_set_resolution(this->display, lgfx->width(), lgfx->height());
+#elif defined(DISPLAY_SET_RESOLUTION)
     ILOG_DEBUG("Set display resolution: %dx%d", lgfx->screenWidth, lgfx->screenHeight);
     lv_display_set_resolution(this->display, lgfx->screenWidth, lgfx->screenHeight);
 #endif
