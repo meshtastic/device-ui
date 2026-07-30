@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "graphics/common/BatteryLevel.h"
 #include "graphics/common/LoRaPresets.h"
+#include "graphics/common/MessageStatus.h"
 #include "graphics/common/Ringtones.h"
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
@@ -24,12 +25,14 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <iomanip>
 #include <list>
 #include <locale>
 #include <random>
 #include <sstream>
+#include <string>
 #include <time.h>
 
 #if defined(ARCH_PORTDUINO)
@@ -84,6 +87,38 @@ constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xAAFBFF);
 constexpr lv_color_t colorMidGray = LV_COLOR_HEX(0x808080);
 constexpr lv_color_t colorDarkGray = LV_COLOR_HEX(0x303030);
 constexpr lv_color_t colorMesh = LV_COLOR_HEX(0x67ea94);
+
+static lv_color_t messageStatusColor(MessageStatus::Tone tone)
+{
+    switch (tone) {
+    case MessageStatus::Tone::Pending:
+        return colorOrange;
+    case MessageStatus::Tone::Success:
+        return colorBlueGreen;
+    case MessageStatus::Tone::Warning:
+    case MessageStatus::Tone::RetryableFailure:
+        return colorOrange;
+    case MessageStatus::Tone::PermanentFailure:
+        return colorRed;
+    }
+    return colorLightGray;
+}
+
+struct SentMessageContext {
+    uint32_t requestId;
+    MessageStatus::State status;
+    std::string text;
+};
+
+struct MessageStatusDialogContext {
+    MessageStatus::State status;
+    std::string text;
+};
+
+static bool hasMessageStatusDetails(const MessageStatus::Presentation &status)
+{
+    return status.detail != nullptr && status.detail[0] != '\0';
+}
 
 // children index of nodepanel lv objects (see addNode)
 enum NodePanelIdx {
@@ -1281,6 +1316,139 @@ void TFTView_320x240::ui_event_MsgPopupButton(lv_event_t *e)
             THIS->showMessages(nodeNum);
         }
     }
+}
+
+void TFTView_320x240::ui_event_MessageStatus(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        return;
+
+    auto *message = static_cast<SentMessageContext *>(lv_event_get_user_data(e));
+    if (message == nullptr)
+        return;
+
+    const MessageStatus::Presentation &status = MessageStatus::presentation(message->status);
+    if (!hasMessageStatusDetails(status))
+        return;
+
+    if (THIS->activeWidget != nullptr) {
+        lv_obj_delete(THIS->activeWidget);
+        THIS->activeWidget = nullptr;
+    }
+
+    auto *dialog = new MessageStatusDialogContext{message->status, message->text};
+
+    lv_obj_t *panel = lv_obj_create(objects.main_screen);
+    THIS->activeWidget = panel;
+    lv_obj_set_pos(panel, 20, 32);
+    lv_obj_set_size(panel, 280, 170);
+    lv_obj_clear_flag(panel, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_layout(panel, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(panel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_left(panel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(panel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(panel, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(panel, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(panel, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(panel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(panel, messageStatusColor(status.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(panel, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(panel, ui_event_MessageStatusDialogDelete, LV_EVENT_DELETE, dialog);
+
+    lv_obj_t *title = lv_label_create(panel);
+    lv_obj_set_width(title, LV_PCT(100));
+    lv_label_set_long_mode(title, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(title, _(status.text));
+    lv_obj_set_style_text_color(title, messageStatusColor(status.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(title, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *detail = lv_label_create(panel);
+    lv_obj_set_width(detail, LV_PCT(100));
+    lv_obj_set_height(detail, 64);
+    lv_label_set_long_mode(detail, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(detail, _(status.detail));
+    lv_obj_set_style_text_color(detail, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(detail, &ui_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(detail, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *actions = lv_obj_create(panel);
+    lv_obj_remove_style_all(actions);
+    lv_obj_set_width(actions, LV_PCT(100));
+    lv_obj_set_height(actions, 36);
+    lv_obj_set_layout(actions, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(actions, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(actions, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_column(actions, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    if (status.retryable) {
+        lv_obj_t *retry = lv_btn_create(actions);
+        lv_obj_set_size(retry, 88, 32);
+        lv_obj_set_style_bg_color(retry, colorBlue, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_shadow_width(retry, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_radius(retry, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_add_event_cb(retry, ui_event_MessageStatusRetry, LV_EVENT_CLICKED, dialog);
+
+        lv_obj_t *retryLabel = lv_label_create(retry);
+        lv_label_set_text(retryLabel, _("Retry"));
+        lv_obj_center(retryLabel);
+    }
+
+    lv_obj_t *close = lv_btn_create(actions);
+    lv_obj_set_size(close, 88, 32);
+    lv_obj_set_style_bg_color(close, colorBlue, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(close, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(close, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(close, ui_event_MessageStatusClose, LV_EVENT_CLICKED, nullptr);
+
+    lv_obj_t *closeLabel = lv_label_create(close);
+    lv_label_set_text(closeLabel, _("Close"));
+    lv_obj_center(closeLabel);
+}
+
+void TFTView_320x240::ui_event_MessageStatusClose(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        return;
+
+    if (THIS->activeWidget != nullptr) {
+        lv_obj_delete(THIS->activeWidget);
+        THIS->activeWidget = nullptr;
+    }
+}
+
+void TFTView_320x240::ui_event_MessageStatusRetry(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        return;
+
+    auto *dialog = static_cast<MessageStatusDialogContext *>(lv_event_get_user_data(e));
+    if (dialog == nullptr)
+        return;
+
+    std::string retryText = dialog->text;
+    if (THIS->activeWidget != nullptr) {
+        lv_obj_delete(THIS->activeWidget);
+        THIS->activeWidget = nullptr;
+    }
+
+    char buf[maxLogMessagePayloadLength + 1];
+    snprintf(buf, sizeof(buf), "%s", retryText.c_str());
+    THIS->handleAddMessage(buf);
+}
+
+void TFTView_320x240::ui_event_MessageStatusDialogDelete(lv_event_t *e)
+{
+    if (lv_event_get_target_obj(e) == THIS->activeWidget)
+        THIS->activeWidget = nullptr;
+    delete static_cast<MessageStatusDialogContext *>(lv_event_get_user_data(e));
+}
+
+void TFTView_320x240::ui_event_SentMessageDelete(lv_event_t *e)
+{
+    delete static_cast<SentMessageContext *>(lv_event_get_user_data(e));
 }
 
 /**
@@ -4485,22 +4653,16 @@ void TFTView_320x240::handleAddMessage(char *msg)
     uint32_t to = UINT32_MAX;
     uint8_t ch = 0;
     uint8_t hopLimit = db.config.lora.hop_limit;
-    uint32_t requestId;
+    uint32_t requestId = 0;
     uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
     bool usePkc = false;
 
-    auto callback = [this](const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t pass) {
-        this->onTextMessageCallback(req, evt, pass);
-    };
-
     if (channelOrNode < c_max_channels) {
         ch = (uint8_t)channelOrNode;
-        requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
     } else {
         ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
         to = channelOrNode;
         usePkc = (unsigned long)nodes[to]->LV_OBJ_IDX(node_bat_idx)->user_data; // hasKey
-        requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to, callback);
         // trial: hoplimit optimization for direct text messages
         int8_t hopsAway = (signed long)nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
         if (hopsAway < 0)
@@ -4509,10 +4671,28 @@ void TFTView_320x240::handleAddMessage(char *msg)
     }
 
     // tweak to allow multiple lines in single line text area
-    for (int i = 0; i < strlen(msg); i++)
+    const size_t msgLen = strlen(msg);
+    for (size_t i = 0; i < msgLen; i++)
         if (msg[i] == CR_REPLACEMENT)
             msg[i] = '\n';
 
+    if (!fitsLogMessagePayload(msgLen)) {
+        char displayMsg[maxLogMessagePayloadLength + 1];
+        const size_t displayLen = std::min(msgLen, static_cast<size_t>(maxLogMessagePayloadLength));
+        memcpy(displayMsg, msg, displayLen);
+        displayMsg[displayLen] = '\0';
+        addMessage(activeMsgContainer, actTime, 0, displayMsg, LogMessage::eFailed,
+                   MessageStatus::persistedLogState(MessageStatus::State::MessageTooLarge));
+        messageAlert(_(MessageStatus::presentation(MessageStatus::State::MessageTooLarge).text), true);
+        return;
+    }
+
+    auto callback = [this](const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t pass) {
+        this->onTextMessageCallback(req, evt, pass);
+    };
+
+    requestId = requests.addRequest(channelOrNode < c_max_channels ? ch : to, ResponseHandler::TextMessageRequest,
+                                    (void *)(long)channelOrNode, callback);
     controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
     addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
 }
@@ -4521,13 +4701,16 @@ void TFTView_320x240::handleAddMessage(char *msg)
  * display message that has just been written and sent out
  */
 void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
-                                 LogMessage::MsgStatus status)
+                                 LogMessage::MsgStatus status, uint32_t persistedStatus)
 {
     lv_obj_t *hiddenPanel = lv_obj_create(container);
     lv_obj_set_width(hiddenPanel, lv_pct(100));
     lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT);
     lv_obj_set_align(hiddenPanel, LV_ALIGN_CENTER);
     lv_obj_clear_flag(hiddenPanel, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_layout(hiddenPanel, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(hiddenPanel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(hiddenPanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
     lv_obj_set_style_radius(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     add_style_panel_style(hiddenPanel);
 
@@ -4536,7 +4719,13 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_style_pad_right(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     hiddenPanel->user_data = (void *)requestId;
+
+    const auto messageState = MessageStatus::inlineStateForLogStatus(status, persistedStatus, requestId != 0);
+    auto *messageContext =
+        new SentMessageContext{requestId, messageState.value_or(MessageStatus::State::Sending), std::string(msg)};
+    lv_obj_add_event_cb(hiddenPanel, ui_event_SentMessageDelete, LV_EVENT_DELETE, messageContext);
 
     // add timestamp
     char buf[284]; // 237 + 4 + 40 + 2 + 1
@@ -4554,22 +4743,49 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_label_set_text(textLabel, buf);
 
     add_style_chat_message_style(textLabel);
+    textLabel->user_data = messageContext;
+    lv_obj_add_flag(textLabel, lv_obj_flag_t(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE));
+    lv_obj_add_event_cb(textLabel, ui_event_MessageStatus, LV_EVENT_CLICKED, messageContext);
+
+    if (messageState.has_value()) {
+        lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
+        lv_obj_set_width(statusLabel, 200);
+        lv_label_set_long_mode(statusLabel, LV_LABEL_LONG_WRAP);
+        lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(statusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_top(statusLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_bottom(statusLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        statusLabel->user_data = messageContext;
+        lv_obj_add_flag(statusLabel, lv_obj_flag_t(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE));
+        lv_obj_add_event_cb(statusLabel, ui_event_MessageStatus, LV_EVENT_CLICKED, messageContext);
+        const MessageStatus::Presentation &messageStatus = MessageStatus::presentation(*messageState);
+        lv_label_set_text(statusLabel, _(messageStatus.text));
+        lv_obj_set_style_text_color(statusLabel, messageStatusColor(messageStatus.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);
 
-    switch (status) {
-    case LogMessage::eHeard:
-        lv_obj_set_style_border_color(textLabel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
-        break;
-    case LogMessage::eAcked:
-        lv_obj_set_style_border_color(textLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
-        break;
-    case LogMessage::eFailed:
-        lv_obj_set_style_border_color(textLabel, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
-        break;
-    default:
-        break;
+    if (const auto restoredState = MessageStatus::stateFromPersistedLogState(persistedStatus)) {
+        lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::presentation(*restoredState).tone),
+                                      LV_PART_MAIN | LV_STATE_DEFAULT);
+    } else {
+        switch (status) {
+        case LogMessage::eHeard:
+            lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::Warning),
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case LogMessage::eAcked:
+            lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::Success),
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case LogMessage::eFailed:
+            lv_obj_set_style_border_color(textLabel, messageStatusColor(MessageStatus::Tone::RetryableFailure),
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        default:
+            break;
+        }
     }
 }
 
@@ -5267,12 +5483,21 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
 void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req, ResponseHandler::EventType evt, int32_t result)
 {
     ILOG_DEBUG("onTextMessageCallback: %d %d", evt, result);
+    const uint32_t requestId = req.requestId;
+    bool channelMessage = (unsigned long)req.cookie < c_max_channels;
     if (evt == ResponseHandler::found) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, false, result);
+        handleTextMessageResponse((unsigned long)req.cookie, requestId,
+                                  result ? MessageStatus::State::NoAck : MessageStatus::deliveredState(channelMessage, false),
+                                  false);
     } else if (evt == ResponseHandler::removed) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, true, result);
+        handleTextMessageResponse((unsigned long)req.cookie, requestId,
+                                  result ? MessageStatus::State::NoAck : MessageStatus::deliveredState(channelMessage, true),
+                                  true);
     } else {
         ILOG_DEBUG("onTextMessageCallback: timeout!");
+        const MessageStatus::State status =
+            MessageStatus::preserveImplicitDelivery(controller->pendingTextMessageStatus(requestId), MessageStatus::State::NoAck);
+        handleTextMessageResponse((unsigned long)req.cookie, requestId, status, true);
     }
 }
 
@@ -5307,27 +5532,75 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             } else if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false);
+                bool channelMessage = (unsigned long)req.cookie < c_max_channels;
+                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::deliveredState(channelMessage, ack), ack);
             } else if (req.type == ResponseHandler::PositionRequest) {
                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_MAX_RETRANSMIT) {
-            ResponseHandler::Request req = requests.removeRequest(id);
+            if (!ack)
+                req = requests.removeRequest(id);
             if (req.type == ResponseHandler::TraceRouteRequest) {
                 handleTraceRouteResponse(routing);
             } else if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+                const MessageStatus::State status = MessageStatus::preserveImplicitDelivery(
+                    controller->pendingTextMessageStatus(id), MessageStatus::State::NoAck);
+                handleTextMessageResponse((unsigned long)req.cookie, id, status, true);
             }
-        } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
-            if (req.type == ResponseHandler::PositionRequest) {
-                handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
+        } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE && req.type == ResponseHandler::PositionRequest) {
+            handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
+        } else if (routing.error_reason == meshtastic_Routing_Error_TOO_LARGE) {
+            if (!ack)
+                req = requests.removeRequest(id);
+            if (req.type == ResponseHandler::TextMessageRequest) {
+                handleTextMessageResponse((unsigned long)req.cookie, id, MessageStatus::State::MessageTooLarge, true);
             }
         } else if (routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL ||
-                   routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY) {
+                   routing.error_reason == meshtastic_Routing_Error_NO_INTERFACE ||
+                   routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE ||
+                   routing.error_reason == meshtastic_Routing_Error_DUTY_CYCLE_LIMIT ||
+                   routing.error_reason == meshtastic_Routing_Error_RATE_LIMIT_EXCEEDED ||
+                   routing.error_reason == meshtastic_Routing_Error_BAD_REQUEST ||
+                   routing.error_reason == meshtastic_Routing_Error_NOT_AUTHORIZED ||
+                   routing.error_reason == meshtastic_Routing_Error_PKI_FAILED ||
+                   routing.error_reason == meshtastic_Routing_Error_PKI_SEND_FAIL_PUBLIC_KEY ||
+                   routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY ||
+                   routing.error_reason == meshtastic_Routing_Error_ADMIN_BAD_SESSION_KEY ||
+                   routing.error_reason == meshtastic_Routing_Error_ADMIN_PUBLIC_KEY_UNAUTHORIZED) {
+            if (!ack)
+                req = requests.removeRequest(id);
             if (req.type == ResponseHandler::TextMessageRequest) {
-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+                MessageStatus::State status = MessageStatus::State::NoChannel;
+                if (routing.error_reason == meshtastic_Routing_Error_NO_INTERFACE)
+                    status = MessageStatus::State::NoRadioInterface;
+                if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE)
+                    status = MessageStatus::State::NoAppResponse;
+                if (routing.error_reason == meshtastic_Routing_Error_DUTY_CYCLE_LIMIT)
+                    status = MessageStatus::State::DutyCycleLimit;
+                if (routing.error_reason == meshtastic_Routing_Error_RATE_LIMIT_EXCEEDED)
+                    status = MessageStatus::State::RateLimited;
+                if (routing.error_reason == meshtastic_Routing_Error_BAD_REQUEST)
+                    status = MessageStatus::State::InvalidRequest;
+                if (routing.error_reason == meshtastic_Routing_Error_NOT_AUTHORIZED)
+                    status = MessageStatus::State::NotAuthorized;
+                if (routing.error_reason == meshtastic_Routing_Error_PKI_FAILED)
+                    status = MessageStatus::State::GenericEncryptedSendFailure;
+                if (routing.error_reason == meshtastic_Routing_Error_PKI_SEND_FAIL_PUBLIC_KEY)
+                    status = MessageStatus::State::RecipientKeyUnavailable;
+                if (routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY)
+                    status = MessageStatus::State::RecipientNeedsSenderKey;
+                if (routing.error_reason == meshtastic_Routing_Error_ADMIN_BAD_SESSION_KEY)
+                    status = MessageStatus::State::AdminSessionExpired;
+                if (routing.error_reason == meshtastic_Routing_Error_ADMIN_PUBLIC_KEY_UNAUTHORIZED)
+                    status = MessageStatus::State::AdminKeyNotAuthorized;
+                handleTextMessageResponse((unsigned long)req.cookie, id, status, true);
                 // we probably have a wrong key; mark it as bad and don't use in future
-                if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
+                const bool keyMismatch = routing.error_reason == meshtastic_Routing_Error_NO_CHANNEL ||
+                                         routing.error_reason == meshtastic_Routing_Error_PKI_FAILED ||
+                                         routing.error_reason == meshtastic_Routing_Error_PKI_SEND_FAIL_PUBLIC_KEY ||
+                                         routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY;
+                if (keyMismatch && nodes.find(from) != nodes.end() &&
+                    (unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
                     ILOG_DEBUG("public key mismatch");
                     nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
                     lv_obj_set_style_border_color(nodes[from]->LV_OBJ_IDX(node_img_idx), colorRed,
@@ -5733,18 +6006,21 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
 }
 
 /**
- * @brief mark the sent message as either heard or acknowledged or failed
+ * @brief mark the sent message with user-facing delivery status text
  *
  * @param channelOrNode
  * @param id
- * @param ack
+ * @param status
  */
-void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
+void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, MessageStatus::State status,
+                                                bool finalStatus)
 {
+    if (id != 0)
+        controller->updateTextMessageStatus(id, status, finalStatus);
+
     lv_obj_t *msgContainer;
     if (channelOrNode < c_max_channels) {
         msgContainer = channelGroup[(uint8_t)channelOrNode];
-        ack = true; // treat messages sent to group channel same as ack
     } else {
         msgContainer = messages[channelOrNode];
     }
@@ -5758,15 +6034,21 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
         lv_obj_t *panel = msgContainer->spec_attr->children[i];
         uint32_t requestId = (unsigned long)panel->user_data;
         if (requestId == id) {
+            const MessageStatus::Presentation &messageStatus = MessageStatus::presentation(status);
+
             // now give the textlabel border another color
             lv_obj_t *textLabel = panel->spec_attr->children[0];
-            lv_obj_set_style_border_color(textLabel,
-                                          err   ? colorRed
-                                          : ack ? colorBlueGreen
-                                                : colorYellow,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+            auto *messageContext = static_cast<SentMessageContext *>(textLabel->user_data);
+            if (messageContext != nullptr)
+                messageContext->status = status;
+            lv_obj_set_style_border_color(textLabel, messageStatusColor(messageStatus.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-            // store message
+            if (panel->spec_attr->child_cnt > 1) {
+                lv_obj_t *statusLabel = panel->spec_attr->children[1];
+                lv_label_set_text(statusLabel, _(messageStatus.text));
+                lv_obj_set_style_text_color(statusLabel, messageStatusColor(messageStatus.tone), LV_PART_MAIN | LV_STATE_DEFAULT);
+            }
+
             break;
         }
     }
@@ -6568,7 +6850,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         if (container) {
             if (container != activeMsgContainer)
                 lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
-            addMessage(container, msg.time, 0, (char *)msg.bytes, msg.status);
+            addMessage(container, msg.time, 0, (char *)msg.bytes, msg.status, msg.reserved);
         }
     } else if (nodes.find(msg.from) != nodes.end()) {
         if (msg.trashFlag && chats.find(msg.from) != chats.end()) {

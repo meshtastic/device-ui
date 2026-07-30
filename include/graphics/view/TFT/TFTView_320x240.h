@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics/common/MeshtasticView.h"
+#include "graphics/common/MessageStatus.h"
 #include "meshtastic/clientonly.pb.h"
 #include <set>
 
@@ -159,7 +160,8 @@ class TFTView_320x240 : public MeshtasticView
     // own chat message
     virtual void handleAddMessage(char *msg);
     // add own message to current chat
-    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status);
+    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status,
+                            uint32_t persistedStatus = 0);
     // add new message to container
     virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
     // create empty message container for node or group channel
@@ -168,8 +170,9 @@ class TFTView_320x240 : public MeshtasticView
     virtual bool applyNodesFilter(uint32_t nodeNum, bool reset = false);
     // display message alert popup
     virtual void messageAlert(const char *alert, bool show);
-    // mark sent message as received
-    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err);
+    // mark sent message with its delivery status
+    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, MessageStatus::State status,
+                                           bool finalStatus = true);
     // set node image based on role
     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img);
     // apply filter and count number of filtered nodes
@@ -286,6 +289,11 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ChatButton(lv_event_t *e);
     static void ui_event_ChatDelButton(lv_event_t *e);
     static void ui_event_MsgPopupButton(lv_event_t *e);
+    static void ui_event_MessageStatus(lv_event_t *e);
+    static void ui_event_MessageStatusClose(lv_event_t *e);
+    static void ui_event_MessageStatusRetry(lv_event_t *e);
+    static void ui_event_MessageStatusDialogDelete(lv_event_t *e);
+    static void ui_event_SentMessageDelete(lv_event_t *e);
     static void ui_event_MsgRestoreButton(lv_event_t *e);
     static void ui_event_AlertButton(lv_event_t *e);
 

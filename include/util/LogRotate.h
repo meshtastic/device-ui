@@ -2,6 +2,7 @@
 
 #include "FS.h"
 #include "ILogEntry.h"
+#include <functional>
 #include <stdint.h>
 
 /**
@@ -21,6 +22,11 @@
 class LogRotate
 {
   public:
+    struct EntryPosition {
+        uint32_t logNum = 0;
+        uint32_t offset = 0;
+    };
+
     LogRotate(fs::FS &fs, const char *logDir, uint32_t maxLen, uint32_t maxSize = 102400, uint32_t maxFiles = 25,
               uint32_t maxFileSize = 4000);
     // uint32_t maxSize = 4096, uint32_t maxFiles = 10, uint32_t maxFileSize = 400);
@@ -29,6 +35,9 @@ class LogRotate
     void init(void);
     // write a log entry to fs
     bool write(const ILogEntry &entry);
+    bool write(const ILogEntry &entry, EntryPosition *position);
+    // update a previously written log entry in place
+    bool update(const EntryPosition &position, ILogEntry &entry, std::function<void(ILogEntry &)> update);
     // read the next log entry from fs
     bool readNext(ILogEntry &entry);
     // remove all logs from fs

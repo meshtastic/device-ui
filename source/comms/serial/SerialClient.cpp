@@ -42,7 +42,7 @@ void SerialClient::init(void)
 #elif defined(ARCH_PORTDUINO)
     new std::thread([] {
 #ifdef __APPLE__
-        pthread_setname_np(threadName);
+        pthread_setname_np(instance->threadName);
 #else
         pthread_setname_np(pthread_self(), instance->threadName);
 #endif

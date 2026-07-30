@@ -20,6 +20,7 @@ class ResponseHandler
     using Callback = std::function<void(const Request &, EventType, int32_t)>;
 
     struct Request {
+        uint32_t requestId;
         uint32_t id;
         unsigned long timestamp;
         enum RequestType type;
