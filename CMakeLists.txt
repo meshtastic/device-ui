@@ -16,6 +16,7 @@ endif()
 option(ENABLE_DOCTESTS "Include tests in the library. Setting this to OFF will remove all doctest related code.
                         Tests in tests/*.cpp will still be enabled." ${MAIN_PROJECT})
 option(ENABLE_DEBUG_LOG "Enable debug log" OFF)
+option(MUI_RUNTIME_ROTATION "Link both perpendicular UI layouts and select the screen rotation at runtime" OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL ON) # with newer cmake versions put all find_package in global scope
@@ -52,8 +53,17 @@ find_package(CURL REQUIRED)
 file(GLOB_RECURSE sources      source/* generated/* portduino/* locale/* generated/${GENERATED_VIEW}/*)
 file(GLOB_RECURSE sources_test tests/*.cpp)
 
+if(MUI_RUNTIME_ROTATION)
+    include(MuiRuntimeRotation)
+    mui_runtime_rotation_sources(sources)
+endif()
+
 add_library(DeviceUI ${sources})
 target_link_libraries(DeviceUI PRIVATE lvgl::lvgl LovyanGFX Portduino Protobufs CURL::libcurl)
+
+if(MUI_RUNTIME_ROTATION)
+    mui_runtime_rotation_configure(DeviceUI)
+endif()
 
 # Handle Windows Static linking dependencies if applicable
 if(WIN32)
@@ -95,4 +105,11 @@ if(ENABLE_DOCTESTS)
     )
     set_target_properties(tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     add_test(NAME tests COMMAND tests)
+
+    if(MUI_RUNTIME_ROTATION)
+        target_include_directories(tests PRIVATE ${MUI_GLUE_DIR})
+        add_test(NAME dual_ui_glue
+                 COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_dual_ui.py
+                         --check ${MUI_PRIMARY_VIEW})
+    endif()
 endif()

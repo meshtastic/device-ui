@@ -75,3 +75,18 @@ jobs:
       - name: Run Unit Tests
         run: |
           ctest --test-dir build
+
+      # Step 7: Same again with the optional runtime-rotation feature enabled,
+      # which links both generated layouts. X11 is not LGFX, so this covers
+      # compiling, linking and the state tests -- not the panel rotation itself.
+      - name: Configure CMake (runtime rotation)
+        run: |
+          cmake -S . -B build-rotation -G Ninja -DMUI_RUNTIME_ROTATION=ON
+
+      - name: Build Project (runtime rotation)
+        run: |
+          cmake --build build-rotation
+
+      - name: Run Unit Tests (runtime rotation)
+        run: |
+          ctest --test-dir build-rotation
