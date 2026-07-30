@@ -1,4 +1,5 @@
 #include "lvgl.h"
+#include "util/ISpiLock.h"
 
 #include "graphics/map/MapTileSettings.h"
 #include "graphics/map/SDCardService.h"
@@ -70,6 +71,7 @@ SDCardService::SDCardService() : ITileService(DRIVE_LETTER ":")
 
 SDCardService::~SDCardService()
 {
+    ISpiLock::Guard bus;
 #ifndef ARCH_PORTDUINO
     SD.end();
 #endif
@@ -168,6 +170,7 @@ bool SDCardService::save(const char *name, void *img, size_t len)
 
 void *SDCardService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode)
 {
+    ISpiLock::Guard bus;
     String s(path);
     File file = SD.open(path, mode == LV_FS_MODE_RD ? FILE_READ : FILE_WRITE);
     if (!file) {
@@ -182,6 +185,7 @@ void *SDCardService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mo
 
 lv_fs_res_t SDCardService::fs_close(lv_fs_drv_t *drv, void *file_p)
 {
+    ISpiLock::Guard bus;
     // ILOG_DEBUG("SD.close()");
     SdFile *lf = static_cast<SdFile *>(file_p);
     lf->file.close();
@@ -191,6 +195,7 @@ lv_fs_res_t SDCardService::fs_close(lv_fs_drv_t *drv, void *file_p)
 
 lv_fs_res_t SDCardService::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t btr, uint32_t *br)
 {
+    ISpiLock::Guard bus;
     *br = static_cast<SdFile *>(file_p)->file.read((uint8_t *)buf, btr);
     // ILOG_DEBUG("SD.read(): %d/%d bytes", *br, btr);
     return (*br <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
@@ -198,6 +203,7 @@ lv_fs_res_t SDCardService::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, ui
 
 lv_fs_res_t SDCardService::fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf, uint32_t btw, uint32_t *bw)
 {
+    ISpiLock::Guard bus;
     *bw = static_cast<SdFile *>(file_p)->file.write((uint8_t *)buf, btw);
     // ILOG_DEBUG("SD.write(): %d/btw bytes", *bw, btw);
     return (*bw <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
@@ -205,12 +211,14 @@ lv_fs_res_t SDCardService::fs_write(lv_fs_drv_t *drv, void *file_p, const void *
 
 lv_fs_res_t SDCardService::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence)
 {
+    ISpiLock::Guard bus;
     // ILOG_DEBUG("SD.seek(): pos %d", pos);
     return static_cast<SdFile *>(file_p)->file.seek(pos, (SeekMode)whence) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN;
 }
 
 lv_fs_res_t SDCardService::fs_tell(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_p)
 {
+    ISpiLock::Guard bus;
     *pos_p = static_cast<SdFile *>(file_p)->file.position();
     // ILOG_DEBUG("SD.tell(): pos %d", *pos_p);
     return (int32_t)(*pos_p) < 0 ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;

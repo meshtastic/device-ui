@@ -1,5 +1,6 @@
 #include "graphics/common/SdCard.h"
 #include "util/ILog.h"
+#include "util/ISpiLock.h"
 
 #ifndef SD_SPI_FREQUENCY
 #define SD_SPI_FREQUENCY 50000000
@@ -67,6 +68,7 @@ SDCard::~SDCard(void) {}
 
 bool SDCard::init(void)
 {
+    ISpiLock::Guard bus;
     // #ifndef BOARD_HAS_1BIT_SDMMC
     //     SDFs.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_D0, SDMMC_D1, SDMMC_D2, SDMMC_D3);
     //     return SDFs.begin("/sdcard", false);
@@ -78,6 +80,7 @@ bool SDCard::init(void)
 
 ISdCard::CardType SDCard::cardType(void)
 {
+    ISpiLock::Guard bus;
     switch (SDFs.cardType()) {
     case CARD_NONE:
         return CardType::eNone;
@@ -96,11 +99,13 @@ ISdCard::CardType SDCard::cardType(void)
 
 ISdCard::FatType SDCard::fatType(void)
 {
+    ISpiLock::Guard bus;
     return SDFs.cardSize() > 4Ull * 1024Ull * 1024Ull * 1024Ull ? FatType::eFat32 : FatType::eFat16;
 }
 
 ISdCard::ErrorType SDCard::errorType(void)
 {
+    ISpiLock::Guard bus;
     switch (SDFs.cardType()) {
     case CARD_NONE:
         return ErrorType::eSlotEmpty;
@@ -113,21 +118,25 @@ ISdCard::ErrorType SDCard::errorType(void)
 
 uint64_t SDCard::usedBytes(void)
 {
+    ISpiLock::Guard bus;
     return SDFs.usedBytes();
 }
 
 uint64_t SDCard::freeBytes(void)
 {
+    ISpiLock::Guard bus;
     return SDFs.totalBytes() - SDFs.usedBytes();
 }
 
 uint64_t SDCard::cardSize(void)
 {
+    ISpiLock::Guard bus;
     return SDFs.totalBytes();
 }
 
 SDCard::~SDCard(void)
 {
+    ISpiLock::Guard bus;
     SDFs.end();
 }
 #endif
@@ -135,6 +144,7 @@ SDCard::~SDCard(void)
 #if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
 std::set<std::string> SDCard::loadMapStyles(const char *folder)
 {
+    ISpiLock::Guard bus;
     std::set<std::string> styles;
     File maps = SDFs.open(folder);
     if (maps) {
@@ -169,6 +179,7 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
 
 std::string SDCard::getUrlProvider(const char *folder, const char *style)
 {
+    ISpiLock::Guard bus;
     String filename = String(folder) + "/" + String(style) + "/.url";
     File file = SDFs.open(filename.c_str(), FILE_READ);
     if (file) {
@@ -181,6 +192,7 @@ std::string SDCard::getUrlProvider(const char *folder, const char *style)
 #elif defined(HAS_SDCARD)
 bool SdFsCard::init(void)
 {
+    ISpiLock::Guard bus;
     // TODO: allow specification of SPI bus
     // TODO: use begin(SdioConfig(FIFO_SDIO)) for SDIO (T-HMI)
     // Note: this can also be done via #define BUILTIN_SDCARD SDCARD_CS using begin(SDCARD_CS)
@@ -202,6 +214,7 @@ bool SdFsCard::init(void)
 
 ISdCard::CardType SdFsCard::cardType(void)
 {
+    ISpiLock::Guard bus;
     uint8_t card = SDFs.card()->type(); // 0 - SD V1, 1 - SD V2, or 3 - SDHC/SDXC
     uint8_t fsType = SDFs.fatType();    // FAT_TYPE_EXFAT, FAT_TYPE_FAT32, FAT_TYPE_FAT16, or zero for error
     if (card == 3)
@@ -213,6 +226,7 @@ ISdCard::CardType SdFsCard::cardType(void)
 
 ISdCard::FatType SdFsCard::fatType(void)
 {
+    ISpiLock::Guard bus;
     uint8_t type = SDFs.fatType();
     return type == FAT_TYPE_EXFAT   ? FatType::eExFat
            : type == FAT_TYPE_FAT32 ? FatType::eFat32
@@ -227,6 +241,7 @@ ISdCard::FatType SdFsCard::fatType(void)
  */
 ISdCard::ErrorType SdFsCard::errorType(void)
 {
+    ISpiLock::Guard bus;
     ILOG_ERROR("SD card error code: %d", SDFs.sdErrorCode());
     if (SDFs.sdErrorCode() == SD_CARD_ERROR_CMD0)
         return ErrorType::eSlotEmpty;
@@ -258,26 +273,35 @@ ISdCard::ErrorType SdFsCard::errorType(void)
 
 uint64_t SdFsCard::usedBytes(void)
 {
-    return cardSize() - freeBytes();
+    ISpiLock::Guard bus;
+    // Computed here rather than as cardSize() - freeBytes(): those take the guard
+    // themselves, and nesting would lean on the host's lock being reentrant. Not
+    // nesting is cheaper than depending on every host getting that right.
+    uint64_t bytesPerCluster = uint64_t(SDFs.bytesPerCluster());
+    return (uint64_t(SDFs.clusterCount()) - uint64_t(SDFs.freeClusterCount())) * bytesPerCluster;
 }
 
 uint64_t SdFsCard::freeBytes(void)
 {
+    ISpiLock::Guard bus;
     return uint64_t(SDFs.freeClusterCount()) * uint64_t(SDFs.bytesPerCluster());
 }
 
 uint64_t SdFsCard::cardSize(void)
 {
+    ISpiLock::Guard bus;
     return uint64_t(SDFs.clusterCount()) * uint64_t(SDFs.bytesPerCluster());
 }
 
 bool SdFsCard::format(void)
 {
+    ISpiLock::Guard bus;
     return SDFs.format();
 }
 
 std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
 {
+    ISpiLock::Guard bus;
     std::set<std::string> styles;
     File maps = SDFs.open(folder);
     if (maps) {
@@ -314,6 +338,7 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
 
 std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
 {
+    ISpiLock::Guard bus;
     String filename = String(folder) + "/" + String(style) + "/.url";
     File file = SDFs.open(filename.c_str(), FILE_READ);
     if (file) {
