@@ -167,3 +167,11 @@ el:
   SD card error: SD σφάλμα κάρτας
   SD unknown error: SD άγνωστο σφάλμα
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~

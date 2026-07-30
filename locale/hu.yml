@@ -167,3 +167,11 @@ hu:
   SD card error: SD-kártya hiba
   SD unknown error: Ismeretlen SD-hiba
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~

@@ -165,3 +165,11 @@ da:
   SD card error: SD-kort fejl
   SD unknown error: Ukendt SD-kort-fejl
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": "Heap: %d (%d%%)\nLVGL: %d (%d%%)"
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~

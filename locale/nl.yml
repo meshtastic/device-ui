@@ -187,3 +187,11 @@ nl:
   Failed to parse keys!: Keys verwerken mislukt!
   Failed to retrieve keys!: Keys ophalen mislukt!
   "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nGebruikt: %d MB (%d%%)"
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~

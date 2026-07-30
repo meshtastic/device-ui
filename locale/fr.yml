@@ -157,3 +157,11 @@ fr:
   Failed to parse keys!: Erreur de lecture!
   Failed to retrieve keys!: Erreur de lecture!
   "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nUtilisé: %d MB (%d%%)"
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~

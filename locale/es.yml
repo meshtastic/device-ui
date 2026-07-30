@@ -162,3 +162,11 @@ es:
   'Failed to parse keys!': Error procesando claves!
   'Failed to retrieve keys!': Error obteniendo ficheros!
   "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nUsado: %d MB (%d%%)"
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~

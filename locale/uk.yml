@@ -157,3 +157,11 @@ uk:
   'uptime: %02d:%02d:%02d': 'час роботи:  %02d:%02d:%02d'
   "%s (%0.1f GB)\nUsed: %d MB (%d%%)": "%s (%0.1f GB)\nВикорист.: %d MB (%d%%)"
   "Heap: %d (%d%%)\nLVGL: %d (%d%%)": ~
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~

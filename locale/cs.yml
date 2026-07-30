@@ -144,3 +144,11 @@ cs:
   region unset: region nenastaven
   no signal: bez signálu
   Restoring messages ...: Obnovuji zprávy...
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~

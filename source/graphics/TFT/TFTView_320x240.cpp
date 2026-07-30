@@ -825,6 +825,21 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
 
+#ifdef MUI_RUNTIME_ROTATION
+    {
+        // the feature is build-time optional, so no generated entry exists for
+        // it; the row is created here with the generated button style
+        lv_obj_t *rotationButton = lv_button_create(lv_obj_get_parent(objects.basic_settings_timezone_button));
+        lv_obj_set_size(rotationButton, LV_PCT(95), 30);
+        add_style_settings_button_style(rotationButton);
+        lv_obj_set_style_shadow_width(rotationButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        screenRotationLabel = lv_label_create(rotationButton);
+        lv_obj_set_align(screenRotationLabel, LV_ALIGN_LEFT_MID);
+        updateScreenRotationLabel();
+        lv_obj_add_event_cb(rotationButton, ui_event_screen_rotation_button, LV_EVENT_CLICKED, NULL);
+    }
+#endif
+
     lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.shutdown_button, ui_event_device_shutdown_button, LV_EVENT_CLICKED, NULL);
@@ -4291,6 +4306,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
             return;
         }
+#ifdef MUI_RUNTIME_ROTATION
+        case eScreenRotation:
+            // apply/close own the panel state, so skip the common tail
+            THIS->applyScreenRotationDialog();
+            return;
+#endif
         default:
             ILOG_ERROR("Unhandled ok event");
             break;
@@ -4409,6 +4430,11 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             THIS->activeSettings = eChannel;
             return;
         }
+#ifdef MUI_RUNTIME_ROTATION
+        case eScreenRotation:
+            THIS->closeScreenRotationDialog(); // owns the panel state
+            return;
+#endif
         default:
             ILOG_ERROR("Unhandled cancel event");
             break;
@@ -5928,6 +5954,186 @@ bool TFTView_320x240::isScreenLocked(void)
 {
     return screenLocked && !screenUnlockRequest;
 }
+
+#ifdef MUI_RUNTIME_ROTATION
+
+// Even values keep the primary layout's aspect, odd values use the
+// perpendicular one, so which label a value carries depends on which tree this
+// build compiled as primary.
+static const char *rotationValueName(uint8_t value)
+{
+    switch (value & 3) {
+#if defined(VIEW_240x320)
+    case ScreenRotation::Rotation0:
+        return _("Portrait");
+    case ScreenRotation::Rotation90:
+        return _("Landscape");
+    case ScreenRotation::Rotation180:
+        return _("Portrait flipped");
+    default:
+        return _("Landscape flipped");
+#else
+    case ScreenRotation::Rotation0:
+        return _("Landscape");
+    case ScreenRotation::Rotation90:
+        return _("Portrait");
+    case ScreenRotation::Rotation180:
+        return _("Landscape flipped");
+    default:
+        return _("Portrait flipped");
+#endif
+    }
+}
+
+void TFTView_320x240::updateScreenRotationLabel(void)
+{
+    if (!screenRotationLabel)
+        return;
+    char buf[64];
+    lv_snprintf(buf, sizeof(buf), "%s: %s", _("Orientation"), rotationValueName((uint8_t)ScreenRotation::get()));
+    lv_label_set_text(screenRotationLabel, buf);
+}
+
+void TFTView_320x240::ui_event_screen_rotation_button(lv_event_t *e)
+{
+    if (lv_event_get_code(e) == LV_EVENT_CLICKED && THIS->activeSettings == eNone)
+        THIS->showScreenRotationDialog();
+}
+
+void TFTView_320x240::showScreenRotationDialog(void)
+{
+    if (screenRotationPanel || activeSettings != eNone)
+        return;
+
+    // copies the generated dropdown-panel idiom (SettingsDeviceRolePanel)
+    screenRotationPanel = lv_obj_create(objects.main_screen);
+    lv_obj_set_pos(screenRotationPanel, LV_PCT(3), LV_PCT(25));
+    lv_obj_set_size(screenRotationPanel, 220, 120);
+    lv_obj_clear_flag(screenRotationPanel, LV_OBJ_FLAG_SCROLLABLE);
+    add_style_settings_panel_style(screenRotationPanel);
+    lv_obj_set_style_pad_all(screenRotationPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(screenRotationPanel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(screenRotationPanel, 12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(screenRotationPanel, lv_color_hex(0xff216ad8), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_align(screenRotationPanel, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(screenRotationPanel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    screenRotationDropdown = lv_dropdown_create(screenRotationPanel);
+    lv_obj_set_pos(screenRotationDropdown, 0, 8);
+    lv_obj_set_size(screenRotationDropdown, 150, 30);
+    char options[128]; // option order is the stored value order (0..3)
+    lv_snprintf(options, sizeof(options), "%s\n%s\n%s\n%s", rotationValueName(ScreenRotation::Rotation0),
+                rotationValueName(ScreenRotation::Rotation90), rotationValueName(ScreenRotation::Rotation180),
+                rotationValueName(ScreenRotation::Rotation270));
+    lv_dropdown_set_options(screenRotationDropdown, options);
+    add_style_drop_down_style(screenRotationDropdown);
+    lv_obj_set_style_align(screenRotationDropdown, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(screenRotationDropdown, lv_color_hex(0xffe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+    // the persisted value, which is what the next boot will use
+    lv_dropdown_set_selected(screenRotationDropdown, (uint8_t)db.uiConfig.screen_rotation);
+
+    addOkCancelRow(screenRotationPanel);
+    lv_group_focus_obj(screenRotationDropdown);
+    disablePanel(objects.controller_panel);
+    disablePanel(objects.tab_page_basic_settings);
+    activeSettings = eScreenRotation;
+}
+
+void TFTView_320x240::applyScreenRotationDialog(void)
+{
+    // Compare against the persisted value, not the active one: a change saved
+    // earlier may still be waiting for the restart, and re-picking the active
+    // value then has to be treated as a real change back.
+    const uint8_t persisted = (uint8_t)db.uiConfig.screen_rotation;
+    const uint8_t choice = screenRotationDropdown ? (uint8_t)lv_dropdown_get_selected(screenRotationDropdown) : persisted;
+    if (choice > (uint8_t)ScreenRotation::Rotation270 || choice == persisted) {
+        closeScreenRotationDialog();
+        if (persisted != (uint8_t)ScreenRotation::get())
+            messageAlert(_("Restart required"), true);
+        return;
+    }
+
+    // Submit a copy: a failed store must not leave the new value in db.uiConfig,
+    // where an unrelated save would later persist it behind the user's back.
+    meshtastic_DeviceUIConfig cfg = db.uiConfig;
+    cfg.screen_rotation = (meshtastic_DeviceUIConfig_ScreenRotation)choice;
+    if (!controller->storeUIConfig(cfg)) {
+        messageAlert(_("Save failed"), true);
+        return; // dialog stays open so OK can be retried
+    }
+    db.uiConfig = cfg; // persisted, keep the in-memory copy in sync
+
+    // The value is only read at boot, and the firmware keeps serving the
+    // pre-change config until it reloads, so the reboot is part of applying it
+    // (same pattern as the language setting).
+    if (!controller->requestReboot(5)) {
+        messageAlert(_("Restart required"), true);
+        return;
+    }
+    closeScreenRotationDialog();
+    messageAlert(_("Restarting to apply"), true);
+}
+
+void TFTView_320x240::closeScreenRotationDialog(void)
+{
+    if (activeSettings == eScreenRotation) {
+        activeSettings = eNone;
+        enablePanel(objects.controller_panel);
+        enablePanel(objects.tab_page_basic_settings);
+        if (screenRotationLabel)
+            lv_group_focus_obj(lv_obj_get_parent(screenRotationLabel)); // back to the opener
+    }
+    if (screenRotationPanel) {
+        lv_obj_delete(screenRotationPanel);
+        screenRotationPanel = nullptr;
+        screenRotationDropdown = nullptr; // child of the panel
+    }
+}
+
+void TFTView_320x240::addOkCancelRow(lv_obj_t *parent)
+{
+    // visual copy of the generated ok_cancel_widget: the generated function
+    // cannot be reused because it writes its objects into the objects struct
+    // by index
+    lv_obj_t *row = lv_obj_create(parent);
+    lv_obj_set_size(row, 160, 50);
+    lv_obj_clear_flag(row, (lv_obj_flag_t)(LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC |
+                                           LV_OBJ_FLAG_SCROLL_WITH_ARROW)); // C++ needs the explicit cast
+    lv_obj_set_scrollbar_mode(row, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_scroll_dir(row, LV_DIR_NONE);
+    add_style_panel_style(row);
+    lv_obj_set_style_align(row, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(row, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_layout(row, LV_LAYOUT_FLEX, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(row, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(row, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(row, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_flex_main_place(row, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    struct {
+        const char *text;
+        lv_align_t align;
+        lv_event_cb_t cb;
+        bool pad;
+    } spec[2] = {{_("OK"), LV_ALIGN_LEFT_MID, ui_event_ok, false}, {_("Cancel"), LV_ALIGN_RIGHT_MID, ui_event_cancel, true}};
+    for (auto &b : spec) {
+        lv_obj_t *btn = lv_btn_create(row);
+        lv_obj_set_size(btn, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        lv_obj_set_style_bg_color(btn, lv_color_hex(0xff216ad8), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_radius(btn, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_clip_corner(btn, true, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(btn, b.align, LV_PART_MAIN | LV_STATE_DEFAULT);
+        if (b.pad) {
+            lv_obj_set_style_pad_left(btn, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(btn, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        lv_label_set_text(lv_label_create(btn), b.text);
+        lv_obj_add_event_cb(btn, b.cb, LV_EVENT_CLICKED, 0);
+    }
+}
+
+#endif // MUI_RUNTIME_ROTATION
 
 void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
 {

@@ -106,7 +106,10 @@ class TFTView_320x240 : public MeshtasticView
         eReset,
         eReboot,
         eDisplayMode,
-        eModifyChannel
+        eModifyChannel,
+#ifdef MUI_RUNTIME_ROTATION
+        eScreenRotation
+#endif
     };
 
   protected:
@@ -367,6 +370,20 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ok(lv_event_t *e);
     static void ui_event_cancel(lv_event_t *e);
     static void ui_event_backup_restore_radio_button(lv_event_t *e);
+
+#ifdef MUI_RUNTIME_ROTATION
+    static void ui_event_screen_rotation_button(lv_event_t *e);
+    void showScreenRotationDialog(void);
+    void applyScreenRotationDialog(void);
+    void closeScreenRotationDialog(void);
+    void updateScreenRotationLabel(void);
+    // the generated ok_cancel_widget writes into the objects struct by index,
+    // so the row is rebuilt here instead of reused
+    void addOkCancelRow(lv_obj_t *parent);
+    lv_obj_t *screenRotationLabel = nullptr;
+    lv_obj_t *screenRotationPanel = nullptr;
+    lv_obj_t *screenRotationDropdown = nullptr;
+#endif
 
     // map navigation
     static void ui_screen_event_cb(lv_event_t *e);

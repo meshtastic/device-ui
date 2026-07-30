@@ -189,3 +189,11 @@ no:
   Failed to parse keys!: Analysering av nøkler feilet!
   Failed to retrieve keys!: Mottak av nøkler feilet!
   "%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)": "%s: %d GB (%s)\nBrukt: %0.2f GB (%d%%)"
+  Orientation: ~
+  Landscape: ~
+  Portrait: ~
+  Landscape flipped: ~
+  Portrait flipped: ~
+  Restarting to apply: ~
+  Save failed: ~
+  Restart required: ~
