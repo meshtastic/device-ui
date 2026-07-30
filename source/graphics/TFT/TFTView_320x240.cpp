@@ -625,6 +625,10 @@ void TFTView_320x240::apply_hotfix(void)
     int32_t rows = 12;
     if (h > 320) {
         width = (h - 48 - 57) / 6;
+    } else if (h < 320) {
+        // narrow screens (240 px portrait): the default 57 + 6*36 = 273 does
+        // not fit, so shrink the six data columns instead of overflowing
+        width = (h - 57 - 6) / 6;
     }
     if (v > 240) {
         rows = (v - 32) / 18;
