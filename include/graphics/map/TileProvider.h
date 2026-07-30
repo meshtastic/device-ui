@@ -13,6 +13,9 @@ class TileProvider
     static std::string url(const char *filename);
     static std::string url(int z, int x, int y);
 
+    // get selected URL template
+    static const std::string url(void);
+
     // get all URL templates
     static const std::vector<std::string> templates(void);
 

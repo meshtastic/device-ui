@@ -8,6 +8,7 @@
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
+#include "graphics/map/CURLService.h"
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
@@ -2404,6 +2405,7 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
         int entry = TileProvider::addTemplate(provider, url);
         lv_dropdown_set_selected(objects.map_url_dropdown, entry);
         TileProvider::selectTemplate(entry);
+        THIS->attribution(url);
     }
     MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
 
@@ -2418,6 +2420,7 @@ void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
     TileProvider::selectTemplate(urlId);
     MapTileSettings::setSaveOK(false);
     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+    THIS->attribution(TileProvider::url());
     THIS->map->forceRedraw();
 }
 
@@ -2590,7 +2593,10 @@ void TFTView_320x240::loadMap(void)
         map->setBackupService(
             new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #elif defined(ARCH_PORTDUINO)
-        map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
+        auto tileService = new SDCardService();
+        map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
+        map->setBackupService(new CURLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #else
         map = new MapPanel(objects.raw_map_panel, new URLService());
 #endif
@@ -2710,6 +2716,7 @@ void TFTView_320x240::loadMap(void)
                             // set provider url to current style
                             ILOG_DEBUG("set provider url to %s", url.c_str());
                             TileProvider::selectTemplate(urlEntry);
+                            attribution(url);
                         }
                     }
                 }
@@ -2810,6 +2817,16 @@ void TFTView_320x240::removeFromMap(uint32_t nodeNum)
     nodeObjects.erase(nodeNum);
     lv_obj_remove_event_cb(img, ui_event_mapNodeButton);
     lv_obj_delete(img);
+}
+
+void TFTView_320x240::attribution(std::string url)
+{
+    // set google overlay attribution
+    if (url.find("google") != std::string::npos) {
+        lv_obj_remove_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
@@ -3813,8 +3830,11 @@ void TFTView_320x240::eraseChat(uint32_t channelOrNode)
         } else {
             lv_obj_del(chats.at(ch));
         }
-        lv_obj_del(channelGroup.at(ch));
-        channelGroup[ch] = nullptr;
+        lv_obj_t *chGrp = channelGroup.at(ch);
+        if (chGrp) {
+            lv_obj_del(chGrp);
+            channelGroup[ch] = nullptr;
+        }
         chats.erase(ch);
     } else {
         uint32_t nodeNum = channelOrNode;
