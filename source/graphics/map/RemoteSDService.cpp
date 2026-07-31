@@ -78,8 +78,8 @@ bool RemoteSDService::load(const char *name, void *img)
     }
 
     lv_img_dsc_t *img_dsc = nullptr;
-    bool decoded = MapTileSettings::color() ? decodeImgColor(pngData, fileSize, &img_dsc)
-                                            : decodeImgGrey(pngData, fileSize, &img_dsc);
+    bool decoded =
+        MapTileSettings::color() ? decodeImgColor(pngData, fileSize, &img_dsc) : decodeImgGrey(pngData, fileSize, &img_dsc);
     lv_free(pngData);
 
     if (!decoded) {
