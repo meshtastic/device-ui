@@ -40,13 +40,23 @@ include(LovyanGFX)
 include(LVGL)
 include(protobuf)
 include(nanopb)
+include(PNGdec)
 include(Doctest)
+
+find_package(CURL REQUIRED)
 
 file(GLOB_RECURSE sources      source/* generated/* portduino/* locale/* generated/${GENERATED_VIEW}/*)
 file(GLOB_RECURSE sources_test tests/*.cpp)
 
 add_library(DeviceUI ${sources})
-target_link_libraries(DeviceUI PRIVATE lvgl::lvgl LovyanGFX Portduino Protobufs)
+target_link_libraries(DeviceUI PRIVATE lvgl::lvgl LovyanGFX Portduino Protobufs CURL::libcurl)
+
+# Handle Windows Static linking dependencies if applicable
+if(WIN32)
+    target_compile_definitions(DeviceUI PRIVATE CURL_STATICLIB)
+    target_link_libraries(DeviceUI PRIVATE ws2_32 crypt32 wldap32 normaliz)
+endif()
+
 target_compile_options(DeviceUI PUBLIC -Wall -Wno-format -Wfloat-conversion)
 
 target_include_directories(DeviceUI PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

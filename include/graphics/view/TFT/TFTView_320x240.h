@@ -268,6 +268,7 @@ class TFTView_320x240 : public MeshtasticView
     void setChannelName(const meshtastic_Channel &ch);
     uint32_t timestamp(char *buf, uint32_t time, bool update);
     void updateLocationMap(uint32_t objects);
+    void attribution(std::string url);
 
     // response callbacks
     void onTextMessageCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);

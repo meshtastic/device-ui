@@ -8,6 +8,7 @@
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
+#include "graphics/map/CURLService.h"
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
@@ -20,6 +21,7 @@
 #include "ui.h"
 #include "util/FileLoader.h"
 #include "util/ILog.h"
+#include "util/ISpiLock.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -2360,6 +2362,7 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
         int entry = TileProvider::addTemplate(provider, url);
         lv_dropdown_set_selected(objects.map_url_dropdown, entry);
         TileProvider::selectTemplate(entry);
+        THIS->attribution(url);
     }
     MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
 
@@ -2374,6 +2377,7 @@ void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
     TileProvider::selectTemplate(urlId);
     MapTileSettings::setSaveOK(false);
     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+    THIS->attribution(TileProvider::url());
     THIS->map->forceRedraw();
 }
 
@@ -2552,7 +2556,10 @@ void TFTView_320x240::loadMap(void)
         map->setBackupService(
             new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #elif defined(ARCH_PORTDUINO)
-        map = new MapPanel(objects.raw_map_panel, new SDCardService()); // TODO: LinuxFileSystemService
+        auto tileService = new SDCardService();
+        map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
+        map->setBackupService(new CURLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
 #else
         map = new MapPanel(objects.raw_map_panel, new URLService());
 #endif
@@ -2672,6 +2679,7 @@ void TFTView_320x240::loadMap(void)
                             // set provider url to current style
                             ILOG_DEBUG("set provider url to %s", url.c_str());
                             TileProvider::selectTemplate(urlEntry);
+                            attribution(url);
                         }
                     }
                 }
@@ -2772,6 +2780,16 @@ void TFTView_320x240::removeFromMap(uint32_t nodeNum)
     nodeObjects.erase(nodeNum);
     lv_obj_remove_event_cb(img, ui_event_mapNodeButton);
     lv_obj_delete(img);
+}
+
+void TFTView_320x240::attribution(std::string url)
+{
+    // set google overlay attribution
+    if (url.find("google") != std::string::npos) {
+        lv_obj_remove_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
@@ -3790,8 +3808,11 @@ void TFTView_320x240::eraseChat(uint32_t channelOrNode)
         } else {
             lv_obj_del(chats.at(ch));
         }
-        lv_obj_del(channelGroup.at(ch));
-        channelGroup[ch] = nullptr;
+        lv_obj_t *chGrp = channelGroup.at(ch);
+        if (chGrp) {
+            lv_obj_del(chGrp);
+            channelGroup[ch] = nullptr;
+        }
         chats.erase(ch);
     } else {
         uint32_t nodeNum = channelOrNode;
@@ -6153,26 +6174,36 @@ void TFTView_320x240::backup(uint32_t option)
 
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+
+    // The bus is held for the card access only - messageAlert() below is LVGL work.
+    bool written = false;
+    {
+        ISpiLock::Guard bus;
 #if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
-    SDFs.mkdir("/keys");
-    File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
+        SDFs.mkdir("/keys");
+        File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
 #else
-    SDFs.mkdir("/keys");
-    FsFile sd = SDFs.open(path.str().c_str(), O_RDWR | O_CREAT);
+        SDFs.mkdir("/keys");
+        FsFile sd = SDFs.open(path.str().c_str(), O_RDWR | O_CREAT);
 #endif
-    if (sd) {
-        sd.println("config:");
-        sd.println("  security:");
-        sd.print("      privateKey: base64:");
-        sd.println(pskToBase64(privkey.bytes, privkey.size).c_str());
-        sd.print("      publicKey: base64:");
-        sd.println(pskToBase64(pubkey.bytes, pubkey.size).c_str());
+        if (sd) {
+            sd.println("config:");
+            sd.println("  security:");
+            sd.print("      privateKey: base64:");
+            sd.println(pskToBase64(privkey.bytes, privkey.size).c_str());
+            sd.print("      publicKey: base64:");
+            sd.println(pskToBase64(pubkey.bytes, pubkey.size).c_str());
+            written = true;
+        }
+        sd.close();
+    }
+
+    if (written) {
         ILOG_INFO("backup pub/priv keys done.");
     } else {
         ILOG_ERROR("open file %s for backup failed", path.str().c_str());
         messageAlert(_("Failed to write keys!"), true);
     }
-    sd.close();
 #endif
 }
 
@@ -6185,39 +6216,47 @@ void TFTView_320x240::restore(uint32_t option)
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
 
+    // Read the file out under the bus guard, then release it: sendConfig() goes to the
+    // radio - which needs this same bus from another task - and messageAlert() is LVGL.
+    bool opened = false;
+    String privKey, pubKey;
+    {
+        ISpiLock::Guard bus;
 #if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
-    File sd = SDFs.open(path.str().c_str(), FILE_READ);
+        File sd = SDFs.open(path.str().c_str(), FILE_READ);
 #else
-    FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
+        FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
 #endif
-    if (sd) {
-        // TODO: improve parsing file contents
-        sd.readStringUntil('\n');                  // config:
-        sd.readStringUntil('\n');                  // security:
-        String privKey = sd.readStringUntil('\n'); // privateKey: base64:
-        String pubKey = sd.readStringUntil('\n');  // publicKey: base64:
-        if (privKey.indexOf("privateKey:") > 0 && pubKey.indexOf("publicKey:") > 0) {
-            String b64priv = privKey.substring(privKey.lastIndexOf(":") + 1);
-            String b64pub = pubKey.substring(pubKey.lastIndexOf(":") + 1);
-            b64priv.trim();
-            b64pub.trim();
-            if (base64ToPsk(b64priv.c_str(), privkey.bytes, privkey.size) &&
-                base64ToPsk(b64pub.c_str(), pubkey.bytes, pubkey.size) &&
-                controller->sendConfig(meshtastic_Config_SecurityConfig{db.config.security})) {
-                ILOG_INFO("restore pub/priv keys sent to radio");
-            } else {
-                ILOG_ERROR("decoding keys failed");
-                messageAlert(_("Failed to restore keys!"), true);
-            }
-        } else {
-            ILOG_ERROR("file %s contents don't match backup", path.str().c_str());
-            messageAlert(_("Failed to parse keys!"), true);
+        if (sd) {
+            opened = true;
+            // TODO: improve parsing file contents
+            sd.readStringUntil('\n');           // config:
+            sd.readStringUntil('\n');           // security:
+            privKey = sd.readStringUntil('\n'); // privateKey: base64:
+            pubKey = sd.readStringUntil('\n');  // publicKey: base64:
         }
-    } else {
+        sd.close();
+    }
+
+    if (!opened) {
         ILOG_ERROR("open file %s failed", path.str().c_str());
         messageAlert(_("Failed to retrieve keys!"), true);
+    } else if (privKey.indexOf("privateKey:") > 0 && pubKey.indexOf("publicKey:") > 0) {
+        String b64priv = privKey.substring(privKey.lastIndexOf(":") + 1);
+        String b64pub = pubKey.substring(pubKey.lastIndexOf(":") + 1);
+        b64priv.trim();
+        b64pub.trim();
+        if (base64ToPsk(b64priv.c_str(), privkey.bytes, privkey.size) && base64ToPsk(b64pub.c_str(), pubkey.bytes, pubkey.size) &&
+            controller->sendConfig(meshtastic_Config_SecurityConfig{db.config.security})) {
+            ILOG_INFO("restore pub/priv keys sent to radio");
+        } else {
+            ILOG_ERROR("decoding keys failed");
+            messageAlert(_("Failed to restore keys!"), true);
+        }
+    } else {
+        ILOG_ERROR("file %s contents don't match backup", path.str().c_str());
+        messageAlert(_("Failed to parse keys!"), true);
     }
-    sd.close();
 #endif
 }
 
