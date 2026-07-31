@@ -25,7 +25,9 @@ using File = FsFile;
 
 ISdCard *sdCard = nullptr;
 
-#if defined(ARCH_PORTDUINO)
+// SENSECAP_INDICATOR takes precedence over the generic SD classes, matching
+// the declarations in SdCard.h: the card sits behind the co-processor
+#if defined(ARCH_PORTDUINO) && !defined(SENSECAP_INDICATOR)
 
 bool SDCard::init(void)
 {
@@ -64,7 +66,7 @@ uint64_t SDCard::cardSize(void)
 
 SDCard::~SDCard(void) {}
 
-#elif defined(HAS_SD_MMC)
+#elif defined(HAS_SD_MMC) && !defined(SENSECAP_INDICATOR)
 
 bool SDCard::init(void)
 {
@@ -141,7 +143,9 @@ SDCard::~SDCard(void)
 }
 #endif
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+// SENSECAP_INDICATOR takes precedence: the SD card sits behind the
+// co-processor even when a generic SD define is also set
+#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)) && !defined(SENSECAP_INDICATOR)
 std::set<std::string> SDCard::loadMapStyles(const char *folder)
 {
     ISpiLock::Guard bus;
@@ -189,7 +193,7 @@ std::string SDCard::getUrlProvider(const char *folder, const char *style)
     return {};
 }
 
-#elif defined(HAS_SDCARD)
+#elif defined(HAS_SDCARD) && !defined(SENSECAP_INDICATOR)
 bool SdFsCard::init(void)
 {
     ISpiLock::Guard bus;
@@ -347,4 +351,152 @@ std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
     }
     return {};
 }
+
+#elif defined(SENSECAP_INDICATOR)
+
+#include "graphics/map/RemoteSDService.h"
+#include <cstring>
+
+bool RemoteSdCard::init(void)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs)
+        return false;
+    // a mount here is what makes the button revive a card that was ejected
+    // (or replaced) since the last look; mounting a mounted card is a no-op
+    fs->sdMount();
+    if (!fs->sdInfo(info))
+        return false;
+    return info.present;
+}
+
+bool RemoteSdCard::eject(void)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs || !fs->sdEject())
+        return false;
+    info = RemoteSdInfo(); // gone until it is mounted again
+    return true;
+}
+
+bool RemoteSdCard::format(void)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs)
+        return false;
+    return fs->sdFormat();
+}
+
+ISdCard::StatsResult RemoteSdCard::refreshStats(void)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    RemoteSdInfo fresh;
+    // a card that is gone (or a link that is down) is not a pending scan:
+    // the caller must stop polling and re-detect instead
+    if (!fs || !fs->sdInfo(fresh) || !fresh.present)
+        return eStatsUnavailable;
+    // takes the identity along: the card may have been swapped
+    info = fresh;
+    return info.statsValid ? eStatsValid : eStatsPending;
+}
+
+ISdCard::CardType RemoteSdCard::cardType(void)
+{
+    // numeric values follow the meshtastic.SdCardInfo protobuf enum
+    switch (info.cardType) {
+    case 1:
+        return eMMC;
+    case 2:
+        return eSD;
+    case 3:
+        return eSDHC;
+    case 4:
+        return eSDXC;
+    case 5:
+        return eUnknown;
+    default:
+        return eNone;
+    }
+}
+
+ISdCard::FatType RemoteSdCard::fatType(void)
+{
+    switch (info.fatType) {
+    case 1:
+        return eFat16;
+    case 2:
+        return eFat32;
+    case 3:
+        return eExFat;
+    default:
+        return eNA;
+    }
+}
+
+std::set<std::string> RemoteSdCard::loadMapStyles(const char *folder)
+{
+    std::set<std::string> styles;
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (fs) {
+        std::set<std::string> entries;
+        if (fs->listDir(folder, entries)) {
+            for (auto &entry : entries) {
+                if (entry.empty() || entry[0] == '.')
+                    continue;
+                // only subdirectories (trailing slash) are map styles; plain
+                // files in the maps folder must not show up in the selection
+                if (entry.back() != '/')
+                    continue;
+                std::string dir = entry.substr(0, entry.size() - 1);
+                ILOG_DEBUG("remote SD: found map style: %s", dir.c_str());
+                styles.insert(dir);
+            }
+        }
+        if (styles.empty()) {
+            std::set<std::string> mapDir;
+            if (fs->listDir("/map", mapDir)) {
+                ILOG_DEBUG("remote SD: found /map dir");
+                styles.insert("/map");
+            } else {
+                ILOG_INFO("remote SD: no maps found");
+            }
+        }
+    }
+    updated = true;
+    return styles;
+}
+
+std::string RemoteSdCard::getUrlProvider(const char *folder, const char *style)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs)
+        return {};
+    std::string filename = std::string(folder) + "/" + style + "/.url";
+    // read until the first line is complete instead of trusting a single
+    // chunk, so a long URL template does not get silently truncated
+    uint8_t buf[1024];
+    uint32_t total = 0, fileSize = 0;
+    while (total < sizeof(buf) - 1) {
+        uint32_t bytesRead = 0;
+        if (!fs->readChunk(filename.c_str(), total, buf + total, sizeof(buf) - 1 - total, &bytesRead, &fileSize) ||
+            bytesRead == 0)
+            break;
+        if (memchr(buf + total, '\n', bytesRead)) {
+            total += bytesRead;
+            break;
+        }
+        total += bytesRead;
+        if (fileSize > 0 && total >= fileSize)
+            break;
+    }
+    if (total == 0)
+        return {};
+    buf[total] = '\0';
+    // first line only
+    char *nl = strpbrk((char *)buf, "\r\n");
+    if (nl)
+        *nl = '\0';
+    return std::string{(char *)buf};
+}
+
 #endif // HAS_SDCARD
