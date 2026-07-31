@@ -374,7 +374,7 @@
 #endif
 
 /*Default cache size in bytes.
- *Used by image decoders such as `lv_lodepng` to keep the decoded image in the memory.
+ *Used by image decoders such as `lv_png` to keep the decoded image in the memory.
  *If size is not set to 0, the decoder will fail to decode when the cache is full.
  *If size is 0, the cache function is not enabled and the decoded mem will be released immediately after use.*/
 #ifndef LV_CACHE_DEF_SIZE
