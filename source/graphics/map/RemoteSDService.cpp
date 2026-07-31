@@ -1,6 +1,7 @@
 #include "graphics/map/RemoteSDService.h"
 #include "graphics/map/MapTileSettings.h"
 #include "util/ILog.h"
+#include "util/PNGDecoder.h"
 #include <cstring>
 #include <new>
 
@@ -41,17 +42,62 @@ RemoteSDService::~RemoteSDService() {}
 
 bool RemoteSDService::load(const char *name, void *img)
 {
-    char buf[128];
-    snprintf(buf, sizeof(buf), DRIVE_LETTER ":%s", name);
-    ILOG_DEBUG("RemoteSDService::load(): %s", buf);
-    lv_image_set_src((lv_obj_t *)img, buf);
-    // a failed set_src may keep the previous source, so verify the source
-    // now matches what was requested
-    const void *src = lv_image_get_src((lv_obj_t *)img);
-    if (!src || lv_image_src_get_type(src) != LV_IMAGE_SRC_FILE || strcmp((const char *)src, buf) != 0) {
-        ILOG_DEBUG("Failed to load tile %s from remote SD", buf);
+    uint32_t start = millis();
+    if (!remoteFS)
+        return false;
+
+    // Fetch offset-0 chunk to learn the file size; also warms the chunk cache
+    // so the first fs_read after a load hit skips the link round-trip.
+    uint32_t fileSize = 0;
+    if (chunkAt(name, 0, &fileSize) == 0 || fileSize == 0) {
+        ILOG_DEBUG("Failed to open tile %s from remote SD", name);
         return false;
     }
+
+    uint8_t *pngData = (uint8_t *)lv_malloc(fileSize);
+    if (!pngData) {
+        ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)fileSize);
+        return false;
+    }
+
+    // Copy the chunk we already have in the cache
+    uint32_t copied = (cachedLen < fileSize) ? cachedLen : fileSize;
+    memcpy(pngData, cachedChunk, copied);
+
+    // Read remaining chunks directly into the flat buffer
+    uint32_t offset = copied;
+    while (offset < fileSize) {
+        uint32_t n = 0, sz = 0;
+        uint32_t req = (fileSize - offset < CHUNK_SIZE) ? (fileSize - offset) : CHUNK_SIZE;
+        if (!remoteFS->readChunk(name, offset, pngData + offset, req, &n, &sz) || n == 0) {
+            lv_free(pngData);
+            ILOG_ERROR("read error for tile %s at offset %u", name, offset);
+            return false;
+        }
+        offset += n;
+    }
+
+    lv_img_dsc_t *img_dsc = nullptr;
+    bool decoded = MapTileSettings::color() ? decodeImgColor(pngData, fileSize, &img_dsc)
+                                            : decodeImgGrey(pngData, fileSize, &img_dsc);
+    lv_free(pngData);
+
+    if (!decoded) {
+        ILOG_ERROR("Failed to decode tile %s", name);
+        return false;
+    }
+
+    lv_obj_t *img_obj = (lv_obj_t *)img;
+    lv_image_set_src(img_obj, img_dsc);
+    if (lv_image_get_src(img_obj) != img_dsc) {
+        ILOG_ERROR("lv_image_set_src failed for tile %s", name);
+        if (img_dsc->data && img_dsc->data_size > 0)
+            lv_free((void *)img_dsc->data);
+        lv_free(img_dsc);
+        return false;
+    }
+
+    ILOG_DEBUG("Tile %s loaded in %d ms.", name, millis() - start);
     return true;
 }
 
