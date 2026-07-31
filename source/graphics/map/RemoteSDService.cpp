@@ -42,7 +42,7 @@ RemoteSDService::~RemoteSDService() {}
 
 bool RemoteSDService::load(const char *name, void *img)
 {
-    uint32_t start = millis();
+    uint32_t start = lv_tick_get();
     if (!remoteFS)
         return false;
 
@@ -97,7 +97,7 @@ bool RemoteSDService::load(const char *name, void *img)
         return false;
     }
 
-    ILOG_DEBUG("Tile %s loaded in %d ms.", name, millis() - start);
+    ILOG_DEBUG("Tile %s loaded in %d ms.", name, lv_tick_get() - start);
     return true;
 }
 
