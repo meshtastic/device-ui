@@ -6,6 +6,7 @@
 #include "input/InputDriver.h"
 #include "lvgl_private.h"
 #include "util/ILog.h"
+#include "util/ISpiLock.h"
 #include <functional>
 
 constexpr uint32_t defaultLongPressTime = 700;    // ms until long press is detected (lvgl default is 400)
@@ -104,8 +105,11 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                             lv_indev_enable(DisplayDriver::touch, false);
                             lv_indev_enable(InputDriver::instance()->getButton(), true);
                         }
-                        lgfx->sleep();
-                        lgfx->powerSaveOn();
+                        {
+                            ISpiLock::Guard bus;
+                            lgfx->sleep();
+                            lgfx->powerSaveOn();
+                        }
                         powerSaving = true;
                     }
                 }
@@ -131,9 +135,14 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         ILOG_INFO("leaving powersave");
                         powerSaving = false;
                         DisplayDriver::view->triggerHeartbeat();
-                        lgfx->powerSaveOff();
-                        lgfx->wakeup();
-                        lgfx->setBrightness(lastBrightness);
+                        {
+                            // Scoped so the bus is not held across view->sleep() above,
+                            // which suspends the whole SoC in light sleep.
+                            ISpiLock::Guard bus;
+                            lgfx->powerSaveOff();
+                            lgfx->wakeup();
+                            lgfx->setBrightness(lastBrightness);
+                        }
                         DisplayDriver::view->screenSaving(false);
                         if (hasTouch() && hasButton()) {
                             ILOG_DEBUG("enable touch, disable button input");
@@ -151,14 +160,20 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             else {
                 if (!powerSaving) {
                     DisplayDriver::view->blankScreen(true);
-                    lgfx->sleep();
-                    lgfx->powerSaveOn();
+                    {
+                        ISpiLock::Guard bus;
+                        lgfx->sleep();
+                        lgfx->powerSaveOn();
+                    }
                     powerSaving = true;
                 }
                 if (screenTimeout > lv_display_get_inactive_time(lv_display_get_default())) {
                     DisplayDriver::view->blankScreen(false);
-                    lgfx->powerSaveOff();
-                    lgfx->wakeup();
+                    {
+                        ISpiLock::Guard bus;
+                        lgfx->powerSaveOff();
+                        lgfx->wakeup();
+                    }
                     powerSaving = false;
                     lv_disp_trig_activity(NULL);
                 }
@@ -180,8 +195,11 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-    lv_draw_sw_rgb565_swap(px_map, w * h);
-    lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
+    lv_draw_sw_rgb565_swap(px_map, w * h); // CPU only - deliberately outside the guard
+    {
+        ISpiLock::Guard bus;
+        lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
+    }
     lv_display_flush_ready(disp);
 }
 #else
@@ -222,9 +240,14 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
 {
     uint16_t touchX = 0, touchY = 0;
 #ifdef CUSTOM_TOUCH_DRIVER
-    bool touched = lgfx->getTouchXY(&touchX, &touchY);
+    bool touched = lgfx->getTouchXY(&touchX, &touchY); // I2C, no bus guard needed
 #else
-    bool touched = lgfx->getTouch(&touchX, &touchY);
+    // XPT2046/STMPE610 sit on SPI, and on several boards on the panel's own host.
+    bool touched;
+    {
+        ISpiLock::Guard bus;
+        touched = lgfx->getTouch(&touchX, &touchY);
+    }
 #endif
     if (!touched) {
         data->state = LV_INDEV_STATE_REL;
@@ -347,9 +370,12 @@ template <class LGFX> void LGFXDriver<LGFX>::init_lgfx(void)
 {
     // Initialize LovyanGFX
     ILOG_DEBUG("LGFX init...");
-    lgfx->init();
-    lgfx->setBrightness(defaultBrightness);
-    lgfx->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
+    {
+        ISpiLock::Guard bus;
+        lgfx->init();
+        lgfx->setBrightness(defaultBrightness);
+        lgfx->fillScreen(LGFX::color565(0x3D, 0xDA, 0x83));
+    }
 
     if (hasTouch()) {
 #ifndef CUSTOM_TOUCH_DRIVER
@@ -397,6 +423,15 @@ template <class LGFX> bool LGFXDriver<LGFX>::calibrate(uint16_t parameters[8])
         calibrating = true;
         std::uint16_t fg = TFT_BLUE;
         std::uint16_t bg = LGFX::color565(0x67, 0xEA, 0x94);
+        // calibrateTouch() blocks until the user has tapped every marker, and the bus
+        // stays held throughout. Deliberate: LovyanGFX runs its own draw/read loop with
+        // no hook to release in the middle, and dropping the guard would leave this the
+        // one unprotected SPI path now that the host no longer holds a coarse lock. It
+        // is also not a regression - the host used to hold that lock across this same
+        // call. Note the branch is only reached when a board ships no stored calibration
+        // parameters; every board in-tree supplies them, so in practice we take the
+        // non-blocking setTouchCalibrate() path above.
+        ISpiLock::Guard bus;
         lgfx->clearDisplay();
         lgfx->fillScreen(LGFX::color565(0x67, 0xEA, 0x94));
         lgfx->setTextSize(1);
@@ -426,7 +461,11 @@ template <class LGFX> void LGFXDriver<LGFX>::printConfig(void)
     if (lgfx->panel()) {
         auto p = lgfx->panel();
         auto cfg = p->config();
-        uint32_t id = p->readCommand(0x04, 0, 4);
+        uint32_t id;
+        {
+            ISpiLock::Guard bus; // readCommand is a real panel transaction
+            id = p->readCommand(0x04, 0, 4);
+        }
         ILOG_DEBUG("Panel id=0x%08x (%dx%d): rst:%d, busy:%d, offX:%d, offY:%d invert:%d, RGB:%d, rotation:%d, offR:%d, read:%d, "
                    "readP:%d, readB:%d, dlen:%d, colordepth:%d",
                    id, p->width(), p->height(), cfg.pin_rst, cfg.pin_busy, cfg.offset_x, cfg.offset_y, p->getInvert(),

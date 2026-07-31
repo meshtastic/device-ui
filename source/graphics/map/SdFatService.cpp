@@ -1,6 +1,7 @@
 #if defined(HAS_SDCARD) && not defined(HAS_SD_MMC) && not defined(ARCH_PORTDUINO) && not defined(SDCARD_SHARE_SPI)
 
 #include "lvgl.h"
+#include "util/ISpiLock.h"
 
 #include "graphics/common/SdCard.h"
 #include "graphics/map/MapTileSettings.h"
@@ -64,6 +65,7 @@ SdFatService::SdFatService() : ITileService(DRIVE_LETTER ":")
 
 SdFatService::~SdFatService()
 {
+    ISpiLock::Guard bus;
     SDFs.end();
 }
 
@@ -154,6 +156,7 @@ bool SdFatService::save(const char *name, void *img, size_t len)
 
 void *SdFatService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode)
 {
+    ISpiLock::Guard bus;
     String s(path);
     SdFile *lf = new SdFile;
     lf->file = SDFs.open(path, mode == LV_FS_MODE_RD ? O_RDONLY : O_WRONLY); // NOTE: O_RDWR
@@ -168,6 +171,7 @@ void *SdFatService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mod
 
 lv_fs_res_t SdFatService::fs_close(lv_fs_drv_t *drv, void *file_p)
 {
+    ISpiLock::Guard bus;
     // ILOG_DEBUG("SDFs.close()");
     SdFile *lf = static_cast<SdFile *>(file_p);
     lf->file.close();
@@ -177,6 +181,7 @@ lv_fs_res_t SdFatService::fs_close(lv_fs_drv_t *drv, void *file_p)
 
 lv_fs_res_t SdFatService::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t btr, uint32_t *br)
 {
+    ISpiLock::Guard bus;
     *br = static_cast<SdFile *>(file_p)->file.read((uint8_t *)buf, btr);
     // ILOG_DEBUG("SDFs.read(): %d/%d bytes", *br, btr);
     return (*br <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
@@ -184,6 +189,7 @@ lv_fs_res_t SdFatService::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uin
 
 lv_fs_res_t SdFatService::fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf, uint32_t btw, uint32_t *bw)
 {
+    ISpiLock::Guard bus;
     *bw = static_cast<SdFile *>(file_p)->file.write((uint8_t *)buf, btw);
     // ILOG_DEBUG("SDFs.write(): %d/btw bytes", *bw, btw);
     return (*bw <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
@@ -191,6 +197,7 @@ lv_fs_res_t SdFatService::fs_write(lv_fs_drv_t *drv, void *file_p, const void *b
 
 lv_fs_res_t SdFatService::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence)
 {
+    ISpiLock::Guard bus;
     // ILOG_DEBUG("SDFs.seek(): pos %d", pos);
     if (whence == LV_FS_SEEK_SET) {
         return static_cast<SdFile *>(file_p)->file.seekSet(pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN;
@@ -203,6 +210,7 @@ lv_fs_res_t SdFatService::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, 
 
 lv_fs_res_t SdFatService::fs_tell(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_p)
 {
+    ISpiLock::Guard bus;
     *pos_p = static_cast<SdFile *>(file_p)->file.position();
     // ILOG_DEBUG("SDFs.tell(): pos %d", *pos_p);
     return (int32_t)(*pos_p) < 0 ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
