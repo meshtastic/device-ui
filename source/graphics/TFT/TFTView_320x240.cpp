@@ -51,6 +51,7 @@ fs::FS &fileSystem = LittleFS;
 #elif defined(SENSECAP_INDICATOR)
 #include "graphics/map/RemoteSDService.h"
 #elif defined(HAS_SD_MMC)
+#include "comms/UiFtpServer.h"
 #include "graphics/map/SDCardService.h"
 #elif defined(SDCARD_SHARE_SPI)
 // #include "comms/WebDAVServer.h"
@@ -2085,7 +2086,7 @@ void TFTView_320x240::toggleFtpServer(void)
     if (shouldEnable) {
         // Initialize WiFi (will be no-op if already initialized)
         if (ftpServer->initWiFi(THIS->db.config.network.wifi_ssid, THIS->db.config.network.wifi_psk)) {
-#if defined(SD_MMC)
+#if defined(HAS_SD_MMC)
             static fs::FS &fs = SD_MMC;
 #elif defined(SDCARD_SHARE_SPI)
             static fs::FS &fs = SD;

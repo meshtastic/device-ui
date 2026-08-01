@@ -8,6 +8,7 @@
 
 #if defined(HAS_SD_MMC)
 fs::SDMMCFS &SDFs = SD_MMC;
+using File = fs::File;
 #elif defined(ARCH_PORTDUINO)
 fs::FS &SDFs = PortduinoFS;
 #elif defined(SDCARD_SHARE_SPI)
