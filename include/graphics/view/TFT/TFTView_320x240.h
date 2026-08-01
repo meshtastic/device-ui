@@ -213,6 +213,16 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateTransferStatus(void);
     // update SD card slot info
     virtual bool updateSDCard(void);
+    // re-read only the card statistics (a co-processor may compute them in
+    // the background), polling a bounded number of times until they arrive
+    void refreshSDCardStats(void);
+    void armSDCardStatsPoll(void);
+    // release the card so it can be pulled safely; a tap mounts it again
+    void ejectSDCard(void);
+#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
+    void formatSDCardLabel(char *buf, size_t len);
+#endif
+    uint16_t sdStatsPolls = 0;
     // format SD card if invalid
     virtual void formatSDCard(void);
     // update time display on home screen
