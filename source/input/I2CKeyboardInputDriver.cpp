@@ -11,9 +11,9 @@
 #include <Wire.h>
 
 // for use with input policy processing
-std::shared_ptr<input_policy::InputPipeline> matrixPipeline;
-std::shared_ptr<input_policy::IInputContextProvider> contextProvider;
-std::shared_ptr<input_policy::IUICommandDispatcher> commandDispatcher;
+static std::shared_ptr<input_policy::InputPipeline> matrixPipeline;
+static std::shared_ptr<input_policy::IInputContextProvider> contextProvider;
+static std::shared_ptr<input_policy::IUICommandDispatcher> commandDispatcher;
 
 I2CKeyboardInputDriver::KeyboardList I2CKeyboardInputDriver::i2cKeyboardList;
 
