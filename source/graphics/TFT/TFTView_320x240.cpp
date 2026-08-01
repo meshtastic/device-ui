@@ -2329,7 +2329,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
             return;
         event_code = LV_EVENT_READY;
     }
-  
+
     if (event_code == LV_EVENT_READY) {
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
         input_policy::InputContextState::instance().setEditMode(false);
@@ -4684,7 +4684,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lora.modem_preset = preset;
                 lora.channel_num = channelNum;
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
-                THIS->notifyReboot(true);
             }
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_modem_preset_button);
