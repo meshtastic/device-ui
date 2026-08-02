@@ -8,6 +8,7 @@
 #ifdef ARDUINO_ARCH_ESP32
 
 #include "HTTPClient.h" // not available on Linux/Portduino
+#include "NetworkClientSecure.h"
 #include "WiFi.h"
 
 URLService::URLService(Callback cb) : ITileService("HTTP:"), saveCB(cb)
@@ -38,8 +39,11 @@ bool URLService::load(const char *name, void *img)
         return false;
     }
 
+    NetworkClientSecure secureClient;
+    secureClient.setInsecure();
+
     http.setReuse(false);
-    if (!http.begin(url.c_str())) {
+    if (!http.begin(secureClient, url.c_str())) {
         ILOG_ERROR("ERROR begin %s", url.c_str());
         return false;
     }
