@@ -28,10 +28,22 @@
 #define DIRECTIONALPAD_RETURN_LONG_PRESS_MS 500
 #endif
 
+// GPIO interrupt attach can race during warm reboot on some ESP32-S3 builds.
+// Keep polling as an optional fallback (set build flag to 0 if needed).
+#ifndef DIRECTIONALPAD_USE_GPIO_ISR
+#define DIRECTIONALPAD_USE_GPIO_ISR 0
+#endif
+
+#ifndef DIRECTIONALPAD_POLL_INTERVAL_MS
+#define DIRECTIONALPAD_POLL_INTERVAL_MS 10
+#endif
+
 // ---------------------------------------------------------------------------
 // File-scope TCA6424A reader instance
 // ---------------------------------------------------------------------------
 static Tca6424Pad tca(INPUTDRIVER_DIRECTIONALPAD_I2C_ADDR, INPUTDRIVER_DIRECTIONALPAD_WIRE);
+
+static bool gPadIsrAttached = false;
 
 // ---------------------------------------------------------------------------
 // Static member definitions
@@ -101,17 +113,33 @@ DirectionalPadInputDriver::DirectionalPadInputDriver(void) {}
 
 void DirectionalPadInputDriver::prepareSleep(void)
 {
-    // detachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT));
+#if DIRECTIONALPAD_USE_GPIO_ISR
+    if (gPadIsrAttached) {
+        detachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT));
+        gPadIsrAttached = false;
+        ILOG_DEBUG("DirectionalPadInputDriver: ISR detached for sleep");
+    }
+#endif
 }
 
 void DirectionalPadInputDriver::wakeUp(void)
 {
-    // attachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT), intHandler, FALLING);
+#if DIRECTIONALPAD_USE_GPIO_ISR
+    if (!gPadIsrAttached) {
+        attachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT), intHandler, FALLING);
+        gPadIsrAttached = true;
+        ILOG_DEBUG("DirectionalPadInputDriver: ISR reattached on wake");
+    }
+#endif
 }
 
 void DirectionalPadInputDriver::init(void)
 {
     eventQueue = xQueueCreate(16, sizeof(PadEvent));
+    if (!eventQueue) {
+        ILOG_WARN("DirectionalPadInputDriver: failed to create event queue");
+        return;
+    }
 
 #ifdef TCA6424_REQUIRES_INIT
     if (!tca.begin()) {
@@ -121,11 +149,28 @@ void DirectionalPadInputDriver::init(void)
 
     // Establish a known baseline before any interrupt fires.
     lastPortState = tca.readPort(0);
+    ILOG_DEBUG("DirectionalPadInputDriver: baseline read port0=0x%02x", lastPortState);
 
     // The TCA6424A INT output is active-low open-drain; enable the internal
     // pull-up so the line idles high and only falls when an input changes.
     pinMode(INPUTDRIVER_DIRECTIONALPAD_INT, INPUT_PULLUP);
+    ILOG_DEBUG("DirectionalPadInputDriver: INT pin %d level after pull-up=%d", INPUTDRIVER_DIRECTIONALPAD_INT,
+               digitalRead(INPUTDRIVER_DIRECTIONALPAD_INT));
+
+#if DIRECTIONALPAD_USE_GPIO_ISR
+    // Only detach if we attached previously in this process lifetime.
+    if (gPadIsrAttached) {
+        detachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT));
+        gPadIsrAttached = false;
+        ILOG_DEBUG("DirectionalPadInputDriver: detached previous ISR before re-init");
+    }
     attachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT), intHandler, FALLING);
+    gPadIsrAttached = true;
+    ILOG_DEBUG("DirectionalPadInputDriver: attached FALLING ISR on pin %d", INPUTDRIVER_DIRECTIONALPAD_INT);
+#else
+    inputPending = true; // Prime first scan so we establish state from polling path.
+    ILOG_WARN("DirectionalPadInputDriver: GPIO ISR disabled, using %d ms polling", DIRECTIONALPAD_POLL_INTERVAL_MS);
+#endif
 
     keyboard = lv_indev_create();
     lv_indev_set_type(keyboard, LV_INDEV_TYPE_KEYPAD);
@@ -185,6 +230,15 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
     static uint32_t returnPressTime = 0;
     static bool returnActive = false;
     static bool returnLongSent = false;
+    static uint32_t lastPollMs = 0;
+
+#if !DIRECTIONALPAD_USE_GPIO_ISR
+    uint32_t nowMs = millis();
+    if ((nowMs - lastPollMs) >= DIRECTIONALPAD_POLL_INTERVAL_MS) {
+        inputPending = true;
+        lastPollMs = nowMs;
+    }
+#endif
 
     // --- Step 1: process pending interrupt -----------------------------------
     if (inputPending) {
@@ -199,11 +253,16 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
                         // Active-low: bit = 0 means pressed, bit = 1 means released.
                         bool pressed = !(current & (1u << bit));
                         PadEvent ev{key, pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED};
-                        xQueueSend(eventQueue, &ev, 0);
+                        if (xQueueSend(eventQueue, &ev, 0) != pdTRUE) {
+                            ILOG_WARN("[DirectionalPad] queue full, dropping key=0x%x state=%d", (unsigned int)ev.key,
+                                      (int)ev.state);
+                        }
                     }
                 }
             }
             lastPortState = current;
+        } else {
+            ILOG_WARN("[DirectionalPad] readPort(0) returned 0xFF");
         }
     }
 
