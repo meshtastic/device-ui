@@ -58,7 +58,7 @@ const input_policy::InputCapabilities PadCapabilities = {
     true,  // hasEnterKey
     false, // hasModifiers
     true,  // supportsLongPress
-    false, // supportsRepeat
+    true,  // supportsRepeat
     false  // supportsTextEntry
 };
 
@@ -79,7 +79,7 @@ uint32_t DirectionalPadInputDriver::portBitToLvKey(uint8_t bit)
     case 4:
         return LV_KEY_ENTER; // CONFIRM – LVGL fires long-press events automatically
     case 5:
-        return LV_KEY_ESC; // RETURN
+        return LV_KEY_ESC; // RETURN – long-press event interpreted as UICommand
     default:
         return 0;
     }
@@ -98,6 +98,16 @@ void IRAM_ATTR DirectionalPadInputDriver::intHandler(void)
 // Constructor / init
 // ---------------------------------------------------------------------------
 DirectionalPadInputDriver::DirectionalPadInputDriver(void) {}
+
+void DirectionalPadInputDriver::prepareSleep(void)
+{
+    // detachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT));
+}
+
+void DirectionalPadInputDriver::wakeUp(void)
+{
+    // attachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT), intHandler, FALLING);
+}
 
 void DirectionalPadInputDriver::init(void)
 {

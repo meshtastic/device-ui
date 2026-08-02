@@ -123,3 +123,15 @@ DeviceGUI::~DeviceGUI()
 {
     delete inputdriver;
 }
+
+void DeviceGUI::prepareSleep(void)
+{
+    if (inputdriver)
+        inputdriver->prepareSleep();
+}
+
+void DeviceGUI::wakeUp(void)
+{
+    if (inputdriver)
+        inputdriver->wakeUp();
+}

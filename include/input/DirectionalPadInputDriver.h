@@ -96,6 +96,9 @@ class DirectionalPadInputDriver : public InputDriver
     virtual void init(void) override;
     virtual ~DirectionalPadInputDriver(void) {}
 
+    virtual void prepareSleep(void);
+    virtual void wakeUp(void);
+
     static void IRAM_ATTR intHandler(void);
 
   private:
