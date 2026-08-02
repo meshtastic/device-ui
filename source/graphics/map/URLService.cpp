@@ -37,13 +37,20 @@ bool URLService::load(const char *name, void *img)
         return false;
     }
 
-    NetworkClientSecure secureClient;
-    secureClient.setInsecure();
+    NetworkClient networkClient;
+    NetworkClient *client = &networkClient;
+    std::unique_ptr<NetworkClientSecure> secureHolder;
+
+    const bool isSecure = (url.rfind("https://", 0) == 0);
+    if (isSecure) {
+        secureHolder = std::make_unique<NetworkClientSecure>();
+        client = static_cast<NetworkClient *>(secureHolder.get());
+    }
 
     HTTPClient http;
     http.setReuse(false);
 
-    if (!http.begin(secureClient, url.c_str())) {
+    if (!http.begin(*client, url.c_str())) {
         ILOG_ERROR("ERROR begin %s", url.c_str());
         return false;
     }
