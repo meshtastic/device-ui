@@ -20,8 +20,6 @@ URLService::~URLService() {}
 
 bool URLService::load(const char *name, void *img)
 {
-    HTTPClient http;
-
     if (WiFi.status() != WL_CONNECTED) {
         ILOG_DEBUG("URLService::load skipped (WiFi not connected)");
         return false;
@@ -42,7 +40,9 @@ bool URLService::load(const char *name, void *img)
     NetworkClientSecure secureClient;
     secureClient.setInsecure();
 
+    HTTPClient http;
     http.setReuse(false);
+
     if (!http.begin(secureClient, url.c_str())) {
         ILOG_ERROR("ERROR begin %s", url.c_str());
         return false;
