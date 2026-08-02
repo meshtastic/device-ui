@@ -372,6 +372,7 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         dispatcher.registerHandler(input_policy::UICommand::GoHome, [this](const input_policy::CommandPayload &) {
             if (screenLocked)
                 return;
+            cleanupAllOverlays();
             ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
         });
         dispatcher.registerHandler(input_policy::UICommand::OpenChats, [this](const input_policy::CommandPayload &) {
@@ -658,6 +659,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 
     lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
+    activeSettings = eNone;
 }
 
 void TFTView_320x240::enterProgrammingMode(void)
@@ -825,8 +827,8 @@ void TFTView_320x240::apply_hotfix(void)
     tab_buttons = lv_tabview_get_tab_bar(ui_SettingsTabView);
     applyStyle(tab_buttons);
     // prevent left/right key on tabview with controls
-    // TODO lv_obj_add_event_cb(objects.tab_page_basic_settings, ui_event_tab_page, LV_EVENT_KEY, NULL);
-    // TODO lv_obj_add_event_cb(objects.tab_page_tools, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.tab_page_basic_settings, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.tab_page_tools, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_filter, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_highlight, ui_event_tab_page, LV_EVENT_KEY, NULL);
 
@@ -1443,6 +1445,7 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
             return;
 
         uint32_t c = *(const uint32_t *)param;
+        ILOG_DEBUG("ui_event_ScreenKey: 0x%0x", c);
         if (c == LV_KEY_ESC) {
             // leave reboot screen
             if (THIS->activeSettings == eReboot) {
