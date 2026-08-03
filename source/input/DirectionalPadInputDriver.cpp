@@ -43,7 +43,9 @@
 // ---------------------------------------------------------------------------
 static Tca6424Pad tca(INPUTDRIVER_DIRECTIONALPAD_I2C_ADDR, INPUTDRIVER_DIRECTIONALPAD_WIRE);
 
+#if DIRECTIONALPAD_USE_GPIO_ISR
 static bool gPadIsrAttached = false;
+#endif
 
 // ---------------------------------------------------------------------------
 // Static member definitions
