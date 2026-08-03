@@ -7130,7 +7130,7 @@ void TFTView_320x240::backup(uint32_t option)
     bool written = false;
     {
         ISpiLock::Guard bus;
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
         SDFs.mkdir("/keys");
         File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
 #else
@@ -7647,7 +7647,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_set_style_pad_bottom(chatBtn, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(chatBtn, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(chatBtn, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    lv_obj_move_to_index(chatBtn, 0);
+    //lv_obj_move_to_index(chatBtn, 0);
 
     char buf[64];
     if (to == UINT32_MAX || from == 0) {
