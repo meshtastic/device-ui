@@ -92,8 +92,8 @@ bool URLService::load(const char *name, void *img)
 
         // read .png file in chunks to increase reliability (avoid readBytes())
         size_t bytesRead = 0;
-        uint8_t idleSpins = 0;
-        const uint8_t maxIdleSpins = MUI_MAX_IDLE_SPINS;
+        uint16_t idleSpins = 0;
+        const uint16_t maxIdleSpins = MUI_MAX_IDLE_SPINS;
         while (bytesRead < len) {
             size_t available = stream->available();
             if (available == 0) {
