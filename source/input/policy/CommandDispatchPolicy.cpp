@@ -1,6 +1,6 @@
 #include "input/policy/CommandDispatchPolicy.h"
 #include "input/policy/UICommandDispatcher.h"
-#include "util/ILog.h"
+#include "input/policy/PolicyDebug.h"
 
 namespace input_policy
 {
@@ -20,7 +20,7 @@ PolicyDecision CommandDispatchPolicy::evaluate(const InputEvent &event, const In
     PolicyDecision decision{};
     decision.type = DecisionType::EmitCommand;
     decision.command.command = command;
-    ILOG_DEBUG("[CommandDispatch] Emitting command %d for action %d", (int)command, (int)event.action);
+    POLICY_DEBUG("[CommandDispatch] Emitting command %d for action %d", (int)command, (int)event.action);
     return decision;
 }
 

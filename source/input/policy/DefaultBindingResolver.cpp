@@ -1,6 +1,6 @@
 #include "input/policy/DefaultBindingResolver.h"
 #include "lvgl.h"
-#include "util/ILog.h"
+#include "input/policy/PolicyDebug.h"
 
 namespace input_policy
 {
@@ -18,7 +18,7 @@ InputAction DefaultBindingResolver::resolveAction(const InputEvent &event, const
     constexpr uint32_t KEY_CMD_TOGGLE_GPS = 0x105;
 
     if (event.action != InputAction::None) {
-        ILOG_DEBUG("[Resolver] Action already set to %d", (int)event.action);
+        POLICY_DEBUG("[Resolver] Action already set to %d", (int)event.action);
         return event.action;
     }
 
@@ -84,7 +84,7 @@ InputAction DefaultBindingResolver::resolveAction(const InputEvent &event, const
     }
 
     if (action != InputAction::None) {
-        ILOG_DEBUG("[Resolver] Resolved key 0x%x -> action %d", event.rawKeyCode, (int)action);
+        POLICY_DEBUG("[Resolver] Resolved key 0x%x -> action %d", event.rawKeyCode, (int)action);
     }
     return action;
 }

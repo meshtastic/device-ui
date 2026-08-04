@@ -1,5 +1,5 @@
 #include "input/policy/UICommandDispatcher.h"
-#include "util/ILog.h"
+#include "input/policy/PolicyDebug.h"
 
 namespace input_policy
 {
@@ -19,7 +19,7 @@ bool UICommandDispatcher::registerHandler(UICommand command, CommandHandler hand
     }
 
     handlers[(size_t)idx] = std::move(handler);
-    ILOG_DEBUG("[UICommandDispatcher] Registered handler for command=%d", (int)command);
+    POLICY_DEBUG("[UICommandDispatcher] Registered handler for command=%d", (int)command);
     return true;
 }
 
@@ -49,7 +49,7 @@ void UICommandDispatcher::dispatch(UICommand command, const CommandPayload &payl
 
     const auto &handler = handlers[(size_t)idx];
     if (!handler) {
-        ILOG_DEBUG("[UICommandDispatcher] No handler registered for command=%d", (int)command);
+        POLICY_DEBUG("[UICommandDispatcher] No handler registered for command=%d", (int)command);
         return;
     }
 
