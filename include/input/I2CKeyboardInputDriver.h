@@ -5,6 +5,7 @@
 #include "input/InputDriver.h"
 #include <list>
 #include <memory>
+#include <queue>
 #include <string>
 
 class I2CKeyboardInputDriver : public InputDriver
@@ -108,6 +109,13 @@ class TM9KeyboardInputDriver : public I2CKeyboardInputDriver
 
   private:
     TwoWire &wire;
+
+    struct KeyEvent {
+        uint32_t key;
+        lv_indev_state_t state;
+        bool isSyntheticLongPress;
+    };
+    std::queue<KeyEvent> pendingEvents;
 };
 
 class STC8HKeyboardInputDriver : public I2CKeyboardInputDriver

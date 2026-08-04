@@ -309,8 +309,8 @@ const input_policy::InputCapabilities TM9Capabilities = {
     true,  // hasCancelKey
     true,  // hasEnterKey
     true,  // hasModifiers
-    true,  // supportsLongPress
-    true,  // supportsRepeat
+    false, // supportsLongPress - TM9 firmware reports long presses as distinct key codes (0x87, 0xA3)
+    false, // supportsRepeat
     true   // supportsTextEntry
 };
 
@@ -347,18 +347,18 @@ void TM9KeyboardInputDriver::init(void)
 
 void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    uint32_t keyValue = 0;
-    bool isSyntheticLongPress = false;
-
+    // Always drain the hardware key register on every call to avoid missing rapid presses.
+    // The TM9 keyboard stores one event-byte per press in register 0x01; a second press before
+    // the next LVGL poll would overwrite it if we skipped the read while the queue is non-empty.
     wire.beginTransmission(address);
     wire.write(0x01);
     if (wire.endTransmission(false) == 0) {
         uint8_t bytes = wire.requestFrom(address, 1);
         if (wire.available() > 0 && bytes > 0) {
-            keyValue = wire.read();
+            uint32_t keyValue = wire.read();
             if (keyValue != 0x00) {
                 lv_disp_trig_activity(NULL);
-                data->state = LV_INDEV_STATE_PRESSED;
+                bool isSyntheticLongPress = false;
                 ILOG_DEBUG("key press value: 0x%02X", keyValue);
 
                 switch (keyValue) {
@@ -388,7 +388,6 @@ void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv
                     break;
                 case 0x88: // button 1st code / location 2nd code -> ignore
                     keyValue = 0;
-                    data->state = LV_INDEV_STATE_RELEASED;
                     break;
                 case 0xB4: // Left
                     keyValue = LV_KEY_LEFT;
@@ -405,76 +404,67 @@ void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv
                 case 0x08: // Del
                     keyValue = LV_KEY_BACKSPACE;
                     break;
-                case 0xA3: // LONG ENTER
-                    // simulate a long press (see indev_keypad_proc() in indev.c)
-                    if (indev != nullptr) {
-                        indev->wait_until_release = 0;
-                        indev->pr_timestamp = lv_tick_get() - indev->long_press_time - 1;
-                        indev->long_pr_sent = 0;
-                        indev->keypad.last_state = LV_INDEV_STATE_PRESSED;
-                        indev->keypad.last_key = LV_KEY_ENTER;
-                    }
+                case 0xA3: // LONG ENTER - firmware-reported long press
                     isSyntheticLongPress = true;
                     keyValue = LV_KEY_ENTER;
                     break;
                 default:
                     break;
                 }
-            } else {
-                data->state = LV_INDEV_STATE_RELEASED;
+
+                if (keyValue != 0) {
+                    uint32_t outKey = keyValue;
+                    bool enqueue = true;
+
+                    if (matrixPipeline) {
+                        input_policy::InputEvent event{};
+                        event.sourceId = "TM9_keyboard";
+                        event.rawKeyCode = keyValue;
+                        event.resolvedKeyCode = keyValue;
+                        event.pressKind =
+                            isSyntheticLongPress ? input_policy::PressKind::LongPress : input_policy::PressKind::Press;
+                        event.timestampMs = millis();
+
+                        std::vector<input_policy::InputEvent> output;
+                        bool forward = matrixPipeline->process(event, TM9Capabilities, output);
+                        if (!forward || output.empty()) {
+                            enqueue = false; // consumed as a UI command
+                        } else {
+                            const auto &outEvent = output.front();
+                            outKey = outEvent.resolvedKeyCode != 0 ? outEvent.resolvedKeyCode : outEvent.rawKeyCode;
+                            if (outKey == 0)
+                                enqueue = false;
+                        }
+                    }
+
+                    if (enqueue) {
+                        pendingEvents.push({outKey, LV_INDEV_STATE_PRESSED, isSyntheticLongPress});
+                        pendingEvents.push({outKey, LV_INDEV_STATE_RELEASED, false});
+                    }
+                }
             }
         }
     }
-    data->key = keyValue;
 
-    if (keyValue != 0 && matrixPipeline) {
-        input_policy::InputEvent event{};
-        event.sourceId = "TM9_keyboard";
-        event.rawKeyCode = keyValue;
-        event.resolvedKeyCode = keyValue;
-        event.pressKind = (data->state == LV_INDEV_STATE_PRESSED)
-                              ? (isSyntheticLongPress ? input_policy::PressKind::LongPress : input_policy::PressKind::Press)
-                              : input_policy::PressKind::Release;
-        event.timestampMs = millis();
-
-        std::vector<input_policy::InputEvent> output;
-        bool forward = matrixPipeline->process(event, TM9Capabilities, output);
-        if (!forward || output.empty()) {
-            // ILOG_DEBUG("[TM9-KeyMatrix] Pipeline consumed event, not forwarding");
-            data->key = 0;
-            data->state = LV_INDEV_STATE_RELEASED;
-            return;
+    // Deliver one event per LVGL poll from the queue.
+    // Synthesising explicit RELEASE events prevents LVGL from treating rapid consecutive
+    // presses of the same key as a held key instead of distinct keystrokes.
+    if (!pendingEvents.empty()) {
+        const auto &ev = pendingEvents.front();
+        if (ev.isSyntheticLongPress && ev.state == LV_INDEV_STATE_PRESSED && indev != nullptr) {
+            // Backdate pr_timestamp so LVGL fires LV_EVENT_LONG_PRESSED on this very cycle
+            indev->wait_until_release = 0;
+            indev->pr_timestamp = lv_tick_get() - indev->long_press_time - 1;
+            indev->long_pr_sent = 0;
+            indev->keypad.last_state = LV_INDEV_STATE_PRESSED;
+            indev->keypad.last_key = LV_KEY_ENTER;
         }
-
-        const auto &outEvent = output.front();
-        uint32_t outKey = outEvent.resolvedKeyCode != 0 ? outEvent.resolvedKeyCode : outEvent.rawKeyCode;
-        if (outKey == 0) {
-            // ILOG_DEBUG("[TM9-KeyMatrix] No output key from pipeline");
-            data->key = 0;
-            data->state = LV_INDEV_STATE_RELEASED;
-            return;
-        }
-        data->state = (outEvent.pressKind == input_policy::PressKind::Release) ? LV_INDEV_STATE_RELEASED : LV_INDEV_STATE_PRESSED;
-#if 0
-        const char *pressKindName = "PRESS";
-        switch (outEvent.pressKind) {
-        case input_policy::PressKind::Press:
-            pressKindName = "PRESS";
-            break;
-        case input_policy::PressKind::Release:
-            pressKindName = "RELEASE";
-            break;
-        case input_policy::PressKind::LongPress:
-            pressKindName = "LONG_PRESS";
-            break;
-        case input_policy::PressKind::LongPressRepeat:
-            pressKindName = "LONG_PRESS_REPEAT";
-            break;
-        }
-        ILOG_DEBUG("[TM9-KeyMatrix] Pipeline output: key=0x%x kind=%s state=%s (remapped from 0x%x)", outKey,
-                   pressKindName, data->state == LV_INDEV_STATE_PRESSED ? "PRESSED" : "RELEASED", data->key);
-#endif
-        data->key = outKey;
+        data->key = ev.key;
+        data->state = ev.state;
+        pendingEvents.pop();
+    } else {
+        data->key = 0;
+        data->state = LV_INDEV_STATE_RELEASED;
     }
 }
 
