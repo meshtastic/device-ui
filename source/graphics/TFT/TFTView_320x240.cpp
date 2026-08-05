@@ -2793,9 +2793,11 @@ void TFTView_320x240::attribution(std::string url)
     // set google overlay attribution
     if (url.find("google") != std::string::npos) {
         lv_obj_remove_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
     } else if (url.find("openstreetmap") != std::string::npos) {
         lv_label_set_text(objects.map_attribution_label, "\xC2\xA9 OpenStreetMap");
         lv_obj_remove_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
