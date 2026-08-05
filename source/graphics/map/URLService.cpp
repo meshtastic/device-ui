@@ -3,113 +3,145 @@
 #include "graphics/map/TileProvider.h"
 #include "lvgl.h"
 #include "util/ILog.h"
+#include "util/PNGDecoder.h"
 
 #ifdef ARDUINO_ARCH_ESP32
 
 #include "HTTPClient.h" // not available on Linux/Portduino
 #include "WiFi.h"
+#include "esp_wifi.h"
 
-// from ConvertPNG.c
-extern "C" {
-bool decodeImgGrey(const void *data, size_t size, lv_img_dsc_t **img);
-bool decodeImgColor(const void *data, size_t size, lv_img_dsc_t **img);
+#ifndef MUI_MAX_TLS_TIMEOUT
+#define MUI_MAX_TLS_TIMEOUT 2000
+#endif
+
+#ifndef MUI_MAX_IDLE_SPINS
+#define MUI_MAX_IDLE_SPINS 100
+#endif
+
+URLService::URLService(Callback cb) : ITileService("HTTP:"), saveCB(cb)
+{
+    initPNGDecoder();
 }
-
-URLService::URLService(Callback cb) : ITileService("HTTP:"), saveCB(cb) {}
 
 URLService::~URLService() {}
 
 bool URLService::load(const char *name, void *img)
 {
-    HTTPClient http;
-
     if (WiFi.status() != WL_CONNECTED) {
         ILOG_DEBUG("URLService::load skipped (WiFi not connected)");
         return false;
     }
 
-    struct LvFreeGuard {
-        uint8_t *&ptr;
-        ~LvFreeGuard() { lv_free(ptr); }
-    };
+#ifdef MUI_WIFI_PS_MIN_MODEM
+    esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
+#elif defined(MUI_WIFI_PS_NONE)
+    esp_wifi_set_ps(WIFI_PS_NONE);
+#endif
 
-    // transform filename to provider url
     std::string url = TileProvider::url(name);
     if (url.empty()) {
-        ILOG_ERROR("empty URL for tile %s", name ? name : "(null)");
         return false;
     }
 
-    http.setReuse(false);
-    if (!http.begin(url.c_str())) {
-        ILOG_ERROR("ERROR begin %s", url.c_str());
-        return false;
-    }
+    size_t len = 0;
+    uint8_t *pngImage = nullptr;
+    struct LvFreeGuard {
+        uint8_t *&ptr;
+        ~LvFreeGuard()
+        {
+            if (ptr)
+                lv_free(ptr);
+        }
+    } pngGuard{pngImage};
 
-    int httpCode = http.GET();
-    if (httpCode != HTTP_CODE_OK) {
-        ILOG_ERROR("ERROR GET %s : %d", url.c_str(), httpCode);
-        return false;
-    }
+    {
+        HTTPClient http;
+        http.setReuse(false);
 
-    WiFiClient *stream = http.getStreamPtr();
-    int contentLen = http.getSize();
-    if (contentLen <= 0) {
-        ILOG_WARN("GET %s : empty", url.c_str());
-        return false;
-    }
+        if (!http.begin(url.c_str())) {
+            ILOG_ERROR("ERROR begin %s", url.c_str());
+            return false;
+        }
 
-    size_t len = (size_t)contentLen;
+        http.addHeader("Accept", "image/png,image/*;q=0.9,*/*;q=0.8");
+        http.addHeader("Connection", "close");
+        // generate a unique, policy-compliant User-Agent
+        char userAgentBuf[128];
+        snprintf(userAgentBuf, sizeof(userAgentBuf), "meshtastic/2.8 (ESP32; ID-%08X) contact@meshtastic.org", unique_id);
 
-    uint8_t *pngImage = (uint8_t *)lv_malloc(len);
-    LvFreeGuard pngGuard{pngImage};
-    if (!pngImage) {
-        ILOG_ERROR("lv_malloc failed for %s (%u bytes)", url.c_str(), (unsigned int)len);
-        return false;
-    }
+        http.setUserAgent(userAgentBuf);
+        http.setTimeout(MUI_MAX_TLS_TIMEOUT);
 
-    // read .png file in chunks to increase reliability (avoid readBytes())
-    size_t bytesRead = 0;
-    uint8_t idleSpins = 0;
-    const uint8_t maxIdleSpins = 3;
-    while (bytesRead < len) {
-        size_t available = stream->available();
-        if (available == 0) {
-            if (++idleSpins > maxIdleSpins) {
+        int httpCode = http.GET();
+        if (httpCode != HTTP_CODE_OK) {
+            ILOG_ERROR("ERROR GET %s : %d", url.c_str(), httpCode);
+            http.end();
+            return false;
+        }
+
+        int contentLen = http.getSize();
+        if (contentLen <= 0) {
+            ILOG_WARN("GET %s : empty", url.c_str());
+            http.end();
+            return false;
+        }
+
+        len = (size_t)contentLen;
+        pngImage = (uint8_t *)lv_malloc(len);
+        if (!pngImage) {
+            ILOG_ERROR("lv_malloc failed for %s (%u bytes)", url.c_str(), (unsigned int)len);
+            http.end();
+            return false;
+        }
+
+        WiFiClient *stream = http.getStreamPtr();
+        if (!stream) {
+            ILOG_ERROR("no WiFiClient stream");
+            http.end();
+            return false;
+        }
+
+        // read .png file in chunks to increase reliability (avoid readBytes())
+        size_t bytesRead = 0;
+        uint16_t idleSpins = 0;
+        const uint16_t maxIdleSpins = MUI_MAX_IDLE_SPINS;
+        while (bytesRead < len) {
+            size_t available = stream->available();
+            if (available == 0) {
+                if (++idleSpins > maxIdleSpins) {
+                    break;
+                }
+                delay(5);
+                continue;
+            }
+
+            idleSpins = 0;
+            size_t toRead = available;
+            size_t remaining = len - bytesRead;
+            if (toRead > remaining) {
+                toRead = remaining;
+            }
+
+            int got = stream->read(pngImage + bytesRead, toRead);
+            if (got <= 0) {
                 break;
             }
-            delay(5);
-            continue;
+            bytesRead += (size_t)got;
         }
 
-        idleSpins = 0;
-        size_t toRead = available;
-        size_t remaining = len - bytesRead;
-        if (toRead > remaining) {
-            toRead = remaining;
+        if (bytesRead != len) {
+            ILOG_ERROR("http read error %s : %u != %u", url.c_str(), (unsigned int)bytesRead, (unsigned int)len);
+            http.end();
+            return false;
         }
 
-        int got = stream->read(pngImage + bytesRead, toRead);
-        if (got <= 0) {
-            break;
-        }
-        bytesRead += (size_t)got;
+        http.end();
+
+        ILOG_DEBUG("SUCCESS: GET %s (%u bytes)", url.c_str(), (unsigned int)len);
     }
 
-    if (bytesRead != len) {
-        ILOG_ERROR("http read error %s : %u != %u", url.c_str(), (unsigned int)bytesRead, (unsigned int)len);
-        return false;
-    }
-
-    ILOG_DEBUG("SUCCESS(%d): GET %s (%u bytes)", (int)idleSpins, url.c_str(), (unsigned int)len);
-
-    // save png tile to SD card
-    if (saveCB && MapTileSettings::saveOK()) {
-        bool result = saveCB(name, pngImage, len);
-        ILOG_DEBUG("save png to SD -> %s", result ? "OK" : "failed");
-    }
-
-    // decode png via STBI library
+    // Decode png
     lv_img_dsc_t *img_dsc = nullptr;
     bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
     if (decoded) {
@@ -126,6 +158,12 @@ bool URLService::load(const char *name, void *img)
     } else {
         ILOG_ERROR("Failed to decode tile image %s", name);
         return false;
+    }
+
+    if (saveCB && MapTileSettings::saveOK()) {
+        bool saveResult = saveCB(name, pngImage, len);
+        ILOG_DEBUG("save png to SD -> %s", saveResult ? "OK" : "failed");
+        return true;
     }
 
     return true;

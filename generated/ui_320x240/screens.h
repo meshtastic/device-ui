@@ -7,7 +7,6 @@
 extern "C" {
 #endif
 
-
 // advanced settings
 extern lv_obj_t * ui_AdvancedSettingsPanel;
 extern lv_obj_t * ui_SettingsTabView;
@@ -64,6 +63,18 @@ extern lv_obj_t * ui_ModuleRemoteHardwareButton;
 extern lv_obj_t * ui_RemoteHardwareLabel;
 
 void create_tabview_settings(void);
+
+// Screens
+
+enum ScreensEnum {
+    _SCREEN_ID_FIRST = 1,
+    SCREEN_ID_BOOT_SCREEN = 1,
+    SCREEN_ID_MAIN_SCREEN = 2,
+    SCREEN_ID_BLANK_SCREEN = 3,
+    SCREEN_ID_LOCK_SCREEN = 4,
+    SCREEN_ID_CALIBRATION_SCREEN = 5,
+    _SCREEN_ID_LAST = 5
+};
 
 typedef struct _objects_t {
     lv_obj_t *boot_screen;
@@ -186,6 +197,8 @@ typedef struct _objects_t {
     lv_obj_t *map_style_dropdown;
     lv_obj_t *map_url_dropdown;
     lv_obj_t *map_location_label;
+    lv_obj_t *map_attribution_label;
+    lv_obj_t *google_logo_image;
     lv_obj_t *controller_panel;
     lv_obj_t *controller_tab_view;
     lv_obj_t *tab_page_basic_settings;
@@ -556,14 +569,6 @@ typedef struct _objects_t {
 
 extern objects_t objects;
 
-enum ScreensEnum {
-    SCREEN_ID_BOOT_SCREEN = 1,
-    SCREEN_ID_MAIN_SCREEN = 2,
-    SCREEN_ID_BLANK_SCREEN = 3,
-    SCREEN_ID_LOCK_SCREEN = 4,
-    SCREEN_ID_CALIBRATION_SCREEN = 5,
-};
-
 void create_screen_boot_screen();
 void tick_screen_boot_screen();
 
@@ -586,7 +591,6 @@ void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);
 
 void create_screens();
-
 
 #ifdef __cplusplus
 }

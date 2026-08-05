@@ -8,12 +8,13 @@
 
 #if defined(LV_LVGL_H_INCLUDE_SIMPLE)
 #include "lvgl.h"
+#elif defined(LV_LVGL_H_INCLUDE_SYSTEM)
+#include <lvgl.h>
 #elif defined(LV_BUILD_TEST)
 #include "../lvgl.h"
 #else
 #include "lvgl/lvgl.h"
 #endif
-
 
 #ifndef LV_ATTRIBUTE_MEM_ALIGN
 #define LV_ATTRIBUTE_MEM_ALIGN
@@ -54,13 +55,16 @@ uint8_t img_gps_location_image_map[] = {
 };
 
 const lv_image_dsc_t img_gps_location_image = {
-  .header.magic = LV_IMAGE_HEADER_MAGIC,
-  .header.cf = LV_COLOR_FORMAT_RGB565A8,
-  .header.flags = 0,
-  .header.w = 15,
-  .header.h = 15,
-  .header.stride = 30,
+  .header = {
+    .magic = LV_IMAGE_HEADER_MAGIC,
+    .cf = LV_COLOR_FORMAT_RGB565A8,
+    .flags = 0,
+    .w = 15,
+    .h = 15,
+    .stride = 30,
+    .reserved_2 = 0,
+  },
   .data_size = sizeof(img_gps_location_image_map),
   .data = img_gps_location_image_map,
+  .reserved = NULL,
 };
-
