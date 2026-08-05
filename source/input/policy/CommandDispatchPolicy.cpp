@@ -1,6 +1,6 @@
 #include "input/policy/CommandDispatchPolicy.h"
-#include "input/policy/UICommandDispatcher.h"
 #include "input/policy/PolicyDebug.h"
+#include "input/policy/UICommandDispatcher.h"
 
 namespace input_policy
 {

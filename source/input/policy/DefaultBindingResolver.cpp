@@ -1,6 +1,6 @@
 #include "input/policy/DefaultBindingResolver.h"
-#include "lvgl.h"
 #include "input/policy/PolicyDebug.h"
+#include "lvgl.h"
 
 namespace input_policy
 {

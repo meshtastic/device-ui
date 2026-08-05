@@ -22,13 +22,13 @@ bool InputPipeline::process(InputEvent &event, const InputCapabilities &capabili
     outEvents.clear();
 
     POLICY_DEBUG("[Pipeline] Processing event: rawKey=0x%x action=%d press=%d source=%s", event.rawKeyCode, event.action,
-               (int)event.pressKind, event.sourceId);
+                 (int)event.pressKind, event.sourceId);
 
     InputContextSnapshot context{};
     if (contextProvider) {
         context = contextProvider->getSnapshot();
         POLICY_DEBUG("[Pipeline] Context: activePanel=%d semantic=%d editMode=%d", context.activePanelId,
-                   (int)context.focusSemantic, context.isEditMode);
+                     (int)context.focusSemantic, context.isEditMode);
     }
 
     if (bindingResolver) {
@@ -50,8 +50,8 @@ bool InputPipeline::process(InputEvent &event, const InputCapabilities &capabili
         return true;
     case DecisionType::Remap:
         POLICY_DEBUG("[Pipeline] Decision=Remap, 0x%x -> 0x%x", event.rawKeyCode,
-                   decision.remappedEvent.resolvedKeyCode != 0 ? decision.remappedEvent.resolvedKeyCode
-                                                               : decision.remappedEvent.rawKeyCode);
+                     decision.remappedEvent.resolvedKeyCode != 0 ? decision.remappedEvent.resolvedKeyCode
+                                                                 : decision.remappedEvent.rawKeyCode);
         outEvents.push_back(decision.remappedEvent);
         return true;
     case DecisionType::Consume:

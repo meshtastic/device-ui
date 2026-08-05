@@ -1,6 +1,6 @@
 #include "input/policy/FocusTraversalPolicy.h"
-#include "lvgl.h"
 #include "input/policy/PolicyDebug.h"
+#include "lvgl.h"
 
 namespace input_policy
 {
@@ -11,7 +11,7 @@ PolicyDecision FocusTraversalPolicy::evaluate(const InputEvent &event, const Inp
     // Keep directional keys in map and multi-line text-edit contexts.
     if (context.focusSemantic == FocusSemantic::Map || context.focusSemantic == FocusSemantic::TextAreaMultiLine) {
         POLICY_DEBUG("[FocusTraversal] Keeping directional key in map/multi-line edit context (semantic=%d)",
-                   (int)context.focusSemantic);
+                     (int)context.focusSemantic);
         return PolicyDecision{};
     }
 

@@ -23,8 +23,8 @@ InputPolicyBuildResult DefaultInputPolicyFactory::build(const InputSourceRegistr
     // Build policy chain based on merged capabilities and feature availability
     PolicyChain chain;
     POLICY_DEBUG("[InputFactory] Building policy chain with capabilities: arrows=%d tab=%d home=%d end=%d pgupdown=%d",
-               capabilities.hasArrowKeys, capabilities.hasTabKey, capabilities.hasHomeKey, capabilities.hasEndKey,
-               capabilities.hasPgUpPgDownKeys);
+                 capabilities.hasArrowKeys, capabilities.hasTabKey, capabilities.hasHomeKey, capabilities.hasEndKey,
+                 capabilities.hasPgUpPgDownKeys);
 
     // Core policy: focus traversal (up/down conversion outside map/edit context)
     // This runs first to intercept focus navigation before other policies
