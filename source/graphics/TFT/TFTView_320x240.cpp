@@ -3365,9 +3365,13 @@ void TFTView_320x240::loadMap(void)
                         }
                     }
                 }
-                lv_dropdown_set_options(objects.map_url_dropdown, TileProvider::providers().c_str());
-                lv_dropdown_set_selected(objects.map_url_dropdown, TileProvider::selectedTemplate());
-
+                auto providers = TileProvider::providers();
+                if (!providers.empty()) {
+                    lv_dropdown_set_options(objects.map_url_dropdown, providers.c_str());
+                    lv_dropdown_set_selected(objects.map_url_dropdown, TileProvider::selectedTemplate());
+                } else {
+                    lv_dropdown_clear_options(objects.map_url_dropdown);
+                }
                 if (!savedStyleOK) {
                     // no such style on SD, pick first one we found
                     char style[30];
@@ -3384,8 +3388,10 @@ void TFTView_320x240::loadMap(void)
             map->forceRedraw();
         }
     } else {
-        lv_dropdown_set_options(objects.map_style_dropdown, "");
+        lv_dropdown_clear_options(objects.map_style_dropdown);
     }
+
+    MapTileSettings::setUniqueId(ownNode);
 
     lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
@@ -3477,8 +3483,14 @@ void TFTView_320x240::attribution(std::string url)
     // set google overlay attribution
     if (url.find("google") != std::string::npos) {
         lv_obj_remove_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
+    } else if (url.find("openstreetmap") != std::string::npos) {
+        lv_label_set_text(objects.map_attribution_label, "\xC2\xA9 OpenStreetMap");
+        lv_obj_remove_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
     }
 }
 

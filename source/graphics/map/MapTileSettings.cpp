@@ -5,8 +5,9 @@
 uint8_t MapTileSettings::zoomLevel = 13;   // current zoomLevel
 uint8_t MapTileSettings::zoomDefault = 13; // default for initial or home position
 uint16_t MapTileSettings::tileSize = 256;
-uint16_t MapTileSettings::tileProviderId = 0;       // default url index to load from (backup service)
+int16_t MapTileSettings::tileProviderId = -1;       // default url index to load from (backup service)
 uint32_t MapTileSettings::cacheSize = 50 * 1024;    // LV_FS_CACHE_FROM_BUFFER
+uint32_t MapTileSettings::uniqueId = 0xFFFFFFFF;    // to be updated with node number
 float MapTileSettings::defaultLat = 51.5003646652f; // @theBigBentern
 float MapTileSettings::defaultLon = -0.1214328476f;
 char MapTileSettings::prefix[MapTileSettings::PREFIX_SIZE] = "/maps";        // default map tile directory

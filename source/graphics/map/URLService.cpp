@@ -41,12 +41,19 @@ bool URLService::load(const char *name, void *img)
 
     std::string url = TileProvider::url(name);
     if (url.empty()) {
-        ILOG_ERROR("empty URL for tile %s", name ? name : "(null)");
         return false;
     }
 
-    uint8_t *pngImage = nullptr;
     size_t len = 0;
+    uint8_t *pngImage = nullptr;
+    struct LvFreeGuard {
+        uint8_t *&ptr;
+        ~LvFreeGuard()
+        {
+            if (ptr)
+                lv_free(ptr);
+        }
+    } pngGuard{pngImage};
 
     {
         HTTPClient http;
@@ -59,10 +66,11 @@ bool URLService::load(const char *name, void *img)
 
         http.addHeader("Accept", "image/png,image/*;q=0.9,*/*;q=0.8");
         http.addHeader("Connection", "close");
-        if (url.find("google.com") != std::string::npos) {
-            http.addHeader("Referer", "https://google.com");
-        }
-        http.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+        // generate a unique, policy-compliant User-Agent
+        char userAgentBuf[128];
+        snprintf(userAgentBuf, sizeof(userAgentBuf), "meshtastic/2.8 (ESP32; ID-%08X) contact@meshtastic.org", unique_id);
+
+        http.setUserAgent(userAgentBuf);
         http.setTimeout(MUI_MAX_TLS_TIMEOUT);
 
         int httpCode = http.GET();
@@ -80,7 +88,6 @@ bool URLService::load(const char *name, void *img)
         }
 
         len = (size_t)contentLen;
-
         pngImage = (uint8_t *)lv_malloc(len);
         if (!pngImage) {
             ILOG_ERROR("lv_malloc failed for %s (%u bytes)", url.c_str(), (unsigned int)len);
@@ -89,6 +96,11 @@ bool URLService::load(const char *name, void *img)
         }
 
         WiFiClient *stream = http.getStreamPtr();
+        if (!stream) {
+            ILOG_ERROR("no WiFiClient stream");
+            http.end();
+            return false;
+        }
 
         // read .png file in chunks to increase reliability (avoid readBytes())
         size_t bytesRead = 0;
@@ -120,7 +132,6 @@ bool URLService::load(const char *name, void *img)
 
         if (bytesRead != len) {
             ILOG_ERROR("http read error %s : %u != %u", url.c_str(), (unsigned int)bytesRead, (unsigned int)len);
-            lv_free(pngImage);
             http.end();
             return false;
         }
@@ -154,11 +165,9 @@ bool URLService::load(const char *name, void *img)
     if (saveCB && MapTileSettings::saveOK()) {
         bool saveResult = saveCB(name, pngImage, len);
         ILOG_DEBUG("save png to SD -> %s", saveResult ? "OK" : "failed");
-        lv_free(pngImage);
         return true;
     }
 
-    lv_free(pngImage);
     return true;
 }
 
