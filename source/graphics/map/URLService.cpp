@@ -45,8 +45,16 @@ bool URLService::load(const char *name, void *img)
         return false;
     }
 
-    uint8_t *pngImage = nullptr;
     size_t len = 0;
+    uint8_t *pngImage = nullptr;
+    struct LvFreeGuard {
+        uint8_t *&ptr;
+        ~LvFreeGuard()
+        {
+            if (ptr)
+                lv_free(ptr);
+        }
+    } pngGuard{pngImage};
 
     {
         HTTPClient http;
@@ -87,11 +95,6 @@ bool URLService::load(const char *name, void *img)
             http.end();
             return false;
         }
-
-        struct LvFreeGuard {
-            uint8_t *&ptr;
-            ~LvFreeGuard() { lv_free(ptr); }
-        } pngGuard{pngImage};
 
         WiFiClient *stream = http.getStreamPtr();
         if (!stream) {
