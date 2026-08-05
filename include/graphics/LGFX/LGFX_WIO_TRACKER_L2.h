@@ -1,5 +1,5 @@
-#ifndef LGFX_PICO_H
-#define LGFX_PICO_H
+`#ifndef` LGFX_WIO_TRACKER_L2_H
+`#define` LGFX_WIO_TRACKER_L2_H
 
 #define LGFX_USE_V1
 #include "Wire.h"
