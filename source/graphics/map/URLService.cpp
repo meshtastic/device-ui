@@ -68,7 +68,8 @@ bool URLService::load(const char *name, void *img)
         http.addHeader("Connection", "close");
         // generate a unique, policy-compliant User-Agent
         char userAgentBuf[128];
-        snprintf(userAgentBuf, sizeof(userAgentBuf), "meshtastic/2.8 (ESP32; ID-%08X) contact@meshtastic.org", unique_id);
+        snprintf(userAgentBuf, sizeof(userAgentBuf),
+                 "meshtastic/2.8 (ESP32; ID-%08X) contact@meshtastic.org", MapTileSettings::getUniqueId());
 
         http.setUserAgent(userAgentBuf);
         http.setTimeout(MUI_MAX_TLS_TIMEOUT);
