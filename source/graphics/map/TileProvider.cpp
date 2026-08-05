@@ -3,8 +3,7 @@
 #include "util/ILog.h"
 #include <algorithm>
 
-std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates = {
-    {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"}};
+std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates;
 
 std::string TileProvider::url(const char *filename)
 {
@@ -22,7 +21,7 @@ std::string TileProvider::url(int z, int x, int y)
 {
     std::string provider, url;
     if (urlTemplates.empty()) {
-        ILOG_ERROR("no URL templates available");
+        ILOG_WARN("no URL templates available");
         return "";
     }
 
@@ -48,7 +47,10 @@ std::string TileProvider::url(int z, int x, int y)
 const std::string TileProvider::url(void)
 {
     std::string provider, url;
-    std::tie(provider, url) = urlTemplates[MapTileSettings::getTileProvider()];
+    int16_t providerId = MapTileSettings::getTileProvider();
+    if (providerId >= 0)  {
+        std::tie(provider, url) = urlTemplates[providerId];
+    }
     return url;
 }
 

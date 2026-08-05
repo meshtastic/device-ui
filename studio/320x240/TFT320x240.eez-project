@@ -5872,6 +5872,61 @@
                   "recolor": false
                 },
                 {
+                  "objID": "cbd1f266-0513-4057-a5ad-0fc5296e0a95",
+                  "type": "LVGLLabelWidget",
+                  "left": 0,
+                  "top": -1,
+                  "width": 0,
+                  "height": 17,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "f09eebe0-8307-45c5-f13e-eef35e781ae2",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "hiddenInEditor": false,
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "identifier": "mapAttributionLabel",
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "content",
+                  "heightUnit": "content",
+                  "children": [],
+                  "widgetFlags": "",
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "useStyle": "",
+                  "localStyles": {
+                    "objID": "cae16d05-a0b9-4dfa-ff11-a68039ff2c97",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "BOTTOM_MID",
+                          "text_font": "montserrat_12",
+                          "text_color": "#212121",
+                          "text_opa": 200
+                        }
+                      }
+                    }
+                  },
+                  "group": "",
+                  "groupIndex": 0,
+                  "text": "",
+                  "textType": "literal",
+                  "longMode": "CLIP",
+                  "recolor": false
+                },
+                {
                   "objID": "6bfa7245-35c9-46f7-e4a7-b64a32a640fd",
                   "type": "LVGLImageWidget",
                   "left": 0,
