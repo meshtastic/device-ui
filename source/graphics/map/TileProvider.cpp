@@ -48,7 +48,7 @@ const std::string TileProvider::url(void)
 {
     std::string provider, url;
     int16_t providerId = MapTileSettings::getTileProvider();
-    if (providerId >= 0)  {
+    if (providerId >= 0) {
         std::tie(provider, url) = urlTemplates[providerId];
     }
     return url;
