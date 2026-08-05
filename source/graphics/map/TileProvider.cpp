@@ -3,8 +3,7 @@
 #include "util/ILog.h"
 #include <algorithm>
 
-std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates = {
-    {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"}};
+std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates;
 
 std::string TileProvider::url(const char *filename)
 {
@@ -21,17 +20,16 @@ std::string TileProvider::url(const char *filename)
 std::string TileProvider::url(int z, int x, int y)
 {
     std::string provider, url;
-    if (urlTemplates.empty()) {
-        ILOG_ERROR("no URL templates available");
-        return "";
+    if (urlTemplates.empty() || MapTileSettings::getTileProvider() == -1) {
+        ILOG_WARN("no URL template available");
+        return url;
     }
 
-    size_t selected = MapTileSettings::getTileProvider();
+    int16_t selected = MapTileSettings::getTileProvider();
     if (selected >= urlTemplates.size()) {
         ILOG_WARN("tile provider index out of range: %u (max %u)", (unsigned int)selected,
                   (unsigned int)(urlTemplates.size() - 1));
-        selected = 0;
-        MapTileSettings::setTileProvider(0);
+        return url;
     }
 
     std::tie(provider, url) = urlTemplates[selected];
@@ -48,7 +46,10 @@ std::string TileProvider::url(int z, int x, int y)
 const std::string TileProvider::url(void)
 {
     std::string provider, url;
-    std::tie(provider, url) = urlTemplates[MapTileSettings::getTileProvider()];
+    int16_t providerId = MapTileSettings::getTileProvider();
+    if (providerId >= 0) {
+        std::tie(provider, url) = urlTemplates[providerId];
+    }
     return url;
 }
 

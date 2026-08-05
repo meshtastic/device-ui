@@ -87,7 +87,6 @@ bool CURLService::load(const char *name, void *img)
 
     std::string url = TileProvider::url(name);
     if (url.empty()) {
-        ILOG_ERROR("empty URL for tile %s", name ? name : "(null)");
         return false;
     }
 
@@ -112,15 +111,12 @@ bool CURLService::load(const char *name, void *img)
 
     headers.list = curl_slist_append(headers.list, "Accept: image/png,image/*;q=0.9,*/*;q=0.8");
     headers.list = curl_slist_append(headers.list, "Connection: keep-alive");
-    if (url.find("google.com") != std::string::npos) {
-        headers.list = curl_slist_append(headers.list, "Referer: https://www.google.com/");
-    }
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buf);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers.list);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "MUI/1.0 (+https://meshtastic.org)");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "MUI/2.8 (+https://meshtastic.org)");
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, CURL_CONNECT_TIMEOUT_MS);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, CURL_REQUEST_TIMEOUT_MS);
