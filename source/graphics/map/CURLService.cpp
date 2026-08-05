@@ -87,7 +87,6 @@ bool CURLService::load(const char *name, void *img)
 
     std::string url = TileProvider::url(name);
     if (url.empty()) {
-        ILOG_ERROR("empty URL for tile %s", name ? name : "(null)");
         return false;
     }
 

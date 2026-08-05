@@ -20,17 +20,16 @@ std::string TileProvider::url(const char *filename)
 std::string TileProvider::url(int z, int x, int y)
 {
     std::string provider, url;
-    if (urlTemplates.empty()) {
-        ILOG_WARN("no URL templates available");
-        return "";
+    if (urlTemplates.empty() || MapTileSettings::getTileProvider() == -1) {
+        ILOG_WARN("no URL template available");
+        return url;
     }
 
-    size_t selected = MapTileSettings::getTileProvider();
+    int16_t selected = MapTileSettings::getTileProvider();
     if (selected >= urlTemplates.size()) {
         ILOG_WARN("tile provider index out of range: %u (max %u)", (unsigned int)selected,
                   (unsigned int)(urlTemplates.size() - 1));
-        selected = 0;
-        MapTileSettings::setTileProvider(0);
+        return url;
     }
 
     std::tie(provider, url) = urlTemplates[selected];
