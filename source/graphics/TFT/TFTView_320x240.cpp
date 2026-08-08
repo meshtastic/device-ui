@@ -384,6 +384,8 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         dispatcher.registerHandler(input_policy::UICommand::QuickChat, [this](const input_policy::CommandPayload &) {
             if (screenLocked)
                 return;
+            if (!activePanel)
+                return;
             if (activePanel != objects.messages_panel) {
                 // open most recent received or sent chat (last chat)
                 if (!lv_obj_has_flag(objects.messages_panel, LV_OBJ_FLAG_HIDDEN)) {
@@ -391,6 +393,8 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
                 } else {
                     if (activeMsgContainer) {
                         uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+                        if (chats.find(channelOrNode) == chats.end())
+                            return;
                         if (channelOrNode < c_max_channels) {
                             uint8_t ch = (uint8_t)channelOrNode;
                             THIS->showMessages(ch);
@@ -8085,6 +8089,7 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
     } else if (panel == objects.controller_panel) {
         lv_group_focus_obj(objects.basic_settings_user_button);
     } else {
+        ILOG_DEBUG("focus: children count: %d", lv_obj_get_child_count(panel));
         for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
             if (panel->spec_attr->children[i]->class_p == &lv_button_class) {
                 lv_group_focus_obj(panel->spec_attr->children[i]);
