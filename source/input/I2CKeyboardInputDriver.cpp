@@ -321,7 +321,6 @@ TM9KeyboardInputDriver::TM9KeyboardInputDriver(uint8_t address, TwoWire &wire_) 
 
 void TM9KeyboardInputDriver::init(void)
 {
-    // Additional initialization for ThinkNodeM9 if needed
     I2CKeyboardInputDriver::init();
 
     if (!contextProvider) {
@@ -446,9 +445,8 @@ void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv
         }
     }
 
-    // Deliver one event per LVGL poll from the queue.
-    // Synthesising explicit RELEASE events prevents LVGL from treating rapid consecutive
-    // presses of the same key as a held key instead of distinct keystrokes.
+    // Drain the queue: deliver one event and ask LVGL to re-invoke immediately if
+    // more remain. Both PRESSED and RELEASED complete within the same timer tick.
     if (!pendingEvents.empty()) {
         const auto &ev = pendingEvents.front();
         if (ev.isSyntheticLongPress && ev.state == LV_INDEV_STATE_PRESSED && indev != nullptr) {
@@ -462,6 +460,7 @@ void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv
         data->key = ev.key;
         data->state = ev.state;
         pendingEvents.pop();
+        data->continue_reading = !pendingEvents.empty();
     } else {
         data->key = 0;
         data->state = LV_INDEV_STATE_RELEASED;
