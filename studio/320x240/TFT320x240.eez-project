@@ -21796,7 +21796,7 @@
               "widthUnit": "%",
               "heightUnit": "%",
               "children": [],
-              "widgetFlags": "CLICK_FOCUSABLE|SNAPPABLE|SCROLL_CHAIN|SCROLL_MOMENTUM|EVENT_BUBBLE|SCROLL_ELASTIC|SCROLLABLE|GESTURE_BUBBLE|CHECKABLE|SCROLL_CHAIN_VER",
+              "widgetFlags": "CLICK_FOCUSABLE|SNAPPABLE|SCROLL_CHAIN|SCROLL_MOMENTUM|SCROLL_ELASTIC|SCROLLABLE|GESTURE_BUBBLE|CHECKABLE|SCROLL_CHAIN_VER",
               "hiddenFlag": true,
               "hiddenFlagType": "literal",
               "clickableFlag": true,
