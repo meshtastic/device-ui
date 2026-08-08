@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[89] = {
+const ext_img_desc_t images[90] = {
     { "battery_full_image", &img_battery_full_image },
     { "bluetooth_on_image", &img_bluetooth_on_image },
     { "debug_log_image", &img_debug_log_image },
@@ -90,4 +90,5 @@ const ext_img_desc_t images[89] = {
     { "no_tile_image", &img_no_tile_image },
     { "circle_image", &img_circle_image },
     { "map_google_logo_image", &img_map_google_logo_image },
+    { "top_about_image", &img_top_about_image },
 };

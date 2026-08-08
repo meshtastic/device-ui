@@ -19,6 +19,7 @@
 #include "lvgl_private.h"
 #include "styles.h"
 #include "ui.h"
+#include "util/About.h"
 #include "util/FileLoader.h"
 #include "util/ILog.h"
 #include "util/ISpiLock.h"
@@ -657,6 +658,28 @@ void TFTView_320x240::apply_hotfix(void)
 
     lv_obj_add_style(objects.settings_backup_checkbox, &style_radio, LV_PART_INDICATOR);
     lv_obj_add_style(objects.settings_restore_checkbox, &style_radio, LV_PART_INDICATOR);
+
+    // set about text
+    auto createLabel = [](lv_obj_t *parent, const char *label) {
+        lv_obj_t *obj = lv_label_create(parent);
+        lv_obj_set_pos(obj, 0, 0);
+        lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
+        lv_obj_add_flag(obj, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CHECKABLE | LV_OBJ_FLAG_CLICKABLE));
+        lv_obj_remove_flag(obj, lv_obj_flag_t(LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN_HOR |
+                                              LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
+                                              LV_OBJ_FLAG_SCROLL_WITH_ARROW | LV_OBJ_FLAG_SNAPPABLE));
+        lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
+        lv_obj_set_scroll_dir(obj, LV_DIR_VER);
+        lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_label_set_text(obj, label);
+    };
+
+    char fw[128];
+    snprintf(fw, sizeof(fw), ABOUT_FIRMWARE_TEXT, firmware_version);
+    createLabel(objects.settings_about_panel, fw);
+    createLabel(objects.settings_about_panel, ABOUT_FRAMEWORK_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_ICONS_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_MAP_TEXT);
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -788,6 +811,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_backup_restore_button, ui_event_backup_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_about_button, ui_event_about_button, LV_EVENT_CLICKED, NULL);
 
     lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_ALL, NULL);
@@ -2032,6 +2056,14 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
         THIS->disablePanel(objects.controller_panel);
         THIS->disablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eReboot;
+    }
+}
+
+void TFTView_320x240::ui_event_about_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->ui_set_active(objects.settings_button, objects.settings_about_panel, objects.top_about_panel);
     }
 }
 
