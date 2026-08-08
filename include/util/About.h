@@ -12,7 +12,7 @@
 #define ABOUT_FRAMEWORK_TEXT                                                                                                     \
     "[UI Framework]\n"                                                                                                           \
     "LVGL Graphics (MIT)\n"                                                                                                      \
-    "Copyright (c) 2026\n"                                                                                                       \
+    "Copyright (c) 2025\n"                                                                                                       \
     "LVGL Kft.\n"                                                                                                                \
     "lvgl.io"
 
