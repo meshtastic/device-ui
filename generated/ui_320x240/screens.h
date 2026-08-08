@@ -303,9 +303,6 @@ typedef struct _objects_t {
     lv_obj_t *top_mesh_detector_panel;
     lv_obj_t *top_mesh_detector_label;
     lv_obj_t *top_mesh_detector_image;
-    lv_obj_t *top_about_panel;
-    lv_obj_t *top_about_label;
-    lv_obj_t *top_about_image;
     lv_obj_t *top_signal_scanner_panel;
     lv_obj_t *top_signal_scanner_label;
     lv_obj_t *top_signal_scanner_image;
@@ -321,6 +318,9 @@ typedef struct _objects_t {
     lv_obj_t *top_packet_log_panel;
     lv_obj_t *top_packet_log_label;
     lv_obj_t *top_packet_log_image;
+    lv_obj_t *top_about_panel;
+    lv_obj_t *top_about_label;
+    lv_obj_t *top_about_image;
     lv_obj_t *top_node_options_panel;
     lv_obj_t *top_node_options_label;
     lv_obj_t *top_node_options_image;

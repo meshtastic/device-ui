@@ -109,7 +109,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[92];
+extern const ext_img_desc_t images[93];
 
 #ifdef __cplusplus
 }
