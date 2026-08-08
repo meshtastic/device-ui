@@ -327,6 +327,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_ScreenKey(lv_event_t *e);
     static void ui_event_MapPanel(lv_event_t *e);
     static void ui_event_ButtonPanel(lv_event_t *e);
+    static void ui_event_scroll_panel(lv_event_t *e);
     static void ui_event_tab_page(lv_event_t *e);
 
     static void ui_event_NodeButton(lv_event_t *e);

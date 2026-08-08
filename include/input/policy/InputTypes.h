@@ -24,6 +24,7 @@ enum class FocusSemantic {
     Map,
     Menu,
     Slider,
+    Scrollable, // panel that uses UP/DOWN for scroll, not group focus traversal
 };
 
 // Defines normalized high-level actions resolved from raw input.

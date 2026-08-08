@@ -836,10 +836,15 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_add_event_cb(objects.tab_page_tools, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_filter, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_highlight, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    // add key navigation for about panel
+    lv_group_add_obj(defaultPanelGroup, objects.settings_about_panel);
+    lv_group_add_obj(defaultPanelGroup, objects.tools_statistics_panel);
+    lv_group_add_obj(defaultPanelGroup, objects.tools_packet_log_panel);
+    lv_obj_add_event_cb(objects.settings_about_panel, ui_event_scroll_panel, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.tools_statistics_panel, ui_event_scroll_panel, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.tools_packet_log_panel, ui_event_scroll_panel, LV_EVENT_KEY, NULL);
 
     // add event callback to to apply custom drawing for statistics table
-    lv_obj_add_event_cb(objects.statistics_table, ui_event_statistics_table, LV_EVENT_DRAW_TASK_ADDED, NULL);
-    lv_obj_add_flag(objects.statistics_table, LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS);
     // statistics table item size
     int32_t width = 36;
     int32_t rows = 12;
@@ -888,12 +893,10 @@ void TFTView_320x240::apply_hotfix(void)
         lv_obj_t *obj = lv_label_create(parent);
         lv_obj_set_pos(obj, 0, 0);
         lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
-        lv_obj_add_flag(obj, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CHECKABLE | LV_OBJ_FLAG_CLICKABLE));
-        lv_obj_remove_flag(obj, lv_obj_flag_t(LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN_HOR |
+        lv_obj_remove_flag(obj, lv_obj_flag_t(LV_OBJ_FLAG_CHECKABLE | LV_OBJ_FLAG_CLICKABLE |
+                                              LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN_HOR |
                                               LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
                                               LV_OBJ_FLAG_SCROLL_WITH_ARROW | LV_OBJ_FLAG_SNAPPABLE));
-        lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
-        lv_obj_set_scroll_dir(obj, LV_DIR_VER);
         lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_label_set_text(obj, label);
     };
@@ -1600,12 +1603,37 @@ void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
             break;
         }
         case LV_KEY_UP:
+            ILOG_DEBUG("up");
             break;
         case LV_KEY_DOWN:
+            ILOG_DEBUG("down");
             break;
         default:
             break;
         }
+    }
+}
+
+void TFTView_320x240::ui_event_scroll_panel(lv_event_t *e)
+{
+    lv_obj_t *panel = (lv_obj_t*)lv_event_get_target(e);
+    uint32_t key = lv_event_get_key(e);
+
+    // Define how many pixels to scroll per keypress
+    const lv_coord_t scroll_step = 80; 
+
+    if (key == LV_KEY_DOWN) {
+        lv_obj_scroll_by_bounded(panel, 0, -scroll_step, LV_ANIM_ON);
+    } else if (key == LV_KEY_UP) {
+        lv_obj_scroll_by_bounded(panel, 0, scroll_step, LV_ANIM_ON);
+    }
+    if (key == LV_KEY_ESC || key == LV_KEY_LEFT) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+        THIS->setInputGroup(groups.mainButtons);
+        lv_obj_t *target = THIS->lastMainButton ? THIS->lastMainButton : objects.home_button;
+        lv_group_focus_obj(target);
+        lv_event_stop_processing(e);
+        return;
     }
 }
 
@@ -5327,7 +5355,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_text_attributes_t attributes = {0};
     lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_12, &attributes);
 #endif
-    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(width, 200) + 10, 40));
+    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>((int32_t)width + 5, 200) + 10, 45));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
@@ -7571,7 +7599,7 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_text_attributes_t attributes = {0};
     lv_coord_t width = lv_text_get_width(msg, strlen(msg), &ui_font_montserrat_14, &attributes);
 #endif
-    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
+    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 45));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_obj_add_flag(msgLabel, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
@@ -8084,6 +8112,15 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
         }
     } else if (panel == objects.map_panel) {
         lv_group_focus_obj(objects.nav_button);
+    } else if (panel == objects.settings_about_panel) {
+        lv_group_focus_obj(objects.settings_about_panel);
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
+    } else if (panel == objects.tools_statistics_panel) {
+        lv_group_focus_obj(objects.tools_statistics_panel);
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
+    } else if (panel == objects.tools_packet_log_panel) {
+        lv_group_focus_obj(objects.tools_packet_log_panel);
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
     } else if (panel == objects.settings_screen_lock_panel) {
         lv_group_focus_obj(objects.screen_lock_button_matrix);
     } else if (panel == objects.controller_panel) {
@@ -8092,6 +8129,12 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
         ILOG_DEBUG("focus: children count: %d", lv_obj_get_child_count(panel));
         for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
             if (panel->spec_attr->children[i]->class_p == &lv_button_class) {
+                lv_group_focus_obj(panel->spec_attr->children[i]);
+                break;
+            }
+        }
+        for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
+            if (panel->spec_attr->children[i]->class_p == &lv_label_class) {
                 lv_group_focus_obj(panel->spec_attr->children[i]);
                 break;
             }
