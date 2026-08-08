@@ -379,6 +379,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_backup_button(lv_event_t *e);
     static void ui_event_reset_button(lv_event_t *e);
     static void ui_event_reboot_button(lv_event_t *e);
+    static void ui_event_about_button(lv_event_t *e);
     static void ui_event_device_reboot_button(lv_event_t *e);
     static void ui_event_device_progmode_button(lv_event_t *e);
     static void ui_event_device_shutdown_button(lv_event_t *e);

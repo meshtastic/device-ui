@@ -99,6 +99,7 @@ extern const lv_img_dsc_t img_groups_bell_slash_image;
 extern const lv_img_dsc_t img_groups_bell_image;
 extern const lv_img_dsc_t img_home_webdav_image;
 extern const lv_img_dsc_t img_map_google_logo_image;
+extern const lv_img_dsc_t img_top_about_image;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T

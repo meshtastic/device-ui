@@ -93,4 +93,5 @@ const ext_img_desc_t images[92] = {
     { "groups_bell_image", &img_groups_bell_image },
     { "home_webdav_image", &img_home_webdav_image },
     { "map_google_logo_image", &img_map_google_logo_image },
+    { "top_about_image", &img_top_about_image },
 };
