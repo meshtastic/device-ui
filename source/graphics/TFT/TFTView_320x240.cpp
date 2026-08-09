@@ -1035,6 +1035,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // keyboard
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_KEY, this);
     lv_obj_add_event_cb(objects.keyboard_button_0, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)0);
     lv_obj_add_event_cb(objects.keyboard_button_1, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)1);
     lv_obj_add_event_cb(objects.keyboard_button_2, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)2);
@@ -2260,13 +2261,13 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         uint32_t keyBtnIdx = (unsigned long)e->user_data;
         switch (keyBtnIdx) {
         case 0:
+            lv_group_focus_obj(objects.message_input_area);
             if (lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
                 lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
                 THIS->showKeyboard(objects.message_input_area);
             } else {
                 THIS->hideKeyboard(objects.messages_panel);
             }
-            lv_group_focus_obj(objects.message_input_area);
             return; // continue play animation, don't hide keyboard immediately
         case 1:
             THIS->showKeyboard(objects.settings_user_short_textarea);
@@ -2361,6 +2362,17 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             // const char *txt = lv_keyboard_get_button_text(kb, btn_id);
         }
     }
+    else if (event_code == LV_EVENT_KEY) {
+        const void *param = lv_event_get_param(e);
+        if (!param)
+            return;
+        uint32_t key = *(const uint32_t *)param;
+        // consume keyboard left/right presses, do not pass to screen handler
+        if (key == LV_KEY_LEFT || LV_KEY_RIGHT) {
+            lv_event_stop_processing(e);
+            return;
+        }
+    }
 }
 
 void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
@@ -2440,11 +2452,17 @@ void TFTView_320x240::ui_event_textarea_edit_mode(lv_event_t *e)
         input_policy::InputContextState::instance().setCanLeaveEditMode(true);
     } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_READY ||
                event_code == LV_EVENT_CANCEL) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-        input_policy::InputContextState::instance().setEditMode(false);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+        // Only reset when still on the messages panel. When switching to another panel,
+        // activePanel is already updated before DEFOCUSED fires, so this prevents the
+        // new panel's semantic (e.g. Map) from being overwritten.
+        if (THIS->activePanel == objects.messages_panel) {
+            input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+            input_policy::InputContextState::instance().setEditMode(false);
+            input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+        }
     }
 }
+
 
 // basic settings buttons
 
@@ -5355,7 +5373,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_text_attributes_t attributes = {0};
     lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_12, &attributes);
 #endif
-    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>((int32_t)width + 5, 200) + 10, 45));
+    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>((int32_t)width + 10, 200) + 10, 50));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
@@ -7973,10 +7991,13 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
         }
     }
     lv_keyboard_set_textarea(objects.keyboard, textArea);
+    lv_group_focus_obj(objects.keyboard);
+    input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Keyboard);
 }
 
 void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
 {
+    input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
     lv_area_t kb_coords;
     lv_obj_get_coords(objects.keyboard, &kb_coords);
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
@@ -8323,9 +8344,9 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
 
             // re-arrange the group linked list i.e. move the node after the top position
             if (topNodeLL) {
-                lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
+                lv_ll_t *lv_group_ll = &defaultPanelGroup->obj_ll;
                 void *act = it->second->LV_OBJ_IDX(node_btn_idx)->user_data;
-                if (lv_group_ll && act) {
+                if (act) {
                     _lv_ll_move_before(lv_group_ll, act, _lv_ll_get_next(lv_group_ll, topNodeLL));
                 }
             }
