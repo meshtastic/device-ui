@@ -15,6 +15,12 @@ PolicyDecision FocusTraversalPolicy::evaluate(const InputEvent &event, const Inp
                      (int)context.focusSemantic);
         return PolicyDecision{};
     }
+    if (context.focusSemantic == FocusSemantic::Keyboard) {
+        if (event.action == InputAction::NavigateLeft || event.action == InputAction::NavigateRight) {
+            POLICY_DEBUG("[FocusTraversal] Keeping Left/Right for keyboard navigation");
+            return PolicyDecision{};
+        }
+    }
 
     PolicyDecision decision{};
     if (event.action == InputAction::NavigateUp) {

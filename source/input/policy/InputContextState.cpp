@@ -1,5 +1,5 @@
 #include "input/policy/InputContextState.h"
-
+#include "input/policy/PolicyDebug.h"
 namespace input_policy
 {
 
@@ -21,11 +21,13 @@ void InputContextState::setSnapshot(const InputContextSnapshot &snapshot)
 
 void InputContextState::setFocusSemantic(FocusSemantic semantic)
 {
+    POLICY_DEBUG("setFocusSemantic %d", (int)semantic);
     snapshot.focusSemantic = semantic;
 }
 
 void InputContextState::setEditMode(bool enabled)
 {
+    POLICY_DEBUG("setEditMode %d", (int)enabled);
     snapshot.isEditMode = enabled;
 }
 

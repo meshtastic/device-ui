@@ -25,6 +25,7 @@ enum class FocusSemantic {
     Menu,
     Slider,
     Scrollable, // panel that uses UP/DOWN for scroll, not group focus traversal
+    Keyboard,   // virtual keyboard visible: UP/DOWN still remap to PREV/NEXT (LVGL has no row awareness)
 };
 
 // Defines normalized high-level actions resolved from raw input.
