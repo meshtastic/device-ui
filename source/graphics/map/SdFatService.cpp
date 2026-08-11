@@ -82,35 +82,38 @@ bool SdFatService::load(const char *name, void *img)
         return false;
     }
 #else
-    // optimized PNGdec decoding
-    FsFile file = SDFs.open(name, O_RDONLY);
-    if (!file) {
-        ILOG_DEBUG("Failed to open tile %s from SD", name);
-        return false;
-    }
+    {
+        ISpiLock::Guard bus;
 
-    size_t len = (size_t)file.size();
-    if (len == 0) {
-        ILOG_DEBUG("Tile %s is empty", name);
+        // optimized PNGdec decoding
+        FsFile file = SDFs.open(name, O_RDONLY);
+        if (!file) {
+            ILOG_DEBUG("Failed to open tile %s from SD", name);
+            return false;
+        }
+
+        size_t len = (size_t)file.size();
+        if (len == 0) {
+            ILOG_DEBUG("Tile %s is empty", name);
+            file.close();
+            return false;
+        }
+
+        uint8_t *pngImage = (uint8_t *)lv_malloc(len);
+        if (!pngImage) {
+            ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
+            file.close();
+            return false;
+        }
+
+        size_t bytesRead = file.read(pngImage, len);
         file.close();
-        return false;
+        if (bytesRead != len) {
+            ILOG_ERROR("read error %s : %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
+            lv_free(pngImage);
+            return false;
+        }
     }
-
-    uint8_t *pngImage = (uint8_t *)lv_malloc(len);
-    if (!pngImage) {
-        ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
-        file.close();
-        return false;
-    }
-
-    size_t bytesRead = file.read(pngImage, len);
-    file.close();
-    if (bytesRead != len) {
-        ILOG_ERROR("read error %s : %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
-        lv_free(pngImage);
-        return false;
-    }
-
     lv_img_dsc_t *img_dsc = nullptr;
     bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
     lv_free(pngImage);
@@ -138,6 +141,7 @@ bool SdFatService::load(const char *name, void *img)
 bool SdFatService::save(const char *name, void *img, size_t len)
 {
     ILOG_DEBUG("SdFatService::save(%s): %d", name, len);
+    ISpiLock::Guard bus;
     if (!ensureParentDirectories(name)) {
         return false;
     }
