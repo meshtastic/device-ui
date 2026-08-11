@@ -4,6 +4,7 @@
 #include <functional>
 
 #ifdef ARDUINO_ARCH_ESP32
+#include "HTTPClient.h"
 
 class URLService : public ITileService
 {
@@ -16,6 +17,7 @@ class URLService : public ITileService
 
   private:
     Callback saveCB = nullptr;
+    HTTPClient http;
 };
 
 #endif
