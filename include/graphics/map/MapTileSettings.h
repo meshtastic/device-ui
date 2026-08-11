@@ -48,8 +48,11 @@ class MapTileSettings
     static const char *getTileFormat(void) { return tileFormat; }
     static void setTileFormat(const char *p) { copyBounded(tileFormat, TILE_FORMAT_SIZE, p); }
 
-    static uint16_t getTileProvider(void) { return tileProviderId; }
-    static void setTileProvider(uint16_t id) { tileProviderId = id; }
+    static int16_t getTileProvider(void) { return tileProviderId; }
+    static void setTileProvider(int16_t id) { tileProviderId = id; }
+
+    static uint32_t getUniqueId(void) { return uniqueId; }
+    static void setUniqueId(uint32_t id) { uniqueId = id; }
 
     static bool color(void) { return colorTiles; }
     static void setColor(bool on) { colorTiles = on; }
@@ -78,9 +81,10 @@ class MapTileSettings
     static uint8_t zoomLevel;
     static uint8_t zoomDefault;
     static uint16_t tileSize;
-    static uint16_t tileProviderId;
+    static int16_t tileProviderId;
     static bool colorTiles;
     static uint32_t cacheSize;
+    static uint32_t uniqueId;
     static float defaultLat;
     static float defaultLon;
     static char prefix[];

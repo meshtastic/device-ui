@@ -197,6 +197,7 @@ typedef struct _objects_t {
     lv_obj_t *map_style_dropdown;
     lv_obj_t *map_url_dropdown;
     lv_obj_t *map_location_label;
+    lv_obj_t *map_attribution_label;
     lv_obj_t *google_logo_image;
     lv_obj_t *controller_panel;
     lv_obj_t *controller_tab_view;
@@ -237,6 +238,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_backup_restore_label;
     lv_obj_t *basic_settings_reboot_button;
     lv_obj_t *basic_settings_reboot_label;
+    lv_obj_t *basic_settings_about_button;
+    lv_obj_t *basic_settings_reboot_label_1;
     lv_obj_t *tab_page_tools;
     lv_obj_t *tools_mesh_detector_button;
     lv_obj_t *tools_mesh_detector_label;
@@ -284,6 +287,9 @@ typedef struct _objects_t {
     lv_obj_t *top_mesh_detector_panel;
     lv_obj_t *top_mesh_detector_label;
     lv_obj_t *top_mesh_detector_image;
+    lv_obj_t *top_about_panel;
+    lv_obj_t *top_about_label;
+    lv_obj_t *top_about_image;
     lv_obj_t *top_signal_scanner_panel;
     lv_obj_t *top_signal_scanner_label;
     lv_obj_t *top_signal_scanner_image;
@@ -537,6 +543,7 @@ typedef struct _objects_t {
     lv_obj_t *tools_statistics_panel;
     lv_obj_t *statistics_table;
     lv_obj_t *tools_packet_log_panel;
+    lv_obj_t *settings_about_panel;
     lv_obj_t *msg_popup_panel;
     lv_obj_t *msg_popup_button;
     lv_obj_t *msg_popup_label;
