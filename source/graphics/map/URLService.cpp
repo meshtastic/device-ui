@@ -7,7 +7,6 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "HTTPClient.h" // not available on Linux/Portduino
 #include "WiFi.h"
 #include "esp_wifi.h"
 
@@ -54,93 +53,87 @@ bool URLService::load(const char *name, void *img)
                 lv_free(ptr);
         }
     } pngGuard{pngImage};
+    http.setReuse(true);
 
-    {
-        HTTPClient http;
-        http.setReuse(false);
+    if (!http.begin(url.c_str())) {
+        ILOG_ERROR("ERROR begin %s", url.c_str());
+        return false;
+    }
 
-        if (!http.begin(url.c_str())) {
-            ILOG_ERROR("ERROR begin %s", url.c_str());
-            return false;
-        }
+    http.addHeader("Accept", "image/png,image/*;q=0.9,*/*;q=0.8");
+    http.addHeader("Connection", "keep-alive");
+    // generate a unique, policy-compliant User-Agent
+    char userAgentBuf[128];
+    snprintf(userAgentBuf, sizeof(userAgentBuf), "meshtastic/2.8 (ESP32; ID-%08X) contact@meshtastic.org",
+             MapTileSettings::getUniqueId());
 
-        http.addHeader("Accept", "image/png,image/*;q=0.9,*/*;q=0.8");
-        http.addHeader("Connection", "close");
-        // generate a unique, policy-compliant User-Agent
-        char userAgentBuf[128];
-        snprintf(userAgentBuf, sizeof(userAgentBuf),
-                 "meshtastic/2.8 (ESP32; ID-%08X) contact@meshtastic.org", MapTileSettings::getUniqueId());
+    http.setUserAgent(userAgentBuf);
+    http.setTimeout(MUI_MAX_TLS_TIMEOUT);
 
-        http.setUserAgent(userAgentBuf);
-        http.setTimeout(MUI_MAX_TLS_TIMEOUT);
+    int httpCode = http.GET();
+    if (httpCode != HTTP_CODE_OK) {
+        ILOG_ERROR("ERROR GET %s : %d", url.c_str(), httpCode);
+        http.end();
+        return false;
+    }
 
-        int httpCode = http.GET();
-        if (httpCode != HTTP_CODE_OK) {
-            ILOG_ERROR("ERROR GET %s : %d", url.c_str(), httpCode);
-            http.end();
-            return false;
-        }
+    int contentLen = http.getSize();
+    if (contentLen <= 0) {
+        ILOG_WARN("GET %s : empty", url.c_str());
+        http.end();
+        return false;
+    }
 
-        int contentLen = http.getSize();
-        if (contentLen <= 0) {
-            ILOG_WARN("GET %s : empty", url.c_str());
-            http.end();
-            return false;
-        }
+    len = (size_t)contentLen;
+    pngImage = (uint8_t *)lv_malloc(len);
+    if (!pngImage) {
+        ILOG_ERROR("lv_malloc failed for %s (%u bytes)", url.c_str(), (unsigned int)len);
+        http.end();
+        return false;
+    }
 
-        len = (size_t)contentLen;
-        pngImage = (uint8_t *)lv_malloc(len);
-        if (!pngImage) {
-            ILOG_ERROR("lv_malloc failed for %s (%u bytes)", url.c_str(), (unsigned int)len);
-            http.end();
-            return false;
-        }
+    WiFiClient *stream = http.getStreamPtr();
+    if (!stream) {
+        ILOG_ERROR("no WiFiClient stream");
+        http.end();
+        return false;
+    }
 
-        WiFiClient *stream = http.getStreamPtr();
-        if (!stream) {
-            ILOG_ERROR("no WiFiClient stream");
-            http.end();
-            return false;
-        }
-
-        // read .png file in chunks to increase reliability (avoid readBytes())
-        size_t bytesRead = 0;
-        uint16_t idleSpins = 0;
-        const uint16_t maxIdleSpins = MUI_MAX_IDLE_SPINS;
-        while (bytesRead < len) {
-            size_t available = stream->available();
-            if (available == 0) {
-                if (++idleSpins > maxIdleSpins) {
-                    break;
-                }
-                delay(5);
-                continue;
-            }
-
-            idleSpins = 0;
-            size_t toRead = available;
-            size_t remaining = len - bytesRead;
-            if (toRead > remaining) {
-                toRead = remaining;
-            }
-
-            int got = stream->read(pngImage + bytesRead, toRead);
-            if (got <= 0) {
+    // read .png file in chunks to increase reliability (avoid readBytes())
+    size_t bytesRead = 0;
+    uint16_t idleSpins = 0;
+    const uint16_t maxIdleSpins = MUI_MAX_IDLE_SPINS;
+    while (bytesRead < len) {
+        size_t available = stream->available();
+        if (available == 0) {
+            if (++idleSpins > maxIdleSpins) {
                 break;
             }
-            bytesRead += (size_t)got;
+            delay(5);
+            continue;
         }
 
-        if (bytesRead != len) {
-            ILOG_ERROR("http read error %s : %u != %u", url.c_str(), (unsigned int)bytesRead, (unsigned int)len);
-            http.end();
-            return false;
+        idleSpins = 0;
+        size_t toRead = available;
+        size_t remaining = len - bytesRead;
+        if (toRead > remaining) {
+            toRead = remaining;
         }
 
-        http.end();
-
-        ILOG_DEBUG("SUCCESS: GET %s (%u bytes)", url.c_str(), (unsigned int)len);
+        int got = stream->read(pngImage + bytesRead, toRead);
+        if (got <= 0) {
+            break;
+        }
+        bytesRead += (size_t)got;
     }
+
+    if (bytesRead != len) {
+        ILOG_ERROR("http read error %s : %u != %u", url.c_str(), (unsigned int)bytesRead, (unsigned int)len);
+        http.end();
+        return false;
+    }
+
+    ILOG_DEBUG("SUCCESS: GET %s (%u bytes)", url.c_str(), (unsigned int)len);
 
     // Decode png
     lv_img_dsc_t *img_dsc = nullptr;
