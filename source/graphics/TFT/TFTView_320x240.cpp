@@ -893,10 +893,10 @@ void TFTView_320x240::apply_hotfix(void)
         lv_obj_t *obj = lv_label_create(parent);
         lv_obj_set_pos(obj, 0, 0);
         lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
-        lv_obj_remove_flag(obj, lv_obj_flag_t(LV_OBJ_FLAG_CHECKABLE | LV_OBJ_FLAG_CLICKABLE |
-                                              LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN_HOR |
-                                              LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
-                                              LV_OBJ_FLAG_SCROLL_WITH_ARROW | LV_OBJ_FLAG_SNAPPABLE));
+        lv_obj_remove_flag(obj,
+                           lv_obj_flag_t(LV_OBJ_FLAG_CHECKABLE | LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK |
+                                         LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN_HOR | LV_OBJ_FLAG_SCROLL_ELASTIC |
+                                         LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_WITH_ARROW | LV_OBJ_FLAG_SNAPPABLE));
         lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_label_set_text(obj, label);
     };
@@ -1050,7 +1050,13 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_11, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)11);
 
     // message text area
-    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
+    // Remove the LV_EVENT_ALL registration and replace it with these:
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_DEFOCUSED, NULL);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_LEAVE, NULL);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_CANCEL, NULL);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_READY, NULL);
 
     // text area edit-mode tracking (focus-driven, independent from virtual keyboard visibility)
     lv_obj_add_event_cb(objects.settings_user_short_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
@@ -1617,11 +1623,11 @@ void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
 
 void TFTView_320x240::ui_event_scroll_panel(lv_event_t *e)
 {
-    lv_obj_t *panel = (lv_obj_t*)lv_event_get_target(e);
+    lv_obj_t *panel = (lv_obj_t *)lv_event_get_target(e);
     uint32_t key = lv_event_get_key(e);
 
     // Define how many pixels to scroll per keypress
-    const lv_coord_t scroll_step = 80; 
+    const lv_coord_t scroll_step = 80;
 
     if (key == LV_KEY_DOWN) {
         lv_obj_scroll_by_bounded(panel, 0, -scroll_step, LV_ANIM_ON);
@@ -2270,48 +2276,48 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
             }
             return; // continue play animation, don't hide keyboard immediately
         case 1:
-            THIS->showKeyboard(objects.settings_user_short_textarea);
             lv_group_focus_obj(objects.settings_user_short_textarea);
+            THIS->showKeyboard(objects.settings_user_short_textarea);
             break;
         case 2:
-            THIS->showKeyboard(objects.settings_user_long_textarea);
             lv_group_focus_obj(objects.settings_user_long_textarea);
+            THIS->showKeyboard(objects.settings_user_long_textarea);
             break;
         case 3:
-            THIS->showKeyboard(objects.settings_modify_channel_name_textarea);
             lv_group_focus_obj(objects.settings_modify_channel_name_textarea);
+            THIS->showKeyboard(objects.settings_modify_channel_name_textarea);
             break;
         case 4:
-            THIS->showKeyboard(objects.settings_modify_channel_psk_textarea);
             lv_group_focus_obj(objects.settings_modify_channel_psk_textarea);
+            THIS->showKeyboard(objects.settings_modify_channel_psk_textarea);
             break;
         case 5:
-            THIS->showKeyboard(objects.nodes_filter_name_area);
             lv_group_focus_obj(objects.nodes_filter_name_area);
+            THIS->showKeyboard(objects.nodes_filter_name_area);
             break;
         case 6:
-            THIS->showKeyboard(objects.nodes_hl_name_area);
             lv_group_focus_obj(objects.nodes_hl_name_area);
+            THIS->showKeyboard(objects.nodes_hl_name_area);
             break;
         case 7:
-            THIS->showKeyboard(objects.settings_screen_lock_password_textarea);
             lv_group_focus_obj(objects.settings_screen_lock_password_textarea);
+            THIS->showKeyboard(objects.settings_screen_lock_password_textarea);
             break;
         case 8:
-            THIS->showKeyboard(objects.settings_wifi_ssid_textarea);
             lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
+            THIS->showKeyboard(objects.settings_wifi_ssid_textarea);
             break;
         case 9:
-            THIS->showKeyboard(objects.settings_wifi_password_textarea);
             lv_group_focus_obj(objects.settings_wifi_password_textarea);
+            THIS->showKeyboard(objects.settings_wifi_password_textarea);
             break;
         case 10:
-            THIS->showKeyboard(objects.setup_user_short_textarea);
             lv_group_focus_obj(objects.setup_user_short_textarea);
+            THIS->showKeyboard(objects.setup_user_short_textarea);
             break;
         case 11:
-            THIS->showKeyboard(objects.setup_user_long_textarea);
             lv_group_focus_obj(objects.setup_user_long_textarea);
+            THIS->showKeyboard(objects.setup_user_long_textarea);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment");
@@ -2361,14 +2367,13 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             break;
             // const char *txt = lv_keyboard_get_button_text(kb, btn_id);
         }
-    }
-    else if (event_code == LV_EVENT_KEY) {
+    } else if (event_code == LV_EVENT_KEY) {
         const void *param = lv_event_get_param(e);
         if (!param)
             return;
         uint32_t key = *(const uint32_t *)param;
         // consume keyboard left/right presses, do not pass to screen handler
-        if (key == LV_KEY_LEFT || LV_KEY_RIGHT) {
+        if (key != LV_KEY_ESC) {
             lv_event_stop_processing(e);
             return;
         }
@@ -2378,6 +2383,7 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
 void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
+    ILOG_DEBUG("ui_event_message_ready: event_code=%d", event_code);
     if (event_code == LV_EVENT_FOCUSED) {
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::TextEdit);
         input_policy::InputContextState::instance().setEditMode(true);
@@ -2391,7 +2397,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
         input_policy::InputContextState::instance().setCanLeaveEditMode(false);
         return;
     }
-
+#ifdef ARCH_PORTDUINO
     if (event_code == LV_EVENT_KEY) {
         // LVGL's X11 driver maps only keypad enter to LV_KEY_ENTER; the main Return
         // key arrives as raw '\r' and is silently dropped by the one-line textarea.
@@ -2401,6 +2407,15 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
             return;
         event_code = LV_EVENT_READY;
     }
+#else
+    if (event_code == LV_EVENT_KEY) {
+        // do not forward keyboard left/right presses to screen handler, they are handled by the keyboard itself
+        // only forware LV_KEY_ESC to screen handler
+        uint32_t *key = (uint32_t *)lv_event_get_param(e);
+        if (!key || *key != LV_KEY_ESC)
+            lv_event_stop_processing(e);
+    }
+#endif
 
     if (event_code == LV_EVENT_READY) {
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
@@ -2462,7 +2477,6 @@ void TFTView_320x240::ui_event_textarea_edit_mode(lv_event_t *e)
         }
     }
 }
-
 
 // basic settings buttons
 
@@ -5065,6 +5079,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             ILOG_ERROR("Unhandled ok event");
             break;
         }
+        lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
         THIS->enablePanel(objects.controller_panel);
         THIS->enablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eNone;
@@ -5080,6 +5095,7 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED) {
+        lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
         switch (THIS->activeSettings) {
         case TFTView_320x240::eSetup: {
             THIS->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
