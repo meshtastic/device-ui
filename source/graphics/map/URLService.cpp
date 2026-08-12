@@ -153,6 +153,7 @@ lv_image_dsc_t *URLService::loadRaw(const char *name)
 
     lv_image_dsc_t *img_dsc = nullptr;
     bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
+    http.end();
     if (!decoded) {
         ILOG_ERROR("Failed to decode tile image %s", name);
         return nullptr; // pngGuard frees pngImage

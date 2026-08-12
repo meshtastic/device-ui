@@ -4,6 +4,7 @@
 #include "graphics/map/TileService.h"
 #include "lvgl.h"
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 
@@ -58,7 +59,8 @@ class AsyncTileLoader
     ITileService *service_ = nullptr;
     BlockingQueue<Request> requestQueue_;
     BlockingQueue<Result> resultQueue_;
-    bool running_ = false;
+    std::atomic<bool> running_{false};
+    std::atomic<bool> exited_{false};
 
 #ifdef ARDUINO_ARCH_ESP32
     TaskHandle_t taskHandle_ = nullptr;

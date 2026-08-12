@@ -9,9 +9,14 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+static constexpr uint32_t WORKER_EXIT_TIMEOUT_MS = 2000; // wait for worker to exit before queues die
+
 void AsyncTileLoader::workerTask(void *arg)
 {
     static_cast<AsyncTileLoader *>(arg)->workerLoop();
+    AsyncTileLoader *self = static_cast<AsyncTileLoader *>(arg);
+    self->workerLoop();
+    self->exited_ = true;
     vTaskDelete(nullptr);
 }
 
@@ -20,7 +25,10 @@ void AsyncTileLoader::start(ITileService *service)
     if (running_)
         return;
     service_ = service;
+    requestQueue_.reset();
+    resultQueue_.reset();
     running_ = true;
+    exited_ = false;
     // pin to core 0; LVGL runs on core 1 — keep HTTP/decode off the UI core
     xTaskCreatePinnedToCore(workerTask, "tileLoader", 8192, this, 1, &taskHandle_, 0);
 }
@@ -31,6 +39,14 @@ void AsyncTileLoader::stop()
         return;
     running_ = false;
     requestQueue_.stop(); // wake blocked pop() so workerLoop() exits
+    // wait for the worker to leave loadRaw() and exit before the queues die
+    uint32_t waitedMs = 0;
+    while (!exited_ && waitedMs < WORKER_EXIT_TIMEOUT_MS) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+        waitedMs += 10;
+    }
+    if (!exited_)
+        ILOG_ERROR("tileLoader worker did not exit within %u ms", (unsigned)waitedMs);
     taskHandle_ = nullptr;
 }
 
@@ -43,6 +59,8 @@ void AsyncTileLoader::start(ITileService *service)
     if (running_)
         return;
     service_ = service;
+    requestQueue_.reset();
+    resultQueue_.reset();
     running_ = true;
     thread_ = std::thread(&AsyncTileLoader::workerLoop, this);
 }
@@ -62,6 +80,8 @@ void AsyncTileLoader::stop()
 
 void AsyncTileLoader::enqueue(uint32_t hash, uint32_t generation, const char *filename)
 {
+    if (!filename)
+        return;
     Request req;
     req.hash = hash;
     req.generation = generation;

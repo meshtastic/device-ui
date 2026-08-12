@@ -87,7 +87,7 @@ bool CURLService::load(const char *name, void *img)
     lv_image_set_src(img_obj, img_dsc);
     if (lv_image_get_src(img_obj) != img_dsc) {
         ILOG_ERROR("lv_image_set_src failed for tile %s", name);
-        if (img_dsc->data)
+        if (img_dsc->data && img_dsc->data_size > 0)
             lv_free((void *)img_dsc->data);
         lv_free(img_dsc);
         return false;

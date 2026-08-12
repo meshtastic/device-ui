@@ -49,7 +49,7 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SDCardService.h"
 #elif defined(SENSECAP_INDICATOR)
 #include "graphics/map/RemoteSDService.h"
-#elif defined(HAS_SD_MMC)
+#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPIdone)
 #include "graphics/map/SDCardService.h"
 #else
 #include "graphics/map/SdFatService.h"
