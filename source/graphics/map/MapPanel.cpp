@@ -5,7 +5,7 @@
 #include "util/ILog.h"
 #include <assert.h>
 
-#define HASH(X, Y) (((X) << 16) | ((Y)&0xFFFF))
+#define HASH(X, Y) (((X) << 16) | ((Y) & 0xFFFF))
 
 extern OSMTiles<lv_obj_t> *osm;
 

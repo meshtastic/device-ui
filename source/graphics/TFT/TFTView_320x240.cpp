@@ -71,10 +71,7 @@ LV_IMAGE_DECLARE(node_location_pin24_image);
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
 #define THIS TFTView_320x240::instance() // need to use this in all static methods
 
-#define LV_COLOR_HEX(C)                                                                                                          \
-    {                                                                                                                            \
-        .blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff                                               \
-    }
+#define LV_COLOR_HEX(C) {.blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff}
 
 #define VALID_TIME(T) (T > 1000000 && T < UINT32_MAX)
 
