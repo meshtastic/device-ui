@@ -193,7 +193,10 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-    lv_draw_sw_rgb565_swap(px_map, w * h); // CPU only - deliberately outside the guard
+    lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
+#if !defined(LGFX_SKIP_RGB565_SWAP)
+    lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
     {
         ISpiLock::Guard bus;
         lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);

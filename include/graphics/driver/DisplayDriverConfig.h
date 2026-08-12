@@ -47,6 +47,7 @@ class DisplayDriverConfig
         char *type = nullptr;
         uint16_t panel_width = 0;
         uint16_t panel_height = 0;
+        float zoom = 1.0;
         bool rotation = false;
         uint16_t epd_mode = 0; // epd_quality, epd_text, epd_fast, epd_fastest
         int16_t pin_cs = -1;
@@ -151,7 +152,8 @@ class DisplayDriverConfig
     };
 
     DisplayDriverConfig(void);
-    DisplayDriverConfig(enum device_t device, uint16_t width = c_default_width, uint16_t height = c_default_height);
+    DisplayDriverConfig(enum device_t device, uint16_t width = c_default_width, uint16_t height = c_default_height,
+                        float zoom = 1.0);
     DisplayDriverConfig(struct panel_config_t &&panel, struct bus_config_t &&bus, struct light_config_t &&light,
                         struct touch_config_t &&touch, struct input_config_t &&input);
 
@@ -165,6 +167,7 @@ class DisplayDriverConfig
 
     uint16_t width(void) const { return _width; }
     uint16_t height(void) const { return _height; }
+    float zoom(void) const { return _zoom; }
     const std::string &keyboard(void) const { return _input.keyboardDevice; }
     const std::string &pointer(void) const { return _input.pointerDevice; }
 
@@ -178,6 +181,7 @@ class DisplayDriverConfig
     touch_config_t _touch;
     input_config_t _input;
     light_config_t _light;
-    uint16_t _width;
-    uint16_t _height;
+    uint16_t _width = c_default_width;
+    uint16_t _height = c_default_height;
+    float _zoom = 1.0;
 };

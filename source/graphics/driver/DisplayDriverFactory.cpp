@@ -13,8 +13,11 @@
 #if defined(USE_FRAMEBUFFER)
 #include "graphics/driver/FBDriver.h"
 #endif
-#if defined(USE_X11)
+#if defined(USE_X11) && USE_X11
 #include "graphics/driver/X11Driver.h"
+#endif
+#if defined(USE_SDL) && USE_SDL
+#include "graphics/driver/SDLDriver.h"
 #endif
 
 #ifndef ARCH_PORTDUINO
@@ -90,8 +93,10 @@ DisplayDriver *DisplayDriverFactory::create(uint16_t width, uint16_t height)
 #if defined(USE_FRAMEBUFFER)
     return &FBDriver::create(width, height);
 #endif
-#if defined(USE_X11)
+#if defined(USE_X11) && USE_X11
     return &X11Driver::create(width, height);
+#elif defined(USE_SDL) && USE_SDL
+    return &SDLDriver::create(width, height);
 #elif defined(LGFX_DRIVER)
     return new LGFXDriver<LGFX_DRIVER>(width, height);
 #endif
@@ -123,9 +128,14 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         return &FBDriver::create(cfg.width(), cfg.height());
     }
 #endif
-#if defined(USE_X11)
+#if defined(USE_X11) && USE_X11
     if (cfg._device == DisplayDriverConfig::device_t::X11) {
         return &X11Driver::create(cfg.width(), cfg.height());
+    }
+#endif
+#if defined(USE_SDL) && USE_SDL
+    if (cfg._device == DisplayDriverConfig::device_t::SDL) {
+        return &SDLDriver::create(cfg.width(), cfg.height(), cfg.zoom());
     }
 #endif
     switch (cfg._device) {
@@ -206,13 +216,20 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         return new LGFXDriver<LGFX_HELTEC_V4_TFT>(cfg.width(), cfg.height());
         break;
 #endif
-#elif defined(USE_FRAMEBUFFER)
+#endif
+#if defined(USE_FRAMEBUFFER)
     case DisplayDriverConfig::device_t::FB:
         return &FBDriver::create(cfg.width(), cfg.height());
         break;
-#elif defined(USE_X11)
+#endif
+#if defined(USE_X11) && USE_X11
     case DisplayDriverConfig::device_t::X11:
         return &X11Driver::create(cfg.width(), cfg.height());
+        break;
+#endif
+#if defined(USE_SDL) && USE_SDL
+    case DisplayDriverConfig::device_t::SDL:
+        return &SDLDriver::create(cfg.width(), cfg.height(), cfg.zoom());
         break;
 #endif
     default:
