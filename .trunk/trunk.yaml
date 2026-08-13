@@ -6,7 +6,7 @@ cli:
 plugins:
   sources:
     - id: trunk
-      ref: v1.10.0
+      ref: v1.11.0
       uri: https://github.com/trunk-io/plugins
 # Many linters and tools depend on runtimes - configure them here. (https://docs.trunk.io/runtimes)
 runtimes:
@@ -17,29 +17,29 @@ runtimes:
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
-    - trufflehog@3.95.5
+    - trufflehog@3.96.0
     - yamllint@1.38.0
     - bandit@1.9.4
-    - checkov@3.2.533
+    - checkov@3.3.10
     - terrascan@1.19.9
-    - trivy@0.71.0
+    - trivy@0.73.0
     #- trufflehog@3.63.2-rc0
     - taplo@0.10.0
-    - ruff@0.15.16
+    - ruff@0.16.2
     - isort@8.0.1
-    - markdownlint@0.48.0
-    - oxipng@10.1.1
-    - svgo@4.0.1
+    - markdownlint@0.49.1
+    - oxipng@10.2.0
+    - svgo@4.0.2
     - actionlint@1.7.12
     - flake8@7.3.0
-    - hadolint@2.14.0
-    - shfmt@3.6.0
+    - hadolint@2.15.1
+    - shfmt@3.13.1
     - shellcheck@0.11.0
     - black@26.5.1
     - git-diff-check
     - gitleaks@8.30.1
-    - clang-format@16.0.3
-    - prettier@3.8.3
+    - clang-format@20.1.0
+    - prettier@3.9.6
   ignore:
     - linters: [ALL]
       paths:

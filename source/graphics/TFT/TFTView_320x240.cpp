@@ -83,10 +83,7 @@ LV_IMAGE_DECLARE(node_location_pin24_image);
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
 #define THIS TFTView_320x240::instance() // need to use this in all static methods
 
-#define LV_COLOR_HEX(C)                                                                                                          \
-    {                                                                                                                            \
-        .blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff                                               \
-    }
+#define LV_COLOR_HEX(C) {.blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff}
 
 #define VALID_TIME(T) (T > 1000000 && T < UINT32_MAX)
 
@@ -8421,15 +8418,13 @@ void TFTView_320x240::updateTime(void)
 {
     char buf[80];
     time_t curr_time;
-#ifdef ARCH_PORTDUINO
     time(&curr_time);
-#else
-    curr_time = actTime;
-#endif
-    tm *curr_tm = localtime(&curr_time);
+    if (!VALID_TIME(curr_time))
+        curr_time = actTime;
 
     int len = 0;
-    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0) {
+    tm *curr_tm = localtime(&curr_time);
+    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0 && curr_tm) {
         if (db.config.display.use_12h_clock) {
             len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
         } else {
