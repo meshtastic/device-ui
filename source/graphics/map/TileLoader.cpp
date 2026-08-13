@@ -9,7 +9,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-static constexpr uint32_t WORKER_EXIT_TIMEOUT_MS = 2000; // wait for worker to exit before queues die
+static constexpr uint32_t WORKER_EXIT_TIMEOUT_MS = 60000; // wait for worker to exit before queues die
 
 void AsyncTileLoader::workerTask(void *arg)
 {
