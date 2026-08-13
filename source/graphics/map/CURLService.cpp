@@ -80,20 +80,37 @@ CURLService::~CURLService()
 
 bool CURLService::load(const char *name, void *img)
 {
+    lv_image_dsc_t *img_dsc = loadRaw(name);
+    if (!img_dsc)
+        return false;
+    lv_obj_t *img_obj = (lv_obj_t *)img;
+    lv_image_set_src(img_obj, img_dsc);
+    if (lv_image_get_src(img_obj) != img_dsc) {
+        ILOG_ERROR("lv_image_set_src failed for tile %s", name);
+        if (img_dsc->data && img_dsc->data_size > 0)
+            lv_free((void *)img_dsc->data);
+        lv_free(img_dsc);
+        return false;
+    }
+    return true;
+}
+
+lv_image_dsc_t *CURLService::loadRaw(const char *name)
+{
     const uint64_t nowMs = monotonicMs();
     if (nowMs < offlineUntilMs) {
-        return false;
+        return nullptr;
     }
 
     std::string url = TileProvider::url(name);
     if (url.empty()) {
-        return false;
+        return nullptr;
     }
 
     CURL *curl = curlHandle;
     if (!curl) {
         ILOG_ERROR("curl_easy_init failed for tile %s", name ? name : "(null)");
-        return false;
+        return nullptr;
     }
 
     curl_easy_reset(curl);
@@ -143,53 +160,40 @@ bool CURLService::load(const char *name, void *img)
         }
         ILOG_ERROR("ERROR GET %s : %s (HTTP %ld)", url.c_str(), curl_easy_strerror(res), httpCode);
         lv_free(buf.data);
-        return false;
+        return nullptr;
     }
 
     if (httpCode < 200 || httpCode >= 300) {
         ILOG_ERROR("ERROR GET %s : HTTP %ld", url.c_str(), httpCode);
         lv_free(buf.data);
-        return false;
+        return nullptr;
     }
 
     if (buf.size == 0) {
         ILOG_WARN("GET %s : empty response", url.c_str());
         lv_free(buf.data);
-        return false;
+        return nullptr;
     }
 
     ILOG_DEBUG("SUCCESS: GET %s (%u bytes, HTTP %ld)", url.c_str(), (unsigned int)buf.size, httpCode);
     offlineUntilMs = 0;
 
-    // save png tile (e.g. to filesystem cache)
     if (saveCB && MapTileSettings::saveOK()) {
         bool result = saveCB(name, buf.data, buf.size);
         ILOG_DEBUG("save png to cache -> %s", result ? "OK" : "failed");
     }
 
-    // decode png via STBI library
-    lv_img_dsc_t *img_dsc = nullptr;
+    lv_image_dsc_t *img_dsc = nullptr;
     bool decoded =
         MapTileSettings::color() ? decodeImgColor(buf.data, buf.size, &img_dsc) : decodeImgGrey(buf.data, buf.size, &img_dsc);
     lv_free(buf.data);
+    buf.data = nullptr;
 
-    if (decoded) {
-        lv_obj_t *img_obj = (lv_obj_t *)img;
-        lv_image_set_src(img_obj, img_dsc);
-        if (lv_image_get_src(img_obj) != img_dsc) {
-            ILOG_ERROR("lv_image_set_src failed for tile %s", name);
-            if (img_dsc->data && img_dsc->data_size > 0) {
-                lv_free((void *)img_dsc->data);
-            }
-            lv_free(img_dsc);
-            return false;
-        }
-    } else {
+    if (!decoded) {
         ILOG_ERROR("Failed to decode tile image %s", name);
-        return false;
+        return nullptr;
     }
-
-    return true;
+    return img_dsc;
 }
 
 #endif

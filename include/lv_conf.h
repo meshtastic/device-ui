@@ -101,7 +101,11 @@
  * - LV_OS_WINDOWS
  * - LV_OS_MQX
  * - LV_OS_CUSTOM */
-#define LV_USE_OS   LV_OS_NONE
+#ifdef ARDUINO_ARCH_ESP32
+    #define LV_USE_OS   LV_OS_FREERTOS
+#else
+    #define LV_USE_OS   LV_OS_PTHREAD
+#endif
 
 #if LV_USE_OS == LV_OS_CUSTOM
     #define LV_OS_CUSTOM_INCLUDE <stdint.h>
