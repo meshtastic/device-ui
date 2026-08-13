@@ -30,7 +30,12 @@ void AsyncTileLoader::start(ITileService *service)
     running_ = true;
     exited_ = false;
     // pin to core 0; LVGL runs on core 1 — keep HTTP/decode off the UI core
-    xTaskCreatePinnedToCore(workerTask, "tileLoader", 8192, this, 1, &taskHandle_, 0);
+    BaseType_t rc = xTaskCreatePinnedToCore(workerTask, "tileLoader", 8192, this, 1, &taskHandle_, 0);
+    if (rc != pdPASS) {
+        ILOG_ERROR("Failed to create async tileLoader task");
+        running_ = false;
+        taskHandle_ = nullptr;
+    }
 }
 
 void AsyncTileLoader::stop()
