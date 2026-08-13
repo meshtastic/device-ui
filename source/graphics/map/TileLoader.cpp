@@ -9,7 +9,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-static constexpr uint32_t WORKER_EXIT_TIMEOUT_MS = 60000; // wait for worker to exit before queues die
+static constexpr uint32_t WORKER_EXIT_TIMEOUT_MS = 10000; // wait for worker to exit before queues die
 
 void AsyncTileLoader::workerTask(void *arg)
 {
@@ -44,14 +44,14 @@ void AsyncTileLoader::stop()
         return;
     running_ = false;
     requestQueue_.stop(); // wake blocked pop() so workerLoop() exits
-    // wait for the worker to leave loadRaw() and exit before the queues die
+    // block until worker has left loadRaw() — queues must not be destroyed first
     uint32_t waitedMs = 0;
-    while (!exited_ && waitedMs < WORKER_EXIT_TIMEOUT_MS) {
+    while (!exited_) {
         vTaskDelay(pdMS_TO_TICKS(10));
         waitedMs += 10;
+        if (waitedMs == WORKER_EXIT_TIMEOUT_MS)
+            ILOG_WARN("tileLoader worker slow to exit (%u ms), still waiting", (unsigned)waitedMs);
     }
-    if (!exited_)
-        ILOG_ERROR("tileLoader worker did not exit within %u ms", (unsigned)waitedMs);
     taskHandle_ = nullptr;
 }
 
