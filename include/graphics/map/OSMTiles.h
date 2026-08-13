@@ -30,12 +30,18 @@ template <class IMG> class OSMTiles
     // filename caching for GeoPoint tile
     bool load(OSMTiles::Tile &tile, IMG *img)
     {
+        resolveFilename(tile);
+        return loadcb(tile.filename, img);
+    }
+
+    // populate tile.filename without triggering a load
+    void resolveFilename(OSMTiles::Tile &tile) const
+    {
         if (!tile.filename[0]) {
             std::snprintf(tile.filename, IMG_PATH_LEN, "%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(),
                           MapTileSettings::getTileStyle(), tile.zoomLevel, tile.xTile, tile.yTile,
                           MapTileSettings::getTileFormat());
         }
-        return loadcb(tile.filename, img);
     }
 
   protected:

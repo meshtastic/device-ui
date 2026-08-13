@@ -8,6 +8,7 @@
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
+#include "graphics/map/AsyncTileService.h"
 #include "graphics/map/CURLService.h"
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/TileProvider.h"
@@ -48,7 +49,7 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SDCardService.h"
 #elif defined(SENSECAP_INDICATOR)
 #include "graphics/map/RemoteSDService.h"
-#elif defined(HAS_SD_MMC)
+#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPIdone)
 #include "graphics/map/SDCardService.h"
 #else
 #include "graphics/map/SdFatService.h"
@@ -2572,25 +2573,25 @@ void TFTView_320x240::loadMap(void)
         // tiles live on the SD card behind the RP2040, fetched chunk-wise over the interdevice link
         auto tileService = new RemoteSDService();
         map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
-#elif defined(HAS_SD_MMC)
+        map->setBackupService(new AsyncTileService(new URLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
+#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
         auto tileService = new SDCardService();
         map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+        map->setBackupService(new AsyncTileService(new URLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SDCARD)
         auto tileService = new SdFatService();
         map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+        map->setBackupService(new AsyncTileService(new URLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(ARCH_PORTDUINO)
         auto tileService = new SDCardService();
         map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
-        map->setBackupService(new CURLService(
-            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+        map->setBackupService(new AsyncTileService(new CURLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #else
-        map = new MapPanel(objects.raw_map_panel, new URLService());
+        map = new MapPanel(objects.raw_map_panel, new AsyncTileService(new URLService()));
 #endif
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
