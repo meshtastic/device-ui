@@ -7286,8 +7286,8 @@ void TFTView_320x240::updateTime(void)
         curr_time = actTime;
 
     int len = 0;
-    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0) {
-        tm *curr_tm = localtime(&curr_time);
+    tm *curr_tm = localtime(&curr_time);
+    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0 && curr_tm) {
         if (db.config.display.use_12h_clock) {
             len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
         } else {
