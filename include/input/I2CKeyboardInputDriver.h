@@ -13,7 +13,7 @@ class I2CKeyboardInputDriver : public InputDriver
   public:
     I2CKeyboardInputDriver(void);
     virtual void init(void) override;
-    virtual void task_handler(void) override{};
+    virtual void task_handler(void) override {};
     virtual void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) = 0;
     virtual ~I2CKeyboardInputDriver(void) {}
 

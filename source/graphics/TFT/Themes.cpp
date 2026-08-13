@@ -295,7 +295,7 @@ void apply_style_tab_view_style(void)
     lv_style_set_bg_color(style, lv_color_hex(THEME(eTabViewBg)));
     lv_style_set_text_color(style, lv_color_hex(THEME(eTabViewText)));
 };
-void apply_style_drop_down_style(void){};
+void apply_style_drop_down_style(void) {};
 void apply_style_bw_label_style(void)
 {
     lv_style_t *style = get_style_bw_label_style_MAIN_DEFAULT();

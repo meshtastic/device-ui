@@ -511,8 +511,7 @@ void STC8HKeyboardInputDriver::init(void)
 
     pinMode(KB_INT, INPUT);
     pinMode(KB_LED, OUTPUT);
-    attachInterrupt(
-        KB_INT, [] { keyEvent = true; }, FALLING);
+    attachInterrupt(KB_INT, [] { keyEvent = true; }, FALLING);
 
     if (!contextProvider) {
         contextProvider = std::shared_ptr<input_policy::IInputContextProvider>(&input_policy::InputContextState::instance(),
