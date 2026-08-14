@@ -79,14 +79,19 @@ void DeviceScreen::task_handler(void)
 #if defined(ARDUINO_ARCH_ESP32)
 int DeviceScreen::prepareSleep(void *)
 {
-    if (xSemaphore)
-        return xSemaphoreTake(xSemaphore, pdMS_TO_TICKS(1000)) == pdTRUE ? 0 : 1;
-    else
-        return 1;
+    if (xSemaphore) {
+        auto res = xSemaphoreTake(xSemaphore, pdMS_TO_TICKS(1000));
+        if (res == pdTRUE) {
+            gui->prepareSleep();
+            return 0;
+        }
+    }
+    return 1;
 }
 
 int DeviceScreen::wakeUp(esp_sleep_wakeup_cause_t cause)
 {
+    gui->wakeUp();
     if (xSemaphore)
         return xSemaphoreGive(xSemaphore) == pdTRUE ? 0 : 1;
     else

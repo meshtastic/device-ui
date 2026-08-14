@@ -18,12 +18,14 @@ class DeviceGUI
     virtual ~DeviceGUI();
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
+    virtual void prepareSleep(void);
     virtual bool sleep(int16_t pin) { return false; }
+    virtual void wakeUp(void);
     virtual void triggerHeartbeat(void) {}
     // called to inform view to do screen blanking
     virtual void blankScreen(bool enable) {}
     // called when display (driver) is doing screen blanking
-    virtual void screenSaving(bool enabled){};
+    virtual void screenSaving(bool enabled) {};
     // return true if screen view is locked
     virtual bool isScreenLocked(void) { return false; };
 
