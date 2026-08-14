@@ -1,6 +1,8 @@
 #ifndef ARCH_PORTDUINO
 
 #include "comms/UiFtpServer.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 #if !__has_include(<MultiFTPServer.h>) || !defined(HAS_SDCARD)
 
@@ -39,8 +41,8 @@ UiFtpServer::~UiFtpServer() {}
 #else
 
 #include "MultiFTPServer.h"
-#include "SPILock.h"
 #include "util/ILog.h"
+#include "util/ISpiLock.h"
 #include <Arduino.h>
 #include <ESPmDNS.h>
 
@@ -384,28 +386,30 @@ void UiFtpServer::serverThread()
             continue;
         }
 
-        if (!spiLock->lock(500)) {
-            vTaskDelay(FTP_SPI_BUSY_DELAY);
-            continue;
-        }
-
         bool handledClient = false;
-        FtpServer *ftp = nullptr;
         {
-            std::lock_guard<std::mutex> lock(mutex);
-            if (running && serverReady) {
-                ftp = ftpServer;
+            ISpiLock::Guard bus(500);
+
+            if (bus.isLocked()) {
+                vTaskDelay(FTP_SPI_BUSY_DELAY);
+                continue;
+            }
+
+            FtpServer *ftp = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                if (running && serverReady) {
+                    ftp = ftpServer;
+                }
+            }
+
+            // Do not hold the class mutex while handling FTP traffic.
+            // FtpServer can invoke transfer callbacks that re-enter UiFtpServer.
+            if (ftp) {
+                ftp->handleFTP();
+                handledClient = true;
             }
         }
-
-        // Do not hold the class mutex while handling FTP traffic.
-        // FtpServer can invoke transfer callbacks that re-enter UiFtpServer.
-        if (ftp) {
-            ftp->handleFTP();
-            handledClient = true;
-        }
-
-        spiLock->unlock();
 
         if (handledClient) {
             vTaskDelay(FTP_AFTER_HANDLE_DELAY);

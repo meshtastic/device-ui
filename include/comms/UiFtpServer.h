@@ -3,8 +3,6 @@
 #include <FS.h>
 #include <WiFi.h>
 #include <atomic>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 #include <functional>
 #include <mutex>
 #include <string>
