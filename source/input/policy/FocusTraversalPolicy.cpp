@@ -21,7 +21,10 @@ PolicyDecision FocusTraversalPolicy::evaluate(const InputEvent &event, const Inp
             return PolicyDecision{};
         }
     }
-
+    if (context.focusSemantic == FocusSemantic::ButtonMatrix) {
+        POLICY_DEBUG("[FocusTraversal] Keeping up/down for button matrix navigation");
+        return PolicyDecision{}; // pass through UP/DOWN/LEFT/RIGHT unchanged
+    }
     PolicyDecision decision{};
     if (event.action == InputAction::NavigateUp) {
         decision.type = DecisionType::Remap;

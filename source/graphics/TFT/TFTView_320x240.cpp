@@ -1162,7 +1162,11 @@ void TFTView_320x240::ui_events_init(void)
 
     // screen
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
-    lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button, LV_EVENT_ALL, 0);
+    lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button, LV_EVENT_CLICKED, 0);
+    // Preprocess so our handler runs before the button matrix class default handler;
+    // lv_event_stop_processing then prevents the class default handler from also moving btn_id_sel.
+    lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button,
+                        (lv_event_code_t)(LV_EVENT_KEY | LV_EVENT_PREPROCESS), 0);
 
     lv_obj_add_event_cb(objects.settings_backup_checkbox, ui_event_backup_restore_radio_button, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.settings_restore_checkbox, ui_event_backup_restore_radio_button, LV_EVENT_ALL, NULL);
@@ -1476,12 +1480,21 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_KEY) {
-        const void *param = lv_event_get_param(e);
+        void *param = lv_event_get_param(e);
         if (!param)
             return;
 
-        uint32_t c = *(const uint32_t *)param;
+        uint32_t c = *(uint32_t *)param;
         ILOG_DEBUG("ui_event_ScreenKey: 0x%0x", c);
+
+        // if button matrix (lock screen) is active, route all keys to the lock screen handler
+        const auto context = input_policy::InputContextState::instance().getSnapshot();
+        if (context.focusSemantic == input_policy::FocusSemantic::ButtonMatrix) {
+            lv_obj_send_event(objects.screen_lock_button_matrix, LV_EVENT_KEY, param);
+            lv_event_stop_processing(e);
+            return;
+        }
+
         if (c == LV_KEY_ESC) {
             // leave reboot screen
             if (THIS->activeSettings == eReboot) {
@@ -1559,6 +1572,12 @@ void TFTView_320x240::ui_event_screen_focus_policy(lv_event_t *e)
 
     applyButtonPolicy(objects.blank_screen_button, screen == objects.blank_screen);
     applyButtonPolicy(objects.screen_lock_button_matrix, screen == objects.lock_screen);
+    if (screen == objects.lock_screen) {
+        THIS->setInputGroup(groups.mainButtons);
+        lv_buttonmatrix_set_selected_button(objects.screen_lock_button_matrix, 0);
+        lv_group_focus_obj(objects.screen_lock_button_matrix);
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::ButtonMatrix);
+    }
 }
 
 void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
@@ -3012,11 +3031,21 @@ void TFTView_320x240::ui_event_calibration_screen_loaded(lv_event_t *e)
 
 void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
 {
+    static const char *hidden[7] = {"o o o o o o", "* o o o o o", "* * o o o o", "* * * o o o",
+                                    "* * * * o o", "* * * * * o", "* * * * * *"};
+    static char pinEntered[7]{};
+
+    auto unlockScreen = []() {
+        pinKeys = 0;
+        screenLocked = false;
+        lv_obj_clear_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
+        lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
+        lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+    };
+
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && lv_scr_act() == objects.lock_screen) {
-        static const char *hidden[7] = {"o o o o o o", "* o o o o o", "* * o o o o", "* * * o o o",
-                                        "* * * * o o", "* * * * * o", "* * * * * *"};
-        static char pinEntered[7]{};
         lv_obj_t *obj = (lv_obj_t *)lv_event_get_target(e);
         uint32_t id = lv_buttonmatrix_get_selected_button(obj);
         const char *key = lv_buttonmatrix_get_button_text(obj, id);
@@ -3048,12 +3077,7 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
                 char buf[10];
                 lv_snprintf(buf, 7, "%06d", THIS->db.uiConfig.pin_code);
                 if (pinKeys == 6 && strcmp(pinEntered, buf) == 0) {
-                    // unlock screen
-                    pinKeys = 0;
-                    screenLocked = false;
-                    lv_obj_clear_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
-                    lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
-                    lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
+                    unlockScreen();
                 }
             }
             break;
@@ -3067,6 +3091,42 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
         }
         default:
             break;
+        }
+    } else if (event_code == LV_EVENT_KEY) {
+        uint32_t key = lv_event_get_key(e);
+        if (key >= '0' && key <= '9') {
+            if (pinKeys < 6) {
+                pinEntered[pinKeys++] = (char)key;
+                lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
+
+                char buf[10];
+                lv_snprintf(buf, 7, "%06d", THIS->db.uiConfig.pin_code);
+                if (pinKeys == 6 && strcmp(pinEntered, buf) == 0) {
+                    unlockScreen();
+                }
+            }
+        } else if (key == LV_KEY_UP || key == LV_KEY_DOWN || key == LV_KEY_LEFT || key == LV_KEY_RIGHT) {
+            uint32_t cur = lv_buttonmatrix_get_selected_button(objects.screen_lock_button_matrix);
+            if (cur == LV_BUTTONMATRIX_BUTTON_NONE)
+                cur = 0;
+            int32_t target = (int32_t)cur;
+            if (key == LV_KEY_UP)
+                target -= 3;
+            else if (key == LV_KEY_DOWN)
+                target += 3;
+            else if (key == LV_KEY_LEFT)
+                target -= 1;
+            else if (key == LV_KEY_RIGHT)
+                target += 1;
+            if (target >= 0 && target <= 11) {
+                lv_buttonmatrix_set_selected_button(objects.screen_lock_button_matrix, (uint32_t)target);
+            }
+            lv_event_stop_processing(e); // prevent LVGL's native prev/next handler
+        } else if (key == LV_KEY_BACKSPACE) {
+            if (pinKeys > 0) {
+                pinEntered[--pinKeys] = '\0';
+                lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
+            }
         }
     }
 }
@@ -8157,7 +8217,9 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
         lv_group_focus_obj(objects.tools_packet_log_panel);
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
     } else if (panel == objects.settings_screen_lock_panel) {
+        lv_buttonmatrix_set_selected_button(objects.screen_lock_button_matrix, 0);
         lv_group_focus_obj(objects.screen_lock_button_matrix);
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::ButtonMatrix);
     } else if (panel == objects.controller_panel) {
         lv_group_focus_obj(objects.basic_settings_user_button);
     } else {
