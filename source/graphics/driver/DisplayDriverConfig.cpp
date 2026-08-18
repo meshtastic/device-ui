@@ -50,3 +50,9 @@ DisplayDriverConfig &DisplayDriverConfig::light(light_config_t &&cfg)
     _light = cfg;
     return *this;
 }
+
+DisplayDriverConfig &DisplayDriverConfig::rotation(uint8_t offsetRotation)
+{
+    _panel.offset_rotation = offsetRotation;
+    return *this;
+}

@@ -162,9 +162,12 @@ class DisplayDriverConfig
     DisplayDriverConfig &touch(touch_config_t &&cfg);
     DisplayDriverConfig &input(input_config_t &&cfg);
     DisplayDriverConfig &light(light_config_t &&cfg);
+    DisplayDriverConfig &rotation(uint8_t offsetRotation);
 
     uint16_t width(void) const { return _width; }
     uint16_t height(void) const { return _height; }
+    // panel rotation offset: 0/1/2/3 = 0/90/180/270 deg
+    uint8_t rotation(void) const { return _panel.offset_rotation; }
     const std::string &keyboard(void) const { return _input.keyboardDevice; }
     const std::string &pointer(void) const { return _input.pointerDevice; }
 
