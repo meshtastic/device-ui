@@ -21,7 +21,7 @@ FBDriver &FBDriver::create(uint16_t width, uint16_t height)
 FBDriver &FBDriver::create(const DisplayDriverConfig &cfg)
 {
     if (!fbDriver)
-        fbDriver = new FBDriver(cfg.width(), cfg.height(), toRotation(cfg.rotation()));
+        fbDriver = new FBDriver(cfg.width(), cfg.height(), toRotation(cfg._panel.offset_rotation));
     return *fbDriver;
 }
 
