@@ -12,8 +12,8 @@ fs::SDMMCFS &SDFs = SD_MMC;
 fs::FS &SDFs = PortduinoFS;
 #elif defined(HAS_SDCARD)
 #ifdef SDCARD_USE_SPI1
-static SPIClass SPI1(HSPI);
-static SPIClass &SDHandler = SPI1;
+extern SPIClass SPI_HSPI;
+static SPIClass &SDHandler = SPI_HSPI;
 #elif defined(SDCARD_USE_SOFT_SPI)
 static SoftSpiDriver<SPI_MISO, SPI_MOSI, SPI_SCK> SDHandler;
 #else
@@ -208,9 +208,11 @@ bool SdFsCard::init(void)
 #else
 #if defined(SDCARD_USER_SPI_BEGIN)
     // fix : HSPI Does not have default pins on ESP32S3!
+    ILOG_INFO("SDHandler.begin(%d, %d, %d, %d)", SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS); delay(10);
     SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS);
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI | USER_SPI_BEGIN, SD_SPI_FREQUENCY, &SDHandler));
 #else
+    ILOG_INFO("SDFs.begin(%d, %d, %d)", SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY); delay(10);
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
 #endif
 #endif
