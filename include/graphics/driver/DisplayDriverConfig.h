@@ -171,6 +171,7 @@ class DisplayDriverConfig
   private:
     friend class DisplayDriverFactory;
     friend class LGFXConfig;
+    friend class FBDriver;
 
     enum device_t _device;
     panel_config_t _panel;
