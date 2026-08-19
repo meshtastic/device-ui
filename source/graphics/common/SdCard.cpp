@@ -208,11 +208,11 @@ bool SdFsCard::init(void)
 #else
 #if defined(SDCARD_USER_SPI_BEGIN)
     // fix : HSPI Does not have default pins on ESP32S3!
-    ILOG_INFO("SDHandler.begin(%d, %d, %d, %d)", SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS); delay(10);
+    ILOG_DEBUG("SDHandler.begin(%d, %d, %d, %d)", SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS);
     SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS);
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI | USER_SPI_BEGIN, SD_SPI_FREQUENCY, &SDHandler));
 #else
-    ILOG_INFO("SDFs.begin(%d, %d, %d)", SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY); delay(10);
+    ILOG_DEBUG("SDFs.begin(%d, %d, %d)", SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY);
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
 #endif
 #endif
