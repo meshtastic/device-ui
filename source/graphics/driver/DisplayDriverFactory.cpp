@@ -123,7 +123,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #endif
 #if defined(USE_FRAMEBUFFER)
     if (cfg._device == DisplayDriverConfig::device_t::FB) {
-        return &FBDriver::create(cfg.width(), cfg.height());
+        return &FBDriver::create(cfg);
     }
 #endif
 #if defined(USE_X11)
@@ -215,7 +215,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #endif
 #elif defined(USE_FRAMEBUFFER)
     case DisplayDriverConfig::device_t::FB:
-        return &FBDriver::create(cfg.width(), cfg.height());
+        return &FBDriver::create(cfg);
         break;
 #elif defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:

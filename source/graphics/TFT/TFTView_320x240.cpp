@@ -8,6 +8,7 @@
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
+#include "graphics/map/AsyncTileService.h"
 #include "graphics/map/CURLService.h"
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/TileProvider.h"
@@ -19,6 +20,7 @@
 #include "lvgl_private.h"
 #include "styles.h"
 #include "ui.h"
+#include "util/About.h"
 #include "util/FileLoader.h"
 #include "util/ILog.h"
 #include "util/ISpiLock.h"
@@ -47,7 +49,7 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SDCardService.h"
 #elif defined(SENSECAP_INDICATOR)
 #include "graphics/map/RemoteSDService.h"
-#elif defined(HAS_SD_MMC)
+#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
 #include "graphics/map/SDCardService.h"
 #else
 #include "graphics/map/SdFatService.h"
@@ -69,10 +71,7 @@ LV_IMAGE_DECLARE(node_location_pin24_image);
 #define CR_REPLACEMENT 0x0C              // dummy to record several lines in a one line textarea
 #define THIS TFTView_320x240::instance() // need to use this in all static methods
 
-#define LV_COLOR_HEX(C)                                                                                                          \
-    {                                                                                                                            \
-        .blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff                                               \
-    }
+#define LV_COLOR_HEX(C) {.blue = (C >> 0) & 0xff, .green = (C >> 8) & 0xff, .red = (C >> 16) & 0xff}
 
 #define VALID_TIME(T) (T > 1000000 && T < UINT32_MAX)
 
@@ -657,6 +656,28 @@ void TFTView_320x240::apply_hotfix(void)
 
     lv_obj_add_style(objects.settings_backup_checkbox, &style_radio, LV_PART_INDICATOR);
     lv_obj_add_style(objects.settings_restore_checkbox, &style_radio, LV_PART_INDICATOR);
+
+    // set about text
+    auto createLabel = [](lv_obj_t *parent, const char *label) {
+        lv_obj_t *obj = lv_label_create(parent);
+        lv_obj_set_pos(obj, 0, 0);
+        lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
+        lv_obj_add_flag(obj, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CHECKABLE | LV_OBJ_FLAG_CLICKABLE));
+        lv_obj_remove_flag(obj, lv_obj_flag_t(LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN_HOR |
+                                              LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
+                                              LV_OBJ_FLAG_SCROLL_WITH_ARROW | LV_OBJ_FLAG_SNAPPABLE));
+        lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
+        lv_obj_set_scroll_dir(obj, LV_DIR_VER);
+        lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_label_set_text(obj, label);
+    };
+
+    char fw[128];
+    snprintf(fw, sizeof(fw), ABOUT_FIRMWARE_TEXT, firmware_version);
+    createLabel(objects.settings_about_panel, fw);
+    createLabel(objects.settings_about_panel, ABOUT_FRAMEWORK_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_ICONS_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_MAP_TEXT);
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -788,6 +809,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_backup_restore_button, ui_event_backup_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_about_button, ui_event_about_button, LV_EVENT_CLICKED, NULL);
 
     lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_ALL, NULL);
@@ -2035,6 +2057,14 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_about_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        THIS->ui_set_active(objects.settings_button, objects.settings_about_panel, objects.top_about_panel);
+    }
+}
+
 void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -2543,25 +2573,25 @@ void TFTView_320x240::loadMap(void)
         // tiles live on the SD card behind the RP2040, fetched chunk-wise over the interdevice link
         auto tileService = new RemoteSDService();
         map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
-#elif defined(HAS_SD_MMC)
+        map->setBackupService(new AsyncTileService(new URLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
+#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
         auto tileService = new SDCardService();
         map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+        map->setBackupService(new AsyncTileService(new URLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SDCARD)
         auto tileService = new SdFatService();
         map = new MapPanel(objects.raw_map_panel, tileService);
-        map->setBackupService(
-            new URLService([tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+        map->setBackupService(new AsyncTileService(new URLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(ARCH_PORTDUINO)
         auto tileService = new SDCardService();
         map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
-        map->setBackupService(new CURLService(
-            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); }));
+        map->setBackupService(new AsyncTileService(new CURLService(
+            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #else
-        map = new MapPanel(objects.raw_map_panel, new URLService());
+        map = new MapPanel(objects.raw_map_panel, new AsyncTileService(new URLService()));
 #endif
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
@@ -7252,15 +7282,13 @@ void TFTView_320x240::updateTime(void)
 {
     char buf[80];
     time_t curr_time;
-#ifdef ARCH_PORTDUINO
     time(&curr_time);
-#else
-    curr_time = actTime;
-#endif
-    tm *curr_tm = localtime(&curr_time);
+    if (!VALID_TIME(curr_time))
+        curr_time = actTime;
 
     int len = 0;
-    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0) {
+    tm *curr_tm = localtime(&curr_time);
+    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0 && curr_tm) {
         if (db.config.display.use_12h_clock) {
             len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
         } else {

@@ -1,4 +1,4 @@
-#if defined(HAS_SDCARD) && not defined(HAS_SD_MMC) && not defined(ARCH_PORTDUINO)
+#if defined(HAS_SDCARD) && not defined(HAS_SD_MMC) && not defined(ARCH_PORTDUINO) && not defined(SDCARD_SHARE_SPI)
 
 #include "lvgl.h"
 #include "util/ISpiLock.h"
@@ -13,6 +13,32 @@
 #include <utility>
 
 #define DRIVE_LETTER "S"
+
+static bool ensureParentDirectories(const char *path)
+{
+    std::string fullPath(path);
+    const size_t lastSlash = fullPath.rfind('/');
+    if (lastSlash == std::string::npos || lastSlash == 0) {
+        return true;
+    }
+
+    const std::string directory = fullPath.substr(0, lastSlash);
+    size_t searchPos = 1;
+    while (searchPos <= directory.size()) {
+        const size_t slashPos = directory.find('/', searchPos);
+        const std::string currentDir = slashPos == std::string::npos ? directory : directory.substr(0, slashPos);
+        if (!currentDir.empty() && !SDFs.exists(currentDir.c_str()) && !SDFs.mkdir(currentDir.c_str())) {
+            ILOG_ERROR("failed to create directory %s", currentDir.c_str());
+            return false;
+        }
+        if (slashPos == std::string::npos) {
+            break;
+        }
+        searchPos = slashPos + 1;
+    }
+
+    return true;
+}
 
 SdFatService::SdFatService() : ITileService(DRIVE_LETTER ":")
 {
@@ -56,35 +82,38 @@ bool SdFatService::load(const char *name, void *img)
         return false;
     }
 #else
-    // optimized PNGdec decoding
-    FsFile file = SDFs.open(name, O_RDONLY);
-    if (!file) {
-        ILOG_DEBUG("Failed to open tile %s from SD", name);
-        return false;
-    }
+    {
+        ISpiLock::Guard bus;
 
-    size_t len = (size_t)file.size();
-    if (len == 0) {
-        ILOG_DEBUG("Tile %s is empty", name);
+        // optimized PNGdec decoding
+        FsFile file = SDFs.open(name, O_RDONLY);
+        if (!file) {
+            ILOG_DEBUG("Failed to open tile %s from SD", name);
+            return false;
+        }
+
+        size_t len = (size_t)file.size();
+        if (len == 0) {
+            ILOG_DEBUG("Tile %s is empty", name);
+            file.close();
+            return false;
+        }
+
+        uint8_t *pngImage = (uint8_t *)lv_malloc(len);
+        if (!pngImage) {
+            ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
+            file.close();
+            return false;
+        }
+
+        size_t bytesRead = file.read(pngImage, len);
         file.close();
-        return false;
+        if (bytesRead != len) {
+            ILOG_ERROR("read error %s : %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
+            lv_free(pngImage);
+            return false;
+        }
     }
-
-    uint8_t *pngImage = (uint8_t *)lv_malloc(len);
-    if (!pngImage) {
-        ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
-        file.close();
-        return false;
-    }
-
-    size_t bytesRead = file.read(pngImage, len);
-    file.close();
-    if (bytesRead != len) {
-        ILOG_ERROR("read error %s : %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
-        lv_free(pngImage);
-        return false;
-    }
-
     lv_img_dsc_t *img_dsc = nullptr;
     bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
     lv_free(pngImage);
@@ -112,16 +141,10 @@ bool SdFatService::load(const char *name, void *img)
 bool SdFatService::save(const char *name, void *img, size_t len)
 {
     ILOG_DEBUG("SdFatService::save(%s): %d", name, len);
-    // create intermediate directories for path (e.g. /maps/atlas/12/2198/1341.png)
-    std::string directory;
-    std::string filename(name);
-    const size_t last_slash_idx = filename.rfind('/');
-    if (std::string::npos == last_slash_idx) {
-        // something went wrong
+    ISpiLock::Guard bus;
+    if (!ensureParentDirectories(name)) {
         return false;
     }
-    directory = filename.substr(0, last_slash_idx);
-    SDFs.mkdir(directory.c_str());
 
     // write image
     FsFile file = SDFs.open(name, O_RDWR | O_CREAT);
@@ -142,7 +165,7 @@ void *SdFatService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mod
     SdFile *lf = new SdFile;
     lf->file = SDFs.open(path, mode == LV_FS_MODE_RD ? O_RDONLY : O_WRONLY); // NOTE: O_RDWR
     if (!lf->file) {
-        // ILOG_DEBUG("FsSD.open() %s failed!", path);
+        // ILOG_DEBUG("SDFs.open() %s failed!", path);
         delete lf;
         return nullptr;
     } else {
@@ -153,7 +176,7 @@ void *SdFatService::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mod
 lv_fs_res_t SdFatService::fs_close(lv_fs_drv_t *drv, void *file_p)
 {
     ISpiLock::Guard bus;
-    // ILOG_DEBUG("FsSD.close()");
+    // ILOG_DEBUG("SDFs.close()");
     SdFile *lf = static_cast<SdFile *>(file_p);
     lf->file.close();
     delete lf;
@@ -164,7 +187,7 @@ lv_fs_res_t SdFatService::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uin
 {
     ISpiLock::Guard bus;
     *br = static_cast<SdFile *>(file_p)->file.read((uint8_t *)buf, btr);
-    // ILOG_DEBUG("FsSD.read(): %d/%d bytes", *br, btr);
+    // ILOG_DEBUG("SDFs.read(): %d/%d bytes", *br, btr);
     return (*br <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
 }
 
@@ -172,14 +195,14 @@ lv_fs_res_t SdFatService::fs_write(lv_fs_drv_t *drv, void *file_p, const void *b
 {
     ISpiLock::Guard bus;
     *bw = static_cast<SdFile *>(file_p)->file.write((uint8_t *)buf, btw);
-    // ILOG_DEBUG("FsSD.write(): %d/btw bytes", *bw, btw);
+    // ILOG_DEBUG("SDFs.write(): %d/btw bytes", *bw, btw);
     return (*bw <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
 }
 
 lv_fs_res_t SdFatService::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence)
 {
     ISpiLock::Guard bus;
-    // ILOG_DEBUG("FsSD.seek(): pos %d", pos);
+    // ILOG_DEBUG("SDFs.seek(): pos %d", pos);
     if (whence == LV_FS_SEEK_SET) {
         return static_cast<SdFile *>(file_p)->file.seekSet(pos) ? LV_FS_RES_OK : LV_FS_RES_UNKNOWN;
     } else if (whence == LV_FS_SEEK_END) {
@@ -193,7 +216,7 @@ lv_fs_res_t SdFatService::fs_tell(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_
 {
     ISpiLock::Guard bus;
     *pos_p = static_cast<SdFile *>(file_p)->file.position();
-    // ILOG_DEBUG("FsSD.tell(): pos %d", *pos_p);
+    // ILOG_DEBUG("SDFs.tell(): pos %d", *pos_p);
     return (int32_t)(*pos_p) < 0 ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
 }
 

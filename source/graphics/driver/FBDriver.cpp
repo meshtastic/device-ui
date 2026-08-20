@@ -18,7 +18,34 @@ FBDriver &FBDriver::create(uint16_t width, uint16_t height)
     return *fbDriver;
 }
 
-FBDriver::FBDriver(uint16_t width, uint16_t height) : DisplayDriver(width, height) {}
+FBDriver &FBDriver::create(const DisplayDriverConfig &cfg)
+{
+    if (!fbDriver)
+        fbDriver = new FBDriver(cfg.width(), cfg.height(), toRotation(cfg._panel.offset_rotation));
+    return *fbDriver;
+}
+
+FBDriver::FBDriver(uint16_t width, uint16_t height, lv_display_rotation_t rotation)
+    : DisplayDriver(width, height), rotation(rotation)
+{
+}
+
+lv_display_rotation_t FBDriver::toRotation(uint8_t offsetRotation)
+{
+    switch (offsetRotation) {
+    case 0:
+        return LV_DISPLAY_ROTATION_0;
+    case 1:
+        return LV_DISPLAY_ROTATION_90;
+    case 2:
+        return LV_DISPLAY_ROTATION_180;
+    case 3:
+        return LV_DISPLAY_ROTATION_270;
+    default:
+        ILOG_WARN("FBDriver: unsupported rotation %d, using 0 degrees", offsetRotation);
+        return LV_DISPLAY_ROTATION_0;
+    }
+}
 
 void FBDriver::init(DeviceGUI *gui)
 {
@@ -36,6 +63,9 @@ void FBDriver::init(DeviceGUI *gui)
         return;
     }
     lv_linux_fbdev_set_file(display, device);
+    // config driven rotation, e.g. from the YAML (Display.Rotate + Display.OffsetRotate) of meshtasticd
+    if (rotation != LV_DISPLAY_ROTATION_0)
+        lv_display_set_rotation(display, rotation);
 
 #if LV_USE_EVDEV
     // discover input devices

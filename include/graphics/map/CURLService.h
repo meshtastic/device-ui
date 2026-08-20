@@ -23,6 +23,8 @@ class CURLService : public ITileService
 
     CURLService(Callback cb = nullptr);
     bool load(const char *name, void *img) override;
+    bool isAsync() const override { return true; }
+    lv_image_dsc_t *loadRaw(const char *name) override;
     virtual ~CURLService();
 
   private:

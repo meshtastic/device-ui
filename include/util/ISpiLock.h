@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 /**
  * @brief Host-provided mutual exclusion for an SPI bus shared with other peripherals.
  *
@@ -24,6 +26,10 @@ class ISpiLock
   public:
     virtual ~ISpiLock() = default;
     virtual void lock(void) = 0;
+    virtual bool lock(uint32_t timeout)
+    {
+        return false; // dummy will be removed by pr#314
+    }
     virtual void unlock(void) = 0;
 
     /**
