@@ -1,5 +1,4 @@
-`#ifndef` LGFX_WIO_TRACKER_L2_H
-`#define` LGFX_WIO_TRACKER_L2_H
+#pragma once
 
 #define LGFX_USE_V1
 #include "Wire.h"
@@ -209,5 +208,3 @@ class LGFX_WIO_TRACKER_L2 : public lgfx::LGFX_Device
         _light_instance.setBrightness(_light_instance.config().brightness);
     }
 };
-
-#endif
