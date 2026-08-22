@@ -21,8 +21,8 @@ class TFTView_320x240 : public MeshtasticView
 
     // methods to update view
     void setMyInfo(uint32_t nodeNum) override;
-    void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
-                           bool can_shutdown) override;
+    void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth, bool can_shutdown,
+                           bool has_xeddsa) override;
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg) override;
     void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role,
                  bool hasKey, bool unmessagable) override;
@@ -98,6 +98,7 @@ class TFTView_320x240 : public MeshtasticView
         eLanguage,
         eScreenTimeout,
         eScreenLock,
+        ePacketAuthPolicy,
         eScreenBrightness,
         eTheme,
         eInputControl,
@@ -265,6 +266,8 @@ class TFTView_320x240 : public MeshtasticView
     void clearChatHistory(void);
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);
+    void updatePacketAuthAvailability(void);
+    void closePacketAuthPanel(void);
     void setChannelName(const meshtastic_Channel &ch);
     uint32_t timestamp(char *buf, uint32_t time, bool update);
     void updateLocationMap(uint32_t objects);
@@ -333,6 +336,10 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_calibration_button(lv_event_t *e);
     static void ui_event_timeout_button(lv_event_t *e);
     static void ui_event_screen_lock_button(lv_event_t *e);
+    static void ui_event_packet_auth_button(lv_event_t *e);
+    static void ui_event_packet_auth_dropdown(lv_event_t *e);
+    static void ui_event_packet_auth_ok(lv_event_t *e);
+    static void ui_event_packet_auth_cancel(lv_event_t *e);
     static void ui_event_input_button(lv_event_t *e);
     static void ui_event_alert_button(lv_event_t *e);
     static void ui_event_backup_button(lv_event_t *e);
@@ -433,6 +440,8 @@ class TFTView_320x240 : public MeshtasticView
     static uint32_t pinKeys;                              // number of keys pressed (lock screen)
     static bool screenLocked;                             // screen lock active
     static bool screenUnlockRequest;                      // screen unlock request (via button)
+    bool hasXeddsa = false;                               // connected firmware can verify packet signatures
+    bool strictConfirmationPending = false;               // Strict requires a second, explicit confirmation
     uint32_t selectedHops;                                // remember selected choice
     bool chooseNodeSignalScanner;                         // chose a target node for signal scanner
     bool chooseNodeTraceRoute;                            // chose a target node for trace route

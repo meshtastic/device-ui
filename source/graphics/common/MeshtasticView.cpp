@@ -50,7 +50,7 @@ bool MeshtasticView::sleep(int16_t pin)
 void MeshtasticView::setMyInfo(uint32_t nodeNum) {}
 
 void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
-                                       bool can_shutdown)
+                                       bool can_shutdown, bool has_xeddsa)
 {
 }
 

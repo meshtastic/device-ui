@@ -76,7 +76,7 @@ class MeshtasticView : public DeviceGUI
     virtual bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) { return true; }
     virtual void setMyInfo(uint32_t nodeNum);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
-                                   bool can_shutdown);
+                                   bool can_shutdown, bool has_xeddsa);
     virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt);
     virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg);
     virtual void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
