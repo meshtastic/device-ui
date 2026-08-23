@@ -41,21 +41,22 @@ class Wio_Tracker_Light : public lgfx::v1::ILight
             return false;
         }
 
-        writeReg(REG_DEVICE_CONFIG0, 0x01); // chip enable
-        writeReg(REG_MAX_CURRENT, 0x01);    // 51 mA max current
-        writeReg(REG_ENABLE_CONTROL, 0x00); // disable outputs while configuring
-        writeReg(REG_DIM_MODE, 0x4E);       // dim mode config
-        writeReg(REG_ENGINE_MODE, 0xF0);    // engine mode config
+        bool result = true;
+        result |= writeReg(REG_DEVICE_CONFIG0, 0x01); // chip enable
+        result |= writeReg(REG_MAX_CURRENT, 0x01);    // 51 mA max current
+        result |= writeReg(REG_ENABLE_CONTROL, 0x00); // disable outputs while configuring
+        result |= writeReg(REG_DIM_MODE, 0x4E);       // dim mode config
+        result |= writeReg(REG_ENGINE_MODE, 0xF0);    // engine mode config
         // Set DC current for all 4 channels (registers 0x14..0x17)
         for (uint8_t i = 0; i < 4; i++) {
-            writeReg(REG_LED0_DC + i, 200);
+            result |= writeReg(REG_LED0_DC + i, 200);
         }
-        writeReg(REG_ENABLE_CONTROL, 0x0F); // enable all 4 channels
-        writeReg(REG_UPDATE, 0x55);         // latch parameters (LP5814 requires 0x55)
-        delay(5);                           // LP5814 engine startup settling time
+        result |= writeReg(REG_ENABLE_CONTROL, 0x0F); // enable all 4 channels
+        result |= writeReg(REG_UPDATE, 0x55);         // latch parameters (LP5814 requires 0x55)
+        delay(5);                                     // LP5814 engine startup settling time
 
         setBrightness(brightness);
-        return true;
+        return result;
     }
 
     void setBrightness(uint8_t brightness) override
@@ -73,14 +74,17 @@ class Wio_Tracker_Light : public lgfx::v1::ILight
     virtual ~Wio_Tracker_Light(void) = default;
 
   private:
-    void writeReg(uint8_t reg, uint8_t value)
+    bool writeReg(uint8_t reg, uint8_t value)
     {
         Wire.beginTransmission(LP5814_I2C_ADDR_DEFAULT);
         Wire.write(reg);
         Wire.write(value);
         uint8_t error = Wire.endTransmission();
-        if (error != 0)
+        if (error != 0) {
             ILOG_ERROR("LP5814 write reg 0x%02x failed: %d", reg, error);
+            return false;
+        }
+        return true;
     }
 
     config_t _cfg;
