@@ -179,7 +179,7 @@ esp_err_t lp5814_init(i2c_master_bus_handle_t *i2c_bus, uint8_t dev_addr, lp5814
     }
 
     // Set default max current to 25.5mA
-    ret = lp5814_set_max_current(handle, LP5814_MAX_CURRENT_51MA);
+    ret = lp5814_set_max_current(handle, LP5814_MAX_CURRENT_25_5MA);
     if (ret != ESP_OK) {
         handle->initialized = false;
         i2c_master_bus_rm_device(handle->i2c_dev);
