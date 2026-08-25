@@ -40,7 +40,8 @@ class DisplayDriverConfig
         ESPJC4827W543C,
         ESP4848S040,
         MAKERFABS480X480,
-        HELTECV4_TFT
+        HELTECV4_TFT,
+        WIO_TRACKER_L2
     };
 
     struct panel_config_t {
