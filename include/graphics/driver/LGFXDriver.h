@@ -25,6 +25,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     bool hasTouch(void) override;
     bool hasButton(void) override { return lgfx->hasButton(); }
     bool hasLight(void) override { return lgfx->light(); }
+    void forceWakeup(void) override { forcedWakeup = true; }
     bool isPowersaving(void) override { return powerSaving; }
     void printConfig(void) override;
     void task_handler(void) override;
@@ -44,6 +45,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     uint32_t screenTimeout;
     uint32_t lastBrightness;
     bool powerSaving;
+    bool forcedWakeup;
 
   private:
     void init_lgfx(void);
@@ -60,7 +62,8 @@ template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
     : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX, width, height), screenTimeout(defaultScreenTimeout),
-      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
+      lastBrightness(defaultBrightness), powerSaving(false), forcedWakeup(false), bufsize(0), buf1(nullptr), buf2(nullptr),
+      calibrating(false)
 {
     lgfx = this->tft;
 }
@@ -68,7 +71,8 @@ LGFXDriver<LGFX>::LGFXDriver(uint16_t width, uint16_t height)
 template <class LGFX>
 LGFXDriver<LGFX>::LGFXDriver(const DisplayDriverConfig &cfg)
     : TFTDriver<LGFX>(lgfx ? lgfx : new LGFX(cfg), cfg.width(), cfg.height()), screenTimeout(defaultScreenTimeout),
-      lastBrightness(defaultBrightness), powerSaving(false), bufsize(0), buf1(nullptr), buf2(nullptr), calibrating(false)
+      lastBrightness(defaultBrightness), powerSaving(false), forcedWakeup(false), bufsize(0), buf1(nullptr), buf2(nullptr),
+      calibrating(false)
 {
     lgfx = this->tft;
 }
@@ -110,6 +114,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                             lgfx->powerSaveOn();
                         }
                         powerSaving = true;
+                        forcedWakeup = false;
                     }
                 }
                 if (powerSaving) {
@@ -126,12 +131,13 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         pin_int = BUTTON_PIN;
 #endif
                     }
-                    if ((pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
+                    if (forcedWakeup || (pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
                         (screenTimeout + 50 > lv_display_get_inactive_time(NULL) && !DisplayDriver::view->isScreenLocked())) {
                         delay(2); // let the CPU finish to restore all register in case of light sleep
                         // woke up by touch or button
                         ILOG_INFO("leaving powersave");
                         powerSaving = false;
+                        forcedWakeup = false;
                         DisplayDriver::view->triggerHeartbeat();
                         {
                             // Scoped so the bus is not held across view->sleep() above,
