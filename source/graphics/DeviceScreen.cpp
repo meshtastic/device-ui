@@ -76,6 +76,11 @@ void DeviceScreen::task_handler(void)
     gui->task_handler();
 }
 
+void DeviceScreen::toggleDisplay(void)
+{
+    gui->toggleDisplay();
+}
+
 #if defined(ARDUINO_ARCH_ESP32)
 int DeviceScreen::prepareSleep(void *)
 {
