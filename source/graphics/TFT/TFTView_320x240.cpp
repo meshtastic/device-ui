@@ -2707,7 +2707,7 @@ void TFTView_320x240::loadMap(void)
                         savedStyleOK = true;
                         if (urlEntry >= 0) {
                             // set provider url to current style
-                            ILOG_DEBUG("set provider url to %s", url.c_str());
+                            ILOG_DEBUG("set provider url to %s", it.c_str());
                             TileProvider::selectTemplate(urlEntry);
                             attribution(url);
                         }
