@@ -1234,7 +1234,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_obj_create(parent_obj);
                     objects.messages_container = obj;
                     lv_obj_set_pos(obj, LV_PCT(0), LV_PCT(0));
-                    lv_obj_set_size(obj, LV_PCT(100), LV_PCT(88));
+                    lv_obj_set_size(obj, LV_PCT(100), LV_PCT(87));
                     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN);
                     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
                     add_style_panel_style(obj);
@@ -1257,7 +1257,7 @@ void create_screen_main_screen() {
                     lv_obj_t *obj = lv_textarea_create(parent_obj);
                     objects.message_input_area = obj;
                     lv_obj_set_pos(obj, 6, -1);
-                    lv_obj_set_size(obj, LV_PCT(85), 25);
+                    lv_obj_set_size(obj, LV_PCT(85), 28);
                     lv_textarea_set_max_length(obj, 220);
                     lv_textarea_set_placeholder_text(obj, "Enter Text ...");
                     lv_textarea_set_one_line(obj, true);
@@ -1268,10 +1268,10 @@ void create_screen_main_screen() {
                     lv_obj_set_scroll_dir(obj, LV_DIR_HOR);
                     lv_obj_set_style_align(obj, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_pad_top(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_left(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_max_height(obj, 25, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_pad_bottom(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // KeyboardButton_0
@@ -4495,7 +4495,7 @@ void create_screen_main_screen() {
                     objects.settings_backup_checkbox = obj;
                     lv_obj_set_pos(obj, 5, -1);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_checkbox_set_text_static(obj, _("Backup"));
+                    lv_checkbox_set_text(obj, _("Backup"));
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0x67ea94), LV_PART_INDICATOR | LV_STATE_CHECKED);
                 }
                 {
@@ -4504,7 +4504,7 @@ void create_screen_main_screen() {
                     objects.settings_restore_checkbox = obj;
                     lv_obj_set_pos(obj, 5, 25);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_checkbox_set_text_static(obj, _("Restore"));
+                    lv_checkbox_set_text(obj, _("Restore"));
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0x67ea94), LV_PART_INDICATOR | LV_STATE_CHECKED);
                 }
                 {

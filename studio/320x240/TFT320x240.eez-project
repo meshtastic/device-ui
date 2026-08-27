@@ -322,7 +322,8 @@
               "text": "www.meshtastic.org",
               "textType": "literal",
               "longMode": "WRAP",
-              "recolor": false
+              "recolor": false,
+              "useStaticText": true
             },
             {
               "objID": "7d5fe9ac-02c0-4118-8efd-f0cf42aa3260",
@@ -367,7 +368,8 @@
               "text": "",
               "textType": "literal",
               "longMode": "WRAP",
-              "recolor": false
+              "recolor": false,
+              "useStaticText": true
             },
             {
               "objID": "fbf231f4-2f31-443e-f3f7-9c0ebc3b80cc",
@@ -757,7 +759,8 @@
                   "text": " www.meshtastic.org",
                   "textType": "literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "5f74af31-d4d1-43bd-9d40-40c541c9f745",
@@ -834,7 +837,8 @@
                       "text": "Reboot into BaseUI?",
                       "textType": "translated-literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "8690a9d6-fc5c-444e-91d5-197ae98ab126",
@@ -1480,7 +1484,8 @@
                       "text": "no new messages",
                       "textType": "translated-literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "61905910-dfc3-4157-ded7-d076151bbfa1",
@@ -1570,7 +1575,8 @@
                       "text": "1 of 1 nodes online",
                       "textType": "translated-literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "6a3c9031-b26c-4f2d-e32d-a5e113fb7d5f",
@@ -1667,7 +1673,8 @@
                       "text": "uptime 00:00:00",
                       "textType": "translated-literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "8264dfea-3340-4a6c-8116-f9812a8cf48c",
@@ -1764,7 +1771,8 @@
                       "text": "LoRa 0.0 MHz",
                       "textType": "translated-literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "5ef9d959-4740-4103-f317-e5df5e9b957d",
@@ -1885,7 +1893,8 @@
                           "text": "",
                           "textType": "literal",
                           "longMode": "CLIP",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         }
                       ],
                       "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -1908,7 +1917,8 @@
                       "text": "no signal",
                       "textType": "translated-literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "c70df4fd-9ff1-4122-c3a7-5d4c61cb2a4e",
@@ -1998,7 +2008,8 @@
                       "text": "silent",
                       "textType": "translated-literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "f4db1500-b8f5-4f77-a9e1-51c5223f785e",
@@ -2095,7 +2106,8 @@
                       "text": "N???° ??.????'\nW???° ??.????'",
                       "textType": "literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "9f3ffd03-c17b-4a7b-838a-a8717cb54096",
@@ -2186,7 +2198,8 @@
                       "text": "0.0.0.0",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "9fd96d20-6b34-4319-e79b-ac1f49d29d34",
@@ -2278,7 +2291,8 @@
                       "text": "0.0.0.0",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "751e50e5-70be-4524-cb53-e1e5019faa90",
@@ -2372,7 +2386,8 @@
                       "text": "00:00:00:00:00:00",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "8764ba54-e6d7-4c82-98cf-f2930dbeb1c2",
@@ -2470,7 +2485,8 @@
                       "text": "mqtt",
                       "textType": "literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "2f6f8414-baf9-46a0-93cc-b51a705d8383",
@@ -2567,7 +2583,8 @@
                       "text": "no SD card detected",
                       "textType": "translated-literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "9765e9ca-29c9-42e5-a366-2c79ffc61747",
@@ -2666,7 +2683,8 @@
                       "text": "Heap: 0\nLVGL: 0",
                       "textType": "translated-literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "f3c21d9b-d63f-409b-de37-23877d815e73",
@@ -2764,7 +2782,8 @@
                       "text": "no public key",
                       "textType": "translated-literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "SCROLL_CHAIN|SCROLLABLE|SCROLL_WITH_ARROW",
@@ -3034,7 +3053,8 @@
                       "text": "Meshtastic",
                       "textType": "literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "0b4e8877-3367-4737-b454-062aca89d8b7",
@@ -3081,7 +3101,8 @@
                       "text": "ABCD",
                       "textType": "literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "f2a27cf6-9eb2-46e7-bf86-939133949886",
@@ -3128,7 +3149,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "315f954f-04b9-4481-ebbd-8fa17e5f1006",
@@ -3175,7 +3197,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "13be50d4-e30a-42de-c52d-b5891ec30d80",
@@ -3222,7 +3245,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "628221d8-ba5b-479f-9449-63ca2b351225",
@@ -3269,7 +3293,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "ed14fc01-37e5-46be-def3-0412abaffd2f",
@@ -3315,7 +3340,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "5da1ee6e-f9f2-4750-adc2-15142f57ca9c",
@@ -3362,7 +3388,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "fefed3a9-68b9-44f4-ad64-e683fcba6aaf",
@@ -3409,7 +3436,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -3562,7 +3590,8 @@
                       "text": "0",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|SCROLL_ELASTIC|SCROLL_ON_FOCUS|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLL_WITH_ARROW",
@@ -3655,7 +3684,8 @@
                       "text": "1",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|SCROLL_ELASTIC|SCROLL_ON_FOCUS|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLL_WITH_ARROW",
@@ -3748,7 +3778,8 @@
                       "text": "2",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|SCROLL_ELASTIC|SCROLL_ON_FOCUS|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLL_WITH_ARROW",
@@ -3841,7 +3872,8 @@
                       "text": "3",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|SCROLL_ELASTIC|SCROLL_ON_FOCUS|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLL_WITH_ARROW",
@@ -3934,7 +3966,8 @@
                       "text": "4",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|SCROLL_ELASTIC|SCROLL_ON_FOCUS|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLL_WITH_ARROW",
@@ -4027,7 +4060,8 @@
                       "text": "5",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|SCROLL_ELASTIC|SCROLL_ON_FOCUS|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLL_WITH_ARROW",
@@ -4120,7 +4154,8 @@
                       "text": "6",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|SCROLL_ELASTIC|SCROLL_ON_FOCUS|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLL_WITH_ARROW",
@@ -4213,7 +4248,8 @@
                       "text": "7",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|SCROLL_ELASTIC|SCROLL_ON_FOCUS|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLL_WITH_ARROW",
@@ -4295,7 +4331,7 @@
                   "left": 0,
                   "top": 0,
                   "width": 100,
-                  "height": 88,
+                  "height": 87,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -4353,7 +4389,8 @@
                       "text": "Text\nLine2 Word2\nLine3",
                       "textType": "literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLLABLE|SCROLL_ELASTIC|SCROLL_WITH_ARROW",
@@ -4384,7 +4421,7 @@
                   "left": 6,
                   "top": -1,
                   "width": 85,
-                  "height": 25,
+                  "height": 28,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -4418,10 +4455,10 @@
                         "DEFAULT": {
                           "align": "BOTTOM_LEFT",
                           "text_align": "LEFT",
-                          "pad_top": 2,
+                          "pad_top": 0,
                           "pad_left": 3,
                           "max_height": 25,
-                          "pad_bottom": 2
+                          "pad_bottom": 0
                         }
                       }
                     }
@@ -4602,7 +4639,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "DOT",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "b978c10d-9890-4c65-e143-3430c5aea797",
@@ -4672,7 +4710,8 @@
                           "text": "DEL",
                           "textType": "translated-literal",
                           "longMode": "WRAP",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         }
                       ],
                       "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -5719,7 +5758,8 @@
                       "optionsType": "translated-literal",
                       "selected": 0,
                       "selectedType": "literal",
-                      "direction": "bottom"
+                      "direction": "bottom",
+                      "useStaticText": true
                     },
                     {
                       "objID": "a30324ff-18eb-4ec3-bf29-666f7c0009c7",
@@ -5778,7 +5818,8 @@
                       "optionsType": "translated-literal",
                       "selected": 0,
                       "selectedType": "literal",
-                      "direction": "bottom"
+                      "direction": "bottom",
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -5869,7 +5910,8 @@
                   "text": "",
                   "textType": "literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "cbd1f266-0513-4057-a5ad-0fc5296e0a95",
@@ -5924,7 +5966,8 @@
                   "text": "",
                   "textType": "literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "6bfa7245-35c9-46f7-e4a7-b64a32a640fd",
@@ -6158,7 +6201,8 @@
                               "text": "User name: ",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6259,7 +6303,8 @@
                               "text": "Region: <Unset>",
                               "textType": "literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6355,7 +6400,8 @@
                               "text": "Modem Preset: LONG FAST",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6453,7 +6499,8 @@
                               "text": "Channel: LongFast",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6549,7 +6596,8 @@
                               "text": "Role: Client",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6645,7 +6693,8 @@
                               "text": "WiFi: <not setup>",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6741,7 +6790,8 @@
                               "text": "Screen Timeout: 60s",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6837,7 +6887,8 @@
                               "text": "Lock: off/off",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -6937,7 +6988,8 @@
                               "text": "Screen Brightness: 60%",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7039,7 +7091,8 @@
                               "text": "Theme: Dark",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7141,7 +7194,8 @@
                               "text": "Screen Calibration: default",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7239,7 +7293,8 @@
                               "text": "Input Control: none/none",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7336,7 +7391,8 @@
                               "text": "Message Alert Buzzer: on",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7432,7 +7488,8 @@
                               "text": "Language: English",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7530,7 +7587,8 @@
                               "text": "Language: English",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7627,7 +7685,8 @@
                               "text": "Configuration Reset",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7723,7 +7782,8 @@
                               "text": "Backup & Restore",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7820,7 +7880,8 @@
                               "text": "Reboot / Shutdown",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -7916,7 +7977,8 @@
                               "text": "About / Legal",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -8071,7 +8133,8 @@
                               "text": "Mesh Detector",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -8176,7 +8239,8 @@
                               "text": "Signal Scanner",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -8281,7 +8345,8 @@
                               "text": "Trace Route",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -8386,7 +8451,8 @@
                               "text": "Neighbors",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -8491,7 +8557,8 @@
                               "text": "Statistics",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -8596,7 +8663,8 @@
                               "text": "Packet Log",
                               "textType": "translated-literal",
                               "longMode": "DOT",
-                              "recolor": false
+                              "recolor": false,
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -8888,7 +8956,8 @@
                   "text": "Meshtastic",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 }
               ],
               "widgetFlags": "",
@@ -8982,7 +9051,8 @@
                   "text": "1 of 1 nodes online",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "3fb96570-41d8-44bc-978f-d48d696edf47",
@@ -9127,7 +9197,8 @@
                   "text": "Group Channels",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "ad7429d2-6da0-4348-b71e-cffed9b14cbb",
@@ -9272,7 +9343,8 @@
                   "text": "no messages",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "a31bbd8c-790c-4e4b-8c33-af5920daa376",
@@ -9416,7 +9488,8 @@
                   "text": "Settings & Tools",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "146b46fd-88d3-4204-8f88-5b340a2baf07",
@@ -9560,7 +9633,8 @@
                   "text": "Settings (advanced)",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "8a8e7e2a-8b4b-4736-bd3d-843bd63906ab",
@@ -9704,7 +9778,8 @@
                   "text": "Locations Map",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "633bf8af-a118-4af6-97d4-d271caa9d914",
@@ -9848,7 +9923,8 @@
                   "text": "no chats",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "4c694ca7-7d8a-4e71-f0b7-ad2e27a5f4a3",
@@ -9992,7 +10068,8 @@
                   "text": "no messages",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "9d84647d-a865-406c-b68f-11b380d010c1",
@@ -10137,7 +10214,8 @@
                   "text": "Node Search",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "b620c140-abc0-4e4a-dbd7-17239c5c80f4",
@@ -10281,7 +10359,8 @@
                   "text": "Mesh Detector",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "c58fcb0d-b1a4-4231-f42f-47d926340c38",
@@ -10426,7 +10505,8 @@
                   "text": "About & Attribution",
                   "textType": "translated-literal",
                   "longMode": "DOT",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "51ca0991-0ef7-40e5-81a3-9c9eef9e5039",
@@ -10571,7 +10651,8 @@
                   "text": "Signal Scanner",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "d6c99dbf-2536-47ff-9338-95239f8700d5",
@@ -10716,7 +10797,8 @@
                   "text": "Trace Route",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "bb386565-03b9-40c1-dab3-2c27e7b010f6",
@@ -10860,7 +10942,8 @@
                   "text": "Neighbors",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "feac482d-ef96-41cd-e74d-ecf408442aa0",
@@ -11004,7 +11087,8 @@
                   "text": "Packet Statistics",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "b6b5fe95-ab5c-4543-ced8-81eb27d95220",
@@ -11148,7 +11232,8 @@
                   "text": "Packet Log",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "06279c31-e0ed-428b-8dca-bc7e4a5445da",
@@ -11292,7 +11377,8 @@
                   "text": "Node Options",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "ddf775e7-d548-4e28-b2f4-234c861ef19b",
@@ -11489,7 +11575,8 @@
                   "text": " ",
                   "textType": "literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 }
               ],
               "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -11583,7 +11670,8 @@
                   "text": "LoRa TX off!",
                   "textType": "translated-literal",
                   "longMode": "DOT",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "58ed518a-3def-4d03-a0f2-529dd178d6eb",
@@ -11843,7 +11931,8 @@
                   "text": "Short Name",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "68f64989-fdee-4a52-ab7d-c72fc7380580",
@@ -11990,7 +12079,8 @@
                   "text": "Long Name",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "d0ef86ca-4e3b-4178-9427-4144528582f9",
@@ -12243,7 +12333,8 @@
                   "text": "Primary Channel",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "73ec3594-b1ae-45ef-869f-4929a2319404",
@@ -12318,7 +12409,8 @@
                       "text": "<unset>",
                       "textType": "translated-literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -12398,7 +12490,8 @@
                   "text": "Secondary Channels",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "674f3923-3da5-4687-8a56-159e93204397",
@@ -12473,7 +12566,8 @@
                       "text": "<unset>",
                       "textType": "translated-literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -12581,7 +12675,8 @@
                       "text": "<unset>",
                       "textType": "translated-literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -12689,7 +12784,8 @@
                       "text": "<unset>",
                       "textType": "translated-literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -12797,7 +12893,8 @@
                       "text": "<unset>",
                       "textType": "translated-literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -12905,7 +13002,8 @@
                       "text": "<unset>",
                       "textType": "literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -13013,7 +13111,8 @@
                       "text": "<unset>",
                       "textType": "translated-literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -13121,7 +13220,8 @@
                       "text": "<unset>",
                       "textType": "translated-literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -13316,7 +13416,8 @@
                   "optionsType": "literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "a39f461f-af93-40fe-ba4a-1104118fb80f",
@@ -13467,7 +13568,8 @@
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "a9a8ddb9-b831-4576-d9d7-b1dc4b26d827",
@@ -13514,7 +13616,8 @@
                   "text": "FrequencySlot: 1 (902.0MHz)",
                   "textType": "literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "d39ea1bb-cea2-4171-e2c0-e5f9d07f386f",
@@ -13735,7 +13838,8 @@
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "44c3061c-cedf-41ca-c067-18be789f5762",
@@ -13882,7 +13986,8 @@
                   "text": "WiFi SSID",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "20836bde-c75e-4ad0-d7de-846d734c1362",
@@ -14029,7 +14134,8 @@
                   "text": "WiFi pre-shared Key",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "97e737f5-a44d-462b-b656-606fae3e1d98",
@@ -14279,7 +14385,8 @@
                   "text": "Brightness: 60%",
                   "textType": "translated-literal",
                   "longMode": "SCROLL",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "52130d1e-9e11-4609-f95f-a322d07a7842",
@@ -14499,7 +14606,8 @@
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "38e31e24-c107-4b47-8c06-898ad427a14c",
@@ -14644,7 +14752,8 @@
                   "text": "Timeout: 60s",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "7984ac4b-cc79-4f54-b2fc-d783dd972718",
@@ -14860,7 +14969,8 @@
                   "text": "Screen Lock",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "fac75542-b498-46d7-b842-c9f9c0c5bb4a",
@@ -14968,7 +15078,8 @@
                   "text": "Settings Lock",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "60e1d2a7-6020-4fad-c4cd-03ac2d6ee0bb",
@@ -15075,7 +15186,8 @@
                   "text": "Lock PIN",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "906b4bcf-217f-4447-96ab-ed8c51ea632f",
@@ -15322,7 +15434,8 @@
                   "text": "Mouse",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "e766b172-8ca2-4455-b175-3ebfb710a49d",
@@ -15373,7 +15486,8 @@
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "09751074-3c10-4762-8f9a-fbc08ab09000",
@@ -15419,7 +15533,8 @@
                   "text": "Keyboard",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "9a10c334-e7b2-4324-ae46-165d76a7d996",
@@ -15470,7 +15585,8 @@
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "a5ba4da3-f624-47cb-cb24-8f71a8b1fa4c",
@@ -15615,7 +15731,8 @@
                   "text": "Message Alert",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "e39270ea-eeb0-46eb-b3fb-95fec9a5d486",
@@ -15722,7 +15839,8 @@
                   "text": "Ringtone",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "a51f9108-d1ab-4ca1-c2f2-982246875006",
@@ -15773,7 +15891,8 @@
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "0c48f39f-fae5-4971-c6fb-98709fb81654",
@@ -15922,7 +16041,8 @@
                   "optionsType": "literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "9f28dd40-324c-4ed0-8be7-e5070fb58141",
@@ -16066,7 +16186,8 @@
                   "text": "Zone",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "e8554ed8-6b1c-48e7-ccf9-d140873044b6",
@@ -16117,7 +16238,8 @@
                   "optionsType": "literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "47888308-d7a5-449e-be26-bed2faaa435a",
@@ -16163,7 +16285,8 @@
                   "text": "City",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "179d532f-9fc4-445f-8109-9c6b2db0ab16",
@@ -16214,7 +16337,8 @@
                   "optionsType": "literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "4ac35f99-ef95-4def-a127-8f80d2a02512",
@@ -16363,7 +16487,8 @@
                   "group": "",
                   "groupIndex": 0,
                   "text": "Backup",
-                  "textType": "translated-literal"
+                  "textType": "translated-literal",
+                  "useStaticText": true
                 },
                 {
                   "objID": "3ea6a954-f5c2-4e1b-c26f-7ce7928bd278",
@@ -16413,7 +16538,8 @@
                   "group": "",
                   "groupIndex": 0,
                   "text": "Restore",
-                  "textType": "translated-literal"
+                  "textType": "translated-literal",
+                  "useStaticText": true
                 },
                 {
                   "objID": "4fc39dfe-74e9-42db-d1de-8f5af3b029e8",
@@ -16464,7 +16590,8 @@
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "58cad2cf-9735-4a9d-d9c0-7a1a4b75c32c",
@@ -16615,7 +16742,8 @@
                   "optionsType": "translated-literal",
                   "selected": 0,
                   "selectedType": "literal",
-                  "direction": "bottom"
+                  "direction": "bottom",
+                  "useStaticText": true
                 },
                 {
                   "objID": "aebbc767-ab3a-4f26-96f9-b2fec427e220",
@@ -16764,7 +16892,8 @@
                   "text": "Channel Name",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "56b43066-7c47-48dd-a702-0e5458f9f9d0",
@@ -16912,7 +17041,8 @@
                   "text": "Pre-shared Key",
                   "textType": "translated-literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "bf47d7b6-b136-4196-cadf-945e3bf5092a",
@@ -17487,7 +17617,8 @@
                           "text": "Unknown",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "66e3e249-b4a7-4f7f-cd48-1b47501f2535",
@@ -17601,7 +17732,8 @@
                           "text": "Offline",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "0eb7ae34-3c94-43e1-9edd-3f40ef97847e",
@@ -17715,7 +17847,8 @@
                           "text": "Public Key",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "1d9093e0-e89d-499c-d4a4-06f81ddc3408",
@@ -17791,7 +17924,8 @@
                               "optionsType": "literal",
                               "selected": 0,
                               "selectedType": "literal",
-                              "direction": "bottom"
+                              "direction": "bottom",
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SNAPPABLE|SCROLLABLE|SCROLL_WITH_ARROW",
@@ -17818,7 +17952,8 @@
                           "text": "Channel",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "af19461e-4a2b-42b0-fbee-decc52249a7a",
@@ -17894,7 +18029,8 @@
                               "optionsType": "literal",
                               "selected": 0,
                               "selectedType": "literal",
-                              "direction": "bottom"
+                              "direction": "bottom",
+                              "useStaticText": true
                             }
                           ],
                           "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SNAPPABLE|SCROLLABLE|SCROLL_WITH_ARROW",
@@ -17921,7 +18057,8 @@
                           "text": "Hops away",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "1d42ecf1-4347-4f02-9a2b-216753b60e06",
@@ -18036,7 +18173,8 @@
                           "text": "MQTT",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "1ffc8d36-5ac1-47ea-d009-1a9385ab7268",
@@ -18150,7 +18288,8 @@
                           "text": "Position",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "5d8b2cb0-3135-4e96-f592-773e03b90d50",
@@ -18307,7 +18446,8 @@
                           "text": "Name",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         }
                       ],
                       "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -18476,7 +18616,8 @@
                           "text": "Active Chat",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "9d818f59-9ada-4b5e-856a-767a18e3eec1",
@@ -18590,7 +18731,8 @@
                           "text": "Position",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "9e76b51b-136a-42d0-db54-34a65869109d",
@@ -18704,7 +18846,8 @@
                           "text": "Telemetry",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "63fd89d5-cc88-4d52-b9bc-8a5f439bf1f9",
@@ -18818,7 +18961,8 @@
                           "text": "IAQ",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         },
                         {
                           "objID": "6f056a80-cf6b-49ae-eac3-d655fa370813",
@@ -18975,7 +19119,8 @@
                           "text": "Name",
                           "textType": "translated-literal",
                           "longMode": "DOT",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         }
                       ],
                       "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -19486,7 +19631,8 @@
                   "text": "",
                   "textType": "literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "db6ade71-703b-4ae6-9288-74384802e4b9",
@@ -19616,7 +19762,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -19740,7 +19887,8 @@
                           "text": "Start",
                           "textType": "translated-literal",
                           "longMode": "WRAP",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         }
                       ],
                       "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -19931,7 +20079,8 @@
                       "text": "",
                       "textType": "literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -20147,7 +20296,8 @@
                       "text": "choose\\nnode",
                       "textType": "translated-literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -20247,7 +20397,8 @@
                       "text": "Start",
                       "textType": "literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -20478,7 +20629,8 @@
                   "text": "SNR\n-10.0",
                   "textType": "literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "b59fd81c-5ce5-4c51-ef7d-06a03f457f09",
@@ -20529,7 +20681,8 @@
                   "text": "RSSI\n-100",
                   "textType": "literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "f7b96b80-821d-4c24-f3b6-d9baf92a5abf",
@@ -20578,7 +20731,8 @@
                   "text": "8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0\n-18.0",
                   "textType": "literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "00f8218d-ba31-4b4a-ae83-4f2e1c22fab7",
@@ -20627,7 +20781,8 @@
                   "text": "-20\n-30\n-40\n-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120",
                   "textType": "literal",
                   "longMode": "CLIP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 }
               ],
               "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SNAPPABLE",
@@ -20819,7 +20974,8 @@
                       "text": "choose target node",
                       "textType": "translated-literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -21119,7 +21275,8 @@
                           "text": "Start",
                           "textType": "translated-literal",
                           "longMode": "WRAP",
-                          "recolor": false
+                          "recolor": false,
+                          "useStaticText": true
                         }
                       ],
                       "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -21360,7 +21517,8 @@
                       "text": "Meshtastic",
                       "textType": "literal",
                       "longMode": "SCROLL",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "e88e7c97-2ab5-46b1-9cac-dc9f2538f2e5",
@@ -21408,7 +21566,8 @@
                       "text": "ABCD",
                       "textType": "literal",
                       "longMode": "WRAP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "93b5e2f3-a625-4ec2-c411-df097634732f",
@@ -21455,7 +21614,8 @@
                       "text": "100%",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "aa0f7a2a-78f2-4314-b943-1f00033f99b9",
@@ -21502,7 +21662,8 @@
                       "text": "now",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "87280e08-5073-448f-d022-1abf37ece42c",
@@ -21549,7 +21710,8 @@
                       "text": "RSSI: 0.0 SNR: 0.0",
                       "textType": "literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     }
                   ],
                   "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -21942,7 +22104,8 @@
                   "text": "New Message from\n",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 }
               ],
               "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -22089,7 +22252,8 @@
                   "text": "Restoring messages ...",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "e5bf0dfd-7a66-4d86-c2fa-43355e392245",
@@ -22256,7 +22420,8 @@
                   "text": "Please set region and name",
                   "textType": "translated-literal",
                   "longMode": "SCROLL_CIRCULAR",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 },
                 {
                   "objID": "b02c2c0f-9794-493b-a033-009fed753e4f",
@@ -22427,7 +22592,8 @@
                       "text": "Region",
                       "textType": "translated-literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "ff599c2d-2bf9-4847-d560-7916370a9063",
@@ -22478,7 +22644,8 @@
                       "optionsType": "literal",
                       "selected": 0,
                       "selectedType": "literal",
-                      "direction": "bottom"
+                      "direction": "bottom",
+                      "useStaticText": true
                     },
                     {
                       "objID": "ad6da82c-1d5e-468b-da11-2a82746b58d0",
@@ -22527,7 +22694,8 @@
                       "text": "Short Name",
                       "textType": "translated-literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "da6151da-85ba-46cb-d806-c48b2c41e697",
@@ -22674,7 +22842,8 @@
                       "text": "Long Name",
                       "textType": "translated-literal",
                       "longMode": "CLIP",
-                      "recolor": false
+                      "recolor": false,
+                      "useStaticText": true
                     },
                     {
                       "objID": "44aa815d-5248-41b2-835e-e40d64d3c3d2",
@@ -22960,7 +23129,8 @@
                   "text": "Resync ...",
                   "textType": "translated-literal",
                   "longMode": "DOT",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 }
               ],
               "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -23396,7 +23566,8 @@
               "text": "o o o o o o",
               "textType": "literal",
               "longMode": "CLIP",
-              "recolor": false
+              "recolor": false,
+              "useStaticText": true
             }
           ],
           "widgetFlags": "PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -23573,7 +23744,8 @@
                   "text": "OK",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 }
               ],
               "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
@@ -23659,7 +23831,8 @@
                   "text": "Cancel",
                   "textType": "translated-literal",
                   "longMode": "WRAP",
-                  "recolor": false
+                  "recolor": false,
+                  "useStaticText": true
                 }
               ],
               "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
