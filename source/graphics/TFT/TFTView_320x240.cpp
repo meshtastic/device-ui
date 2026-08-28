@@ -3904,13 +3904,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             meshtastic_Config_LoRaConfig_RegionCode region =
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.setup_region_dropdown) + 1);
 
-            uint32_t numChannels = LoRaPresets::getNumChannels(region, THIS->db.config.lora.modem_preset);
-            // if (numChannels == 0) {
-            //     // region not possible for selected preset, revert
-            //     lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
-            //     return;
-            // }
-
             if (region != THIS->db.config.lora.region) {
                 char buf1[10], buf2[30];
                 lv_dropdown_get_selected_str(objects.setup_region_dropdown, buf1, sizeof(buf1));
@@ -3925,8 +3918,9 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     lora.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO;
                 }
                 uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, 
-                                                                   THIS->db.config.lora.modem_preset, 
+                                                                   lora.modem_preset, 
                                                                    THIS->db.channel[0].settings.name);
+                uint32_t numChannels = LoRaPresets::getNumChannels(region, lora.modem_preset);
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
