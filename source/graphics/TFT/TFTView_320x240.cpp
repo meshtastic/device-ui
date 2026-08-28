@@ -3918,6 +3918,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
 
                 meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
+
+                if (lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET && 
+                    region == meshtastic_Config_LoRaConfig_RegionCode_US &&
+                    lora.use_preset && lora.modem_preset == meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) {
+                    lora.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO;
+                }
                 uint32_t defaultSlot = lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? lora.channel_num : 0;
                 if (defaultSlot == 0) {
                     defaultSlot =
