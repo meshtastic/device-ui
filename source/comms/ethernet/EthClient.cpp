@@ -64,7 +64,7 @@ bool EthClient::connect(void)
 {
     if (clientStatus != eConnected) {
         setConnectionStatus(eConnecting, "Connecting...");
-        if (client->connect(server, SERVER_PORT)) {
+        if (client->connect(server, serverPort)) {
             ILOG_INFO("EthClient connected!");
             setConnectionStatus(eConnected, "Connected!");
         } else {

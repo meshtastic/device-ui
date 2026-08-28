@@ -1,4 +1,17 @@
 #include "ui.h"
+#include "graphics/view/TFT/PacketAuthUI.h"
+#include "lv_i18n.h"
+#include "styles.h"
+
+lv_obj_t *ui_PacketAuthButton;
+lv_obj_t *ui_PacketAuthLabel;
+lv_obj_t *ui_PacketAuthPanel;
+lv_obj_t *ui_PacketAuthDropdown;
+lv_obj_t *ui_PacketAuthDescription;
+lv_obj_t *ui_PacketAuthWarning;
+lv_obj_t *ui_PacketAuthOkButton;
+lv_obj_t *ui_PacketAuthOkLabel;
+lv_obj_t *ui_PacketAuthCancelButton;
 
 lv_obj_t * ui_AdvancedSettingsPanel;
 lv_obj_t * ui_SettingsTabView;
@@ -747,4 +760,73 @@ void create_tabview_settings()
     lv_obj_set_align(ui_RemoteHardwareLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_long_mode(ui_RemoteHardwareLabel, LV_LABEL_LONG_DOT);
     lv_label_set_text(ui_RemoteHardwareLabel, "Remote Hardware");
+
+    ui_PacketAuthButton = lv_btn_create(objects.tab_page_basic_settings);
+    lv_obj_set_size(ui_PacketAuthButton, lv_pct(95), 30);
+    lv_obj_add_flag(ui_PacketAuthButton, LV_OBJ_FLAG_HIDDEN | LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+    add_style_settings_button_style(ui_PacketAuthButton);
+    lv_obj_set_style_shadow_width(ui_PacketAuthButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_PacketAuthLabel = lv_label_create(ui_PacketAuthButton);
+    lv_obj_set_width(ui_PacketAuthLabel, lv_pct(100));
+    lv_label_set_long_mode(ui_PacketAuthLabel, LV_LABEL_LONG_DOT);
+    lv_label_set_text(ui_PacketAuthLabel, _("Packet authenticity: Balanced"));
+    lv_obj_set_style_align(ui_PacketAuthLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_PacketAuthPanel = lv_obj_create(objects.main_screen);
+    // Keep enough vertical room for the expanded selector, wrapped copy, and
+    // actions.  236px fits the 240px landscape display with a small margin.
+    lv_obj_set_size(ui_PacketAuthPanel, lv_pct(90), 236);
+    lv_obj_set_style_align(ui_PacketAuthPanel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_flag(ui_PacketAuthPanel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(ui_PacketAuthPanel, LV_OBJ_FLAG_SCROLLABLE);
+    add_style_settings_panel_style(ui_PacketAuthPanel);
+    lv_obj_set_style_border_width(ui_PacketAuthPanel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_PacketAuthPanel, lv_color_hex(0x216ad8), LV_PART_MAIN | LV_STATE_DEFAULT);
+    // This is a modal settings panel; keep the form beneath it from bleeding through its text.
+    lv_obj_set_style_bg_opa(ui_PacketAuthPanel, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *title = lv_label_create(ui_PacketAuthPanel);
+    lv_label_set_text(title, _("Packet authenticity"));
+    lv_obj_set_style_align(title, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_PacketAuthDropdown = lv_dropdown_create(ui_PacketAuthPanel);
+    lv_dropdown_set_options(ui_PacketAuthDropdown, _("Balanced\nCompatible\nStrict"));
+    lv_obj_set_pos(ui_PacketAuthDropdown, 0, 25);
+    lv_obj_set_size(ui_PacketAuthDropdown, lv_pct(100), 30);
+    // The default theme adds generous line spacing, causing the list to
+    // cover the description and action buttons.  Compact the list so all
+    // three choices stay inside the modal's reserved selector area.
+    lv_obj_t *packetAuthList = lv_dropdown_get_list(ui_PacketAuthDropdown);
+    lv_obj_set_style_text_line_space(packetAuthList, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(packetAuthList, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(packetAuthList, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_PacketAuthDescription = lv_label_create(ui_PacketAuthPanel);
+    // Leave the selector's expanded list clear of the explanatory copy.
+    lv_obj_set_pos(ui_PacketAuthDescription, 0, 112);
+    lv_obj_set_width(ui_PacketAuthDescription, lv_pct(100));
+    lv_label_set_long_mode(ui_PacketAuthDescription, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(ui_PacketAuthDescription, _("Prefer signed packets (recommended)."));
+
+    ui_PacketAuthWarning = lv_label_create(ui_PacketAuthPanel);
+    lv_obj_set_pos(ui_PacketAuthWarning, 0, 98);
+    lv_obj_set_width(ui_PacketAuthWarning, lv_pct(100));
+    lv_label_set_long_mode(ui_PacketAuthWarning, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(ui_PacketAuthWarning, _("Unsigned broadcasts filtered."));
+    lv_obj_set_style_text_color(ui_PacketAuthWarning, lv_color_hex(0xeb533f), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_flag(ui_PacketAuthWarning, LV_OBJ_FLAG_HIDDEN);
+
+    ui_PacketAuthOkButton = lv_btn_create(ui_PacketAuthPanel);
+    lv_obj_set_size(ui_PacketAuthOkButton, lv_pct(47), 30);
+    lv_obj_set_style_align(ui_PacketAuthOkButton, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_PacketAuthOkLabel = lv_label_create(ui_PacketAuthOkButton);
+    lv_label_set_text(ui_PacketAuthOkLabel, _("Save"));
+    lv_obj_center(ui_PacketAuthOkLabel);
+
+    ui_PacketAuthCancelButton = lv_btn_create(ui_PacketAuthPanel);
+    lv_obj_set_size(ui_PacketAuthCancelButton, lv_pct(47), 30);
+    lv_obj_set_style_align(ui_PacketAuthCancelButton, LV_ALIGN_BOTTOM_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_t *cancelLabel = lv_label_create(ui_PacketAuthCancelButton);
+    lv_label_set_text(cancelLabel, _("Cancel"));
+    lv_obj_center(cancelLabel);
 }
