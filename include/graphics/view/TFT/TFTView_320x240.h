@@ -433,6 +433,7 @@ class TFTView_320x240 : public MeshtasticView
     static uint32_t pinKeys;                              // number of keys pressed (lock screen)
     static bool screenLocked;                             // screen lock active
     static bool screenUnlockRequest;                      // screen unlock request (via button)
+    static uint32_t kbdBtnPressTime;                      // true if keyboard animation is playing
     uint32_t selectedHops;                                // remember selected choice
     bool chooseNodeSignalScanner;                         // chose a target node for signal scanner
     bool chooseNodeTraceRoute;                            // chose a target node for trace route

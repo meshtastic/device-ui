@@ -123,6 +123,7 @@ time_t TFTView_320x240::startTime = 0;
 uint32_t TFTView_320x240::pinKeys = 0;
 bool TFTView_320x240::screenLocked = false;
 bool TFTView_320x240::screenUnlockRequest = false;
+uint32_t TFTView_320x240::kbdBtnPressTime = 0;
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -4475,8 +4476,7 @@ void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
 void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
 {
     lv_obj_t *dropdown = lv_event_get_target_obj(e);
-    meshtastic_Config_LoRaConfig_ModemPreset preset =
-        THIS->val2preset((meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown));
+    meshtastic_Config_LoRaConfig_ModemPreset preset = THIS->val2preset(lv_dropdown_get_selected(dropdown));
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
     if (numChannels == 0) {
         // preset not possible for this region, revert
@@ -6915,20 +6915,28 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (textArea == objects.message_input_area) {
+        if (millis() - kbdBtnPressTime < 500) {
+            lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+            return;
+        }
+
         // if keyboard is to be shown in message input area then scroll the panel using animation
         static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
         static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto deleted_cb = [](_lv_anim_t *) { kbdBtnPressTime = millis(); };
 
         static lv_anim_t a1;
         lv_area_t panel_coords;
         lv_obj_get_coords(objects.messages_panel, &panel_coords);
 
+        kbdBtnPressTime = millis();
         lv_anim_init(&a1);
         lv_anim_set_var(&a1, objects.messages_panel);
         lv_anim_set_exec_cb(&a1, panelAnimCB);
         lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 - kb_h);
         lv_anim_set_duration(&a1, 300);
         lv_anim_set_path_cb(&a1, lv_anim_path_linear);
+        lv_anim_set_deleted_cb(&a1, deleted_cb);
         lv_anim_start(&a1);
 
         static lv_anim_t a2;
@@ -6938,6 +6946,7 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
         lv_anim_set_values(&a2, v, v - kb_h);
         lv_anim_set_duration(&a2, 300);
         lv_anim_set_path_cb(&a2, lv_anim_path_linear);
+        lv_anim_set_deleted_cb(&a2, deleted_cb);
         lv_anim_start(&a2);
     } else {
         if (text_coords.y1 > kb_h + 30) {
@@ -6961,14 +6970,21 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
 
     if (panel == objects.messages_panel) {
+        if (millis() - kbdBtnPressTime < 500)
+            return;
+
         static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
         static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
-        static auto deleted_cb = [](_lv_anim_t *) { lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN); };
+        static auto deleted_cb = [](_lv_anim_t *) {
+            lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+            kbdBtnPressTime = millis();
+        };
 
         static lv_anim_t a1;
         lv_area_t panel_coords;
         lv_obj_get_coords(panel, &panel_coords);
 
+        kbdBtnPressTime = millis();
         lv_anim_init(&a1);
         lv_anim_set_var(&a1, panel);
         lv_anim_set_exec_cb(&a1, panelAnimCB);
