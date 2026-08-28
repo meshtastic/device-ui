@@ -4015,6 +4015,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
+                THIS->showLoRaFrequency(lora);
             }
             lv_obj_add_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_region_button);
@@ -4024,9 +4025,10 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
             meshtastic_Config_LoRaConfig_ModemPreset preset =
                 THIS->val2preset(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
+            meshtastic_Channel &ch = THIS->db.channel[0];
             uint16_t channelNum = lv_slider_get_value(objects.frequency_slot_slider);
             if (preset != lora.modem_preset || lora.channel_num != channelNum) {
-                char buf1[16], buf2[32];
+                char buf1[20], buf2[32];
                 lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
                 lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
                 lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
@@ -4034,6 +4036,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lora.use_preset = true;
                 lora.modem_preset = preset;
                 lora.channel_num = channelNum;
+                THIS->setChannelName(ch);
+                THIS->showLoRaFrequency(lora);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
             }
             lv_obj_add_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
@@ -4476,7 +4480,7 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
 {
     lv_obj_t *dropdown = lv_event_get_target_obj(e);
     meshtastic_Config_LoRaConfig_ModemPreset preset =
-        (meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown);
+        THIS->val2preset((meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown));
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
     if (numChannels == 0) {
         // preset not possible for this region, revert
