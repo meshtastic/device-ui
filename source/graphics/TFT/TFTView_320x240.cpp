@@ -3924,11 +3924,9 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                     lora.use_preset && lora.modem_preset == meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) {
                     lora.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO;
                 }
-                uint32_t defaultSlot = lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? lora.channel_num : 0;
-                if (defaultSlot == 0) {
-                    defaultSlot =
-                        LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset, THIS->db.channel[0].settings.name);
-                }
+                uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, 
+                                                                   THIS->db.config.lora.modem_preset, 
+                                                                   THIS->db.channel[0].settings.name);
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
