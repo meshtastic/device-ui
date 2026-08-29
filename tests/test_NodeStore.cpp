@@ -170,6 +170,11 @@ TEST_CASE("node store updates position telemetry and radio fields on an existing
     CHECK(record.environmentMetrics.temperature == doctest::Approx(22.5f));
     CHECK(record.hasAirQualityMetrics);
     CHECK(record.airQualityMetrics.pm25_standard == 17);
+
+    meshtastic_AirQualityMetrics missingAir = meshtastic_AirQualityMetrics_init_default;
+    CHECK(store.updateAirQualityMetrics(7, missingAir).kind == NodeMutationKind::Unchanged);
+    CHECK(store.find(7)->hasAirQualityMetrics);
+    CHECK(store.find(7)->airQualityMetrics.pm25_standard == 17);
     CHECK(record.rssi == -87);
     CHECK(record.snr == doctest::Approx(6.25f));
     CHECK(record.hopsAway == 3);

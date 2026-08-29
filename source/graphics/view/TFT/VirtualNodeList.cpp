@@ -1100,7 +1100,7 @@ void VirtualNodeList::refreshVisibleRows(bool force, bool rebind, bool reorder)
             lv_obj_remove_flag(row.panel, LV_OBJ_FLAG_HIDDEN);
         } else {
             lv_obj_add_flag(row.panel, LV_OBJ_FLAG_HIDDEN);
-            if (reorder && attachedGroup && row.btn && lv_obj_get_group(row.btn) == attachedGroup) {
+            if (attachedGroup && row.btn && lv_obj_get_group(row.btn) == attachedGroup) {
                 lv_group_remove_obj(row.btn);
             }
             clearRowBinding(row);

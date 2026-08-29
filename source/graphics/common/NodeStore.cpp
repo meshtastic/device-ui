@@ -272,7 +272,7 @@ NodeMutation NodeStore::updateEnvironmentMetrics(NodeId id, const meshtastic_Env
 NodeMutation NodeStore::updateAirQualityMetrics(NodeId id, const meshtastic_AirQualityMetrics &metrics)
 {
     auto it = nodes.find(id);
-    if (it == nodes.end())
+    if (it == nodes.end() || !metrics.has_pm25_standard)
         return unchanged(id);
     const auto retainedMetrics = summarizeAirQualityMetrics(metrics);
     if (it->second.hasAirQualityMetrics && sameAirQualityMetrics(it->second.airQualityMetrics, retainedMetrics))

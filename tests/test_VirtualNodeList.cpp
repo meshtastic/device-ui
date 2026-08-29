@@ -235,7 +235,7 @@ TEST_CASE("virtual node list repairs navigation order after deferred boundary sc
     lv_obj_delete(screen);
 }
 
-TEST_CASE("virtual node list removes missing records from navigation group during stale index refresh")
+TEST_CASE("virtual node list removes missing records from navigation group during scroll refresh")
 {
     ensureLvgl();
     auto *screen = lv_obj_create(nullptr);
@@ -256,7 +256,7 @@ TEST_CASE("virtual node list removes missing records from navigation group durin
         REQUIRE(lv_group_get_obj_count(list.navigationGroup()) == 3);
 
         store.remove(0x2222);
-        list.refreshVisibleRows(true, false, true);
+        list.refreshVisibleRows(true, false, false);
 
         CHECK(lv_group_get_obj_count(list.navigationGroup()) == 2);
     }
