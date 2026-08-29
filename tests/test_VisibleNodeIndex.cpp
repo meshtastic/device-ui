@@ -3,6 +3,7 @@
 #include "graphics/common/VisibleNodeIndex.h"
 
 #include <algorithm>
+#include <cstring>
 
 namespace
 {
