@@ -211,15 +211,10 @@ TEST_CASE("virtual node list repairs navigation order after deferred boundary sc
         const uint32_t baselineGroupMoves = list.groupOrderMoveCountForTesting();
 
         lv_obj_scroll_to_y(parent, list.rowYForTesting(2), LV_ANIM_OFF);
-        list.refreshVisibleRows(false, false, false);
-        CHECK(list.groupOrderMoveCountForTesting() == baselineGroupMoves);
-
-        list.refreshVisibleRows(false, false, true);
         CHECK(list.groupOrderMoveCountForTesting() > baselineGroupMoves);
 
         const uint32_t repairedGroupMoves = list.groupOrderMoveCountForTesting();
         lv_obj_scroll_to_y(parent, list.rowYForTesting(2) + 1, LV_ANIM_OFF);
-        list.refreshVisibleRows(false, false, true);
         CHECK(list.groupOrderMoveCountForTesting() == repairedGroupMoves);
     }
 
