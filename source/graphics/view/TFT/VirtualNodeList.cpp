@@ -1142,8 +1142,8 @@ void VirtualNodeList::refreshVisibleRows(bool force, bool rebind, bool reorder)
 
     const bool allRowsAssigned = std::all_of(assignedRows.begin(), assignedRows.begin() + visibleCount,
                                              [unusedRow](size_t rowIndex) { return rowIndex != unusedRow; });
-    const bool canRotateRows = allRowsAssigned && !force && !rebind && visibleCount == rowPool.size() &&
-                               previousFirstRenderedIndex != std::numeric_limits<size_t>::max();
+    const bool canRotateRows =
+        allRowsAssigned && !force && !rebind && previousFirstRenderedIndex != std::numeric_limits<size_t>::max();
     const size_t forwardRows = canRotateRows && firstIdx > previousFirstRenderedIndex ? firstIdx - previousFirstRenderedIndex : 0;
     const size_t backwardRows =
         canRotateRows && previousFirstRenderedIndex > firstIdx ? previousFirstRenderedIndex - firstIdx : 0;
