@@ -78,7 +78,9 @@ inline bool shortNameFallsBackToId(const char *shortName)
     if (length == 0) {
         return true;
     }
-    return lv_txt_get_width(shortName, static_cast<uint32_t>(length), &ui_font_montserrat_14, 0) <= 4;
+    lv_point_t size;
+    lv_text_get_size(&size, shortName, &ui_font_montserrat_14, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+    return size.x <= 4;
 }
 
 inline void formatShortDisplayName(char *dest, size_t destSize, const char *shortName, NodeId nodeId)
