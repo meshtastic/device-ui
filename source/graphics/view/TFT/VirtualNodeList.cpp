@@ -29,10 +29,22 @@ size_t rowPoolSizeForViewport(lv_obj_t *parentPanel)
     lv_obj_update_layout(parentPanel);
     const int32_t contentHeight = lv_obj_get_height(parentPanel) - lv_obj_get_style_pad_top(parentPanel, LV_PART_MAIN) -
                                   lv_obj_get_style_pad_bottom(parentPanel, LV_PART_MAIN);
+    if (contentHeight <= 0) {
+        return 1;
+    }
+    constexpr int32_t rowPitch = VirtualNodeList::COLLAPSED_ROW_HEIGHT + VirtualNodeList::ROW_GAP;
     const size_t visibleRows =
-        static_cast<size_t>(std::max<int32_t>(0, contentHeight) + VirtualNodeList::COLLAPSED_ROW_HEIGHT - 1) /
-        (VirtualNodeList::COLLAPSED_ROW_HEIGHT + VirtualNodeList::ROW_GAP);
+        static_cast<size_t>(contentHeight + VirtualNodeList::ROW_GAP + rowPitch - 1) / static_cast<size_t>(rowPitch);
     return std::clamp(visibleRows + 1, size_t{1}, VirtualNodeList::MAX_POOL_SIZE);
+}
+
+bool sameRenderContext(const NodeListRenderContext &left, const NodeListRenderContext &right)
+{
+    return left.ownNode == right.ownNode && left.hasOwnPosition == right.hasOwnPosition &&
+           left.ownLatitude == right.ownLatitude && left.ownLongitude == right.ownLongitude &&
+           left.metricUnits == right.metricUnits && left.highlightActiveChat == right.highlightActiveChat &&
+           left.highlightPosition == right.highlightPosition && left.highlightTelemetry == right.highlightTelemetry &&
+           left.highlightIaq == right.highlightIaq && std::strcmp(left.highlightName, right.highlightName) == 0;
 }
 
 template <size_t Size> void setRowText(lv_obj_t *label, char (&storage)[Size], const char *text)
@@ -464,13 +476,7 @@ void VirtualNodeList::sync(const NodeStore &store, const VisibleNodeIndex &index
     const uint32_t nextTime = now != 0 ? now : static_cast<uint32_t>(std::time(nullptr));
     const bool indexChanged = currentIndex != &index || lastSyncedIndexGeneration != index.generation();
     const bool timeChanged = currentTime != nextTime && visibleLastHeardLabelsNeedRefresh(store, nextTime, context);
-    const bool contextChanged =
-        renderContext.ownNode != context.ownNode || renderContext.hasOwnPosition != context.hasOwnPosition ||
-        renderContext.ownLatitude != context.ownLatitude || renderContext.ownLongitude != context.ownLongitude ||
-        renderContext.metricUnits != context.metricUnits || renderContext.highlightActiveChat != context.highlightActiveChat ||
-        renderContext.highlightPosition != context.highlightPosition ||
-        renderContext.highlightTelemetry != context.highlightTelemetry || renderContext.highlightIaq != context.highlightIaq ||
-        std::strcmp(renderContext.highlightName, context.highlightName) != 0;
+    const bool contextChanged = !sameRenderContext(renderContext, context);
     const ScrollAnchor scrollAnchor = indexChanged ? captureScrollAnchor() : ScrollAnchor{};
     const NodeId focusedId = currentFocusedId();
     const size_t fallbackFocusIndex = lastFocusedIndex;
@@ -1099,6 +1105,8 @@ void VirtualNodeList::refreshVisibleRows(bool force, bool rebind, bool reorder)
                 lv_group_remove_obj(row.btn);
             }
             clearRowBinding(row);
+            usedRows[rowIndex] = false;
+            assignedRows[slot] = unusedRow;
         }
     }
 
@@ -1132,8 +1140,10 @@ void VirtualNodeList::refreshVisibleRows(bool force, bool rebind, bool reorder)
         }
     }
 
-    const bool canRotateRows =
-        !force && !rebind && visibleCount == rowPool.size() && previousFirstRenderedIndex != std::numeric_limits<size_t>::max();
+    const bool allRowsAssigned = std::all_of(assignedRows.begin(), assignedRows.begin() + visibleCount,
+                                             [unusedRow](size_t rowIndex) { return rowIndex != unusedRow; });
+    const bool canRotateRows = allRowsAssigned && !force && !rebind && visibleCount == rowPool.size() &&
+                               previousFirstRenderedIndex != std::numeric_limits<size_t>::max();
     const size_t forwardRows = canRotateRows && firstIdx > previousFirstRenderedIndex ? firstIdx - previousFirstRenderedIndex : 0;
     const size_t backwardRows =
         canRotateRows && previousFirstRenderedIndex > firstIdx ? previousFirstRenderedIndex - firstIdx : 0;
@@ -1200,11 +1210,16 @@ bool VirtualNodeList::refreshNode(NodeId id, uint32_t now, const NodeListRenderC
     }
 
     currentTime = now != 0 ? now : static_cast<uint32_t>(std::time(nullptr));
-    renderContext = context;
+    const bool contextChanged = !sameRenderContext(renderContext, context);
 
     const auto *rec = currentStore->find(id);
     if (!rec) {
         return false;
+    }
+    if (contextChanged) {
+        renderContext = context;
+        refreshVisibleRows(true, true);
+        return true;
     }
 
     for (size_t index = 0; index < rowPool.size(); ++index) {
@@ -1313,6 +1328,16 @@ bool VirtualNodeList::longLabelsScrollForTesting(NodeId id) const
         }
     }
     return false;
+}
+
+const char *VirtualNodeList::shortTextForTesting(NodeId id) const
+{
+    for (const auto &row : rowPool) {
+        if (row.boundId == id && row.panel && !lv_obj_has_flag(row.panel, LV_OBJ_FLAG_HIDDEN)) {
+            return row.shortText;
+        }
+    }
+    return "";
 }
 #endif
 

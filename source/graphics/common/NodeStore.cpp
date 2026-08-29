@@ -70,6 +70,11 @@ NodeEnvironmentMetrics summarizeEnvironmentMetrics(const meshtastic_EnvironmentM
             metrics.voltage,     metrics.current,           metrics.iaq};
 }
 
+NodeAirQualityMetrics summarizeAirQualityMetrics(const meshtastic_AirQualityMetrics &metrics)
+{
+    return {static_cast<uint16_t>(metrics.pm25_standard > UINT16_MAX ? UINT16_MAX : metrics.pm25_standard)};
+}
+
 bool sameDeviceMetrics(const NodeDeviceMetrics &left, const NodeDeviceMetrics &right)
 {
     return left.battery_level == right.battery_level && left.voltage == right.voltage &&
@@ -81,6 +86,11 @@ bool sameEnvironmentMetrics(const NodeEnvironmentMetrics &left, const NodeEnviro
     return left.temperature == right.temperature && left.relative_humidity == right.relative_humidity &&
            left.barometric_pressure == right.barometric_pressure && left.voltage == right.voltage &&
            left.current == right.current && left.iaq == right.iaq;
+}
+
+bool sameAirQualityMetrics(const NodeAirQualityMetrics &left, const NodeAirQualityMetrics &right)
+{
+    return left.pm25_standard == right.pm25_standard;
 }
 
 NodeMutation unchanged(NodeId id)
@@ -240,6 +250,12 @@ NodeMutation NodeStore::updateEnvironmentMetrics(NodeId id, const meshtastic_Env
     if (it == nodes.end())
         return unchanged(id);
     auto retainedMetrics = summarizeEnvironmentMetrics(metrics);
+    if (!metrics.has_voltage && it->second.environmentMetrics.voltage != 0.0f) {
+        retainedMetrics.voltage = it->second.environmentMetrics.voltage;
+    }
+    if (!metrics.has_current && it->second.environmentMetrics.current != 0.0f) {
+        retainedMetrics.current = it->second.environmentMetrics.current;
+    }
     if (it->second.hasEnvironmentMetrics && (retainedMetrics.iaq == 0 || retainedMetrics.iaq >= 1000) &&
         it->second.environmentMetrics.iaq > 0 && it->second.environmentMetrics.iaq < 1000) {
         retainedMetrics.iaq = it->second.environmentMetrics.iaq;
@@ -251,6 +267,39 @@ NodeMutation NodeStore::updateEnvironmentMetrics(NodeId id, const meshtastic_Env
     it->second.hasEnvironmentMetrics = true;
     it->second.environmentMetrics = retainedMetrics;
     return updated(id, NodeFieldEnvironmentMetrics);
+}
+
+NodeMutation NodeStore::updateAirQualityMetrics(NodeId id, const meshtastic_AirQualityMetrics &metrics)
+{
+    auto it = nodes.find(id);
+    if (it == nodes.end())
+        return unchanged(id);
+    const auto retainedMetrics = summarizeAirQualityMetrics(metrics);
+    if (it->second.hasAirQualityMetrics && sameAirQualityMetrics(it->second.airQualityMetrics, retainedMetrics))
+        return unchanged(id);
+    it->second.hasAirQualityMetrics = true;
+    it->second.airQualityMetrics = retainedMetrics;
+    return updated(id, NodeFieldAirQualityMetrics);
+}
+
+NodeMutation NodeStore::updatePowerMetrics(NodeId id, const meshtastic_PowerMetrics &metrics)
+{
+    auto it = nodes.find(id);
+    if (it == nodes.end() || (!metrics.has_ch1_voltage && !metrics.has_ch1_current))
+        return unchanged(id);
+
+    auto retainedMetrics = it->second.environmentMetrics;
+    if (metrics.has_ch1_voltage) {
+        retainedMetrics.voltage = metrics.ch1_voltage;
+    }
+    if (metrics.has_ch1_current) {
+        retainedMetrics.current = metrics.ch1_current;
+    }
+    if (sameEnvironmentMetrics(it->second.environmentMetrics, retainedMetrics))
+        return unchanged(id);
+
+    it->second.environmentMetrics = retainedMetrics;
+    return updated(id, it->second.hasEnvironmentMetrics ? NodeFieldEnvironmentMetrics : NodeFieldPowerMetrics);
 }
 
 NodeMutation NodeStore::updateSignal(NodeId id, int32_t rssi, float snr)

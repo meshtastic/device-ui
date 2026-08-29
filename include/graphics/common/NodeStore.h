@@ -54,12 +54,17 @@ struct NodeEnvironmentMetrics {
     uint16_t iaq = 0;
 };
 
+struct NodeAirQualityMetrics {
+    uint16_t pm25_standard = 0;
+};
+
 struct NodeRecord {
     uint64_t recencyOrder = 0;
     NodeUserSummary user{};
     NodePosition position{};
     NodeDeviceMetrics deviceMetrics{};
     NodeEnvironmentMetrics environmentMetrics{};
+    NodeAirQualityMetrics airQualityMetrics{};
     NodeId id = 0;
     uint32_t lastHeard = 0;
     int32_t rssi = 0;
@@ -75,6 +80,7 @@ struct NodeRecord {
     bool recencyPromoted = false;
     bool hasDeviceMetrics = false;
     bool hasEnvironmentMetrics = false;
+    bool hasAirQualityMetrics = false;
     bool hasActiveChat = false;
 };
 
@@ -91,9 +97,11 @@ enum NodeChangedField : uint32_t {
     NodeFieldPosition = 1U << 4,
     NodeFieldDeviceMetrics = 1U << 5,
     NodeFieldEnvironmentMetrics = 1U << 6,
+    NodeFieldAirQualityMetrics = 1U << 7,
     NodeFieldSignal = 1U << 8,
     NodeFieldHops = 1U << 9,
     NodeFieldActiveChat = 1U << 10,
+    NodeFieldPowerMetrics = 1U << 11,
 };
 
 struct NodeMutation {
@@ -118,6 +126,8 @@ class NodeStore
     NodeMutation updatePosition(NodeId id, const NodePosition &position);
     NodeMutation updateDeviceMetrics(NodeId id, const meshtastic_DeviceMetrics &metrics);
     NodeMutation updateEnvironmentMetrics(NodeId id, const meshtastic_EnvironmentMetrics &metrics);
+    NodeMutation updateAirQualityMetrics(NodeId id, const meshtastic_AirQualityMetrics &metrics);
+    NodeMutation updatePowerMetrics(NodeId id, const meshtastic_PowerMetrics &metrics);
     NodeMutation updateSignal(NodeId id, int32_t rssi, float snr);
     NodeMutation updateHops(NodeId id, int8_t hopsAway);
     NodeMutation updateLastHeard(NodeId id, uint32_t now);

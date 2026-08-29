@@ -4842,6 +4842,16 @@ void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtasti
     syncNodeListPresentation(nodeStore.updateEnvironmentMetrics(nodeNum, metrics));
 }
 
+void TFTView_320x240::updateAirQualityMetrics(uint32_t nodeNum, const meshtastic_AirQualityMetrics &metrics)
+{
+    syncNodeListPresentation(nodeStore.updateAirQualityMetrics(nodeNum, metrics));
+}
+
+void TFTView_320x240::updatePowerMetrics(uint32_t nodeNum, const meshtastic_PowerMetrics &metrics)
+{
+    syncNodeListPresentation(nodeStore.updatePowerMetrics(nodeNum, metrics));
+}
+
 /**
  * update signal strength for direct neighbors
  */
@@ -6738,7 +6748,8 @@ bool TFTView_320x240::mutationCanRefreshVirtualRow(const NodeMutation &mutation)
         return false;
     }
 
-    uint32_t contentFields = NodeFieldSignal | NodeFieldDeviceMetrics | NodeFieldEnvironmentMetrics | NodeFieldActiveChat;
+    uint32_t contentFields = NodeFieldSignal | NodeFieldDeviceMetrics | NodeFieldEnvironmentMetrics | NodeFieldAirQualityMetrics |
+                             NodeFieldPowerMetrics | NodeFieldActiveChat;
     const int hopsFilter = static_cast<int>(lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown));
     if (!hopsFilter) {
         contentFields |= NodeFieldHops;

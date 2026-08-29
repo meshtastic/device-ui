@@ -106,6 +106,8 @@ class VirtualNodeList
     bool detailLabelsHiddenForTesting(NodeId id) const;
     bool positionLabelClickableForTesting(NodeId id) const;
     bool longLabelsScrollForTesting(NodeId id) const;
+    const char *shortTextForTesting(NodeId id) const;
+    size_t rowPoolSizeForTesting() const { return rowPool.size(); }
     void setExpansionProgressForTesting(int32_t progress) { updateExpansionAnimation(progress); }
     void finishExpansionForTesting()
     {

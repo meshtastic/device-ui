@@ -143,11 +143,15 @@ TEST_CASE("node store updates position telemetry and radio fields on an existing
     meshtastic_EnvironmentMetrics environment = meshtastic_EnvironmentMetrics_init_default;
     environment.has_temperature = true;
     environment.temperature = 22.5f;
+    meshtastic_AirQualityMetrics air = meshtastic_AirQualityMetrics_init_default;
+    air.has_pm25_standard = true;
+    air.pm25_standard = 17;
 
     CHECK(store.updatePosition(7, position).kind == NodeMutationKind::Updated);
     CHECK(store.updatePosition(7, position).kind == NodeMutationKind::Unchanged);
     CHECK(store.updateDeviceMetrics(7, device).kind == NodeMutationKind::Updated);
     CHECK(store.updateEnvironmentMetrics(7, environment).kind == NodeMutationKind::Updated);
+    CHECK(store.updateAirQualityMetrics(7, air).kind == NodeMutationKind::Updated);
     CHECK(store.updateSignal(7, -87, 6.25f).kind == NodeMutationKind::Updated);
     CHECK(store.updateHops(7, 3).kind == NodeMutationKind::Updated);
     CHECK(store.updateLastHeard(7, 999).kind == NodeMutationKind::Updated);
@@ -164,11 +168,49 @@ TEST_CASE("node store updates position telemetry and radio fields on an existing
     CHECK(record.deviceMetrics.battery_level == 78);
     CHECK(record.hasEnvironmentMetrics);
     CHECK(record.environmentMetrics.temperature == doctest::Approx(22.5f));
+    CHECK(record.hasAirQualityMetrics);
+    CHECK(record.airQualityMetrics.pm25_standard == 17);
     CHECK(record.rssi == -87);
     CHECK(record.snr == doctest::Approx(6.25f));
     CHECK(record.hopsAway == 3);
     CHECK(record.lastHeard == 999);
     CHECK(record.hasActiveChat);
+}
+
+TEST_CASE("node store carries power telemetry into IAQ environment rows without full protobuf storage")
+{
+    NodeStore store;
+    store.upsertUnknown(7, 0, 10, meshtastic_Config_DeviceConfig_Role_CLIENT, false, false);
+
+    meshtastic_PowerMetrics power = meshtastic_PowerMetrics_init_default;
+    power.has_ch1_voltage = true;
+    power.ch1_voltage = 4.21f;
+    power.has_ch1_current = true;
+    power.ch1_current = 12.5f;
+    CHECK(store.updatePowerMetrics(7, power).kind == NodeMutationKind::Updated);
+
+    meshtastic_EnvironmentMetrics environment = meshtastic_EnvironmentMetrics_init_default;
+    environment.has_temperature = true;
+    environment.temperature = 22.5f;
+    environment.has_barometric_pressure = true;
+    environment.barometric_pressure = 1013.2f;
+    environment.has_iaq = true;
+    environment.iaq = 88;
+    CHECK(store.updateEnvironmentMetrics(7, environment).kind == NodeMutationKind::Updated);
+
+    REQUIRE(store.find(7) != nullptr);
+    const auto &record = *store.find(7);
+    CHECK(record.environmentMetrics.iaq == 88);
+    CHECK(record.environmentMetrics.voltage == doctest::Approx(4.21f));
+    CHECK(record.environmentMetrics.current == doctest::Approx(12.5f));
+
+    environment.has_voltage = true;
+    environment.voltage = 0.0f;
+    environment.has_current = true;
+    environment.current = 0.0f;
+    CHECK(store.updateEnvironmentMetrics(7, environment).kind == NodeMutationKind::Updated);
+    CHECK(store.find(7)->environmentMetrics.voltage == doctest::Approx(0.0f));
+    CHECK(store.find(7)->environmentMetrics.current == doctest::Approx(0.0f));
 }
 
 TEST_CASE("node store retains channel and last-heard metadata when an unknown update fills identity")

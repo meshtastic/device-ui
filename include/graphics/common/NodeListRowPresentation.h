@@ -128,7 +128,7 @@ inline void formatShortNameWithDistance(char *buffer, size_t bufferSize, const c
         }
     } else {
         if (dist > 0.1f) {
-            std::snprintf(&buffer[5], bufferSize - 5, "%.1f mi ", std::round(dist * 0.621371f));
+            std::snprintf(&buffer[5], bufferSize - 5, "%.1f mi ", dist * 0.621371f);
         } else {
             std::snprintf(&buffer[5], bufferSize - 5, "%u ft ", static_cast<unsigned int>(dist * 3280.84f));
         }

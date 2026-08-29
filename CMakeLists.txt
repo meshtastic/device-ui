@@ -88,7 +88,11 @@ if(ENABLE_DOCTESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/locale
         ${CMAKE_CURRENT_SOURCE_DIR}/portduino
         ${CMAKE_CURRENT_SOURCE_DIR}/generated/${GENERATED_VIEW}
+        ${GENERATED_FILES_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${nanopb_SOURCE_DIR}
     )
+    add_dependencies(tests Protobufs)
     set_target_properties(tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     add_test(NAME tests COMMAND tests)
 endif()

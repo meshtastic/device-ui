@@ -1,8 +1,10 @@
+#include "graphics/common/NodeListRowPresentation.h"
 #include "graphics/view/TFT/VirtualNodeList.h"
 
 #include <doctest/doctest.h>
 
 #include <cstdio>
+#include <cstring>
 
 namespace
 {
@@ -47,11 +49,43 @@ lv_obj_t *makeParent(lv_obj_t *screen)
     return parent;
 }
 
+lv_obj_t *makeParentWithHeight(lv_obj_t *screen, int32_t height)
+{
+    auto *parent = lv_obj_create(screen);
+    lv_obj_set_size(parent, 180, height);
+    lv_obj_set_style_pad_all(parent, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_scroll_dir(parent, LV_DIR_VER);
+    return parent;
+}
+
 void addNode(NodeStore &store, NodeId id, uint32_t lastHeard, const char *name)
 {
     store.upsertUser(id, 0, lastHeard, makeUser(id, name), false);
 }
 } // namespace
+
+TEST_CASE("node row formats imperial mile distance with one decimal before rounding")
+{
+    char text[32]{};
+
+    NodeListRowPresentation::formatShortNameWithDistance(text, sizeof(text), nullptr, 0x1111, true, 0, 0, 179695, 0, false);
+
+    CHECK(std::strstr(text, "1.2 mi") != nullptr);
+}
+
+TEST_CASE("virtual node list allocates enough rows for viewport pitch and overscan")
+{
+    ensureLvgl();
+    auto *screen = lv_obj_create(nullptr);
+    auto *parent = makeParentWithHeight(screen, VirtualNodeList::COLLAPSED_ROW_HEIGHT * 2 + VirtualNodeList::ROW_GAP * 2 + 1);
+    RecordingSink sink;
+    {
+        VirtualNodeList list(parent, sink);
+
+        CHECK(list.rowPoolSizeForTesting() == 4);
+    }
+    lv_obj_delete(screen);
+}
 
 TEST_CASE("virtual node list keeps focused node identity across reorder")
 {
@@ -187,6 +221,71 @@ TEST_CASE("virtual node list repairs navigation order after deferred boundary sc
         lv_obj_scroll_to_y(parent, list.rowYForTesting(2) + 1, LV_ANIM_OFF);
         list.refreshVisibleRows(false, false, true);
         CHECK(list.groupOrderMoveCountForTesting() == repairedGroupMoves);
+    }
+
+    lv_obj_delete(screen);
+}
+
+TEST_CASE("virtual node list removes missing records from navigation group during stale index refresh")
+{
+    ensureLvgl();
+    auto *screen = lv_obj_create(nullptr);
+    auto *parent = makeParent(screen);
+    RecordingSink sink;
+    NodeStore store;
+    VisibleNodeIndex index;
+    NodeListFilter filter;
+    filter.curTime = 1000;
+
+    addNode(store, 0x1111, 300, "Alpha");
+    addNode(store, 0x2222, 200, "Bravo");
+    addNode(store, 0x3333, 100, "Charlie");
+    index.rebuild(store, filter, 0);
+    {
+        VirtualNodeList list(parent, sink);
+        list.sync(store, index, 0, filter.curTime);
+        REQUIRE(lv_group_get_obj_count(list.navigationGroup()) == 3);
+
+        store.remove(0x2222);
+        list.refreshVisibleRows(true, false, true);
+
+        CHECK(lv_group_get_obj_count(list.navigationGroup()) == 2);
+    }
+
+    lv_obj_delete(screen);
+}
+
+TEST_CASE("virtual node list rebinds all visible rows when refresh node changes render context")
+{
+    ensureLvgl();
+    auto *screen = lv_obj_create(nullptr);
+    auto *parent = makeParent(screen);
+    RecordingSink sink;
+    NodeStore store;
+    VisibleNodeIndex index;
+    NodeListFilter filter;
+    filter.curTime = 1000;
+
+    addNode(store, 0x1111, 300, "Alpha");
+    addNode(store, 0x2222, 200, "Bravo");
+    store.updatePosition(0x1111, {true, 179695, 0, 0, 0, 0});
+    store.updatePosition(0x2222, {true, 269542, 0, 0, 0, 0});
+    index.rebuild(store, filter, 0);
+    {
+        NodeListRenderContext context;
+        context.hasOwnPosition = true;
+        context.metricUnits = true;
+
+        VirtualNodeList list(parent, sink);
+        list.sync(store, index, 0, filter.curTime, context);
+        REQUIRE(std::strstr(list.shortTextForTesting(0x1111), "km") != nullptr);
+        REQUIRE(std::strstr(list.shortTextForTesting(0x2222), "km") != nullptr);
+
+        context.metricUnits = false;
+        REQUIRE(list.refreshNode(0x1111, filter.curTime, context));
+
+        CHECK(std::strstr(list.shortTextForTesting(0x1111), "mi") != nullptr);
+        CHECK(std::strstr(list.shortTextForTesting(0x2222), "mi") != nullptr);
     }
 
     lv_obj_delete(screen);
