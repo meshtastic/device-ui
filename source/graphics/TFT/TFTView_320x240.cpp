@@ -2314,8 +2314,8 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
                     screenLocked = false;
                     lv_obj_clear_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
                     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
-                    if (objects.nodes_panel && activePanel == objects.nodes_panel) {
-                        reconcileVirtualNodeListInputGroup(true);
+                    if (objects.nodes_panel && THIS->activePanel == objects.nodes_panel) {
+                        THIS->reconcileVirtualNodeListInputGroup(true);
                     }
                     lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
                 }
