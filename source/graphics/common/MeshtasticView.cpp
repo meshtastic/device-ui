@@ -84,6 +84,8 @@ void MeshtasticView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, 
 
 void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) {}
 
+void MeshtasticView::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMetrics &metrics) {}
+
 void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {}
 
 void MeshtasticView::notifyMessagesRestored(void)

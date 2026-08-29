@@ -59,15 +59,58 @@ bool samePublicKey(const NodeUserSummary &left, const NodeUserSummary &right)
     return left.publicKeySize == right.publicKeySize && left.publicKeyHash == right.publicKeyHash;
 }
 
-NodeDeviceMetrics summarizeDeviceMetrics(const meshtastic_DeviceMetrics &metrics)
+bool hasDeviceMetricsFields(const meshtastic_DeviceMetrics &metrics)
 {
-    return {metrics.battery_level, metrics.voltage, metrics.channel_utilization, metrics.air_util_tx};
+    return metrics.has_battery_level || metrics.has_voltage || metrics.has_channel_utilization || metrics.has_air_util_tx;
 }
 
-NodeEnvironmentMetrics summarizeEnvironmentMetrics(const meshtastic_EnvironmentMetrics &metrics)
+bool hasEnvironmentMetricsFields(const meshtastic_EnvironmentMetrics &metrics)
 {
-    return {metrics.temperature, metrics.relative_humidity, metrics.barometric_pressure,
-            metrics.voltage,     metrics.current,           metrics.iaq};
+    return metrics.has_temperature || metrics.has_relative_humidity || metrics.has_barometric_pressure || metrics.has_voltage ||
+           metrics.has_current || metrics.has_iaq;
+}
+
+NodeDeviceMetrics summarizeDeviceMetrics(const meshtastic_DeviceMetrics &metrics, const NodeDeviceMetrics &previous)
+{
+    NodeDeviceMetrics summary = previous;
+    if (metrics.has_battery_level) {
+        summary.battery_level = metrics.battery_level;
+    }
+    if (metrics.has_voltage) {
+        summary.voltage = metrics.voltage;
+    }
+    if (metrics.has_channel_utilization) {
+        summary.channel_utilization = metrics.channel_utilization;
+    }
+    if (metrics.has_air_util_tx) {
+        summary.air_util_tx = metrics.air_util_tx;
+    }
+    return summary;
+}
+
+NodeEnvironmentMetrics summarizeEnvironmentMetrics(const meshtastic_EnvironmentMetrics &metrics,
+                                                   const NodeEnvironmentMetrics &previous)
+{
+    NodeEnvironmentMetrics summary = previous;
+    if (metrics.has_temperature) {
+        summary.temperature = metrics.temperature;
+    }
+    if (metrics.has_relative_humidity) {
+        summary.relative_humidity = metrics.relative_humidity;
+    }
+    if (metrics.has_barometric_pressure) {
+        summary.barometric_pressure = metrics.barometric_pressure;
+    }
+    if (metrics.has_voltage) {
+        summary.voltage = metrics.voltage;
+    }
+    if (metrics.has_current) {
+        summary.current = metrics.current;
+    }
+    if (metrics.has_iaq) {
+        summary.iaq = metrics.iaq;
+    }
+    return summary;
 }
 
 NodeAirQualityMetrics summarizeAirQualityMetrics(const meshtastic_AirQualityMetrics &metrics)
@@ -230,13 +273,9 @@ NodeMutation NodeStore::updatePosition(NodeId id, const NodePosition &position)
 NodeMutation NodeStore::updateDeviceMetrics(NodeId id, const meshtastic_DeviceMetrics &metrics)
 {
     auto it = nodes.find(id);
-    if (it == nodes.end())
+    if (it == nodes.end() || !hasDeviceMetricsFields(metrics))
         return unchanged(id);
-    auto retainedMetrics = summarizeDeviceMetrics(metrics);
-    if (it->second.hasDeviceMetrics && retainedMetrics.battery_level == 0 && retainedMetrics.voltage == 0.0f) {
-        retainedMetrics.battery_level = it->second.deviceMetrics.battery_level;
-        retainedMetrics.voltage = it->second.deviceMetrics.voltage;
-    }
+    auto retainedMetrics = summarizeDeviceMetrics(metrics, it->second.deviceMetrics);
     if (it->second.hasDeviceMetrics && sameDeviceMetrics(it->second.deviceMetrics, retainedMetrics))
         return unchanged(id);
     it->second.hasDeviceMetrics = true;
@@ -247,21 +286,9 @@ NodeMutation NodeStore::updateDeviceMetrics(NodeId id, const meshtastic_DeviceMe
 NodeMutation NodeStore::updateEnvironmentMetrics(NodeId id, const meshtastic_EnvironmentMetrics &metrics)
 {
     auto it = nodes.find(id);
-    if (it == nodes.end())
+    if (it == nodes.end() || !hasEnvironmentMetricsFields(metrics))
         return unchanged(id);
-    auto retainedMetrics = summarizeEnvironmentMetrics(metrics);
-    if (!metrics.has_voltage && it->second.environmentMetrics.voltage != 0.0f) {
-        retainedMetrics.voltage = it->second.environmentMetrics.voltage;
-    }
-    if (!metrics.has_current && it->second.environmentMetrics.current != 0.0f) {
-        retainedMetrics.current = it->second.environmentMetrics.current;
-    }
-    if (it->second.hasEnvironmentMetrics && (retainedMetrics.iaq == 0 || retainedMetrics.iaq >= 1000) &&
-        it->second.environmentMetrics.iaq > 0 && it->second.environmentMetrics.iaq < 1000) {
-        retainedMetrics.iaq = it->second.environmentMetrics.iaq;
-        retainedMetrics.voltage = it->second.environmentMetrics.voltage;
-        retainedMetrics.current = it->second.environmentMetrics.current;
-    }
+    auto retainedMetrics = summarizeEnvironmentMetrics(metrics, it->second.environmentMetrics);
     if (it->second.hasEnvironmentMetrics && sameEnvironmentMetrics(it->second.environmentMetrics, retainedMetrics))
         return unchanged(id);
     it->second.hasEnvironmentMetrics = true;

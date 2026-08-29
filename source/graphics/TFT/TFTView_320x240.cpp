@@ -2627,7 +2627,7 @@ void TFTView_320x240::loadMap(void)
             sortedLon.reserve(nodeObjects.size());
             for (auto it : nodeObjects) {
                 const NodePosition position = nodePosition(it.first);
-                if (position.known && position.latitude && position.longitude) {
+                if (position.hasCoordinates()) {
                     sortedLat.push_back(position.latitude);
                     sortedLon.push_back(position.longitude);
                 }
@@ -4741,7 +4741,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
 
 void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision)
 {
-    const NodeMutation mutation = nodeStore.updatePosition(nodeNum, {true, lat, lon, alt, sats, precision});
+    const NodePosition position{true, lat, lon, alt, sats, precision};
+    const NodeMutation mutation = nodeStore.updatePosition(nodeNum, position);
     int32_t shownAltitude = alt > -10000 && alt < 10000 ? alt : 0;
     const bool metric = db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC;
     const char *units = metric ? "m" : "ft";
@@ -4764,14 +4765,14 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
             sprintf(buf, "%c%02i° %2i'%02i\"\n%c%02i° %2i'%02i\"   %d%s", lat > 0 ? 'N' : 'S', abs(latTotal / 3600), latMinutes,
                     latSeconds, lon > 0 ? 'E' : 'W', abs(lonTotal / 3600), lonMinutes, lonSeconds, shownAltitude, units);
         lv_label_set_text(objects.home_location_label, buf);
-        if (lat != 0 || lon != 0) {
+        if (position.hasCoordinates()) {
             hasPosition = true;
             myLatitude = lat;
             myLongitude = lon;
             if (map)
                 map->setGpsPosition(lat * 1e-7, lon * 1e-7);
         }
-    } else if (lat != 0 && lon != 0) {
+    } else if (position.hasCoordinates()) {
         addOrUpdateMap(nodeNum, lat, lon);
     }
     syncNodeListPresentation(mutation);
@@ -4789,19 +4790,28 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
 void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil)
 {
     meshtastic_DeviceMetrics metrics = meshtastic_DeviceMetrics_init_default;
+    metrics.has_battery_level = true;
     metrics.battery_level = bat_level;
+    metrics.has_voltage = true;
     metrics.voltage = voltage;
+    metrics.has_channel_utilization = true;
     metrics.channel_utilization = chUtil;
+    metrics.has_air_util_tx = true;
     metrics.air_util_tx = airUtil;
+    updateMetrics(nodeNum, metrics);
+}
+
+void TFTView_320x240::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMetrics &metrics)
+{
     const NodeMutation mutation = nodeStore.updateDeviceMetrics(nodeNum, metrics);
 
-    if (nodeNum == ownNode && (bat_level != 0 || voltage != 0)) {
+    if (nodeNum == ownNode && (metrics.battery_level != 0 || metrics.voltage != 0)) {
         char buf[16];
-        const uint32_t shownLevel = std::min(bat_level, static_cast<uint32_t>(100));
+        const uint32_t shownLevel = std::min(metrics.battery_level, static_cast<uint32_t>(100));
         sprintf(buf, "%d%%", shownLevel);
         bool alert = false;
         BatteryLevel level;
-        switch (level.calcStatus(bat_level, voltage)) {
+        switch (level.calcStatus(metrics.battery_level, metrics.voltage)) {
         case BatteryLevel::Plugged:
             lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_plug_image, LV_PART_MAIN | LV_STATE_DEFAULT);
             if (shownLevel == 100)
@@ -5340,13 +5350,17 @@ void TFTView_320x240::notifyShutdown(void)
 void TFTView_320x240::blankScreen(bool enable)
 {
     ILOG_DEBUG("%s screen (%s)", enable ? "blank" : "unblank", screenLocked ? "locked" : "timeout");
-    if (enable)
+    if (enable) {
+        setInputGroup();
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
-    else {
+    } else {
         if (objects.main_screen)
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         else
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        if (objects.nodes_panel && activePanel == objects.nodes_panel) {
+            reconcileVirtualNodeListInputGroup(true);
+        }
     }
 }
 
@@ -5354,6 +5368,7 @@ void TFTView_320x240::screenSaving(bool enabled)
 {
     if (enabled) {
         // overlay main screen with blank screen to prevent accidentally pressing buttons
+        setInputGroup();
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 0, 0, false);
         lv_group_focus_obj(objects.blank_screen_button);
         screenLocked = true;
@@ -5370,6 +5385,9 @@ void TFTView_320x240::screenSaving(bool enabled)
                 ui_event_cancel(&e);
             }
             screenLocked = false;
+            if (objects.nodes_panel && activePanel == objects.nodes_panel) {
+                reconcileVirtualNodeListInputGroup(true);
+            }
         } else {
             ILOG_DEBUG("showing boot screen");
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
@@ -6825,7 +6843,7 @@ void TFTView_320x240::nodeFocusBoundary(bool forward)
 void TFTView_320x240::nodePositionClicked(NodeId id)
 {
     const NodePosition position = nodePosition(id);
-    if (position.known && position.latitude && position.longitude) {
+    if (position.hasCoordinates()) {
         ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
         if (!map) {
             loadMap();

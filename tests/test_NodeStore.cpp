@@ -270,6 +270,96 @@ TEST_CASE("node store preserves legacy-visible position and battery fields acros
     CHECK(store.find(7)->deviceMetrics.air_util_tx == doctest::Approx(0.0f));
 }
 
+TEST_CASE("node store preserves absent device metrics fields and accepts explicit zero values")
+{
+    NodeStore store;
+    store.upsertUnknown(7, 0, 10, meshtastic_Config_DeviceConfig_Role_CLIENT, false, false);
+
+    CHECK(store.updateDeviceMetrics(7, meshtastic_DeviceMetrics_init_default).kind == NodeMutationKind::Unchanged);
+    CHECK_FALSE(store.find(7)->hasDeviceMetrics);
+
+    meshtastic_DeviceMetrics metrics = meshtastic_DeviceMetrics_init_default;
+    metrics.has_battery_level = true;
+    metrics.battery_level = 78;
+    metrics.has_voltage = true;
+    metrics.voltage = 4.12f;
+    CHECK(store.updateDeviceMetrics(7, metrics).kind == NodeMutationKind::Updated);
+
+    meshtastic_DeviceMetrics missingBatteryAndVoltage = meshtastic_DeviceMetrics_init_default;
+    missingBatteryAndVoltage.has_channel_utilization = true;
+    missingBatteryAndVoltage.channel_utilization = 1.5f;
+    CHECK(store.updateDeviceMetrics(7, missingBatteryAndVoltage).kind == NodeMutationKind::Updated);
+    REQUIRE(store.find(7) != nullptr);
+    CHECK(store.find(7)->deviceMetrics.battery_level == 78);
+    CHECK(store.find(7)->deviceMetrics.voltage == doctest::Approx(4.12f));
+    CHECK(store.find(7)->deviceMetrics.channel_utilization == doctest::Approx(1.5f));
+
+    meshtastic_DeviceMetrics explicitZeros = meshtastic_DeviceMetrics_init_default;
+    explicitZeros.has_battery_level = true;
+    explicitZeros.battery_level = 0;
+    explicitZeros.has_voltage = true;
+    explicitZeros.voltage = 0.0f;
+    CHECK(store.updateDeviceMetrics(7, explicitZeros).kind == NodeMutationKind::Updated);
+    CHECK(store.find(7)->deviceMetrics.battery_level == 0);
+    CHECK(store.find(7)->deviceMetrics.voltage == doctest::Approx(0.0f));
+    CHECK(store.find(7)->deviceMetrics.channel_utilization == doctest::Approx(1.5f));
+}
+
+TEST_CASE("node store preserves absent environment metrics fields and accepts explicit zero values")
+{
+    NodeStore store;
+    store.upsertUnknown(7, 0, 10, meshtastic_Config_DeviceConfig_Role_CLIENT, false, false);
+
+    CHECK(store.updateEnvironmentMetrics(7, meshtastic_EnvironmentMetrics_init_default).kind == NodeMutationKind::Unchanged);
+    CHECK_FALSE(store.find(7)->hasEnvironmentMetrics);
+
+    meshtastic_EnvironmentMetrics metrics = meshtastic_EnvironmentMetrics_init_default;
+    metrics.has_temperature = true;
+    metrics.temperature = 22.5f;
+    metrics.has_relative_humidity = true;
+    metrics.relative_humidity = 48.0f;
+    metrics.has_barometric_pressure = true;
+    metrics.barometric_pressure = 1013.2f;
+    metrics.has_voltage = true;
+    metrics.voltage = 4.25f;
+    metrics.has_current = true;
+    metrics.current = 12.5f;
+    metrics.has_iaq = true;
+    metrics.iaq = 88;
+    CHECK(store.updateEnvironmentMetrics(7, metrics).kind == NodeMutationKind::Updated);
+
+    meshtastic_EnvironmentMetrics missingPowerAndIaq = meshtastic_EnvironmentMetrics_init_default;
+    missingPowerAndIaq.has_temperature = true;
+    missingPowerAndIaq.temperature = 23.0f;
+    CHECK(store.updateEnvironmentMetrics(7, missingPowerAndIaq).kind == NodeMutationKind::Updated);
+    REQUIRE(store.find(7) != nullptr);
+    CHECK(store.find(7)->environmentMetrics.temperature == doctest::Approx(23.0f));
+    CHECK(store.find(7)->environmentMetrics.relative_humidity == doctest::Approx(48.0f));
+    CHECK(store.find(7)->environmentMetrics.barometric_pressure == doctest::Approx(1013.2f));
+    CHECK(store.find(7)->environmentMetrics.voltage == doctest::Approx(4.25f));
+    CHECK(store.find(7)->environmentMetrics.current == doctest::Approx(12.5f));
+    CHECK(store.find(7)->environmentMetrics.iaq == 88);
+
+    meshtastic_EnvironmentMetrics explicitZeros = meshtastic_EnvironmentMetrics_init_default;
+    explicitZeros.has_relative_humidity = true;
+    explicitZeros.relative_humidity = 0.0f;
+    explicitZeros.has_barometric_pressure = true;
+    explicitZeros.barometric_pressure = 0.0f;
+    explicitZeros.has_voltage = true;
+    explicitZeros.voltage = 0.0f;
+    explicitZeros.has_current = true;
+    explicitZeros.current = 0.0f;
+    explicitZeros.has_iaq = true;
+    explicitZeros.iaq = 0;
+    CHECK(store.updateEnvironmentMetrics(7, explicitZeros).kind == NodeMutationKind::Updated);
+    CHECK(store.find(7)->environmentMetrics.temperature == doctest::Approx(23.0f));
+    CHECK(store.find(7)->environmentMetrics.relative_humidity == doctest::Approx(0.0f));
+    CHECK(store.find(7)->environmentMetrics.barometric_pressure == doctest::Approx(0.0f));
+    CHECK(store.find(7)->environmentMetrics.voltage == doctest::Approx(0.0f));
+    CHECK(store.find(7)->environmentMetrics.current == doctest::Approx(0.0f));
+    CHECK(store.find(7)->environmentMetrics.iaq == 0);
+}
+
 TEST_CASE("node store accepts positions on the equator and prime meridian")
 {
     NodeStore store;
