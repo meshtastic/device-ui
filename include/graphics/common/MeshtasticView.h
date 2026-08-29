@@ -89,6 +89,8 @@ class MeshtasticView : public DeviceGUI
     virtual void updatePowerMetrics(uint32_t nodeNum, const meshtastic_PowerMetrics &metrics) {}
     virtual void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr);
     virtual void updateHopsAway(uint32_t nodeNum, uint8_t hopsAway) {}
+    virtual void beginNodeListPresentationBatch() {}
+    virtual void endNodeListPresentationBatch() {}
     virtual void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) {}
 
     // methods to update device config
@@ -140,14 +142,15 @@ class MeshtasticView : public DeviceGUI
 
     virtual void notifyRestoreMessages(int32_t percentage) {}
     virtual void notifyMessagesRestored(void);
-    virtual void notifyConnected(const char *info){};
-    virtual void notifyDisconnected(const char *info){};
+    virtual void notifyConnected(const char *info) {};
+    virtual void notifyDisconnected(const char *info) {};
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);
     virtual void showMessagePopup(const char *from);
 
     virtual void removeNode(uint32_t nodeNum);
+    virtual bool hasKnownNodeForPacket(uint32_t nodeNum) const;
 
     // local update methods
     virtual void updateLastHeard(uint32_t nodeNum);

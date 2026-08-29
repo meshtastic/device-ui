@@ -68,7 +68,7 @@ target_include_directories(DeviceUI PRIVATE ${GENERATED_FILES_DIR} ${CMAKE_CURRE
 
 if(ENABLE_DOCTESTS)
     target_include_directories(DeviceUI PRIVATE ${doctest_SOURCE_DIR})
-    target_compile_definitions(DeviceUI PRIVATE UNIT_TEST)
+    target_compile_definitions(DeviceUI PUBLIC UNIT_TEST)
     if(ENABLE_DEBUG_LOG)
         target_compile_definitions(DeviceUI PRIVATE DEBUG_UNIT_TEST)
     endif()

@@ -16,6 +16,19 @@ fs::FS &persistentFS = LittleFS;
 const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
 constexpr const char *logDir = "/messages";
 
+namespace
+{
+class NodeListPresentationBatch
+{
+  public:
+    explicit NodeListPresentationBatch(MeshtasticView &view) : view(view) { view.beginNodeListPresentationBatch(); }
+    ~NodeListPresentationBatch() { view.endNodeListPresentationBatch(); }
+
+  private:
+    MeshtasticView &view;
+};
+} // namespace
+
 /**
  * @brief mediate between GUI view and client interface
  *
@@ -710,6 +723,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                 break;
             }
             case meshtastic_FromRadio_node_info_tag: {
+                NodeListPresentationBatch presentationBatch(*view);
                 const meshtastic_NodeInfo &node = from.node_info;
                 if (node.has_user) {
                     view->addOrUpdateNode(node.num, node.channel, node.last_heard, node.user);
@@ -911,6 +925,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 
 bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 {
+    NodeListPresentationBatch presentationBatch(*view);
     ILOG_DEBUG("received packet from 0x%08x, id=0x%08x, portnum=%u", p.from, p.id, p.decoded.portnum);
     view->packetReceived(p);
 
