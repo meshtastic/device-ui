@@ -87,6 +87,20 @@ TEST_CASE("virtual node list allocates enough rows for viewport pitch and oversc
     lv_obj_delete(screen);
 }
 
+TEST_CASE("virtual node list covers the worst scroll phase")
+{
+    ensureLvgl();
+    auto *screen = lv_obj_create(nullptr);
+    auto *parent = makeParentWithHeight(screen, 206);
+    RecordingSink sink;
+    {
+        VirtualNodeList list(parent, sink);
+
+        CHECK(list.rowPoolSizeForTesting() == 6);
+    }
+    lv_obj_delete(screen);
+}
+
 TEST_CASE("virtual node list keeps focused node identity across reorder")
 {
     ensureLvgl();

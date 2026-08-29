@@ -33,8 +33,7 @@ size_t rowPoolSizeForViewport(lv_obj_t *parentPanel)
         return 1;
     }
     constexpr int32_t rowPitch = VirtualNodeList::COLLAPSED_ROW_HEIGHT + VirtualNodeList::ROW_GAP;
-    const size_t visibleRows =
-        static_cast<size_t>(contentHeight + VirtualNodeList::ROW_GAP + rowPitch - 1) / static_cast<size_t>(rowPitch);
+    const size_t visibleRows = static_cast<size_t>(contentHeight + rowPitch * 2 - 2) / static_cast<size_t>(rowPitch);
     return std::clamp(visibleRows + 1, size_t{1}, VirtualNodeList::MAX_POOL_SIZE);
 }
 
