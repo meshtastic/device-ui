@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "graphics/common/BatteryLevel.h"
 #include "graphics/common/LoRaPresets.h"
+#include "graphics/common/NodeListRowPresentation.h"
 #include "graphics/common/Ringtones.h"
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
@@ -56,10 +57,6 @@ fs::FS &fileSystem = LittleFS;
 #endif
 #include "graphics/common/SdCard.h"
 
-#ifndef MAX_NUM_NODES_VIEW
-#define MAX_NUM_NODES_VIEW 250
-#endif
-
 #ifndef PACKET_LOGS_MAX
 #define PACKET_LOGS_MAX 200
 #endif
@@ -80,27 +77,11 @@ constexpr lv_color_t colorDarkRed = LV_COLOR_HEX(0xa70a0a);
 constexpr lv_color_t colorOrange = LV_COLOR_HEX(0xff8c04);
 constexpr lv_color_t colorYellow = LV_COLOR_HEX(0xdbd251);
 constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x05f6cb);
-constexpr lv_color_t colorBlue = LV_COLOR_HEX(0x436C70);
 constexpr lv_color_t colorGray = LV_COLOR_HEX(0x757575);
 constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xAAFBFF);
 constexpr lv_color_t colorMidGray = LV_COLOR_HEX(0x808080);
 constexpr lv_color_t colorDarkGray = LV_COLOR_HEX(0x303030);
 constexpr lv_color_t colorMesh = LV_COLOR_HEX(0x67ea94);
-
-// children index of nodepanel lv objects (see addNode)
-enum NodePanelIdx {
-    node_img_idx,
-    node_btn_idx,
-    node_lbl_idx,
-    node_lbs_idx,
-    node_bat_idx,
-    node_lh_idx,
-    node_sig_idx,
-    node_pos1_idx,
-    node_pos2_idx,
-    node_tm1_idx,
-    node_tm2_idx
-};
 
 enum ScrollDirection {
     scrollDownLeft = 1,
@@ -116,13 +97,83 @@ enum ScrollDirection {
 extern const char *firmware_version;
 
 TFTView_320x240 *TFTView_320x240::gui = nullptr;
-lv_obj_t *TFTView_320x240::currentPanel = nullptr;
 lv_obj_t *TFTView_320x240::spinnerButton = nullptr;
 uint32_t TFTView_320x240::currentNode = 0;
 time_t TFTView_320x240::startTime = 0;
 uint32_t TFTView_320x240::pinKeys = 0;
 bool TFTView_320x240::screenLocked = false;
 bool TFTView_320x240::screenUnlockRequest = false;
+
+void *TFTView_320x240::traceRouteNodeCallbackUserData(NodeId id) const
+{
+    return reinterpret_cast<void *>(static_cast<uintptr_t>(id));
+}
+
+void TFTView_320x240::selectNode(NodeId id)
+{
+    currentNode = id;
+}
+
+bool TFTView_320x240::nodeIsMessagable(NodeId id) const
+{
+    const NodeRecord *record = nodeStore.find(id);
+    return record && id != ownNode && !record->unmessagable;
+}
+
+uint8_t TFTView_320x240::nodeChannel(NodeId id) const
+{
+    const NodeRecord *record = nodeStore.find(id);
+    return record ? record->channel : 0;
+}
+
+bool TFTView_320x240::nodeHasKey(NodeId id) const
+{
+    const NodeRecord *record = nodeStore.find(id);
+    return record && record->hasKey && !record->hasBadKey;
+}
+
+bool TFTView_320x240::nodeHasBadKey(NodeId id) const
+{
+    const NodeRecord *record = nodeStore.find(id);
+    return record && record->hasBadKey;
+}
+
+int8_t TFTView_320x240::nodeHops(NodeId id) const
+{
+    const NodeRecord *record = nodeStore.find(id);
+    return record ? record->hopsAway : -1;
+}
+
+const char *TFTView_320x240::nodeDisplayName(NodeId id) const
+{
+    const NodeRecord *record = nodeStore.find(id);
+    return record ? record->user.long_name : nullptr;
+}
+
+const char *TFTView_320x240::nodeShortName(NodeId id) const
+{
+    const NodeRecord *record = nodeStore.find(id);
+    return record ? record->user.short_name : nullptr;
+}
+
+NodePosition TFTView_320x240::nodePosition(NodeId id) const
+{
+    const NodeRecord *record = nodeStore.find(id);
+    return record ? record->position : NodePosition{};
+}
+
+NodeId TFTView_320x240::nodePurgeCandidate(NodeId incoming) const
+{
+    return nodeStore.selectPurgeCandidate(incoming, ownNode, static_cast<uint32_t>(curtime));
+}
+
+uint8_t TFTView_320x240::nodeHopLimit(NodeId id, int8_t unknownHops) const
+{
+    int8_t hopsAway = nodeHops(id);
+    if (hopsAway < 0)
+        hopsAway = unknownHops;
+    return hopsAway < db.config.lora.hop_limit ? hopsAway + 1 : hopsAway;
+}
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -143,13 +194,13 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
 TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
       processingFilter(false), packetLogEnabled(false), detectorRunning(false), cardDetected(false), formatSD(false),
-      packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
-      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
-      db{}
+      packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0), scans(0),
+      selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr), db{}
 {
     filter.active = false;
     highlight.active = false;
     objects.main_screen = nullptr;
+    selectNode(0);
 }
 
 /**
@@ -277,10 +328,6 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     lv_obj_set_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED, highlight.telemetry_switch);
     lv_obj_set_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED, highlight.iaq_switch);
     lv_textarea_set_text(objects.nodes_hl_name_area, highlight.node_name);
-
-    // initialize own node panel
-    if (ownNode && objects.node_panel)
-        nodes[ownNode] = objects.node_panel;
 
     // touch screen calibration data
     uint16_t *parameters = (uint16_t *)db.uiConfig.calibration_data.bytes;
@@ -428,16 +475,6 @@ void TFTView_320x240::init_screens(void)
     setInputButtonLabel();
     lv_group_focus_obj(objects.home_button);
 
-    // remember position of top node panel button for group linked list
-    lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
-    for (lv_obj_t **obj_i = (lv_obj_t **)_lv_ll_get_head(lv_group_ll); obj_i != NULL;
-         obj_i = (lv_obj_t **)_lv_ll_get_next(lv_group_ll, obj_i)) {
-        if (*obj_i == objects.node_button) {
-            topNodeLL = obj_i;
-            break;
-        }
-    }
-
     // user data
     objects.home_time_button->user_data = (void *)0;
     objects.home_wlan_button->user_data = (void *)0;
@@ -471,6 +508,11 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 
     if (activePanel) {
         lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
+        if (activePanel == objects.nodes_panel) {
+            lv_obj_add_flag(objects.nodes_panel, LV_OBJ_FLAG_HIDDEN);
+            setInputGroup();
+            virtualNodeListInputVisibilityKnown = false;
+        }
         if (activePanel == objects.messages_panel) {
             lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
             if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
@@ -494,6 +536,9 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     }
 
     lv_obj_clear_flag(p, LV_OBJ_FLAG_HIDDEN);
+    if (p == objects.nodes_panel) {
+        ensureVirtualNodeList();
+    }
 
     if (tp) {
         if (activeTopPanel) {
@@ -508,7 +553,17 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     if (activePanel == objects.messages_panel) {
         lv_group_focus_obj(objects.message_input_area);
     } else if (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice()) {
-        setGroupFocus(activePanel);
+        if (activePanel == objects.nodes_panel && virtualNodeList) {
+            reconcileVirtualNodeListInputGroup(true);
+            if (currentNode && visibleNodes.contains(currentNode)) {
+                virtualNodeList->focus(currentNode);
+            } else if (!visibleNodes.ids().empty()) {
+                virtualNodeList->focus(visibleNodes.ids().front());
+            } else {
+                nodeFocusBoundary(true);
+            }
+        } else
+            setGroupFocus(activePanel);
     }
 
     lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
@@ -753,10 +808,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_qr_button, this->ui_event_QrButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_cancel_qr_button, this->ui_event_CancelQrButton, LV_EVENT_CLICKED, NULL);
 
-    // node and channel buttons
-    lv_obj_add_event_cb(objects.node_button, ui_event_NodeButton, LV_EVENT_ALL, (void *)ownNode);
-
-    // 8 channel buttons
+    // channel buttons
     lv_obj_add_event_cb(objects.channel_button0, ui_event_ChannelButton, LV_EVENT_ALL, (void *)0);
     lv_obj_add_event_cb(objects.channel_button1, ui_event_ChannelButton, LV_EVENT_ALL, (void *)1);
     lv_obj_add_event_cb(objects.channel_button2, ui_event_ChannelButton, LV_EVENT_ALL, (void *)2);
@@ -1033,7 +1085,7 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
         if (filterNeedsUpdate) {
             THIS->updateNodesFiltered(true);
             THIS->updateNodesStatus();
-            lv_obj_scroll_to_view(objects.node_panel, LV_ANIM_ON);
+            lv_obj_scroll_to_y(objects.nodes_panel, 0, LV_ANIM_ON);
             if (THIS->map) {
                 THIS->map->forceRedraw(true);
             }
@@ -1048,65 +1100,14 @@ void TFTView_320x240::ui_event_NodesButton(lv_event_t *e)
 
 void TFTView_320x240::ui_event_NodeButton(lv_event_t *e)
 {
-    static bool animRunning = false;
-    static auto deleted_cb = [](_lv_anim_t *) { animRunning = false; };
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_CLICKED && !animRunning) {
-        uint32_t nodeNum = (unsigned long)e->user_data;
-        if (!nodeNum) // event-handler for own node has value 0 in user_data
-            nodeNum = THIS->ownNode;
-        lv_obj_t *panel = THIS->nodes[nodeNum];
-        if (currentPanel) {
-            // create animation to shrink other panel
-            animRunning = true;
-            static lv_anim_t a;
-            int32_t height = lv_obj_get_height(currentPanel);
-            lv_anim_init(&a);
-            lv_anim_set_var(&a, currentPanel);
-            lv_anim_set_values(&a, height, 136 - height);
-            lv_anim_set_duration(&a, 200);
-            lv_anim_set_exec_cb(&a, ui_anim_node_panel_cb);
-            lv_anim_set_path_cb(&a, lv_anim_path_linear);
-            lv_anim_set_deleted_cb(&a, deleted_cb);
-            lv_anim_start(&a);
-        }
-        if (panel != currentPanel) {
-            // create animation to enlarge node panel
-            animRunning = true;
-            static lv_anim_t a;
-            int32_t height = lv_obj_get_height(panel);
-            lv_anim_init(&a);
-            lv_anim_set_var(&a, panel);
-            lv_anim_set_values(&a, height, 136 - height);
-            lv_anim_set_duration(&a, 200);
-            lv_anim_set_exec_cb(&a, ui_anim_node_panel_cb);
-            lv_anim_set_path_cb(&a, lv_anim_path_linear);
-            lv_anim_set_deleted_cb(&a, deleted_cb);
-            lv_anim_start(&a);
-            currentPanel = panel;
-            currentNode = nodeNum;
-        } else {
-            currentPanel = nullptr;
-            currentNode = 0;
-        }
-        if (THIS->chooseNodeSignalScanner) {
-            THIS->chooseNodeSignalScanner = false;
-            ui_event_signal_scanner(NULL);
-            // restore previous filter
-            lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, THIS->selectedHops);
-            THIS->updateNodesFiltered(true);
-            THIS->updateNodesStatus();
-        } else if (THIS->chooseNodeTraceRoute) {
-            THIS->chooseNodeTraceRoute = false;
-            ui_event_trace_route(NULL);
-        }
-    } else if (event_code == LV_EVENT_LONG_PRESSED) {
-        //  set color and text of clicked node
-        uint32_t nodeNum = (unsigned long)e->user_data;
-        bool isMessagable = !((unsigned long)(THIS->nodes[nodeNum]->LV_OBJ_IDX(node_img_idx)->user_data) == eRole::unmessagable);
-        if (nodeNum != THIS->ownNode && isMessagable)
-            THIS->showMessages(nodeNum);
-    }
+    const lv_event_code_t eventCode = lv_event_get_code(e);
+    uint32_t nodeNum = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(e->user_data));
+    if (!nodeNum)
+        nodeNum = THIS->ownNode;
+    if (eventCode == LV_EVENT_CLICKED)
+        THIS->nodeClicked(nodeNum);
+    else if (eventCode == LV_EVENT_LONG_PRESSED && THIS->nodeIsMessagable(nodeNum))
+        THIS->showMessages(nodeNum);
 }
 
 void TFTView_320x240::ui_event_GroupsButton(lv_event_t *e)
@@ -1275,7 +1276,7 @@ void TFTView_320x240::ui_event_ChatDelButton(lv_event_t *e)
             THIS->controller->removeTextMessages(THIS->ownNode, UINT32_MAX, channelOrNode);
         } else {
             THIS->eraseChat(channelOrNode);
-            THIS->applyNodesFilter(channelOrNode);
+            THIS->syncNodeListPresentation();
             THIS->controller->removeTextMessages(THIS->ownNode, channelOrNode, 0);
         }
         THIS->activeMsgContainer = objects.messages_container;
@@ -2313,6 +2314,9 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
                     screenLocked = false;
                     lv_obj_clear_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
                     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
+                    if (objects.nodes_panel && THIS->activePanel == objects.nodes_panel) {
+                        THIS->reconcileVirtualNodeListInputGroup(true);
+                    }
                     lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
                 }
             }
@@ -2416,38 +2420,38 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
     // navigate to node in node list
     uint32_t nodeNum = (unsigned long)e->user_data;
     ILOG_DEBUG("map node %08x", nodeNum);
-    lv_obj_t *panel = THIS->nodes[nodeNum];
-    THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
-    lv_obj_scroll_to_view(panel, LV_ANIM_ON);
-    if (panel != currentPanel)
-        ui_event_NodeButton(e);
+    if (THIS->nodeRecord(nodeNum)) {
+        THIS->selectNode(nodeNum);
+        THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+        THIS->syncNodeListPresentation();
+        if (THIS->virtualNodeList)
+            THIS->virtualNodeList->scrollTo(nodeNum, LV_ANIM_ON);
+    }
 }
 
 void TFTView_320x240::ui_event_chatNodeButton(lv_event_t *e)
 {
     uint32_t nodeNum = (unsigned long)e->user_data;
-    auto it = THIS->nodes.find(nodeNum);
-    if (it != THIS->nodes.end()) {
-        lv_obj_t *panel = it->second;
+    if (THIS->nodeRecord(nodeNum)) {
+        THIS->selectNode(nodeNum);
         THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
-        lv_obj_scroll_to_view(panel, LV_ANIM_ON);
-        if (panel != currentPanel)
-            ui_event_NodeButton(e);
+        THIS->syncNodeListPresentation();
+        if (THIS->virtualNodeList)
+            THIS->virtualNodeList->scrollTo(nodeNum, LV_ANIM_ON);
     }
 }
 
 void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
 {
     // navigate to position in map
-    lv_obj_t *p = (lv_obj_t *)e->user_data;
-    int32_t lat = (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-    int32_t lon = (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
-    if (lat && lon) {
+    uint32_t nodeNum = (unsigned long)e->user_data;
+    const NodePosition position = THIS->nodePosition(nodeNum);
+    if (position.hasCoordinates()) {
         THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
         if (!THIS->map) {
             THIS->loadMap();
         }
-        THIS->map->setScrolledPosition(lat * 1e-7, lon * 1e-7);
+        THIS->map->setScrolledPosition(position.latitude * 1e-7, position.longitude * 1e-7);
     }
 }
 
@@ -2593,6 +2597,7 @@ void TFTView_320x240::loadMap(void)
 #else
         map = new MapPanel(objects.raw_map_panel, new AsyncTileService(new URLService()));
 #endif
+        mapFilterPublicationValid = false;
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(objects.home_location_image, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)ownNode);
@@ -2624,12 +2629,10 @@ void TFTView_320x240::loadMap(void)
             sortedLat.reserve(nodeObjects.size());
             sortedLon.reserve(nodeObjects.size());
             for (auto it : nodeObjects) {
-                lv_obj_t *p = nodes[it.first];
-                int32_t lat = (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                int32_t lon = (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
-                if (lat && lon) {
-                    sortedLat.push_back(lat);
-                    sortedLon.push_back(lon);
+                const NodePosition position = nodePosition(it.first);
+                if (position.hasCoordinates()) {
+                    sortedLat.push_back(position.latitude);
+                    sortedLon.push_back(position.longitude);
                 }
             }
             std::sort(sortedLat.begin(), sortedLat.end());
@@ -2667,16 +2670,16 @@ void TFTView_320x240::loadMap(void)
         // finally add all node images to the map
         if (!nodeObjects.empty()) {
             for (auto it : nodeObjects) {
-                lv_obj_t *p = nodes[it.first];
-                float lat = 1e-7 * (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                float lon = 1e-7 * (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
-                map->add(it.first, lat, lon, drawObjectCB);
+                const NodePosition position = nodePosition(it.first);
+                map->add(it.first, position.latitude * 1e-7, position.longitude * 1e-7, drawObjectCB);
                 lv_obj_add_flag(it.second, LV_OBJ_FLAG_CLICKABLE);
                 lv_obj_add_event_cb(it.second, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)it.first);
             }
         }
         updateLocationMap(map->getObjectsOnMap());
     }
+
+    publishMapFilter();
 
     if (sdCard) {
         if (!sdCard->isUpdated()) {
@@ -2781,18 +2784,14 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
         lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-        lv_obj_t *p = nodes[nodeNum];
-        lv_label_set_text_fmt(lbl, "%s", lv_label_get_text(p->LV_OBJ_IDX(node_lbs_idx)));
-
-        // position label callback
-        lv_obj_add_flag(p->LV_OBJ_IDX(node_pos1_idx), LV_OBJ_FLAG_CLICKABLE);
-        lv_obj_add_event_cb(p->LV_OBJ_IDX(node_pos1_idx), ui_event_positionButton, LV_EVENT_CLICKED, (void *)p);
+        lv_label_set_text_fmt(lbl, "%s", nodeShortName(nodeNum) ? nodeShortName(nodeNum) : "");
 
         nodeObjects[nodeNum] = img;
         if (map) {
             map->add(nodeNum, lat * 1e-7, lon * 1e-7, drawObjectCB);
             lv_obj_add_flag(img, LV_OBJ_FLAG_CLICKABLE);
             lv_obj_add_event_cb(img, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
+            map->update(nodeNum, !visibleNodes.contains(nodeNum));
             updateLocationMap(map->getObjectsOnMap());
         }
     } else {
@@ -2867,11 +2866,12 @@ void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t *e)
 
 void TFTView_320x240::ui_event_signal_scanner(lv_event_t *e)
 {
-    if (currentPanel) {
-        THIS->setNodeImage(currentNode, (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data,
-                           false, objects.signal_scanner_node_image);
-        const char *lbs = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbs_idx));
-        lv_label_set_text(objects.signal_scanner_node_button_label, lbs);
+    if (currentNode && THIS->nodeRecord(currentNode)) {
+        const NodeRecord *record = THIS->nodeRecord(currentNode);
+        THIS->setNodeImage(currentNode, (MeshtasticView::eRole)record->user.role, record->unmessagable,
+                           objects.signal_scanner_node_image);
+        const char *lbs = THIS->nodeShortName(currentNode);
+        lv_label_set_text(objects.signal_scanner_node_button_label, lbs ? lbs : "");
         lv_obj_clear_state(objects.signal_scanner_start_button, LV_STATE_DISABLED);
     } else {
         lv_label_set_text(objects.signal_scanner_node_button_label, _("choose\nnode"));
@@ -2969,12 +2969,12 @@ void TFTView_320x240::ui_event_trace_route(lv_event_t *e)
     lv_obj_clear_flag(objects.start_button_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.hop_routes_panel, LV_OBJ_FLAG_HIDDEN);
 
-    if (currentPanel) {
-        THIS->setNodeImage(THIS->currentNode,
-                           (MeshtasticView::eRole)(unsigned long)currentPanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
+    if (THIS->currentNode && THIS->nodeRecord(THIS->currentNode)) {
+        const NodeRecord *record = THIS->nodeRecord(THIS->currentNode);
+        THIS->setNodeImage(THIS->currentNode, (MeshtasticView::eRole)record->user.role, record->unmessagable,
                            objects.trace_route_to_image);
-        const char *lbl = lv_label_get_text(currentPanel->LV_OBJ_IDX(node_lbl_idx));
-        lv_label_set_text(objects.trace_route_to_button_label, lbl);
+        const char *lbl = THIS->nodeDisplayName(THIS->currentNode);
+        lv_label_set_text(objects.trace_route_to_button_label, lbl ? lbl : "");
         lv_obj_clear_state(objects.trace_route_start_button, LV_STATE_DISABLED);
     } else {
         lv_label_set_text(objects.trace_route_to_button_label, _("choose target node"));
@@ -2995,7 +2995,7 @@ void TFTView_320x240::ui_event_trace_route_to(lv_event_t *e)
 void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
 {
     if (!spinnerButton) {
-        if (currentPanel) {
+        if (currentNode && THIS->nodeRecord(currentNode)) {
             time(&startTime);
             lv_obj_t *obj = lv_spinner_create(objects.start_button_panel);
             spinnerButton = obj;
@@ -3006,23 +3006,12 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
             add_style_spinner_style(obj);
             lv_label_set_text(objects.trace_route_start_label, "30s");
 
-            // retrieve nodeNum from current node
-            // FIXME: remove for loop
-            for (auto &it : THIS->nodes) {
-                if (it.second == currentPanel) {
-                    uint32_t requestId;
-                    uint32_t to = it.first;
-                    uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
-                    // trial: hoplimit optimization for direct messages
-                    int8_t hopsAway = (signed long)THIS->nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
-                    if (hopsAway < 0)
-                        hopsAway = 5;
-                    uint8_t hopLimit = (hopsAway < THIS->db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
-                    requestId = THIS->requests.addRequest(to, ResponseHandler::TraceRouteRequest);
-                    THIS->controller->traceRoute(to, ch, hopLimit, requestId);
-                    break;
-                }
-            }
+            uint32_t requestId;
+            uint32_t to = currentNode;
+            uint8_t ch = THIS->nodeChannel(to);
+            uint8_t hopLimit = THIS->nodeHopLimit(to, 5);
+            requestId = THIS->requests.addRequest(to, ResponseHandler::TraceRouteRequest);
+            THIS->controller->traceRoute(to, ch, hopLimit, requestId);
         }
     } else {
         // restart
@@ -3033,9 +3022,15 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
 void TFTView_320x240::ui_event_trace_route_node(lv_event_t *e)
 {
     // navigate to node in node list
-    lv_obj_t *panel = (lv_obj_t *)e->user_data;
-    THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
-    lv_obj_scroll_to_view(panel, LV_ANIM_ON);
+    uint32_t nodeNum = (unsigned long)e->user_data;
+    if (THIS->nodeRecord(nodeNum)) {
+        THIS->selectNode(nodeNum);
+        THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+        THIS->syncNodeListPresentation();
+        if (THIS->virtualNodeList) {
+            THIS->virtualNodeList->scrollTo(nodeNum, LV_ANIM_ON);
+        }
+    }
 }
 
 void TFTView_320x240::removeSpinner(void)
@@ -3092,21 +3087,22 @@ void TFTView_320x240::packetDetected(const meshtastic_MeshPacket &p)
             lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
 
-            setNodeImage(p.from, (MeshtasticView::eRole)(unsigned long)nodes[p.from]->LV_OBJ_IDX(node_img_idx)->user_data, false,
-                         objects.detector_contact_image);
-            const char *lbl = lv_label_get_text(nodes[p.from]->LV_OBJ_IDX(node_lbl_idx));
+            const NodeRecord *record = nodeRecord(p.from);
+            setNodeImage(p.from, record ? (MeshtasticView::eRole)record->user.role : eRole::unknown,
+                         record && record->unmessagable, objects.detector_contact_image);
+            const char *lbl = nodeDisplayName(p.from);
 
             char from[5];
-            char *userShort = (char *)&(nodes[p.from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
+            const char *userShort = nodeShortName(p.from);
             int pos = 0;
-            while (pos < 4 && userShort[pos] != 0) {
+            while (userShort && pos < 4 && userShort[pos] != 0) {
                 from[pos] = userShort[pos];
                 pos++;
             }
             from[pos] = '\0';
 
             char buf[64];
-            lv_snprintf(buf, 64, "%s(%04x)\n%s", from, p.from & 0xffff, lbl);
+            lv_snprintf(buf, 64, "%s(%04x)\n%s", from, p.from & 0xffff, lbl ? lbl : "");
             lv_label_set_text(objects.detector_contact_label, buf);
             lv_obj_clear_flag(objects.detector_contact_button, LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -3149,9 +3145,9 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
 
     // get node name from
     char from[5];
-    char *userShort = (char *)&(nodes[p.from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
+    const char *userShort = nodeShortName(p.from);
     int pos = 0;
-    while (pos < 4 && userShort[pos] != 0) {
+    while (userShort && pos < 4 && userShort[pos] != 0) {
         from[pos] = userShort[pos];
         pos++;
     }
@@ -3354,17 +3350,9 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
     for (auto it2 : stats) {
         if (it2.id == p.from || move) {
             buf[0] = '\0';
-            auto it = nodes.find(it2.id); // node may have been removed from nodes, so check if still there
-            if (it != nodes.end() && it->second) {
-                char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
-                if (userData) {
-                    buf[0] = userData[0];
-                    buf[1] = userData[1];
-                    buf[2] = userData[2];
-                    buf[3] = userData[3];
-                    buf[4] = '\0';
-                }
-            }
+            const char *shortName = nodeShortName(it2.id);
+            if (shortName)
+                NodeListRowPresentation::formatShortDisplayName(buf, sizeof(buf), shortName, it2.id);
 
             lv_table_set_cell_value(objects.statistics_table, row, 0, buf);
             sprintf(buf, "%d", it2.tel);
@@ -3866,6 +3854,7 @@ void TFTView_320x240::eraseChat(uint32_t channelOrNode)
         lv_obj_del(messages.at(nodeNum));
         messages.erase(nodeNum);
         chats.erase(nodeNum);
+        syncNodeListPresentation(nodeStore.setActiveChat(nodeNum, false));
     }
 }
 
@@ -3881,12 +3870,16 @@ void TFTView_320x240::clearChatHistory(void)
             channelGroup[it.first] = nullptr;
         } else {
             lv_obj_delete(messages[it.first]);
+            nodeStore.setActiveChat(it.first, false);
         }
     }
     chats.clear();
     messages.clear();
     updateActiveChats();
     updateNodesFiltered(true);
+    // Bulk state change: force visible-row rebinding even when the filtered
+    // order is unchanged, so active-chat borders clear immediately.
+    syncNodeListPresentation(true);
     controller->removeTextMessages(0, 0, 0);
 }
 
@@ -3904,6 +3897,13 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             meshtastic_Config_LoRaConfig_RegionCode region =
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.setup_region_dropdown) + 1);
 
+            uint32_t numChannels = LoRaPresets::getNumChannels(region, THIS->db.config.lora.modem_preset);
+            // if (numChannels == 0) {
+            //     // region not possible for selected preset, revert
+            //     lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
+            //     return;
+            // }
+
             if (region != THIS->db.config.lora.region) {
                 char buf1[10], buf2[30];
                 lv_dropdown_get_selected_str(objects.setup_region_dropdown, buf1, sizeof(buf1));
@@ -3911,14 +3911,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
 
                 meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
-
-                if (lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET &&
-                    region == meshtastic_Config_LoRaConfig_RegionCode_US && lora.use_preset &&
-                    lora.modem_preset == meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) {
-                    lora.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO;
+                uint32_t defaultSlot = lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? lora.channel_num : 0;
+                if (defaultSlot == 0) {
+                    defaultSlot =
+                        LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset, THIS->db.channel[0].settings.name);
                 }
-                uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, lora.modem_preset, THIS->db.channel[0].settings.name);
-                uint32_t numChannels = LoRaPresets::getNumChannels(region, lora.modem_preset);
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
@@ -3930,8 +3927,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
                 lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
                 lv_label_set_text(objects.basic_settings_user_label, buf);
-                lv_label_set_text(objects.user_name_short_label, userShort);
-                lv_label_set_text(objects.user_name_label, userLong);
                 strcpy(THIS->db.short_name, userShort);
                 strcpy(THIS->db.long_name, userLong);
                 meshtastic_User user{}; // TODO: don't overwrite is_licensed
@@ -3952,8 +3947,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
                 lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
                 lv_label_set_text(objects.basic_settings_user_label, buf);
-                lv_label_set_text(objects.user_name_short_label, userShort);
-                lv_label_set_text(objects.user_name_label, userLong);
                 strcpy(THIS->db.short_name, userShort);
                 strcpy(THIS->db.long_name, userLong);
                 meshtastic_User user{}; // TODO: don't overwrite is_licensed
@@ -4500,11 +4493,6 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
 void TFTView_320x240::ui_event_setup_region_dropdown(lv_event_t *e) {}
 
 // animations
-void TFTView_320x240::ui_anim_node_panel_cb(void *var, int32_t v)
-{
-    lv_obj_set_height((lv_obj_t *)var, v);
-}
-
 void TFTView_320x240::ui_anim_radar_cb(void *var, int32_t r)
 {
     lv_img_set_angle(objects.radar_beam, r);
@@ -4551,15 +4539,12 @@ void TFTView_320x240::handleAddMessage(char *msg)
         ch = (uint8_t)channelOrNode;
         requestId = requests.addRequest(ch, ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
     } else {
-        ch = (uint8_t)(unsigned long)nodes[channelOrNode]->user_data;
+        ch = nodeChannel(channelOrNode);
         to = channelOrNode;
-        usePkc = (unsigned long)nodes[to]->LV_OBJ_IDX(node_bat_idx)->user_data; // hasKey
+        usePkc = nodeHasKey(to);
         requestId = requests.addRequest(to, ResponseHandler::TextMessageRequest, (void *)to, callback);
         // trial: hoplimit optimization for direct text messages
-        int8_t hopsAway = (signed long)nodes[to]->LV_OBJ_IDX(node_sig_idx)->user_data;
-        if (hopsAway < 0)
-            hopsAway = db.config.lora.hop_limit;
-        hopLimit = (hopsAway < db.config.lora.hop_limit ? hopsAway + 1 : hopsAway);
+        hopLimit = nodeHopLimit(to, db.config.lora.hop_limit);
     }
 
     // tweak to allow multiple lines in single line text area
@@ -4600,8 +4585,9 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(width, 200) + 10, 40));
+    lv_point_t size;
+    lv_text_get_size(&size, buf, &ui_font_montserrat_14, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(size.x, 200) + 10, 40));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
@@ -4630,220 +4616,30 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
                               eRole role, bool hasKey, bool unmessagable)
 {
-    // lv_obj nodesPanel children  |  user data (4 bytes)
-    // ==================================================
-    // [0]: img                    | role
-    // [1]: btn                    | ll group
-    // [2]: lbl user long          | nodeNum
-    // [3]: lbl user short         | userShort (4 chars)
-    // [4]: lbl battery            | hasKey
-    // [5]: lbl lastHeard          | lastHeard / curtime
-    // [6]: lbl signal (or hops)   | hops away
-    // [7]: lbl position 1         | lat
-    // [8]: lbl position 2         | lon
-    // [9]: lbl telemetry 1        |
-    // [10]: lbl telemetry 2       | iaq
-    // panel user_data: ch
-
-    ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s), role=%d", nodeCount, nodeNum, lastHeard, userLong, userShort,
-               role);
-    while (nodeCount >= MAX_NUM_NODES_VIEW) {
-        purgeNode(nodeNum);
+    const uint32_t modelLastHeard =
+        lastHeard && curtime && lastHeard > static_cast<uint32_t>(curtime) ? static_cast<uint32_t>(curtime) : lastHeard;
+    const NodeId purgeCandidate =
+        !nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW ? nodePurgeCandidate(nodeNum) : 0;
+    if (!nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW && !purgeCandidate) {
+        syncNodeListPresentation();
+        return;
     }
 
-    lv_obj_t *p = lv_obj_create(objects.nodes_panel);
-    lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
-
-    p->user_data = (void *)(uint32_t)ch;
-    nodes[nodeNum] = p;
-    nodeCount++;
-
-    // NodePanel
-    lv_obj_set_pos(p, LV_PCT(0), 0);
-    lv_obj_set_size(p, LV_PCT(100), 53);
-    lv_obj_set_align(p, LV_ALIGN_CENTER);
-    lv_obj_set_style_pad_top(p, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(p, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_remove_flag(p, lv_obj_flag_t(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE |
-                                        LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE));
-    add_style_node_panel_style(p);
-
-    // NodeImage
-    lv_obj_t *img = lv_img_create(p);
-    setNodeImage(nodeNum, role, unmessagable, img);
-    lv_obj_set_pos(img, -5, 3);
-    lv_obj_set_size(img, 32, 32);
-    lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_radius(img, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    if (!hasKey) {
-        lv_obj_set_style_border_color(img, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
+    meshtastic_User user = meshtastic_User_init_default;
+    if (userShort)
+        std::strncpy(user.short_name, userShort, sizeof(user.short_name) - 1);
+    if (userLong)
+        std::strncpy(user.long_name, userLong, sizeof(user.long_name) - 1);
+    user.role = static_cast<meshtastic_Config_DeviceConfig_Role>(role);
+    if (hasKey)
+        user.public_key.size = 32;
+    user.has_is_unmessagable = true;
+    user.is_unmessagable = unmessagable;
+    const NodeMutation mutation = nodeStore.upsertUser(nodeNum, ch, modelLastHeard, user, false);
+    if (purgeCandidate) {
+        purgeNode(purgeCandidate);
     }
-    if (unmessagable) {
-        // node role icon is not clickable and replaced with a cancelled icon
-        img->user_data = (void *)eRole::unmessagable;
-    } else {
-        img->user_data = (void *)role;
-    }
-
-    // NodeButton
-    lv_obj_t *nodeButton = lv_btn_create(p);
-    lv_obj_set_pos(nodeButton, 0, 0);
-    lv_obj_set_size(nodeButton, LV_PCT(106), LV_PCT(100));
-    add_style_node_button_style(nodeButton);
-    lv_obj_set_align(nodeButton, LV_ALIGN_CENTER);
-    lv_obj_add_flag(nodeButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
-    lv_obj_set_style_shadow_width(nodeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_max_height(nodeButton, 132, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_min_height(nodeButton, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
-    nodeButton->user_data = _lv_ll_get_tail(lv_group_ll);
-
-    // UserNameLabel
-    lv_obj_t *ln_lbl = lv_label_create(p);
-    lv_obj_set_pos(ln_lbl, -5, 35);
-    lv_obj_set_size(ln_lbl, LV_PCT(80), LV_SIZE_CONTENT);
-    lv_label_set_long_mode(ln_lbl, LV_LABEL_LONG_SCROLL);
-    lv_label_set_text(ln_lbl, userLong);
-    ln_lbl->user_data = (void *)nodeNum;
-    lv_obj_set_style_align(ln_lbl, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    // UserNameShortLabel
-    lv_obj_t *sn_lbl = lv_label_create(p);
-    lv_obj_set_pos(sn_lbl, 30, 10);
-    lv_obj_set_size(sn_lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_label_set_long_mode(sn_lbl, LV_LABEL_LONG_WRAP);
-    lv_obj_set_style_align(sn_lbl, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(sn_lbl, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
-    // if short name contains only non-printable glyphs replace with short id
-    if (lv_txt_get_width(userShort, strlen(userShort), &ui_font_montserrat_14, 0) <= 4) {
-        lv_label_set_text_fmt(sn_lbl, "%04x", nodeNum & 0xffff);
-    } else {
-        lv_label_set_text(sn_lbl, userShort);
-    }
-    char *modUserShort = lv_label_get_text(sn_lbl);
-
-    // keep a copy of the (4-byte) short name for use in many other widgets
-    char *userData = (char *)&(sn_lbl->user_data);
-    userData[0] = modUserShort[0];
-    if (userData[0] == 0x00)
-        userData[0] = ' ';
-    userData[1] = modUserShort[1];
-    if (userData[1] == 0x00)
-        userData[1] = ' ';
-    userData[2] = modUserShort[2];
-    if (userData[2] == 0x00)
-        userData[2] = ' ';
-    userData[3] = modUserShort[3];
-    if (userData[3] == 0x00)
-        userData[3] = ' ';
-
-    //  BatteryLabel
-    lv_obj_t *ui_BatteryLabel = lv_label_create(p);
-    lv_obj_set_pos(ui_BatteryLabel, 8, 17);
-    lv_obj_set_size(ui_BatteryLabel, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_align(ui_BatteryLabel, LV_ALIGN_TOP_RIGHT);
-    lv_label_set_text(ui_BatteryLabel, "");
-    lv_obj_set_style_text_align(ui_BatteryLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    ui_BatteryLabel->user_data = (void *)hasKey;
-    // LastHeardLabel
-    lv_obj_t *ui_lastHeardLabel = lv_label_create(p);
-    lv_obj_set_pos(ui_lastHeardLabel, 8, 33);
-    lv_obj_set_size(ui_lastHeardLabel, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_align(ui_lastHeardLabel, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_label_set_long_mode(ui_lastHeardLabel, LV_LABEL_LONG_CLIP);
-
-    // TODO: devices without actual time will report all nodes as lastseen = now
-    if (lastHeard) {
-        lastHeard = std::min(curtime, (time_t)lastHeard); // adapt values too large
-
-        char buf[20];
-        bool isOnline = lastHeardToString(lastHeard, buf);
-        lv_label_set_text(ui_lastHeardLabel, buf);
-        if (isOnline) {
-            nodesOnline++;
-        }
-    } else {
-        lv_label_set_text(ui_lastHeardLabel, "");
-    }
-
-    lv_obj_set_style_text_align(ui_lastHeardLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    ui_lastHeardLabel->user_data = (void *)lastHeard;
-    // SignalLabel / hopsAway
-    lv_obj_t *ui_SignalLabel = lv_label_create(p);
-    lv_obj_set_width(ui_SignalLabel, LV_SIZE_CONTENT);
-    lv_obj_set_height(ui_SignalLabel, LV_SIZE_CONTENT);
-    lv_obj_set_pos(ui_SignalLabel, 8, 1);
-    lv_obj_set_align(ui_SignalLabel, LV_ALIGN_TOP_RIGHT);
-    lv_label_set_text(ui_SignalLabel, "");
-    ui_SignalLabel->user_data = (void *)-1; // TODO viaMqtt; // used for filtering (applyNodesFilter)
-    // PositionLabel
-    lv_obj_t *ui_PositionLabel = lv_label_create(p);
-    lv_obj_set_pos(ui_PositionLabel, -5, 49);
-    lv_obj_set_size(ui_PositionLabel, 120, LV_SIZE_CONTENT);
-    lv_label_set_long_mode(ui_PositionLabel, LV_LABEL_LONG_CLIP);
-    lv_label_set_text(ui_PositionLabel, "");
-    lv_obj_set_style_align(ui_PositionLabel, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui_PositionLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
-    ui_PositionLabel->user_data = 0; // store latitude
-    // Position2Label
-    lv_obj_t *ui_Position2Label = lv_label_create(p);
-    lv_obj_set_pos(ui_Position2Label, -5, 63);
-    lv_obj_set_size(ui_Position2Label, 108, LV_SIZE_CONTENT);
-    lv_label_set_long_mode(ui_Position2Label, LV_LABEL_LONG_SCROLL);
-    lv_label_set_text(ui_Position2Label, "");
-    lv_obj_set_style_align(ui_Position2Label, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    ui_Position2Label->user_data = 0; // store longitude
-    // Telemetry1Label
-    lv_obj_t *ui_Telemetry1Label = lv_label_create(p);
-    lv_obj_set_pos(ui_Telemetry1Label, 8, 49);
-    lv_obj_set_size(ui_Telemetry1Label, 130, LV_SIZE_CONTENT);
-    lv_label_set_long_mode(ui_Telemetry1Label, LV_LABEL_LONG_CLIP);
-    lv_label_set_text(ui_Telemetry1Label, "");
-    lv_obj_set_style_align(ui_Telemetry1Label, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui_Telemetry1Label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    // Telemetry2Label
-    lv_obj_t *ui_Telemetry2Label = lv_label_create(p);
-    lv_obj_set_pos(ui_Telemetry2Label, 8, 63);
-    lv_obj_set_size(ui_Telemetry2Label, 130, LV_SIZE_CONTENT);
-    lv_label_set_long_mode(ui_Telemetry2Label, LV_LABEL_LONG_CLIP);
-    lv_label_set_text(ui_Telemetry2Label, "");
-    lv_obj_set_style_align(ui_Telemetry2Label, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui_Telemetry2Label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    // optimisation: hide all 6ix extended labels by default; enable only when set
-    // lv_obj_add_flag(ui_lastHeardLabel, LV_OBJ_FLAG_HIDDEN); // lastHeard
-    lv_obj_add_flag(ui_BatteryLabel, LV_OBJ_FLAG_HIDDEN); // Autohide battery
-    lv_obj_add_flag(ui_SignalLabel, LV_OBJ_FLAG_HIDDEN);  // Autohide signal/hops
-    lv_obj_add_flag(ui_PositionLabel, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(ui_Position2Label, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(ui_Telemetry1Label, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(ui_Telemetry2Label, LV_OBJ_FLAG_HIDDEN);
-
-    lv_obj_add_event_cb(nodeButton, ui_event_NodeButton, LV_EVENT_ALL, (void *)nodeNum);
-
-    // move node into new position within nodePanel
-    if (lastHeard) {
-        lv_obj_t **children = objects.nodes_panel->spec_attr->children;
-        int i = objects.nodes_panel->spec_attr->child_cnt - 1;
-        while (i > 1) {
-            if (lastHeard <= (time_t)(children[i - 1]->LV_OBJ_IDX(node_lh_idx)->user_data))
-                break;
-            i--;
-        }
-        if (i >= 1 && i < objects.nodes_panel->spec_attr->child_cnt - 1) {
-            lv_obj_move_to_index(p, i);
-            // re-arrange the group linked list by moving the new button (now at the tail) into the right position
-            void *after = children[i + 1]->LV_OBJ_IDX(node_btn_idx)->user_data;
-            _lv_ll_move_before(lv_group_ll, nodeButton->user_data, after);
-        }
-    }
-
-    if (!nodesChanged) {
-        applyNodesFilter(nodeNum);
-        updateNodesStatus();
-    }
+    syncNodeListPresentation(mutation);
 }
 
 void TFTView_320x240::setMyInfo(uint32_t nodeNum)
@@ -4856,14 +4652,44 @@ void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool 
 {
 }
 
+void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey,
+                                      bool viaMqtt)
+{
+    NodeMutation mutation{};
+    const uint32_t modelLastHeard =
+        lastHeard && curtime && lastHeard > static_cast<uint32_t>(curtime) ? static_cast<uint32_t>(curtime) : lastHeard;
+    const NodeId purgeCandidate =
+        !nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW ? nodePurgeCandidate(nodeNum) : 0;
+    if (!nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW && !purgeCandidate) {
+        syncNodeListPresentation();
+        return;
+    }
+    mutation = nodeStore.upsertUnknown(nodeNum, channel, modelLastHeard, static_cast<uint8_t>(role), hasKey, viaMqtt);
+    if (purgeCandidate) {
+        purgeNode(purgeCandidate);
+    }
+    syncNodeListPresentation(mutation);
+}
+
 void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg)
 {
-    if (nodes.find(nodeNum) == nodes.end()) {
-        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, lastHeard, (MeshtasticView::eRole)cfg.role,
-                cfg.public_key.size != 0, cfg.has_is_unmessagable && cfg.is_unmessagable);
-    } else {
-        updateNode(nodeNum, channel, cfg);
+    NodeMutation mutation{};
+    const auto *existing = nodeStore.find(nodeNum);
+    const uint32_t incomingLastHeard =
+        lastHeard && curtime && lastHeard > static_cast<uint32_t>(curtime) ? static_cast<uint32_t>(curtime) : lastHeard;
+    const uint32_t modelLastHeard = existing ? existing->lastHeard : incomingLastHeard;
+    const uint8_t modelChannel = existing ? existing->channel : channel;
+    const NodeId purgeCandidate =
+        !nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW ? nodePurgeCandidate(nodeNum) : 0;
+    if (!nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW && !purgeCandidate) {
+        syncNodeListPresentation();
+        return;
     }
+    mutation = nodeStore.upsertUser(nodeNum, modelChannel, modelLastHeard, cfg, false);
+    if (purgeCandidate) {
+        purgeNode(purgeCandidate);
+    }
+    syncNodeListPresentation(mutation);
 }
 
 /**
@@ -4881,181 +4707,79 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_
 //                                  eRole role, bool hasKey, bool viaMqtt)
 void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_User &cfg)
 {
-    db.user = cfg;
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end() && it->second) {
-        if (it->first == ownNode) {
-            // update related settings buttons and store role in image user data
-            char buf[30];
-            lv_snprintf(buf, sizeof(buf), _("User name: %s"), cfg.short_name);
-            lv_label_set_text(objects.basic_settings_user_label, buf);
-
-            char buf1[30], buf2[40];
-            lv_dropdown_set_selected(objects.settings_device_role_dropdown,
-                                     role2val(meshtastic_Config_DeviceConfig_Role(cfg.role)));
-            lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, buf1, sizeof(buf1));
-            lv_snprintf(buf2, sizeof(buf2), _("Device Role: %s"), buf1);
-            lv_label_set_text(objects.basic_settings_role_label, buf2);
-
-            // update DB
-            strcpy(db.short_name, cfg.short_name);
-            strcpy(db.long_name, cfg.long_name);
-            db.config.device.role = cfg.role;
-        }
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbl_idx), cfg.long_name);
-        it->second->LV_OBJ_IDX(node_lbl_idx)->user_data = (void *)nodeNum;
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lbs_idx), cfg.short_name);
-        char *userData = (char *)&(it->second->LV_OBJ_IDX(node_lbs_idx)->user_data);
-        userData[0] = cfg.short_name[0];
-        if (userData[0] == 0x00)
-            userData[0] = ' ';
-        userData[1] = cfg.short_name[1];
-        if (userData[1] == 0x00)
-            userData[1] = ' ';
-        userData[2] = cfg.short_name[2];
-        if (userData[2] == 0x00)
-            userData[2] = ' ';
-        userData[3] = cfg.short_name[3];
-        if (userData[3] == 0x00)
-            userData[3] = ' ';
-
-        setNodeImage(nodeNum, (MeshtasticView::eRole)cfg.role, cfg.has_is_unmessagable && cfg.is_unmessagable,
-                     it->second->LV_OBJ_IDX(node_img_idx));
-
-        if (cfg.public_key.size != 0) {
-            // set border color to bg color
-            lv_color_t color = lv_obj_get_style_bg_color(it->second->LV_OBJ_IDX(node_img_idx), LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), color, LV_PART_MAIN | LV_STATE_DEFAULT);
-        } else {
-            lv_obj_set_style_border_color(it->second->LV_OBJ_IDX(node_img_idx), colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-
-        // update chat name
-        auto ct = chats.find(it->first);
-        if (ct != chats.end()) {
-            char buf[64];
-            lv_snprintf(buf, sizeof(buf), "%s: %s", lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)),
-                        lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
-            lv_label_set_text(ct->second->spec_attr->children[0], buf);
-        }
+    const auto *existing = nodeStore.find(nodeNum);
+    const uint32_t lastHeard = existing ? existing->lastHeard : static_cast<uint32_t>(curtime);
+    const uint8_t channel = ch < c_max_channels ? ch : (existing ? existing->channel : 0);
+    const NodeId purgeCandidate = !existing && nodeStore.size() >= MAX_NUM_NODES_VIEW ? nodePurgeCandidate(nodeNum) : 0;
+    if (!existing && nodeStore.size() >= MAX_NUM_NODES_VIEW && !purgeCandidate) {
+        syncNodeListPresentation();
+        return;
     }
+    const NodeMutation mutation = nodeStore.upsertUser(nodeNum, channel, lastHeard, cfg, false);
+    if (purgeCandidate) {
+        purgeNode(purgeCandidate);
+    }
+    db.user = cfg;
+
+    if (nodeNum == ownNode) {
+        char userLabel[30];
+        lv_snprintf(userLabel, sizeof(userLabel), _("User name: %s"), cfg.short_name);
+        lv_label_set_text(objects.basic_settings_user_label, userLabel);
+
+        char roleName[30], roleLabel[40];
+        lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(meshtastic_Config_DeviceConfig_Role(cfg.role)));
+        lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, roleName, sizeof(roleName));
+        lv_snprintf(roleLabel, sizeof(roleLabel), _("Device Role: %s"), roleName);
+        lv_label_set_text(objects.basic_settings_role_label, roleLabel);
+        strcpy(db.short_name, cfg.short_name);
+        strcpy(db.long_name, cfg.long_name);
+        db.config.device.role = cfg.role;
+    }
+
+    auto chat = chats.find(nodeNum);
+    char title[96];
+    if (chat != chats.end() && chatTitleFromModel(nodeNum, title, sizeof(title)))
+        lv_label_set_text(chat->second->spec_attr->children[0], title);
+    syncNodeListPresentation(mutation);
 }
 
 void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision)
 {
-    int32_t altU = abs(alt) < 10000 ? alt : 0;
-    char units[3] = {};
-    if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
-        units[0] = 'm';
-    } else {
-        units[0] = 'f';
-        units[1] = 't';
-        altU = int32_t(float(altU) * 3.28084);
-    }
+    const NodePosition position{true, lat, lon, alt, sats, precision};
+    const NodeMutation mutation = nodeStore.updatePosition(nodeNum, position);
+    int32_t shownAltitude = alt > -10000 && alt < 10000 ? alt : 0;
+    const bool metric = db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC;
+    const char *units = metric ? "m" : "ft";
+    if (!metric)
+        shownAltitude = int32_t(float(shownAltitude) * 3.28084);
+
     if (nodeNum == ownNode) {
         char buf[64];
-        int latSeconds = (int)round(lat * 1e-7 * 3600);
-        int latDegrees = latSeconds / 3600;
-        latSeconds = abs(latSeconds % 3600);
-        int latMinutes = latSeconds / 60;
-        latSeconds %= 60;
-        char latLetter = (lat > 0) ? 'N' : 'S';
-
-        int lonSeconds = (int)round(lon * 1e-7 * 3600);
-        int lonDegrees = lonSeconds / 3600;
-        lonSeconds = abs(lonSeconds % 3600);
-        int lonMinutes = lonSeconds / 60;
-        lonSeconds %= 60;
-        char lonLetter = (lon > 0) ? 'E' : 'W';
-
+        const int latTotal = static_cast<int>(round(lat * 1e-7 * 3600));
+        const int lonTotal = static_cast<int>(round(lon * 1e-7 * 3600));
+        const int latMinutes = abs(latTotal % 3600) / 60;
+        const int lonMinutes = abs(lonTotal % 3600) / 60;
+        const int latSeconds = abs(latTotal % 60);
+        const int lonSeconds = abs(lonTotal % 60);
         if (sats)
-            sprintf(buf, "%c%02i° %2i'%02i\"   %u sats\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes,
-                    latSeconds, sats, lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
+            sprintf(buf, "%c%02i° %2i'%02i\"   %u sats\n%c%02i° %2i'%02i\"   %d%s", lat > 0 ? 'N' : 'S', abs(latTotal / 3600),
+                    latMinutes, latSeconds, sats, lon > 0 ? 'E' : 'W', abs(lonTotal / 3600), lonMinutes, lonSeconds,
+                    shownAltitude, units);
         else
-            sprintf(buf, "%c%02i° %2i'%02i\"\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes, latSeconds,
-                    lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
-
+            sprintf(buf, "%c%02i° %2i'%02i\"\n%c%02i° %2i'%02i\"   %d%s", lat > 0 ? 'N' : 'S', abs(latTotal / 3600), latMinutes,
+                    latSeconds, lon > 0 ? 'E' : 'W', abs(lonTotal / 3600), lonMinutes, lonSeconds, shownAltitude, units);
         lv_label_set_text(objects.home_location_label, buf);
-
-        if (lat != 0 && lon != 0) {
+        if (position.hasCoordinates()) {
             hasPosition = true;
             myLatitude = lat;
             myLongitude = lon;
-
-            // go through existing node list and update distance
-            // TODO: need incremental update!?
-            for (auto &it : nodes) {
-                if (it.first != ownNode) {
-                    int32_t nlat = (long)it.second->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                    int32_t nlon = (long)it.second->LV_OBJ_IDX(node_pos2_idx)->user_data;
-                    if (nlat != 0 && nlon != 0) {
-                        updateDistance(it.first, nlat, nlon);
-                    }
-                }
-            }
-            // update own location on map
             if (map)
                 map->setGpsPosition(lat * 1e-7, lon * 1e-7);
         }
-    } else {
-        if (lat != 0 && lon != 0) {
-            if (hasPosition) {
-                updateDistance(nodeNum, lat, lon);
-            }
-            addOrUpdateMap(nodeNum, lat, lon);
-        }
+    } else if (position.hasCoordinates()) {
+        addOrUpdateMap(nodeNum, lat, lon);
     }
-
-    if (lat != 0 && lon != 0) {
-        char buf[32];
-        sprintf(buf, "%.5f %.5f", lat * 1e-7, lon * 1e-7);
-        lv_obj_t *panel = nodes[nodeNum];
-        lv_label_set_text(panel->LV_OBJ_IDX(node_pos1_idx), buf);
-        if (sats)
-            sprintf(buf, "%d%s MSL  %u sats", altU, units, sats);
-        sprintf(buf, "%d%s MSL", altU, units);
-        lv_label_set_text(panel->LV_OBJ_IDX(node_pos2_idx), buf);
-        // store lat/lon in user_data, because we need these values later to calculate the distance to us
-        panel->LV_OBJ_IDX(node_pos1_idx)->user_data = (void *)lat;
-        panel->LV_OBJ_IDX(node_pos2_idx)->user_data = (void *)lon;
-        lv_obj_remove_flag(panel->LV_OBJ_IDX(node_pos1_idx), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_remove_flag(panel->LV_OBJ_IDX(node_pos2_idx), LV_OBJ_FLAG_HIDDEN);
-    }
-
-    applyNodesFilter(nodeNum);
-}
-
-void TFTView_320x240::updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon)
-{
-    // if we know our position then calculate (simple) distance to other node in km
-    float dx = 71.5 * 1e-7 * (myLongitude - lon);
-    float dy = 111.3 * 1e-7 * (myLatitude - lat);
-    float dist = sqrt(dx * dx + dy * dy);
-
-    // add distance to user short field
-    char buf[32];
-    char *userData = (char *)&(nodes[nodeNum]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-    buf[0] = userData[0];
-    buf[1] = userData[1];
-    buf[2] = userData[2];
-    buf[3] = userData[3];
-    buf[4] = '\n';
-
-    if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
-        if (dist > 1.0)
-            sprintf(&buf[5], "%.1f km ", dist);
-        else
-            sprintf(&buf[5], "%d m ", (uint32_t)round(dist * 1000));
-    } else {
-        if (dist > 0.1)
-            sprintf(&buf[5], "%.1f mi ", round(dist * 0.621371));
-        else
-            sprintf(&buf[5], "%d ft ", uint32_t(dist * 3280.84));
-    }
-    // we used the userShort label to add the distance, so re-arrange a bit the position
-    lv_obj_t *userShort = nodes[nodeNum]->LV_OBJ_IDX(node_lbs_idx);
-    lv_label_set_text(userShort, buf);
-    lv_obj_set_pos(userShort, 30, -1);
+    syncNodeListPresentation(mutation);
 }
 
 /**
@@ -5069,124 +4793,77 @@ void TFTView_320x240::updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon)
  */
 void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil)
 {
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
-        char buf[48];
-        if (it->first == ownNode) {
-            sprintf(buf, _("Util %0.1f%%  Air %0.1f%%"), chUtil, airUtil);
-            lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
+    meshtastic_DeviceMetrics metrics = meshtastic_DeviceMetrics_init_default;
+    metrics.has_battery_level = true;
+    metrics.battery_level = bat_level;
+    metrics.has_voltage = true;
+    metrics.voltage = voltage;
+    metrics.has_channel_utilization = true;
+    metrics.channel_utilization = chUtil;
+    metrics.has_air_util_tx = true;
+    metrics.air_util_tx = airUtil;
+    updateMetrics(nodeNum, metrics);
+}
 
-            // update battery percentage and symbol
-            if (bat_level != 0 || voltage != 0) {
-                uint32_t shown_level = std::min(bat_level, (uint32_t)100);
-                sprintf(buf, "%d%%", shown_level);
-                bool alert = false;
+void TFTView_320x240::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMetrics &metrics)
+{
+    const NodeMutation mutation = nodeStore.updateDeviceMetrics(nodeNum, metrics);
 
-                BatteryLevel level;
-                BatteryLevel::Status status = level.calcStatus(bat_level, voltage);
-                switch (status) {
-                case BatteryLevel::Plugged:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_plug_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
-                    if (shown_level == 100)
-                        buf[0] = '\0';
-                    break;
-                case BatteryLevel::Charging:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
-                    break;
-                case BatteryLevel::Full:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_full_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
-                    break;
-                case BatteryLevel::Mid:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_mid_image, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    break;
-                case BatteryLevel::Low:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_low_image, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    break;
-                case BatteryLevel::Empty:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
-                    break;
-                case BatteryLevel::Warn:
-                    lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_warn_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
-                    buf[0] = '\0';
-                    alert = true;
-                    break;
-                default:
-                    ILOG_ERROR("unhandled battery level %d", status);
-                    break;
-                }
-                Themes::recolorTopLabel(objects.battery_percentage_label, alert);
-                lv_obj_set_style_bg_image_recolor_opa(objects.battery_image, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_label_set_text(objects.battery_percentage_label, buf);
-            }
+    if (nodeNum == ownNode && (metrics.battery_level != 0 || metrics.voltage != 0)) {
+        char buf[16];
+        const uint32_t shownLevel = std::min(metrics.battery_level, static_cast<uint32_t>(100));
+        sprintf(buf, "%d%%", shownLevel);
+        bool alert = false;
+        BatteryLevel level;
+        switch (level.calcStatus(metrics.battery_level, metrics.voltage)) {
+        case BatteryLevel::Plugged:
+            lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_plug_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            if (shownLevel == 100)
+                buf[0] = '\0';
+            break;
+        case BatteryLevel::Charging:
+            lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case BatteryLevel::Full:
+            lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_full_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case BatteryLevel::Mid:
+            lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_mid_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case BatteryLevel::Low:
+            lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_low_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case BatteryLevel::Empty:
+            lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            break;
+        case BatteryLevel::Warn:
+            lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_warn_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            buf[0] = '\0';
+            alert = true;
+            break;
+        default:
+            break;
         }
-
-        if (bat_level != 0 || voltage != 0) {
-            bat_level = std::min(bat_level, (uint32_t)100);
-            sprintf(buf, "%d%% %0.2fV", bat_level, voltage);
-            lv_label_set_text(it->second->LV_OBJ_IDX(node_bat_idx), buf);
-            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_bat_idx), LV_OBJ_FLAG_HIDDEN);
-        }
+        Themes::recolorTopLabel(objects.battery_percentage_label, alert);
+        lv_obj_set_style_bg_image_recolor_opa(objects.battery_image, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_label_set_text(objects.battery_percentage_label, buf);
     }
+    syncNodeListPresentation(mutation);
 }
 
 void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics)
 {
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
-        char buf[50];
-        if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
-            if ((int)metrics.relative_humidity > 0) {
-                sprintf(buf, "%2.1f°C %d%% %3.1fhPa", metrics.temperature, (int)metrics.relative_humidity,
-                        metrics.barometric_pressure);
-            } else {
-                sprintf(buf, "%2.1f°C %3.1fhPa", metrics.temperature, metrics.barometric_pressure);
-            }
-        } else {
-            if ((int)metrics.relative_humidity > 0) {
-                sprintf(buf, "%2.1f°F %d%% %3.1finHg", metrics.temperature * 9 / 5 + 32, (int)metrics.relative_humidity,
-                        metrics.barometric_pressure / 33.86f);
-            } else {
-                sprintf(buf, "%2.1f°F %3.1finHg", metrics.temperature * 9 / 5 + 32, metrics.barometric_pressure / 33.86f);
-            }
-        }
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_tm1_idx), buf);
-        lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_tm1_idx), LV_OBJ_FLAG_HIDDEN);
-
-        if (metrics.iaq > 0 && metrics.iaq < 1000) {
-            sprintf(buf, "IAQ: %d %.1fV %.1fmA", metrics.iaq, metrics.voltage, metrics.current);
-            lv_label_set_text(it->second->LV_OBJ_IDX(node_tm2_idx), buf);
-            it->second->LV_OBJ_IDX(node_tm2_idx)->user_data = (void *)(uint32_t)metrics.iaq;
-            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_tm2_idx), LV_OBJ_FLAG_HIDDEN);
-        }
-        applyNodesFilter(nodeNum);
-    }
+    syncNodeListPresentation(nodeStore.updateEnvironmentMetrics(nodeNum, metrics));
 }
 
 void TFTView_320x240::updateAirQualityMetrics(uint32_t nodeNum, const meshtastic_AirQualityMetrics &metrics)
 {
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end() && it->first != ownNode) {
-        // TODO
-        // char buf[32];
-        // sprintf(buf, "%d %d", metrics.particles_03um, metrics.pm100_environmental);
-        // lv_label_set_text(it->second->LV_OBJ_IDX(node_tm2_idx), buf);
-    }
+    syncNodeListPresentation(nodeStore.updateAirQualityMetrics(nodeNum, metrics));
 }
 
 void TFTView_320x240::updatePowerMetrics(uint32_t nodeNum, const meshtastic_PowerMetrics &metrics)
 {
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end() && it->first != ownNode) {
-        // TODO
-        // char buf[32];
-        // sprintf(buf, "%0.1fmA %0.2fV", metrics.ch1_current, metrics.ch1_voltage);
-        // lv_label_set_text(it->second->LV_OBJ_IDX(node_tm2_idx), buf);
-    }
+    syncNodeListPresentation(nodeStore.updatePowerMetrics(nodeNum, metrics));
 }
 
 /**
@@ -5194,34 +4871,12 @@ void TFTView_320x240::updatePowerMetrics(uint32_t nodeNum, const meshtastic_Powe
  */
 void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr)
 {
-    if (nodeNum != ownNode) {
-        auto it = nodes.find(nodeNum);
-        if (it != nodes.end()) {
-            char buf[32];
-            if (rssi == 0 && snr == 0.0) {
-                buf[0] = '\0';
-            } else {
-                sprintf(buf, "rssi: %d snr: %.1f", rssi, snr);
-            }
-            lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
-            it->second->LV_OBJ_IDX(node_sig_idx)->user_data = 0;
-            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_sig_idx), LV_OBJ_FLAG_HIDDEN);
-        }
-    }
+    syncNodeListPresentation(nodeStore.updateSignal(nodeNum, rssi, snr));
 }
 
 void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
 {
-    if (nodeNum != ownNode) {
-        auto it = nodes.find(nodeNum);
-        if (it != nodes.end()) {
-            char buf[32];
-            sprintf(buf, _("hops: %d"), (int)hopsAway);
-            lv_label_set_text(it->second->LV_OBJ_IDX(node_sig_idx), buf);
-            it->second->LV_OBJ_IDX(node_sig_idx)->user_data = (void *)(unsigned long)hopsAway;
-            lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_sig_idx), LV_OBJ_FLAG_HIDDEN);
-        }
-    }
+    syncNodeListPresentation(nodeStore.updateHops(nodeNum, hopsAway));
 }
 
 void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
@@ -5381,11 +5036,9 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
             if (req.type == ResponseHandler::TextMessageRequest) {
                 handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
                 // we probably have a wrong key; mark it as bad and don't use in future
-                if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
+                if (nodeHasKey(from)) {
                     ILOG_DEBUG("public key mismatch");
-                    nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
-                    lv_obj_set_style_border_color(nodes[from]->LV_OBJ_IDX(node_img_idx), colorRed,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                    syncNodeListPresentation(nodeStore.markBadKey(from));
                     lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_slash_image,
                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
@@ -5421,7 +5074,7 @@ void TFTView_320x240::scanSignal(uint32_t scanNo)
     } else {
         uint32_t requestId;
         uint32_t to = currentNode;
-        uint8_t ch = (uint8_t)(unsigned long)currentPanel->user_data;
+        uint8_t ch = nodeChannel(to);
         requestId = requests.addRequest(to, ResponseHandler::PositionRequest, (void *)to);
         controller->requestPosition(to, ch, requestId);
         objects.signal_scanner_panel->user_data = (void *)requestId;
@@ -5491,12 +5144,7 @@ void TFTView_320x240::handleResponse(uint32_t from, uint32_t id, const meshtasti
 
 void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
 {
-    // check if node exists, and get its panel
-    lv_obj_t *nodePanel = nullptr;
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
-        nodePanel = it->second;
-    }
+    const NodeRecord *record = nodeRecord(nodeNum);
     lv_obj_t *btn = lv_btn_create(panel);
     // objects.trace_route_to_button = btn;
     lv_obj_set_pos(btn, 0, 0);
@@ -5513,9 +5161,8 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
     {
         {
             lv_obj_t *img = lv_img_create(btn);
-            if (nodePanel) {
-                setNodeImage(nodeNum, (MeshtasticView::eRole)(unsigned long)nodePanel->LV_OBJ_IDX(node_img_idx)->user_data, false,
-                             img);
+            if (record) {
+                setNodeImage(nodeNum, (MeshtasticView::eRole)record->user.role, record->unmessagable, img);
             } else {
                 setNodeImage(0, eRole::unknown, false, img);
             }
@@ -5534,14 +5181,15 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
             lv_obj_set_pos(label, 35, 10);
             lv_obj_set_size(label, LV_PCT(80), LV_SIZE_CONTENT);
             lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
-            if (nodePanel) {
+            if (record) {
                 if (nodeNum != ownNode) {
-                    lv_obj_add_event_cb(btn, ui_event_trace_route_node, LV_EVENT_CLICKED, nodePanel);
-                    lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbs_idx)));
+                    lv_obj_add_event_cb(btn, ui_event_trace_route_node, LV_EVENT_CLICKED,
+                                        traceRouteNodeCallbackUserData(nodeNum));
+                    lv_label_set_text(label, nodeShortName(nodeNum) ? nodeShortName(nodeNum) : "");
                     if (strlen(lv_label_get_text(label)) >= 5)
                         lv_obj_set_pos(label, 35, -1);
                 } else {
-                    lv_label_set_text(label, lv_label_get_text(nodePanel->LV_OBJ_IDX(node_lbl_idx)));
+                    lv_label_set_text(label, nodeDisplayName(nodeNum) ? nodeDisplayName(nodeNum) : "");
                 }
             } else {
                 char buf[20];
@@ -5559,222 +5207,26 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
 
 /**
  * @brief purge oldest node from node list (and all its memory)
- * @param nodeNum node that is being added and already contained in nodes[], so don't remove it!
+ * @param nodeNum node to remove
  */
 void TFTView_320x240::purgeNode(uint32_t nodeNum)
 {
-    if (nodeCount <= 1)
-        return;
-
-    lv_obj_t **children = objects.nodes_panel->spec_attr->children;
-    int last = objects.nodes_panel->spec_attr->child_cnt - 1;
-    int i = last;
-
-#ifndef ALWAYS_PURGE_OLDEST_NODE
-    time_t curr_time;
-#ifdef ARCH_PORTDUINO
-    time(&curr_time);
-#else
-    curr_time = actTime;
-#endif
-    // prefer purging older unknown nodes first (but not the brand new ones)
-    while ((eRole)(long)(children[i]->LV_OBJ_IDX(node_img_idx)->user_data) != eRole::unknown ||
-           curr_time < (time_t)(children[i]->LV_OBJ_IDX(node_lh_idx)->user_data) + 120 ||
-           (unsigned long)(children[i]->LV_OBJ_IDX(node_lbl_idx)->user_data) == nodeNum ||
-           chats.find((unsigned long)(children[i]->LV_OBJ_IDX(node_lbl_idx)->user_data)) != chats.end()) {
-        if (i < (last + 1) / 5) { // keep 80% named nodes and 20% unknown (not fresh) nodes
-            i = last;
-            break;
-        }
-        i--;
+    ILOG_INFO("removing oldest node 0x%08x", nodeNum);
+    auto message = messages.find(nodeNum);
+    if (message != messages.end()) {
+        lv_obj_delete(message->second);
+        messages.erase(message);
     }
-#endif
-    lv_obj_t *p = children[i];
-    uint32_t oldest = (unsigned long)(p->LV_OBJ_IDX(node_lbl_idx)->user_data);
-    uint32_t lastHeard = (unsigned long)p->LV_OBJ_IDX(node_lh_idx)->user_data;
-    if (lastHeard > 0 && (curtime - lastHeard <= secs_until_offline))
-        nodesOnline--;
-
-    ILOG_INFO("removing oldest node 0x%08x", oldest);
-    lv_obj_delete(p);
-    {
-        auto it = messages.find(oldest);
-        if (it != messages.end()) {
-            lv_obj_delete(it->second);
-            messages.erase(oldest);
-        }
+    auto chat = chats.find(nodeNum);
+    if (chat != chats.end()) {
+        lv_obj_delete(chat->second);
+        chats.erase(chat);
+        updateActiveChats();
     }
-
-    {
-        auto it = chats.find(oldest);
-        if (it != chats.end()) {
-            lv_obj_delete(it->second);
-            chats.erase(oldest);
-            updateActiveChats();
-        }
-    }
-    removeFromMap(oldest);
-    nodes.erase(oldest);
-    nodeCount--;
-    nodesChanged = true; // flag to force re-apply node filter
-}
-
-/**
- * @brief apply enabled filters and highlight node
- *
- * @param nodeNum
- * @param reset : set true when filter has changed (to recalculate number of filtered nodes)
- * @return true
- * @return false
- */
-bool TFTView_320x240::applyNodesFilter(uint32_t nodeNum, bool reset)
-{
-    lv_obj_t *panel = nodes[nodeNum];
-    bool hide = false;
-    if (nodeNum != ownNode /* && filter.active*/) { // TODO
-        if (lv_obj_has_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED)) {
-            if (lv_img_get_src(panel->LV_OBJ_IDX(node_img_idx)) == &img_circle_question_image) {
-                hide = true;
-            }
-        }
-        if (lv_obj_has_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED)) {
-            time_t lastHeard = (time_t)panel->LV_OBJ_IDX(node_lh_idx)->user_data;
-            if (lastHeard == 0 || curtime - lastHeard > secs_until_offline)
-                hide = true;
-        }
-        if (lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED)) {
-            bool hasKey = (unsigned long)panel->LV_OBJ_IDX(node_bat_idx)->user_data == 1;
-            if (!hasKey)
-                hide = true;
-        }
-        if (lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown) != 0) {
-            int selected = lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown);
-            if (selected != 0) {
-                uint8_t ch = (uint8_t)(unsigned long)panel->user_data;
-                if (selected - 1 != ch)
-                    hide = true;
-            }
-        }
-        if (lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown) != 0) {
-            int32_t hopsAway = (signed long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
-            int selected = lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown) - 7;
-            if (hopsAway < 0)
-                hide = true;
-            else if (selected <= 0) {
-                if (hopsAway > -selected)
-                    hide = true;
-            } else {
-                if (hopsAway < selected)
-                    hide = true;
-            }
-        }
-#if 0
-        if (lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED)) {
-            bool viaMqtt = false; // TODO (unsigned long)panel->LV_OBJ_IDX(node_sig_idx)->user_data;
-            if (viaMqtt)
-                hide = true;
-        }
-#endif
-        if (lv_obj_has_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED)) {
-            if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] == '\0')
-                hide = true;
-        }
-        const char *name = lv_textarea_get_text(objects.nodes_filter_name_area);
-        if (name[0] != '\0') {
-            if (name[0] != '!') { // use '!' char to negate search result
-                if (!strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) &&
-                    !strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), name)) {
-                    hide = true;
-                }
-            } else {
-                if (strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), &name[1]) ||
-                    strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), &name[1])) {
-                    hide = true;
-                }
-            }
-        }
-    }
-    if (hide) {
-        if (reset || !lv_obj_has_flag(panel, LV_OBJ_FLAG_HIDDEN)) {
-            lv_obj_add_flag(panel, LV_OBJ_FLAG_HIDDEN);
-            nodesFiltered++;
-        }
-    } else {
-        lv_obj_clear_flag(panel, LV_OBJ_FLAG_HIDDEN);
-    }
-
-    // hide node location if filtered
-    if (map)
-        map->update(nodeNum, hide);
-
-    bool highlight = false;
-    if (true /*highlight.active*/) { // TODO
-        if (lv_obj_has_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED)) {
-            auto it = chats.find(nodeNum);
-            if (it != nodes.end()) {
-                lv_obj_set_style_border_color(panel, colorOrange, LV_PART_MAIN | LV_STATE_DEFAULT);
-                highlight = true;
-            }
-        }
-        if (lv_obj_has_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED)) {
-            if (lv_label_get_text(panel->LV_OBJ_IDX(node_pos1_idx))[0] != '\0') {
-                lv_obj_set_style_border_color(panel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
-                highlight = true;
-            }
-        }
-        if (lv_obj_has_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED)) {
-            if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm1_idx))[0] != '\0') {
-                lv_obj_set_style_border_color(panel, colorBlue, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_border_width(panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-                highlight = true;
-            }
-        }
-        if (lv_obj_has_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED)) {
-            if (lv_label_get_text(panel->LV_OBJ_IDX(node_tm2_idx))[0] != '\0') {
-                uint32_t iaq = (unsigned long)panel->LV_OBJ_IDX(node_tm2_idx)->user_data;
-                // IAQ color code
-                lv_color_t fg, bg;
-                if (iaq <= 50) {
-                    fg = lv_color_hex(0x00000000);
-                    bg = lv_color_hex(0x000ce810);
-                } else if (iaq <= 100) {
-                    fg = lv_color_hex(0x00000000);
-                    bg = lv_color_hex(0x00faf646);
-                } else if (iaq <= 150) {
-                    fg = lv_color_hex(0x00000000);
-                    bg = lv_color_hex(0x00f98204);
-                } else if (iaq <= 200) {
-                    fg = lv_color_hex(0x00000000);
-                    bg = lv_color_hex(0x00e42104);
-                } else if (iaq <= 300) {
-                    fg = lv_color_hex(0xffffffff);
-                    bg = lv_color_hex(0x009b2970);
-                } else {
-                    fg = lv_color_hex(0xffffffff);
-                    bg = lv_color_hex(0x001d1414);
-                }
-                lv_obj_set_style_text_color(panel->LV_OBJ_IDX(node_tm2_idx), fg, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_color(panel->LV_OBJ_IDX(node_tm2_idx), bg, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_opa(panel->LV_OBJ_IDX(node_tm2_idx), 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_border_color(panel, bg, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_border_width(panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-                highlight = true;
-            }
-        }
-        const char *name = lv_textarea_get_text(objects.nodes_hl_name_area);
-        if (name[0] != '\0') {
-            if (strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbl_idx)), name) ||
-                strcasestr(lv_label_get_text(panel->LV_OBJ_IDX(node_lbs_idx)), name)) {
-                lv_obj_set_style_border_color(panel, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
-                highlight = true;
-            }
-        }
-    }
-    if (!highlight) {
-        lv_obj_set_style_border_color(panel, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_border_width(panel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    }
-    return hide; // TODO || filter.active;
+    removeFromMap(nodeNum);
+    nodeStore.remove(nodeNum);
+    if (currentNode == nodeNum)
+        selectNode(0);
 }
 
 void TFTView_320x240::messageAlert(const char *alert, bool show)
@@ -5883,6 +5335,7 @@ void TFTView_320x240::notifyResync(bool show)
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         }
     }
+    syncNodeListPresentation(true);
 }
 
 void TFTView_320x240::notifyReboot(bool show)
@@ -5901,13 +5354,17 @@ void TFTView_320x240::notifyShutdown(void)
 void TFTView_320x240::blankScreen(bool enable)
 {
     ILOG_DEBUG("%s screen (%s)", enable ? "blank" : "unblank", screenLocked ? "locked" : "timeout");
-    if (enable)
+    if (enable) {
+        setInputGroup();
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
-    else {
+    } else {
         if (objects.main_screen)
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         else
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        if (objects.nodes_panel && activePanel == objects.nodes_panel) {
+            reconcileVirtualNodeListInputGroup(true);
+        }
     }
 }
 
@@ -5915,6 +5372,7 @@ void TFTView_320x240::screenSaving(bool enabled)
 {
     if (enabled) {
         // overlay main screen with blank screen to prevent accidentally pressing buttons
+        setInputGroup();
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 0, 0, false);
         lv_group_focus_obj(objects.blank_screen_button);
         screenLocked = true;
@@ -5931,6 +5389,9 @@ void TFTView_320x240::screenSaving(bool enabled)
                 ui_event_cancel(&e);
             }
             screenLocked = false;
+            if (objects.nodes_panel && activePanel == objects.nodes_panel) {
+                reconcileVirtualNodeListInputGroup(true);
+            }
         } else {
             ILOG_DEBUG("showing boot screen");
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
@@ -6519,13 +5980,12 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
     char buf[284]; // 237 + 4 + 40 + 2 + 1
     lv_obj_t *container = nullptr;
     if (to == UINT32_MAX) { // message for group, prepend short name to msg
-        if (nodes.find(from) == nodes.end()) {
+        const char *userShort = nodeShortName(from);
+        if (!userShort) {
             pos += sprintf(buf, "%04x ", from & 0xffff);
         } else {
-            // original short name is held in userData, extract it and add msg
-            char *userData = (char *)&(nodes[from]->LV_OBJ_IDX(node_lbs_idx)->user_data);
-            while (pos < 4 && userData[pos] != 0) {
-                buf[pos] = userData[pos];
+            while (pos < 4 && userShort[pos] != 0) {
+                buf[pos] = userShort[pos];
                 pos++;
             }
         }
@@ -6553,7 +6013,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
             updateUnreadMessages();
             if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled &&
                 !db.channel[ch].settings.module_settings.is_muted) {
-                showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
+                showMessagePopup(from, to, ch, nodeDisplayName(from) ? nodeDisplayName(from) : "");
             }
             lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
         }
@@ -6589,8 +6049,9 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_14, 0);
-    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
+    lv_point_t size;
+    lv_text_get_size(&size, msg, &ui_font_montserrat_14, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(size.x), 160) + 10, 40));
     lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
     lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_label_set_text(msgLabel, msg);
@@ -6624,7 +6085,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 container = newMessageContainer(msg.from, msg.to, msg.ch);
             }
         } else {
-            if (nodes.find(msg.to) != nodes.end()) {
+            if (nodeStore.find(msg.to)) {
                 if (msg.trashFlag && chats.find(msg.to) != chats.end()) {
                     ILOG_DEBUG("trashFlag set for node %08x", msg.to);
                     eraseChat(msg.to);
@@ -6634,7 +6095,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 }
             } else {
                 ILOG_DEBUG("to node 0x%08x not in db", msg.to);
-                MeshtasticView::addOrUpdateNode(msg.to, msg.ch, 0, eRole::unknown, false, false);
+                addOrUpdateNode(msg.to, msg.ch, 0, eRole::unknown, false, false);
             }
         }
         if (container) {
@@ -6642,7 +6103,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
             addMessage(container, msg.time, 0, (char *)msg.bytes, msg.status);
         }
-    } else if (nodes.find(msg.from) != nodes.end()) {
+    } else if (nodeStore.find(msg.from)) {
         if (msg.trashFlag && chats.find(msg.from) != chats.end()) {
             ILOG_DEBUG("trashFlag set for node %08x", msg.from);
             eraseChat(msg.from);
@@ -6657,7 +6118,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         if (msg.to != UINT32_MAX) {
             // from node not in db
             ILOG_DEBUG("from node 0x%08x not in db", msg.from);
-            MeshtasticView::addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
+            addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
         } else {
             ILOG_DEBUG("from node 0x%08x not in db and no need to insert", msg.from);
             pos += sprintf(buf, "%04x ", msg.from & 0xffff);
@@ -6685,6 +6146,9 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     auto it = chats.find(index);
     if (it != chats.end())
         return;
+
+    NodeMutation mutation = index >= c_max_channels ? nodeStore.setActiveChat(index, true) : NodeMutation{};
+    syncNodeListPresentation(mutation);
 
     lv_obj_t *chatDelBtn = nullptr;
     lv_obj_t *parent_obj = objects.chats_panel;
@@ -6714,11 +6178,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     if (to == UINT32_MAX || from == 0) {
         sprintf(buf, "%d: %s", (int)ch, lv_label_get_text(channel[ch]));
     } else {
-        auto it = nodes.find(from);
-        if (it != nodes.end()) {
-            sprintf(buf, "%s: %s", lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)),
-                    lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
-        } else {
+        if (!chatTitleFromModel(from, buf, sizeof(buf))) {
             sprintf(buf, "!%08x", from);
         }
     }
@@ -6762,10 +6222,8 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
 
     chats[index] = chatBtn;
     updateActiveChats();
-    if (index > c_max_channels) {
-        if (nodes.find(index) != nodes.end())
-            applyNodesFilter(index);
-    }
+    if (index > c_max_channels)
+        syncNodeListPresentation();
 
     lv_obj_add_event_cb(chatBtn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
     lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
@@ -6876,23 +6334,18 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
     }
     activeMsgContainer->user_data = (void *)nodeNum;
     lv_obj_clear_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_t *p = nodes[nodeNum];
-    if (p) {
-        lv_label_set_text(objects.top_messages_node_label, lv_label_get_text(p->LV_OBJ_IDX(node_lbl_idx)));
+    if (nodeStore.find(nodeNum)) {
+        lv_label_set_text(objects.top_messages_node_label, nodeDisplayName(nodeNum) ? nodeDisplayName(nodeNum) : "");
         ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
-        switch ((unsigned long)p->LV_OBJ_IDX(node_bat_idx)->user_data) {
-        case 0:
-            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_channel_image,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
-            break;
-        case 1:
-            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_secure_image,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
-            break;
-        default:
+        if (nodeHasBadKey(nodeNum)) {
             lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_slash_image,
                                           LV_PART_MAIN | LV_STATE_DEFAULT);
-            break;
+        } else if (nodeHasKey(nodeNum)) {
+            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_secure_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+        } else {
+            lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_channel_image,
+                                          LV_PART_MAIN | LV_STATE_DEFAULT);
         }
         unreadMessages = 0; // TODO: not all messages may be actually read
         updateUnreadMessages();
@@ -7051,7 +6504,7 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
     if (panel == objects.home_panel) {
         lv_group_focus_obj(objects.home_mail_button);
     } else if (panel == objects.nodes_panel) {
-        lv_group_focus_obj(objects.node_button);
+        reconcileVirtualNodeListInputGroup(true);
     } else if (panel == objects.groups_panel) {
         lv_group_focus_obj(objects.channel_button0);
     } else if (panel == objects.messages_panel) {
@@ -7081,13 +6534,19 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
  */
 void TFTView_320x240::setInputGroup(void)
 {
-    lv_group_t *group = lv_group_get_default();
+    setInputGroup(lv_group_get_default());
+}
 
-    if (group && inputdriver->hasKeyboardDevice())
+void TFTView_320x240::setInputGroup(lv_group_t *group)
+{
+    if (inputdriver->hasKeyboardDevice())
         lv_indev_set_group(inputdriver->getKeyboard(), group);
 
-    if (group && inputdriver->hasPointerDevice())
+    if (inputdriver->hasPointerDevice())
         lv_indev_set_group(inputdriver->getPointer(), group);
+
+    if (inputdriver->hasEncoderDevice())
+        lv_indev_set_group(inputdriver->getEncoder(), group);
 }
 
 void TFTView_320x240::setInputButtonLabel(void)
@@ -7100,64 +6559,356 @@ void TFTView_320x240::setInputButtonLabel(void)
     lv_snprintf(label, sizeof(label), _("Input Control: %s/%s"), current_ptr.c_str(), current_kbd.c_str());
     lv_label_set_text(objects.basic_settings_input_label, label);
 }
+
+NodeListFilter TFTView_320x240::currentNodeListFilter(void) const
+{
+    NodeListFilter modelFilter;
+    modelFilter.unknown = lv_obj_has_state(objects.nodes_filter_unknown_switch, LV_STATE_CHECKED);
+    modelFilter.offline = lv_obj_has_state(objects.nodes_filter_offline_switch, LV_STATE_CHECKED);
+    modelFilter.publicKey = lv_obj_has_state(objects.nodes_filter_public_key_switch, LV_STATE_CHECKED);
+    modelFilter.channel = static_cast<uint8_t>(lv_dropdown_get_selected(objects.nodes_filter_channel_dropdown));
+    modelFilter.hops = static_cast<int>(lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown));
+    modelFilter.position = lv_obj_has_state(objects.nodes_filter_position_switch, LV_STATE_CHECKED);
+    modelFilter.viaMqtt = lv_obj_has_state(objects.nodes_filter_mqtt_switch, LV_STATE_CHECKED);
+    const char *name = lv_textarea_get_text(objects.nodes_filter_name_area);
+    if (name) {
+        modelFilter.name = name;
+    }
+    modelFilter.curTime = static_cast<uint32_t>(curtime);
+    modelFilter.secsUntilOffline = secs_until_offline;
+    modelFilter.hasOwnPosition = hasPosition;
+    modelFilter.ownLatitude = myLatitude;
+    modelFilter.ownLongitude = myLongitude;
+    modelFilter.metricUnits = db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC;
+    return modelFilter;
+}
+
+NodeListRenderContext TFTView_320x240::nodeListRenderContext(void) const
+{
+    NodeListRenderContext context;
+    context.ownNode = ownNode;
+    context.hasOwnPosition = hasPosition;
+    context.ownLatitude = myLatitude;
+    context.ownLongitude = myLongitude;
+    context.metricUnits = db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC;
+    context.highlightActiveChat = lv_obj_has_state(objects.nodes_hl_active_chat_switch, LV_STATE_CHECKED);
+    context.highlightPosition = lv_obj_has_state(objects.nodes_hl_position_switch, LV_STATE_CHECKED);
+    context.highlightTelemetry = lv_obj_has_state(objects.nodes_hl_telemetry_switch, LV_STATE_CHECKED);
+    context.highlightIaq = lv_obj_has_state(objects.nodes_hliaq_switch, LV_STATE_CHECKED);
+    std::snprintf(context.highlightName, sizeof(context.highlightName), "%s", lv_textarea_get_text(objects.nodes_hl_name_area));
+    return context;
+}
+
+// Chat entry title resolved from the node model, for nodes without a row panel.
+bool TFTView_320x240::chatTitleFromModel(uint32_t nodeNum, char *buf, size_t bufSize) const
+{
+    const auto *record = nodeStore.find(nodeNum);
+    if (!record) {
+        return false;
+    }
+    char renderedShort[32];
+    if (nodeNum != ownNode && hasPosition && record->position.hasCoordinates()) {
+        NodeListRowPresentation::formatShortNameWithDistance(
+            renderedShort, sizeof(renderedShort), record->user.short_name, nodeNum, hasPosition, myLatitude, myLongitude,
+            record->position.latitude, record->position.longitude,
+            db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC);
+    } else {
+        NodeListRowPresentation::formatShortDisplayName(renderedShort, sizeof(renderedShort), record->user.short_name, nodeNum);
+    }
+    snprintf(buf, bufSize, "%s: %s", renderedShort, record->user.long_name);
+    return true;
+}
+
+void TFTView_320x240::syncVisibleNodeIndex(void)
+{
+    visibleNodes.rebuild(nodeStore, currentNodeListFilter(), ownNode);
+    publishMapFilter();
+}
+
+void TFTView_320x240::publishMapFilter()
+{
+    if (!map || (mapFilterPublicationValid && publishedMapFilterGeneration == visibleNodes.membershipGeneration())) {
+        return;
+    }
+
+    for (const auto &entry : nodeObjects) {
+        map->update(entry.first, !visibleNodes.contains(entry.first));
+    }
+    publishedMapFilterGeneration = visibleNodes.membershipGeneration();
+    mapFilterPublicationValid = true;
+}
+
+void TFTView_320x240::reconcileVirtualNodeListInputGroup(bool enteringNodeScreen)
+{
+    if (!virtualNodeList) {
+        return;
+    }
+
+    const bool hasVisibleNodes = !visibleNodes.empty();
+    if (!enteringNodeScreen && virtualNodeListInputVisibilityKnown && virtualNodeListInputHadVisibleNodes == hasVisibleNodes) {
+        return;
+    }
+
+    if (hasVisibleNodes) {
+        setInputGroup(virtualNodeList->navigationGroup());
+    } else {
+        setInputGroup();
+    }
+    virtualNodeListInputVisibilityKnown = true;
+    virtualNodeListInputHadVisibleNodes = hasVisibleNodes;
+}
+
+void TFTView_320x240::syncNodeListPresentation(void)
+{
+    syncNodeListPresentation(false);
+}
+
+void TFTView_320x240::beginNodeListPresentationBatch()
+{
+    ++nodeListPresentationBatchDepth;
+}
+
+void TFTView_320x240::endNodeListPresentationBatch()
+{
+    if (!nodeListPresentationBatchDepth || --nodeListPresentationBatchDepth) {
+        return;
+    }
+
+    const bool syncRequested = nodeListPresentationBatchSyncRequested;
+    const bool forceRebind = nodeListPresentationBatchForceRebind;
+    const NodeId refreshId = nodeListPresentationBatchRefreshId;
+    nodeListPresentationBatchSyncRequested = false;
+    nodeListPresentationBatchForceRebind = false;
+    nodeListPresentationBatchRefreshId = 0;
+    if (syncRequested) {
+        syncNodeListPresentation(forceRebind);
+        if (refreshId && !forceRebind) {
+            refreshVirtualNodePresentation(refreshId);
+        }
+    } else if (refreshId) {
+        refreshVirtualNodePresentation(refreshId);
+    }
+}
+
+void TFTView_320x240::syncNodeListPresentation(bool forceRebind)
+{
+    if (nodeListPresentationBatchDepth) {
+        nodeListPresentationBatchSyncRequested = true;
+        nodeListPresentationBatchForceRebind = nodeListPresentationBatchForceRebind || forceRebind;
+        return;
+    }
+    forceRebind = forceRebind || nodeListDiscoverySync.forceRebind();
+    syncVisibleNodeIndex();
+    if (currentNode && !nodeStore.find(currentNode)) {
+        selectNode(0);
+    }
+    nodeCount = static_cast<uint16_t>(nodeStore.size());
+    nodesFiltered = static_cast<uint16_t>(nodeCount - visibleNodes.size());
+    nodesOnline = 0;
+    for (const auto &entry : nodeStore.records()) {
+        const uint32_t lastHeard = entry.first == ownNode ? static_cast<uint32_t>(curtime) : entry.second.lastHeard;
+        const uint32_t effectiveLastHeard = std::min(lastHeard, static_cast<uint32_t>(curtime));
+        if (effectiveLastHeard && static_cast<uint32_t>(curtime) - effectiveLastHeard <= secs_until_offline) {
+            nodesOnline++;
+        }
+    }
+    updateNodesStatus();
+    ensureVirtualNodeList();
+    if (virtualNodeList) {
+        virtualNodeList->sync(nodeStore, visibleNodes, currentNode, static_cast<uint32_t>(curtime), nodeListRenderContext(),
+                              forceRebind);
+        if (activePanel == objects.nodes_panel) {
+            reconcileVirtualNodeListInputGroup(false);
+        }
+    }
+    nodesChanged = false;
+    nodeListDiscoverySync.consumeFullSync();
+}
+
+void TFTView_320x240::syncNodeListPresentation(const NodeMutation &mutation)
+{
+    const auto policy = nodeListDiscoverySync.observe(mutation, lv_tick_get());
+    if (policy == NodeDiscoverySyncGate::MutationPolicy::Ignore) {
+        return;
+    }
+    if (mutation.kind == NodeMutationKind::Inserted) {
+        nodesChanged = true;
+        return;
+    }
+    if (policy == NodeDiscoverySyncGate::MutationPolicy::Defer) {
+        return;
+    }
+    if (nodeListPresentationBatchDepth) {
+        if (mutation.kind == NodeMutationKind::Updated && mutation.id) {
+            if (nodeListPresentationBatchRefreshId && nodeListPresentationBatchRefreshId != mutation.id) {
+                nodeListPresentationBatchSyncRequested = true;
+                nodeListPresentationBatchForceRebind = true;
+                return;
+            }
+            nodeListPresentationBatchRefreshId = mutation.id;
+            if (!mutationCanRefreshVirtualRow(mutation)) {
+                nodeListPresentationBatchSyncRequested = true;
+            }
+            return;
+        }
+        nodeListPresentationBatchSyncRequested = true;
+        nodeListPresentationBatchForceRebind = true;
+        return;
+    }
+    if (mutationCanRefreshVirtualRow(mutation)) {
+        refreshVirtualNodePresentation(mutation.id);
+        return;
+    }
+    syncNodeListPresentation();
+    if (mutation.kind == NodeMutationKind::Updated && mutation.id) {
+        refreshVirtualNodePresentation(mutation.id);
+    }
+}
+
+bool TFTView_320x240::mutationCanRefreshVirtualRow(const NodeMutation &mutation) const
+{
+    if (mutation.kind != NodeMutationKind::Updated || mutation.id == 0) {
+        return false;
+    }
+
+    uint32_t contentFields = NodeFieldSignal | NodeFieldDeviceMetrics | NodeFieldEnvironmentMetrics | NodeFieldAirQualityMetrics |
+                             NodeFieldPowerMetrics | NodeFieldActiveChat;
+    const int hopsFilter = static_cast<int>(lv_dropdown_get_selected(objects.nodes_filter_hops_dropdown));
+    if (!hopsFilter) {
+        contentFields |= NodeFieldHops;
+    }
+
+    return (mutation.changedFields & ~contentFields) == 0;
+}
+
+bool TFTView_320x240::refreshVirtualNodePresentation(NodeId id)
+{
+    if (!virtualNodeList) {
+        return false;
+    }
+    return virtualNodeList->refreshNode(id, static_cast<uint32_t>(curtime), nodeListRenderContext());
+}
+
+void TFTView_320x240::ensureVirtualNodeList(void)
+{
+    if (virtualNodeList) {
+        return;
+    }
+    if (!objects.nodes_panel) {
+        return;
+    }
+
+    virtualNodeList.reset(new VirtualNodeList(objects.nodes_panel, *this));
+}
+
+void TFTView_320x240::nodeClicked(NodeId id)
+{
+    if (!id || !nodeStore.find(id)) {
+        return;
+    }
+
+    if (currentNode == id) {
+        selectNode(0);
+    } else {
+        selectNode(id);
+    }
+
+    if (chooseNodeSignalScanner) {
+        chooseNodeSignalScanner = false;
+        ui_event_signal_scanner(nullptr);
+        lv_dropdown_set_selected(objects.nodes_filter_hops_dropdown, selectedHops);
+        updateNodesFiltered(true);
+        updateNodesStatus();
+    } else if (chooseNodeTraceRoute) {
+        chooseNodeTraceRoute = false;
+        ui_event_trace_route(nullptr);
+    } else {
+        if (virtualNodeList) {
+            virtualNodeList->setExpanded(currentNode);
+        }
+    }
+}
+
+void TFTView_320x240::nodeLongPressed(NodeId id)
+{
+    if (nodeIsMessagable(id)) {
+        showMessages(id);
+    }
+}
+
+void TFTView_320x240::nodeFocusBoundary(bool forward)
+{
+    (void)forward;
+    setInputGroup();
+    if (activeButton) {
+        lv_group_focus_obj(activeButton);
+    }
+}
+
+void TFTView_320x240::nodePositionClicked(NodeId id)
+{
+    const NodePosition position = nodePosition(id);
+    if (position.hasCoordinates()) {
+        ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
+        if (!map) {
+            loadMap();
+        }
+        map->setScrolledPosition(position.latitude * 1e-7, position.longitude * 1e-7);
+    }
+}
 // -------- helpers --------
 
 void TFTView_320x240::removeNode(uint32_t nodeNum)
 {
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end()) {
-    }
+    syncNodeListPresentation(nodeStore.remove(nodeNum));
+}
+
+bool TFTView_320x240::hasKnownNodeForPacket(uint32_t nodeNum) const
+{
+    return nodeStore.find(nodeNum) != nullptr;
 }
 
 void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img)
 {
-    uint32_t bgColor, fgColor;
-    std::tie(bgColor, fgColor) = nodeColor(nodeNum);
+    const void *source = &img_node_client_image;
     if (unmessagable) {
-        lv_image_set_src(img, &img_unmessagable_image);
-        lv_obj_set_style_border_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_color(img, lv_color_hex(0x202020), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_img_recolor(img, lv_color_hex(0xFF5555), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_img_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        return;
+        source = &img_unmessagable_image;
     } else {
         switch (role) {
         case client:
         case client_mute:
         case client_hidden:
         case tak: {
-            lv_image_set_src(img, &img_node_client_image);
+            source = &img_node_client_image;
             break;
         }
         case router_client: {
-            lv_image_set_src(img, &img_top_nodes_image);
+            source = &img_top_nodes_image;
             break;
         }
         case repeater:
         case router:
         case router_late: {
-            lv_image_set_src(img, &img_node_router_image);
+            source = &img_node_router_image;
             break;
         }
         case tracker:
         case sensor:
         case lost_and_found:
         case tak_tracker: {
-            lv_image_set_src(img, &img_node_sensor_image);
+            source = &img_node_sensor_image;
             break;
         }
         case unknown: {
-            lv_image_set_src(img, &img_circle_question_image);
+            source = &img_circle_question_image;
             break;
         }
         default:
-            lv_image_set_src(img, &img_node_client_image);
+            source = &img_node_client_image;
             break;
         }
     }
-    lv_obj_set_style_bg_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_img_recolor_opa(img, fgColor ? 0 : 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    NodeListRowPresentation::applyNodeImage(img, nodeNum, source, unmessagable, false);
 }
 
 void TFTView_320x240::updateNodesStatus(void)
@@ -7179,25 +6930,13 @@ void TFTView_320x240::updateNodesStatus(void)
  * @param reset indicates to start update from beginning of node list otherwise
  *        continue with iterator position or skip if done
  */
-void TFTView_320x240::updateNodesFiltered(bool reset)
+void TFTView_320x240::updateNodesFiltered(bool reset, bool forceRebind)
 {
-    static auto it = nodes.begin();
-    if (reset || nodesChanged) {
-        nodesFiltered = 0;
-        nodesChanged = false;
-        processingFilter = true;
-        it = nodes.begin();
-    }
-
-    for (int i = 0; i < 10 && it != nodes.end(); i++) {
-        applyNodesFilter(it->first, true);
-        it++;
-    }
-
-    if (it == nodes.end()) {
-        processingFilter = false;
-    }
-    updateNodesStatus();
+    if (!reset && !nodesChanged && !processingFilter)
+        return;
+    nodesChanged = false;
+    processingFilter = false;
+    syncNodeListPresentation(forceRebind);
 }
 
 /**
@@ -7207,27 +6946,7 @@ void TFTView_320x240::updateNodesFiltered(bool reset)
  */
 void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
 {
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end() && it->second) {
-        time_t lastHeard = (time_t)it->second->LV_OBJ_IDX(node_lh_idx)->user_data;
-        it->second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)curtime;
-        lv_label_set_text(it->second->LV_OBJ_IDX(node_lh_idx), _("now"));
-        if (it->first != ownNode) {
-            if (lastHeard > 0 && curtime - lastHeard >= secs_until_offline) {
-                nodesOnline++;
-                applyNodesFilter(nodeNum);
-                updateNodesStatus();
-            }
-            // move to top position
-            lv_obj_move_to_index(it->second, 1);
-
-            // re-arrange the group linked list i.e. move the node after the top position
-            lv_ll_t *lv_group_ll = &lv_group_get_default()->obj_ll;
-            void *act = it->second->LV_OBJ_IDX(node_btn_idx)->user_data;
-            if (lv_group_ll && act)
-                _lv_ll_move_before(lv_group_ll, act, _lv_ll_get_next(lv_group_ll, topNodeLL));
-        }
-    }
+    syncNodeListPresentation(nodeStore.updateLastHeard(nodeNum, curtime));
 }
 
 /**
@@ -7236,26 +6955,9 @@ void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
  */
 void TFTView_320x240::updateAllLastHeard(void)
 {
-    uint16_t online = 0;
-    time_t lastHeard;
-    for (auto it : nodes) {
-        char buf[32];
-        if (it.first == ownNode) { // own node is always now, so do update
-            lastHeard = curtime;
-            it.second->LV_OBJ_IDX(node_lh_idx)->user_data = (void *)lastHeard;
-        } else {
-            lastHeard = (time_t)it.second->LV_OBJ_IDX(node_lh_idx)->user_data;
-        }
-        if (lastHeard) {
-            bool isOnline = lastHeardToString(lastHeard, buf);
-            lv_label_set_text(it.second->LV_OBJ_IDX(node_lh_idx), buf);
-            if (isOnline)
-                online++;
-        }
-    }
-    nodesOnline = online;
-    updateNodesFiltered(true);
-    updateNodesStatus();
+    if (ownNode)
+        nodeStore.updateLastHeard(ownNode, curtime);
+    syncNodeListPresentation();
 }
 
 void TFTView_320x240::updateUnreadMessages(void)
@@ -7280,13 +6982,15 @@ void TFTView_320x240::updateTime(void)
 {
     char buf[80];
     time_t curr_time;
+#ifdef ARCH_PORTDUINO
     time(&curr_time);
-    if (!VALID_TIME(curr_time))
-        curr_time = actTime;
+#else
+    curr_time = actTime;
+#endif
+    tm *curr_tm = localtime(&curr_time);
 
     int len = 0;
-    tm *curr_tm = localtime(&curr_time);
-    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0 && curr_tm) {
+    if (VALID_TIME(curr_time) && (unsigned long)objects.home_time_button->user_data == 0) {
         if (db.config.display.use_12h_clock) {
             len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
         } else {
@@ -7556,6 +7260,7 @@ void TFTView_320x240::task_handler(void)
     MeshtasticView::task_handler();
 
     if (screensInitialised) {
+
         if (map && activePanel == objects.map_panel)
             map->task_handler();
 
@@ -7612,8 +7317,9 @@ void TFTView_320x240::task_handler(void)
                 }
             }
         }
-        if (processingFilter || nodesChanged) {
-            updateNodesFiltered(nodesChanged);
+        const bool discoverySyncDue = !nodeListDiscoverySync.pending() || nodeListDiscoverySync.due(lv_tick_get());
+        if ((processingFilter || nodesChanged) && discoverySyncDue) {
+            updateNodesFiltered(nodesChanged, nodeListDiscoverySync.forceRebind());
         }
     }
 }
