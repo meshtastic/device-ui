@@ -83,7 +83,6 @@ struct ReusableRow {
 class VirtualNodeList
 {
   public:
-    static constexpr size_t MAX_POOL_SIZE = 9;
     static constexpr int32_t COLLAPSED_ROW_HEIGHT = 53;
     static constexpr int32_t EXPANDED_ROW_HEIGHT = 83;
     static constexpr int32_t ROW_GAP = 5;

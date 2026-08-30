@@ -15,6 +15,10 @@
 #include <cstring>
 #include <ctime>
 
+#ifndef MAX_POOL_SIZE
+#define MAX_POOL_SIZE 25
+#endif
+
 namespace
 {
 VirtualNodeList *activeGroupNavigationList = nullptr;
@@ -34,7 +38,7 @@ size_t rowPoolSizeForViewport(lv_obj_t *parentPanel)
     }
     constexpr int32_t rowPitch = VirtualNodeList::COLLAPSED_ROW_HEIGHT + VirtualNodeList::ROW_GAP;
     const size_t visibleRows = static_cast<size_t>(contentHeight + rowPitch * 2 - 2) / static_cast<size_t>(rowPitch);
-    return std::clamp(visibleRows + 1, size_t{1}, VirtualNodeList::MAX_POOL_SIZE);
+    return std::clamp(visibleRows + 1, size_t{1}, size_t{MAX_POOL_SIZE});
 }
 
 bool sameRenderContext(const NodeListRenderContext &left, const NodeListRenderContext &right)
