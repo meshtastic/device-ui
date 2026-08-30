@@ -6095,7 +6095,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
                 }
             } else {
                 ILOG_DEBUG("to node 0x%08x not in db", msg.to);
-                MeshtasticView::addOrUpdateNode(msg.to, msg.ch, 0, eRole::unknown, false, false);
+                addOrUpdateNode(msg.to, msg.ch, 0, eRole::unknown, false, false);
             }
         }
         if (container) {
@@ -6118,7 +6118,7 @@ void TFTView_320x240::restoreMessage(const LogMessage &msg)
         if (msg.to != UINT32_MAX) {
             // from node not in db
             ILOG_DEBUG("from node 0x%08x not in db", msg.from);
-            MeshtasticView::addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
+            addOrUpdateNode(msg.from, msg.ch, 0, eRole::unknown, false, false);
         } else {
             ILOG_DEBUG("from node 0x%08x not in db and no need to insert", msg.from);
             pos += sprintf(buf, "%04x ", msg.from & 0xffff);
