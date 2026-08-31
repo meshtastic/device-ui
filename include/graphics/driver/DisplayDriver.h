@@ -2,6 +2,7 @@
 
 #include "graphics/DeviceGUI.h"
 #include "graphics/LVGL/LVGLGraphics.h"
+#include <atomic>
 #include <cstdint>
 
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
@@ -19,7 +20,14 @@ class DisplayDriver
     virtual bool hasTouch(void) { return false; }
     virtual bool hasButton(void) { return false; }
     virtual bool hasLight(void) { return false; }
-    virtual void task_handler(void) { lv_timer_periodic_handler(); }
+    virtual void task_handler(void)
+    {
+        // A host (e.g. firmware streaming the screen to a client) may request a
+        // full repaint from another thread; honor it here on the LVGL thread.
+        if (fullRefreshRequested.exchange(false))
+            lv_obj_invalidate(lv_scr_act());
+        lv_timer_periodic_handler();
+    }
     virtual void forceWakeup(void) {}
     virtual bool isPowersaving() { return false; }
     virtual void toggleDisplay(void);
@@ -37,7 +45,20 @@ class DisplayDriver
 
     lv_display_t *getDisplay(void) { return display; }
 
+    // Observes every LVGL flush before panel byte-swapping: (x, y, w, h) is the
+    // dirty area, pixels are native little-endian RGB565, rows tightly packed.
+    // Called on the LVGL thread — observers must copy and return immediately.
+    using FlushObserver = void (*)(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels);
+    static void setFlushObserver(FlushObserver observer) { flushObserver = observer; }
+
+    // Thread-safe request for a full-screen repaint (drained in task_handler),
+    // so a newly attached flush observer can synchronize the whole frame.
+    static void requestFullRefresh(void) { fullRefreshRequested.store(true); }
+
   protected:
+    static FlushObserver flushObserver;
+    static std::atomic<bool> fullRefreshRequested;
+
     LVGLGraphics lvgl;
     LVGLDisplay *display;
     LVGLTouch *touch;
