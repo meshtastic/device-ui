@@ -1,4 +1,5 @@
 #include "input/InputDriver.h"
+#include "util/ILog.h"
 
 InputDriver *InputDriver::driver = nullptr;
 lv_indev_t *InputDriver::keyboard = nullptr;
@@ -41,6 +42,7 @@ void InputDriver::init(void)
         lv_indev_set_type(virtualPointer, LV_INDEV_TYPE_POINTER);
         lv_indev_set_read_cb(virtualPointer, virtualPointerRead);
     }
+    ILOG_DEBUG("InputDriver: virtual inject devices ready");
 }
 
 void InputDriver::injectTouch(int16_t x, int16_t y, uint16_t holdMs)
