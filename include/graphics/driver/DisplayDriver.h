@@ -24,8 +24,13 @@ class DisplayDriver
     {
         // A host (e.g. firmware streaming the screen to a client) may request a
         // full repaint from another thread; honor it here on the LVGL thread.
-        if (fullRefreshRequested.exchange(false))
+        if (fullRefreshRequested.exchange(false)) {
             lv_obj_invalidate(lv_scr_act());
+            // Overlay content (clock, notifications) lives on the top/system
+            // layers; a full sync must repaint those too.
+            lv_obj_invalidate(lv_layer_top());
+            lv_obj_invalidate(lv_layer_sys());
+        }
         lv_timer_periodic_handler();
     }
     virtual void forceWakeup(void) {}
