@@ -60,10 +60,14 @@ class DisplayDriver
     lv_display_t *getDisplay(void) { return display; }
 
     // Observes every LVGL flush before panel byte-swapping: (x, y, w, h) is the
-    // dirty area, pixels are native little-endian RGB565, rows tightly packed.
-    // Called on the LVGL thread — observers must copy and return immediately.
+    // dirty area, pixels are native little-endian RGB565, rows tightly packed
+    // (LV_DISPLAY_RENDER_MODE_PARTIAL only, which is what every driver here
+    // uses). Called on the LVGL thread — observers must copy and return.
+    // Honoured by LGFXDriver; the FB/X11/OLED drivers use LVGL's own backends
+    // and never call it. To detach, store nullptr and then wait at least one
+    // task_handler tick before freeing observer state.
     using FlushObserver = void (*)(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels);
-    static void setFlushObserver(FlushObserver observer) { flushObserver = observer; }
+    static void setFlushObserver(FlushObserver observer) { flushObserver.store(observer, std::memory_order_release); }
 
     // Thread-safe request for a full-screen repaint (drained in task_handler),
     // so a newly attached flush observer can synchronize the whole frame.
@@ -73,7 +77,7 @@ class DisplayDriver
     static void requestWake(void) { wakeRequested.store(true); }
 
   protected:
-    static FlushObserver flushObserver;
+    static std::atomic<FlushObserver> flushObserver;
     static std::atomic<bool> fullRefreshRequested;
     static std::atomic<bool> wakeRequested;
 

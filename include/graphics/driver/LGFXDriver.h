@@ -200,8 +200,8 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
     // Observe before the in-place swap so observers see native RGB565.
-    if (DisplayDriver::flushObserver)
-        DisplayDriver::flushObserver(area->x1, area->y1, (uint16_t)w, (uint16_t)h, (const uint16_t *)px_map);
+    if (auto observer = DisplayDriver::flushObserver.load(std::memory_order_acquire))
+        observer(area->x1, area->y1, (uint16_t)w, (uint16_t)h, (const uint16_t *)px_map);
     lv_draw_sw_rgb565_swap(px_map, w * h); // CPU only - deliberately outside the guard
     {
         ISpiLock::Guard bus;
@@ -215,8 +215,8 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-    if (DisplayDriver::flushObserver)
-        DisplayDriver::flushObserver(area->x1, area->y1, (uint16_t)w, (uint16_t)h, (const uint16_t *)px_map);
+    if (auto observer = DisplayDriver::flushObserver.load(std::memory_order_acquire))
+        observer(area->x1, area->y1, (uint16_t)w, (uint16_t)h, (const uint16_t *)px_map);
     lv_draw_sw_rgb565_swap(px_map, w * h);
     if (lgfx->getStartCount() == 0) { // Processing if not yet started
         lgfx->startWrite();

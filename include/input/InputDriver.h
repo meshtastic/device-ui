@@ -48,12 +48,20 @@ class InputDriver
     static lv_group_t *getInputGroup(void) { return inputGroup; }
 
     // -- Remote input injection ------------------------------------------------
-    // Lets a host (e.g. firmware bridging a client's remote-control events)
-    // inject input as two always-present virtual devices: a pointer and a
-    // group-attached keypad. Callable from any thread: events land in small
-    // lock-free queues drained by the LVGL read callbacks. A tap holds
-    // PRESSED for holdMs (0 = one read cycle); pass ~600 to synthesize a
-    // long press. Keys take LV_KEY_* values or printable characters.
+    // Opt-in: a host (e.g. firmware bridging a client's remote-control events)
+    // calls enableInjection() BEFORE init() to add three virtual devices — a
+    // pointer, plus a keypad and an encoder bound to the default input group.
+    // Left off, init() behaves exactly as before, because creating the default
+    // group would otherwise enrol every focusable widget on boards that have
+    // no focus concept at all.
+    //
+    // Injectors are single-producer: call them from one thread. Events land in
+    // lock-free rings drained by the LVGL read callbacks (15 usable slots) and
+    // are dropped when full. A tap holds PRESSED for holdMs (0 = one read
+    // cycle, ~3 refresh periods end to end); pass ~600 to synthesize a long
+    // press. Keys take LV_KEY_* values or printable characters; encoder steps
+    // move focus and are clamped to a single byte.
+    static void enableInjection(void) { injectionEnabled = true; }
     static void injectTouch(int16_t x, int16_t y, uint16_t holdMs = 0);
     static void injectKey(uint32_t key);
 
@@ -86,6 +94,7 @@ class InputDriver
     static void virtualKeypadRead(lv_indev_t *indev, lv_indev_data_t *data);
     static void virtualEncoderRead(lv_indev_t *indev, lv_indev_data_t *data);
 
+    static bool injectionEnabled;
     static lv_indev_t *virtualPointer;
     static lv_indev_t *virtualKeypad;
     static lv_indev_t *virtualEncoder;

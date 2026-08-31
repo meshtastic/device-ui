@@ -16,6 +16,7 @@ InputDriver *InputDriver::instance(void)
     return driver;
 }
 
+bool InputDriver::injectionEnabled = false;
 lv_indev_t *InputDriver::virtualPointer = nullptr;
 lv_indev_t *InputDriver::virtualKeypad = nullptr;
 InputDriver::InjectedTouch InputDriver::touchQueue[InputDriver::injectQueueLen];
@@ -31,6 +32,8 @@ std::atomic<uint8_t> InputDriver::encoderHead{0}, InputDriver::encoderTail{0};
 // exist before ui_init() so widgets self-register for key navigation.
 void InputDriver::init(void)
 {
+    if (!injectionEnabled)
+        return;
     if (!inputGroup) {
         inputGroup = lv_group_create();
         lv_group_set_default(inputGroup);
@@ -72,7 +75,8 @@ void InputDriver::injectEncoder(int16_t steps)
     uint8_t next = (tail + 1) % injectQueueLen;
     if (next == encoderHead.load(std::memory_order_acquire))
         return; // full; drop
-    encoderQueue[tail] = (int8_t)steps;
+    // The ring stores a byte; clamp rather than let 256 truncate to a no-op.
+    encoderQueue[tail] = (int8_t)(steps > 127 ? 127 : (steps < -127 ? -127 : steps));
     DisplayDriver::requestWake();
     encoderTail.store(next, std::memory_order_release);
 }
