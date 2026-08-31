@@ -57,6 +57,11 @@ class InputDriver
     static void injectTouch(int16_t x, int16_t y, uint16_t holdMs = 0);
     static void injectKey(uint32_t key);
 
+    // Encoder rotation: this is what moves focus between widgets in a group
+    // (LVGL delivers keypad UP/DOWN to the focused widget instead). Negative
+    // steps focus backwards, positive forwards — matching the trackball driver.
+    static void injectEncoder(int16_t steps);
+
   protected:
     InputDriver(void) : keyboardDevice("none"), pointerDevice("none") {}
     static InputDriver *driver;
@@ -79,11 +84,15 @@ class InputDriver
 
     static void virtualPointerRead(lv_indev_t *indev, lv_indev_data_t *data);
     static void virtualKeypadRead(lv_indev_t *indev, lv_indev_data_t *data);
+    static void virtualEncoderRead(lv_indev_t *indev, lv_indev_data_t *data);
 
     static lv_indev_t *virtualPointer;
     static lv_indev_t *virtualKeypad;
+    static lv_indev_t *virtualEncoder;
     static InjectedTouch touchQueue[injectQueueLen];
     static std::atomic<uint8_t> touchHead, touchTail;
     static uint32_t keyQueue[injectQueueLen];
     static std::atomic<uint8_t> keyHead, keyTail;
+    static int8_t encoderQueue[injectQueueLen];
+    static std::atomic<uint8_t> encoderHead, encoderTail;
 };

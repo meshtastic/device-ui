@@ -24,6 +24,15 @@ class DisplayDriver
     {
         // A host (e.g. firmware streaming the screen to a client) may request a
         // full repaint from another thread; honor it here on the LVGL thread.
+        // Injected input must wake a slept panel and still act: without this the
+        // first remote event is swallowed as a wake, which is every event when
+        // nobody is physically at the device.
+        if (wakeRequested.exchange(false)) {
+            if (isPowersaving())
+                forceWakeup();
+            if (display)
+                lv_display_trigger_activity(display);
+        }
         if (fullRefreshRequested.exchange(false)) {
             lv_obj_invalidate(lv_scr_act());
             // Overlay content (clock, notifications) lives on the top/system
@@ -60,9 +69,13 @@ class DisplayDriver
     // so a newly attached flush observer can synchronize the whole frame.
     static void requestFullRefresh(void) { fullRefreshRequested.store(true); }
 
+    /** Thread-safe: wakes the panel and resets its inactivity timer on the next UI tick. */
+    static void requestWake(void) { wakeRequested.store(true); }
+
   protected:
     static FlushObserver flushObserver;
     static std::atomic<bool> fullRefreshRequested;
+    static std::atomic<bool> wakeRequested;
 
     LVGLGraphics lvgl;
     LVGLDisplay *display;
