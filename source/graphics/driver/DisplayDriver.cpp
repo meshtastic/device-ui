@@ -12,7 +12,7 @@
 #include "src/misc/lv_profiler_builtin_private.h"
 #endif
 
-DisplayDriver::FlushObserver DisplayDriver::flushObserver = nullptr;
+std::atomic<DisplayDriver::FlushObserver> DisplayDriver::flushObserver{nullptr};
 std::atomic<bool> DisplayDriver::fullRefreshRequested{false};
 std::atomic<bool> DisplayDriver::wakeRequested{false};
 
