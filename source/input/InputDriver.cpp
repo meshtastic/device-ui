@@ -1,4 +1,5 @@
 #include "input/InputDriver.h"
+#include "graphics/driver/DisplayDriver.h"
 #include "util/ILog.h"
 
 InputDriver *InputDriver::driver = nullptr;
@@ -21,6 +22,9 @@ InputDriver::InjectedTouch InputDriver::touchQueue[InputDriver::injectQueueLen];
 std::atomic<uint8_t> InputDriver::touchHead{0}, InputDriver::touchTail{0};
 uint32_t InputDriver::keyQueue[InputDriver::injectQueueLen];
 std::atomic<uint8_t> InputDriver::keyHead{0}, InputDriver::keyTail{0};
+lv_indev_t *InputDriver::virtualEncoder = nullptr;
+int8_t InputDriver::encoderQueue[InputDriver::injectQueueLen];
+std::atomic<uint8_t> InputDriver::encoderHead{0}, InputDriver::encoderTail{0};
 
 // Runs last in DeviceGUI::init, unconditionally: the virtual devices must
 // exist even on boards with no physical input, and the default group must
@@ -37,6 +41,12 @@ void InputDriver::init(void)
         lv_indev_set_read_cb(virtualKeypad, virtualKeypadRead);
         lv_indev_set_group(virtualKeypad, inputGroup);
     }
+    if (!virtualEncoder) {
+        virtualEncoder = lv_indev_create();
+        lv_indev_set_type(virtualEncoder, LV_INDEV_TYPE_ENCODER);
+        lv_indev_set_read_cb(virtualEncoder, virtualEncoderRead);
+        lv_indev_set_group(virtualEncoder, inputGroup);
+    }
     if (!virtualPointer) {
         virtualPointer = lv_indev_create();
         lv_indev_set_type(virtualPointer, LV_INDEV_TYPE_POINTER);
@@ -52,7 +62,31 @@ void InputDriver::injectTouch(int16_t x, int16_t y, uint16_t holdMs)
     if (next == touchHead.load(std::memory_order_acquire))
         return; // full; drop
     touchQueue[tail] = {x, y, holdMs};
+    DisplayDriver::requestWake();
     touchTail.store(next, std::memory_order_release);
+}
+
+void InputDriver::injectEncoder(int16_t steps)
+{
+    uint8_t tail = encoderTail.load(std::memory_order_relaxed);
+    uint8_t next = (tail + 1) % injectQueueLen;
+    if (next == encoderHead.load(std::memory_order_acquire))
+        return; // full; drop
+    encoderQueue[tail] = (int8_t)steps;
+    DisplayDriver::requestWake();
+    encoderTail.store(next, std::memory_order_release);
+}
+
+// LVGL thread. One queued rotation per read; enc_diff moves the group focus.
+void InputDriver::virtualEncoderRead(lv_indev_t *indev, lv_indev_data_t *data)
+{
+    data->state = LV_INDEV_STATE_RELEASED;
+    data->enc_diff = 0;
+    uint8_t head = encoderHead.load(std::memory_order_relaxed);
+    if (head != encoderTail.load(std::memory_order_acquire)) {
+        data->enc_diff = encoderQueue[head];
+        encoderHead.store((head + 1) % injectQueueLen, std::memory_order_release);
+    }
 }
 
 void InputDriver::injectKey(uint32_t key)
@@ -62,6 +96,7 @@ void InputDriver::injectKey(uint32_t key)
     if (next == keyHead.load(std::memory_order_acquire))
         return; // full; drop
     keyQueue[tail] = key;
+    DisplayDriver::requestWake();
     keyTail.store(next, std::memory_order_release);
 }
 

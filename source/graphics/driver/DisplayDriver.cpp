@@ -14,6 +14,7 @@
 
 DisplayDriver::FlushObserver DisplayDriver::flushObserver = nullptr;
 std::atomic<bool> DisplayDriver::fullRefreshRequested{false};
+std::atomic<bool> DisplayDriver::wakeRequested{false};
 
 DisplayDriver::DisplayDriver(uint16_t width, uint16_t height)
     : lvgl(width, height), display(nullptr), touch(nullptr), view(nullptr), screenWidth(width), screenHeight(height)
