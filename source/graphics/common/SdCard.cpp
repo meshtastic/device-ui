@@ -20,9 +20,9 @@ static SPIClass &SDHandler = SPI; // re-use existing SPI instance
 #endif
 fs::SDFS &SDFs = SD;
 #elif defined(HAS_SDCARD)
-#if defined(SDCARD_USE_SPI1)
-static SPIClass SPI1(HSPI);
-static SPIClass &SDHandler = SPI1;
+#ifdef SDCARD_USE_SPI1
+extern SPIClass SPI_HSPI;
+static SPIClass &SDHandler = SPI_HSPI;
 #elif defined(SDCARD_USE_SOFT_SPI)
 static SoftSpiDriver<SPI_MISO, SPI_MOSI, SPI_SCK> SDHandler;
 #else
@@ -254,10 +254,11 @@ bool SdFsCard::init(void)
 #else
 #if defined(SDCARD_USER_SPI_BEGIN)
     // fix : HSPI Does not have default pins on ESP32S3!
-    SDHandler.end();
+    ILOG_DEBUG("SDHandler.begin(%d, %d, %d, %d)", SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS);
     SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SDCARD_CS);
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI | USER_SPI_BEGIN, SD_SPI_FREQUENCY, &SDHandler));
 #else
+    ILOG_DEBUG("SDFs.begin(%d, %d, %d)", SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY);
     return SDFs.begin(SdSpiConfig(SDCARD_CS, SHARED_SPI, SD_SPI_FREQUENCY, &SDHandler));
 #endif
 #endif

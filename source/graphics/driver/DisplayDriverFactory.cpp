@@ -75,6 +75,9 @@
 #ifdef HELTEC_VISION_MASTER_T190
 #include "graphics/LGFX/LGFX_VISION_MASTER_T190.h"
 #endif
+#ifdef SEEED_WIO_TRACKER_L2
+#include "graphics/LGFX/LGFX_WIO_TRACKER_L2.h"
+#endif
 #ifdef NODEMCU_32S
 #include "graphics/LGFX/LGFX_ESPILI9341XPT2046.h"
 #endif
@@ -120,7 +123,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #endif
 #if defined(USE_FRAMEBUFFER)
     if (cfg._device == DisplayDriverConfig::device_t::FB) {
-        return &FBDriver::create(cfg.width(), cfg.height());
+        return &FBDriver::create(cfg);
     }
 #endif
 #if defined(USE_X11)
@@ -205,10 +208,14 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::HELTECV4_TFT:
         return new LGFXDriver<LGFX_HELTEC_V4_TFT>(cfg.width(), cfg.height());
         break;
+#elif defined(SEEED_WIO_TRACKER_L2)
+    case DisplayDriverConfig::device_t::WIO_TRACKER_L2:
+        return new LGFXDriver<LGFX_WIO_TRACKER_L2>(cfg.width(), cfg.height());
+        break;
 #endif
 #elif defined(USE_FRAMEBUFFER)
     case DisplayDriverConfig::device_t::FB:
-        return &FBDriver::create(cfg.width(), cfg.height());
+        return &FBDriver::create(cfg);
         break;
 #elif defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:

@@ -284,6 +284,8 @@ class TFTView_320x240 : public MeshtasticView
 
     uint32_t preset2val(meshtastic_Config_LoRaConfig_ModemPreset preset);
     meshtastic_Config_LoRaConfig_ModemPreset val2preset(uint32_t val);
+    uint32_t region2val(meshtastic_Config_LoRaConfig_RegionCode region);
+    meshtastic_Config_LoRaConfig_RegionCode val2region(uint32_t val);
     uint32_t role2val(meshtastic_Config_DeviceConfig_Role role);
     meshtastic_Config_DeviceConfig_Role val2role(uint32_t val);
     uint32_t language2val(meshtastic_Language lang);
