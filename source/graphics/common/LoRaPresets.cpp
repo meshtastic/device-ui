@@ -1,6 +1,6 @@
 #include "graphics/common/LoRaPresets.h"
-#include "util/ILog.h"
 #include "lv_i18n.h"
+#include "util/ILog.h"
 
 /**
  * LoRa Presets
@@ -44,16 +44,14 @@ LoRaPresets::RegionInfo LoRaPresets::regionInfo[] = {
     {"ITU1_70CM", 430.0f, 440.0f, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW},
     {"ITU2_70CM", 420.0f, 450.0f, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW},
     {"ITU3_70CM", 430.0f, 450.0f, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW},
-    {"ITU2_125CM", 220.0f, 225.0f, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW}
-};
+    {"ITU2_125CM", 220.0f, 225.0f, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW}};
 
 LoRaPresets::ModemPreset LoRaPresets::modemPreset[] = {
-    {"LongFast", "250", .250f},   {"LongSlow", "125", .125f},  {"VLongSlow", "62.5", .0625f}, {"MediumSlow", "250", .250f},
-    {"MediumFast", "250", .250f}, {"ShortSlow", "250", .250f}, {"ShortFast", "250", .250f},   {"LongMod", "125", .125f},
-    {"ShortTurbo", "500", .500f}, {"LongTurbo", "500", .500f}, {"LiteFast", "125", .125f}, {"LiteSlow", "125", .125f},
-    {"NarrowFast", "62.5", .0625f}, {"NarrowSlow", "62.5", .0625f}, {"TinyFast", "20", .20f}, {"TinySlow", "20", .20f},
-    {"MediumTurbo", "500", .500f}
-};
+    {"LongFast", "250", .250f},     {"LongSlow", "125", .125f},     {"VLongSlow", "62.5", .0625f}, {"MediumSlow", "250", .250f},
+    {"MediumFast", "250", .250f},   {"ShortSlow", "250", .250f},    {"ShortFast", "250", .250f},   {"LongMod", "125", .125f},
+    {"ShortTurbo", "500", .500f},   {"LongTurbo", "500", .500f},    {"LiteFast", "125", .125f},    {"LiteSlow", "125", .125f},
+    {"NarrowFast", "62.5", .0625f}, {"NarrowSlow", "62.5", .0625f}, {"TinyFast", "20", .20f},      {"TinySlow", "20", .20f},
+    {"MediumTurbo", "500", .500f}};
 
 const char *LoRaPresets::loRaRegionToString(meshtastic_Config_LoRaConfig_RegionCode region)
 {

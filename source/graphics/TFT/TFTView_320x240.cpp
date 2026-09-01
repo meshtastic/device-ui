@@ -3486,10 +3486,9 @@ meshtastic_Config_LoRaConfig_ModemPreset TFTView_320x240::val2preset(uint32_t va
         meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_TURBO,
         meshtastic_Config_LoRaConfig_ModemPreset_SHORT_FAST,  meshtastic_Config_LoRaConfig_ModemPreset_SHORT_SLOW,
         meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO, meshtastic_Config_LoRaConfig_ModemPreset_LITE_FAST,
-        meshtastic_Config_LoRaConfig_ModemPreset_LITE_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_LITE_SLOW,   meshtastic_Config_LoRaConfig_ModemPreset_NARROW_FAST,
         meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_TINY_FAST,
-        meshtastic_Config_LoRaConfig_ModemPreset_TINY_SLOW
-    };
+        meshtastic_Config_LoRaConfig_ModemPreset_TINY_SLOW};
     if (val > (sizeof(preset) / sizeof(preset[0]) - 1)) {
         ILOG_ERROR("unknown preset value: %d", val);
         return meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
@@ -3504,8 +3503,8 @@ meshtastic_Config_LoRaConfig_ModemPreset TFTView_320x240::val2preset(uint32_t va
  */
 uint32_t TFTView_320x240::region2val(meshtastic_Config_LoRaConfig_RegionCode region)
 {
-    int32_t val[] = {0, 0, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, -1, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 
-                     -1, -1, 3, -1, -1, 4, -1, -1, -1, -1, -1};
+    int32_t val[] = {0,  0,  1,  2,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, -1, 16, 17, 18,
+                     19, 20, 21, 22, 23, 24, 25, 26, -1, -1, 3,  -1, -1, 4,  -1, -1, -1, -1, -1};
 
     if (region > (sizeof(val) / sizeof(val[0]) - 1) || val[region] == -1) {
         ILOG_WARN("unknown or deprecated region value: %d", region);
@@ -3517,21 +3516,20 @@ uint32_t TFTView_320x240::region2val(meshtastic_Config_LoRaConfig_RegionCode reg
 meshtastic_Config_LoRaConfig_RegionCode TFTView_320x240::val2region(uint32_t val)
 {
     meshtastic_Config_LoRaConfig_RegionCode region[] = {
-        meshtastic_Config_LoRaConfig_RegionCode_US,   meshtastic_Config_LoRaConfig_RegionCode_EU_433,
-        meshtastic_Config_LoRaConfig_RegionCode_EU_868,  meshtastic_Config_LoRaConfig_RegionCode_EU_866,
+        meshtastic_Config_LoRaConfig_RegionCode_US,       meshtastic_Config_LoRaConfig_RegionCode_EU_433,
+        meshtastic_Config_LoRaConfig_RegionCode_EU_868,   meshtastic_Config_LoRaConfig_RegionCode_EU_866,
         meshtastic_Config_LoRaConfig_RegionCode_EU_N_868, meshtastic_Config_LoRaConfig_RegionCode_CN,
-        meshtastic_Config_LoRaConfig_RegionCode_JP,  meshtastic_Config_LoRaConfig_RegionCode_ANZ,
-        meshtastic_Config_LoRaConfig_RegionCode_KR, meshtastic_Config_LoRaConfig_RegionCode_TW,
-        meshtastic_Config_LoRaConfig_RegionCode_RU, meshtastic_Config_LoRaConfig_RegionCode_IN,
-        meshtastic_Config_LoRaConfig_RegionCode_NZ_865, meshtastic_Config_LoRaConfig_RegionCode_TH,
-        meshtastic_Config_LoRaConfig_RegionCode_LORA_24, meshtastic_Config_LoRaConfig_RegionCode_UA_433,
-        meshtastic_Config_LoRaConfig_RegionCode_MY_433, meshtastic_Config_LoRaConfig_RegionCode_MY_919,
-        meshtastic_Config_LoRaConfig_RegionCode_SG_923, meshtastic_Config_LoRaConfig_RegionCode_PH_433,
-        meshtastic_Config_LoRaConfig_RegionCode_PH_868, meshtastic_Config_LoRaConfig_RegionCode_PH_915,
-        meshtastic_Config_LoRaConfig_RegionCode_ANZ_433, meshtastic_Config_LoRaConfig_RegionCode_KZ_433,
-        meshtastic_Config_LoRaConfig_RegionCode_KZ_863, meshtastic_Config_LoRaConfig_RegionCode_NP_865,
-        meshtastic_Config_LoRaConfig_RegionCode_BR_902
-    };
+        meshtastic_Config_LoRaConfig_RegionCode_JP,       meshtastic_Config_LoRaConfig_RegionCode_ANZ,
+        meshtastic_Config_LoRaConfig_RegionCode_KR,       meshtastic_Config_LoRaConfig_RegionCode_TW,
+        meshtastic_Config_LoRaConfig_RegionCode_RU,       meshtastic_Config_LoRaConfig_RegionCode_IN,
+        meshtastic_Config_LoRaConfig_RegionCode_NZ_865,   meshtastic_Config_LoRaConfig_RegionCode_TH,
+        meshtastic_Config_LoRaConfig_RegionCode_LORA_24,  meshtastic_Config_LoRaConfig_RegionCode_UA_433,
+        meshtastic_Config_LoRaConfig_RegionCode_MY_433,   meshtastic_Config_LoRaConfig_RegionCode_MY_919,
+        meshtastic_Config_LoRaConfig_RegionCode_SG_923,   meshtastic_Config_LoRaConfig_RegionCode_PH_433,
+        meshtastic_Config_LoRaConfig_RegionCode_PH_868,   meshtastic_Config_LoRaConfig_RegionCode_PH_915,
+        meshtastic_Config_LoRaConfig_RegionCode_ANZ_433,  meshtastic_Config_LoRaConfig_RegionCode_KZ_433,
+        meshtastic_Config_LoRaConfig_RegionCode_KZ_863,   meshtastic_Config_LoRaConfig_RegionCode_NP_865,
+        meshtastic_Config_LoRaConfig_RegionCode_BR_902};
     if (val > (sizeof(region) / sizeof(region[0]) - 1)) {
         ILOG_ERROR("unknown region value: %d", val);
         return meshtastic_Config_LoRaConfig_RegionCode_UNSET;
@@ -4032,7 +4030,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eRegion: {
-            meshtastic_Config_LoRaConfig_RegionCode region = THIS->val2region(lv_dropdown_get_selected(objects.settings_region_dropdown));
+            meshtastic_Config_LoRaConfig_RegionCode region =
+                THIS->val2region(lv_dropdown_get_selected(objects.settings_region_dropdown));
             if (THIS->db.config.lora.use_preset) {
                 THIS->db.config.lora.modem_preset = LoRaPresets::getDefaultPreset(region);
             }
@@ -4048,7 +4047,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 lv_dropdown_get_selected_str(objects.settings_region_dropdown, buf1, sizeof(buf1));
                 lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
-                lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), LoRaPresets::modemPresetToString(THIS->db.config.lora.modem_preset));
+                lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"),
+                            LoRaPresets::modemPresetToString(THIS->db.config.lora.modem_preset));
                 lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
                 meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
