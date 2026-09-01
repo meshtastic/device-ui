@@ -5,6 +5,7 @@
 #include "input/InputDriver.h"
 #include <list>
 #include <memory>
+#include <queue>
 #include <string>
 
 class I2CKeyboardInputDriver : public InputDriver
@@ -12,7 +13,7 @@ class I2CKeyboardInputDriver : public InputDriver
   public:
     I2CKeyboardInputDriver(void);
     virtual void init(void) override;
-    virtual void task_handler(void) override{};
+    virtual void task_handler(void) override {};
     virtual void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) = 0;
     virtual ~I2CKeyboardInputDriver(void) {}
 
@@ -96,4 +97,37 @@ class MPR121KeyboardInputDriver : public I2CKeyboardInputDriver
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~MPR121KeyboardInputDriver(void) {}
+};
+
+class TM9KeyboardInputDriver : public I2CKeyboardInputDriver
+{
+  public:
+    TM9KeyboardInputDriver(uint8_t address, TwoWire &wire = Wire);
+    void init(void) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
+    virtual ~TM9KeyboardInputDriver(void) {}
+
+  private:
+    TwoWire &wire;
+
+    struct KeyEvent {
+        uint32_t key;
+        lv_indev_state_t state;
+        bool isSyntheticLongPress;
+    };
+    std::queue<KeyEvent> pendingEvents;
+};
+
+class STC8HKeyboardInputDriver : public I2CKeyboardInputDriver
+{
+  public:
+    STC8HKeyboardInputDriver(uint8_t address, TwoWire &wire = Wire);
+    void init(void) override;
+    void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
+    virtual ~STC8HKeyboardInputDriver(void) {}
+
+  private:
+    uint8_t readRegister(uint8_t address, uint8_t reg);
+    volatile static bool keyEvent;
+    TwoWire &wire;
 };

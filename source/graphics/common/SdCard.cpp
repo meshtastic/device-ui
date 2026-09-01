@@ -8,8 +8,17 @@
 
 #if defined(HAS_SD_MMC)
 fs::SDMMCFS &SDFs = SD_MMC;
+using File = fs::File;
 #elif defined(ARCH_PORTDUINO)
 fs::FS &SDFs = PortduinoFS;
+#elif defined(SDCARD_SHARE_SPI)
+#if defined(SDCARD_USE_SPI1)
+extern SPIClass SPI_HSPI;
+static SPIClass &SDHandler = SPI_HSPI; // re-use existing SPI1 instance
+#else
+static SPIClass &SDHandler = SPI; // re-use existing SPI instance
+#endif
+fs::SDFS &SDFs = SD;
 #elif defined(HAS_SDCARD)
 #ifdef SDCARD_USE_SPI1
 extern SPIClass SPI_HSPI;
@@ -66,7 +75,39 @@ uint64_t SDCard::cardSize(void)
 
 SDCard::~SDCard(void) {}
 
-#elif defined(HAS_SD_MMC) && !defined(SENSECAP_INDICATOR)
+#elif (defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)) && !defined(SENSECAP_INDICATOR)
+
+#if defined(SDCARD_SHARE_SPI)
+bool SDCard::init(void)
+{
+#ifdef SDCARD_INIT_SPI
+    SDHandler.end();
+    SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+    SD.end();
+    if (!SD.begin(SDCARD_CS, SDHandler, SD_SPI_FREQUENCY)) {
+        ILOG_DEBUG("No SD_MMC card detected");
+        return false;
+    }
+#endif
+    uint8_t cardType = SD.cardType();
+    if (cardType == CARD_NONE) {
+        ILOG_DEBUG("No SD_MMC card attached");
+        return false;
+    }
+    ILOG_DEBUG("SD_MMC Card Type: %s", cardType == CARD_MMC    ? "MMC"
+                                       : cardType == CARD_SD   ? "SDSC"
+                                       : cardType == CARD_SDHC ? "SDHC"
+                                                               : "UNKNOWN");
+
+    uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+    ILOG_DEBUG("SD Card Size: %lu MB", (uint32_t)cardSize);
+    ILOG_DEBUG("Total space: %lu MB", (uint32_t)(SD.totalBytes() / (1024 * 1024)));
+    ILOG_DEBUG("Used space: %lu MB", (uint32_t)(SD.usedBytes() / (1024 * 1024)));
+
+    return true;
+}
+
+#else
 
 bool SDCard::init(void)
 {
@@ -79,6 +120,7 @@ bool SDCard::init(void)
     return SDFs.begin("/sdcard", true);
     // #endif
 }
+#endif
 
 ISdCard::CardType SDCard::cardType(void)
 {
@@ -113,6 +155,10 @@ ISdCard::ErrorType SDCard::errorType(void)
         return ErrorType::eSlotEmpty;
     case CARD_UNKNOWN:
         return ErrorType::eCardError;
+    case CARD_MMC:
+    case CARD_SD:
+    case CARD_SDHC:
+        return ErrorType::eNoError;
     default:
         return ErrorType::eUnknownError;
     }
@@ -145,7 +191,7 @@ SDCard::~SDCard(void)
 
 // SENSECAP_INDICATOR takes precedence: the SD card sits behind the
 // co-processor even when a generic SD define is also set
-#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)) && !defined(SENSECAP_INDICATOR)
+#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)) && !defined(SENSECAP_INDICATOR)
 std::set<std::string> SDCard::loadMapStyles(const char *folder)
 {
     ISpiLock::Guard bus;

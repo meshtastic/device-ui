@@ -9,8 +9,9 @@
 #include "util/ISpiLock.h"
 #include <functional>
 
-constexpr uint32_t defaultLongPressTime = 700; // ms until long press is detected (lvgl default is 400)
-constexpr uint32_t defaultGestureLimit = 10;   // x/y diff pixel until a swipe gesture is detected (lvgl default is 50)
+constexpr uint32_t defaultLongPressTime = 700;    // ms until long press is detected (lvgl default is 400)
+constexpr uint32_t defaultGestureLimit = 10;      // drag threshold in px before scroll starts (lvgl default is 10)
+constexpr uint32_t defaultTouchReadPeriodMs = 20; // 50Hz
 
 constexpr uint32_t defaultScreenTimeout = 30 * 1000;
 constexpr uint32_t defaultBrightness = 153;
@@ -89,7 +90,7 @@ template <class LGFX> bool LGFXDriver<LGFX>::hasTouch(void)
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
     // handle display timeout
-    if ((screenTimeout > 0 && lv_display_get_inactive_time(NULL) > screenTimeout) || powerSaving ||
+    if ((screenTimeout > 0 && lv_display_get_inactive_time(lv_display_get_default()) > screenTimeout) || powerSaving ||
         (DisplayDriver::view->isScreenLocked())) {
         // sleep screen only if there are means for wakeup
         if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
@@ -132,7 +133,8 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 #endif
                     }
                     if (forcedWakeup || (pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
-                        (screenTimeout + 50 > lv_display_get_inactive_time(NULL) && !DisplayDriver::view->isScreenLocked())) {
+                        (screenTimeout + 50 > lv_display_get_inactive_time(lv_display_get_default()) &&
+                         !DisplayDriver::view->isScreenLocked())) {
                         delay(2); // let the CPU finish to restore all register in case of light sleep
                         // woke up by touch or button
                         ILOG_INFO("leaving powersave");
@@ -171,7 +173,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     }
                     powerSaving = true;
                 }
-                if (screenTimeout > lv_display_get_inactive_time(NULL)) {
+                if (screenTimeout > lv_display_get_inactive_time(lv_display_get_default())) {
                     DisplayDriver::view->blankScreen(false);
                     {
                         ISpiLock::Guard bus;
@@ -363,7 +365,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         }
 #else
         lv_timer_t *timer = lv_indev_get_read_timer(DisplayDriver::touch);
-        lv_timer_set_period(timer, 10); // 100Hz as I2C touch controllers support
+        if (timer) {
+            lv_timer_set_period(timer, defaultTouchReadPeriodMs);
+        }
 #endif
     }
 }
