@@ -3910,7 +3910,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.setup_region_dropdown) + 1);
 
             if (region != THIS->db.config.lora.region) {
-                char buf1[10], buf2[30];
+                char buf1[20], buf2[30];
                 lv_dropdown_get_selected_str(objects.setup_region_dropdown, buf1, sizeof(buf1));
                 lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
@@ -4002,7 +4002,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             }
 
             if (region != THIS->db.config.lora.region) {
-                char buf1[10], buf2[30];
+                char buf1[20], buf2[30];
                 lv_dropdown_get_selected_str(objects.settings_region_dropdown, buf1, sizeof(buf1));
                 lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
