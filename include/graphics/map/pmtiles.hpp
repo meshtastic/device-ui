@@ -47,7 +47,7 @@ template <class T> struct PsramAllocator {
     T *allocate(size_t n)
     {
         if (n > std::numeric_limits<size_t>::max() / sizeof(T))
-            return nullptr;
+            throw std::bad_alloc();
         void *m = lv_malloc(n * sizeof(T));
         if (!m) {
             throw std::bad_alloc();
