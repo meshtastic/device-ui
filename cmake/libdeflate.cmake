@@ -1,13 +1,13 @@
 message(STATUS "Fetching libdeflate ...")
-set(LIBDEFLATE_BUILD_STATIC_LIB "Build the static library" 1)
-set(LIBDEFLATE_BUILD_SHARED_LIB "Build the shared library" 0)
-set(LIBDEFLATE_COMPRESSION_SUPPORT "Support compression" 0)
-set(LIBDEFLATE_DECOMPRESSION_SUPPORT "Support decompression" 1)
-set(LIBDEFLATE_ZLIB_SUPPORT "Support the zlib format" 0)
-set(LIBDEFLATE_GZIP_SUPPORT "Support the gzip format" 1)
-set(LIBDEFLATE_FREESTANDING "Build a freestanding library" 0)
-set(LIBDEFLATE_BUILD_GZIP "Build the libdeflate-gzip program" 0)
-set(LIBDEFLATE_BUILD_TESTS "Build the test programs" 0)
+set(LIBDEFLATE_BUILD_STATIC_LIB ON CACHE BOOL "Build the static library" FORCE)
+set(LIBDEFLATE_BUILD_SHARED_LIB OFF CACHE BOOL "Build the shared library" FORCE)
+set(LIBDEFLATE_COMPRESSION_SUPPORT OFF CACHE BOOL "Support compression" FORCE)
+set(LIBDEFLATE_DECOMPRESSION_SUPPORT ON CACHE BOOL "Support decompression" FORCE)
+set(LIBDEFLATE_ZLIB_SUPPORT OFF CACHE BOOL "Support the zlib format" FORCE)
+set(LIBDEFLATE_GZIP_SUPPORT ON CACHE BOOL "Support the gzip format" FORCE)
+set(LIBDEFLATE_FREESTANDING OFF CACHE BOOL "Build a freestanding library" FORCE)
+set(LIBDEFLATE_BUILD_GZIP OFF CACHE BOOL "Build the libdeflate-gzip program" FORCE)
+set(LIBDEFLATE_BUILD_TESTS OFF CACHE BOOL "Build the test programs" FORCE)
 
 FetchContent_Declare(
     libdeflate
