@@ -2695,6 +2695,8 @@ void TFTView_320x240::loadMap(void)
             } else if (!mapStyles.empty()) {
                 // populate style dropdown
                 bool savedStyleOK = false;
+                int firstUrlEntry = -1;
+                std::string firstUrl;
                 lv_dropdown_clear_options(objects.map_style_dropdown);
                 for (auto it : mapStyles) {
                     // add url provider if exist
@@ -2703,6 +2705,10 @@ void TFTView_320x240::loadMap(void)
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
+                    }
+                    if (it == *mapStyles.begin()) {
+                        firstUrlEntry = urlEntry;
+                        firstUrl = url;
                     }
                     lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), LV_DROPDOWN_POS_LAST);
                     if (it == db.uiConfig.map_data.style) {
@@ -2730,6 +2736,13 @@ void TFTView_320x240::loadMap(void)
                     lv_dropdown_set_selected(objects.map_style_dropdown, 0);
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
+                    // this fallback style also needs its URL template registered, else fetch silently no-ops
+                    if (firstUrlEntry >= 0) {
+                        ILOG_DEBUG("set provider url to %s", style);
+                        TileProvider::selectTemplate(firstUrlEntry);
+                        lv_dropdown_set_selected(objects.map_url_dropdown, firstUrlEntry);
+                        attribution(firstUrl);
+                    }
                 }
 
                 MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
