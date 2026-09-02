@@ -2740,6 +2740,7 @@ void TFTView_320x240::loadMap(void)
                     if (firstUrlEntry >= 0) {
                         ILOG_DEBUG("set provider url to %s", style);
                         TileProvider::selectTemplate(firstUrlEntry);
+                        lv_dropdown_set_selected(objects.map_url_dropdown, firstUrlEntry);
                         attribution(firstUrl);
                     }
                 }
