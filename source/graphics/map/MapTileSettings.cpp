@@ -27,6 +27,9 @@ void MapTileSettings::setTileStyle(const char *p)
 {
     copyBounded(tileStyle, TILE_STYLE_SIZE, p);
     std::string_view styleView(tileStyle);
+    if (!styleView.empty() && styleView.back() == '/') {
+        styleView.remove_suffix(1);
+    }
     pmTiles = (styleView.size() >= PMTILES_EXTENSION_LEN &&
                styleView.compare(styleView.size() - PMTILES_EXTENSION_LEN, PMTILES_EXTENSION_LEN, PMTILES_EXTENSION) == 0);
     styleToDir(tileStyle, tileDir, TILE_STYLE_SIZE);
