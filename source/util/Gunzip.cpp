@@ -6,6 +6,7 @@
 
 // gzip trailer: CRC32 (4 bytes) + ISIZE (4 bytes, uncompressed size mod 2^32)
 static constexpr size_t GZIP_MIN_LENGTH = 18;
+static constexpr size_t GZIP_MAX_OUTPUT = 1 * 1024u * 1024u;
 
 static libdeflate_decompressor *decompressor()
 {
@@ -29,7 +30,10 @@ uint8_t *decompressGzip(const uint8_t *compressedData, size_t length, size_t &de
 
     uint32_t isize = 0;
     memcpy(&isize, &compressedData[length - 4], sizeof(isize)); // trailer is not guaranteed to be aligned
-
+    if (isize == 0 || isize > GZIP_MAX_OUTPUT) {
+        ILOG_ERROR("gunzip: uncompressed size (%u bytes)", (unsigned int)isize);
+        return nullptr;
+    }
     uint8_t *decompressedData = (uint8_t *)lv_malloc(isize);
     if (!decompressedData) {
         ILOG_ERROR("gunzip: failed to allocate %u bytes", (unsigned int)isize);
