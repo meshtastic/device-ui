@@ -22,3 +22,30 @@ bool MapTileSettings::colorTiles = false;
 #else
 bool MapTileSettings::colorTiles = true;
 #endif
+
+void MapTileSettings::setTileStyle(const char *p)
+{
+    copyBounded(tileStyle, TILE_STYLE_SIZE, p);
+    std::string_view styleView(tileStyle);
+    pmTiles = (styleView.size() >= PMTILES_EXTENSION_LEN &&
+               styleView.compare(styleView.size() - PMTILES_EXTENSION_LEN, PMTILES_EXTENSION_LEN, PMTILES_EXTENSION) == 0);
+    styleToDir(tileStyle, tileDir, TILE_STYLE_SIZE);
+    appendSlash(tileStyle);
+    appendSlash(tileDir);
+}
+
+void MapTileSettings::styleToDir(const char *style, char *dst, size_t dstSize)
+{
+    copyBounded(dst, dstSize, style);
+    std::string_view dstView(dst);
+
+    if (dstView.size() >= PMTILES_EXTENSION_LEN &&
+        dstView.compare(dstView.size() - PMTILES_EXTENSION_LEN, PMTILES_EXTENSION_LEN, PMTILES_EXTENSION) == 0) {
+        dst[dstView.size() - PMTILES_EXTENSION_LEN] = '\0';
+        dstView = std::string_view(dst, dstView.size() - PMTILES_EXTENSION_LEN);
+    }
+
+    if (!dstView.empty() && dstView.back() == '/') {
+        dst[dstView.size() - 1] = '\0';
+    }
+}
