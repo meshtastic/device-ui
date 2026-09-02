@@ -1,4 +1,5 @@
 #include "graphics/common/SdCard.h"
+#include "graphics/map/MapTileSettings.h"
 #include "util/ILog.h"
 #include "util/ISpiLock.h"
 
@@ -316,11 +317,12 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
             if (!style)
                 break;
 
-            char name[20];
+            char name[32];
             style.getName(name, sizeof(name));
             std::string path = name;
             std::string dir = path.substr(path.find_last_of("/") + 1);
-            if (style.isDirectory() && dir.c_str()[0] != '.') {
+            bool isArchive = !style.isDirectory() && dir.find(MapTileSettings::PMTILES_EXTENSION) != std::string::npos;
+            if ((style.isDirectory() || isArchive) && dir.c_str()[0] != '.') {
                 ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
                 styles.insert(dir);
             }

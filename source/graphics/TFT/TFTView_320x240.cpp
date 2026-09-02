@@ -55,6 +55,7 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SdFatService.h"
 #endif
 #include "graphics/common/SdCard.h"
+#include "graphics/map/PMTileService.h"
 
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
@@ -2390,7 +2391,9 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
                                  sizeof(THIS->db.uiConfig.map_data.style));
     MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
     // set url provider if exist
-    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), THIS->db.uiConfig.map_data.style);
+    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+    MapTileSettings::styleToDir(THIS->db.uiConfig.map_data.style, tileDir, sizeof(tileDir));
+    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
     if (!url.empty()) {
         std::string provider = std::string("URL: ") + THIS->db.uiConfig.map_data.style;
         int entry = TileProvider::addTemplate(provider, url);
@@ -2581,17 +2584,17 @@ void TFTView_320x240::loadMap(void)
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
         auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SDCARD)
         auto tileService = new SdFatService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(ARCH_PORTDUINO)
         auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService)); // TODO: LinuxFileSystemService
         map->setBackupService(new AsyncTileService(new CURLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #else
@@ -2697,9 +2700,11 @@ void TFTView_320x240::loadMap(void)
                 bool savedStyleOK = false;
                 lv_dropdown_clear_options(objects.map_style_dropdown);
                 for (auto it : mapStyles) {
-                    // add url provider if exist
+                    // add url provider if exist (a .pmtiles archive shares the .url of its tile directory)
                     int urlEntry = -1;
-                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), it.c_str());
+                    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+                    MapTileSettings::styleToDir(it.c_str(), tileDir, sizeof(tileDir));
+                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);

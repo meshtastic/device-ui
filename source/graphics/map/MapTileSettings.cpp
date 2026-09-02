@@ -11,8 +11,10 @@ uint32_t MapTileSettings::uniqueId = 0xFFFFFFFF;    // to be updated with node n
 float MapTileSettings::defaultLat = 51.5003646652f; // @theBigBentern
 float MapTileSettings::defaultLon = -0.1214328476f;
 char MapTileSettings::prefix[MapTileSettings::PREFIX_SIZE] = "/maps";        // default map tile directory
-char MapTileSettings::tileStyle[MapTileSettings::TILE_STYLE_SIZE] = "";      // { osm/, atlas/, atlas-mobile/, ...}
+char MapTileSettings::tileStyle[MapTileSettings::TILE_STYLE_SIZE] = "";      // { osm/, atlas/, world.pmtiles/, ...}
+char MapTileSettings::tileDir[MapTileSettings::TILE_STYLE_SIZE] = "";        // tileStyle without the .pmtiles extension
 char MapTileSettings::tileFormat[MapTileSettings::TILE_FORMAT_SIZE] = "png"; // use jpg or png
+bool MapTileSettings::pmTiles = false;                                       // selected style is a .pmtiles archive
 bool MapTileSettings::debug = false;                                         // draw tile frame and info
 bool MapTileSettings::save = false;                                          // ok to save tile back to SD card
 #ifdef MAP_TILES_GREY
