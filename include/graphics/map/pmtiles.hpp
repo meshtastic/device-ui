@@ -285,6 +285,9 @@ inline uint64_t zxy_to_tileid(uint8_t z, uint32_t x, uint32_t y)
         return 0;
     }
     uint64_t acc = ((1LL << (z * 2U)) - 1) / 3;
+    if (z == 0) {
+        return acc;
+    }
     uint32_t tx = x, ty = y;
     int a = z - 1;
     for (uint32_t s = 1LL << a; s > 0; s >>= 1) {
