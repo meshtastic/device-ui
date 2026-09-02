@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <string_view>
 
 /**
  * Global settings for raster tile map
@@ -13,6 +14,7 @@ class MapTileSettings
     static constexpr size_t TILE_STYLE_SIZE = 24;
     static constexpr size_t TILE_FORMAT_SIZE = 10;
     static constexpr const char *PMTILES_EXTENSION = ".pmtiles";
+    static constexpr size_t PMTILES_EXTENSION_LEN = std::string_view(PMTILES_EXTENSION).size();
 
     MapTileSettings() = default;
     static uint8_t getDefaultZoom(void) { return zoomDefault; }
@@ -36,14 +38,7 @@ class MapTileSettings
     static void setPrefix(const char *p) { copyBounded(prefix, PREFIX_SIZE, p); }
 
     static const char *getTileStyle(void) { return tileStyle; }
-    static void setTileStyle(const char *p)
-    {
-        copyBounded(tileStyle, TILE_STYLE_SIZE, p);
-        pmTiles = (strstr(tileStyle, PMTILES_EXTENSION) != nullptr);
-        styleToDir(tileStyle, tileDir, TILE_STYLE_SIZE);
-        appendSlash(tileStyle);
-        appendSlash(tileDir);
-    }
+    static void setTileStyle(const char *p);
 
     // directory holding z/x/y tiles for the selected style; same as the style unless it is an archive
     static const char *getTileDir(void) { return tileDir; }
@@ -51,18 +46,7 @@ class MapTileSettings
 
     // an archive cannot be written back to, so tiles fetched for it are cached in a
     // z/x/y directory named after the archive; strips the extension and trailing slash
-    static void styleToDir(const char *style, char *dst, size_t dstSize)
-    {
-        copyBounded(dst, dstSize, style);
-        char *ext = strstr(dst, PMTILES_EXTENSION);
-        if (ext) {
-            *ext = '\0';
-        }
-        size_t len = strlen(dst);
-        if (len > 0 && dst[len - 1] == '/') {
-            dst[len - 1] = '\0';
-        }
-    }
+    static void styleToDir(const char *style, char *dst, size_t dstSize);
 
     static const char *getTileFormat(void) { return tileFormat; }
     static void setTileFormat(const char *p) { copyBounded(tileFormat, TILE_FORMAT_SIZE, p); }

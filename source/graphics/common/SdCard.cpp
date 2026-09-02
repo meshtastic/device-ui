@@ -160,9 +160,16 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
 
             std::string path = style.name();
             std::string dir = path.substr(path.find_last_of("/") + 1);
-            if (/* style.isDirectory() && */ dir.c_str()[0] != '.') {
-                ILOG_DEBUG("SD: found map style: %s", dir.c_str());
-                styles.insert(dir);
+            bool isArchive = !style.isDirectory() && dir.size() >= MapTileSettings::PMTILES_EXTENSION_LEN &&
+                             dir.compare(dir.size() - MapTileSettings::PMTILES_EXTENSION_LEN,
+                                         MapTileSettings::PMTILES_EXTENSION_LEN, MapTileSettings::PMTILES_EXTENSION) == 0;
+            if ((style.isDirectory() || isArchive) && dir.c_str()[0] != '.') {
+                if (dir.size() < MapTileSettings::TILE_STYLE_SIZE) {
+                    ILOG_DEBUG("SD: found map style: %s", dir.c_str());
+                    styles.insert(dir);
+                } else {
+                    ILOG_WARN("ignored: %d (name too long)", dir.c_str());
+                }
             }
             style.close();
         } while (true);
@@ -321,40 +328,49 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
             style.getName(name, sizeof(name));
             std::string path = name;
             std::string dir = path.substr(path.find_last_of("/") + 1);
-            bool isArchive = !style.isDirectory() && dir.find(MapTileSettings::PMTILES_EXTENSION) != std::string::npos;
+            bool isArchive = !style.isDirectory() && dir.size() >= MapTileSettings::PMTILES_EXTENSION_LEN &&
+                             dir.compare(dir.size() - MapTileSettings::PMTILES_EXTENSION_LEN,
+                                         MapTileSettings::PMTILES_EXTENSION_LEN, MapTileSettings::PMTILES_EXTENSION) == 0;
             if ((style.isDirectory() || isArchive) && dir.c_str()[0] != '.') {
-                ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
-                styles.insert(dir);
+                if (dir.size() < MapTileSettings::TILE_STYLE_SIZE) {
+                    ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
+                    styles.insert(dir);
+                    else
+                    {
+                        ILOG_WARN("ignored: %d (name too long)", dir.c_str());
+                    }
+                }
+                style.close();
             }
-            style.close();
-        } while (true);
-        maps.close();
-    }
-    if (styles.empty()) {
-        File map = SDFs.open("/map");
-        if (map) {
-            ILOG_DEBUG("SdFs: found /map dir");
-            styles.insert("/map");
-            map.close();
-        } else {
-            ILOG_INFO("SdFs: no maps found");
+            while (true)
+                ;
+            maps.close();
         }
+        if (styles.empty()) {
+            File map = SDFs.open("/map");
+            if (map) {
+                ILOG_DEBUG("SdFs: found /map dir");
+                styles.insert("/map");
+                map.close();
+            } else {
+                ILOG_INFO("SdFs: no maps found");
+            }
+        }
+        updated = true;
+        return styles;
     }
-    updated = true;
-    return styles;
-}
 
-std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
-{
-    ISpiLock::Guard bus;
-    String filename = String(folder) + "/" + String(style) + "/.url";
-    File file = SDFs.open(filename.c_str(), FILE_READ);
-    if (file) {
-        String url = file.readStringUntil('\n');
-        return std::string{url.c_str()};
+    std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
+    {
+        ISpiLock::Guard bus;
+        String filename = String(folder) + "/" + String(style) + "/.url";
+        File file = SDFs.open(filename.c_str(), FILE_READ);
+        if (file) {
+            String url = file.readStringUntil('\n');
+            return std::string{url.c_str()};
+        }
+        return {};
     }
-    return {};
-}
 
 #elif defined(SENSECAP_INDICATOR)
 
@@ -452,8 +468,12 @@ std::set<std::string> RemoteSdCard::loadMapStyles(const char *folder)
                 if (entry.back() != '/')
                     continue;
                 std::string dir = entry.substr(0, entry.size() - 1);
-                ILOG_DEBUG("remote SD: found map style: %s", dir.c_str());
-                styles.insert(dir);
+                if (dir.size() < MapTileSettings::TILE_STYLE_SIZE) {
+                    ILOG_DEBUG("remote SD: found map style: %s", dir.c_str());
+                    styles.insert(dir);
+                } else {
+                    ILOG_WARN("ignored: %d (name too long)", dir.c_str());
+                }
             }
         }
         if (styles.empty()) {
