@@ -156,8 +156,12 @@ bool PMTileService::loadFromArchive(uint32_t z, uint32_t x, uint32_t y, void *im
             }
             {
                 ISpiLock::Guard bus;
-                pmTiles.seek(dir_offset);
-                pmTiles.read(dirBuffer, dir_length);
+                if (!pmTiles.seek(dir_offset) || pmTiles.read(dirBuffer, dir_length) != (int)dir_length) {
+                    ILOG_ERROR("Failed to read %u bytes of pmtiles directory at %llu", (unsigned int)dir_length,
+                               (unsigned long long)dir_offset);
+                    lv_free(dirBuffer);
+                    return false;
+                }
             }
 
             size_t decompressedSize = 0;
@@ -190,9 +194,15 @@ bool PMTileService::loadFromArchive(uint32_t z, uint32_t x, uint32_t y, void *im
             ILOG_ERROR("Failed to allocate %u bytes for tile data", (unsigned int)tileLength);
             return false;
         }
-        ISpiLock::Guard bus;
-        pmTiles.seek(pmHeader.tile_data_offset + entry.offset);
-        pmTiles.read(tileData, tileLength);
+        {
+            ISpiLock::Guard bus;
+            if (!pmTiles.seek(pmHeader.tile_data_offset + entry.offset) ||
+                pmTiles.read(tileData, tileLength) != (int)tileLength) {
+                ILOG_ERROR("Failed to read %u bytes of tile data", (unsigned int)tileLength);
+                lv_free(tileData);
+                return false;
+            }
+        }
     }
 
     if (!tileData) {
