@@ -48,7 +48,11 @@ template <class T> struct PsramAllocator {
     {
         if (n > std::numeric_limits<size_t>::max() / sizeof(T))
             return nullptr;
-        return static_cast<T *>(lv_malloc(n * sizeof(T)));
+        void *m = lv_malloc(n * sizeof(T));
+        if (!m) {
+            throw std::bad_alloc();
+        }
+        return static_cast<T *>(m);
     }
 
     void deallocate(T *p, size_t) noexcept { lv_free(p); }
@@ -320,7 +324,12 @@ inline directory deserialize_directory(const char *decompressed, size_t decompre
     const size_t num_entries = static_cast<size_t>(num_entries_64bit);
 
     directory result;
-    result.resize(num_entries);
+    try {
+        result.resize(num_entries);
+    } catch (const std::bad_alloc &) {
+        ILOG_ERROR("failed to allocate %u directory entries", (unsigned int)num_entries);
+        return {};
+    }
 
     uint64_t last_id = 0;
     for (size_t i = 0; i < num_entries; i++) {
