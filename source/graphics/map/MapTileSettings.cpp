@@ -29,6 +29,7 @@ void MapTileSettings::setTileStyle(const char *p)
     std::string_view styleView(tileStyle);
     if (!styleView.empty() && styleView.back() == '/') {
         styleView.remove_suffix(1);
+        tileStyle[styleView.size()] = '\0';
     }
     pmTiles = (styleView.size() >= PMTILES_EXTENSION_LEN &&
                styleView.compare(styleView.size() - PMTILES_EXTENSION_LEN, PMTILES_EXTENSION_LEN, PMTILES_EXTENSION) == 0);
