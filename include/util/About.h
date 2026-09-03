@@ -2,7 +2,7 @@
 
 // Firmware information (used with snprintf for version insertion)
 #define ABOUT_FIRMWARE_TEXT                                                                                                      \
-    "Firmware: meshtastic®\n"                                                                                                   \
+    "Firmware: meshtastic®\n"                                                                                                    \
     "Version: %s\n"                                                                                                              \
     "License: GNU GPLv3\n\n"                                                                                                     \
     "Source code available at:\n"                                                                                                \
@@ -26,7 +26,15 @@
 // Map data attribution
 #define ABOUT_MAP_TEXT                                                                                                           \
     "[Map Data]\n"                                                                                                               \
-    "© OpenStreetMap contributors\n"                                                                                            \
+    "© OpenStreetMap contributors\n"                                                                                             \
     "Data available under the\n"                                                                                                 \
     "Open Database License\n"                                                                                                    \
-    "openstreetmap.org/copyright\n"
+    "openstreetmap.org/copyright"
+
+// PMTiles attribution
+#define PMTILES_BSD_TEXT                                                                                                         \
+    "[PMTiles Decoder Engine]\n"                                                                                                 \
+    "Protomaps C++ Reference Code\n"                                                                                             \
+    "© Copyright 2021 Protomaps LLC\n"                                                                                           \
+    "Licensed under BSD 3-Clause\n"                                                                                              \
+    "github.com/pmtiles/LICENSE\n"

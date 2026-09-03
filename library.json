@@ -14,7 +14,7 @@
       "maintainer": true
     }
   ],
-  "license": "GPL-3.0",
+  "license": "GPL-3.0 AND BSD-3-Clause",
   "homepage": "https://meshtastic.org/",
   "frameworks": "Arduino, FreeRTOS",
   "platforms": "Expressif 32, Nordic nRF52, Raspberry Pi RP2040, Native, Linux x86_64, Linux ARM",

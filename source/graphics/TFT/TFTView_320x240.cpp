@@ -685,6 +685,7 @@ void TFTView_320x240::apply_hotfix(void)
     createLabel(objects.settings_about_panel, ABOUT_FRAMEWORK_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_ICONS_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_MAP_TEXT);
+    createLabel(objects.settings_about_panel, PMTILES_BSD_TEXT);
 }
 
 void TFTView_320x240::updateTheme(void)
