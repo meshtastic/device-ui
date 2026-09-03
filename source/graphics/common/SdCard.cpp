@@ -336,7 +336,7 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
                     ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
                     styles.insert(dir);
                 } else {
-                    ILOG_WARN("ignored: %d (name too long)", dir.c_str());
+                    ILOG_WARN("ignored: %s (name too long)", dir.c_str());
                 }
             }
             style.close();
