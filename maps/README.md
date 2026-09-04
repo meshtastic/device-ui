@@ -50,19 +50,19 @@ There are several ways to generate the protomaps .pmtiles format:
 1. Download xyz raster tiles in mbtiles format (e.g. using [QGIS](https://qgis.org) or [maptiler engine](https://www.maptiler.com/engine))
    and convert the mbtiles archive to pmtiles using https://github.com/protomaps/go-pmtiles :
 
-   ```
+   ```bash
    go run main.go convert style.mbtiles style.pmtiles
    ```
 
 2. Convert your existing xyz tiles folder directly into pmtiles using [versaTiles](https://docs.versatiles.org/) .
 
 - Linux
-  ```
+  ```bash
   curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
   versatiles style-dir style.pmtiles
   ```
 - Windows
-  ```
+  ```bash
   irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
   versatiles style-dir style.pmtiles
   ```
