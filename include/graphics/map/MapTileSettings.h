@@ -40,12 +40,12 @@ class MapTileSettings
     static const char *getTileStyle(void) { return tileStyle; }
     static void setTileStyle(const char *p);
 
-    // directory holding z/x/y tiles for the selected style; same as the style unless it is an archive
+    // directory holding z/x/y tiles for the selected style
     static const char *getTileDir(void) { return tileDir; }
     static bool isPMTiles(void) { return pmTiles; }
+    static void setPMTiles(bool enabled) { pmTiles = enabled; }
 
-    // an archive cannot be written back to, so tiles fetched for it are cached in a
-    // z/x/y directory named after the archive; strips the extension and trailing slash
+    // strips the legacy archive extension and trailing slash from a style name
     static void styleToDir(const char *style, char *dst, size_t dstSize);
 
     static const char *getTileFormat(void) { return tileFormat; }

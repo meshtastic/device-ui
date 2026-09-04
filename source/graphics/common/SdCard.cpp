@@ -26,6 +26,15 @@ using File = FsFile;
 
 ISdCard *sdCard = nullptr;
 
+static std::string mapArchivePath(const char *folder, const char *style)
+{
+    char dir[MapTileSettings::TILE_STYLE_SIZE];
+    MapTileSettings::styleToDir(style, dir, sizeof(dir));
+    if (!folder || !dir[0])
+        return {};
+    return std::string(folder) + "/" + dir + "/" + dir + MapTileSettings::PMTILES_EXTENSION;
+}
+
 // SENSECAP_INDICATOR takes precedence over the generic SD classes, matching
 // the declarations in SdCard.h: the card sits behind the co-processor
 #if defined(ARCH_PORTDUINO) && !defined(SENSECAP_INDICATOR)
@@ -160,15 +169,12 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
 
             std::string path = style.name();
             std::string dir = path.substr(path.find_last_of("/") + 1);
-            bool isArchive = !style.isDirectory() && dir.size() >= MapTileSettings::PMTILES_EXTENSION_LEN &&
-                             dir.compare(dir.size() - MapTileSettings::PMTILES_EXTENSION_LEN,
-                                         MapTileSettings::PMTILES_EXTENSION_LEN, MapTileSettings::PMTILES_EXTENSION) == 0;
-            if ((style.isDirectory() || isArchive) && dir.c_str()[0] != '.') {
+            if (style.isDirectory() && dir.c_str()[0] != '.') {
                 if (dir.size() < MapTileSettings::TILE_STYLE_SIZE - 1) {
                     ILOG_DEBUG("SD: found map style: %s", dir.c_str());
                     styles.insert(dir);
                 } else {
-                    ILOG_WARN("ignored: %d (name too long)", dir.c_str());
+                    ILOG_WARN("ignored: %s (name too long)", dir.c_str());
                 }
             }
             style.close();
@@ -187,6 +193,19 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
     }
     updated = true;
     return styles;
+}
+
+bool SDCard::hasMapArchive(const char *folder, const char *style)
+{
+    ISpiLock::Guard bus;
+    std::string filename = mapArchivePath(folder, style);
+    if (filename.empty())
+        return false;
+    File file = SDFs.open(filename.c_str(), FILE_READ);
+    if (!file)
+        return false;
+    file.close();
+    return true;
 }
 
 std::string SDCard::getUrlProvider(const char *folder, const char *style)
@@ -328,10 +347,7 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
             style.getName(name, sizeof(name));
             std::string path = name;
             std::string dir = path.substr(path.find_last_of("/") + 1);
-            bool isArchive = !style.isDirectory() && dir.size() >= MapTileSettings::PMTILES_EXTENSION_LEN &&
-                             dir.compare(dir.size() - MapTileSettings::PMTILES_EXTENSION_LEN,
-                                         MapTileSettings::PMTILES_EXTENSION_LEN, MapTileSettings::PMTILES_EXTENSION) == 0;
-            if ((style.isDirectory() || isArchive) && dir.c_str()[0] != '.') {
+            if (style.isDirectory() && dir.c_str()[0] != '.') {
                 if (dir.size() < MapTileSettings::TILE_STYLE_SIZE - 1) {
                     ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
                     styles.insert(dir);
@@ -355,6 +371,19 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
     }
     updated = true;
     return styles;
+}
+
+bool SdFsCard::hasMapArchive(const char *folder, const char *style)
+{
+    ISpiLock::Guard bus;
+    std::string filename = mapArchivePath(folder, style);
+    if (filename.empty())
+        return false;
+    FsFile file = SDFs.open(filename.c_str(), O_RDONLY);
+    if (!file)
+        return false;
+    file.close();
+    return true;
 }
 
 std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
@@ -469,7 +498,7 @@ std::set<std::string> RemoteSdCard::loadMapStyles(const char *folder)
                     ILOG_DEBUG("remote SD: found map style: %s", dir.c_str());
                     styles.insert(dir);
                 } else {
-                    ILOG_WARN("ignored: %d (name too long)", dir.c_str());
+                    ILOG_WARN("ignored: %s (name too long)", dir.c_str());
                 }
             }
         }
@@ -485,6 +514,17 @@ std::set<std::string> RemoteSdCard::loadMapStyles(const char *folder)
     }
     updated = true;
     return styles;
+}
+
+bool RemoteSdCard::hasMapArchive(const char *folder, const char *style)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    std::string filename = mapArchivePath(folder, style);
+    if (!fs || filename.empty())
+        return false;
+    uint8_t byte = 0;
+    uint32_t bytesRead = 0, fileSize = 0;
+    return fs->readChunk(filename.c_str(), 0, &byte, 1, &bytesRead, &fileSize) && bytesRead == 1 && fileSize > 0;
 }
 
 std::string RemoteSdCard::getUrlProvider(const char *folder, const char *style)

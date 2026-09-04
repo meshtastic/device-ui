@@ -1,18 +1,12 @@
 #pragma once
 
-#include "graphics/common/SdCard.h"
+#include "graphics/map/MapFileSystem.h"
 #include "graphics/map/MapTileSettings.h"
 #include "graphics/map/TileService.h"
 #include "graphics/map/pmtiles.hpp"
 #include "lvgl.h"
 
-#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD)) && !defined(SENSECAP_INDICATOR)
-
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
-typedef File PMTilesFile;
-#else
-typedef FsFile PMTilesFile;
-#endif
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
 
 /**
  * Serves raster tiles out of a single .pmtiles archive on the SD card.
@@ -22,8 +16,8 @@ typedef FsFile PMTilesFile;
 class PMTileService : public ITileService
 {
   public:
-    // takes ownership of fallback
-    explicit PMTileService(ITileService *fallback = nullptr);
+    // takes ownership of fallback and archiveFS
+    explicit PMTileService(ITileService *fallback = nullptr, IMapFileSystem *archiveFS = nullptr);
 
     virtual ~PMTileService();
 
@@ -41,10 +35,10 @@ class PMTileService : public ITileService
     static constexpr uint8_t MAX_DIR_DEPTH = 4;
 
     ITileService *fallback;
+    IMapFileSystem *archiveFS;
     char openedStyle[MapTileSettings::TILE_STYLE_SIZE];
     bool archiveValid;
 
-    PMTilesFile pmTiles;
     pmtiles::headerv3 pmHeader;
 
     // directory cache, one entry per traversal depth

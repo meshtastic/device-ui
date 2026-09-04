@@ -11,8 +11,8 @@ uint32_t MapTileSettings::uniqueId = 0xFFFFFFFF;    // to be updated with node n
 float MapTileSettings::defaultLat = 51.5003646652f; // @theBigBentern
 float MapTileSettings::defaultLon = -0.1214328476f;
 char MapTileSettings::prefix[MapTileSettings::PREFIX_SIZE] = "/maps";        // default map tile directory
-char MapTileSettings::tileStyle[MapTileSettings::TILE_STYLE_SIZE] = "";      // { osm/, atlas/, world.pmtiles/, ...}
-char MapTileSettings::tileDir[MapTileSettings::TILE_STYLE_SIZE] = "";        // tileStyle without the .pmtiles extension
+char MapTileSettings::tileStyle[MapTileSettings::TILE_STYLE_SIZE] = "";      // { osm/, atlas/, ...}
+char MapTileSettings::tileDir[MapTileSettings::TILE_STYLE_SIZE] = "";        // tileStyle without legacy .pmtiles extension
 char MapTileSettings::tileFormat[MapTileSettings::TILE_FORMAT_SIZE] = "png"; // use jpg or png
 bool MapTileSettings::pmTiles = false;                                       // selected style is a .pmtiles archive
 bool MapTileSettings::debug = false;                                         // draw tile frame and info
@@ -25,14 +25,7 @@ bool MapTileSettings::colorTiles = true;
 
 void MapTileSettings::setTileStyle(const char *p)
 {
-    copyBounded(tileStyle, TILE_STYLE_SIZE, p);
-    std::string_view styleView(tileStyle);
-    if (!styleView.empty() && styleView.back() == '/') {
-        styleView.remove_suffix(1);
-        tileStyle[styleView.size()] = '\0';
-    }
-    pmTiles = (styleView.size() >= PMTILES_EXTENSION_LEN &&
-               styleView.compare(styleView.size() - PMTILES_EXTENSION_LEN, PMTILES_EXTENSION_LEN, PMTILES_EXTENSION) == 0);
+    styleToDir(p, tileStyle, TILE_STYLE_SIZE);
     styleToDir(tileStyle, tileDir, TILE_STYLE_SIZE);
     appendSlash(tileStyle);
     appendSlash(tileDir);
