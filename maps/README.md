@@ -27,7 +27,7 @@ Long pressing the Map button allows to choose between the map styles found on SD
 
 The map tiles are in .png format of size 256x256 pixel and zoom levels 1 - 20, where 1 represents the entire earth and 20 a mid-sized building.
 
-A web tool for convenient downloading of further map tiles, run by community member @zmiguel, can be found here: [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/). 
+A web tool for convenient downloading of further map tiles, run by community member @zmiguel, can be found here: [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/).
 It provides automated downloading of MUI-compatible map tiles in 8-bit format. It uses its own tile server with data from OpenStreetMap. Tiles are updated every week and cached for 1 week.
 
 This service is not affiliated with Meshtastic, and the tile server is not guaranteed to have 99% uptime. Pre-generated bundles for the most popular regions are also available for download on this tool indefinitely.
@@ -42,29 +42,30 @@ If you like to check of how many tiles an area is composed of you can make use o
 <br>
 
 ## Protomaps (.pmtiles)
+
 MUI >= 2.8.1 supports [protomaps](https://protomaps.com) [pmtiles](https://github.com/protomaps/PMTiles) format, i.e. all downloaded .png raster tiles can be packed into a single compressed file which is then put into the SD cards' styles folder with the same name as the style directory itself, e.g. maps/OSM/OSM.pmtiles. Upon map style selection MUI will check for existence of such .pmtiles file and automatically load the required tiles from the archive.
 
 There are several ways to generate the protomaps .pmtiles format:
 
-1) Download xyz raster tiles in mbtiles format (e.g. using [QGIS](https://qgis.org) or [maptiler engine](https://www.maptiler.com/engine)) 
-and convert the mbtiles archive to pmtiles using https://github.com/protomaps/go-pmtiles :
+1. Download xyz raster tiles in mbtiles format (e.g. using [QGIS](https://qgis.org) or [maptiler engine](https://www.maptiler.com/engine))
+   and convert the mbtiles archive to pmtiles using https://github.com/protomaps/go-pmtiles :
 
-    ```
-    go run main.go convert style.mbtiles style.pmtiles
-    ```
+   ```
+   go run main.go convert style.mbtiles style.pmtiles
+   ```
 
-2) Convert your existing xyz tiles folder directly into pmtiles using [versaTiles](https://docs.versatiles.org/) .
+2. Convert your existing xyz tiles folder directly into pmtiles using [versaTiles](https://docs.versatiles.org/) .
 
- - Linux
-    ```
-    curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
-    versatiles style-dir style.pmtiles
-    ```
- - Windows
-    ```
-    irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
-    versatiles style-dir style.pmtiles
-    ```
+- Linux
+  ```
+  curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
+  versatiles style-dir style.pmtiles
+  ```
+- Windows
+  ```
+  irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
+  versatiles style-dir style.pmtiles
+  ```
 
 Finally put the style.pmtiles archive into the maps/style folder on SD card. Don't forget to also drop a matching .url file into the same style folder if you want automatic WiFi map tile downloads of missing tiles.
 
