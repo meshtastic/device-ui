@@ -39,7 +39,7 @@ template <class IMG> class OSMTiles
     {
         if (!tile.filename[0]) {
             std::snprintf(tile.filename, IMG_PATH_LEN, "%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(),
-                          MapTileSettings::getTileStyle(), tile.zoomLevel, tile.xTile, tile.yTile,
+                          MapTileSettings::getTileDir(), tile.zoomLevel, tile.xTile, tile.yTile,
                           MapTileSettings::getTileFormat());
         }
     }
@@ -48,7 +48,7 @@ template <class IMG> class OSMTiles
     bool load(const GeoPoint &tile, IMG *img)
     {
         char name[IMG_PATH_LEN];
-        std::snprintf(name, IMG_PATH_LEN, "%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileStyle(),
+        std::snprintf(name, IMG_PATH_LEN, "%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileDir(),
                       tile.zoomLevel, tile.xTile, tile.yTile, MapTileSettings::getTileFormat());
         return loadcb(name, img);
     }

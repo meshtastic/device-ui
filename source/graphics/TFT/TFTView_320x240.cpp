@@ -55,6 +55,7 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SdFatService.h"
 #endif
 #include "graphics/common/SdCard.h"
+#include "graphics/map/PMTileService.h"
 
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
@@ -684,6 +685,9 @@ void TFTView_320x240::apply_hotfix(void)
     createLabel(objects.settings_about_panel, ABOUT_FRAMEWORK_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_ICONS_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_MAP_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_PNGDEC_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_PMTILES_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_LIBDEFLATE_TEXT);
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -2390,7 +2394,10 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
                                  sizeof(THIS->db.uiConfig.map_data.style));
     MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
     // set url provider if exist
-    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), THIS->db.uiConfig.map_data.style);
+    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+    MapTileSettings::styleToDir(THIS->db.uiConfig.map_data.style, tileDir, sizeof(tileDir));
+    MapTileSettings::setPMTiles(sdCard && sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir));
+    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
     if (!url.empty()) {
         std::string provider = std::string("URL: ") + THIS->db.uiConfig.map_data.style;
         int entry = TileProvider::addTemplate(provider, url);
@@ -2576,22 +2583,23 @@ void TFTView_320x240::loadMap(void)
 #elif defined(SENSECAP_INDICATOR)
         // tiles live on the SD card behind the RP2040, fetched chunk-wise over the interdevice link
         auto tileService = new RemoteSDService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new RemoteMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
         auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SDMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SDCARD)
         auto tileService = new SdFatService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SdFatMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(ARCH_PORTDUINO)
         auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
+        map = new MapPanel(objects.raw_map_panel,
+                           new PMTileService(tileService, new SDMapFileSystem())); // TODO: LinuxFileSystemService
         map->setBackupService(new AsyncTileService(new CURLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #else
@@ -2690,6 +2698,7 @@ void TFTView_320x240::loadMap(void)
                 // no styles found, but the /map directory, so use it
                 MapTileSettings::setPrefix("/map");
                 MapTileSettings::setTileStyle("");
+                MapTileSettings::setPMTiles(false);
                 lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
             } else if (!mapStyles.empty()) {
@@ -2697,11 +2706,17 @@ void TFTView_320x240::loadMap(void)
                 bool savedStyleOK = false;
                 int firstUrlEntry = -1;
                 std::string firstUrl;
+                bool firstHasArchive = false;
+                char savedTileDir[MapTileSettings::TILE_STYLE_SIZE];
+                MapTileSettings::styleToDir(db.uiConfig.map_data.style, savedTileDir, sizeof(savedTileDir));
                 lv_dropdown_clear_options(objects.map_style_dropdown);
                 for (auto it : mapStyles) {
                     // add url provider if exist
                     int urlEntry = -1;
-                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), it.c_str());
+                    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+                    MapTileSettings::styleToDir(it.c_str(), tileDir, sizeof(tileDir));
+                    bool hasArchive = sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir);
+                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
@@ -2709,11 +2724,13 @@ void TFTView_320x240::loadMap(void)
                     if (it == *mapStyles.begin()) {
                         firstUrlEntry = urlEntry;
                         firstUrl = url;
+                        firstHasArchive = hasArchive;
                     }
                     lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), LV_DROPDOWN_POS_LAST);
-                    if (it == db.uiConfig.map_data.style) {
+                    if (it == savedTileDir) {
                         lv_dropdown_set_selected(objects.map_style_dropdown, LV_DROPDOWN_POS_LAST);
-                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+                        MapTileSettings::setTileStyle(it.c_str());
+                        MapTileSettings::setPMTiles(hasArchive);
                         savedStyleOK = true;
                         if (urlEntry >= 0) {
                             // set provider url to current style
@@ -2736,6 +2753,7 @@ void TFTView_320x240::loadMap(void)
                     lv_dropdown_set_selected(objects.map_style_dropdown, 0);
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
+                    MapTileSettings::setPMTiles(firstHasArchive);
                     // this fallback style also needs its URL template registered, else fetch silently no-ops
                     if (firstUrlEntry >= 0) {
                         ILOG_DEBUG("set provider url to %s", style);
@@ -2748,11 +2766,13 @@ void TFTView_320x240::loadMap(void)
                 MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
                 MapTileSettings::setPrefix("/maps");
             } else {
+                MapTileSettings::setPMTiles(false);
                 // messageAlert(_("No map tiles found on SDCard!"), true);
             }
             map->forceRedraw();
         }
     } else {
+        MapTileSettings::setPMTiles(false);
         lv_dropdown_clear_options(objects.map_style_dropdown);
     }
 

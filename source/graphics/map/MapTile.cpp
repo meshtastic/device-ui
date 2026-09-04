@@ -46,8 +46,8 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
     // use lvgl built-in img loader
     char fname[128];
     fname[0] = LV_FS_ARDUINO_SD_LETTER;
-    sprintf(&fname[1], ":%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileStyle(), zoomLevel, xTile,
-            yTile, MapTileSettings::getTileFormat());
+    sprintf(&fname[1], ":%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileDir(), zoomLevel, xTile, yTile,
+            MapTileSettings::getTileFormat());
     ILOG_DEBUG("SD file: %s", fname);
     lv_image_set_src(img, fname);
     if (lv_image_get_src((lv_obj_t *)img)) {
