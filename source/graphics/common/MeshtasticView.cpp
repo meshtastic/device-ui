@@ -214,7 +214,7 @@ bool MeshtasticView::base64ToPsk(const std::string &base64, uint8_t *bytes, uint
     std::string out;
     auto error = macaron::Base64::Decode(base64, out);
     if (!error.empty()) {
-        ILOG_ERROR("Cannot decode '%s'", base64);
+        ILOG_ERROR("Cannot decode '%s'", base64.c_str());
         return false;
     } else {
         memcpy((char *)bytes, out.data(), out.size());

@@ -40,9 +40,9 @@ void SerialClient::init(void)
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
     xTaskCreateUniversal(task_loop, threadName, 8192, NULL, 1, NULL, 0);
 #elif defined(ARCH_PORTDUINO)
-    new std::thread([] {
+    new std::thread([this] {
 #ifdef __APPLE__
-        pthread_setname_np(threadName);
+        pthread_setname_np(this->threadName);
 #else
         pthread_setname_np(pthread_self(), instance->threadName);
 #endif
