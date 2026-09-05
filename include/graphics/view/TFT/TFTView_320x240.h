@@ -206,6 +206,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
     // remove objects from map
     virtual void removeFromMap(uint32_t nodeNum);
+    // show or hide URL template input
+    virtual void showUrlInputArea(bool show);
 
     std::function<void(uint32_t id, uint16_t x, uint16_t y, uint8_t)> drawObjectCB;
 
@@ -360,6 +362,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_setup_region_dropdown(lv_event_t *e);
     static void ui_event_map_style_dropdown(lv_event_t *e);
     static void ui_event_map_url_dropdown(lv_event_t *e);
+    static void ui_event_map_url_textarea(lv_event_t *e);
 
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 

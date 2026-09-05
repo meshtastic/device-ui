@@ -199,6 +199,8 @@ typedef struct _objects_t {
     lv_obj_t *map_contrast_slider;
     lv_obj_t *map_style_dropdown;
     lv_obj_t *map_url_dropdown;
+    lv_obj_t *map_url_textarea;
+    lv_obj_t *keyboard_button_12;
     lv_obj_t *map_location_label;
     lv_obj_t *map_attribution_label;
     lv_obj_t *google_logo_image;

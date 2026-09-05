@@ -215,9 +215,39 @@ std::string SDCard::getUrlProvider(const char *folder, const char *style)
     File file = SDFs.open(filename.c_str(), FILE_READ);
     if (file) {
         String url = file.readStringUntil('\n');
+        url.trim();
         return std::string{url.c_str()};
     }
     return {};
+}
+
+bool SDCard::setUrlProvider(const char *folder, const char *style, const char *urlTemplate)
+{
+    ISpiLock::Guard bus;
+    if (!folder || !style || !urlTemplate)
+        return false;
+    String dir = String(folder) + "/" + String(style);
+    if (!SDFs.exists(folder)) {
+        SDFs.mkdir(folder);
+    }
+    if (!SDFs.exists(dir.c_str())) {
+        if (!SDFs.mkdir(dir.c_str()))
+            return false;
+    }
+    String filename = dir + "/.url";
+    if (SDFs.exists(filename.c_str())) {
+        SDFs.remove(filename.c_str());
+    }
+    File file = SDFs.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        String cleanUrl = String(urlTemplate);
+        cleanUrl.trim();
+        file.print(cleanUrl);
+        file.print("\n");
+        file.close();
+        return true;
+    }
+    return false;
 }
 
 #elif defined(HAS_SDCARD) && !defined(SENSECAP_INDICATOR)
@@ -393,9 +423,39 @@ std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
     File file = SDFs.open(filename.c_str(), FILE_READ);
     if (file) {
         String url = file.readStringUntil('\n');
+        url.trim();
         return std::string{url.c_str()};
     }
     return {};
+}
+
+bool SdFsCard::setUrlProvider(const char *folder, const char *style, const char *urlTemplate)
+{
+    ISpiLock::Guard bus;
+    if (!folder || !style || !urlTemplate)
+        return false;
+    String dir = String(folder) + "/" + String(style);
+    if (!SDFs.exists(folder)) {
+        SDFs.mkdir(folder);
+    }
+    if (!SDFs.exists(dir.c_str())) {
+        if (!SDFs.mkdir(dir.c_str()))
+            return false;
+    }
+    String filename = dir + "/.url";
+    if (SDFs.exists(filename.c_str())) {
+        SDFs.remove(filename.c_str());
+    }
+    File file = SDFs.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        String cleanUrl = String(urlTemplate);
+        cleanUrl.trim();
+        file.print(cleanUrl);
+        file.print("\n");
+        file.close();
+        return true;
+    }
+    return false;
 }
 
 #elif defined(SENSECAP_INDICATOR)
@@ -558,6 +618,20 @@ std::string RemoteSdCard::getUrlProvider(const char *folder, const char *style)
     if (nl)
         *nl = '\0';
     return std::string{(char *)buf};
+}
+
+bool RemoteSdCard::setUrlProvider(const char *folder, const char *style, const char *urlTemplate)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs || !folder || !style || !urlTemplate)
+        return false;
+    std::string filename = std::string(folder) + "/" + style + "/.url";
+    std::string cleanUrl = urlTemplate;
+    while (!cleanUrl.empty() && (cleanUrl.back() == '\r' || cleanUrl.back() == '\n' || cleanUrl.back() == ' ' || cleanUrl.back() == '\t')) {
+        cleanUrl.pop_back();
+    }
+    std::string content = cleanUrl + "\n";
+    return fs->writeChunk(filename.c_str(), 0, (const uint8_t *)content.c_str(), content.size(), true);
 }
 
 #endif // HAS_SDCARD
