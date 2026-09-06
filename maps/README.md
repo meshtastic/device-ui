@@ -72,13 +72,13 @@ Finally put the style.pmtiles archive into the maps/style folder on SD card. Don
 ### Self-hosting Protomaps
 
 With the following command you can serve pmtiles in your network:
-   ```bash
-   go run main.go serve .
-   ```
 
-This will provide access to all pmtiles in the current directory. The URL template to access e.g. *style.pmtiles* is
+```bash
+go run main.go serve .
+```
+
+This will provide access to all pmtiles in the current directory. The URL template to access e.g. _style.pmtiles_ is
 `http://host-ip:8080/style/{z}/{x}/{y}.png`.
-
 
 ## WiFi Download
 

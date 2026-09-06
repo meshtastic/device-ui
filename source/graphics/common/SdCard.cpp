@@ -627,7 +627,8 @@ bool RemoteSdCard::setUrlProvider(const char *folder, const char *style, const c
         return false;
     std::string filename = std::string(folder) + "/" + style + "/.url";
     std::string cleanUrl = urlTemplate;
-    while (!cleanUrl.empty() && (cleanUrl.back() == '\r' || cleanUrl.back() == '\n' || cleanUrl.back() == ' ' || cleanUrl.back() == '\t')) {
+    while (!cleanUrl.empty() &&
+           (cleanUrl.back() == '\r' || cleanUrl.back() == '\n' || cleanUrl.back() == ' ' || cleanUrl.back() == '\t')) {
         cleanUrl.pop_back();
     }
     std::string content = cleanUrl + "\n";

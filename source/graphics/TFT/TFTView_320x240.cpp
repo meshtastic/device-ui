@@ -2400,7 +2400,7 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
     char style[MapTileSettings::TILE_STYLE_SIZE];
     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
     if (strcmp(style, THIS->db.uiConfig.map_data.style) != 0) {
-        strcpy (THIS->db.uiConfig.map_data.style, style);
+        strcpy(THIS->db.uiConfig.map_data.style, style);
         MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
         std::string url = THIS->setUrlProvider(THIS->db.uiConfig.map_data.style);
         MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
@@ -2408,8 +2408,7 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
         THIS->controller->storeUIConfig(THIS->db.uiConfig);
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->map->forceRedraw();
-    }
-    else {
+    } else {
         // copy current url template into textarea for editing
         THIS->showUrlInputArea(true);
         std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), style);
@@ -2424,8 +2423,7 @@ void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
     lv_dropdown_get_selected_str(objects.map_url_dropdown, url, sizeof(url));
     if (strcmp(url, _(URL_UNSET)) == 0) {
         THIS->showUrlInputArea(true);
-    }
-    else {
+    } else {
         uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
         TileProvider::selectTemplate(urlId);
         MapTileSettings::setSaveOK(false);
@@ -2450,10 +2448,8 @@ void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
     if (event_code == LV_EVENT_READY) {
         std::string url = lv_textarea_get_text(objects.map_url_textarea);
         if (!url.empty()) {
-            bool urlOk = (url.find("https://") == 0 || url.find("http://") == 0) &&
-                         url.find("{x}") != std::string::npos &&
-                         url.find("{y}") != std::string::npos &&
-                         url.find("{z}") != std::string::npos;
+            bool urlOk = (url.find("https://") == 0 || url.find("http://") == 0) && url.find("{x}") != std::string::npos &&
+                         url.find("{y}") != std::string::npos && url.find("{z}") != std::string::npos;
 
             if (urlOk) {
                 ILOG_DEBUG("using user url template: %s", url.c_str());
@@ -2473,27 +2469,24 @@ void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
                     if (sdCard->setUrlProvider(MapTileSettings::getPrefix(), defaultStyle.c_str(), url.c_str())) {
                         THIS->showUrlInputArea(false);
                         MapTileSettings::setSaveOK(true);
-                    }
-                    else 
-                        ILOG_ERROR("failed to write %s/%s/.url: %s", MapTileSettings::getPrefix(), defaultStyle.c_str(), url.c_str());
+                    } else
+                        ILOG_ERROR("failed to write %s/%s/.url: %s", MapTileSettings::getPrefix(), defaultStyle.c_str(),
+                                   url.c_str());
                 }
                 lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
                 THIS->map->forceRedraw();
                 THIS->attribution(url);
-            }
-            else {
+            } else {
                 ILOG_WARN("wrong user url: %s", url.c_str());
                 lv_obj_set_style_border_color(objects.map_url_textarea, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
                 MapTileSettings::setSaveOK(false);
             }
-        }
-        else {
+        } else {
             if (lv_dropdown_get_option_count(objects.map_url_dropdown) > 0) {
                 lv_obj_set_style_border_color(objects.map_url_textarea, lv_color_hex(0xe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
                 THIS->showUrlInputArea(false);
-
             }
         }
     }
@@ -2517,8 +2510,7 @@ void TFTView_320x240::showUrlInputArea(bool show)
         lv_obj_remove_flag(objects.map_url_textarea, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.keyboard_button_12, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
-    }
-    else {
+    } else {
         lv_obj_add_flag(objects.map_url_textarea, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.keyboard_button_12, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
@@ -2838,9 +2830,8 @@ void TFTView_320x240::loadMap(void)
                     lv_dropdown_set_selected(objects.map_style_dropdown, 0);
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
-                }
-                else {
-                    strcpy (style, savedTileDir);
+                } else {
+                    strcpy(style, savedTileDir);
                 }
                 std::string url = setUrlProvider(style);
                 if (!url.empty())
@@ -2971,8 +2962,7 @@ std::string TFTView_320x240::setUrlProvider(const char *style)
         lv_dropdown_set_selected(objects.map_url_dropdown, entry);
         TileProvider::selectTemplate(entry);
         THIS->attribution(url);
-    }
-    else {
+    } else {
         // no .url found for current style; add a <unset>> field if not exist
         ILOG_DEBUG("set provider url to %s", _(URL_UNSET));
         int32_t option = lv_dropdown_get_option_index(objects.map_url_dropdown, _(URL_UNSET));
@@ -2980,14 +2970,12 @@ std::string TFTView_320x240::setUrlProvider(const char *style)
         if (option < 0) {
             lv_dropdown_add_option(objects.map_url_dropdown, _(URL_UNSET), LV_DROPDOWN_POS_LAST);
             lv_dropdown_set_selected(objects.map_url_dropdown, entries);
-        }
-        else {
+        } else {
             lv_dropdown_set_selected(objects.map_url_dropdown, option);
         }
     }
     return url;
 }
-
 
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
 {
