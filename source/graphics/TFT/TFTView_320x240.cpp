@@ -2422,6 +2422,8 @@ void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
     char url[128];
     lv_dropdown_get_selected_str(objects.map_url_dropdown, url, sizeof(url));
     if (strcmp(url, _(URL_UNSET)) == 0) {
+        lv_textarea_set_text(objects.map_url_textarea, "");
+        lv_obj_set_style_border_color(objects.map_url_textarea, lv_color_hex(0xe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
         THIS->showUrlInputArea(true);
     } else {
         uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
