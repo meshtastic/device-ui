@@ -242,10 +242,9 @@ bool SDCard::setUrlProvider(const char *folder, const char *style, const char *u
     if (file) {
         String cleanUrl = String(urlTemplate);
         cleanUrl.trim();
-        file.print(cleanUrl);
-        file.print("\n");
+        bool written = file.print(cleanUrl) == cleanUrl.length() && file.print("\n") == 1;
         file.close();
-        return true;
+        return written;
     }
     return false;
 }
@@ -450,10 +449,9 @@ bool SdFsCard::setUrlProvider(const char *folder, const char *style, const char 
     if (file) {
         String cleanUrl = String(urlTemplate);
         cleanUrl.trim();
-        file.print(cleanUrl);
-        file.print("\n");
+        bool written = file.print(cleanUrl) == cleanUrl.length() && file.print("\n") == 1;
         file.close();
-        return true;
+        return written;
     }
     return false;
 }
@@ -631,6 +629,9 @@ bool RemoteSdCard::setUrlProvider(const char *folder, const char *style, const c
            (cleanUrl.back() == '\r' || cleanUrl.back() == '\n' || cleanUrl.back() == ' ' || cleanUrl.back() == '\t')) {
         cleanUrl.pop_back();
     }
+    if (cleanUrl.size() > 1023)
+        return false;
+
     std::string content = cleanUrl + "\n";
     return fs->writeChunk(filename.c_str(), 0, (const uint8_t *)content.c_str(), content.size(), true);
 }
