@@ -2397,36 +2397,42 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
 
 void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 {
-    lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
-                                 sizeof(THIS->db.uiConfig.map_data.style));
-    MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
-    // set url provider if exist
-    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
-    MapTileSettings::styleToDir(THIS->db.uiConfig.map_data.style, tileDir, sizeof(tileDir));
-    MapTileSettings::setPMTiles(sdCard && sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir));
-    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
-    if (!url.empty()) {
-        std::string provider = std::string("URL: ") + THIS->db.uiConfig.map_data.style;
-        int entry = TileProvider::addTemplate(provider, url);
-        lv_dropdown_set_selected(objects.map_url_dropdown, entry);
-        TileProvider::selectTemplate(entry);
-        THIS->attribution(url);
+    char style[MapTileSettings::TILE_STYLE_SIZE];
+    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+    if (strcmp(style, THIS->db.uiConfig.map_data.style) != 0) {
+        strcpy (THIS->db.uiConfig.map_data.style, style);
+        MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
+        std::string url = THIS->setUrlProvider(THIS->db.uiConfig.map_data.style);
+        MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
+        THIS->showUrlInputArea(false);
+        THIS->controller->storeUIConfig(THIS->db.uiConfig);
+        lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->map->forceRedraw();
     }
-    MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
-
-    THIS->controller->storeUIConfig(THIS->db.uiConfig);
-    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
-    THIS->map->forceRedraw();
+    else {
+        // copy current url template into textarea for editing
+        THIS->showUrlInputArea(true);
+        std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), style);
+        lv_textarea_set_text(objects.map_url_textarea, url.c_str());
+        lv_group_focus_obj(objects.map_url_textarea);
+    }
 }
 
 void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
 {
-    uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
-    TileProvider::selectTemplate(urlId);
-    MapTileSettings::setSaveOK(false);
-    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
-    THIS->attribution(TileProvider::url());
-    THIS->map->forceRedraw();
+    char url[128];
+    lv_dropdown_get_selected_str(objects.map_url_dropdown, url, sizeof(url));
+    if (strcmp(url, _(URL_UNSET)) == 0) {
+        THIS->showUrlInputArea(true);
+    }
+    else {
+        uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
+        TileProvider::selectTemplate(urlId);
+        MapTileSettings::setSaveOK(false);
+        lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->attribution(TileProvider::url());
+        THIS->map->forceRedraw();
+    }
 }
 
 /**
@@ -2460,9 +2466,14 @@ void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
                 lv_obj_set_style_border_color(objects.map_url_textarea, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
                 int entry = TileProvider::addTemplate("URL: " + defaultStyle, url);
                 TileProvider::selectTemplate(entry);
-                if (sdCard && sdCard->isUpdated() && sdCard->cardType() != ISdCard::eNone) {
-                    if (sdCard->setUrlProvider(MapTileSettings::getPrefix(), defaultStyle.c_str(), url.c_str()))
+                auto providers = TileProvider::providers();
+                lv_dropdown_set_options(objects.map_url_dropdown, providers.c_str());
+                lv_dropdown_set_selected(objects.map_url_dropdown, entry);
+                if (sdCard) {
+                    if (sdCard->setUrlProvider(MapTileSettings::getPrefix(), defaultStyle.c_str(), url.c_str())) {
+                        THIS->showUrlInputArea(false);
                         MapTileSettings::setSaveOK(true);
+                    }
                     else 
                         ILOG_ERROR("failed to write %s/%s/.url: %s", MapTileSettings::getPrefix(), defaultStyle.c_str(), url.c_str());
                 }
@@ -2475,6 +2486,14 @@ void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
                 ILOG_WARN("wrong user url: %s", url.c_str());
                 lv_obj_set_style_border_color(objects.map_url_textarea, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
                 MapTileSettings::setSaveOK(false);
+            }
+        }
+        else {
+            if (lv_dropdown_get_option_count(objects.map_url_dropdown) > 0) {
+                lv_obj_set_style_border_color(objects.map_url_textarea, lv_color_hex(0xe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+                THIS->showUrlInputArea(false);
+
             }
         }
     }
@@ -2776,9 +2795,6 @@ void TFTView_320x240::loadMap(void)
             } else if (!mapStyles.empty()) {
                 // populate style dropdown
                 bool savedStyleOK = false;
-                int firstUrlEntry = -1;
-                std::string firstUrl;
-                bool firstHasArchive = false;
                 char savedTileDir[MapTileSettings::TILE_STYLE_SIZE];
                 MapTileSettings::styleToDir(db.uiConfig.map_data.style, savedTileDir, sizeof(savedTileDir));
                 lv_dropdown_clear_options(objects.map_style_dropdown);
@@ -2793,11 +2809,6 @@ void TFTView_320x240::loadMap(void)
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
-                    }
-                    if (it == *mapStyles.begin()) {
-                        firstUrlEntry = urlEntry;
-                        firstUrl = url;
-                        firstHasArchive = hasArchive;
                     }
                     lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), LV_DROPDOWN_POS_LAST);
                     if (it == savedTileDir) {
@@ -2816,27 +2827,24 @@ void TFTView_320x240::loadMap(void)
                 auto providers = TileProvider::providers();
                 if (!providers.empty()) {
                     lv_dropdown_set_options(objects.map_url_dropdown, providers.c_str());
-                    lv_dropdown_set_selected(objects.map_url_dropdown, TileProvider::selectedTemplate());
                 } else {
                     lv_dropdown_clear_options(objects.map_url_dropdown);
                 }
                 showUrlInputArea(providers.empty());
 
+                char style[MapTileSettings::TILE_STYLE_SIZE];
                 if (!savedStyleOK) {
                     // no such style on SD, pick first one we found
-                    char style[30];
                     lv_dropdown_set_selected(objects.map_style_dropdown, 0);
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
-                    MapTileSettings::setPMTiles(firstHasArchive);
-                    // this fallback style also needs its URL template registered, else fetch silently no-ops
-                    if (firstUrlEntry >= 0) {
-                        ILOG_DEBUG("set provider url to %s", style);
-                        TileProvider::selectTemplate(firstUrlEntry);
-                        lv_dropdown_set_selected(objects.map_url_dropdown, firstUrlEntry);
-                        attribution(firstUrl);
-                    }
                 }
+                else {
+                    strcpy (style, savedTileDir);
+                }
+                std::string url = setUrlProvider(style);
+                if (!url.empty())
+                    savedStyleOK = true;
 
                 MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
                 MapTileSettings::setPrefix("/maps");
@@ -2948,6 +2956,38 @@ void TFTView_320x240::attribution(std::string url)
         lv_obj_add_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
     }
 }
+
+std::string TFTView_320x240::setUrlProvider(const char *style)
+{
+    // set url provider if exist
+    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+    MapTileSettings::styleToDir(style, tileDir, sizeof(tileDir));
+    MapTileSettings::setPMTiles(sdCard && sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir));
+    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
+    if (!url.empty()) {
+        ILOG_DEBUG("set provider url to %s", url.c_str());
+        std::string provider = std::string("URL: ") + style;
+        int entry = TileProvider::addTemplate(provider, url);
+        lv_dropdown_set_selected(objects.map_url_dropdown, entry);
+        TileProvider::selectTemplate(entry);
+        THIS->attribution(url);
+    }
+    else {
+        // no .url found for current style; add a <unset>> field if not exist
+        ILOG_DEBUG("set provider url to %s", _(URL_UNSET));
+        int32_t option = lv_dropdown_get_option_index(objects.map_url_dropdown, _(URL_UNSET));
+        uint32_t entries = lv_dropdown_get_option_count(objects.map_url_dropdown);
+        if (option < 0) {
+            lv_dropdown_add_option(objects.map_url_dropdown, _(URL_UNSET), LV_DROPDOWN_POS_LAST);
+            lv_dropdown_set_selected(objects.map_url_dropdown, entries);
+        }
+        else {
+            lv_dropdown_set_selected(objects.map_url_dropdown, option);
+        }
+    }
+    return url;
+}
+
 
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
 {

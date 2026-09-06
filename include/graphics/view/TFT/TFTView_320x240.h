@@ -206,6 +206,8 @@ class TFTView_320x240 : public MeshtasticView
     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
     // remove objects from map
     virtual void removeFromMap(uint32_t nodeNum);
+    // set url provider and dropdown and return url if present
+    virtual std::string setUrlProvider(const char *style);
     // show or hide URL template input
     virtual void showUrlInputArea(bool show);
 
