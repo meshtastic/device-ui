@@ -43,15 +43,17 @@ If you like to check of how many tiles an area is composed of you can make use o
 
 ## Protomaps (.pmtiles)
 
-MUI >= 2.8.1 supports [protomaps](https://protomaps.com) [pmtiles](https://github.com/protomaps/PMTiles) format, i.e. all downloaded .png raster tiles can be packed into a single compressed file which is then put into the SD cards' styles folder with the same name as the style directory itself, e.g. maps/OSM/OSM.pmtiles. Upon map style selection MUI will check for existence of such .pmtiles file and automatically load the required tiles from the archive.
+MUI >= 2.8.1 supports [protomaps](https://protomaps.com) [PMTiles](https://github.com/protomaps/PMTiles) png raster format, i.e. all downloaded .png raster tiles can be packed into a single PMTiles archive which is then put into the SD cards' styles folder with the exact same basename as the style directory itself, e.g. `maps/OSM/OSM.pmtiles`. Upon map style selection MUI will check for existence of such .pmtiles file and automatically load the required tiles from the archive. Tiles not found in the archive will be searched in the z/x/y directory and if that fails downloaded via [WiFi](#wifi-download) if connected. The PMTiles archive on SD card is read-only and downloaded fallback tiles are stored beside it in the tile directories 0-19.
+
+Note, that not all .pmtiles are automatically supported, e.g. those that contain .jpg or vector tiles format won't work with MUI.
 
 There are several ways to generate the protomaps .pmtiles format:
 
 1. Download xyz raster tiles in mbtiles format (e.g. using [QGIS](https://qgis.org) or [maptiler engine](https://www.maptiler.com/engine))
-   and convert the mbtiles archive to pmtiles using https://github.com/protomaps/go-pmtiles :
+   and convert the mbtiles archive to pmtiles using https://github.com/protomaps/go-pmtiles/releases :
 
    ```bash
-   go run main.go convert style.mbtiles style.pmtiles
+   pmtiles convert style.mbtiles style.pmtiles
    ```
 
 2. Convert your existing xyz tiles folder directly into pmtiles using [versaTiles](https://docs.versatiles.org/) .
