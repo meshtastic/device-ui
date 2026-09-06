@@ -119,7 +119,7 @@ Bundles can be found [here](https://download.tiles.coalition.space/bundles) and 
 
 # Compatibility
 
-- 🟢 **Seeed Wio Tracker L2**: Confirmed to work with Fat32 formatted SD. Due to SDIO bus exFat is not yet supported.
+- 🟢 **Seeed Wio Tracker L2**: Confirmed to work with Fat32 formatted SD. Due to the SDIO bus driver exFat is not yet supported.
 - 🟢 **Elecrow ThinkNode M9**: Confirmed to work, except some functionality is not yet available via keypad.
 - 🟢 **LILYGO T-Deck**: Confirmed to work
 - 🟢 **CrowPanel Advance HMI**: Confirmed to work on 2.4", 2.8", and 3.5" models
