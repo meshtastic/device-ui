@@ -8,6 +8,7 @@
 #include "freertos/task.h"
 #endif
 #ifdef ARCH_PORTDUINO
+#include <atomic>
 #include <thread>
 #endif
 
@@ -62,8 +63,8 @@ class SerialClient : public IClientBase
     const char *connectionInfo;
 
     // announce client shutdown
-    volatile bool shutdown;
-    volatile bool taskExited;
+    std::atomic<bool> shutdown;
+    std::atomic<bool> taskExited;
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
     TaskHandle_t taskHandle;
 #endif

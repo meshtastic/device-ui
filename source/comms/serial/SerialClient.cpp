@@ -300,7 +300,7 @@ void SerialClient::task_loop(void *arg)
 #endif
     }
     client->taskExited = true;
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
     vTaskDelete(nullptr);
 #endif
 }
