@@ -1,4 +1,5 @@
 #include "graphics/common/SdCard.h"
+#include "graphics/map/MapTileSettings.h"
 #include "util/ILog.h"
 #include "util/ISpiLock.h"
 
@@ -33,6 +34,15 @@ using File = FsFile;
 #endif
 
 ISdCard *sdCard = nullptr;
+
+static std::string mapArchivePath(const char *folder, const char *style)
+{
+    char dir[MapTileSettings::TILE_STYLE_SIZE];
+    MapTileSettings::styleToDir(style, dir, sizeof(dir));
+    if (!folder || !dir[0])
+        return {};
+    return std::string(folder) + "/" + dir + "/" + dir + MapTileSettings::PMTILES_EXTENSION;
+}
 
 // SENSECAP_INDICATOR takes precedence over the generic SD classes, matching
 // the declarations in SdCard.h: the card sits behind the co-processor
@@ -205,9 +215,13 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
 
             std::string path = style.name();
             std::string dir = path.substr(path.find_last_of("/") + 1);
-            if (/* style.isDirectory() && */ dir.c_str()[0] != '.') {
-                ILOG_DEBUG("SD: found map style: %s", dir.c_str());
-                styles.insert(dir);
+            if (style.isDirectory() && dir.c_str()[0] != '.') {
+                if (dir.size() < MapTileSettings::TILE_STYLE_SIZE - 1) {
+                    ILOG_DEBUG("SD: found map style: %s", dir.c_str());
+                    styles.insert(dir);
+                } else {
+                    ILOG_WARN("ignored: %s (name too long)", dir.c_str());
+                }
             }
             style.close();
         } while (true);
@@ -227,6 +241,19 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
     return styles;
 }
 
+bool SDCard::hasMapArchive(const char *folder, const char *style)
+{
+    ISpiLock::Guard bus;
+    std::string filename = mapArchivePath(folder, style);
+    if (filename.empty())
+        return false;
+    File file = SDFs.open(filename.c_str(), FILE_READ);
+    if (!file)
+        return false;
+    file.close();
+    return true;
+}
+
 std::string SDCard::getUrlProvider(const char *folder, const char *style)
 {
     ISpiLock::Guard bus;
@@ -234,9 +261,38 @@ std::string SDCard::getUrlProvider(const char *folder, const char *style)
     File file = SDFs.open(filename.c_str(), FILE_READ);
     if (file) {
         String url = file.readStringUntil('\n');
+        url.trim();
         return std::string{url.c_str()};
     }
     return {};
+}
+
+bool SDCard::setUrlProvider(const char *folder, const char *style, const char *urlTemplate)
+{
+    ISpiLock::Guard bus;
+    if (!folder || !style || !urlTemplate)
+        return false;
+    String dir = String(folder) + "/" + String(style);
+    if (!SDFs.exists(folder)) {
+        SDFs.mkdir(folder);
+    }
+    if (!SDFs.exists(dir.c_str())) {
+        if (!SDFs.mkdir(dir.c_str()))
+            return false;
+    }
+    String filename = dir + "/.url";
+    if (SDFs.exists(filename.c_str())) {
+        SDFs.remove(filename.c_str());
+    }
+    File file = SDFs.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        String cleanUrl = String(urlTemplate);
+        cleanUrl.trim();
+        bool written = file.print(cleanUrl) == cleanUrl.length() && file.print("\n") == 1;
+        file.close();
+        return written;
+    }
+    return false;
 }
 
 #elif defined(HAS_SDCARD) && !defined(SENSECAP_INDICATOR)
@@ -362,13 +418,17 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
             if (!style)
                 break;
 
-            char name[20];
+            char name[32];
             style.getName(name, sizeof(name));
             std::string path = name;
             std::string dir = path.substr(path.find_last_of("/") + 1);
             if (style.isDirectory() && dir.c_str()[0] != '.') {
-                ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
-                styles.insert(dir);
+                if (dir.size() < MapTileSettings::TILE_STYLE_SIZE - 1) {
+                    ILOG_DEBUG("SdFs: found map style: %s", dir.c_str());
+                    styles.insert(dir);
+                } else {
+                    ILOG_WARN("ignored: %s (name too long)", dir.c_str());
+                }
             }
             style.close();
         } while (true);
@@ -388,6 +448,19 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
     return styles;
 }
 
+bool SdFsCard::hasMapArchive(const char *folder, const char *style)
+{
+    ISpiLock::Guard bus;
+    std::string filename = mapArchivePath(folder, style);
+    if (filename.empty())
+        return false;
+    FsFile file = SDFs.open(filename.c_str(), O_RDONLY);
+    if (!file)
+        return false;
+    file.close();
+    return true;
+}
+
 std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
 {
     ISpiLock::Guard bus;
@@ -395,9 +468,38 @@ std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
     File file = SDFs.open(filename.c_str(), FILE_READ);
     if (file) {
         String url = file.readStringUntil('\n');
+        url.trim();
         return std::string{url.c_str()};
     }
     return {};
+}
+
+bool SdFsCard::setUrlProvider(const char *folder, const char *style, const char *urlTemplate)
+{
+    ISpiLock::Guard bus;
+    if (!folder || !style || !urlTemplate)
+        return false;
+    String dir = String(folder) + "/" + String(style);
+    if (!SDFs.exists(folder)) {
+        SDFs.mkdir(folder);
+    }
+    if (!SDFs.exists(dir.c_str())) {
+        if (!SDFs.mkdir(dir.c_str()))
+            return false;
+    }
+    String filename = dir + "/.url";
+    if (SDFs.exists(filename.c_str())) {
+        SDFs.remove(filename.c_str());
+    }
+    File file = SDFs.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        String cleanUrl = String(urlTemplate);
+        cleanUrl.trim();
+        bool written = file.print(cleanUrl) == cleanUrl.length() && file.print("\n") == 1;
+        file.close();
+        return written;
+    }
+    return false;
 }
 
 #elif defined(SENSECAP_INDICATOR)
@@ -496,8 +598,12 @@ std::set<std::string> RemoteSdCard::loadMapStyles(const char *folder)
                 if (entry.back() != '/')
                     continue;
                 std::string dir = entry.substr(0, entry.size() - 1);
-                ILOG_DEBUG("remote SD: found map style: %s", dir.c_str());
-                styles.insert(dir);
+                if (dir.size() < MapTileSettings::TILE_STYLE_SIZE) {
+                    ILOG_DEBUG("remote SD: found map style: %s", dir.c_str());
+                    styles.insert(dir);
+                } else {
+                    ILOG_WARN("ignored: %s (name too long)", dir.c_str());
+                }
             }
         }
         if (styles.empty()) {
@@ -512,6 +618,17 @@ std::set<std::string> RemoteSdCard::loadMapStyles(const char *folder)
     }
     updated = true;
     return styles;
+}
+
+bool RemoteSdCard::hasMapArchive(const char *folder, const char *style)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    std::string filename = mapArchivePath(folder, style);
+    if (!fs || filename.empty())
+        return false;
+    uint8_t byte = 0;
+    uint32_t bytesRead = 0, fileSize = 0;
+    return fs->readChunk(filename.c_str(), 0, &byte, 1, &bytesRead, &fileSize) && bytesRead == 1 && fileSize > 0;
 }
 
 std::string RemoteSdCard::getUrlProvider(const char *folder, const char *style)
@@ -545,6 +662,24 @@ std::string RemoteSdCard::getUrlProvider(const char *folder, const char *style)
     if (nl)
         *nl = '\0';
     return std::string{(char *)buf};
+}
+
+bool RemoteSdCard::setUrlProvider(const char *folder, const char *style, const char *urlTemplate)
+{
+    IRemoteFS *fs = RemoteSDService::backend();
+    if (!fs || !folder || !style || !urlTemplate)
+        return false;
+    std::string filename = std::string(folder) + "/" + style + "/.url";
+    std::string cleanUrl = urlTemplate;
+    while (!cleanUrl.empty() &&
+           (cleanUrl.back() == '\r' || cleanUrl.back() == '\n' || cleanUrl.back() == ' ' || cleanUrl.back() == '\t')) {
+        cleanUrl.pop_back();
+    }
+    if (cleanUrl.size() > 1023)
+        return false;
+
+    std::string content = cleanUrl + "\n";
+    return fs->writeChunk(filename.c_str(), 0, (const uint8_t *)content.c_str(), content.size(), true);
 }
 
 #endif // HAS_SDCARD

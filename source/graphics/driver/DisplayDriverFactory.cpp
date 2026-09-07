@@ -57,6 +57,9 @@
 #ifdef ESP32_2432S022
 #include "graphics/LGFX/LGFX_ESP2432S022.h"
 #endif
+#ifdef ESP32_NM_CYD_C5
+#include "graphics/LGFX/LGFX_ESP_NM_CYD_C5.h"
+#endif
 #ifdef ESP32_2432S028RV1
 #include "graphics/LGFX/LGFX_ESP2432S028RV1.h"
 #endif
@@ -191,6 +194,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(WT_SC01_PLUS)
     case DisplayDriverConfig::device_t::WT32_SC01_PLUS:
         return new LGFXDriver<LGFX_WT_SC01_PLUS>(cfg.width(), cfg.height());
+        break;
+#elif defined(ESP32_NM_CYD_C5)
+    case DisplayDriverConfig::device_t::NM_CYD_C5:
+        return new LGFXDriver<LGFX_ESP_NM_CYD_C5>(cfg.width(), cfg.height());
         break;
 #elif defined(ESP2432S028RV1)
     case DisplayDriverConfig::device_t::ESP2432S028RV1:

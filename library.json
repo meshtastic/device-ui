@@ -14,7 +14,7 @@
       "maintainer": true
     }
   ],
-  "license": "GPL-3.0",
+  "license": "GPL-3.0 AND BSD-3-Clause AND Apache-2.0 AND MIT",
   "homepage": "https://meshtastic.org/",
   "frameworks": "Arduino, FreeRTOS",
   "platforms": "Expressif 32, Nordic nRF52, Raspberry Pi RP2040, Native, Linux x86_64, Linux ARM",
@@ -23,6 +23,7 @@
     "ArduinoThread": "https://github.com/meshtastic/ArduinoThread/archive/7c3ee9e1951551b949763b1f5280f8db1fa4068d.zip",
     "lvgl/lvgl": "https://github.com/lvgl/lvgl/archive/refs/tags/v9.3.0.zip",
     "greiman/SdFat": "https://github.com/mverch67/SdFat/archive/152a52251fc5e1d581303b42378ea712ab229246.zip",
+    "libdeflate": "https://github.com/mverch67/libdeflate/archive/7291dd18ed11df673cce8e33b7f432a1273f1945.zip",
     "nanopb/Nanopb": "https://github.com/nanopb/nanopb/archive/refs/tags/nanopb-0.4.9.1.zip",
     "bitbank2/PNGdec": "https://github.com/mverch67/PNGdec/archive/d88b6fe2ec8d49c2b097a529b34d1d615ca5cf1b.zip"
   },

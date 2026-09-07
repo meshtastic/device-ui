@@ -235,6 +235,10 @@ class TFTView_320x240 : public MeshtasticView
     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
     // remove objects from map
     virtual void removeFromMap(uint32_t nodeNum);
+    // set url provider and dropdown and return url if present
+    virtual std::string setUrlProvider(const char *style);
+    // show or hide URL template input
+    virtual void showUrlInputArea(bool show);
     // start ftp server for SD card file transfer
     virtual void toggleFtpServer(void);
 
@@ -258,6 +262,8 @@ class TFTView_320x240 : public MeshtasticView
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
     void hideKeyboard(lv_obj_t *panel);
+    // abort a running slide animation and restore panel/keyboard position at once
+    void resetKeyboardSlide(void);
     lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
 
     void enablePanel(lv_obj_t *panel);
@@ -400,6 +406,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_setup_region_dropdown(lv_event_t *e);
     static void ui_event_map_style_dropdown(lv_event_t *e);
     static void ui_event_map_url_dropdown(lv_event_t *e);
+    static void ui_event_map_url_textarea(lv_event_t *e);
 
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 
@@ -454,32 +461,35 @@ class TFTView_320x240 : public MeshtasticView
 
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
-    static TFTView_320x240 *gui;                          // singleton pattern
-    bool screensInitialised;                              // true if init_screens is completed
-    uint32_t nodesFiltered;                               // no. hidden nodes in node list
-    bool nodesChanged;                                    // true if nodes changed (added or purged)
-    bool processingFilter;                                // indicates that filtering is ongoing
-    bool packetLogEnabled;                                // display received packets
-    bool detectorRunning;                                 // meshDetector is active
-    bool cardDetected;                                    // SD has been detected
-    bool formatSD;                                        // offer to format SD card
-    uint16_t buttonSize;                                  // size of group/chat buttons in pixels
-    uint16_t statisticTableRows;                          // number of rows in statistics table
-    uint16_t packetCounter;                               // number of packets in packet log
-    time_t lastrun60, lastrun10, lastrun5, lastrun1;      // timers for task loop
-    time_t actTime, uptime, lastHeard;                    // actual time and uptime; time last heard a node
-    bool hasPosition;                                     // if our position is known
-    int32_t myLatitude, myLongitude;                      // our current position as reported by firmware
-    void *topNodeLL;                                      // pointer to topmost button in group ll
-    uint32_t scans;                                       // scanner counter
-    lv_anim_t radar;                                      // radar animation
-    static uint32_t currentNode;                          // current selected node
-    static lv_obj_t *currentPanel;                        // current selected node panel
-    static lv_obj_t *spinnerButton;                       // start button animation
-    static time_t startTime;                              // time when start button was pressed
-    static uint32_t pinKeys;                              // number of keys pressed (lock screen)
-    static bool screenLocked;                             // screen lock active
-    static bool screenUnlockRequest;                      // screen unlock request (via button)
+    static TFTView_320x240 *gui;                     // singleton pattern
+    bool screensInitialised;                         // true if init_screens is completed
+    uint32_t nodesFiltered;                          // no. hidden nodes in node list
+    bool nodesChanged;                               // true if nodes changed (added or purged)
+    bool processingFilter;                           // indicates that filtering is ongoing
+    bool packetLogEnabled;                           // display received packets
+    bool detectorRunning;                            // meshDetector is active
+    bool cardDetected;                               // SD has been detected
+    bool formatSD;                                   // offer to format SD card
+    uint16_t buttonSize;                             // size of group/chat buttons in pixels
+    uint16_t statisticTableRows;                     // number of rows in statistics table
+    uint16_t packetCounter;                          // number of packets in packet log
+    time_t lastrun60, lastrun10, lastrun5, lastrun1; // timers for task loop
+    time_t actTime, uptime, lastHeard;               // actual time and uptime; time last heard a node
+    bool hasPosition;                                // if our position is known
+    int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
+    void *topNodeLL;                                 // pointer to topmost button in group ll
+    uint32_t scans;                                  // scanner counter
+    lv_anim_t radar;                                 // radar animation
+    static uint32_t currentNode;                     // current selected node
+    static lv_obj_t *currentPanel;                   // current selected node panel
+    static lv_obj_t *spinnerButton;                  // start button animation
+    static time_t startTime;                         // time when start button was pressed
+    static uint32_t pinKeys;                         // number of keys pressed (lock screen)
+    static bool screenLocked;                        // screen lock active
+    static bool screenUnlockRequest;                 // screen unlock request (via button)
+    enum KbdSlide { eKbdHidden, eKbdSliding, eKbdShown };
+    static KbdSlide kbdSlideState;                        // slide state of the on-screen keyboard
+    static int32_t kbdPanelBaseY;                         // messages panel y at rest (INT32_MIN: not captured yet)
     uint32_t selectedHops;                                // remember selected choice
     bool chooseNodeSignalScanner;                         // chose a target node for signal scanner
     bool chooseNodeTraceRoute;                            // chose a target node for trace route

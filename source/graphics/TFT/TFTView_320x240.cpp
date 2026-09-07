@@ -68,6 +68,7 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SdFatService.h"
 #endif
 #include "graphics/common/SdCard.h"
+#include "graphics/map/PMTileService.h"
 
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
@@ -136,6 +137,14 @@ time_t TFTView_320x240::startTime = 0;
 uint32_t TFTView_320x240::pinKeys = 0;
 bool TFTView_320x240::screenLocked = false;
 bool TFTView_320x240::screenUnlockRequest = false;
+TFTView_320x240::KbdSlide TFTView_320x240::kbdSlideState = TFTView_320x240::eKbdHidden;
+int32_t TFTView_320x240::kbdPanelBaseY = INT32_MIN;
+
+// file scope so a running slide can be targeted for deletion by exec callback
+static void kbdSlideAnimCB(void *var, int32_t v)
+{
+    lv_obj_set_y((lv_obj_t *)var, v);
+}
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -610,9 +619,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
         lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
         if (activePanel == objects.messages_panel) {
             lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
-            if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
-                hideKeyboard(objects.messages_panel);
-            }
+            resetKeyboardSlide();
             uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
             // remove empty messageContainer if we are leaving messages panel
             if (channelOrNode >= c_max_channels) {
@@ -905,6 +912,9 @@ void TFTView_320x240::apply_hotfix(void)
     createLabel(objects.settings_about_panel, ABOUT_FRAMEWORK_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_ICONS_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_MAP_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_PNGDEC_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_PMTILES_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_LIBDEFLATE_TEXT);
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -1046,6 +1056,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_9, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)9);
     lv_obj_add_event_cb(objects.keyboard_button_10, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)10);
     lv_obj_add_event_cb(objects.keyboard_button_11, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)11);
+    lv_obj_add_event_cb(objects.keyboard_button_12, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)12);
 
     // message text area
     // Remove the LV_EVENT_ALL registration and replace it with these:
@@ -1186,6 +1197,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.map_contrast_slider, ui_event_mapContrastSlider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.map_url_textarea, ui_event_map_url_textarea, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.map_url_textarea, ui_event_map_url_textarea, LV_EVENT_READY, NULL);
 
     // tools buttons
     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
@@ -2284,11 +2297,10 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         uint32_t keyBtnIdx = (unsigned long)e->user_data;
         switch (keyBtnIdx) {
         case 0:
-            lv_group_focus_obj(objects.message_input_area);
-            if (lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+            if (kbdSlideState == eKbdHidden) {
                 lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
                 THIS->showKeyboard(objects.message_input_area);
-            } else {
+            } else if (kbdSlideState == eKbdShown) {
                 THIS->hideKeyboard(objects.messages_panel);
             }
             return; // continue play animation, don't hide keyboard immediately
@@ -2335,6 +2347,10 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         case 11:
             lv_group_focus_obj(objects.setup_user_long_textarea);
             THIS->showKeyboard(objects.setup_user_long_textarea);
+            break;
+        case 12:
+            THIS->showKeyboard(objects.map_url_textarea);
+            lv_group_focus_obj(objects.map_url_textarea);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment");
@@ -2447,9 +2463,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
             } else {
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
-                if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
-                    THIS->hideKeyboard(objects.messages_panel);
-                }
+                THIS->hideKeyboard(objects.messages_panel);
                 lv_group_focus_obj(objects.message_input_area);
             }
         }
@@ -3184,33 +3198,101 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
 
 void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 {
-    lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
-                                 sizeof(THIS->db.uiConfig.map_data.style));
-    MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
-    // set url provider if exist
-    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), THIS->db.uiConfig.map_data.style);
-    if (!url.empty()) {
-        std::string provider = std::string("URL: ") + THIS->db.uiConfig.map_data.style;
-        int entry = TileProvider::addTemplate(provider, url);
-        lv_dropdown_set_selected(objects.map_url_dropdown, entry);
-        TileProvider::selectTemplate(entry);
-        THIS->attribution(url);
+    char style[MapTileSettings::TILE_STYLE_SIZE];
+    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+    if (strcmp(style, THIS->db.uiConfig.map_data.style) != 0) {
+        strcpy(THIS->db.uiConfig.map_data.style, style);
+        MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
+        std::string url = THIS->setUrlProvider(THIS->db.uiConfig.map_data.style);
+        MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
+        THIS->showUrlInputArea(false);
+        THIS->controller->storeUIConfig(THIS->db.uiConfig);
+        lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->map->forceRedraw();
+    } else {
+        // copy current url template into textarea for editing
+        THIS->showUrlInputArea(true);
+        std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), style);
+        lv_textarea_set_text(objects.map_url_textarea, url.c_str());
+        lv_group_focus_obj(objects.map_url_textarea);
     }
-    MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
-
-    THIS->controller->storeUIConfig(THIS->db.uiConfig);
-    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
-    THIS->map->forceRedraw();
 }
 
 void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
 {
-    uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
-    TileProvider::selectTemplate(urlId);
-    MapTileSettings::setSaveOK(false);
-    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
-    THIS->attribution(TileProvider::url());
-    THIS->map->forceRedraw();
+    char url[128];
+    lv_dropdown_get_selected_str(objects.map_url_dropdown, url, sizeof(url));
+    if (strcmp(url, _(URL_UNSET)) == 0) {
+        lv_textarea_set_text(objects.map_url_textarea, "");
+        lv_obj_set_style_border_color(objects.map_url_textarea, lv_color_hex(0xe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+        THIS->showUrlInputArea(true);
+    } else {
+        uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
+        TileProvider::selectTemplate(urlId);
+        MapTileSettings::setSaveOK(false);
+        lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->attribution(TileProvider::url());
+        THIS->map->forceRedraw();
+    }
+}
+
+/**
+ * Check if url template is valid
+ */
+void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_KEY) {
+        uint32_t *key = (uint32_t *)lv_event_get_param(e);
+        if (!key || *key != '\r')
+            return;
+        event_code = LV_EVENT_READY;
+    }
+    if (event_code == LV_EVENT_READY) {
+        std::string url = lv_textarea_get_text(objects.map_url_textarea);
+        if (!url.empty()) {
+            bool urlOk = (url.find("https://") == 0 || url.find("http://") == 0) && url.find("{x}") != std::string::npos &&
+                         url.find("{y}") != std::string::npos && url.find("{z}") != std::string::npos;
+
+            if (urlOk) {
+                ILOG_DEBUG("using user url template: %s", url.c_str());
+                std::string defaultStyle = "default";
+                char style[40];
+                lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+                if (strlen(style) > 0) {
+                    defaultStyle = style;
+                }
+                lv_obj_set_style_border_color(objects.map_url_textarea, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+                int entry = TileProvider::addTemplate("URL: " + defaultStyle, url);
+                TileProvider::selectTemplate(entry);
+                auto providers = TileProvider::providers();
+                lv_dropdown_set_options(objects.map_url_dropdown, providers.c_str());
+                lv_dropdown_set_selected(objects.map_url_dropdown, entry);
+                if (sdCard) {
+                    if (sdCard->setUrlProvider(MapTileSettings::getPrefix(), defaultStyle.c_str(), url.c_str())) {
+                        THIS->showUrlInputArea(false);
+                        MapTileSettings::setSaveOK(true);
+                    } else
+                        ILOG_ERROR("failed to write %s/%s/.url: %s", MapTileSettings::getPrefix(), defaultStyle.c_str(),
+                                   url.c_str());
+                }
+                lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+                THIS->map->forceRedraw();
+                THIS->attribution(url);
+            } else {
+                ILOG_WARN("wrong user url: %s", url.c_str());
+                lv_obj_set_style_border_color(objects.map_url_textarea, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
+                MapTileSettings::setSaveOK(false);
+            }
+        } else {
+            if (lv_dropdown_get_option_count(objects.map_url_dropdown) > 0) {
+                lv_obj_set_style_border_color(objects.map_url_textarea, lv_color_hex(0xe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+                THIS->showUrlInputArea(false);
+            }
+        }
+    }
 }
 
 void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
@@ -3224,6 +3306,21 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
     if (panel != currentPanel) {
         lv_obj_add_state(panel, LV_STATE_FOCUSED);
         ui_event_NodeButton(e);
+    }
+}
+
+void TFTView_320x240::showUrlInputArea(bool show)
+{
+    if (show) {
+        lv_obj_remove_flag(objects.map_url_panel, LV_OBJ_FLAG_HIDDEN);
+        //        lv_obj_remove_flag(objects.map_url_textarea, LV_OBJ_FLAG_HIDDEN);
+        //        lv_obj_remove_flag(objects.keyboard_button_12, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(objects.map_url_panel, LV_OBJ_FLAG_HIDDEN);
+        //        lv_obj_add_flag(objects.map_url_textarea, LV_OBJ_FLAG_HIDDEN);
+        //        lv_obj_add_flag(objects.keyboard_button_12, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -3378,22 +3475,23 @@ void TFTView_320x240::loadMap(void)
 #elif defined(SENSECAP_INDICATOR)
         // tiles live on the SD card behind the RP2040, fetched chunk-wise over the interdevice link
         auto tileService = new RemoteSDService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new RemoteMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
         auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SDMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SDCARD)
         auto tileService = new SdFatService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SdFatMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(ARCH_PORTDUINO)
         auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
+        map = new MapPanel(objects.raw_map_panel,
+                           new PMTileService(tileService, new SDMapFileSystem())); // TODO: LinuxFileSystemService
         map->setBackupService(new AsyncTileService(new CURLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #else
@@ -3492,24 +3590,32 @@ void TFTView_320x240::loadMap(void)
                 // no styles found, but the /map directory, so use it
                 MapTileSettings::setPrefix("/map");
                 MapTileSettings::setTileStyle("");
+                MapTileSettings::setPMTiles(false);
                 lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
             } else if (!mapStyles.empty()) {
                 // populate style dropdown
                 bool savedStyleOK = false;
+                char savedTileDir[MapTileSettings::TILE_STYLE_SIZE];
+                MapTileSettings::styleToDir(db.uiConfig.map_data.style, savedTileDir, sizeof(savedTileDir));
                 lv_dropdown_clear_options(objects.map_style_dropdown);
+                lv_dropdown_clear_options(objects.map_url_dropdown);
                 for (auto it : mapStyles) {
                     // add url provider if exist
                     int urlEntry = -1;
-                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), it.c_str());
+                    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+                    MapTileSettings::styleToDir(it.c_str(), tileDir, sizeof(tileDir));
+                    bool hasArchive = sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir);
+                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
                     }
                     lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), LV_DROPDOWN_POS_LAST);
-                    if (it == db.uiConfig.map_data.style) {
+                    if (it == savedTileDir) {
                         lv_dropdown_set_selected(objects.map_style_dropdown, LV_DROPDOWN_POS_LAST);
-                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+                        MapTileSettings::setTileStyle(it.c_str());
+                        MapTileSettings::setPMTiles(hasArchive);
                         savedStyleOK = true;
                         if (urlEntry >= 0) {
                             // set provider url to current style
@@ -3522,27 +3628,38 @@ void TFTView_320x240::loadMap(void)
                 auto providers = TileProvider::providers();
                 if (!providers.empty()) {
                     lv_dropdown_set_options(objects.map_url_dropdown, providers.c_str());
-                    lv_dropdown_set_selected(objects.map_url_dropdown, TileProvider::selectedTemplate());
                 } else {
                     lv_dropdown_clear_options(objects.map_url_dropdown);
                 }
+                showUrlInputArea(providers.empty());
+
+                char style[MapTileSettings::TILE_STYLE_SIZE];
                 if (!savedStyleOK) {
                     // no such style on SD, pick first one we found
-                    char style[30];
                     lv_dropdown_set_selected(objects.map_style_dropdown, 0);
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
+                } else {
+                    strcpy(style, savedTileDir);
                 }
+                std::string url = setUrlProvider(style);
+                if (!url.empty())
+                    savedStyleOK = true;
 
                 MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
                 MapTileSettings::setPrefix("/maps");
             } else {
+                MapTileSettings::setPMTiles(false);
+                showUrlInputArea(true);
                 // messageAlert(_("No map tiles found on SDCard!"), true);
             }
             map->forceRedraw();
         }
     } else {
+        MapTileSettings::setPMTiles(false);
+        showUrlInputArea(true);
         lv_dropdown_clear_options(objects.map_style_dropdown);
+        lv_dropdown_clear_options(objects.map_url_dropdown);
     }
 
     MapTileSettings::setUniqueId(ownNode);
@@ -3646,6 +3763,35 @@ void TFTView_320x240::attribution(std::string url)
         lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
     }
+}
+
+std::string TFTView_320x240::setUrlProvider(const char *style)
+{
+    // set url provider if exist
+    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+    MapTileSettings::styleToDir(style, tileDir, sizeof(tileDir));
+    MapTileSettings::setPMTiles(sdCard && sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir));
+    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
+    if (!url.empty()) {
+        ILOG_DEBUG("set provider url to %s", url.c_str());
+        std::string provider = std::string("URL: ") + style;
+        int entry = TileProvider::addTemplate(provider, url);
+        lv_dropdown_set_selected(objects.map_url_dropdown, entry);
+        TileProvider::selectTemplate(entry);
+        THIS->attribution(url);
+    } else {
+        // no .url found for current style; add a <unset>> field if not exist
+        ILOG_DEBUG("set provider url to %s", _(URL_UNSET));
+        int32_t option = lv_dropdown_get_option_index(objects.map_url_dropdown, _(URL_UNSET));
+        uint32_t entries = lv_dropdown_get_option_count(objects.map_url_dropdown);
+        if (option < 0) {
+            lv_dropdown_add_option(objects.map_url_dropdown, _(URL_UNSET), LV_DROPDOWN_POS_LAST);
+            lv_dropdown_set_selected(objects.map_url_dropdown, entries);
+        } else {
+            lv_dropdown_set_selected(objects.map_url_dropdown, option);
+        }
+    }
+    return url;
 }
 
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
@@ -5363,8 +5509,7 @@ void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
 void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
 {
     lv_obj_t *dropdown = lv_event_get_target_obj(e);
-    meshtastic_Config_LoRaConfig_ModemPreset preset =
-        THIS->val2preset((meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown));
+    meshtastic_Config_LoRaConfig_ModemPreset preset = THIS->val2preset(lv_dropdown_get_selected(dropdown));
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
     if (numChannels == 0) {
         // preset not possible for this region, revert
@@ -8080,18 +8225,22 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (textArea == objects.message_input_area) {
+        if (kbdSlideState != eKbdHidden)
+            return;
+
         // if keyboard is to be shown in message input area then scroll the panel using animation
-        static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
-        static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto shown_cb = [](_lv_anim_t *) { kbdSlideState = eKbdShown; };
 
         static lv_anim_t a1;
-        lv_area_t panel_coords;
-        lv_obj_get_coords(objects.messages_panel, &panel_coords);
+        int32_t panelY = lv_obj_get_y(objects.messages_panel);
+        if (kbdPanelBaseY == INT32_MIN)
+            kbdPanelBaseY = panelY;
 
+        kbdSlideState = eKbdSliding;
         lv_anim_init(&a1);
         lv_anim_set_var(&a1, objects.messages_panel);
-        lv_anim_set_exec_cb(&a1, panelAnimCB);
-        lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 - kb_h);
+        lv_anim_set_exec_cb(&a1, kbdSlideAnimCB);
+        lv_anim_set_values(&a1, panelY, kbdPanelBaseY - kb_h);
         lv_anim_set_duration(&a1, 300);
         lv_anim_set_path_cb(&a1, lv_anim_path_linear);
         lv_anim_start(&a1);
@@ -8099,10 +8248,11 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
         static lv_anim_t a2;
         lv_anim_init(&a2);
         lv_anim_set_var(&a2, objects.keyboard);
-        lv_anim_set_exec_cb(&a2, kbdAnimCB);
+        lv_anim_set_exec_cb(&a2, kbdSlideAnimCB);
         lv_anim_set_values(&a2, v, v - kb_h);
         lv_anim_set_duration(&a2, 300);
         lv_anim_set_path_cb(&a2, lv_anim_path_linear);
+        lv_anim_set_deleted_cb(&a2, shown_cb);
         lv_anim_start(&a2);
     } else {
         if (text_coords.y1 > kb_h + 30) {
@@ -8127,20 +8277,24 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
     lv_area_t kb_coords;
     lv_obj_get_coords(objects.keyboard, &kb_coords);
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
+    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (panel == objects.messages_panel) {
-        static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
-        static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
-        static auto deleted_cb = [](_lv_anim_t *) { lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN); };
+        if (kbdSlideState != eKbdShown)
+            return;
+
+        static auto deleted_cb = [](_lv_anim_t *) {
+            lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+            kbdSlideState = eKbdHidden;
+        };
 
         static lv_anim_t a1;
-        lv_area_t panel_coords;
-        lv_obj_get_coords(panel, &panel_coords);
 
+        kbdSlideState = eKbdSliding;
         lv_anim_init(&a1);
         lv_anim_set_var(&a1, panel);
-        lv_anim_set_exec_cb(&a1, panelAnimCB);
-        lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 + kb_h);
+        lv_anim_set_exec_cb(&a1, kbdSlideAnimCB);
+        lv_anim_set_values(&a1, lv_obj_get_y(panel), kbdPanelBaseY);
         lv_anim_set_duration(&a1, 300);
         lv_anim_set_path_cb(&a1, lv_anim_path_linear);
         lv_anim_start(&a1);
@@ -8148,8 +8302,8 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
         static lv_anim_t a2;
         lv_anim_init(&a2);
         lv_anim_set_var(&a2, objects.keyboard);
-        lv_anim_set_exec_cb(&a2, kbdAnimCB);
-        lv_anim_set_values(&a2, kb_coords.y1, kb_coords.y1 + kb_h);
+        lv_anim_set_exec_cb(&a2, kbdSlideAnimCB);
+        lv_anim_set_values(&a2, lv_obj_get_y(objects.keyboard), v);
         lv_anim_set_duration(&a2, 300);
         lv_anim_set_path_cb(&a2, lv_anim_path_linear);
         lv_anim_set_deleted_cb(&a2, deleted_cb);
@@ -8181,6 +8335,21 @@ void TFTView_320x240::cleanupAllOverlays(void)
     if (objects.msg_popup_panel && !lv_obj_has_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN)) {
         hideMessagePopup();
     }
+}
+
+/**
+ * @brief Put keyboard and message panel back to their rest position without animating,
+ *        e.g. when a menu button switches panels while a slide is still running.
+ */
+void TFTView_320x240::resetKeyboardSlide(void)
+{
+    lv_anim_delete(objects.messages_panel, kbdSlideAnimCB);
+    lv_anim_delete(objects.keyboard, kbdSlideAnimCB);
+    if (kbdPanelBaseY != INT32_MIN)
+        lv_obj_set_y(objects.messages_panel, kbdPanelBaseY);
+    lv_obj_set_y(objects.keyboard, lv_display_get_vertical_resolution(displaydriver->getDisplay()));
+    lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+    kbdSlideState = eKbdHidden;
 }
 
 lv_obj_t *TFTView_320x240::showQrCode(lv_obj_t *parent, const char *data)

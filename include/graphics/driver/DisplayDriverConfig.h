@@ -41,7 +41,8 @@ class DisplayDriverConfig
         ESP4848S040,
         MAKERFABS480X480,
         HELTECV4_TFT,
-        WIO_TRACKER_L2
+        WIO_TRACKER_L2,
+        NM_CYD_C5
     };
 
     struct panel_config_t {

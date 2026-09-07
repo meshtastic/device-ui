@@ -90,7 +90,7 @@ class LGFXConfig : public lgfx::LGFX_Device
         }
 
         { // configure bus settings
-#ifndef ARCH_PORTDUINO
+#if !defined(ARCH_PORTDUINO) && !defined(CONFIG_IDF_TARGET_ESP32C5) && !CONFIG_IDF_TARGET_ESP32C5
             if (config._bus.parallel.pin_d0 > 0) {
                 lgfx::Bus_Parallel8 *bus = new lgfx::Bus_Parallel8;
                 auto cfg = bus->config();

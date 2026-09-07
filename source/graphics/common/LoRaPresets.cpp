@@ -1,6 +1,7 @@
 #include "graphics/common/LoRaPresets.h"
 #include "lv_i18n.h"
 #include "util/ILog.h"
+#include <iterator>
 
 /**
  * LoRa Presets

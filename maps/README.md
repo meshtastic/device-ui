@@ -27,7 +27,7 @@ Long pressing the Map button allows to choose between the map styles found on SD
 
 The map tiles are in .png format of size 256x256 pixel and zoom levels 1 - 20, where 1 represents the entire earth and 20 a mid-sized building.
 
-A web tool for convenient downloading of further map tiles, run by community member @zmiguel, can be found here: [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/). 
+A web tool for convenient downloading of further map tiles, run by community member @zmiguel, can be found here: [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/).
 It provides automated downloading of MUI-compatible map tiles in 8-bit format. It uses its own tile server with data from OpenStreetMap. Tiles are updated every week and cached for 1 week.
 
 This service is not affiliated with Meshtastic, and the tile server is not guaranteed to have 99% uptime. Pre-generated bundles for the most popular regions are also available for download on this tool indefinitely.
@@ -41,10 +41,50 @@ Note: when choosing a region for downloading tiles you're advised to adapt the z
 If you like to check of how many tiles an area is composed of you can make use of this [Tile Calculator](https://tools.geofabrik.de/calc) provided by Geofabrik.
 <br>
 
+## Protomaps (.pmtiles)
+
+MUI >= 2.8.1 supports [protomaps](https://protomaps.com) [PMTiles](https://github.com/protomaps/PMTiles) png raster format, i.e. all downloaded .png raster tiles can be packed into a single PMTiles archive which is then put into the SD cards' styles folder with the exact same basename as the style directory itself, e.g. `maps/OSM/OSM.pmtiles`. Upon map style selection MUI will check for existence of such .pmtiles file and automatically load the required tiles from the archive. Tiles not found in the archive will be searched in the z/x/y directory and if that fails downloaded via [WiFi](#wifi-download) if connected. The PMTiles archive on SD card is read-only and downloaded fallback tiles are stored beside it in the tile directories 0-19.
+
+Note, that not all .pmtiles are automatically supported, e.g. those that contain .jpg or vector tiles format won't work with MUI.
+
+There are several ways to generate the protomaps .pmtiles format:
+
+1. Download xyz raster tiles in mbtiles format (e.g. using [QGIS](https://qgis.org) or [maptiler engine](https://www.maptiler.com/engine))
+   and convert the mbtiles archive to pmtiles using https://github.com/protomaps/go-pmtiles/releases :
+
+   ```bash
+   pmtiles convert style.mbtiles style.pmtiles
+   ```
+
+2. Convert your existing xyz tiles folder directly into pmtiles using [versaTiles](https://docs.versatiles.org/) .
+
+- Linux
+  ```bash
+  curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
+  versatiles style-dir style.pmtiles
+  ```
+- Windows
+  ```bash
+  irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
+  versatiles style-dir style.pmtiles
+  ```
+
+Finally put the style.pmtiles archive into the maps/style folder on SD card. Don't forget to also drop a matching .url file into the same style folder if you want automatic WiFi map tile downloads of missing tiles.
+
+### Self-hosting Protomaps
+
+With the following command you can serve pmtiles in your network:
+
+```bash
+go run main.go serve .
+```
+
+This will provide access to all pmtiles in the current directory. The URL template to access e.g. _style.pmtiles_ is
+`http://host-ip:8080/style/{z}/{x}/{y}.png`.
+
 ## WiFi Download
 
-If WiFi is enabled and an internet connection is present then map tiles that are not found on SD card are downloaded via the internet. The default map
-provider is Google Maps. However, you can provide your own map style URL by putting an .url file into the style folder. This file must contain a single line with the url template to download from. Once an .url file is found all successfully downloaded map tiles are also stored in the style same folder of the SD card.
+If WiFi is enabled and an internet connection is present then map tiles that are not found on SD card are downloaded via the internet. To achieve this you have to provide your own [raster map style URL template](https://wiki.openstreetmap.org/wiki/Raster_tile_providers) either by entering it into the URL text field of the map options panel or by putting a tiles .url file into the style folder of the SD card. This file must contain a single line with the url template to download from. The link above gives you a choice of ~50 download URLs. Once an .url file is found in the style folder all successfully downloaded map tiles are also stored in the same style folder of the SD card. This also works in parallel with pmtiles, i.e. tiles not found in the pmtiles archive nor in the xyz folder structure are downloaded via the provided URL and stored back on SD card (note: the pmtiles archive is read-only and will not be touched).
 
 # Extra maps
 
@@ -79,10 +119,12 @@ Bundles can be found [here](https://download.tiles.coalition.space/bundles) and 
 
 # Compatibility
 
+- 🟢 **Seeed Wio Tracker L2**: Confirmed to work with Fat32 formatted SD. Due to the SDIO bus driver exFat is not yet supported.
+- 🟢 **Elecrow ThinkNode M9**: Confirmed to work, except some functionality is not yet available via keypad.
 - 🟢 **LILYGO T-Deck**: Confirmed to work
 - 🟢 **CrowPanel Advance HMI**: Confirmed to work on 2.4", 2.8", and 3.5" models
-- 🟡 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. It can not be used for showing maps in Meshtastic UI. However, when WiFi is enabled then map tiles are downloaded via the internet.
-- 🟡 **Heltec V4 Kit**: The current version does not have a MicroSD card slot and the available PSRAM is only 2 MB. When WiFi is enabled then map tiles are downloaded via the internet and converted into grayscale tiles to lower the memory consumption.
+- 🟢 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. To access it it requires a [firmware download](https://github.com/meshtastic/indicator_rp2040/releases) and flashing to the RP2040 coprocessor.
+- 🟡/🟢 **Heltec V4 Kit**: The older version does not have a MicroSD card slot and the available PSRAM is just 2 MB. When WiFi is enabled then map tiles are downloaded via the internet and converted into grayscale tiles to lower the memory consumption. The 8MB PSRAM version has full colored map support.
 
 # Credits and Attribution
 
