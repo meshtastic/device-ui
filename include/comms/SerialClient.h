@@ -3,6 +3,13 @@
 #include "comms/IClientBase.h"
 #include "comms/MeshEnvelope.h"
 #include "util/SharedQueue.h"
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+#include "Arduino.h"
+#include "freertos/task.h"
+#endif
+#ifdef ARCH_PORTDUINO
+#include <thread>
+#endif
 
 class SerialClient : public IClientBase
 {
@@ -56,8 +63,15 @@ class SerialClient : public IClientBase
 
     // announce client shutdown
     volatile bool shutdown;
+    volatile bool taskExited;
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+    TaskHandle_t taskHandle;
+#endif
     // instance thread name
     const char *threadName;
+#ifdef ARCH_PORTDUINO
+    std::thread taskThread;
+#endif
 
     // receiver and sender queue
     SharedQueue queue;

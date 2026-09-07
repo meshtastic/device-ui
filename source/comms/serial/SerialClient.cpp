@@ -2,20 +2,19 @@
 #include "comms/MeshEnvelope.h"
 #include "util/ILog.h"
 #include <time.h>
-#ifdef ARCH_ESP32
+#if defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
 #include "driver/uart.h"
 #include "esp_sleep.h"
 #include <assert.h>
 #endif
 
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #else
 #include <thread>
 #endif
-#include "Arduino.h"
 
 #ifndef SLEEP_TIME_IDLE
 #define SLEEP_TIME_IDLE 50 // ms
@@ -28,7 +27,11 @@ SerialClient *SerialClient::instance = nullptr;
 
 SerialClient::SerialClient(const char *name)
     : pb_size(0), notifyConnectionStatus(nullptr), connectionStatus(eDisconnected), clientStatus(eDisconnected),
-      connectionInfo(nullptr), shutdown(false), threadName(name)
+      connectionInfo(nullptr), shutdown(false), taskExited(true),
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+      taskHandle(nullptr),
+#endif
+      threadName(name)
 {
     buffer = new uint8_t[PB_BUFSIZE + MT_HEADER_SIZE];
     instance = this;
@@ -37,16 +40,20 @@ SerialClient::SerialClient(const char *name)
 void SerialClient::init(void)
 {
     ILOG_TRACE("SerialClient::init() creating %s task", threadName);
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
-    xTaskCreateUniversal(task_loop, threadName, 8192, NULL, 1, NULL, 0);
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+    taskExited = false;
+    if (xTaskCreateUniversal(task_loop, threadName, 8192, this, 1, &taskHandle, 0) != pdPASS) {
+        taskHandle = nullptr;
+        taskExited = true;
+    }
 #elif defined(ARCH_PORTDUINO)
-    new std::thread([this] {
+    taskThread = std::thread([this] {
 #ifdef __APPLE__
         pthread_setname_np(this->threadName);
 #else
-        pthread_setname_np(pthread_self(), instance->threadName);
+        pthread_setname_np(pthread_self(), this->threadName);
 #endif
-        instance->task_loop(nullptr);
+        task_loop(this);
     });
 #else
 // #error "unsupported architecture"
@@ -190,6 +197,19 @@ void SerialClient::task_handler(void)
 SerialClient::~SerialClient()
 {
     shutdown = true;
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+    if (taskHandle != nullptr) {
+        while (!taskExited) {
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
+        taskHandle = nullptr;
+    }
+#endif
+#ifdef ARCH_PORTDUINO
+    if (taskThread.joinable()) {
+        taskThread.join();
+    }
+#endif
     delete[] buffer;
 };
 
@@ -243,33 +263,34 @@ void SerialClient::handleSendPacket(void)
  * @brief Sending and receiving packets to/from packet queue
  *
  */
-void SerialClient::task_loop(void *)
+void SerialClient::task_loop(void *arg)
 {
+    auto *client = static_cast<SerialClient *>(arg);
     delay(1000);
     ILOG_TRACE("SerialClient::task_loop running");
-    while (!instance->shutdown) {
+    while (!client->shutdown) {
         int sleep_time = SLEEP_TIME_IDLE;
-        size_t space_left = PB_BUFSIZE - instance->pb_size;
-        if (instance->clientStatus == eConnected) {
-            size_t bytes_read = instance->receive(&instance->buffer[instance->pb_size], space_left);
+        size_t space_left = PB_BUFSIZE - client->pb_size;
+        if (client->clientStatus == eConnected) {
+            size_t bytes_read = client->receive(&client->buffer[client->pb_size], space_left);
             if (bytes_read > 0) {
-                instance->pb_size += bytes_read;
+                client->pb_size += bytes_read;
                 size_t payload_len;
                 bool valid = false;
                 do {
-                    valid = MeshEnvelope::validate(instance->buffer, instance->pb_size, payload_len);
+                    valid = MeshEnvelope::validate(client->buffer, client->pb_size, payload_len);
                     if (valid) {
-                        instance->handlePacketReceived();
-                        MeshEnvelope::invalidate(instance->buffer, instance->pb_size, payload_len);
+                        client->handlePacketReceived();
+                        MeshEnvelope::invalidate(client->buffer, client->pb_size, payload_len);
                     }
-                } while (valid && instance->pb_size > 0);
+                } while (valid && client->pb_size > 0);
                 sleep_time = SLEEP_TIME_ACTIVE;
             }
         }
-        if (instance->clientStatus == eConnected) {
+        if (client->clientStatus == eConnected) {
             // send a packet if available
-            if (instance->queue.clientQueueSize() > 0) {
-                instance->handleSendPacket();
+            if (client->queue.clientQueueSize() > 0) {
+                client->handleSendPacket();
             }
         }
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
@@ -278,4 +299,8 @@ void SerialClient::task_loop(void *)
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
 #endif
     }
+    client->taskExited = true;
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
+    vTaskDelete(nullptr);
+#endif
 }
