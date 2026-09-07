@@ -1,8 +1,16 @@
 #pragma once
 
+#include "Arduino.h"
 #include "comms/IClientBase.h"
 #include "comms/MeshEnvelope.h"
 #include "util/SharedQueue.h"
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+#include "freertos/task.h"
+#endif
+#ifdef ARCH_PORTDUINO
+#include <atomic>
+#include <thread>
+#endif
 
 class SerialClient : public IClientBase
 {
@@ -55,9 +63,16 @@ class SerialClient : public IClientBase
     const char *connectionInfo;
 
     // announce client shutdown
-    volatile bool shutdown;
+    std::atomic<bool> shutdown;
+    std::atomic<bool> taskExited;
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+    TaskHandle_t taskHandle;
+#endif
     // instance thread name
     const char *threadName;
+#ifdef ARCH_PORTDUINO
+    std::thread taskThread;
+#endif
 
     // receiver and sender queue
     SharedQueue queue;
