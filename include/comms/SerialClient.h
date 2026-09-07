@@ -4,11 +4,11 @@
 #include "comms/IClientBase.h"
 #include "comms/MeshEnvelope.h"
 #include "util/SharedQueue.h"
+#include <atomic>
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
 #include "freertos/task.h"
 #endif
 #ifdef ARCH_PORTDUINO
-#include <atomic>
 #include <thread>
 #endif
 
