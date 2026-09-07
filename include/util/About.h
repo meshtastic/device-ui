@@ -31,7 +31,7 @@
     "Open Database License\n"                                                                                                    \
     "openstreetmap.org/copyright"
 
-// PMTiles attribution
+// PNGDec attribution
 #define ABOUT_PNGDEC_TEXT                                                                                                        \
     "[PNG Decoder Engine]\n"                                                                                                     \
     "PNGdec Library by Larry Bank\n"                                                                                             \
@@ -47,7 +47,7 @@
     "Licensed under BSD 3-Clause\n"                                                                                              \
     "github.com/pmtiles/LICENSE"
 
-// PMTiles attribution
+// libdeflate attribution
 #define ABOUT_LIBDEFLATE_TEXT                                                                                                    \
     "[Decompression Engine]\n"                                                                                                   \
     "libdeflate Library by E. Biggers\n"                                                                                         \
