@@ -58,10 +58,8 @@ void SdFatMapFileSystem::close(void)
 
 bool SdFatMapFileSystem::readAt(uint64_t offset, uint8_t *buf, uint32_t len)
 {
-    if (offset > UINT32_MAX)
-        return false;
     ISpiLock::Guard bus;
-    return file && file.seekSet((uint32_t)offset) && file.read(buf, len) == (size_t)len;
+    return file && file.seekSet(offset) && file.read(buf, len) == (size_t)len;
 }
 
 #elif defined(SENSECAP_INDICATOR)
@@ -98,7 +96,7 @@ bool RemoteMapFileSystem::readAt(uint64_t offset, uint8_t *buf, uint32_t len)
 {
     static constexpr uint32_t READ_CHUNK = 4096;
     IRemoteFS *fs = RemoteSDService::backend();
-    if (!fs || !path[0] || offset > UINT32_MAX)
+    if (!fs || !path[0] || offset > UINT64_MAX)
         return false;
 
     uint32_t pos = (uint32_t)offset;
