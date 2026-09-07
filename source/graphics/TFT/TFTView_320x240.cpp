@@ -2509,12 +2509,14 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
 void TFTView_320x240::showUrlInputArea(bool show)
 {
     if (show) {
-        lv_obj_remove_flag(objects.map_url_textarea, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_remove_flag(objects.keyboard_button_12, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(objects.map_url_panel, LV_OBJ_FLAG_HIDDEN);
+//        lv_obj_remove_flag(objects.map_url_textarea, LV_OBJ_FLAG_HIDDEN);
+//        lv_obj_remove_flag(objects.keyboard_button_12, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
     } else {
-        lv_obj_add_flag(objects.map_url_textarea, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(objects.keyboard_button_12, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.map_url_panel, LV_OBJ_FLAG_HIDDEN);
+//        lv_obj_add_flag(objects.map_url_textarea, LV_OBJ_FLAG_HIDDEN);
+//        lv_obj_add_flag(objects.keyboard_button_12, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
     }
 }

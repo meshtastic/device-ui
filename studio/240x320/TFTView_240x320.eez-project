@@ -5230,7 +5230,7 @@
                 "conditionalStyles": [],
                 "childStyles": []
               },
-              "hiddenInEditor": true,
+              "hiddenInEditor": false,
               "timeline": [],
               "eventHandlers": [],
               "identifier": "MapPanel",
@@ -5254,7 +5254,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "rawMapPanel",
@@ -5278,7 +5278,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "homeLocationImage",
@@ -5326,7 +5326,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "gpsPositionImage",
@@ -5419,7 +5419,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "navigationPanel",
@@ -5443,7 +5443,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowUpButton",
@@ -5493,7 +5493,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowLeftButton",
@@ -5543,7 +5543,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "navButton",
@@ -5593,7 +5593,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowRightButton",
@@ -5643,7 +5643,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "arrowDownButton",
@@ -5729,7 +5729,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomSlider",
@@ -5806,7 +5806,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "gpsLockButton",
@@ -5865,7 +5865,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomInButton",
@@ -5915,7 +5915,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "zoomOutButton",
@@ -5965,7 +5965,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "mapOSDPanel",
@@ -5989,7 +5989,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapBrightnessSlider",
@@ -6064,7 +6064,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapContrastSlider",
@@ -6139,7 +6139,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapStyleDropdown",
@@ -6199,7 +6199,7 @@
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
+                      "hiddenInEditor": false,
                       "timeline": [],
                       "eventHandlers": [],
                       "identifier": "mapUrlDropdown",
@@ -6245,108 +6245,164 @@
                       "useStaticText": true
                     },
                     {
-                      "objID": "52351a9b-c904-49a2-c2f7-602d61172d3b",
-                      "type": "LVGLTextareaWidget",
-                      "left": -5,
+                      "objID": "6c25124f-8846-4874-e24c-5ba48104840b",
+                      "type": "LVGLPanelWidget",
+                      "left": 5,
                       "top": 108,
-                      "width": 80,
+                      "width": 90,
                       "height": 27,
                       "customInputs": [],
                       "customOutputs": [],
                       "style": {
-                        "objID": "6344ad96-6797-4ff2-883b-1c171ee642c1",
+                        "objID": "97c252da-4c77-4d0c-8f29-e7f8b359d8e5",
                         "useStyle": "default",
                         "conditionalStyles": [],
                         "childStyles": []
                       },
-                      "hiddenInEditor": true,
                       "timeline": [],
                       "eventHandlers": [],
-                      "identifier": "mapUrlTextarea",
+                      "identifier": "mapUrlPanel",
                       "leftUnit": "px",
                       "topUnit": "px",
                       "widthUnit": "%",
                       "heightUnit": "px",
-                      "children": [],
-                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SNAPPABLE",
+                      "children": [
+                        {
+                          "objID": "d1476d2b-fe5f-42c4-ae4c-9d00007a07bb",
+                          "type": "LVGLTextareaWidget",
+                          "left": 0,
+                          "top": 0,
+                          "width": 86,
+                          "height": 27,
+                          "customInputs": [],
+                          "customOutputs": [],
+                          "style": {
+                            "objID": "c6e2cffd-0a5c-4504-a475-4b7a7a2cf9cc",
+                            "useStyle": "default",
+                            "conditionalStyles": [],
+                            "childStyles": []
+                          },
+                          "hiddenInEditor": false,
+                          "timeline": [],
+                          "eventHandlers": [],
+                          "identifier": "mapUrlTextarea",
+                          "leftUnit": "px",
+                          "topUnit": "px",
+                          "widthUnit": "%",
+                          "heightUnit": "px",
+                          "children": [],
+                          "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SNAPPABLE",
+                          "hiddenFlag": false,
+                          "hiddenFlagType": "literal",
+                          "clickableFlag": true,
+                          "clickableFlagType": "literal",
+                          "flagScrollbarMode": "off",
+                          "checkedStateType": "literal",
+                          "disabledStateType": "literal",
+                          "states": "",
+                          "localStyles": {
+                            "objID": "507c9033-bdbf-4f10-9c1d-565b4f22c6e1",
+                            "definition": {
+                              "MAIN": {
+                                "DEFAULT": {
+                                  "pad_top": 0,
+                                  "pad_bottom": 0,
+                                  "align": "LEFT_MID",
+                                  "text_align": "LEFT",
+                                  "max_height": 25,
+                                  "pad_left": 3,
+                                  "pad_right": 3
+                                }
+                              }
+                            }
+                          },
+                          "groupIndex": 0,
+                          "text": "",
+                          "textType": "translated-literal",
+                          "placeholder": "Enter URL template",
+                          "oneLineMode": true,
+                          "passwordMode": false,
+                          "acceptedCharacters": "",
+                          "maxTextLength": 80
+                        },
+                        {
+                          "objID": "0936edad-bc78-4c7d-c046-98f94e69af90",
+                          "type": "LVGLButtonWidget",
+                          "left": 0,
+                          "top": 0,
+                          "width": 25,
+                          "height": 25,
+                          "customInputs": [],
+                          "customOutputs": [],
+                          "style": {
+                            "objID": "6989cabd-fd36-4fe3-86b8-725c234ab2f5",
+                            "useStyle": "default",
+                            "conditionalStyles": [],
+                            "childStyles": []
+                          },
+                          "hiddenInEditor": false,
+                          "timeline": [],
+                          "eventHandlers": [],
+                          "identifier": "KeyboardButton_12",
+                          "leftUnit": "px",
+                          "topUnit": "px",
+                          "widthUnit": "px",
+                          "heightUnit": "px",
+                          "children": [],
+                          "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+                          "hiddenFlag": false,
+                          "hiddenFlagType": "literal",
+                          "clickableFlag": true,
+                          "clickableFlagType": "literal",
+                          "checkedStateType": "literal",
+                          "disabledStateType": "literal",
+                          "states": "",
+                          "localStyles": {
+                            "objID": "e18a7398-340e-44ae-b200-a0dd9ae2865f",
+                            "definition": {
+                              "MAIN": {
+                                "DEFAULT": {
+                                  "bg_color": "#ffffff",
+                                  "bg_img_src": "keyboard_image",
+                                  "bg_img_recolor": "#373737",
+                                  "bg_img_recolor_opa": 255,
+                                  "align": "RIGHT_MID"
+                                }
+                              }
+                            }
+                          },
+                          "groupIndex": 0
+                        }
+                      ],
+                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
                       "hiddenFlag": true,
                       "hiddenFlagType": "literal",
                       "clickableFlag": true,
                       "clickableFlagType": "literal",
-                      "flagScrollbarMode": "off",
+                      "flagScrollbarMode": "",
+                      "flagScrollDirection": "",
+                      "scrollSnapX": "",
+                      "scrollSnapY": "",
                       "checkedStateType": "literal",
                       "disabledStateType": "literal",
                       "states": "",
                       "localStyles": {
-                        "objID": "fe5cc4ee-9272-428a-8023-ef6b09a42b36",
+                        "objID": "94fc26cc-bd40-40c2-b5d5-4cd2e4b004f8",
                         "definition": {
                           "MAIN": {
                             "DEFAULT": {
                               "align": "TOP_MID",
-                              "text_align": "LEFT",
-                              "max_height": 25,
                               "pad_top": 0,
                               "pad_bottom": 0,
-                              "pad_left": 3
+                              "pad_left": 0,
+                              "pad_right": 0,
+                              "border_width": 0,
+                              "bg_opa": 0
                             }
                           }
                         }
                       },
-                      "groupIndex": 0,
-                      "text": "",
-                      "textType": "translated-literal",
-                      "placeholder": "Enter URL template",
-                      "oneLineMode": true,
-                      "passwordMode": false,
-                      "acceptedCharacters": "",
-                      "maxTextLength": 80
-                    },
-                    {
-                      "objID": "0164deba-9dac-4251-dfcf-c8abfe2995c3",
-                      "type": "LVGLButtonWidget",
-                      "left": 190,
-                      "top": 108,
-                      "width": 25,
-                      "height": 25,
-                      "customInputs": [],
-                      "customOutputs": [],
-                      "style": {
-                        "objID": "68f0123f-2733-4a15-c24b-66a888026d08",
-                        "useStyle": "default",
-                        "conditionalStyles": [],
-                        "childStyles": []
-                      },
-                      "hiddenInEditor": true,
-                      "timeline": [],
-                      "eventHandlers": [],
-                      "identifier": "KeyboardButton_12",
-                      "leftUnit": "px",
-                      "topUnit": "px",
-                      "widthUnit": "px",
-                      "heightUnit": "px",
-                      "children": [],
-                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
-                      "hiddenFlag": true,
-                      "hiddenFlagType": "literal",
-                      "clickableFlag": true,
-                      "clickableFlagType": "literal",
-                      "checkedStateType": "literal",
-                      "disabledStateType": "literal",
-                      "states": "",
-                      "localStyles": {
-                        "objID": "a421840d-b225-4c9f-ae1e-7f9b8bd535e7",
-                        "definition": {
-                          "MAIN": {
-                            "DEFAULT": {
-                              "align": "DEFAULT",
-                              "bg_color": "#ffffff",
-                              "bg_img_src": "keyboard_image",
-                              "bg_img_recolor": "#373737",
-                              "bg_img_recolor_opa": 255
-                            }
-                          }
-                        }
-                      },
+                      "group": "",
                       "groupIndex": 0
                     }
                   ],
@@ -6400,7 +6456,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "mapLocationLabel",
@@ -6456,7 +6512,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "mapAttributionLabel",
@@ -6512,7 +6568,7 @@
                     "conditionalStyles": [],
                     "childStyles": []
                   },
-                  "hiddenInEditor": true,
+                  "hiddenInEditor": false,
                   "timeline": [],
                   "eventHandlers": [],
                   "identifier": "googleLogoImage",
