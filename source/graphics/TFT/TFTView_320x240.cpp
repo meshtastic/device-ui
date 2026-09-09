@@ -5276,18 +5276,18 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
 
             // update battery percentage and symbol
             if (bat_level != 0 || voltage != 0) {
-                uint32_t shown_level = std::min(bat_level, (uint32_t)100);
-                sprintf(buf, "%d%%", shown_level);
-                bool alert = false;
+                if (bat_level <= 100)
+                    sprintf(buf, "%d%%", bat_level);
+                else
+                    buf[0] = '\0';
 
+                bool alert = false;
                 BatteryLevel level;
                 BatteryLevel::Status status = level.calcStatus(bat_level, voltage);
                 switch (status) {
                 case BatteryLevel::Plugged:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_plug_image,
                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
-                    if (shown_level == 100)
-                        buf[0] = '\0';
                     break;
                 case BatteryLevel::Charging:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image,
@@ -5324,8 +5324,11 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
         }
 
         if (bat_level != 0 || voltage != 0) {
-            bat_level = std::min(bat_level, (uint32_t)100);
-            sprintf(buf, "%d%% %0.2fV", bat_level, voltage);
+            if (bat_level > 100) {
+                sprintf(buf, "%0.2fV", voltage);
+            } else {
+                sprintf(buf, "%d%% %0.2fV", bat_level, voltage);
+            }
             lv_label_set_text(it->second->LV_OBJ_IDX(node_bat_idx), buf);
             lv_obj_remove_flag(it->second->LV_OBJ_IDX(node_bat_idx), LV_OBJ_FLAG_HIDDEN);
         }
