@@ -58,27 +58,27 @@ There are several ways to generate the protomaps .pmtiles format:
 
 2. Convert your existing xyz tiles folder directly into pmtiles using [versaTiles](https://docs.versatiles.org/) .
 
-- Linux
-  ```bash
-  curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
-  versatiles style-dir style.pmtiles
-  ```
-- Windows
-  ```bash
-  irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
-  versatiles style-dir style.pmtiles
-  ```
+   - Linux
+     ```bash
+     curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
+     versatiles style-dir style.pmtiles
+     ```
+   - Windows
+     ```bash
+     irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
+     versatiles style-dir style.pmtiles
+     ```
 
-3. Download pre-generated .pmtiles bundles from [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/) tool.
+3. Download pre-generated .pmtiles bundles directly from [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/bundles) tool.
 
-Finally put the style.pmtiles archive into the maps/style folder on SD card. Don't forget to also drop a matching .url file into the same style folder if you want automatic WiFi map tile downloads of missing tiles.
+Finally put the style.pmtiles archive into the _maps/style_ folder on SD card (note the matching style name here!). Don't forget to also drop a matching .url file into the same style folder if you want automatic WiFi map tile downloads of missing tiles.
 
 ### Self-hosting Protomaps
 
 With the following command you can serve pmtiles in your network:
 
 ```bash
-go run main.go serve .
+pmtiles serve .
 ```
 
 This will provide access to all pmtiles in the current directory. The URL template to access e.g. _style.pmtiles_ is
