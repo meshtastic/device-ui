@@ -6157,24 +6157,22 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
 
             // update battery percentage and symbol
             if (bat_level != 0 || voltage != 0) {
-                uint32_t shown_level = std::min(bat_level, (uint32_t)100);
-                sprintf(buf, "%d%%", shown_level);
-                bool alert = false;
+                if (bat_level <= 100)
+                    sprintf(buf, "%d%%", bat_level);
+                else
+                    buf[0] = '\0';
 
+                bool alert = false;
                 BatteryLevel level;
                 BatteryLevel::Status status = level.calcStatus(bat_level, voltage);
                 switch (status) {
                 case BatteryLevel::Plugged:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_plug_image,
-                                                  (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-                    if (shown_level == 100)
-                        buf[0] = '\0';
+                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
                     break;
                 case BatteryLevel::Charging:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image,
                                                   (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-                    if (shown_level == 100)
-                        buf[0] = '\0';
                     break;
                 case BatteryLevel::Full:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_full_image,
