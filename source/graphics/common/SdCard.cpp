@@ -78,6 +78,11 @@ SDCard::~SDCard(void) {}
 
 #elif defined(HAS_SD_MMC) && !defined(SENSECAP_INDICATOR)
 
+#include "ff.h"
+
+// the card is FatFs drive 0; SDMMCFS itself assumes the same in totalBytes()
+#define SDCARD_FATFS_DRIVE "0:"
+
 bool SDCard::init(void)
 {
     ISpiLock::Guard bus;
@@ -101,7 +106,9 @@ ISdCard::CardType SDCard::cardType(void)
     case CARD_SD:
         return CardType::eSD;
     case CARD_SDHC:
-        return CardType::eSDHC;
+        // SDMMCFS reports SDHC for anything with the SDHC capability bit, which
+        // SDXC sets as well; only the capacity separates them
+        return SDFs.cardSize() > 32Ull * 1024Ull * 1024Ull * 1024Ull ? CardType::eSDXC : CardType::eSDHC;
     case CARD_UNKNOWN:
     default:
         return CardType::eUnknown;
@@ -112,7 +119,21 @@ ISdCard::CardType SDCard::cardType(void)
 ISdCard::FatType SDCard::fatType(void)
 {
     ISpiLock::Guard bus;
-    return SDFs.cardSize() > 4Ull * 1024Ull * 1024Ull * 1024Ull ? FatType::eFat32 : FatType::eFat16;
+    FATFS *fs = nullptr;
+    DWORD freeClusters = 0;
+    if (f_getfree(SDCARD_FATFS_DRIVE, &freeClusters, &fs) != FR_OK || !fs)
+        return FatType::eNA;
+    switch (fs->fs_type) {
+    case FS_FAT12:
+    case FS_FAT16:
+        return FatType::eFat16;
+    case FS_FAT32:
+        return FatType::eFat32;
+    case FS_EXFAT:
+        return FatType::eExFat;
+    default:
+        return FatType::eNA;
+    }
 }
 
 ISdCard::ErrorType SDCard::errorType(void)
