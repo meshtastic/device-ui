@@ -34,6 +34,9 @@ class DeviceScreen
     void task_handler(void);
     void toggleDisplay(void);
 
+    /** The display driver behind this screen, for hosts that drive it directly. */
+    DisplayDriver *getDisplayDriver(void) const { return gui->getDisplayDriver(); }
+
 #if defined(ARDUINO_ARCH_ESP32)
     int prepareSleep(void *);
     int wakeUp(esp_sleep_wakeup_cause_t cause);
