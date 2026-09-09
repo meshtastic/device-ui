@@ -18,7 +18,7 @@ BatteryLevel::Status BatteryLevel::calcStatus(uint32_t percentage, float voltage
     if (voltage == levels[Plugged].voltage) {
         return Plugged;
     }
-    if (percentage >= levels[Charging].percentage && voltage > levels[Charging].voltage) {
+    if (percentage > levels[Charging].percentage) {
         return Charging;
     } else if (percentage >= levels[Full].percentage && voltage > levels[Full].voltage) {
         return Full;
