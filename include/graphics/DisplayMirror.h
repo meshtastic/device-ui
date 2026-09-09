@@ -41,6 +41,10 @@ class DisplayMirror
      * them. Any physical input driver has already made the group by this point;
      * on a board with no input at all, this makes it.
      *
+     * Must also run before the host starts its UI task. This touches LVGL
+     * directly rather than hopping threads, so it is only safe while nothing
+     * is calling lv_timer_periodic_handler() yet.
+     *
      * @param driver display driver, used to wake a slept panel - see
      *               DeviceScreen::getDisplayDriver().
      */
