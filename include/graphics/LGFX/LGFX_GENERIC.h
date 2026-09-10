@@ -44,6 +44,10 @@
 #define LGFX_SPI_3WIRE false
 #endif
 
+#ifndef LGFX_SPI_MODE
+#define LGFX_SPI_MODE 0
+#endif
+
 #ifndef LGFX_PIN_SCK
 #define LGFX_PIN_SCK -1
 #endif
@@ -58,6 +62,22 @@
 
 #ifndef LGFX_PIN_DC
 #define LGFX_PIN_DC -1
+#endif
+
+#ifndef LGFX_PIN_IO0
+#define LGFX_PIN_IO0 -1
+#endif
+
+#ifndef LGFX_PIN_IO1
+#define LGFX_PIN_IO1 -1
+#endif
+
+#ifndef LGFX_PIN_IO2
+#define LGFX_PIN_IO2 -1
+#endif
+
+#ifndef LGFX_PIN_IO3
+#define LGFX_PIN_IO3 -1
 #endif
 
 #ifndef LGFX_PIN_CS
@@ -217,7 +237,7 @@ class LGFX_GENERIC : public lgfx::LGFX_Device
 
             // SPI
             cfg.spi_host = LGFX_CFG_HOST;
-            cfg.spi_mode = 0;
+            cfg.spi_mode = LGFX_SPI_MODE;
             cfg.freq_write = SPI_FREQUENCY; // SPI clock for transmission (up to 80MHz, rounded to
                                             // the value obtained by dividing 80MHz by an integer)
             cfg.freq_read = 16000000;       // SPI clock when receiving
@@ -230,6 +250,12 @@ class LGFX_GENERIC : public lgfx::LGFX_Device
             cfg.pin_mosi = LGFX_PIN_MOSI;      // Set SPI MOSI pin number
             cfg.pin_miso = LGFX_PIN_MISO;      // Set SPI MISO pin number (-1 = disable)
             cfg.pin_dc = LGFX_PIN_DC;          // Set SPI DC pin number (-1 = disable)
+
+            // quad spi pins (only used if all 4 are defined)
+            cfg.pin_io0 = LGFX_PIN_IO0; // Set Quad SPI IO0 pin number
+            cfg.pin_io1 = LGFX_PIN_IO1; // Set Quad SPI IO1 pin number
+            cfg.pin_io2 = LGFX_PIN_IO2; // Set Quad SPI IO2 pin number
+            cfg.pin_io3 = LGFX_PIN_IO3; // Set Quad SPI IO3 pin number
 
             _bus_instance.config(cfg);              // applies the set value to the bus.
             _panel_instance.setBus(&_bus_instance); // set the bus on the panel.

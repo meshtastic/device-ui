@@ -72,6 +72,8 @@ class MapPanel
 
     void center(void);
     void redraw(void);
+    // create or reload one tile at (tx,ty); handles async enqueue and retry scheduling
+    void loadTile(uint32_t hash, int tx, int ty);
     void drawLocation(void);
     void drawObjects(void);
     void drawObject(MapObject &obj, bool count = false);
@@ -79,6 +81,9 @@ class MapPanel
     bool needsRedraw = false;
     bool redrawCompleted = true;
     bool locked = false; // map follows GPS location
+
+    uint32_t generation_ = 0;                                   // incremented on full redraw; stale async results are discarded
+    std::unordered_map<uint32_t, uint32_t> failedTilesRetryAt_; // hash → next retry time (ms)
 
     int16_t widthPixel;  // visible panel width
     int16_t heightPixel; // visible panel height

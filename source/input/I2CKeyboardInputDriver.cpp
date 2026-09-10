@@ -206,7 +206,7 @@ void BBQ10KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
 
 // ---------- CardKBInputDriver Implementation ----------
 
-CardKBInputDriver::CardKBInputDriver(uint8_t address)
+CardKBInputDriver::CardKBInputDriver(uint8_t address, TwoWire &wire_) : wire(wire_)
 {
     registerI2CKeyboard(this, "Card Keyboard", address);
 }
@@ -214,9 +214,9 @@ CardKBInputDriver::CardKBInputDriver(uint8_t address)
 void CardKBInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    Wire.requestFrom(address, 1);
-    if (Wire.available() > 0) {
-        keyValue = Wire.read();
+    wire.requestFrom(address, 1);
+    if (wire.available() > 0) {
+        keyValue = wire.read();
         // ignore empty reads and keycode 224 which causes internal issues
         if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
             data->state = LV_INDEV_STATE_PRESSED;

@@ -64,6 +64,18 @@ extern lv_obj_t * ui_RemoteHardwareLabel;
 
 void create_tabview_settings(void);
 
+// Screens
+
+enum ScreensEnum {
+    _SCREEN_ID_FIRST = 1,
+    SCREEN_ID_BLANK_SCREEN = 1,
+    SCREEN_ID_BOOT_SCREEN = 2,
+    SCREEN_ID_CALIBRATION_SCREEN = 3,
+    SCREEN_ID_LOCK_SCREEN = 4,
+    SCREEN_ID_MAIN_SCREEN = 5,
+    _SCREEN_ID_LAST = 5
+};
+
 typedef struct _objects_t {
     lv_obj_t *blank_screen;
     lv_obj_t *boot_screen;
@@ -187,7 +199,12 @@ typedef struct _objects_t {
     lv_obj_t *map_contrast_slider;
     lv_obj_t *map_style_dropdown;
     lv_obj_t *map_url_dropdown;
+    lv_obj_t *map_url_panel;
+    lv_obj_t *map_url_textarea;
+    lv_obj_t *keyboard_button_12;
     lv_obj_t *map_location_label;
+    lv_obj_t *map_attribution_label;
+    lv_obj_t *google_logo_image;
     lv_obj_t *controller_panel;
     lv_obj_t *controller_tab_view;
     lv_obj_t *tab_page_basic_settings;
@@ -227,6 +244,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_backup_restore_label;
     lv_obj_t *basic_settings_reboot_button;
     lv_obj_t *basic_settings_reboot_label;
+    lv_obj_t *basic_settings_about_button;
+    lv_obj_t *basic_settings_reboot_label_1;
     lv_obj_t *tab_page_tools;
     lv_obj_t *tools_mesh_detector_button;
     lv_obj_t *tools_mesh_detector_label;
@@ -274,6 +293,9 @@ typedef struct _objects_t {
     lv_obj_t *top_mesh_detector_panel;
     lv_obj_t *top_mesh_detector_label;
     lv_obj_t *top_mesh_detector_image;
+    lv_obj_t *top_about_panel;
+    lv_obj_t *top_about_label;
+    lv_obj_t *top_about_image;
     lv_obj_t *top_signal_scanner_panel;
     lv_obj_t *top_signal_scanner_label;
     lv_obj_t *top_signal_scanner_image;
@@ -526,6 +548,7 @@ typedef struct _objects_t {
     lv_obj_t *node_details_signal_label;
     lv_obj_t *tools_statistics_panel;
     lv_obj_t *statistics_table;
+    lv_obj_t *settings_about_panel;
     lv_obj_t *tools_packet_log_panel;
     lv_obj_t *msg_popup_panel;
     lv_obj_t *msg_popup_button;
@@ -555,14 +578,6 @@ typedef struct _objects_t {
 
 extern objects_t objects;
 
-enum ScreensEnum {
-    SCREEN_ID_BLANK_SCREEN = 1,
-    SCREEN_ID_BOOT_SCREEN = 2,
-    SCREEN_ID_CALIBRATION_SCREEN = 3,
-    SCREEN_ID_LOCK_SCREEN = 4,
-    SCREEN_ID_MAIN_SCREEN = 5,
-};
-
 void create_screen_blank_screen();
 void tick_screen_blank_screen();
 
@@ -585,7 +600,6 @@ void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);
 
 void create_screens();
-
 
 #ifdef __cplusplus
 }

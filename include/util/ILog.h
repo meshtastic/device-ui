@@ -31,6 +31,17 @@ class ILog
     static ILog *_logger;
 };
 
+#elif defined(USE_ESP_LOG)
+
+// alternative approach to use esp_log directly
+#include "esp_log.h"
+#define ILOG_DEBUG(...) ESP_LOGD("DeviceUI", __VA_ARGS__)
+#define ILOG_INFO(...) ESP_LOGI("DeviceUI", __VA_ARGS__)
+#define ILOG_WARN(...) ESP_LOGW("DeviceUI", __VA_ARGS__)
+#define ILOG_ERROR(...) ESP_LOGE("DeviceUI", __VA_ARGS__)
+#define ILOG_CRIT(...) ESP_LOGE("DeviceUI", __VA_ARGS__)
+#define ILOG_TRACE(...) ESP_LOGD("DeviceUI", __VA_ARGS__)
+
 #elif defined(USE_LOG_DEBUG)
 
 // alternative approach to directly use LOG_DEBUG macros

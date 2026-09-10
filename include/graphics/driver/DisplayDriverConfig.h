@@ -40,7 +40,9 @@ class DisplayDriverConfig
         ESPJC4827W543C,
         ESP4848S040,
         MAKERFABS480X480,
-        HELTECV4_TFT
+        HELTECV4_TFT,
+        WIO_TRACKER_L2,
+        NM_CYD_C5
     };
 
     struct panel_config_t {
@@ -171,6 +173,7 @@ class DisplayDriverConfig
   private:
     friend class DisplayDriverFactory;
     friend class LGFXConfig;
+    friend class FBDriver;
 
     enum device_t _device;
     panel_config_t _panel;

@@ -4,6 +4,8 @@
 #include <tuple>
 #include <vector>
 
+#define URL_UNSET "URL: <unset>"
+
 class TileProvider
 {
   public:
@@ -12,6 +14,9 @@ class TileProvider
     // get the URL for a tile
     static std::string url(const char *filename);
     static std::string url(int z, int x, int y);
+
+    // get selected URL template
+    static const std::string url(void);
 
     // get all URL templates
     static const std::vector<std::string> templates(void);

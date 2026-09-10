@@ -63,6 +63,9 @@
 #ifdef ESP32_2432S022
 #include "graphics/LGFX/LGFX_ESP2432S022.h"
 #endif
+#ifdef ESP32_NM_CYD_C5
+#include "graphics/LGFX/LGFX_ESP_NM_CYD_C5.h"
+#endif
 #ifdef ESP32_2432S028RV1
 #include "graphics/LGFX/LGFX_ESP2432S028RV1.h"
 #endif
@@ -80,6 +83,9 @@
 #endif
 #ifdef HELTEC_VISION_MASTER_T190
 #include "graphics/LGFX/LGFX_VISION_MASTER_T190.h"
+#endif
+#ifdef SEEED_WIO_TRACKER_L2
+#include "graphics/LGFX/LGFX_WIO_TRACKER_L2.h"
 #endif
 #ifdef NODEMCU_32S
 #include "graphics/LGFX/LGFX_ESPILI9341XPT2046.h"
@@ -126,7 +132,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #endif
 #if defined(USE_FRAMEBUFFER)
     if (cfg._device == DisplayDriverConfig::device_t::FB) {
-        return &FBDriver::create(cfg.width(), cfg.height());
+        return &FBDriver::create(cfg);
     }
 #endif
 #if defined(USE_X11)
@@ -195,6 +201,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::WT32_SC01_PLUS:
         return new LGFXDriver<LGFX_WT_SC01_PLUS>(cfg.width(), cfg.height());
         break;
+#elif defined(ESP32_NM_CYD_C5)
+    case DisplayDriverConfig::device_t::NM_CYD_C5:
+        return new LGFXDriver<LGFX_ESP_NM_CYD_C5>(cfg.width(), cfg.height());
+        break;
 #elif defined(ESP2432S028RV1)
     case DisplayDriverConfig::device_t::ESP2432S028RV1:
         return new LGFXDriver<LGFX_ESP2432S028RV1>(cfg.width(), cfg.height());
@@ -211,10 +221,14 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::HELTECV4_TFT:
         return new LGFXDriver<LGFX_HELTEC_V4_TFT>(cfg.width(), cfg.height());
         break;
+#elif defined(SEEED_WIO_TRACKER_L2)
+    case DisplayDriverConfig::device_t::WIO_TRACKER_L2:
+        return new LGFXDriver<LGFX_WIO_TRACKER_L2>(cfg.width(), cfg.height());
+        break;
 #endif
 #elif defined(USE_FRAMEBUFFER)
     case DisplayDriverConfig::device_t::FB:
-        return &FBDriver::create(cfg.width(), cfg.height());
+        return &FBDriver::create(cfg);
         break;
 #elif defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:

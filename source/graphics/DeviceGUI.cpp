@@ -84,6 +84,11 @@ void DeviceGUI::init(IClientBase *client)
     displaydriver->printConfig();
 }
 
+void DeviceGUI::toggleDisplay(void)
+{
+    displaydriver->toggleDisplay();
+}
+
 /**
  * Linux: measure how long it takes to call displaydriver->task_handler().
  * Then tell the lvgl library how long it took via lv_tick_inc().

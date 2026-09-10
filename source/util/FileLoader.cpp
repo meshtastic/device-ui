@@ -1,11 +1,13 @@
 #include "util/FileLoader.h"
 #include "lvgl_private.h"
 #include "util/ILog.h"
+#include "util/ISpiLock.h"
 
 fs::FS *FileLoader::_fs = nullptr;
 
 void FileLoader::init(fs::FS *fs)
 {
+    ISpiLock::Guard bus;
     _fs = fs;
     static lv_fs_drv_t drv;
     lv_fs_drv_init(&drv);
@@ -27,6 +29,7 @@ void FileLoader::init(fs::FS *fs)
 
 void *FileLoader::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode)
 {
+    ISpiLock::Guard bus;
     File file = _fs->open(path, mode == LV_FS_MODE_RD ? FILE_READ : FILE_WRITE);
     if (!file) {
         return nullptr;
@@ -38,6 +41,7 @@ void *FileLoader::fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode)
 
 lv_fs_res_t FileLoader::fs_close(lv_fs_drv_t *drv, void *file_p)
 {
+    ISpiLock::Guard bus;
     if (file_p == nullptr) {
         return LV_FS_RES_INV_PARAM;
     }
@@ -51,6 +55,7 @@ lv_fs_res_t FileLoader::fs_close(lv_fs_drv_t *drv, void *file_p)
 
 lv_fs_res_t FileLoader::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t btr, uint32_t *br)
 {
+    ISpiLock::Guard bus;
     if (file_p == nullptr) {
         return LV_FS_RES_INV_PARAM;
     }
@@ -60,6 +65,7 @@ lv_fs_res_t FileLoader::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint3
 
 lv_fs_res_t FileLoader::fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf, uint32_t btw, uint32_t *bw)
 {
+    ISpiLock::Guard bus;
     if (file_p == nullptr) {
         return LV_FS_RES_INV_PARAM;
     }
@@ -69,6 +75,7 @@ lv_fs_res_t FileLoader::fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf
 
 lv_fs_res_t FileLoader::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence)
 {
+    ISpiLock::Guard bus;
     if (file_p == nullptr) {
         return LV_FS_RES_INV_PARAM;
     }
@@ -77,6 +84,7 @@ lv_fs_res_t FileLoader::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv
 
 lv_fs_res_t FileLoader::fs_size(lv_fs_drv_t *drv, void *file_p, uint32_t *size_p)
 {
+    ISpiLock::Guard bus;
     if (file_p == nullptr) {
         return LV_FS_RES_INV_PARAM;
     }
@@ -86,6 +94,7 @@ lv_fs_res_t FileLoader::fs_size(lv_fs_drv_t *drv, void *file_p, uint32_t *size_p
 
 lv_fs_res_t FileLoader::fs_tell(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_p)
 {
+    ISpiLock::Guard bus;
     if (file_p == nullptr) {
         return LV_FS_RES_INV_PARAM;
     }
