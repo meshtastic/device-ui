@@ -9,8 +9,20 @@
 #include "util/ISpiLock.h"
 #include <functional>
 
-constexpr uint32_t defaultLongPressTime = 700; // ms until long press is detected (lvgl default is 400)
-constexpr uint32_t defaultGestureLimit = 10;   // x/y diff pixel until a swipe gesture is detected (lvgl default is 50)
+// A board whose panel shares its SPI host with the radio or the SD card cannot let a DMA
+// transfer run outside the bus lock, so it opts into the serialized flush below.
+#if defined(USE_DOUBLE_BUFFER_SHARED_SPI) && !defined(USE_DOUBLE_BUFFER)
+#define USE_DOUBLE_BUFFER
+#endif
+#ifdef USE_DOUBLE_BUFFER
+#ifndef BUFFER_LINES
+#define BUFFER_LINES 20
+#endif
+#endif
+
+constexpr uint32_t defaultLongPressTime = 700;    // ms until long press is detected (lvgl default is 400)
+constexpr uint32_t defaultGestureLimit = 10;      // drag threshold in px before scroll starts (lvgl default is 10)
+constexpr uint32_t defaultTouchReadPeriodMs = 20; // 50Hz
 
 constexpr uint32_t defaultScreenTimeout = 30 * 1000;
 constexpr uint32_t defaultBrightness = 153;
@@ -89,7 +101,7 @@ template <class LGFX> bool LGFXDriver<LGFX>::hasTouch(void)
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
     // handle display timeout
-    if ((screenTimeout > 0 && lv_display_get_inactive_time(NULL) > screenTimeout) || powerSaving ||
+    if ((screenTimeout > 0 && lv_display_get_inactive_time(lv_display_get_default()) > screenTimeout) || powerSaving ||
         (DisplayDriver::view->isScreenLocked())) {
         // sleep screen only if there are means for wakeup
         if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
@@ -132,7 +144,8 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 #endif
                     }
                     if (forcedWakeup || (pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
-                        (screenTimeout + 50 > lv_display_get_inactive_time(NULL) && !DisplayDriver::view->isScreenLocked())) {
+                        (screenTimeout + 50 > lv_display_get_inactive_time(lv_display_get_default()) &&
+                         !DisplayDriver::view->isScreenLocked())) {
                         delay(2); // let the CPU finish to restore all register in case of light sleep
                         // woke up by touch or button
                         ILOG_INFO("leaving powersave");
@@ -171,7 +184,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     }
                     powerSaving = true;
                 }
-                if (screenTimeout > lv_display_get_inactive_time(NULL)) {
+                if (screenTimeout > lv_display_get_inactive_time(lv_display_get_default())) {
                     DisplayDriver::view->blankScreen(false);
                     {
                         ISpiLock::Guard bus;
@@ -193,31 +206,71 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
     }
 }
 
-#if 1
+#if defined(DOUBLE_BUFFER_SHARED_SPI)
+// DMA flush, panel sharing its SPI host with another peripheral.
+//
+// The bus lock has to span the whole transfer, so endWrite() - which waits for the DMA -
+// is called before the guard drops. That costs the overlap between transfer and the
+// rendering of the next area: the alternative is holding the lock across LVGL's render,
+// which is the coarse hold that starves the radio.
+template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
+{
+    uint32_t w = lv_area_get_width(area);
+    uint32_t h = lv_area_get_height(area);
+#ifdef LV_DRAW_RGB565_SWAP
+    lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
+
+    {
+        ISpiLock::Guard bus;
+        lgfx->startWrite();
+        lgfx->setAddrWindow(area->x1, area->y1, w, h);
+        lgfx->pushPixelsDMA((uint16_t *)px_map, w * h);
+        lgfx->endWrite();
+    }
+
+    lv_display_flush_ready(disp);
+}
+#elif defined(USE_DOUBLE_BUFFER)
+// DMA flush, panel owning its SPI host.
+//
+// No bus lock and no wait: the transfer runs while LVGL renders the next area into the
+// other buffer. LovyanGFX stalls on the outstanding DMA itself when the next flush sends
+// its address window, and endWrite() collects the final one.
+template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
+{
+    uint32_t w = lv_area_get_width(area);
+    uint32_t h = lv_area_get_height(area);
+#ifdef LV_DRAW_RGB565_SWAP
+    lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
+
+    if (lgfx->getStartCount() == 0) {
+        lgfx->startWrite();
+    }
+    lgfx->setAddrWindow(area->x1, area->y1, w, h);
+    lgfx->pushPixelsDMA((uint16_t *)px_map, w * h);
+
+    if (lv_display_flush_is_last(disp)) {
+        lgfx->endWrite();
+    }
+
+    lv_display_flush_ready(disp);
+}
+#else
 // Display flushing not using DMA */
 template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-    lv_draw_sw_rgb565_swap(px_map, w * h); // CPU only - deliberately outside the guard
+#ifdef LV_DRAW_RGB565_SWAP
+    lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
     {
         ISpiLock::Guard bus;
         lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
     }
     lv_display_flush_ready(disp);
-}
-#else
-// Display flushing using DMA
-template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
-{
-    uint32_t w = lv_area_get_width(area);
-    uint32_t h = lv_area_get_height(area);
-    lv_draw_sw_rgb565_swap(px_map, w * h);
-    if (lgfx->getStartCount() == 0) { // Processing if not yet started
-        lgfx->startWrite();
-    }
-    lgfx->pushImageDMA(area->x1, area->y1, w, h, (uint16_t *)px_map);
-    lv_disp_flush_ready(disp); // TODO must put into LGFX callback for DMA double-buffering
 }
 #endif
 
@@ -274,31 +327,22 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     ILOG_DEBUG("LVGL display driver init...");
 
     DisplayDriver::display = lv_display_create(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
-    lv_display_set_color_format(this->display, LV_COLOR_FORMAT_RGB565);
-
-#if defined(USE_DOUBLE_BUFFER) // speedup drawing by using double-buffered DMA mode
-    bufsize = screenWidth * screenHeight / 8 * sizeof(lv_color_t);
-#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
-    ILOG_DEBUG("LVGL: allocating %u bytes PSRAM for double buffering"), bufsize;
-    assert(ESP.getFreePsram());
-    // buf1 = (lv_color_t*)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL |
-    // MALLOC_CAP_DMA);  //assert failed: block_trim_free heap_tlsf.c:371 buf2 =
-    // (lv_color_t*)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL |
-    // MALLOC_CAP_DMA); buf1 = (lv_color_t*)heap_caps_malloc((bufsize + 3) & ~3,
-    // MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT); // crash buf1 =
-    // (lv_color_t*)heap_caps_malloc(bufsize, MALLOC_CAP_SPIRAM); // crash buf1 =
-    // (lv_color_t*)ps_malloc(bufsize); // crash
-    buf1 = (lv_color_t *)heap_caps_aligned_alloc(32, (bufsize + 3) & ~3, MALLOC_CAP_SPIRAM);
-    // buf2 = (lv_color_t*)heap_caps_aligned_alloc(16, (bufsize + 3) & ~3,
-    // MALLOC_CAP_SPIRAM);
-    draw_buf = (lv_disp_draw_buf_t *)heap_caps_aligned_alloc(32, sizeof(lv_disp_draw_buf_t), MALLOC_CAP_SPIRAM);
+#ifndef LV_COLOR_FORMAT_SKIP_SWAP
+    lv_display_set_color_format(this->display, LV_COLOR_FORMAT_RGB565_SWAPPED);
 #else
-    ILOG_DEBUG("LVGL: allocating %u bytes heap memory for double buffering"), bufsize;
-    buf1 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA); // heap_alloc_dma
-    buf2 = (lv_color_t *)heap_caps_malloc(bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA); // heap_alloc_dma
+    lv_display_set_color_format(this->display, LV_COLOR_FORMAT_RGB565);
 #endif
-    assert(buf1 != 0 /* && buf2 != 0 */);
-    lv_display_set_buffers(disp, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_DIRECT);
+#if defined(USE_DOUBLE_BUFFER) // speedup drawing by using double-buffered DMA mode
+    bufsize = lgfx->screenWidth * BUFFER_LINES * 2;
+    ILOG_DEBUG("LVGL: allocating %u bytes DRAM memory for double buffering", bufsize);
+    buf1 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
+    buf2 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
+    if (buf1 == nullptr || buf2 == nullptr) {
+        ILOG_ERROR("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)", bufsize,
+                   heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
+        // TODO: fall back to smaller buffer, or abort explicitly
+    }
+    lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #elif defined(BOARD_HAS_PSRAM)
     assert(ESP.getFreePsram());
 #ifdef LGFX_BUFSIZE
@@ -334,22 +378,6 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     // lv_display_set_physical_resolution(this->display, this->screenWidth, this->screenHeight);
     // lv_display_set_rotation(this->display, LV_DISPLAY_ROTATION_90);
 
-#if 0
-   /* Example 2
-     * Two buffers for partial rendering
-     * In flush_cb DMA or similar hardware should be used to update the display in the background.*/
-    static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10];
-    static lv_color_t buf_2_2[MY_DISP_HOR_RES * 10];
-    lv_display_set_buffers(disp, buf_2_1, buf_2_2, sizeof(buf_2_1), LV_DISPLAY_RENDER_MODE_PARTIAL);
-
-    /* Example 3
-     * Two buffers screen sized buffer for double buffering.
-     * Both LV_DISPLAY_RENDER_MODE_DIRECT and LV_DISPLAY_RENDER_MODE_FULL works, see their comments*/
-    static lv_color_t buf_3_1[MY_DISP_HOR_RES * MY_DISP_VER_RES];
-    static lv_color_t buf_3_2[MY_DISP_HOR_RES * MY_DISP_VER_RES];
-    lv_display_set_buffers(disp, buf_3_1, buf_3_2, sizeof(buf_3_1), LV_DISPLAY_RENDER_MODE_DIRECT);
-#endif
-
     if (hasTouch()) {
         DisplayDriver::touch = lv_indev_create();
         lv_indev_set_scroll_limit(DisplayDriver::touch, defaultGestureLimit);
@@ -363,7 +391,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         }
 #else
         lv_timer_t *timer = lv_indev_get_read_timer(DisplayDriver::touch);
-        lv_timer_set_period(timer, 10); // 100Hz as I2C touch controllers support
+        if (timer) {
+            lv_timer_set_period(timer, defaultTouchReadPeriodMs);
+        }
 #endif
     }
 }
