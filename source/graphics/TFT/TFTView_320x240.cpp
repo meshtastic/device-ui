@@ -6558,7 +6558,7 @@ void TFTView_320x240::updateBluetoothConfig(const meshtastic_Config_BluetoothCon
         ownNode = id;
     }
 
-    if (state <= MeshtasticView::eBootScreenDone && state != MeshtasticView::eWaitingForReboot) {
+    if (state == MeshtasticView::eEnterProgrammingMode) {
         enterProgrammingMode();
     }
 }
