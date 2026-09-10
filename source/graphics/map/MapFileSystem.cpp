@@ -162,7 +162,8 @@ bool RemoteMapFileSystem::readAt(uint64_t offset, uint8_t *buf, uint32_t len)
     static constexpr uint32_t READ_CHUNK = 4096;
     IRemoteFS *fs = RemoteSDService::backend();
     // the remote protocol addresses chunks with a uint32_t offset
-    if (!fs || !path[0] || offset > UINT32_MAX)
+    constexpr uint64_t ADDRESS_SPACE_SIZE = uint64_t{UINT32_MAX} + 1;
+    if (!fs || !path[0] || offset > UINT32_MAX || len > ADDRESS_SPACE_SIZE - offset)
         return false;
 
     uint32_t pos = (uint32_t)offset;
