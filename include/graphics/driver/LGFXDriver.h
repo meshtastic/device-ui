@@ -338,9 +338,9 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     buf1 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
     buf2 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
     if (buf1 == nullptr || buf2 == nullptr) {
-        ILOG_ERROR("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)",
-                   bufsize, heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
-        //TODO: fall back to smaller buffer, or abort explicitly
+        ILOG_ERROR("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)", bufsize,
+                   heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
+        // TODO: fall back to smaller buffer, or abort explicitly
     }
     lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #elif defined(BOARD_HAS_PSRAM)
