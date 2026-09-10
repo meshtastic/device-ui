@@ -22,15 +22,28 @@ class IMapFileSystem
 #include "graphics/common/SdCard.h"
 #endif
 
+// On SDIO the archive is read through FatFs instead of the VFS: fs::File::seek()
+// takes a uint32_t and ends in fseek(long), so exFAT offsets past 2 GiB fail.
+#if defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO)
+#define MAPFILE_USE_FATFS 1
+#endif
+
 class SDMapFileSystem : public IMapFileSystem
 {
   public:
     bool open(const char *path) override;
     void close(void) override;
     bool readAt(uint64_t offset, uint8_t *buf, uint32_t len) override;
+#ifdef MAPFILE_USE_FATFS
+    ~SDMapFileSystem(void) override { close(); }
+#endif
 
   private:
+#ifdef MAPFILE_USE_FATFS
+    void *fil = nullptr; // FatFs FIL, kept opaque so ff.h stays out of this header
+#else
     File file;
+#endif
 };
 
 #elif defined(HAS_SDCARD) && !defined(SENSECAP_INDICATOR)
