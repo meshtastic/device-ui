@@ -70,7 +70,6 @@ bool SDMapFileSystem::readAt(uint64_t offset, uint8_t *buf, uint32_t len)
 #else
 
 #if defined(SDCARD_SHARE_SPI) && !defined(ARCH_PORTDUINO) && !defined(HAS_SD_MMC)
-#include "SD.h"
 #define MAPFILE_OPEN(path) SD.open(path, FILE_READ)
 #else
 #define MAPFILE_OPEN(path) SDFs.open(path, FILE_READ)

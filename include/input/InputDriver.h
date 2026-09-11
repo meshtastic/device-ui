@@ -21,6 +21,9 @@ class InputDriver
     virtual void task_handler(void) {}
     virtual ~InputDriver(void);
 
+    virtual void prepareSleep(void) {}
+    virtual void wakeUp(void) {}
+
     virtual std::vector<std::string> getKeyboardDevices(void) { return std::vector<std::string>(); }
     virtual std::vector<std::string> getPointerDevices(void) { return std::vector<std::string>(); }
 

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#if defined(SDCARD_SHARE_SPI) && !defined(ARCH_PORTDUINO) && !defined(HAS_SD_MMC)
+#include "SD.h"
+#endif
 
 /**
  * Abstraction class helper to open, close and read files from different file systems
@@ -16,8 +19,9 @@ class IMapFileSystem
 
 #if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)) && !defined(SENSECAP_INDICATOR)
 
-#if defined(SDCARD_SHARE_SPI) && !defined(ARCH_PORTDUINO) && !defined(HAS_SD_MMC)
-#include "SD.h"
+#if (defined(SDCARD_SHARE_SPI) || defined(HAS_SD_MMC)) && !defined(ARCH_PORTDUINO)
+#include "FS.h"
+#include "graphics/common/SdCard.h"
 #else
 #include "graphics/common/SdCard.h"
 #endif

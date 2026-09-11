@@ -140,8 +140,8 @@ class MeshtasticView : public DeviceGUI
 
     virtual void notifyRestoreMessages(int32_t percentage) {}
     virtual void notifyMessagesRestored(void);
-    virtual void notifyConnected(const char *info){};
-    virtual void notifyDisconnected(const char *info){};
+    virtual void notifyConnected(const char *info) {};
+    virtual void notifyDisconnected(const char *info) {};
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);
@@ -178,6 +178,7 @@ class MeshtasticView : public DeviceGUI
     State state = eBooting;                               // states of startup phase
     bool configComplete = false;                          // config request finishe
     bool messagesRestored = false;                        // message restoration process finished
+    bool mustSendHeartbeat = false;                       // whether heartbeat should be sent unconditionally
     time_t lastrun20 = 0;                                 // 20s task
     time_t curtime = 0;                                   // current system time
 };
