@@ -98,7 +98,12 @@ class Bus_RGB_P4 : public IBus
         panel_config.timings.flags.pclk_active_neg = _cfg.pclk_active_neg;
         panel_config.timings.flags.pclk_idle_high = _cfg.pclk_idle_high;
         panel_config.data_width = 16;
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
         panel_config.bits_per_pixel = 16;
+#else
+        panel_config.in_color_format = LCD_COLOR_FMT_RGB565,      // format stored in the frame buffer
+            panel_config.out_color_format = LCD_COLOR_FMT_RGB565, // format expected by the physical LCD screen
+#endif
         panel_config.num_fbs = 2;
         panel_config.dma_burst_size = 64;
         panel_config.hsync_gpio_num = _cfg.pin_hsync;
