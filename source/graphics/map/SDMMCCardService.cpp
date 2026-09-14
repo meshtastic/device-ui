@@ -4,6 +4,8 @@
 
 #include "graphics/map/MapTileSettings.h"
 #include "util/ILog.h"
+#include "util/ISpiLock.h"
+#include "util/PNGDecoder.h"
 #include <cerrno>
 #include <cstring>
 #include <string>
@@ -50,6 +52,7 @@ static bool ensureDirectoryExists(const char *dir)
 
 SDMMCCardService::SDMMCCardService() : ITileService(DRIVE_LETTER ":")
 {
+#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
     static lv_fs_drv_t drv;
     lv_fs_drv_init(&drv);
     drv.letter = DRIVE_LETTER[0];
@@ -65,20 +68,87 @@ SDMMCCardService::SDMMCCardService() : ITileService(DRIVE_LETTER ":")
     drv.dir_read_cb = fs_dir_read;
     drv.dir_close_cb = fs_dir_close;
     lv_fs_drv_register(&drv);
+#else
+    initPNGDecoder();
+#endif
 }
 
 SDMMCCardService::~SDMMCCardService() {}
 
 bool SDMMCCardService::load(const char *name, void *img)
 {
+    uint32_t start = millis();
+#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
     char buf[128] = DRIVE_LETTER ":";
-    strcat(&buf[2], name);
-    ILOG_DEBUG("SDMMCCardService::load(): %s", buf);
+    if (snprintf(buf, sizeof(buf), "%s:%s", DRIVE_LETTER, name ? name : "") >= sizeof(buf)) {
+        ILOG_ERROR("tile path is too long");
+        return false;
+    }
+    ILOG_DEBUG("SDMMCCardService::load(LV_USE_LODEPNG): %s", buf);
     lv_image_set_src((lv_obj_t *)img, buf);
     if (!lv_image_get_src((lv_obj_t *)img)) {
         ILOG_DEBUG("Failed to load tile %s from SD", buf);
         return false;
     }
+#else
+    ISpiLock::Guard bus;
+    ILOG_DEBUG("SDMMCCardService::load %s", name);
+    FILE *file = fopen(name, "rb");
+    if (!file) {
+        ILOG_ERROR("Failed to open tile %s from SD MMC", name);
+        return false;
+    }
+
+    struct stat statbuf;
+    if (fstat(fileno(file), &statbuf) != 0) {
+        ILOG_ERROR("Failed to get file stats for %s", name);
+        fclose(file);
+        return false;
+    }
+
+    off_t len = statbuf.st_size;
+    if (len == 0) {
+        ILOG_DEBUG("Tile %s is empty", name);
+        fclose(file);
+        return false;
+    }
+
+    img = lv_malloc(len);
+    if (!img) {
+        ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
+        fclose(file);
+        return false;
+    }
+
+    std::size_t bytesRead = fread(img, 1, len, file);
+    fclose(file);
+    if (bytesRead != len) {
+        ILOG_ERROR("read error %s : %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
+        lv_free(img);
+        return false;
+    }
+
+    lv_img_dsc_t *img_dsc = nullptr;
+    bool decoded = MapTileSettings::color() ? decodeImgColor(img, len, &img_dsc) : decodeImgGrey(img, len, &img_dsc);
+    lv_free(img);
+
+    if (decoded) {
+        lv_obj_t *img_obj = (lv_obj_t *)img;
+        lv_image_set_src(img_obj, img_dsc);
+        if (lv_image_get_src(img_obj) != img_dsc) {
+            ILOG_ERROR("lv_image_set_src failed for tile %s", name);
+            if (img_dsc->data && img_dsc->data_size > 0) {
+                lv_free((void *)img_dsc->data);
+            }
+            lv_free(img_dsc);
+            return false;
+        }
+    } else {
+        ILOG_ERROR("Failed to decode tile image %s", name);
+        return false;
+    }
+#endif
+    ILOG_DEBUG("Tile %s loaded in %d ms.", name, millis() - start);
     return true;
 }
 
@@ -131,13 +201,13 @@ lv_fs_res_t SDMMCCardService::fs_close(lv_fs_drv_t *drv, void *file_p)
 lv_fs_res_t SDMMCCardService::fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t btr, uint32_t *br)
 {
     *br = fread(buf, 1, btr, static_cast<SdFile *>(file_p)->file);
-    return (*br <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
+    return ferror(static_cast<SdFile *>(file_p)->file) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
 }
 
 lv_fs_res_t SDMMCCardService::fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf, uint32_t btw, uint32_t *bw)
 {
     *bw = fwrite(buf, 1, btw, static_cast<SdFile *>(file_p)->file);
-    return (*bw <= 0) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
+    return ferror(static_cast<SdFile *>(file_p)->file) ? LV_FS_RES_UNKNOWN : LV_FS_RES_OK;
 }
 
 lv_fs_res_t SDMMCCardService::fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence)
