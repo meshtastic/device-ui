@@ -6538,12 +6538,13 @@ void TFTView_320x240::backup(uint32_t option)
 
         // Write keys to file
         if (fs->open(fullPath, "w")) {
-            fs->printf("config:\n");
-            fs->printf("  security:\n");
-            fs->printf("      privateKey: base64:%s\n", pskToBase64(privkey.bytes, privkey.size).c_str());
-            fs->printf("      publicKey: base64:%s\n", pskToBase64(pubkey.bytes, pubkey.size).c_str());
+            bool result = true;
+            result |= fs->printf("config:\n") > 0;
+            result |= fs->printf("  security:\n") > 0;
+            result |= fs->printf("      privateKey: base64:%s\n", pskToBase64(privkey.bytes, privkey.size).c_str()) > 0;
+            result |= fs->printf("      publicKey: base64:%s\n", pskToBase64(pubkey.bytes, pubkey.size).c_str()) > 0;
             fs->close();
-            written = true;
+            written = result;
         } else {
             lastError = fs->getLastError();
         }
