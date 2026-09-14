@@ -308,7 +308,7 @@ SDCard::~SDCard(void)
 #endif // CONFIG_IDF_TARGET_ESP32P4
 #endif
 
-#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4) && !defined(SENSECAP_INDICATOR)
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
 // P4 implementation: use POSIX directory and file functions via VFS at /sdcard
 
 std::set<std::string> SDCard::loadMapStyles(const char *folder)
@@ -360,20 +360,24 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
 
 bool SDCard::hasMapArchive(const char *folder, const char *style)
 {
+    ISpiLock::Guard bus;
     std::string filename = mapArchivePath(folder, style);
     if (filename.empty())
         return false;
 
     filename = "/sdcard" + filename;
     FILE *file = fopen(filename.c_str(), "rb");
-    if (!file)
+    if (!file) {
+        ILOG_DEBUG("file % not found", filename.c_str());
         return false;
+    }
     fclose(file);
     return true;
 }
 
 std::string SDCard::getUrlProvider(const char *folder, const char *style)
 {
+    ISpiLock::Guard bus;
     std::string filename = "/sdcard";
     filename += folder;
     filename += "/";
@@ -391,6 +395,8 @@ std::string SDCard::getUrlProvider(const char *folder, const char *style)
             return std::string{buffer};
         }
         fclose(file);
+    } else {
+        ILOG_DEBUG("file % not found", filename.c_str());
     }
     return {};
 }
