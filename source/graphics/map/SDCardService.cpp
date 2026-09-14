@@ -50,7 +50,7 @@ static bool ensureParentDirectories(const char *path)
 
 SDCardService::SDCardService() : ITileService(DRIVE_LETTER ":")
 {
-#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
+#if LV_USE_FS_ARDUINO_SD
     static lv_fs_drv_t drv;
     lv_fs_drv_init(&drv);
     drv.letter = DRIVE_LETTER[0];
@@ -83,7 +83,7 @@ bool SDCardService::load(const char *name, void *img)
 {
     uint32_t start = millis();
     size_t len = 0;
-#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
+#if LV_USE_FS_ARDUINO_SD
     char tilePath[128] = DRIVE_LETTER ":";
     strncat(&tilePath[2], name, sizeof(tilePath) - 3);
     // ILOG_DEBUG("SDCardService::load(): %s", tilePath);
@@ -93,9 +93,9 @@ bool SDCardService::load(const char *name, void *img)
         return false;
     }
 #else
+    uint8_t *pngImage = nullptr;
     {
         ISpiLock::Guard bus;
-        // optimized PNGdec decoding
         File file = SD.open(name, FILE_READ);
         if (!file) {
             ILOG_DEBUG("Failed to open tile %s from SD", name);
@@ -109,25 +109,25 @@ bool SDCardService::load(const char *name, void *img)
             return false;
         }
 
-        img = lv_malloc(len);
-        if (!img) {
+        pngImage = (uint8_t *)lv_malloc(len);
+        if (!pngImage) {
             ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
             file.close();
             return false;
         }
 
-        size_t bytesRead = file.read((uint8_t *)img, len);
+        size_t bytesRead = file.read(pngImage, len);
         file.close();
         if (bytesRead != len) {
             ILOG_ERROR("read error %s : %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
-            lv_free(img);
+            lv_free(pngImage);
             return false;
         }
     }
 
     lv_img_dsc_t *img_dsc = nullptr;
-    bool decoded = MapTileSettings::color() ? decodeImgColor(img, len, &img_dsc) : decodeImgGrey(img, len, &img_dsc);
-    lv_free(img);
+    bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
+    lv_free(pngImage);
 
     if (decoded) {
         lv_obj_t *img_obj = (lv_obj_t *)img;

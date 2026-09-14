@@ -52,7 +52,7 @@ static bool ensureDirectoryExists(const char *dir)
 
 SDMMCCardService::SDMMCCardService() : ITileService(DRIVE_LETTER ":")
 {
-#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
+#if LV_USE_FS_ARDUINO_SD
     static lv_fs_drv_t drv;
     lv_fs_drv_init(&drv);
     drv.letter = DRIVE_LETTER[0];
@@ -78,22 +78,24 @@ SDMMCCardService::~SDMMCCardService() {}
 bool SDMMCCardService::load(const char *name, void *img)
 {
     uint32_t start = millis();
-#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
+#if LV_USE_FS_ARDUINO_SD
     char buf[128] = DRIVE_LETTER ":";
     if (snprintf(buf, sizeof(buf), "%s:%s", DRIVE_LETTER, name ? name : "") >= sizeof(buf)) {
         ILOG_ERROR("tile path is too long");
         return false;
     }
-    ILOG_DEBUG("SDMMCCardService::load(LV_USE_LODEPNG): %s", buf);
+    ILOG_DEBUG("SDMMCCardService::load(): %s", buf);
     lv_image_set_src((lv_obj_t *)img, buf);
     if (!lv_image_get_src((lv_obj_t *)img)) {
         ILOG_DEBUG("Failed to load tile %s from SD", buf);
         return false;
     }
 #else
+    uint8_t *pngImage = nullptr;
+    const std::string mounted = toMountedPath(name);
+
     ISpiLock::Guard bus;
-    ILOG_DEBUG("SDMMCCardService::load %s", name);
-    FILE *file = fopen(name, "rb");
+    FILE *file = fopen(mounted.c_str(), "rb");
     if (!file) {
         ILOG_ERROR("Failed to open tile %s from SD MMC", name);
         return false;
@@ -113,24 +115,24 @@ bool SDMMCCardService::load(const char *name, void *img)
         return false;
     }
 
-    img = lv_malloc(len);
-    if (!img) {
+    pngImage = (uint8_t *)lv_malloc(len);
+    if (!pngImage) {
         ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
         fclose(file);
         return false;
     }
 
-    std::size_t bytesRead = fread(img, 1, len, file);
+    std::size_t bytesRead = fread(pngImage, 1, len, file);
     fclose(file);
     if (bytesRead != len) {
         ILOG_ERROR("read error %s : %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
-        lv_free(img);
+        lv_free(pngImage);
         return false;
     }
 
     lv_img_dsc_t *img_dsc = nullptr;
-    bool decoded = MapTileSettings::color() ? decodeImgColor(img, len, &img_dsc) : decodeImgGrey(img, len, &img_dsc);
-    lv_free(img);
+    bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
+    lv_free(pngImage);
 
     if (decoded) {
         lv_obj_t *img_obj = (lv_obj_t *)img;
