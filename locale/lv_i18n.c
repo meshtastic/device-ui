@@ -187,7 +187,7 @@ static const lv_i18n_phrase_t az_singulars[] = {
     {"Brightness: %d%%", "Parlaqlıq: %d%%"},
     {"Timeout: off", "Gözləmə vaxtı: deaktiv"},
     {"Timeout: %ds", "Gözləmə vaxtı: %ds"},
-    {"No map tiles found on SDCard!", "Xəritə kirəmitləri tapılmadı!"},
+    {"No map tiles found on SDCard!", "SD kartda xəritə kirəmitləri tapılmadı!"},
     {"Locations Map (%d/%d)", "Məkanlar xəritəsi (%d/%d)"},
     {"Stop", "Dayandır"},
     {"heard: !%08x", "eşidilib: !%08x"},
