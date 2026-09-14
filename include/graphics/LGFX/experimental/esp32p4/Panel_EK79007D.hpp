@@ -13,7 +13,12 @@
  *   0xB2 = 0x10   PAD_CONTROL – select 2-lane DSI
  *   0x80 – 0x86   Vendor-specific analogue trim registers
  *   0x11          Sleep Out  (+120 ms)
+ *   0x29          Display On (+20 ms)
  *
+ * DISPON must be sent here (command mode, before Panel_DSI::init_panel()
+ * calls esp_lcd_panel_init() to start the DPI video stream) - sending it
+ * afterwards via an overridden init() races the active DPI stream and
+ * blanks the panel.
  */
 #pragma once
 
@@ -38,10 +43,16 @@ struct Panel_EK79007D : public Panel_DSI {
             0x84, 0xA8, 2,    0x85, 0xE3, 2,    0x86, 0x88, 1,    0x11, // SLEEP OUT (no parameters)
             0,                                                          // end-of-list
         };
+        static constexpr uint8_t list1[] = {
+            1, 0x29, // DISPLAY ON (no parameters)
+            0,       // end-of-list
+        };
 
         switch (listno) {
         case 0:
             return list0;
+        case 1:
+            return list1;
         default:
             return nullptr;
         }
@@ -52,6 +63,8 @@ struct Panel_EK79007D : public Panel_DSI {
         switch (listno) {
         case 0:
             return 120; // 120 ms after Sleep Out
+        case 1:
+            return 20; // 20 ms after Display On
         default:
             return 0;
         }
