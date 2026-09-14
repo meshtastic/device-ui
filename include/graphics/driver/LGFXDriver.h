@@ -9,7 +9,7 @@
 #include "util/ISpiLock.h"
 #include <functional>
 
-constexpr uint32_t defaultLongPressTime = 700; // ms until long press is detected (lvgl default is 400)
+constexpr uint32_t defaultLongPressTime = 800; // ms until long press is detected (lvgl default is 400)
 constexpr uint32_t defaultGestureLimit = 10;   // x/y diff pixel until a swipe gesture is detected (lvgl default is 50)
 
 constexpr uint32_t defaultScreenTimeout = 30 * 1000;
@@ -199,7 +199,9 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+#if !defined(LGFX_SKIP_RGB565_SWAP)
     lv_draw_sw_rgb565_swap(px_map, w * h); // CPU only - deliberately outside the guard
+#endif
     {
         ISpiLock::Guard bus;
         lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
@@ -212,7 +214,9 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+#if !defined(LGFX_SKIP_RGB565_SWAP)
     lv_draw_sw_rgb565_swap(px_map, w * h);
+#endif
     if (lgfx->getStartCount() == 0) { // Processing if not yet started
         lgfx->startWrite();
     }
