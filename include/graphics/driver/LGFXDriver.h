@@ -330,7 +330,7 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         ILOG_CRIT("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)", bufsize,
                   heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
         abort();
-        while(1) {
+        while (1) {
             // wait for watchdog trigger if not aborted
         }
     }
