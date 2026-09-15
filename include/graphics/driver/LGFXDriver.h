@@ -217,10 +217,6 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-#ifdef LV_DRAW_RGB565_SWAP
-    lv_draw_sw_rgb565_swap(px_map, w * h);
-#endif
-
     {
         ISpiLock::Guard bus;
         lgfx->startWrite();
@@ -241,10 +237,6 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-#ifdef LV_DRAW_RGB565_SWAP
-    lv_draw_sw_rgb565_swap(px_map, w * h);
-#endif
-
     if (lgfx->getStartCount() == 0) {
         lgfx->startWrite();
     }
@@ -263,9 +255,6 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-#ifdef LV_DRAW_RGB565_SWAP
-    lv_draw_sw_rgb565_swap(px_map, w * h);
-#endif
     {
         ISpiLock::Guard bus;
         lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
@@ -338,9 +327,12 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     buf1 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
     buf2 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
     if (buf1 == nullptr || buf2 == nullptr) {
-        ILOG_ERROR("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)", bufsize,
-                   heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
-        // TODO: fall back to smaller buffer, or abort explicitly
+        ILOG_CRIT("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)", bufsize,
+                  heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
+        abort();
+        while(1) {
+            // wait for watchdog trigger if not aborted
+        }
     }
     lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
 #elif defined(BOARD_HAS_PSRAM)
