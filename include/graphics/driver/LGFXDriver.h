@@ -206,7 +206,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
     }
 }
 
-#if defined(DOUBLE_BUFFER_SHARED_SPI)
+#if defined(USE_DOUBLE_BUFFER_SHARED_SPI)
 // DMA flush, panel sharing its SPI host with another peripheral.
 //
 // The bus lock has to span the whole transfer, so endWrite() - which waits for the DMA -
