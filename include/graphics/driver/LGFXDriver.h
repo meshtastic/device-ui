@@ -15,8 +15,8 @@
 #define USE_DOUBLE_BUFFER
 #endif
 #ifdef USE_DOUBLE_BUFFER
-#ifndef BUFFER_LINES
-#define BUFFER_LINES 20
+#ifndef LGFX_BUFFER_LINES
+#define LGFX_BUFFER_LINES 20
 #endif
 #endif
 
@@ -51,6 +51,9 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
   protected:
     // lvgl callbacks have to be static cause it's a C library, not C++
     static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
+#ifdef USE_FULL_DOUBLE_BUFFER
+    static void display_flush_wait(lv_display_t *disp);
+#endif
     static void rounder_cb(lv_event_t *e);
     static void touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data);
 
@@ -227,6 +230,24 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 
     lv_display_flush_ready(disp);
 }
+#elif defined(USE_FULL_DOUBLE_BUFFER)
+template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *, uint8_t *px_map)
+{
+    if (!lv_display_flush_is_last(disp)) {
+        lv_display_flush_ready(disp);
+        return;
+    }
+
+    if (!lgfx->presentFrameBuffer(px_map)) {
+        ILOG_ERROR("LVGL: failed to present RGB frame buffer");
+        lv_display_flush_ready(disp);
+    }
+}
+
+template <class LGFX> void LGFXDriver<LGFX>::display_flush_wait(lv_display_t *)
+{
+    lgfx->waitFrameBuffer();
+}
 #elif defined(USE_DOUBLE_BUFFER)
 // DMA flush, panel owning its SPI host.
 //
@@ -237,16 +258,8 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-    if (lgfx->getStartCount() == 0) {
-        lgfx->startWrite();
-    }
     lgfx->setAddrWindow(area->x1, area->y1, w, h);
     lgfx->pushPixelsDMA((uint16_t *)px_map, w * h);
-
-    if (lv_display_flush_is_last(disp)) {
-        lgfx->endWrite();
-    }
-
     lv_display_flush_ready(disp);
 }
 #else
@@ -321,20 +334,29 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 #else
     lv_display_set_color_format(this->display, LV_COLOR_FORMAT_RGB565);
 #endif
-#if defined(USE_DOUBLE_BUFFER) // speedup drawing by using double-buffered DMA mode
-    bufsize = lgfx->screenWidth * BUFFER_LINES * 2;
-    ILOG_DEBUG("LVGL: allocating %u bytes DRAM memory for double buffering", bufsize);
+#if defined(USE_DOUBLE_BUFFER) // speedup drawing by using heap-based double-buffered DMA mode
+    bufsize = lgfx->screenWidth * LGFX_BUFFER_LINES * sizeof(lv_color_t);
+    ILOG_DEBUG("LVGL: allocating %u bytes DRAM memory for double buffering (%d lines)", bufsize * 2, LGFX_BUFFER_LINES);
     buf1 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
     buf2 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
     if (buf1 == nullptr || buf2 == nullptr) {
         ILOG_CRIT("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)", bufsize,
                   heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
         abort();
-        while (1) {
-            // wait for watchdog trigger if not aborted
-        }
     }
     lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);
+#elif defined(USE_FULL_DOUBLE_BUFFER) // speedup drawing by using PSRAM based double-buffered P4 PPA mode
+    bufsize = lgfx->screenWidth * lgfx->screenHeight * sizeof(lv_color_t);
+    buf1 = static_cast<lv_color_t *>(lgfx->getFrameBuffer(1));
+    buf2 = static_cast<lv_color_t *>(lgfx->getFrameBuffer(0));
+    if (buf1 == nullptr || buf2 == nullptr) {
+        ILOG_CRIT("LVGL: failed to acquire RGB frame buffers");
+        abort();
+    }
+    ILOG_DEBUG("LVGL: using two %u-byte RGB frame buffers", bufsize);
+    lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_DIRECT);
+    lv_display_set_flush_wait_cb(this->display, LGFXDriver::display_flush_wait);
+
 #elif defined(BOARD_HAS_PSRAM)
     assert(ESP.getFreePsram());
 #ifdef LGFX_BUFSIZE
