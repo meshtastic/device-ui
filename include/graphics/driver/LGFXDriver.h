@@ -336,13 +336,12 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 #endif
 #if defined(USE_DOUBLE_BUFFER) // speedup drawing by using heap-based double-buffered DMA mode
     bufsize = lgfx->screenWidth * LGFX_BUFFER_LINES * sizeof(lv_color_t);
-    ILOG_DEBUG("LVGL: allocating %u bytes DRAM memory for double buffering (%d lines)",
-               bufsize * 2, LGFX_BUFFER_LINES);
+    ILOG_DEBUG("LVGL: allocating %u bytes DRAM memory for double buffering (%d lines)", bufsize * 2, LGFX_BUFFER_LINES);
     buf1 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
     buf2 = (lv_color_t *)heap_caps_aligned_alloc(64, bufsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
     if (buf1 == nullptr || buf2 == nullptr) {
-        ILOG_CRIT("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)",
-                  bufsize, heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
+        ILOG_CRIT("LVGL: failed to allocate DMA buffers (%u bytes each, internal SRAM free: %u)", bufsize,
+                  heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
         abort();
     }
     lv_display_set_buffers(this->display, buf1, buf2, bufsize, LV_DISPLAY_RENDER_MODE_PARTIAL);

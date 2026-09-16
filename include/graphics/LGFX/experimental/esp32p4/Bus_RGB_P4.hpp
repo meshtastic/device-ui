@@ -103,8 +103,8 @@ class Bus_RGB_P4 : public IBus
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
         panel_config.bits_per_pixel = 16;
 #else
-        panel_config.in_color_format = LCD_COLOR_FMT_RGB565,  // format stored in the frame buffer
-        panel_config.out_color_format = LCD_COLOR_FMT_RGB565, // format expected by the physical LCD screen
+        panel_config.in_color_format = LCD_COLOR_FMT_RGB565,      // format stored in the frame buffer
+            panel_config.out_color_format = LCD_COLOR_FMT_RGB565, // format expected by the physical LCD screen
 #endif
         panel_config.num_fbs = 2;
         panel_config.dma_burst_size = 64;
