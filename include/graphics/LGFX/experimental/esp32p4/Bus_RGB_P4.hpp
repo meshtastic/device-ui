@@ -6,6 +6,8 @@
 
 #include <esp_lcd_panel_ops.h>
 #include <esp_lcd_panel_rgb.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 #include "lgfx/v1/Bus.hpp"
 #include "lgfx/v1/panel/Panel_FrameBufferBase.hpp"
@@ -101,11 +103,12 @@ class Bus_RGB_P4 : public IBus
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
         panel_config.bits_per_pixel = 16;
 #else
-        panel_config.in_color_format = LCD_COLOR_FMT_RGB565,      // format stored in the frame buffer
-            panel_config.out_color_format = LCD_COLOR_FMT_RGB565, // format expected by the physical LCD screen
+        panel_config.in_color_format = LCD_COLOR_FMT_RGB565,  // format stored in the frame buffer
+        panel_config.out_color_format = LCD_COLOR_FMT_RGB565, // format expected by the physical LCD screen
 #endif
         panel_config.num_fbs = 2;
         panel_config.dma_burst_size = 64;
+        panel_config.bounce_buffer_size_px = _cfg.panel_width * 10;
         panel_config.hsync_gpio_num = _cfg.pin_hsync;
         panel_config.vsync_gpio_num = _cfg.pin_vsync;
         panel_config.de_gpio_num = _cfg.pin_henable;
@@ -120,6 +123,17 @@ class Bus_RGB_P4 : public IBus
             _panel_handle = nullptr;
             return false;
         }
+        _frame_complete = xSemaphoreCreateBinary();
+        if (_frame_complete == nullptr) {
+            release();
+            return false;
+        }
+        esp_lcd_rgb_panel_event_callbacks_t callbacks = {};
+        callbacks.on_frame_buf_complete = frameBufferComplete;
+        if (ESP_OK != esp_lcd_rgb_panel_register_event_callbacks(_panel_handle, &callbacks, this)) {
+            release();
+            return false;
+        }
         if (ESP_OK != esp_lcd_panel_reset(_panel_handle)) {
             release();
             return false;
@@ -128,21 +142,24 @@ class Bus_RGB_P4 : public IBus
             release();
             return false;
         }
-        void *frame_buffer = nullptr;
-        if (ESP_OK != esp_lcd_rgb_panel_get_frame_buffer(_panel_handle, 1, &frame_buffer)) {
+        if (ESP_OK != esp_lcd_rgb_panel_get_frame_buffer(_panel_handle, 2, &_frame_buffers[0], &_frame_buffers[1])) {
             release();
             return false;
         }
-        _frame_buffer = static_cast<uint8_t *>(frame_buffer);
-        return _frame_buffer != nullptr;
+        return _frame_buffers[0] != nullptr && _frame_buffers[1] != nullptr;
     }
 
     void release(void) override
     {
-        _frame_buffer = nullptr;
+        _frame_buffers[0] = nullptr;
+        _frame_buffers[1] = nullptr;
         if (_panel_handle != nullptr) {
             esp_lcd_panel_del(_panel_handle);
             _panel_handle = nullptr;
+        }
+        if (_frame_complete != nullptr) {
+            vSemaphoreDelete(_frame_complete);
+            _frame_complete = nullptr;
         }
     }
 
@@ -161,7 +178,28 @@ class Bus_RGB_P4 : public IBus
     void initDMA(void) override {}
     void addDMAQueue(const uint8_t *, uint32_t) override {}
     void execDMAQueue(void) override {}
-    uint8_t *getDMABuffer(uint32_t) override { return _frame_buffer; }
+    uint8_t *getDMABuffer(uint32_t) override { return static_cast<uint8_t *>(_frame_buffers[0]); }
+
+    void *getFrameBuffer(uint8_t index) const { return index < 2 ? _frame_buffers[index] : nullptr; }
+
+    bool presentFrameBuffer(const void *frame_buffer)
+    {
+        xSemaphoreTake(_frame_complete, 0);
+        _frame_pending = true;
+        if (ESP_OK != esp_lcd_panel_draw_bitmap(_panel_handle, 0, 0, _cfg.panel_width, _cfg.panel_height, frame_buffer)) {
+            _frame_pending = false;
+            return false;
+        }
+        return true;
+    }
+
+    void waitFrameBuffer()
+    {
+        if (_frame_pending) {
+            xSemaphoreTake(_frame_complete, portMAX_DELAY);
+            _frame_pending = false;
+        }
+    }
 
     void beginRead(void) override {}
     void endRead(void) override {}
@@ -170,9 +208,21 @@ class Bus_RGB_P4 : public IBus
     void readPixels(void *, pixelcopy_t *, uint32_t) override {}
 
   private:
+    static bool IRAM_ATTR frameBufferComplete(esp_lcd_panel_handle_t, const esp_lcd_rgb_panel_event_data_t *, void *user_ctx)
+    {
+        auto bus = static_cast<Bus_RGB_P4 *>(user_ctx);
+        BaseType_t task_woken = pdFALSE;
+        if (bus->_frame_pending) {
+            xSemaphoreGiveFromISR(bus->_frame_complete, &task_woken);
+        }
+        return task_woken == pdTRUE;
+    }
+
     config_t _cfg;
     esp_lcd_panel_handle_t _panel_handle = nullptr;
-    uint8_t *_frame_buffer = nullptr;
+    void *_frame_buffers[2] = {};
+    SemaphoreHandle_t _frame_complete = nullptr;
+    volatile bool _frame_pending = false;
 };
 
 } // namespace v1

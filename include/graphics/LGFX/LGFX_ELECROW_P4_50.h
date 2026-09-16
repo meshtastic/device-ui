@@ -97,8 +97,12 @@ class LGFX_ELECROW_P4_50 : public lgfx::LGFX_Device
     const uint32_t screenWidth = 800;
     const uint32_t screenHeight = 480;
 
+if defined(USE_FULL_DOUBLE_BUFFER)
+    void *getFrameBuffer(uint8_t index) const { return _bus_instance.getFrameBuffer(index); }
+    bool presentFrameBuffer(const void *frame_buffer) { return _bus_instance.presentFrameBuffer(frame_buffer); }
+    void waitFrameBuffer(void) { _bus_instance.waitFrameBuffer(); }
+#endif
     bool hasButton(void) { return false; }
-
     bool init_impl(bool use_reset, bool use_clear) override
     {
 #if !CONFIG_SPIRAM
