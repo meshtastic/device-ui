@@ -12,6 +12,8 @@
 #include "src/misc/lv_profiler_builtin_private.h"
 #endif
 
+DisplayDriver::FlushCallback DisplayDriver::flushCB;
+
 DisplayDriver::DisplayDriver(uint16_t width, uint16_t height)
     : lvgl(width, height), display(nullptr), touch(nullptr), view(nullptr), screenWidth(width), screenHeight(height)
 {
@@ -64,4 +66,15 @@ void DisplayDriver::displayToggleCb(void *displayDriver)
     } else {
         driver->display->last_activity_time -= 60 * 60 * 24 * 365;
     }
+}
+
+void DisplayDriver::setFlushCB(FlushCallback cb)
+{
+    flushCB = std::move(cb);
+}
+
+void DisplayDriver::flush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels)
+{
+    if (flushCB)
+        flushCB(x, y, width, height, pixels);
 }

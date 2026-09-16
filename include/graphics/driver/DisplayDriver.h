@@ -3,6 +3,7 @@
 #include "graphics/DeviceGUI.h"
 #include "graphics/LVGL/LVGLGraphics.h"
 #include <cstdint>
+#include <functional>
 
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
 #define V_NORM_PX(v_scr_percent) ((int16_t)((screenHeight / 100.0) * (v_scr_percent)))
@@ -37,7 +38,25 @@ class DisplayDriver
 
     lv_display_t *getDisplay(void) { return display; }
 
+    /**
+     * Dirty-rect sink. (x, y, width, height) is the area that changed; pixels are
+     * native little-endian RGB565, rows tightly packed, handed over before any
+     * panel-side byte swap. Runs on the LVGL thread, so a callback must copy what
+     * it needs and return.
+     */
+    using FlushCallback = std::function<void(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels)>;
+
+    /**
+     * Observe every flush. Static because the LVGL flush callbacks the subclasses
+     * register are plain C function pointers with no instance to hand back.
+     * Set once before the UI task starts; there is one display driver per build.
+     */
+    static void setFlushCB(FlushCallback cb);
+
   protected:
+    /** Subclasses call this from their flush callback, ahead of any byte swap. */
+    static void flush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels);
+
     LVGLGraphics lvgl;
     LVGLDisplay *display;
     LVGLTouch *touch;
@@ -47,4 +66,5 @@ class DisplayDriver
 
   private:
     static void displayToggleCb(void *displayDriver);
+    static FlushCallback flushCB;
 };
