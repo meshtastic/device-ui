@@ -70,6 +70,12 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     lv_color_t *buf1;
     lv_color_t *buf2;
     bool calibrating;
+#ifdef USE_FULL_DOUBLE_BUFFER
+    lv_area_t flushArea = {};
+    lv_area_t previousFlushArea = {};
+    bool flushAreaValid = false;
+    bool previousFlushAreaValid = false;
+#endif
 };
 
 template <class LGFX> LGFX *LGFXDriver<LGFX>::lgfx = nullptr;
@@ -245,14 +251,30 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
     lv_display_flush_ready(disp);
 }
 #elif defined(USE_FULL_DOUBLE_BUFFER)
-template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *, uint8_t *px_map)
+template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
+    auto driver = static_cast<LGFXDriver *>(lv_display_get_driver_data(disp));
+    if (!driver->flushAreaValid) {
+        driver->flushArea = *area;
+        driver->flushAreaValid = true;
+    } else {
+        lv_area_join(&driver->flushArea, &driver->flushArea, area);
+    }
+
     if (!lv_display_flush_is_last(disp)) {
         lv_display_flush_ready(disp);
         return;
     }
 
-    if (!lgfx->presentFrameBuffer(px_map)) {
+    lv_area_t flush_area = driver->flushArea;
+    if (driver->previousFlushAreaValid) {
+        lv_area_join(&flush_area, &flush_area, &driver->previousFlushArea);
+    }
+    driver->previousFlushArea = driver->flushArea;
+    driver->previousFlushAreaValid = true;
+    driver->flushAreaValid = false;
+    if (!lgfx->presentFrameBuffer(px_map, flush_area.x1, flush_area.y1, lv_area_get_width(&flush_area),
+                                  lv_area_get_height(&flush_area))) {
         ILOG_ERROR("LVGL: failed to present RGB frame buffer");
         lv_display_flush_ready(disp);
     }
@@ -329,7 +351,8 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
     ILOG_DEBUG("LVGL display driver init...");
 
     DisplayDriver::display = lv_display_create(DisplayDriver::screenWidth, DisplayDriver::screenHeight);
-#ifndef LV_COLOR_FORMAT_SKIP_SWAP
+    lv_display_set_driver_data(this->display, this);
+#ifndef LV_COLOR_FORMAT_NO_RGB_SWAP
     lv_display_set_color_format(this->display, LV_COLOR_FORMAT_RGB565_SWAPPED);
 #else
     lv_display_set_color_format(this->display, LV_COLOR_FORMAT_RGB565);

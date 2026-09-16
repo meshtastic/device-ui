@@ -99,7 +99,10 @@ class LGFX_ELECROW_P4_50 : public lgfx::LGFX_Device
 
 #if defined(USE_FULL_DOUBLE_BUFFER)
     void *getFrameBuffer(uint8_t index) const { return _bus_instance.getFrameBuffer(index); }
-    bool presentFrameBuffer(const void *frame_buffer) { return _bus_instance.presentFrameBuffer(frame_buffer); }
+    bool presentFrameBuffer(const void *frame_buffer, uint16_t, uint16_t, uint16_t, uint16_t)
+    {
+        return _bus_instance.presentFrameBuffer(frame_buffer);
+    }
     void waitFrameBuffer(void) { _bus_instance.waitFrameBuffer(); }
 #endif
     bool hasButton(void) { return false; }

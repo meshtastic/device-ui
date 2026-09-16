@@ -16,7 +16,7 @@
 
 class LGFX_ELECROW_P4_70_90_101 : public lgfx::LGFX_Device
 {
-    lgfx::Bus_DSI _bus_instance;
+    lgfx::experimental::Bus_DSI _bus_instance;
     lgfx::Light_PWM _light_instance;
     lgfx::Panel_EK79007D _panel_instance;
     lgfx::Touch_GT911 _touch_instance;
@@ -25,6 +25,14 @@ class LGFX_ELECROW_P4_70_90_101 : public lgfx::LGFX_Device
     const uint32_t screenWidth = 1024;
     const uint32_t screenHeight = 600;
 
+#if defined(USE_FULL_DOUBLE_BUFFER)
+    void *getFrameBuffer(uint8_t index) const { return _panel_instance.getFrameBuffer(index); }
+    bool presentFrameBuffer(const void *frame_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+    {
+        return _panel_instance.presentFrameBuffer(frame_buffer, x, y, width, height);
+    }
+    void waitFrameBuffer(void) { _panel_instance.waitFrameBuffer(); }
+#endif
     bool hasButton(void) { return false; }
 
     bool init_impl(bool use_reset, bool use_clear) override
@@ -36,7 +44,6 @@ class LGFX_ELECROW_P4_70_90_101 : public lgfx::LGFX_Device
         ESP_LOGE("LGFX", "ELECROW_P4 need PSRAM SPEED 200MHz");
 #endif
             if (_bus_instance.init()) {
-                // EK79007 power-up can be timing-sensitive; keep a conservative settle time
                 lgfx::delay(250);
             }
         return lgfx::LGFX_Device::init_impl(use_reset, use_clear);
@@ -64,6 +71,9 @@ class LGFX_ELECROW_P4_70_90_101 : public lgfx::LGFX_Device
 
         {
             auto cfg = _panel_instance.config_detail();
+#if defined(USE_FULL_DOUBLE_BUFFER)
+            cfg.num_fbs = 2;
+#endif
             cfg.dpi_freq_mhz = 51;
             cfg.hsync_back_porch = 160;
             cfg.hsync_pulse_width = 70;
