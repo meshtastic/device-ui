@@ -230,6 +230,20 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 
     lv_display_flush_ready(disp);
 }
+#elif defined(USE_DOUBLE_BUFFER)
+// DMA flush, panel owning its SPI host.
+//
+// No bus lock and no wait: the transfer runs while LVGL renders the next area into the
+// other buffer. LovyanGFX stalls on the outstanding DMA itself when the next flush sends
+// its address window, and endWrite() collects the final one.
+template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
+{
+    uint32_t w = lv_area_get_width(area);
+    uint32_t h = lv_area_get_height(area);
+    lgfx->setAddrWindow(area->x1, area->y1, w, h);
+    lgfx->pushPixelsDMA((uint16_t *)px_map, w * h);
+    lv_display_flush_ready(disp);
+}
 #elif defined(USE_FULL_DOUBLE_BUFFER)
 template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *, uint8_t *px_map)
 {
@@ -247,20 +261,6 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 template <class LGFX> void LGFXDriver<LGFX>::display_flush_wait(lv_display_t *)
 {
     lgfx->waitFrameBuffer();
-}
-#elif defined(USE_DOUBLE_BUFFER)
-// DMA flush, panel owning its SPI host.
-//
-// No bus lock and no wait: the transfer runs while LVGL renders the next area into the
-// other buffer. LovyanGFX stalls on the outstanding DMA itself when the next flush sends
-// its address window, and endWrite() collects the final one.
-template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
-{
-    uint32_t w = lv_area_get_width(area);
-    uint32_t h = lv_area_get_height(area);
-    lgfx->setAddrWindow(area->x1, area->y1, w, h);
-    lgfx->pushPixelsDMA((uint16_t *)px_map, w * h);
-    lv_display_flush_ready(disp);
 }
 #else
 // Display flushing not using DMA */
