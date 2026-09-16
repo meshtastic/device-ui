@@ -87,9 +87,42 @@ bool PosixFileSystem::readLine(char *buffer, size_t maxLen)
 
 bool PosixFileSystem::mkdir(const std::string &path)
 {
-    if (::mkdir(path.c_str(), 0775) != 0 && errno != EEXIST) {
-        lastError = "mkdir failed with errno " + std::to_string(errno);
+    if (path.empty()) {
+        lastError = "mkdir failed: empty path";
         return false;
+    }
+
+    std::string currentPath;
+    size_t pos = 0;
+    if (path[0] == '/') {
+        currentPath = "/";
+        pos = 1;
+    }
+
+    while (pos < path.size()) {
+        size_t nextSlash = path.find('/', pos);
+        std::string component = path.substr(pos, nextSlash == std::string::npos ? std::string::npos : nextSlash - pos);
+        pos = nextSlash == std::string::npos ? path.size() : nextSlash + 1;
+
+        if (component.empty()) {
+            continue;
+        }
+
+        if (!currentPath.empty() && currentPath.back() != '/') {
+            currentPath += '/';
+        }
+        currentPath += component;
+
+        if (::mkdir(currentPath.c_str(), 0775) == 0) {
+            continue;
+        }
+
+        int mkdirErrno = errno;
+        struct stat pathStat;
+        if (mkdirErrno != EEXIST || ::stat(currentPath.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode)) {
+            lastError = "mkdir failed for '" + currentPath + "' with errno " + std::to_string(mkdirErrno);
+            return false;
+        }
     }
     return true;
 }
