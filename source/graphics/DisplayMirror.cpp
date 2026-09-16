@@ -1,72 +1,39 @@
 #include "graphics/DisplayMirror.h"
 #include "graphics/driver/DisplayDriver.h"
+#include "input/InputDriver.h"
 #include "util/ILog.h"
+#include <atomic>
 
-std::atomic<DisplayMirror::FrameObserver> DisplayMirror::frameObserver{nullptr};
-std::atomic<bool> DisplayMirror::fullRefreshRequested{false};
-std::atomic<bool> DisplayMirror::wakeRequested{false};
-
-DisplayDriver *DisplayMirror::displaydriver = nullptr;
-lv_indev_t *DisplayMirror::pointer = nullptr;
-lv_indev_t *DisplayMirror::keypad = nullptr;
-lv_indev_t *DisplayMirror::encoder = nullptr;
-
-DisplayMirror::Touch DisplayMirror::touchQueue[DisplayMirror::queueLen];
-std::atomic<uint8_t> DisplayMirror::touchHead{0}, DisplayMirror::touchTail{0};
-uint32_t DisplayMirror::keyQueue[DisplayMirror::queueLen];
-std::atomic<uint8_t> DisplayMirror::keyHead{0}, DisplayMirror::keyTail{0};
-int8_t DisplayMirror::encoderQueue[DisplayMirror::queueLen];
-std::atomic<uint8_t> DisplayMirror::encoderHead{0}, DisplayMirror::encoderTail{0};
-
-void DisplayMirror::start(DisplayDriver *driver)
+// All LVGL state lives here rather than in the header: LVGL is how this class
+// is implemented, not part of what it offers.
+namespace
 {
-    displaydriver = driver;
+struct Touch {
+    int16_t x, y;
+    uint16_t holdMs;
+};
+constexpr uint8_t queueLen = 16; // SPSC ring; one slot is the full/empty marker
 
-    // Every physical input driver creates this in its own init() and makes it
-    // the default, and those run before a host can call start(); so only a
-    // board with no input at all gets here with none.
-    lv_group_t *group = lv_group_get_default();
-    if (!group) {
-        group = lv_group_create();
-        lv_group_set_default(group);
-    }
+std::atomic<DisplayMirror::FrameObserver> frameObserver{nullptr};
+std::atomic<bool> fullRefreshRequested{false};
+std::atomic<bool> wakeRequested{false};
 
-    if (!keypad) {
-        keypad = lv_indev_create();
-        lv_indev_set_type(keypad, LV_INDEV_TYPE_KEYPAD);
-        lv_indev_set_read_cb(keypad, keypadRead);
-        lv_indev_set_group(keypad, group);
-    }
-    if (!encoder) {
-        encoder = lv_indev_create();
-        lv_indev_set_type(encoder, LV_INDEV_TYPE_ENCODER);
-        lv_indev_set_read_cb(encoder, encoderRead);
-        lv_indev_set_group(encoder, group);
-    }
-    if (!pointer) {
-        pointer = lv_indev_create();
-        lv_indev_set_type(pointer, LV_INDEV_TYPE_POINTER);
-        lv_indev_set_read_cb(pointer, pointerRead);
-    }
-    ILOG_DEBUG("DisplayMirror: virtual input devices ready");
-}
+DisplayDriver *displaydriver = nullptr;
+lv_indev_t *pointer = nullptr;
+lv_indev_t *keypad = nullptr;
+lv_indev_t *encoder = nullptr;
 
-void DisplayMirror::stop(void)
-{
-    frameObserver.store(nullptr, std::memory_order_release);
-}
+Touch touchQueue[queueLen];
+std::atomic<uint8_t> touchHead{0}, touchTail{0};
+uint32_t keyQueue[queueLen];
+std::atomic<uint8_t> keyHead{0}, keyTail{0};
+int8_t encoderQueue[queueLen];
+std::atomic<uint8_t> encoderHead{0}, encoderTail{0};
 
-void DisplayMirror::setFrameObserver(FrameObserver observer)
-{
-    frameObserver.store(observer, std::memory_order_release);
-}
-
-void DisplayMirror::requestFullRefresh(void)
-{
-    fullRefreshRequested.store(true, std::memory_order_release);
-}
-
-void DisplayMirror::serviceRequests(void)
+// LVGL thread, from every read callback: drains the wake and repaint requests.
+// Riding the read callbacks rather than a timer means the mirror adds no
+// periodic work of its own.
+void serviceRequests(void)
 {
     // Remote input has to wake a slept panel and still act: without this the
     // first event is swallowed as a wake, which is every event when nobody is
@@ -86,43 +53,9 @@ void DisplayMirror::serviceRequests(void)
     }
 }
 
-void DisplayMirror::injectTouch(int16_t x, int16_t y, uint16_t holdMs)
-{
-    uint8_t tail = touchTail.load(std::memory_order_relaxed);
-    uint8_t next = (tail + 1) % queueLen;
-    if (next == touchHead.load(std::memory_order_acquire))
-        return; // full; drop
-    touchQueue[tail] = {x, y, holdMs};
-    wakeRequested.store(true, std::memory_order_release);
-    touchTail.store(next, std::memory_order_release);
-}
-
-void DisplayMirror::injectKey(uint32_t key)
-{
-    uint8_t tail = keyTail.load(std::memory_order_relaxed);
-    uint8_t next = (tail + 1) % queueLen;
-    if (next == keyHead.load(std::memory_order_acquire))
-        return; // full; drop
-    keyQueue[tail] = key;
-    wakeRequested.store(true, std::memory_order_release);
-    keyTail.store(next, std::memory_order_release);
-}
-
-void DisplayMirror::injectEncoder(int16_t steps)
-{
-    uint8_t tail = encoderTail.load(std::memory_order_relaxed);
-    uint8_t next = (tail + 1) % queueLen;
-    if (next == encoderHead.load(std::memory_order_acquire))
-        return; // full; drop
-    // The ring stores a byte; clamp rather than let 256 truncate to a no-op.
-    encoderQueue[tail] = (int8_t)(steps > 127 ? 127 : (steps < -127 ? -127 : steps));
-    wakeRequested.store(true, std::memory_order_release);
-    encoderTail.store(next, std::memory_order_release);
-}
-
 // LVGL thread. A queued touch is held PRESSED until holdMs elapses (at least
 // one read cycle), then RELEASED once before the next entry starts.
-void DisplayMirror::pointerRead(lv_indev_t *indev, lv_indev_data_t *data)
+void pointerRead(lv_indev_t *indev, lv_indev_data_t *data)
 {
     static bool pressing = false;
     static bool needRelease = false;
@@ -164,7 +97,7 @@ void DisplayMirror::pointerRead(lv_indev_t *indev, lv_indev_data_t *data)
 
 // LVGL thread. One key per read, released on the following read so the widget
 // sees a complete press.
-void DisplayMirror::keypadRead(lv_indev_t *indev, lv_indev_data_t *data)
+void keypadRead(lv_indev_t *indev, lv_indev_data_t *data)
 {
     static bool needRelease = false;
     static uint32_t lastKey = 0;
@@ -190,7 +123,7 @@ void DisplayMirror::keypadRead(lv_indev_t *indev, lv_indev_data_t *data)
 }
 
 // LVGL thread. One queued rotation per read; enc_diff moves the group focus.
-void DisplayMirror::encoderRead(lv_indev_t *indev, lv_indev_data_t *data)
+void encoderRead(lv_indev_t *indev, lv_indev_data_t *data)
 {
     serviceRequests();
 
@@ -201,4 +134,98 @@ void DisplayMirror::encoderRead(lv_indev_t *indev, lv_indev_data_t *data)
         data->enc_diff = encoderQueue[head];
         encoderHead.store((head + 1) % queueLen, std::memory_order_release);
     }
+}
+} // namespace
+
+void DisplayMirror::start(DisplayDriver *driver)
+{
+    displaydriver = driver;
+
+    // Registered once, never cleared: assigning a std::function while the LVGL
+    // thread may be calling it is not safe, so capture is gated on the atomic
+    // observer instead and this stays a plain load on the render path.
+    DisplayDriver::setFlushCB([](int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels) {
+        if (auto observer = frameObserver.load(std::memory_order_acquire))
+            observer(x, y, width, height, pixels);
+    });
+
+    // Every physical input driver creates this in its own init() and makes it
+    // the default, and those run before a host can call start(); so only a
+    // board with no input at all gets here with none.
+    lv_group_t *group = InputDriver::getInputGroup();
+    if (!group) {
+        group = lv_group_get_default();
+    }
+    if (!group) {
+        group = lv_group_create();
+        lv_group_set_default(group);
+    }
+
+    if (!keypad) {
+        keypad = lv_indev_create();
+        lv_indev_set_type(keypad, LV_INDEV_TYPE_KEYPAD);
+        lv_indev_set_read_cb(keypad, keypadRead);
+        lv_indev_set_group(keypad, group);
+    }
+    if (!encoder) {
+        encoder = lv_indev_create();
+        lv_indev_set_type(encoder, LV_INDEV_TYPE_ENCODER);
+        lv_indev_set_read_cb(encoder, encoderRead);
+        lv_indev_set_group(encoder, group);
+    }
+    if (!pointer) {
+        pointer = lv_indev_create();
+        lv_indev_set_type(pointer, LV_INDEV_TYPE_POINTER);
+        lv_indev_set_read_cb(pointer, pointerRead);
+    }
+    ILOG_DEBUG("DisplayMirror: virtual input devices ready");
+}
+
+void DisplayMirror::stop(void)
+{
+    frameObserver.store(nullptr, std::memory_order_release);
+}
+
+void DisplayMirror::setFrameObserver(FrameObserver observer)
+{
+    frameObserver.store(observer, std::memory_order_release);
+}
+
+void DisplayMirror::requestFullRefresh(void)
+{
+    fullRefreshRequested.store(true, std::memory_order_release);
+}
+
+void DisplayMirror::injectTouch(int16_t x, int16_t y, uint16_t holdMs)
+{
+    uint8_t tail = touchTail.load(std::memory_order_relaxed);
+    uint8_t next = (tail + 1) % queueLen;
+    if (next == touchHead.load(std::memory_order_acquire))
+        return; // full; drop
+    touchQueue[tail] = {x, y, holdMs};
+    wakeRequested.store(true, std::memory_order_release);
+    touchTail.store(next, std::memory_order_release);
+}
+
+void DisplayMirror::injectKey(uint32_t key)
+{
+    uint8_t tail = keyTail.load(std::memory_order_relaxed);
+    uint8_t next = (tail + 1) % queueLen;
+    if (next == keyHead.load(std::memory_order_acquire))
+        return; // full; drop
+    keyQueue[tail] = key;
+    wakeRequested.store(true, std::memory_order_release);
+    keyTail.store(next, std::memory_order_release);
+}
+
+void DisplayMirror::injectEncoder(int16_t steps)
+{
+    uint8_t tail = encoderTail.load(std::memory_order_relaxed);
+    uint8_t next = (tail + 1) % queueLen;
+    if (next == encoderHead.load(std::memory_order_acquire))
+        return; // full; drop
+    // The ring stores a byte; clamp rather than let 256 truncate to a no-op.
+    encoderQueue[tail] = (int8_t)(steps > 127 ? 127 : (steps < -127 ? -127 : steps));
+    wakeRequested.store(true, std::memory_order_release);
+    encoderTail.store(next, std::memory_order_release);
 }

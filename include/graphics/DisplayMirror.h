@@ -1,7 +1,5 @@
 #pragma once
 
-#include "lvgl.h"
-#include <atomic>
 #include <cstdint>
 
 class DisplayDriver;
@@ -15,10 +13,16 @@ class DisplayDriver;
  * start(): nothing is allocated, no input device is registered, and a flush
  * costs one acquire load.
  *
+ * Nothing in the driver framework knows this class exists. start() registers a
+ * callback with DisplayDriver and creates its own virtual input devices, so the
+ * dependency runs one way only. LVGL stays an implementation detail: none of it
+ * appears here, so a host can include this header without taking on the
+ * drawing framework.
+ *
  * Threading: start(), stop() and the inject*() calls come from the host's
- * thread; onFlush() and the LVGL read callbacks run on the LVGL thread. Events
- * cross between them in lock-free single-producer rings, so no lock is taken on
- * the render path.
+ * thread; the flush callback and the LVGL read callbacks run on the LVGL
+ * thread. Events cross between them in lock-free single-producer rings, so no
+ * lock is taken on the render path.
  */
 class DisplayMirror
 {
@@ -33,7 +37,7 @@ class DisplayMirror
     using FrameObserver = void (*)(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels);
 
     /**
-     * Register the virtual input devices.
+     * Register the flush callback and the virtual input devices.
      *
      * Call once after DeviceScreen::init(), which brings LVGL up, and before
      * the view builds its widgets: the virtual keypad and encoder join the
@@ -51,9 +55,10 @@ class DisplayMirror
     static void start(DisplayDriver *driver);
 
     /**
-     * Stop capturing frames. The virtual input devices stay registered, since
-     * LVGL has no way to remove one from a group's focus history safely while
-     * the UI is live.
+     * Stop capturing frames. The flush callback stays registered and the
+     * virtual input devices stay in the group: both are only safe to install
+     * while the UI is not yet running, and capture is gated on the observer
+     * instead, which any thread may clear at any time.
      */
     static void stop(void);
 
@@ -93,43 +98,4 @@ class DisplayMirror
      * trackball driver. Clamped to a single byte.
      */
     static void injectEncoder(int16_t steps);
-
-    /** Called by the display driver on every flush; a no-op while idle. */
-    static void onFlush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels)
-    {
-        if (auto observer = frameObserver.load(std::memory_order_acquire))
-            observer(x, y, width, height, pixels);
-    }
-
-  private:
-    struct Touch {
-        int16_t x, y;
-        uint16_t holdMs;
-    };
-    static constexpr uint8_t queueLen = 16; // SPSC ring; one slot is the full/empty marker
-
-    static void pointerRead(lv_indev_t *indev, lv_indev_data_t *data);
-    static void keypadRead(lv_indev_t *indev, lv_indev_data_t *data);
-    static void encoderRead(lv_indev_t *indev, lv_indev_data_t *data);
-
-    // LVGL thread, from every read callback: drains the wake and repaint
-    // requests. Riding the read callbacks rather than a timer means the mirror
-    // adds no periodic work of its own.
-    static void serviceRequests(void);
-
-    static std::atomic<FrameObserver> frameObserver;
-    static std::atomic<bool> fullRefreshRequested;
-    static std::atomic<bool> wakeRequested;
-
-    static DisplayDriver *displaydriver;
-    static lv_indev_t *pointer;
-    static lv_indev_t *keypad;
-    static lv_indev_t *encoder;
-
-    static Touch touchQueue[queueLen];
-    static std::atomic<uint8_t> touchHead, touchTail;
-    static uint32_t keyQueue[queueLen];
-    static std::atomic<uint8_t> keyHead, keyTail;
-    static int8_t encoderQueue[queueLen];
-    static std::atomic<uint8_t> encoderHead, encoderTail;
 };
