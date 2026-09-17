@@ -41,6 +41,12 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
 Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 </p>
 
+## Message input
+
+On the shared landscape/portrait TFT view, **Settings > Input Control > Double-space period** enables a physical-keyboard shortcut: press Space twice within half a second after a word to insert a period and trailing space. The option defaults to off and applies only to message composition. Held keys, slow spaces and spaces after sentence punctuation retain their normal behavior. Select OK to save or Cancel to discard the selection.
+
+The preference is stored locally in the internal filesystem at `/prefs/double-space-period` as one byte (`0` or `1`); it requires no SD card and does not change the Meshtastic configuration protocol. Missing or invalid data defaults to off. A failed save keeps the settings dialog open with an error. This local preference is not included in the existing device-profile backup.
+
 ## :pencil: TODOs
 
 ### General Architecture

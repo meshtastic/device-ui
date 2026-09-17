@@ -239,6 +239,15 @@ class TFTView_320x240 : public MeshtasticView
     void setGroupFocus(lv_obj_t *panel);
     void setInputGroup(void);
     void updateInputControls(void);
+    void initMessageInputSettings(void);
+    bool saveDoubleSpacePeriod(bool enabled);
+    void handleMessageInput(lv_event_t *e);
+    lv_obj_t *doubleSpaceSwitch = nullptr;
+    lv_obj_t *doubleSpaceHint = nullptr;
+    bool doubleSpacePeriod = false;
+    bool spacePending = false;
+    uint32_t lastSpaceAt = 0;
+    uint32_t lastSpaceCursor = 0;
     void updateGroupChannel(uint8_t chId);
 
     void backup(uint32_t option);
@@ -328,6 +337,7 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_Keyboard(lv_event_t *e);
 
     static void ui_event_message_ready(lv_event_t *e);
+    static void ui_event_message_input(lv_event_t *e);
 
     static void ui_event_user_button(lv_event_t *e);
     static void ui_event_role_button(lv_event_t *e);

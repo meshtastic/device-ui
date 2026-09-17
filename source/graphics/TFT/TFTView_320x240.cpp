@@ -371,6 +371,7 @@ void TFTView_320x240::init_screens(void)
     state = MeshtasticView::eInitScreens;
     ui_init();
     apply_hotfix();
+    initMessageInputSettings();
 
     activeMsgContainer = objects.messages_container;
     // setup the two channel label panels with arrays that allow indexing
@@ -804,6 +805,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_input, LV_EVENT_ALL, nullptr);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
@@ -1755,6 +1757,53 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::ui_event_message_input(lv_event_t *e)
+{
+    THIS->handleMessageInput(e);
+}
+
+void TFTView_320x240::handleMessageInput(lv_event_t *e)
+{
+    const auto code = lv_event_get_code(e);
+    if (code == LV_EVENT_DEFOCUSED || code == LV_EVENT_PRESSED || (code == LV_EVENT_KEY && lv_event_get_key(e) != ' ')) {
+        spacePending = false;
+        return;
+    }
+    if (code != LV_EVENT_INSERT)
+        return;
+
+    const char *insert = static_cast<const char *>(lv_event_get_param(e));
+    lv_indev_t *keyboard = lv_indev_active();
+    // LVGL marks auto-repeat before dispatching repeated keys. A held space
+    // must remain spaces, even when its repeat delay is shorter than 500 ms.
+    if (!doubleSpacePeriod || !keyboard || keyboard != inputdriver->getKeyboard() || keyboard->long_pr_sent || !insert ||
+        insert[0] != ' ' || insert[1] != '\0') {
+        spacePending = false;
+        return;
+    }
+
+    lv_obj_t *area = lv_event_get_target_obj(e);
+    const uint32_t cursor = lv_textarea_get_cursor_pos(area);
+    const char *text = lv_textarea_get_text(area);
+    uint32_t byte = lv_text_encoded_get_byte_id(text, cursor);
+    if (spacePending && lv_tick_elaps(lastSpaceAt) <= 500 && cursor == lastSpaceCursor + 1 && byte && text[byte - 1] == ' ') {
+        spacePending = false;
+        // Replace the preceding space, then let LVGL insert the period and
+        // trailing space. Cursor offsets remain character-based for UTF-8.
+        lv_textarea_delete_char(area);
+        lv_textarea_set_insert_replace(area, ". ");
+        return;
+    }
+
+    const uint32_t previous = byte ? lv_text_encoded_prev(text, &byte) : 0;
+    spacePending = (previous >= 'a' && previous <= 'z') || (previous >= 'A' && previous <= 'Z') ||
+                   (previous >= '0' && previous <= '9') ||
+                   (previous >= 0x80 && previous != 0xA0 && !(previous >= 0x2000 && previous <= 0x206F) &&
+                    !(previous >= 0x3000 && previous <= 0x303F));
+    lastSpaceCursor = cursor;
+    lastSpaceAt = lv_tick_get();
+}
+
 // basic settings buttons
 
 void TFTView_320x240::ui_event_user_button(lv_event_t *e)
@@ -1998,8 +2047,14 @@ void TFTView_320x240::ui_event_input_button(lv_event_t *e)
         lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, THIS->old_val1_scratch, sizeof(old_val1_scratch));
         lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, THIS->old_val2_scratch, sizeof(old_val2_scratch));
 
+        lv_obj_set_state(THIS->doubleSpaceSwitch, LV_STATE_CHECKED, THIS->doubleSpacePeriod);
+        lv_label_set_text(THIS->doubleSpaceHint, _("Messages only"));
         lv_obj_clear_flag(objects.settings_input_control_panel, LV_OBJ_FLAG_HIDDEN);
+#if LV_USE_LIBINPUT
         lv_group_focus_obj(objects.settings_mouse_input_dropdown);
+#else
+        lv_group_focus_obj(THIS->doubleSpaceSwitch);
+#endif
         THIS->disablePanel(objects.controller_panel);
         THIS->disablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eInputControl;
@@ -4355,6 +4410,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eInputControl: {
+            const bool doubleSpace = lv_obj_has_state(THIS->doubleSpaceSwitch, LV_STATE_CHECKED);
+            if (doubleSpace != THIS->doubleSpacePeriod && !THIS->saveDoubleSpacePeriod(doubleSpace)) {
+                lv_label_set_text(THIS->doubleSpaceHint, _("Could not save setting"));
+                return;
+            }
             char new_val_kbd[10], new_val_ptr[10];
             lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, new_val_kbd, sizeof(new_val_kbd));
             lv_dropdown_get_selected_str(objects.settings_mouse_input_dropdown, new_val_ptr, sizeof(new_val_ptr));
@@ -7332,6 +7392,10 @@ void TFTView_320x240::updateInputControls(void)
     char label[40];
     lv_snprintf(label, sizeof(label), _("Input Control: %s/%s"), current_ptr.c_str(), current_kbd.c_str());
     lv_label_set_text(objects.basic_settings_input_label, label);
+#if !LV_USE_LIBINPUT
+    lv_label_set_text(objects.basic_settings_input_label, _("Input Control"));
+    lv_obj_set_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN, !inputdriver->hasKeyboardDevice());
+#endif
 
     // Only text-capable drivers can replace the on-screen keyboard launchers.
     // Hidden controls are also skipped by LVGL keyboard/encoder navigation.
@@ -7349,6 +7413,65 @@ void TFTView_320x240::updateInputControls(void)
     }
     if (physicalKeyboard)
         resetKeyboardSlide();
+}
+
+void TFTView_320x240::initMessageInputSettings(void)
+{
+    // Keep this device-local preference off the radio/admin protobuf protocol.
+    // The internal filesystem works without an SD card.
+    {
+        ISpiLock::Guard bus;
+        File file = fileSystem.open("/prefs/double-space-period", FILE_READ);
+        doubleSpacePeriod = file && file.size() == 1 && file.read() == '1';
+        file.close();
+    }
+
+    lv_obj_t *panel = objects.settings_input_control_panel;
+#if LV_USE_LIBINPUT
+    lv_obj_set_height(panel, 230);
+    const int rowY = 80;
+#else
+    // Built-in inputs are fixed; only Linux exposes device selection.
+    for (uint32_t i = 0; i < 4; ++i)
+        lv_obj_add_flag(lv_obj_get_child(panel, i), LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_height(panel, 160);
+    const int rowY = 5;
+#endif
+    lv_obj_set_width(panel, std::min<int32_t>(280, lv_display_get_horizontal_resolution(displaydriver->getDisplay()) - 20));
+    lv_obj_center(panel);
+    lv_obj_set_style_pad_all(panel, 12, 0);
+    lv_obj_t *label = lv_label_create(panel);
+    lv_obj_set_width(label, LV_PCT(75));
+    lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(label, _("Double-space period"));
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 0, rowY + 4);
+    doubleSpaceSwitch = lv_switch_create(panel);
+    lv_obj_set_size(doubleSpaceSwitch, 40, 22);
+    lv_obj_align(doubleSpaceSwitch, LV_ALIGN_TOP_RIGHT, 0, rowY);
+    doubleSpaceHint = lv_label_create(panel);
+    lv_label_set_text(doubleSpaceHint, _("Messages only"));
+    lv_obj_align(doubleSpaceHint, LV_ALIGN_TOP_LEFT, 0, rowY + 40);
+}
+
+bool TFTView_320x240::saveDoubleSpacePeriod(bool enabled)
+{
+    ISpiLock::Guard bus;
+    if (!fileSystem.exists("/prefs") && !fileSystem.mkdir("/prefs"))
+        return false;
+    const char *temporary = "/prefs/double-space-period.tmp";
+    File file = fileSystem.open(temporary, FILE_WRITE);
+    if (!file)
+        return false;
+    const uint8_t value = enabled ? '1' : '0';
+    const bool written = file.write(&value, 1) == 1;
+    file.close();
+    if (!written || !fileSystem.rename(temporary, "/prefs/double-space-period")) {
+        fileSystem.remove(temporary);
+        return false;
+    }
+    doubleSpacePeriod = enabled;
+    spacePending = false;
+    return true;
 }
 // -------- helpers --------
 
