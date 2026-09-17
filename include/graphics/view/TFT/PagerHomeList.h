@@ -113,3 +113,45 @@ inline void applyPagerHomeList()
     lv_obj_set_pos(objects.home_signal_pct_label, 0, 0);
     lv_obj_set_style_text_align(objects.home_signal_pct_label, LV_TEXT_ALIGN_RIGHT, 0);
 }
+
+inline void applyPagerChannelList()
+{
+    lv_obj_set_style_pad_left(objects.groups_panel, 8, 0);
+    lv_obj_set_style_pad_right(objects.groups_panel, 12, 0);
+    lv_obj_set_style_pad_top(objects.groups_panel, 5, 0);
+    lv_obj_set_style_pad_bottom(objects.groups_panel, 5, 0);
+    lv_obj_set_style_pad_row(objects.groups_panel, 5, 0);
+    lv_obj_set_style_pad_right(objects.groups_panel, 1, LV_PART_SCROLLBAR);
+    lv_obj_set_flex_align(objects.groups_panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+
+    lv_obj_t *rows[] = {objects.channel_button0, objects.channel_button1, objects.channel_button2, objects.channel_button3,
+                        objects.channel_button4, objects.channel_button5, objects.channel_button6, objects.channel_button7};
+    for (auto *row : rows) {
+        remove_style_channel_button_style(row);
+        stylePagerListRow(row, row);
+        lv_obj_set_size(row, LV_PCT(100), lv_obj_get_style_min_height(row, LV_PART_MAIN));
+        lv_obj_set_style_pad_all(row, 6, 0);
+        lv_obj_set_style_shadow_width(row, 0, 0);
+        lv_obj_remove_flag(row, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN));
+        lv_obj_add_flag(row, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+
+        // Runtime channel updates own children 1 and 2 (lock and bell).
+        // Keep those indices and reserve room for both icons inside the row.
+        auto *label = lv_obj_get_child(row, 0);
+        lv_obj_set_width(label, LV_PCT(100));
+        lv_obj_set_style_pad_left(label, 44, 0);
+        lv_obj_set_style_pad_right(label, 24, 0);
+        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, 0);
+        lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
+    }
+}
+
+inline void layoutPagerNodeNames(lv_obj_t *shortName, lv_obj_t *longName)
+{
+    // Keep names in one column beside the role icon and clear of status fields.
+    lv_obj_align(shortName, LV_ALIGN_TOP_LEFT, 30, 4);
+    lv_obj_set_width(shortName, LV_PCT(65));
+    lv_label_set_long_mode(shortName, LV_LABEL_LONG_CLIP);
+    lv_obj_align(longName, LV_ALIGN_TOP_LEFT, 30, 24);
+    lv_obj_set_width(longName, LV_PCT(65));
+}

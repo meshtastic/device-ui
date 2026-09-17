@@ -373,7 +373,9 @@ void TFTView_320x240::init_screens(void)
     apply_hotfix();
 #if defined(T_LORA_PAGER)
     applyPagerHomeList();
+    applyPagerChannelList();
     stylePagerListRow(objects.node_panel, objects.node_button);
+    layoutPagerNodeNames(objects.user_name_short_label, objects.user_name_label);
 #endif
 
     activeMsgContainer = objects.messages_container;
@@ -726,8 +728,12 @@ void TFTView_320x240::updateTheme(void)
     lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     for (int i = 0; i < c_max_channels; i++) {
+#if defined(T_LORA_PAGER)
+        updateGroupChannel(i);
+#else
         if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
             updateGroupChannel(i);
+#endif
     }
 }
 
@@ -5028,6 +5034,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
 
 #if defined(T_LORA_PAGER)
     stylePagerListRow(p, nodeButton);
+    layoutPagerNodeNames(sn_lbl, ln_lbl);
 #endif
     lv_obj_add_event_cb(nodeButton, ui_event_NodeButton, LV_EVENT_ALL, (void *)nodeNum);
 
@@ -5247,7 +5254,12 @@ void TFTView_320x240::updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon)
     buf[1] = userData[1];
     buf[2] = userData[2];
     buf[3] = userData[3];
+#if defined(T_LORA_PAGER)
+    // Keep distance beside the short name so the long name stays below it.
+    buf[4] = ' ';
+#else
     buf[4] = '\n';
+#endif
 
     if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
         if (dist > 1.0)
@@ -5260,10 +5272,12 @@ void TFTView_320x240::updateDistance(uint32_t nodeNum, int32_t lat, int32_t lon)
         else
             sprintf(&buf[5], "%d ft ", uint32_t(dist * 3280.84));
     }
-    // we used the userShort label to add the distance, so re-arrange a bit the position
     lv_obj_t *userShort = nodes[nodeNum]->LV_OBJ_IDX(node_lbs_idx);
     lv_label_set_text(userShort, buf);
+#if !defined(T_LORA_PAGER)
+    // Make room for the second line of distance on the other layouts.
     lv_obj_set_pos(userShort, 30, -1);
+#endif
 }
 
 /**
@@ -6165,8 +6179,12 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
     if (ch.role != meshtastic_Channel_Role_DISABLED) {
         setChannelName(ch);
 
+#if defined(T_LORA_PAGER)
+        lv_obj_set_width(btn[ch.index], LV_PCT(100));
+#else
         lv_obj_set_width(btn[ch.index], lv_pct(80));
         lv_obj_set_style_pad_left(btn[ch.index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+#endif
 
         lv_obj_t *lockImage = NULL;
         if (lv_obj_get_child_cnt(btn[ch.index]) == 1)
@@ -6189,6 +6207,10 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_set_width(lockImage, LV_SIZE_CONTENT);  /// 1
         lv_obj_set_height(lockImage, LV_SIZE_CONTENT); /// 1
         lv_obj_set_align(lockImage, LV_ALIGN_LEFT_MID);
+#if defined(T_LORA_PAGER)
+        // Center the security icon in the same leading space as Home's icons.
+        lv_obj_set_x(lockImage, 10);
+#endif
         lv_obj_add_flag(lockImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
         lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -6207,15 +6229,19 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_set_style_img_recolor_opa(bellImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
         updateGroupChannel(ch.index);
     } else {
-        // display smaller button with just the channel number
+        // Unconfigured slots retain their channel number.
         char buf[10];
         lv_snprintf(buf, sizeof(buf), "%d", ch.index);
         lv_label_set_text(channel[ch.index], buf);
+#if defined(T_LORA_PAGER)
+        lv_obj_set_width(btn[ch.index], LV_PCT(100));
+        updateGroupChannel(ch.index);
+#else
         lv_obj_set_width(btn[ch.index], lv_pct(30));
-
         if (lv_obj_get_child_cnt(btn[ch.index]) == 2) {
             lv_obj_delete(lv_obj_get_child(btn[ch.index], 1));
         }
+#endif
     }
 }
 
@@ -6226,7 +6252,28 @@ void TFTView_320x240::updateGroupChannel(uint8_t chId)
                                             objects.channel_button3, objects.channel_button4, objects.channel_button5,
                                             objects.channel_button6, objects.channel_button7};
 
+#if defined(T_LORA_PAGER)
+    if (db.channel[chId].role == meshtastic_Channel_Role_DISABLED) {
+        auto *row = btn[chId];
+        // Reuse the security-icon slot so configuring a channel replaces the
+        // placeholder without changing the indexed child structure.
+        auto *icon = lv_obj_get_child_count(row) > 1 ? lv_obj_get_child(row, 1) : lv_image_create(row);
+        lv_image_set_src(icon, &img_top_group_image);
+        lv_obj_set_size(icon, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        lv_obj_align(icon, LV_ALIGN_LEFT_MID, 10, 0);
+        lv_obj_remove_flag(icon, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_set_style_image_recolor_opa(icon, LV_OPA_COVER, 0);
+        Themes::recolorImage(icon, false);
+        if (lv_obj_get_child_count(row) > 2)
+            lv_obj_add_flag(lv_obj_get_child(row, 2), LV_OBJ_FLAG_HIDDEN);
+        return;
+    }
+#endif
+
     lv_obj_t *bellImage = lv_obj_get_child(btn[chId], 2);
+#if defined(T_LORA_PAGER)
+    lv_obj_remove_flag(bellImage, LV_OBJ_FLAG_HIDDEN);
+#endif
     if (db.channel[chId].settings.module_settings.is_muted) {
         lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_image_set_src(bellImage, &img_groups_bell_slash_image);
