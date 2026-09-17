@@ -2926,6 +2926,7 @@ void TFTView_320x240::loadMap(void)
     lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
 #if defined(T_LORA_PAGER)
     focusPagerMapZoom(MapTileSettings::getZoomLevel());
+    updatePagerMapStatus();
 #endif
 }
 
@@ -2934,25 +2935,95 @@ void TFTView_320x240::updateLocationMap(uint32_t num)
     lv_label_set_text_fmt(objects.top_map_label, _("Locations Map (%d/%d)"), num, nodeCount);
 #if defined(T_LORA_PAGER)
     syncPagerMapZoom(MapTileSettings::getZoomLevel());
-    if (!mapSourceNotice) {
-        mapSourceNotice = lv_button_create(objects.map_panel);
-        add_style_node_panel_style(mapSourceNotice);
-        lv_obj_set_size(mapSourceNotice, 260, LV_SIZE_CONTENT);
-        lv_obj_align(mapSourceNotice, LV_ALIGN_TOP_LEFT, 10, 24);
-        lv_obj_set_style_pad_all(mapSourceNotice, 10, 0);
-        lv_obj_t *label = lv_label_create(mapSourceNotice);
-        lv_obj_set_width(label, LV_PCT(100));
-        lv_label_set_text(label, _("No map source\nSet online tiles or add SD maps"));
-        lv_obj_add_event_cb(mapSourceNotice, ui_event_PagerMapSource, LV_EVENT_CLICKED, nullptr);
-        lv_obj_add_event_cb(mapSourceNotice, pagerMapControlKey, LV_EVENT_KEY, nullptr);
-    }
-    const bool missingSource = !mapHasOfflineSource && TileProvider::selectedTemplate() < 0;
-    lv_obj_set_flag(mapSourceNotice, LV_OBJ_FLAG_HIDDEN,
-                    !missingSource || !lv_obj_has_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN));
+    updatePagerMapStatus();
 #endif
 }
 
 #if defined(T_LORA_PAGER)
+void TFTView_320x240::updatePagerMapStatus(void)
+{
+    if (!map || activePanel != objects.map_panel)
+        return;
+    if (!mapStatusNotice) {
+        mapStatusNotice = lv_button_create(objects.map_panel);
+        add_style_node_panel_style(mapStatusNotice);
+        lv_obj_set_size(mapStatusNotice, 260, LV_SIZE_CONTENT);
+        lv_obj_align(mapStatusNotice, LV_ALIGN_TOP_LEFT, 10, 24);
+        lv_obj_set_style_pad_all(mapStatusNotice, 10, 0);
+        lv_obj_remove_flag(mapStatusNotice, LV_OBJ_FLAG_SCROLLABLE);
+        auto *label = lv_label_create(mapStatusNotice);
+        lv_obj_set_width(label, LV_PCT(100));
+        lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+        lv_obj_add_event_cb(mapStatusNotice, ui_event_PagerMapNotice, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(mapStatusNotice, pagerMapControlKey, LV_EVENT_KEY, nullptr);
+    }
+
+    const auto status = map->getTileStatus();
+    const bool onlineSource = TileProvider::selectedTemplate() >= 0;
+    const bool failed = status == MapPanel::TileStatus::Incomplete || status == MapPanel::TileStatus::Unavailable;
+    const bool wifiOff = db.config.has_network && !db.config.network.wifi_enabled;
+    const bool wifiDisconnected =
+        db.connectionStatus.has_wifi && db.connectionStatus.wifi.has_status && !db.connectionStatus.wifi.status.is_connected;
+    const char *message = nullptr;
+    bool loading = false;
+    mapNoticeOpensWifi = false;
+
+    // Keep displayed tiles visible even if Wi-Fi or SD later disappears.
+    if (status == MapPanel::TileStatus::Ready) {
+        // No notice over a complete map.
+    } else if (!cardDetected && !onlineSource) {
+        message = _("No SD card mounted\nInsert a card or choose an online source");
+    } else if (!mapHasOfflineSource && !onlineSource) {
+        message = _("No map source\nChoose online tiles or add SD maps");
+    } else if (failed && onlineSource && (wifiOff || wifiDisconnected)) {
+        if (!cardDetected)
+            message = wifiOff ? _("No SD card mounted\nWi-Fi is off\nOpen Wi-Fi settings")
+                              : _("No SD card mounted\nWi-Fi disconnected\nOpen Wi-Fi settings");
+        else
+            message = wifiOff ? _("Wi-Fi is off\nOffline tiles unavailable here\nOpen Wi-Fi settings")
+                              : _("Wi-Fi disconnected\nOffline tiles unavailable here\nOpen Wi-Fi settings");
+        mapNoticeOpensWifi = true;
+    } else if (failed) {
+        if (!onlineSource)
+            message = _("SD tiles unavailable here\nTry another area, zoom or source");
+        else if (status == MapPanel::TileStatus::Incomplete)
+            message = _("Some map tiles unavailable\nCheck the connection or map source");
+        else
+            message = _("Map tiles unavailable\nCheck the connection or map source");
+    } else {
+        message = _("Loading map...");
+        loading = true;
+    }
+
+    const bool hide = !message || !lv_obj_has_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+    auto *group = lv_obj_get_group(mapStatusNotice);
+    if ((hide || loading) && group && lv_group_get_focused(group) == mapStatusNotice)
+        focusPagerMapZoom(MapTileSettings::getZoomLevel());
+    lv_obj_set_flag(mapStatusNotice, LV_OBJ_FLAG_HIDDEN, hide);
+    lv_obj_set_state(mapStatusNotice, LV_STATE_DISABLED, loading);
+    if (!hide) {
+        auto *label = lv_obj_get_child(mapStatusNotice, 0);
+        if (strcmp(lv_label_get_text(label), message) != 0)
+            lv_label_set_text(label, message);
+    }
+}
+
+void TFTView_320x240::ui_event_PagerMapNotice(lv_event_t *e)
+{
+    if (THIS->activeSettings != eNone)
+        return;
+    if (THIS->mapNoticeOpensWifi) {
+        // Follow the normal Settings entry point, including its lock screen.
+        ui_event_SettingsButton(e);
+        if (!THIS->db.uiConfig.settings_lock && THIS->activePanel == objects.controller_panel) {
+            lv_tabview_set_active(objects.controller_tab_view, 0, LV_ANIM_OFF);
+            lv_group_focus_obj(objects.basic_settings_wifi_button);
+        }
+    } else {
+        ui_event_PagerMapSource(e);
+    }
+}
+
 void TFTView_320x240::ui_event_PagerMapSource(lv_event_t *e)
 {
     if (THIS->activePanel != objects.map_panel)
@@ -2960,8 +3031,8 @@ void TFTView_320x240::ui_event_PagerMapSource(lv_event_t *e)
     if (!THIS->map)
         THIS->loadMap();
     lv_group_set_editing(lv_group_get_default(), false);
-    if (THIS->mapSourceNotice)
-        lv_obj_add_flag(THIS->mapSourceNotice, LV_OBJ_FLAG_HIDDEN);
+    if (THIS->mapStatusNotice)
+        lv_obj_add_flag(THIS->mapStatusNotice, LV_OBJ_FLAG_HIDDEN);
     lv_obj_remove_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_move_foreground(objects.map_osd_panel);
     lv_group_focus_obj(lv_obj_has_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN) ? objects.map_url_textarea
@@ -7890,8 +7961,16 @@ void TFTView_320x240::task_handler(void)
     MeshtasticView::task_handler();
 
     if (screensInitialised) {
-        if (map && activePanel == objects.map_panel)
+        if (map && activePanel == objects.map_panel) {
             map->task_handler();
+#if defined(T_LORA_PAGER)
+            const uint32_t now = lv_tick_get();
+            if (now - lastMapStatusMs >= 250) {
+                lastMapStatusMs = now;
+                updatePagerMapStatus();
+            }
+#endif
+        }
 
         if (curtime - lastrun1 >= 1) { // call every 1s
             if (map) {

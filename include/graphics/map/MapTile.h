@@ -21,9 +21,18 @@ class MapTile : public OSMTiles<lv_obj_t>::Tile
     void removeImage(void);
     ~MapTile();
 
+    enum class LoadState { Loading, Ready, Failed };
+    LoadState getLoadState() const { return loadState; }
+    void markLoadFailed()
+    {
+        isPending = false;
+        loadState = LoadState::Failed;
+    }
+
     bool isPending = false; // enqueued in AsyncTileLoader, result not yet applied
 
   protected:
+    LoadState loadState = LoadState::Loading;
     int16_t x;     // x-pos in parent panel
     int16_t y;     // y-pos in parent panel
     lv_obj_t *img; // lvgl tile image

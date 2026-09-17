@@ -454,7 +454,11 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *qr;                                         // qr code
     MapPanel *map = nullptr;                              // map
 #if defined(T_LORA_PAGER)
-    lv_obj_t *mapSourceNotice = nullptr;
+    void updatePagerMapStatus(void);
+    static void ui_event_PagerMapNotice(lv_event_t *e);
+    lv_obj_t *mapStatusNotice = nullptr;
+    bool mapNoticeOpensWifi = false;
+    uint32_t lastMapStatusMs = 0;
     bool mapHasOfflineSource = false;
     static void ui_event_PagerMapSource(lv_event_t *e);
 #endif

@@ -57,6 +57,9 @@ class MapPanel
     void setNoTileImage(const lv_image_dsc_t *img_src);
     void forceRedraw(bool onlyObjects = false);
     bool redrawComplete(void) { return redrawCompleted; }
+    enum class TileStatus { Loading, Ready, Incomplete, Unavailable };
+    // UI-task snapshot of visible tiles, excluding off-screen look-ahead tiles.
+    TileStatus getTileStatus() const;
     // for debugging
     void printTiles(void);
     // must be called for incremental drawing of all changes

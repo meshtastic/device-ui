@@ -226,6 +226,7 @@ void MapPanel::loadTile(uint32_t hash, int tx, int ty)
         service->loadAsync(hash, generation_, tiles[hash]->filename);
         failedTilesRetryAt_.erase(hash); // in-flight; task_handler re-schedules on failure
     } else {
+        tiles[hash]->markLoadFailed();
         failedTilesRetryAt_[hash] = lv_tick_get() + RETRY_MS; // upsert: add or push deadline
     }
 }
@@ -552,6 +553,34 @@ void MapPanel::forceRedraw(bool onlyObjects)
     }
 }
 
+MapPanel::TileStatus MapPanel::getTileStatus() const
+{
+    if (needsRedraw || !redrawCompleted)
+        return TileStatus::Loading;
+
+    bool ready = false, loading = false, failed = false;
+    const int16_t size = MapTileSettings::getTileSize();
+    for (const auto &entry : tiles) {
+        const MapTile &tile = *entry.second;
+        if (tile.getX() >= widthPixel || tile.getY() >= heightPixel || tile.getX() + size <= 0 || tile.getY() + size <= 0)
+            continue;
+        switch (tile.getLoadState()) {
+        case MapTile::LoadState::Ready:
+            ready = true;
+            break;
+        case MapTile::LoadState::Loading:
+            loading = true;
+            break;
+        case MapTile::LoadState::Failed:
+            failed = true;
+            break;
+        }
+    }
+    if (failed)
+        return ready ? TileStatus::Incomplete : TileStatus::Unavailable;
+    return ready && !loading ? TileStatus::Ready : TileStatus::Loading;
+}
+
 void MapPanel::task_handler(void)
 {
     constexpr uint32_t RETRY_MS = 10000;
@@ -582,7 +611,7 @@ void MapPanel::task_handler(void)
             drawLocation();
             drawObjects();
         } else {
-            tile.isPending = false;
+            tile.markLoadFailed();
             if (failedTilesRetryAt_.find(hash) == failedTilesRetryAt_.end())
                 failedTilesRetryAt_[hash] = lv_tick_get() + RETRY_MS;
         }

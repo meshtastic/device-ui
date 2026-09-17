@@ -74,6 +74,9 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
             }
         }
     }
+    if (result)
+        loadState = LoadState::Ready;
+    // Keep the last failure visible while a background retry is pending.
     return result;
 }
 
@@ -93,6 +96,7 @@ void MapTile::applyImage(lv_image_dsc_t *img_dsc)
 {
     isPending = false;
     if (!img || !img_dsc) {
+        loadState = LoadState::Failed;
         if (img_dsc) {
             if (img_dsc->data)
                 lv_free((void *)img_dsc->data);
@@ -114,6 +118,7 @@ void MapTile::applyImage(lv_image_dsc_t *img_dsc)
         }
     }
     lv_image_set_src(img, img_dsc);
+    loadState = LoadState::Ready;
     lv_obj_set_style_opa(img, 255, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     // remove the (z/x/y) placeholder label that load() adds in non-debug mode
     if (!MapTileSettings::getDebug()) {
