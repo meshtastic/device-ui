@@ -51,9 +51,8 @@ interrupts. Enabling IRAM interrupts is rejected at compile time.
 
 ## Validation scope
 
-An earlier integrated firmware build booted MUI on one physical Pager, where
-rotary navigation was exercised. That does not establish complete keyboard,
-radio-variant, SD-card, sleep/wake or peripheral compatibility. This isolated
-upstream contribution has received source and diff review; no tests or firmware
-builds were run while preparing it. The existing display driver, display
-backlight and shared SPI configuration are unchanged.
+An integrated firmware build booted MUI on one physical Pager, where rotary
+navigation was exercised. That does not establish complete keyboard,
+radio-variant, SD-card, sleep/wake or peripheral compatibility. No automated
+tests were run. The existing display driver, display backlight and shared SPI
+configuration are unchanged.
