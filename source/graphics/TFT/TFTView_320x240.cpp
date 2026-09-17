@@ -373,6 +373,7 @@ void TFTView_320x240::init_screens(void)
     apply_hotfix();
 #if defined(T_LORA_PAGER)
     applyPagerHomeList();
+    stylePagerListRow(objects.node_panel, objects.node_button);
 #endif
 
     activeMsgContainer = objects.messages_container;
@@ -5025,6 +5026,9 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     lv_obj_add_flag(ui_Telemetry1Label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui_Telemetry2Label, LV_OBJ_FLAG_HIDDEN);
 
+#if defined(T_LORA_PAGER)
+    stylePagerListRow(p, nodeButton);
+#endif
     lv_obj_add_event_cb(nodeButton, ui_event_NodeButton, LV_EVENT_ALL, (void *)nodeNum);
 
     // move node into new position within nodePanel

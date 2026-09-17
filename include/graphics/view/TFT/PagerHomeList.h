@@ -2,6 +2,7 @@
 
 #include "styles.h"
 #include "ui.h"
+#include "graphics/view/TFT/PagerListRow.h"
 
 inline void drawPagerHomeIcon(lv_event_t *event)
 {
@@ -35,7 +36,7 @@ inline void drawPagerHomeIcon(lv_event_t *event)
 inline void applyPagerHomeList()
 {
     lv_obj_set_style_pad_left(objects.home_panel, 8, 0);
-    lv_obj_set_style_pad_right(objects.home_panel, 12, 0);
+    lv_obj_set_style_pad_right(objects.home_panel, 1, 0);
     lv_obj_set_style_pad_top(objects.home_panel, 5, 0);
     lv_obj_set_style_pad_bottom(objects.home_panel, 5, 0);
     lv_obj_set_width(objects.home_container, LV_PCT(100));
@@ -44,6 +45,9 @@ inline void applyPagerHomeList()
     lv_obj_set_style_radius(objects.home_container, 0, 0);
     lv_obj_set_style_bg_opa(objects.home_container, LV_OPA_TRANSP, 0);
     lv_obj_set_style_pad_all(objects.home_container, 0, 0);
+    // Preserve the card margin while placing the scrollbar at the panel edge.
+    lv_obj_set_style_pad_right(objects.home_container, 11, 0);
+    lv_obj_set_style_pad_right(objects.home_container, 1, LV_PART_SCROLLBAR);
     lv_obj_set_style_pad_row(objects.home_container, 5, 0);
     lv_obj_set_flex_flow(objects.home_container, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_flex_flow(objects.home_container, LV_FLEX_FLOW_COLUMN, LV_STATE_FOCUSED);
@@ -74,9 +78,8 @@ inline void applyPagerHomeList()
     for (const auto &row : rows) {
         // Keep the existing button as the row's focus and action target.
         // Share Nodes' card colors, border, radius and typography across themes.
-        add_style_node_panel_style(row.button);
+        stylePagerListRow(row.button, row.button);
         lv_obj_set_size(row.button, LV_PCT(100), LV_SIZE_CONTENT);
-        lv_obj_set_style_min_height(row.button, 53, 0);
         lv_obj_set_style_pad_all(row.button, 6, 0);
         lv_obj_set_style_pad_column(row.button, 8, 0);
         lv_obj_set_style_bg_image_opa(row.button, LV_OPA_TRANSP, 0);
@@ -110,3 +113,4 @@ inline void applyPagerHomeList()
     lv_obj_set_pos(objects.home_signal_pct_label, 0, 0);
     lv_obj_set_style_text_align(objects.home_signal_pct_label, LV_TEXT_ALIGN_RIGHT, 0);
 }
+
