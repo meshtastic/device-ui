@@ -1339,6 +1339,7 @@ void TFTView_320x240::ui_event_EnvelopeButton(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         if (!THIS->messagesRestored) {
             lv_obj_clear_flag(objects.msg_restore_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.msg_restore_button);
             return;
         }
         if (THIS->configComplete)
@@ -7285,8 +7286,12 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
     } else if (panel == objects.messages_panel) {
         lv_group_focus_obj(objects.message_input_area);
     } else if (panel == objects.chats_panel) {
-        if (chats.size() > 0) {
-            lv_group_focus_obj(panel->spec_attr->children[1]); // TODO: does not work
+        for (uint32_t i = 0; i < lv_obj_get_child_count(panel); i++) {
+            lv_obj_t *chat = lv_obj_get_child(panel, i);
+            if (!lv_obj_has_flag(chat, LV_OBJ_FLAG_HIDDEN)) {
+                lv_group_focus_obj(chat);
+                break;
+            }
         }
     } else if (panel == objects.map_panel) {
 
