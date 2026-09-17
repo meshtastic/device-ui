@@ -182,6 +182,9 @@ void TFTView_320x240::init(IClientBase *client)
     MeshtasticView::init(client);
 
     ui_init_boot();
+    // The logo remains a long-press programming-mode control, not a menu item.
+    lv_obj_set_style_outline_opa(objects.boot_logo_button, LV_OPA_TRANSP, LV_PART_MAIN | LV_STATE_FOCUS_KEY);
+    lv_obj_set_style_outline_opa(objects.boot_logo_button, LV_OPA_TRANSP, LV_PART_MAIN | LV_STATE_EDITED);
     FileLoader::init(&fileSystem);
     if (!FileLoader::loadBootImage(objects.boot_logo))
         lv_image_set_src(objects.boot_logo, &img_meshtastic_boot_logo_image);
@@ -434,7 +437,7 @@ void TFTView_320x240::init_screens(void)
     lv_slider_set_range(objects.snr_slider, -20, 9);
 #endif
 
-    setInputButtonLabel();
+    updateInputControls();
     lv_group_focus_obj(objects.home_button);
 
     // remember position of top node panel button for group linked list
@@ -4373,7 +4376,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 }
             }
 
-            THIS->setInputButtonLabel();
+            THIS->updateInputControls();
 
             if (error) {
                 ILOG_WARN("failed to use %s/%s", new_val_kbd, new_val_ptr);
@@ -7315,7 +7318,7 @@ void TFTView_320x240::setInputGroup(void)
         lv_indev_set_group(inputdriver->getPointer(), group);
 }
 
-void TFTView_320x240::setInputButtonLabel(void)
+void TFTView_320x240::updateInputControls(void)
 {
     // update input button label
     std::string current_kbd = inputdriver->getCurrentKeyboardDevice();
@@ -7324,6 +7327,24 @@ void TFTView_320x240::setInputButtonLabel(void)
     char label[40];
     lv_snprintf(label, sizeof(label), _("Input Control: %s/%s"), current_ptr.c_str(), current_kbd.c_str());
     lv_label_set_text(objects.basic_settings_input_label, label);
+
+    // Physical keyboards make the on-screen keyboard launchers unnecessary.
+    // Hidden controls are also skipped by LVGL keyboard/encoder navigation.
+    const bool physicalKeyboard = inputdriver->hasKeyboardDevice();
+    lv_obj_t *keyboardButtons[] = {
+        objects.keyboard_button_0, objects.keyboard_button_1, objects.keyboard_button_2,
+        objects.keyboard_button_3, objects.keyboard_button_4, objects.keyboard_button_5,
+        objects.keyboard_button_6, objects.keyboard_button_7, objects.keyboard_button_8,
+        objects.keyboard_button_9, objects.keyboard_button_10, objects.keyboard_button_11,
+        objects.keyboard_button_12};
+    for (auto button : keyboardButtons) {
+        if (physicalKeyboard)
+            lv_obj_add_flag(button, LV_OBJ_FLAG_HIDDEN);
+        else
+            lv_obj_remove_flag(button, LV_OBJ_FLAG_HIDDEN);
+    }
+    if (physicalKeyboard)
+        resetKeyboardSlide();
 }
 // -------- helpers --------
 

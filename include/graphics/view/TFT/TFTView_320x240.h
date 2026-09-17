@@ -238,7 +238,7 @@ class TFTView_320x240 : public MeshtasticView
     void disablePanel(lv_obj_t *panel);
     void setGroupFocus(lv_obj_t *panel);
     void setInputGroup(void);
-    void setInputButtonLabel(void);
+    void updateInputControls(void);
     void updateGroupChannel(uint8_t chId);
 
     void backup(uint32_t option);
