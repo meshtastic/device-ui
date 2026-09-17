@@ -34,6 +34,12 @@ class InputDriver
     virtual bool releasePointerDevice(void) { return pointer == nullptr; }
 
     virtual bool hasKeyboardDevice(void) { return keyboard != nullptr; }
+    virtual bool hasTextKeyboardDevice(void)
+    {
+        return keyboard && keyboardProvider && keyboardProvider->supportsTextInput();
+    }
+    // A keypad handle alone does not imply that the driver implements text entry.
+    virtual bool supportsTextInput(void) { return false; }
     virtual bool hasPointerDevice(void) { return pointer != nullptr; }
     virtual bool hasEncoderDevice(void) { return encoder != nullptr; }
     virtual bool hasButtonDevice(void) { return button != nullptr; }
@@ -49,6 +55,7 @@ class InputDriver
     InputDriver(void) : keyboardDevice("none"), pointerDevice("none") {}
     static InputDriver *driver;
     static lv_indev_t *keyboard;
+    static InputDriver *keyboardProvider;
     static lv_indev_t *pointer;
     static lv_indev_t *encoder;
     static lv_indev_t *button;

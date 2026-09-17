@@ -45,6 +45,7 @@ void KeyMatrixInputDriver::init(void)
     }
 
     keyboard = lv_indev_create();
+    keyboardProvider = keyboard ? this : nullptr;
     lv_indev_set_type(keyboard, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_read_cb(keyboard, keyboard_read);
 

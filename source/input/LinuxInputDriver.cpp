@@ -116,6 +116,8 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
     }
 
     keyboard = lv_libinput_create(LV_INDEV_TYPE_KEYPAD, kb_path.c_str());
+    // Keep the default text-input capability: removable devices need the touch fallback.
+    keyboardProvider = keyboard ? this : nullptr;
     if (keyboard) {
         ILOG_INFO("Using keyboard device %s", kb_path.c_str());
         keyboardDevice = event;
@@ -167,8 +169,11 @@ bool LinuxInputDriver::usePointerDevice(const std::string &name)
 bool LinuxInputDriver::releaseKeyboardDevice(void)
 {
     ILOG_INFO("Releasing keyboard device %s", keyboardDevice.c_str());
-    lv_indev_delete(keyboard);
-    keyboard = nullptr;
+    if (keyboardProvider == this) {
+        lv_indev_delete(keyboard);
+        keyboard = nullptr;
+        keyboardProvider = nullptr;
+    }
     keyboardDevice = "none";
     return true;
 }

@@ -7328,9 +7328,9 @@ void TFTView_320x240::updateInputControls(void)
     lv_snprintf(label, sizeof(label), _("Input Control: %s/%s"), current_ptr.c_str(), current_kbd.c_str());
     lv_label_set_text(objects.basic_settings_input_label, label);
 
-    // Physical keyboards make the on-screen keyboard launchers unnecessary.
+    // Only text-capable drivers can replace the on-screen keyboard launchers.
     // Hidden controls are also skipped by LVGL keyboard/encoder navigation.
-    const bool physicalKeyboard = inputdriver->hasKeyboardDevice();
+    const bool physicalKeyboard = inputdriver->hasTextKeyboardDevice();
     lv_obj_t *keyboardButtons[] = {
         objects.keyboard_button_0, objects.keyboard_button_1, objects.keyboard_button_2,
         objects.keyboard_button_3, objects.keyboard_button_4, objects.keyboard_button_5,

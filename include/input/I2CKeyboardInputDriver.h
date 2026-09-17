@@ -38,6 +38,7 @@ class TDeckKeyboardInputDriver : public I2CKeyboardInputDriver
 {
   public:
     TDeckKeyboardInputDriver(uint8_t address);
+    bool supportsTextInput(void) override { return true; }
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TDeckKeyboardInputDriver(void) {}
 };
@@ -73,6 +74,7 @@ class BBQ10KeyboardInputDriver : public I2CKeyboardInputDriver
 {
   public:
     BBQ10KeyboardInputDriver(uint8_t address);
+    bool supportsTextInput(void) override { return true; }
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~BBQ10KeyboardInputDriver(void) {}
@@ -82,6 +84,7 @@ class CardKBInputDriver : public I2CKeyboardInputDriver
 {
   public:
     CardKBInputDriver(uint8_t address, TwoWire &wire_ = Wire);
+    bool supportsTextInput(void) override { return true; }
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~CardKBInputDriver(void) {}
 
