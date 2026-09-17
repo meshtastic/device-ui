@@ -84,8 +84,8 @@ inline void applyPagerHomeList()
         lv_obj_set_style_pad_column(row.button, 8, 0);
         lv_obj_set_style_bg_image_opa(row.button, LV_OPA_TRANSP, 0);
         // Remove fixed colors so the shared card background follows the theme.
-        lv_obj_remove_local_style_prop(row.button, LV_STYLE_BG_COLOR, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_remove_local_style_prop(row.button, LV_STYLE_BG_COLOR, LV_PART_MAIN | LV_STATE_PRESSED);
+        lv_obj_remove_local_style_prop(row.button, LV_STYLE_BG_COLOR, LV_STATE_DEFAULT);
+        lv_obj_remove_local_style_prop(row.button, LV_STYLE_BG_COLOR, LV_STATE_PRESSED);
         lv_obj_remove_flag(row.button, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN));
         lv_obj_add_flag(row.button, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
         lv_obj_set_flex_flow(row.button, LV_FLEX_FLOW_ROW);
