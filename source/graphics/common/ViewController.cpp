@@ -21,8 +21,8 @@ constexpr const char *logDir = "/messages";
  *
  */
 ViewController::ViewController()
-    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), client(nullptr), sendId(1), myNodeNum(0), setupDone(false),
-      configCompleted(false), messagesRestored(false), requestConfigRequired(true)
+    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), client(nullptr), sendId(1), myNodeNum(0), lastGPSPollMs(0),
+      setupDone(false), configCompleted(false), messagesRestored(false), requestConfigRequired(true)
 {
 }
 
@@ -30,6 +30,7 @@ void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
     time(&lastrun1);
     time(&lastrun10);
+    lastGPSPollMs = millis();
     view = gui;
     client = _client;
     if (client) {
@@ -83,6 +84,15 @@ void ViewController::runOnce(void)
         if (curtime - lastrun1 >= 1) {
             lastrun1 = curtime;
             client->task_handler();
+        }
+
+        // Receiver freshness must keep advancing across RTC corrections.
+        const uint32_t nowMs = millis();
+        if (nowMs - lastGPSPollMs >= 1000) {
+            lastGPSPollMs = nowMs;
+            LocalGPSStatus gpsStatus;
+            if (setupDone && configCompleted && client->getLocalGPSStatus(gpsStatus))
+                view->updateLocalGPSStatus(gpsStatus);
         }
     }
 }

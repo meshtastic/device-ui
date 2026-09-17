@@ -5139,8 +5139,76 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
     }
 }
 
+#if defined(T_LORA_PAGER)
+void TFTView_320x240::renderPagerGPSStatus(void)
+{
+    const bool enabled = db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+    const char *state = !enabled                    ? _("GPS: Off")
+                        : !pagerGPSStatusKnown      ? _("GPS: On")
+                        : !pagerGPSStatus.connected ? _("GPS: On, receiver unavailable")
+                        : !pagerGPSStatus.awake     ? _("GPS: On, sleeping")
+                        : pagerGPSStatus.hasFix     ? _("GPS: On, fix acquired")
+                                                    : _("GPS: On, searching");
+    std::string text = state;
+    if (enabled && pagerGPSStatusKnown) {
+        char satellites[64];
+        if (pagerGPSStatus.satellitesValid) {
+            const bool current = pagerGPSStatus.awake && pagerGPSStatus.satellitesAgeMs < 5000;
+            lv_snprintf(satellites, sizeof(satellites), current ? _("Satellites used: %u") : _("Satellites used: %u (last)"),
+                        pagerGPSStatus.satellites);
+        } else {
+            lv_snprintf(satellites, sizeof(satellites), "%s", _("Satellites: waiting for data"));
+        }
+        text += '\n';
+        text += satellites;
+    } else if (enabled && pagerPacketSatellites != 0) {
+        // Older firmware supplies position packets without local receiver status.
+        char satellites[64];
+        lv_snprintf(satellites, sizeof(satellites), _("Satellites used: %u (last)"), pagerPacketSatellites);
+        text += '\n';
+        text += satellites;
+    }
+    if (!pagerGPSDetails.empty()) {
+        if (db.config.position.fixed_position)
+            text += std::string("\n") + _("Fixed position:");
+        else if (!enabled || !pagerGPSStatusKnown || !pagerGPSStatus.hasFix)
+            text += std::string("\n") + _("Last position:");
+        text += '\n';
+        text += pagerGPSDetails;
+    } else if (enabled && pagerGPSStatusKnown && pagerGPSStatus.hasTime) {
+        text += std::string("\n") + _("Time acquired; waiting for position");
+    }
+    lv_label_set_text(objects.home_location_label, text.c_str());
+}
+
+void TFTView_320x240::updateLocalGPSStatus(const LocalGPSStatus &status)
+{
+    const bool positionChanged = !pagerGPSStatusKnown || !pagerGPSStatus.hasPosition ||
+                                 pagerGPSStatus.latitude_i != status.latitude_i ||
+                                 pagerGPSStatus.longitude_i != status.longitude_i || pagerGPSStatus.altitude != status.altitude ||
+                                 pagerGPSStatus.satellites != status.satellites;
+    pagerGPSStatus = status;
+    pagerGPSStatusKnown = true;
+    auto node = nodes.find(ownNode);
+    if (status.hasPosition && positionChanged && !db.config.position.fixed_position && node != nodes.end() && node->second) {
+        updatePosition(ownNode, status.latitude_i, status.longitude_i, status.altitude,
+                       status.satellitesValid ? status.satellites : 0, 0);
+    } else {
+        renderPagerGPSStatus();
+    }
+}
+#endif
+
 void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision)
 {
+#if defined(T_LORA_PAGER)
+    if (nodeNum == ownNode && pagerGPSStatusKnown && pagerGPSStatus.hasPosition && !db.config.position.fixed_position) {
+        lat = pagerGPSStatus.latitude_i;
+        lon = pagerGPSStatus.longitude_i;
+        alt = pagerGPSStatus.altitude;
+        sats = pagerGPSStatus.satellitesValid ? pagerGPSStatus.satellites : 0;
+    }
+#endif
     int32_t altU = abs(alt) < 10000 ? alt : 0;
     char units[3] = {};
     if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
@@ -5166,14 +5234,28 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
         lonSeconds %= 60;
         char lonLetter = (lon > 0) ? 'E' : 'W';
 
+#if defined(T_LORA_PAGER)
+        // The live receiver status supplies satellites separately from coordinates.
+        sprintf(buf, "%c%02i° %2i'%02i\"\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes, latSeconds,
+                lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
+#else
         if (sats)
             sprintf(buf, "%c%02i° %2i'%02i\"   %u sats\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes,
                     latSeconds, sats, lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
         else
             sprintf(buf, "%c%02i° %2i'%02i\"\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes, latSeconds,
                     lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
+#endif
 
+#if defined(T_LORA_PAGER)
+        if (!pagerGPSStatusKnown && sats != 0)
+            pagerPacketSatellites = sats;
+        if (lat != 0 || lon != 0 || (pagerGPSStatusKnown && pagerGPSStatus.hasPosition))
+            pagerGPSDetails = buf;
+        renderPagerGPSStatus();
+#else
         lv_label_set_text(objects.home_location_label, buf);
+#endif
 
         if (lat != 0 && lon != 0) {
             hasPosition = true;
@@ -5211,7 +5293,8 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
         lv_label_set_text(panel->LV_OBJ_IDX(node_pos1_idx), buf);
         if (sats)
             sprintf(buf, "%d%s MSL  %u sats", altU, units, sats);
-        sprintf(buf, "%d%s MSL", altU, units);
+        else
+            sprintf(buf, "%d%s MSL", altU, units);
         lv_label_set_text(panel->LV_OBJ_IDX(node_pos2_idx), buf);
         // store lat/lon in user_data, because we need these values later to calculate the distance to us
         panel->LV_OBJ_IDX(node_pos1_idx)->user_data = (void *)lat;
@@ -6242,14 +6325,20 @@ void TFTView_320x240::updatePositionConfig(const meshtastic_Config_PositionConfi
 {
     db.config.position = cfg;
     db.config.has_position = true;
+
     if (cfg.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
+#if !defined(T_LORA_PAGER)
         if (cfg.fixed_position && db.uiConfig.map_data.has_home) {
             updatePosition(ownNode, db.uiConfig.map_data.home.latitude, db.uiConfig.map_data.home.longitude, 0, 0, 0);
         }
+#endif
         // grey out text to indicate it's a fixed position vs. actual GPS position
         Themes::recolorText(objects.home_location_label, !cfg.fixed_position);
     }
     Themes::recolorButton(objects.home_location_button, cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
+#if defined(T_LORA_PAGER)
+    renderPagerGPSStatus();
+#endif
 }
 
 void TFTView_320x240::updatePowerConfig(const meshtastic_Config_PowerConfig &cfg)

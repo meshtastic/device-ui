@@ -28,6 +28,9 @@ class TFTView_320x240 : public MeshtasticView
                  bool hasKey, bool unmessagable) override;
     void updateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_User &cfg) override;
     void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision) override;
+#if defined(T_LORA_PAGER)
+    void updateLocalGPSStatus(const LocalGPSStatus &status) override;
+#endif
     void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) override;
     void updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics) override;
     void updateAirQualityMetrics(uint32_t nodeNum, const meshtastic_AirQualityMetrics &metrics) override;
@@ -239,6 +242,13 @@ class TFTView_320x240 : public MeshtasticView
     void setGroupFocus(lv_obj_t *panel);
     void setInputGroup(void);
     void setInputButtonLabel(void);
+#if defined(T_LORA_PAGER)
+    std::string pagerGPSDetails;
+    uint32_t pagerPacketSatellites = 0;
+    LocalGPSStatus pagerGPSStatus{};
+    bool pagerGPSStatusKnown = false;
+    void renderPagerGPSStatus(void);
+#endif
     void updateGroupChannel(uint8_t chId);
 
     void backup(uint32_t option);
