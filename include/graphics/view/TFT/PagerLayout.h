@@ -4,14 +4,13 @@
 
 inline void stylePagerDialogFocus()
 {
-    lv_obj_t *panels[] = {
-        objects.obj2__ok_cancel_panel_w, objects.obj3__ok_cancel_panel_w, objects.obj4__ok_cancel_panel_w,
-        objects.obj5__ok_cancel_panel_w, objects.obj6__ok_cancel_panel_w, objects.obj7__ok_cancel_panel_w,
-        objects.obj8__ok_cancel_panel_w, objects.obj9__ok_cancel_panel_w, objects.obj10__ok_cancel_panel_w,
-        objects.obj11__ok_cancel_panel_w, objects.obj12__ok_cancel_panel_w, objects.obj13__ok_cancel_panel_w,
-        objects.obj14__ok_cancel_panel_w, objects.obj15__ok_cancel_panel_w, objects.obj16__ok_cancel_panel_w,
-        objects.obj17__ok_cancel_panel_w, objects.obj18__ok_cancel_panel_w, objects.obj21__ok_cancel_panel_w,
-        objects.obj27__ok_cancel_panel_w};
+    lv_obj_t *panels[] = {objects.obj2__ok_cancel_panel_w,  objects.obj3__ok_cancel_panel_w,  objects.obj4__ok_cancel_panel_w,
+                          objects.obj5__ok_cancel_panel_w,  objects.obj6__ok_cancel_panel_w,  objects.obj7__ok_cancel_panel_w,
+                          objects.obj8__ok_cancel_panel_w,  objects.obj9__ok_cancel_panel_w,  objects.obj10__ok_cancel_panel_w,
+                          objects.obj11__ok_cancel_panel_w, objects.obj12__ok_cancel_panel_w, objects.obj13__ok_cancel_panel_w,
+                          objects.obj14__ok_cancel_panel_w, objects.obj15__ok_cancel_panel_w, objects.obj16__ok_cancel_panel_w,
+                          objects.obj17__ok_cancel_panel_w, objects.obj18__ok_cancel_panel_w, objects.obj21__ok_cancel_panel_w,
+                          objects.obj27__ok_cancel_panel_w};
     for (auto panel : panels) {
         for (uint32_t i = 0; i < lv_obj_get_child_count(panel); ++i) {
             lv_obj_t *button = lv_obj_get_child(panel, i);
