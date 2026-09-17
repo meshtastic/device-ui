@@ -472,6 +472,13 @@ void TFTView_320x240::init_screens(void)
  */
 void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 {
+    if (activePanel == objects.messages_panel && p != objects.messages_panel && inputdriver->hasTextKeyboardDevice() &&
+        inputdriver->hasEncoderDevice()) {
+        auto *group = lv_obj_get_group(objects.message_input_area);
+        if (group)
+            lv_group_set_editing(group, false);
+    }
+
     if (activeButton) {
         lv_obj_set_style_border_width(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
         if (Themes::get() == Themes::eDark)
@@ -517,7 +524,9 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     activeButton = b;
     activePanel = p;
     if (activePanel == objects.messages_panel) {
-        lv_group_focus_obj(objects.message_input_area);
+        focusMessageInput();
+        if (inputdriver->hasTextKeyboardDevice() && inputdriver->hasEncoderDevice())
+            lv_obj_scroll_to_y(activeMsgContainer, LV_COORD_MAX, LV_ANIM_OFF);
     } else if (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice()) {
         setGroupFocus(activePanel);
     }
@@ -806,6 +815,8 @@ void TFTView_320x240::ui_events_init(void)
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_input, LV_EVENT_ALL, nullptr);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_encoder,
+                        static_cast<lv_event_code_t>(LV_EVENT_KEY | LV_EVENT_PREPROCESS), nullptr);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
@@ -1628,7 +1639,7 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
             } else if (kbdSlideState == eKbdShown) {
                 THIS->hideKeyboard(objects.messages_panel);
             }
-            lv_group_focus_obj(objects.message_input_area);
+            THIS->focusMessageInput();
             return; // continue play animation, don't hide keyboard immediately
         case 1:
             THIS->showKeyboard(objects.settings_user_short_textarea);
@@ -1719,13 +1730,35 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
             } else {
                 lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
             }
-            lv_group_focus_obj(objects.message_input_area);
+            THIS->focusMessageInput();
             break;
         }
         default:
             break;
             // const char *txt = lv_keyboard_get_button_text(kb, btn_id);
         }
+    }
+}
+
+void TFTView_320x240::ui_event_message_encoder(lv_event_t *e)
+{
+    lv_indev_t *indev = lv_indev_active();
+    if (!indev || lv_indev_get_type(indev) != LV_INDEV_TYPE_ENCODER || !THIS->inputdriver->hasTextKeyboardDevice() ||
+        THIS->activePanel != objects.messages_panel || !lv_obj_is_visible(objects.message_input_area) ||
+        THIS->activeSettings != eNone || THIS->isScreenLocked())
+        return;
+
+    const uint32_t key = lv_event_get_key(e);
+    if (key == LV_KEY_LEFT || key == LV_KEY_RIGHT) {
+        const int32_t step = lv_obj_get_style_text_font(objects.message_input_area, LV_PART_MAIN)->line_height + 6;
+        const int32_t offset = lv_obj_get_scroll_y(THIS->activeMsgContainer) + (key == LV_KEY_RIGHT ? step : -step);
+        // scroll_to_y also cancels any incoming-message scroll animation.
+        lv_obj_scroll_to_y(THIS->activeMsgContainer, offset, LV_ANIM_OFF);
+        lv_event_stop_processing(e);
+    } else if (key == LV_KEY_ENTER) {
+        // The rotary button must not submit a draft. Long press still lets LVGL
+        // leave edit mode, after which rotation navigates the other controls.
+        lv_event_stop_processing(e);
     }
 }
 
@@ -1751,7 +1784,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
                 THIS->hideKeyboard(objects.messages_panel);
-                lv_group_focus_obj(objects.message_input_area);
+                THIS->focusMessageInput();
             }
         }
     }
@@ -6840,6 +6873,12 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
  */
 void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg)
 {
+    lv_obj_update_layout(container);
+    lv_point_t scrollEnd;
+    lv_obj_get_scroll_end(container, &scrollEnd);
+    const int32_t bottom = lv_obj_get_scroll_y(container) + lv_obj_get_scroll_bottom(container);
+    const bool readingHistory =
+        container == activeMsgContainer && activePanel == objects.messages_panel && scrollEnd.y < bottom - 20;
     lv_obj_t *hiddenPanel = lv_obj_create(container);
     lv_obj_set_width(hiddenPanel, lv_pct(100));
     lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT); /// 50
@@ -6864,7 +6903,8 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_add_event_cb(msgLabel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 
     if (state == MeshtasticView::eRunning) {
-        lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
+        if (!readingHistory)
+            lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
         lv_obj_move_foreground(objects.message_input_area);
     }
 }
@@ -7332,6 +7372,16 @@ void TFTView_320x240::disablePanel(lv_obj_t *panel)
     lv_obj_tree_walk(panel, disableButtons, NULL);
 }
 
+void TFTView_320x240::focusMessageInput(void)
+{
+    lv_group_focus_obj(objects.message_input_area);
+    if (activePanel == objects.messages_panel && inputdriver->hasTextKeyboardDevice() && inputdriver->hasEncoderDevice()) {
+        auto *group = lv_obj_get_group(objects.message_input_area);
+        if (group)
+            lv_group_set_editing(group, true);
+    }
+}
+
 /**
  * Set focus to first button of a panel
  */
@@ -7344,7 +7394,7 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
     } else if (panel == objects.groups_panel) {
         lv_group_focus_obj(objects.channel_button0);
     } else if (panel == objects.messages_panel) {
-        lv_group_focus_obj(objects.message_input_area);
+        focusMessageInput();
     } else if (panel == objects.chats_panel) {
         for (uint32_t i = 0; i < lv_obj_get_child_count(panel); i++) {
             lv_obj_t *chat = lv_obj_get_child(panel, i);
