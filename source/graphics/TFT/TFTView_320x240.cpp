@@ -1940,7 +1940,7 @@ void TFTView_320x240::finishPagerSettings(void)
         row = objects.basic_settings_modem_preset_button;
         break;
     case eAlertBuzzer:
-        row = objects.basic_settings_alert_buzzer_button;
+        row = objects.basic_settings_alert_button;
         break;
     case eGPS:
         row = gpsSettingsButton;
