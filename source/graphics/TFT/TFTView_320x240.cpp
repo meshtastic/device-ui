@@ -7331,12 +7331,11 @@ void TFTView_320x240::updateInputControls(void)
     // Only text-capable drivers can replace the on-screen keyboard launchers.
     // Hidden controls are also skipped by LVGL keyboard/encoder navigation.
     const bool physicalKeyboard = inputdriver->hasTextKeyboardDevice();
-    lv_obj_t *keyboardButtons[] = {
-        objects.keyboard_button_0, objects.keyboard_button_1, objects.keyboard_button_2,
-        objects.keyboard_button_3, objects.keyboard_button_4, objects.keyboard_button_5,
-        objects.keyboard_button_6, objects.keyboard_button_7, objects.keyboard_button_8,
-        objects.keyboard_button_9, objects.keyboard_button_10, objects.keyboard_button_11,
-        objects.keyboard_button_12};
+    lv_obj_t *keyboardButtons[] = {objects.keyboard_button_0, objects.keyboard_button_1,  objects.keyboard_button_2,
+                                   objects.keyboard_button_3, objects.keyboard_button_4,  objects.keyboard_button_5,
+                                   objects.keyboard_button_6, objects.keyboard_button_7,  objects.keyboard_button_8,
+                                   objects.keyboard_button_9, objects.keyboard_button_10, objects.keyboard_button_11,
+                                   objects.keyboard_button_12};
     for (auto button : keyboardButtons) {
         if (physicalKeyboard)
             lv_obj_add_flag(button, LV_OBJ_FLAG_HIDDEN);
