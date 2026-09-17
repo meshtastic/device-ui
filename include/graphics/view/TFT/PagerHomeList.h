@@ -1,8 +1,8 @@
 #pragma once
 
+#include "graphics/view/TFT/PagerListRow.h"
 #include "styles.h"
 #include "ui.h"
-#include "graphics/view/TFT/PagerListRow.h"
 
 inline void drawPagerHomeIcon(lv_event_t *event)
 {
@@ -94,8 +94,8 @@ inline void applyPagerHomeList()
         lv_obj_t *icon = lv_obj_create(row.button);
         lv_obj_remove_style_all(icon);
         lv_obj_set_size(icon, 36, 36);
-        lv_obj_remove_flag(icon, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
-                                                          LV_OBJ_FLAG_SCROLLABLE));
+        lv_obj_remove_flag(
+            icon, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_SCROLLABLE));
         lv_obj_add_event_cb(icon, drawPagerHomeIcon, LV_EVENT_DRAW_MAIN, nullptr);
 
         lv_obj_set_parent(row.label, row.button);
@@ -104,8 +104,8 @@ inline void applyPagerHomeList()
         lv_obj_set_flex_grow(row.label, 1);
         lv_obj_set_style_text_line_space(row.label, 0, 0);
         lv_label_set_long_mode(row.label, LV_LABEL_LONG_WRAP);
-        lv_obj_remove_flag(row.label, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
-                                                               LV_OBJ_FLAG_SCROLLABLE));
+        lv_obj_remove_flag(
+            row.label, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_SCROLLABLE));
     }
 
     // Signal quality was positioned inside the old label using a fixed offset.
@@ -113,4 +113,3 @@ inline void applyPagerHomeList()
     lv_obj_set_pos(objects.home_signal_pct_label, 0, 0);
     lv_obj_set_style_text_align(objects.home_signal_pct_label, LV_TEXT_ALIGN_RIGHT, 0);
 }
-
