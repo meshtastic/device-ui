@@ -20,6 +20,9 @@
 #include "lvgl_private.h"
 #include "styles.h"
 #include "ui.h"
+#if defined(T_LORA_PAGER)
+#include "graphics/view/TFT/PagerLayout.h"
+#endif
 #include "util/About.h"
 #include "util/FileLoader.h"
 #include "util/ILog.h"
@@ -563,6 +566,10 @@ void TFTView_320x240::apply_hotfix(void)
     // adapt screens to custom display resolution
     uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
+
+#if defined(T_LORA_PAGER)
+    applyPagerLayout(v);
+#endif
 
     // resize buttons on larger display (assuming 480x480)
     if (h > 320 && v > 320) {

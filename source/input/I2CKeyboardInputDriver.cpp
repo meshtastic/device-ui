@@ -105,9 +105,9 @@ void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
 
 // ---------- TCA8418KeyboardInputDriver Implementation ----------
 
-TCA8418KeyboardInputDriver::TCA8418KeyboardInputDriver(uint8_t address)
+TCA8418KeyboardInputDriver::TCA8418KeyboardInputDriver(uint8_t address, const char *name)
 {
-    registerI2CKeyboard(this, "TCA8418 Keyboard", address);
+    registerI2CKeyboard(this, name, address);
 }
 
 void TCA8418KeyboardInputDriver::init(void)
@@ -126,23 +126,173 @@ void TCA8418KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev
 
 // ---------- TLoraPagerKeyboardInputDriver Implementation ----------
 
-TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address) : TCA8418KeyboardInputDriver(address)
+TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address)
+    : TCA8418KeyboardInputDriver(address, "TLora Pager Keyboard"), address(address)
 {
-    registerI2CKeyboard(this, "TLora Pager Keyboard", address);
 }
 
 void TLoraPagerKeyboardInputDriver::init(void)
 {
-    // Additional initialization for TLora-Pager if needed
     TCA8418KeyboardInputDriver::init();
+    resetKeys();
+    backlight = 0;
+
+    // Four rows and ten columns; unused GPIOs must not produce keyboard events.
+    const uint8_t setup[][2] = {{0x01, 0x00}, {0x1A, 0x00}, {0x1B, 0x00}, {0x1C, 0x00},
+                               {0x1D, 0x0F}, {0x1E, 0xFF}, {0x1F, 0x03}, {0x20, 0x00},
+                               {0x21, 0x00}, {0x22, 0x00}, {0x23, 0x00}, {0x24, 0x00},
+                               {0x25, 0x00}, {0x29, 0x00}, {0x2A, 0x00}, {0x2B, 0x00}};
+    initialized = true;
+    for (const auto &setting : setup) {
+        if (!writeRegister(setting[0], setting[1])) {
+            initialized = false;
+            break;
+        }
+    }
+    initialized = initialized && flushEvents() && writeRegister(0x01, 0x09);
+    if (!initialized)
+        ILOG_ERROR("Could not initialize T-LoRa Pager keyboard");
+
+#ifdef KB_BL_PIN
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcAttach(KB_BL_PIN, 1000, 8);
+    ledcWrite(KB_BL_PIN, 0);
+#else
+    ledcSetup(4, 1000, 8);
+    ledcAttachPin(KB_BL_PIN, 4);
+    ledcWrite(4, 0);
+#endif
+#endif
 }
 
 void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    // TODO
-    char keyValue = 0;
-    data->state = LV_INDEV_STATE_RELEASED;
-    data->key = (uint32_t)keyValue;
+    static constexpr uint8_t shiftKey = 29;
+    static constexpr uint8_t symKey = 21;
+    static constexpr uint8_t shift = 1;
+    static constexpr uint8_t sym = 2;
+    static const char letters[] = "qwertyuiopasdfghjkl\0\0zxcvbnm\0\0 ";
+    static const char symbols[] = "1234567890*/+-=:'\"@\0\0_$;?!,.\0\0\0";
+
+    data->continue_reading = false;
+    uint8_t event = pendingEvent;
+    pendingEvent = 0;
+    uint8_t status = 0;
+    if (!initialized || (!event && !readRegister(0x02, status))) {
+        resetKeys();
+    } else if (status & 0x08) {
+        // Overflow may have lost a release; discard the incomplete sequence.
+        flushEvents();
+        resetKeys();
+    } else if (event || readRegister(0x04, event)) {
+        if (event == 0) {
+            if (status & 0x01)
+                writeRegister(0x02, 0x01);
+        } else {
+            data->continue_reading = true;
+            uint8_t key = event & 0x7F;
+            bool pressed = event & 0x80;
+            if (key >= 1 && key <= 31) {
+                uint32_t bit = uint32_t(1) << (key - 1);
+                uint8_t modifier = key == shiftKey ? shift : (key == symKey ? sym : 0);
+                if (!pressed) {
+                    pressedKeys &= ~bit;
+                    heldModifiers &= ~modifier;
+                    if (key == activeKey)
+                        activeKey = 0;
+                } else if (!(pressedKeys & bit)) {
+                    if (modifier) {
+                        pressedKeys |= bit;
+                        heldModifiers |= modifier;
+                        latchedModifiers ^= modifier;
+                        modifierTime = millis();
+                    } else if (activeKey) {
+                        // LVGL needs a release between overlapping printable keys.
+                        activeKey = 0;
+                        pendingEvent = event;
+                    } else {
+                        pressedKeys |= bit;
+                        if (uint32_t(millis() - modifierTime) > 1500)
+                            latchedModifiers = 0;
+                        uint8_t modifiers = heldModifiers | latchedModifiers;
+                        latchedModifiers = 0;
+                        uint32_t value = (modifiers & sym) ? symbols[key - 1] : letters[key - 1];
+                        if (!(modifiers & sym) && (modifiers & shift) && value >= 'a' && value <= 'z')
+                            value -= 'a' - 'A';
+                        if (key == 20)
+                            value = (modifiers & sym) ? ((modifiers & shift) ? LV_KEY_PREV : LV_KEY_NEXT) : LV_KEY_ENTER;
+                        else if (key == 30)
+                            value = (modifiers & sym) ? LV_KEY_ESC : LV_KEY_BACKSPACE;
+                        else if (key == 31 && (modifiers & sym))
+                            toggleBacklight();
+                        if (value) {
+                            activeKey = key;
+                            keyValue = value;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        resetKeys();
+    }
+    data->state = activeKey ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+    data->key = keyValue;
+}
+
+bool TLoraPagerKeyboardInputDriver::readRegister(uint8_t reg, uint8_t &value)
+{
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    if (Wire.endTransmission(false) != 0 || Wire.requestFrom((int)address, 1) != 1 || !Wire.available())
+        return false;
+    value = Wire.read();
+    return true;
+}
+
+bool TLoraPagerKeyboardInputDriver::writeRegister(uint8_t reg, uint8_t value)
+{
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    Wire.write(value);
+    return Wire.endTransmission() == 0;
+}
+
+bool TLoraPagerKeyboardInputDriver::flushEvents(void)
+{
+    uint8_t event = 0;
+    for (unsigned i = 0; i < 10; ++i) {
+        if (!readRegister(0x04, event))
+            return false;
+        if (!event)
+            break;
+    }
+    for (uint8_t reg = 0x11; reg <= 0x13; ++reg) {
+        if (!readRegister(reg, event))
+            return false;
+    }
+    return writeRegister(0x02, 0x1F);
+}
+
+void TLoraPagerKeyboardInputDriver::resetKeys(void)
+{
+    pressedKeys = 0;
+    heldModifiers = 0;
+    latchedModifiers = 0;
+    activeKey = 0;
+    pendingEvent = 0;
+}
+
+void TLoraPagerKeyboardInputDriver::toggleBacklight(void)
+{
+    backlight = backlight == 0 ? 40 : (backlight == 40 ? 127 : 0);
+#ifdef KB_BL_PIN
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcWrite(KB_BL_PIN, backlight);
+#else
+    ledcWrite(4, backlight);
+#endif
+#endif
 }
 
 // ---------- TDeckProKeyboardInputDriver Implementation ----------
