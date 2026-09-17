@@ -1917,15 +1917,42 @@ void TFTView_320x240::beginPagerSettings(void)
 
 void TFTView_320x240::finishPagerSettings(void)
 {
-    if (pagerSettingsSidebarDisabled) {
-        enablePanel(objects.button_panel);
-        pagerSettingsSidebarDisabled = false;
-    }
-    if (!settingsReturnRow)
+    if (!pagerSettingsSidebarDisabled)
         return;
-    enablePanel(objects.home_panel);
-    lv_group_focus_obj(settingsReturnRow);
-    settingsReturnRow = nullptr;
+    enablePanel(objects.button_panel);
+    pagerSettingsSidebarDisabled = false;
+    auto *group = lv_group_get_default();
+    if (group)
+        lv_group_set_editing(group, false);
+    if (settingsReturnRow) {
+        enablePanel(objects.home_panel);
+        lv_group_focus_obj(settingsReturnRow);
+        settingsReturnRow = nullptr;
+        return;
+    }
+    // The settings rows must be enabled before LVGL can focus them again.
+    lv_obj_t *row = nullptr;
+    switch (activeSettings) {
+    case eWifi:
+        row = objects.basic_settings_wifi_button;
+        break;
+    case eModemPreset:
+        row = objects.basic_settings_modem_preset_button;
+        break;
+    case eAlertBuzzer:
+        row = objects.basic_settings_alert_buzzer_button;
+        break;
+    case eGPS:
+        row = gpsSettingsButton;
+        break;
+    case eMQTT:
+        row = mqttSettingsButton;
+        break;
+    default:
+        break;
+    }
+    if (row)
+        lv_group_focus_obj(row);
 }
 
 void TFTView_320x240::ui_event_mqtt_button(lv_event_t *e)
@@ -4839,10 +4866,10 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         THIS->enablePanel(objects.controller_panel);
         THIS->enablePanel(objects.tab_page_basic_settings);
-        THIS->activeSettings = eNone;
 #if defined(T_LORA_PAGER)
         THIS->finishPagerSettings();
 #endif
+        THIS->activeSettings = eNone;
     }
 }
 
@@ -4981,10 +5008,10 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
 
         THIS->enablePanel(objects.controller_panel);
         THIS->enablePanel(objects.tab_page_basic_settings);
-        THIS->activeSettings = eNone;
 #if defined(T_LORA_PAGER)
         THIS->finishPagerSettings();
 #endif
+        THIS->activeSettings = eNone;
     }
 }
 
