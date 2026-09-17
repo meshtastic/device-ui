@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -17,6 +18,9 @@ class TileProvider
 
     // get selected URL template
     static const std::string url(void);
+
+    // Standard OSM raster tiles stop at zoom 19; other sources retain zoom 20.
+    static uint8_t maxZoom(void);
 
     // get all URL templates
     static const std::vector<std::string> templates(void);

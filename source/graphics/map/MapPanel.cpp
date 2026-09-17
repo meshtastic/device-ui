@@ -1,5 +1,6 @@
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/MapTileSettings.h"
+#include "graphics/map/TileProvider.h"
 #include "graphics/map/TileService.h"
 #include "screens.h"
 #include "util/ILog.h"
@@ -293,6 +294,8 @@ void MapPanel::moveCurrent(void)
 
 void MapPanel::setZoom(uint8_t zoom)
 {
+    if (zoom > TileProvider::maxZoom())
+        zoom = TileProvider::maxZoom();
     if (zoom > 1 && zoom <= 20) {
         ILOG_DEBUG("setZoom: %d", zoom);
         MapTileSettings::setZoomLevel(zoom);
@@ -539,6 +542,8 @@ void MapPanel::setNoTileImage(const lv_image_dsc_t *img_src)
 
 void MapPanel::forceRedraw(bool onlyObjects)
 {
+    if (MapTileSettings::getZoomLevel() > TileProvider::maxZoom())
+        setZoom(TileProvider::maxZoom());
     if (onlyObjects) {
         drawObjects();
         drawLocation();

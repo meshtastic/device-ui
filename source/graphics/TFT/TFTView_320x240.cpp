@@ -20,6 +20,9 @@
 #include "lvgl_private.h"
 #include "styles.h"
 #include "ui.h"
+#if defined(T_LORA_PAGER)
+#include "graphics/view/TFT/PagerMapControls.h"
+#endif
 #include "util/About.h"
 #include "util/FileLoader.h"
 #include "util/ILog.h"
@@ -468,6 +471,10 @@ void TFTView_320x240::init_screens(void)
  */
 void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 {
+#if defined(T_LORA_PAGER)
+    if (activePanel == objects.map_panel && p != objects.map_panel)
+        lv_group_set_editing(lv_group_get_default(), false);
+#endif
     if (activeButton) {
         lv_obj_set_style_border_width(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
         if (Themes::get() == Themes::eDark)
@@ -563,6 +570,14 @@ void TFTView_320x240::apply_hotfix(void)
     // adapt screens to custom display resolution
     uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
+
+#if defined(T_LORA_PAGER)
+    applyPagerMapControls();
+    lv_obj_t *mapSettings[] = {objects.map_url_textarea, objects.map_url_dropdown, objects.map_style_dropdown,
+                               objects.map_brightness_slider, objects.map_contrast_slider};
+    for (auto *control : mapSettings)
+        lv_obj_add_event_cb(control, pagerMapSettingsKey, LV_EVENT_KEY, nullptr);
+#endif
 
     // resize buttons on larger display (assuming 480x480)
     if (h > 320 && v > 320) {
@@ -1182,6 +1197,9 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
             return;
         }
         if (THIS->activePanel == objects.map_panel) {
+#if defined(T_LORA_PAGER)
+            focusPagerMapZoom(MapTileSettings::getZoomLevel());
+#else
             // toggle navigation and zoom slider
             static bool toggle = true;
             toggle = !toggle;
@@ -1198,15 +1216,24 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
                 lv_obj_add_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
             }
+#endif
         } else {
             THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
             THIS->loadMap();
+#if !defined(T_LORA_PAGER)
             lv_group_focus_obj(objects.nav_button);
+#endif
         }
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eNone) {
+#if defined(T_LORA_PAGER)
+        ui_event_PagerMapSource(e);
+        if (lv_indev_active())
+            lv_indev_wait_release(lv_indev_active());
+#else
         lv_obj_clear_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
         ignoreClicked = true;
+#endif
     }
 }
 
@@ -2408,6 +2435,9 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
         THIS->controller->storeUIConfig(THIS->db.uiConfig);
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->map->forceRedraw();
+#if defined(T_LORA_PAGER)
+        deferPagerMapZoom(MapTileSettings::getZoomLevel());
+#endif
     } else {
         // copy current url template into textarea for editing
         THIS->showUrlInputArea(true);
@@ -2428,10 +2458,22 @@ void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
     } else {
         uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
         TileProvider::selectTemplate(urlId);
+#if defined(T_LORA_PAGER)
+        // Reuse the cache only when this URL belongs to the selected SD style.
+        char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+        MapTileSettings::styleToDir(MapTileSettings::getTileStyle(), tileDir, sizeof(tileDir));
+        const bool cachedSource =
+            THIS->cardDetected && sdCard && sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir) == TileProvider::url();
+        MapTileSettings::setSaveOK(cachedSource);
+#else
         MapTileSettings::setSaveOK(false);
+#endif
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
         THIS->attribution(TileProvider::url());
         THIS->map->forceRedraw();
+#if defined(T_LORA_PAGER)
+        deferPagerMapZoom(MapTileSettings::getZoomLevel());
+#endif
     }
 }
 
@@ -2479,6 +2521,9 @@ void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
                 lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
                 THIS->map->forceRedraw();
                 THIS->attribution(url);
+#if defined(T_LORA_PAGER)
+                focusPagerMapZoom(MapTileSettings::getZoomLevel());
+#endif
             } else {
                 ILOG_WARN("wrong user url: %s", url.c_str());
                 lv_obj_set_style_border_color(objects.map_url_textarea, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2780,7 +2825,22 @@ void TFTView_320x240::loadMap(void)
     if (sdCard) {
         if (!sdCard->isUpdated()) {
             map->setNoTileImage(&img_no_tile_image);
+#if defined(T_LORA_PAGER)
+            // Start discovery at the current layout after a card swap. The
+            // loader still detects the legacy /map directory when necessary.
+            MapTileSettings::setPrefix("/maps");
+#endif
             std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
+#if defined(T_LORA_PAGER)
+            // Preserve existing offline sources; bootstrap an empty card with a
+            // provider whose viewed tiles are cached through the SD service.
+            if (cardDetected && mapStyles.empty() && TileProvider::selectedTemplate() < 0 &&
+                sdCard->setUrlProvider("/maps", "OpenStreetMap", "https://tile.openstreetmap.org/{z}/{x}/{y}.png")) {
+                mapStyles.insert("OpenStreetMap");
+                ILOG_INFO("Configured OpenStreetMap with SD tile caching");
+            }
+            mapHasOfflineSource = !mapStyles.empty();
+#endif
             if (mapStyles.find("/map") != mapStyles.end()) {
                 // no styles found, but the /map directory, so use it
                 MapTileSettings::setPrefix("/map");
@@ -2855,18 +2915,59 @@ void TFTView_320x240::loadMap(void)
         showUrlInputArea(true);
         lv_dropdown_clear_options(objects.map_style_dropdown);
         lv_dropdown_clear_options(objects.map_url_dropdown);
+#if defined(T_LORA_PAGER)
+        mapHasOfflineSource = false;
+#endif
     }
 
     MapTileSettings::setUniqueId(ownNode);
 
     lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
+#if defined(T_LORA_PAGER)
+    focusPagerMapZoom(MapTileSettings::getZoomLevel());
+#endif
 }
 
 void TFTView_320x240::updateLocationMap(uint32_t num)
 {
     lv_label_set_text_fmt(objects.top_map_label, _("Locations Map (%d/%d)"), num, nodeCount);
+#if defined(T_LORA_PAGER)
+    syncPagerMapZoom(MapTileSettings::getZoomLevel());
+    if (!mapSourceNotice) {
+        mapSourceNotice = lv_button_create(objects.map_panel);
+        add_style_node_panel_style(mapSourceNotice);
+        lv_obj_set_size(mapSourceNotice, 260, LV_SIZE_CONTENT);
+        lv_obj_align(mapSourceNotice, LV_ALIGN_TOP_LEFT, 10, 24);
+        lv_obj_set_style_pad_all(mapSourceNotice, 10, 0);
+        lv_obj_t *label = lv_label_create(mapSourceNotice);
+        lv_obj_set_width(label, LV_PCT(100));
+        lv_label_set_text(label, _("No map source\nSet online tiles or add SD maps"));
+        lv_obj_add_event_cb(mapSourceNotice, ui_event_PagerMapSource, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(mapSourceNotice, pagerMapControlKey, LV_EVENT_KEY, nullptr);
+    }
+    const bool missingSource = !mapHasOfflineSource && TileProvider::selectedTemplate() < 0;
+    lv_obj_set_flag(mapSourceNotice, LV_OBJ_FLAG_HIDDEN,
+                    !missingSource || !lv_obj_has_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN));
+#endif
 }
+
+#if defined(T_LORA_PAGER)
+void TFTView_320x240::ui_event_PagerMapSource(lv_event_t *e)
+{
+    if (THIS->activePanel != objects.map_panel)
+        THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
+    if (!THIS->map)
+        THIS->loadMap();
+    lv_group_set_editing(lv_group_get_default(), false);
+    if (THIS->mapSourceNotice)
+        lv_obj_add_flag(THIS->mapSourceNotice, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_remove_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(objects.map_osd_panel);
+    lv_group_focus_obj(lv_obj_has_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN) ? objects.map_url_textarea
+                                                                                     : objects.map_url_dropdown);
+}
+#endif
 
 /**
  * add node location image for display on map
@@ -2943,7 +3044,12 @@ void TFTView_320x240::attribution(std::string url)
         lv_obj_remove_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
     } else if (url.find("openstreetmap") != std::string::npos) {
+#if defined(T_LORA_PAGER)
+        lv_label_set_text(objects.map_attribution_label, "\xC2\xA9 OpenStreetMap contributors");
+        lv_obj_align(objects.map_attribution_label, LV_ALIGN_BOTTOM_RIGHT, -3, 0);
+#else
         lv_label_set_text(objects.map_attribution_label, "\xC2\xA9 OpenStreetMap");
+#endif
         lv_obj_remove_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
     } else {
@@ -7286,7 +7392,10 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
             lv_group_focus_obj(panel->spec_attr->children[1]); // TODO: does not work
         }
     } else if (panel == objects.map_panel) {
-
+#if defined(T_LORA_PAGER)
+        if (map)
+            focusPagerMapZoom(MapTileSettings::getZoomLevel());
+#endif
     } else if (panel == objects.settings_screen_lock_panel) {
         lv_group_focus_obj(objects.screen_lock_button_matrix);
     } else if (panel == objects.controller_panel) {

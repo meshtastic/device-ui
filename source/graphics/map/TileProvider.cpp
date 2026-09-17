@@ -53,6 +53,11 @@ const std::string TileProvider::url(void)
     return url;
 }
 
+uint8_t TileProvider::maxZoom(void)
+{
+    return url() == "https://tile.openstreetmap.org/{z}/{x}/{y}.png" ? 19 : 20;
+}
+
 const std::vector<std::string> TileProvider::templates(void)
 {
     std::vector<std::string> templates;
