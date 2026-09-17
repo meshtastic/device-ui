@@ -183,8 +183,8 @@ void TFTView_320x240::init(IClientBase *client)
 
     ui_init_boot();
     // The logo remains a long-press programming-mode control, not a menu item.
-    lv_obj_set_style_outline_opa(objects.boot_logo_button, LV_OPA_TRANSP, LV_PART_MAIN | LV_STATE_FOCUS_KEY);
-    lv_obj_set_style_outline_opa(objects.boot_logo_button, LV_OPA_TRANSP, LV_PART_MAIN | LV_STATE_EDITED);
+    lv_obj_set_style_outline_opa(objects.boot_logo_button, LV_OPA_TRANSP, LV_STATE_FOCUS_KEY);
+    lv_obj_set_style_outline_opa(objects.boot_logo_button, LV_OPA_TRANSP, LV_STATE_EDITED);
     FileLoader::init(&fileSystem);
     if (!FileLoader::loadBootImage(objects.boot_logo))
         lv_image_set_src(objects.boot_logo, &img_meshtastic_boot_logo_image);
