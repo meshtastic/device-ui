@@ -247,6 +247,7 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *doubleSpaceHint = nullptr;
     bool doubleSpacePeriod = false;
     bool spacePending = false;
+    bool automaticPeriodSpace = false;
     uint32_t lastSpaceAt = 0;
     uint32_t lastSpaceCursor = 0;
     void updateGroupChannel(uint8_t chId);

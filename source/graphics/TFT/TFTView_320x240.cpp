@@ -1778,7 +1778,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
         char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
         uint32_t len = strlen(txt);
         if (len) {
-            if (txt[len - 1] == ' ') { // use space+return combo to start new line in same message
+            if (txt[len - 1] == ' ' && !THIS->automaticPeriodSpace) { // explicit space+return starts a new line
                 lv_textarea_add_char(objects.message_input_area, CR_REPLACEMENT);
             } else {
                 THIS->handleAddMessage(txt);
@@ -1798,8 +1798,11 @@ void TFTView_320x240::ui_event_message_input(lv_event_t *e)
 void TFTView_320x240::handleMessageInput(lv_event_t *e)
 {
     const auto code = lv_event_get_code(e);
+    if (code == LV_EVENT_VALUE_CHANGED)
+        automaticPeriodSpace = false;
     if (code == LV_EVENT_DEFOCUSED || code == LV_EVENT_PRESSED || (code == LV_EVENT_KEY && lv_event_get_key(e) != ' ')) {
         spacePending = false;
+        automaticPeriodSpace = false;
         return;
     }
     if (code != LV_EVENT_INSERT)
@@ -1818,13 +1821,21 @@ void TFTView_320x240::handleMessageInput(lv_event_t *e)
     lv_obj_t *area = lv_event_get_target_obj(e);
     const uint32_t cursor = lv_textarea_get_cursor_pos(area);
     const char *text = lv_textarea_get_text(area);
+    const uint32_t maxLength = lv_textarea_get_max_length(area);
+    if (maxLength && lv_text_get_encoded_length(text) >= maxLength) {
+        spacePending = false;
+        return;
+    }
     uint32_t byte = lv_text_encoded_get_byte_id(text, cursor);
     if (spacePending && lv_tick_elaps(lastSpaceAt) <= 500 && cursor == lastSpaceCursor + 1 && byte && text[byte - 1] == ' ') {
         spacePending = false;
-        // Replace the preceding space, then let LVGL insert the period and
-        // trailing space. Cursor offsets remain character-based for UTF-8.
+        // Replace the preceding space and suppress the original insertion.
+        // Mark the generated space after nested VALUE_CHANGED events so Enter
+        // sends the message instead of invoking the explicit Space+Enter newline.
         lv_textarea_delete_char(area);
-        lv_textarea_set_insert_replace(area, ". ");
+        lv_textarea_add_text(area, ". ");
+        automaticPeriodSpace = true;
+        lv_textarea_set_insert_replace(area, "");
         return;
     }
 

@@ -43,9 +43,11 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 
 ## Message input
 
-On the shared landscape/portrait TFT view, **Settings > Input Control > Double-space period** enables a physical-keyboard shortcut: press Space twice within half a second after a word to insert a period and trailing space. The option defaults to off and applies only to message composition. Held keys, slow spaces and spaces after sentence punctuation retain their normal behavior. Select OK to save or Cancel to discard the selection.
+On the shared landscape/portrait TFT view, **Settings > Input Control > Double-space period** enables a physical-keyboard shortcut: press Space twice within half a second after a word to insert a period and trailing space. The option defaults to off and applies only to message composition. Held keys, slow spaces and spaces after sentence punctuation retain their normal behavior. Enter immediately after the shortcut sends the message; manually typed Space+Enter still starts a new line. Select OK to save or Cancel to discard the selection.
 
 The preference is stored locally in the internal filesystem at `/prefs/double-space-period` as one byte (`0` or `1`); it requires no SD card and does not change the Meshtastic configuration protocol. Missing or invalid data defaults to off. A failed save keeps the settings dialog open with an error. This local preference is not included in the existing device-profile backup.
+
+On devices with a physical text keyboard and encoder, opening a conversation shows the newest messages. Turn the encoder to scroll history while typing. Incoming messages preserve your position while reading older messages. Hold the encoder button to return to control navigation. The encoder button does not send drafts; the keyboard Enter behavior is unchanged.
 
 ## :pencil: TODOs
 
