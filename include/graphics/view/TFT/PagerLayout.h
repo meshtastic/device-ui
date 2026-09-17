@@ -56,7 +56,7 @@ inline void applyPagerLayout(uint32_t height)
     }
 
     // Keep all six 36-pixel navigation buttons visible without shrinking them.
-    lv_obj_set_style_pad_row(objects.button_panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(objects.button_panel, 0, LV_STATE_DEFAULT);
 
     // Fit first-run setup and its bottom-aligned OK/Cancel controls in the panel.
     lv_obj_set_y(objects.setup_panel, 0);
