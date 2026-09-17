@@ -483,6 +483,13 @@ void Themes::recolorImage(lv_obj_t *obj, bool enabled)
 
 void Themes::recolorText(lv_obj_t *obj, bool enabled)
 {
+#if defined(T_LORA_PAGER)
+    // Home rows share Nodes' text styling; inactive statuses still use gray.
+    if (enabled) {
+        lv_obj_remove_local_style_prop(obj, LV_STYLE_TEXT_COLOR, LV_PART_MAIN | LV_STATE_DEFAULT);
+        return;
+    }
+#endif
     lv_color_t color;
     switch (theme) {
     case eLight:
