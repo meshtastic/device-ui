@@ -57,6 +57,8 @@ class TLoraPagerKeyboardInputDriver : public TCA8418KeyboardInputDriver
     TLoraPagerKeyboardInputDriver(uint8_t address);
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
+    // Keep software keyboard access available if hardware initialization failed.
+    virtual bool supportsTextInput(void) { return initialized; }
     virtual ~TLoraPagerKeyboardInputDriver(void) {}
 
   private:
