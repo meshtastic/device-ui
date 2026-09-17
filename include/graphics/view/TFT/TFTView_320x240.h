@@ -106,7 +106,11 @@ class TFTView_320x240 : public MeshtasticView
         eReset,
         eReboot,
         eDisplayMode,
-        eModifyChannel
+        eModifyChannel,
+#if defined(T_LORA_PAGER)
+        eGPS,
+        eMQTT,
+#endif
     };
 
   protected:
@@ -239,6 +243,28 @@ class TFTView_320x240 : public MeshtasticView
     void setGroupFocus(lv_obj_t *panel);
     void setInputGroup(void);
     void setInputButtonLabel(void);
+#if defined(T_LORA_PAGER)
+    void createPagerToggleSettings(void);
+    void createPagerSettingsControls(void);
+    void beginPagerSettings(void);
+    void finishPagerSettings(void);
+    static void ui_event_PagerHomeSettings(lv_event_t *e);
+    static void ui_event_gps_button(lv_event_t *e);
+    static void ui_event_mqtt_button(lv_event_t *e);
+    static void ui_event_pager_settings_key(lv_event_t *e);
+    lv_obj_t *gpsSettingsButton = nullptr;
+    lv_obj_t *gpsSettingsLabel = nullptr;
+    lv_obj_t *pagerToggleSettingsPanel = nullptr;
+    lv_obj_t *pagerToggleSettingsTitle = nullptr;
+    lv_obj_t *pagerToggleSettingsDropdown = nullptr;
+    lv_obj_t *mqttSettingsButton = nullptr;
+    lv_obj_t *mqttSettingsLabel = nullptr;
+    lv_obj_t *wifiEnabledCheckbox = nullptr;
+    lv_obj_t *radioEnabledCheckbox = nullptr;
+    lv_obj_t *bannerEnabledCheckbox = nullptr;
+    lv_obj_t *settingsReturnRow = nullptr;
+    bool pagerSettingsSidebarDisabled = false;
+#endif
     void updateGroupChannel(uint8_t chId);
 
     void backup(uint32_t option);

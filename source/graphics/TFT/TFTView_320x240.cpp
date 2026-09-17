@@ -20,6 +20,9 @@
 #include "lvgl_private.h"
 #include "styles.h"
 #include "ui.h"
+#if defined(T_LORA_PAGER)
+#include "graphics/view/TFT/PagerDialogStyle.h"
+#endif
 #include "util/About.h"
 #include "util/FileLoader.h"
 #include "util/ILog.h"
@@ -563,6 +566,10 @@ void TFTView_320x240::apply_hotfix(void)
     // adapt screens to custom display resolution
     uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
+#if defined(T_LORA_PAGER)
+    createPagerToggleSettings();
+    createPagerSettingsControls();
+#endif
 
     // resize buttons on larger display (assuming 480x480)
     if (h > 320 && v > 320) {
@@ -753,11 +760,18 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.home_mail_button, this->ui_event_EnvelopeButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_nodes_button, this->ui_event_OnlineNodesButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_time_button, this->ui_event_TimeButton, LV_EVENT_CLICKED, NULL);
+#if defined(T_LORA_PAGER)
+    lv_obj_t *settingsRows[] = {objects.home_lora_button, objects.home_bell_button, objects.home_location_button,
+                                objects.home_wlan_button, objects.home_mqtt_button};
+    for (auto *row : settingsRows)
+        lv_obj_add_event_cb(row, ui_event_PagerHomeSettings, LV_EVENT_ALL, nullptr);
+#else
     lv_obj_add_event_cb(objects.home_lora_button, this->ui_event_LoRaButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_bell_button, this->ui_event_BellButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
+#endif
     lv_obj_add_event_cb(objects.home_sd_card_button, this->ui_event_SDCardButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.home_qr_button, this->ui_event_QrButton, LV_EVENT_CLICKED, NULL);
@@ -1753,6 +1767,208 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 
 // basic settings buttons
 
+#if defined(T_LORA_PAGER)
+void TFTView_320x240::createPagerToggleSettings(void)
+{
+    gpsSettingsButton = lv_button_create(objects.tab_page_basic_settings);
+    lv_obj_set_size(gpsSettingsButton, LV_PCT(95), 30);
+    add_style_settings_button_style(gpsSettingsButton);
+    lv_obj_set_style_shadow_width(gpsSettingsButton, 0, 0);
+    lv_obj_add_state(gpsSettingsButton, LV_STATE_DISABLED);
+    lv_obj_move_to_index(gpsSettingsButton, lv_obj_get_index(objects.basic_settings_wifi_button) + 1);
+    lv_obj_add_event_cb(gpsSettingsButton, ui_event_gps_button, LV_EVENT_CLICKED, nullptr);
+    gpsSettingsLabel = lv_label_create(gpsSettingsButton);
+    lv_obj_set_width(gpsSettingsLabel, LV_PCT(100));
+    lv_label_set_long_mode(gpsSettingsLabel, LV_LABEL_LONG_DOT);
+    lv_obj_center(gpsSettingsLabel);
+    lv_label_set_text(gpsSettingsLabel, _("GPS"));
+
+    pagerToggleSettingsPanel = lv_obj_create(lv_obj_get_parent(objects.settings_region_panel));
+    add_style_settings_panel_style(pagerToggleSettingsPanel);
+    lv_obj_set_size(pagerToggleSettingsPanel, 280, 180);
+    lv_obj_center(pagerToggleSettingsPanel);
+    lv_obj_set_style_pad_all(pagerToggleSettingsPanel, 12, 0);
+    lv_obj_set_style_border_width(pagerToggleSettingsPanel, 2, 0);
+    lv_obj_set_style_radius(pagerToggleSettingsPanel, 12, 0);
+    lv_obj_set_style_border_color(pagerToggleSettingsPanel, lv_color_hex(0x216ad8), 0);
+    lv_obj_set_style_bg_opa(pagerToggleSettingsPanel, LV_OPA_COVER, 0);
+    lv_obj_remove_flag(pagerToggleSettingsPanel, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(pagerToggleSettingsPanel, LV_OBJ_FLAG_HIDDEN);
+
+    auto *title = lv_label_create(pagerToggleSettingsPanel);
+    pagerToggleSettingsTitle = title;
+    lv_label_set_text(title, _("GPS"));
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 0);
+    pagerToggleSettingsDropdown = lv_dropdown_create(pagerToggleSettingsPanel);
+    lv_dropdown_set_options(pagerToggleSettingsDropdown, _("Disabled\nEnabled"));
+    lv_obj_set_size(pagerToggleSettingsDropdown, 190, 32);
+    lv_obj_align(pagerToggleSettingsDropdown, LV_ALIGN_TOP_MID, 0, 26);
+    lv_obj_add_event_cb(pagerToggleSettingsDropdown, ui_event_pager_settings_key, LV_EVENT_KEY, nullptr);
+    auto *note = lv_label_create(pagerToggleSettingsPanel);
+    lv_label_set_text(note, _("Changes restart the device."));
+    lv_obj_set_width(note, LV_PCT(100));
+    lv_obj_set_style_text_align(note, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(note, LV_ALIGN_TOP_MID, 0, 66);
+
+    const char *labels[] = {_("OK"), _("Cancel")};
+    for (uint32_t i = 0; i < 2; ++i) {
+        auto *button = lv_button_create(pagerToggleSettingsPanel);
+        lv_obj_set_size(button, 90, 32);
+        lv_obj_align(button, LV_ALIGN_BOTTOM_MID, i == 0 ? -50 : 50, 0);
+        lv_obj_set_style_bg_color(button, lv_color_hex(0x216ad8), 0);
+        lv_obj_set_style_shadow_width(button, 0, 0);
+        lv_obj_set_style_radius(button, 7, 0);
+        stylePagerDialogButtonFocus(button);
+        lv_obj_add_event_cb(button, i == 0 ? ui_event_ok : ui_event_cancel, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(button, ui_event_pager_settings_key, LV_EVENT_KEY, nullptr);
+        auto *label = lv_label_create(button);
+        lv_label_set_text(label, labels[i]);
+        lv_obj_center(label);
+    }
+}
+
+void TFTView_320x240::createPagerSettingsControls(void)
+{
+    // Extend the existing editors so Home and Settings expose the same controls.
+    auto addToggle = [](lv_obj_t *panel, const char *text) {
+        for (uint32_t i = 0; i < lv_obj_get_child_count(panel); ++i) {
+            auto *child = lv_obj_get_child(panel, i);
+            if (lv_obj_get_style_align(child, LV_PART_MAIN) == LV_ALIGN_BOTTOM_MID)
+                lv_obj_set_y(child, 0);
+            else
+                lv_obj_set_y(child, lv_obj_get_style_y(child, LV_PART_MAIN) + 28);
+        }
+        lv_obj_set_size(panel, 300, lv_obj_get_style_height(panel, LV_PART_MAIN) + 28);
+        lv_obj_center(panel);
+        auto *toggle = lv_checkbox_create(panel);
+        lv_checkbox_set_text(toggle, text);
+        lv_obj_align(toggle, LV_ALIGN_TOP_LEFT, 0, 0);
+        return toggle;
+    };
+    wifiEnabledCheckbox = addToggle(objects.settings_wifi_panel, _("Wi-Fi (changes restart device)"));
+    radioEnabledCheckbox = addToggle(objects.settings_modem_preset_panel, _("Radio transmission enabled"));
+    bannerEnabledCheckbox = addToggle(objects.settings_alert_buzzer_panel, _("Message banners"));
+    lv_label_set_text(lv_obj_get_child(objects.settings_alert_buzzer_panel, 0), _("Sound"));
+
+    mqttSettingsButton = lv_button_create(objects.tab_page_basic_settings);
+    lv_obj_set_size(mqttSettingsButton, LV_PCT(95), 30);
+    add_style_settings_button_style(mqttSettingsButton);
+    lv_obj_set_style_shadow_width(mqttSettingsButton, 0, 0);
+    lv_obj_add_state(mqttSettingsButton, LV_STATE_DISABLED);
+    lv_obj_move_to_index(mqttSettingsButton, lv_obj_get_index(gpsSettingsButton) + 1);
+    lv_obj_add_event_cb(mqttSettingsButton, ui_event_mqtt_button, LV_EVENT_CLICKED, nullptr);
+    mqttSettingsLabel = lv_label_create(mqttSettingsButton);
+    lv_obj_set_width(mqttSettingsLabel, LV_PCT(100));
+    lv_label_set_long_mode(mqttSettingsLabel, LV_LABEL_LONG_DOT);
+    lv_obj_center(mqttSettingsLabel);
+    lv_label_set_text(mqttSettingsLabel, _("MQTT"));
+
+    auto *group = lv_group_get_default();
+    for (uint32_t i = 0; group && i < lv_obj_get_child_count(objects.tab_page_basic_settings); ++i) {
+        auto *row = lv_obj_get_child(objects.tab_page_basic_settings, i);
+        if (lv_obj_get_group(row) == group) {
+            lv_group_remove_obj(row);
+            lv_group_add_obj(group, row);
+        }
+    }
+    lv_obj_t *panels[] = {objects.settings_wifi_panel, objects.settings_modem_preset_panel, objects.settings_alert_buzzer_panel};
+    for (auto *panel : panels) {
+        lv_obj_tree_walk(
+            panel,
+            [](lv_obj_t *obj, void *) {
+                lv_obj_add_event_cb(obj, ui_event_pager_settings_key, LV_EVENT_KEY, nullptr);
+                return LV_OBJ_TREE_WALK_NEXT;
+            },
+            nullptr);
+    }
+}
+
+void TFTView_320x240::ui_event_PagerHomeSettings(lv_event_t *e)
+{
+    auto code = lv_event_get_code(e);
+    if ((code != LV_EVENT_SHORT_CLICKED && code != LV_EVENT_LONG_PRESSED) || THIS->activeSettings != eNone ||
+        !THIS->configComplete)
+        return;
+    if (code == LV_EVENT_LONG_PRESSED && lv_indev_active())
+        lv_indev_wait_release(lv_indev_active());
+    auto *row = lv_event_get_target_obj(e);
+    lv_event_t open = {.code = LV_EVENT_CLICKED};
+    if (row == objects.home_location_button)
+        ui_event_gps_button(&open);
+    else if (row == objects.home_wlan_button)
+        ui_event_wifi_button(&open);
+    else if (row == objects.home_lora_button)
+        ui_event_preset_button(&open);
+    else if (row == objects.home_bell_button)
+        ui_event_alert_button(&open);
+    else if (row == objects.home_mqtt_button)
+        ui_event_mqtt_button(&open);
+    if (THIS->activeSettings != eNone) {
+        THIS->settingsReturnRow = row;
+        THIS->disablePanel(objects.home_panel);
+    }
+}
+
+void TFTView_320x240::beginPagerSettings(void)
+{
+    disablePanel(objects.button_panel);
+    pagerSettingsSidebarDisabled = true;
+}
+
+void TFTView_320x240::finishPagerSettings(void)
+{
+    if (pagerSettingsSidebarDisabled) {
+        enablePanel(objects.button_panel);
+        pagerSettingsSidebarDisabled = false;
+    }
+    if (!settingsReturnRow)
+        return;
+    enablePanel(objects.home_panel);
+    lv_group_focus_obj(settingsReturnRow);
+    settingsReturnRow = nullptr;
+}
+
+void TFTView_320x240::ui_event_mqtt_button(lv_event_t *e)
+{
+    if (THIS->activeSettings != eNone || !THIS->db.module_config.has_mqtt)
+        return;
+    lv_label_set_text(THIS->pagerToggleSettingsTitle, _("MQTT"));
+    lv_dropdown_set_selected(THIS->pagerToggleSettingsDropdown, THIS->db.module_config.mqtt.enabled ? 1 : 0);
+    lv_obj_remove_flag(THIS->pagerToggleSettingsPanel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(THIS->pagerToggleSettingsPanel);
+    THIS->disablePanel(objects.controller_panel);
+    THIS->disablePanel(objects.tab_page_basic_settings);
+    THIS->activeSettings = eMQTT;
+    THIS->beginPagerSettings();
+    lv_group_focus_obj(THIS->pagerToggleSettingsDropdown);
+}
+
+void TFTView_320x240::ui_event_gps_button(lv_event_t *e)
+{
+    if (THIS->activeSettings != eNone || !THIS->db.config.has_position)
+        return;
+    lv_label_set_text(THIS->pagerToggleSettingsTitle, _("GPS"));
+    lv_dropdown_set_selected(THIS->pagerToggleSettingsDropdown,
+                             THIS->db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED ? 1 : 0);
+    lv_obj_remove_flag(THIS->pagerToggleSettingsPanel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(THIS->pagerToggleSettingsPanel);
+    THIS->disablePanel(objects.controller_panel);
+    THIS->disablePanel(objects.tab_page_basic_settings);
+    THIS->activeSettings = eGPS;
+    THIS->beginPagerSettings();
+    lv_group_focus_obj(THIS->pagerToggleSettingsDropdown);
+}
+
+void TFTView_320x240::ui_event_pager_settings_key(lv_event_t *e)
+{
+    if (lv_event_get_key(e) == LV_KEY_ESC) {
+        lv_event_t cancel = {.code = LV_EVENT_CLICKED};
+        ui_event_cancel(&cancel);
+        lv_event_stop_processing(e);
+    }
+}
+#endif
+
 void TFTView_320x240::ui_event_user_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -1796,14 +2012,26 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
 void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
+#if defined(T_LORA_PAGER)
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_lora) {
+#else
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.lora.use_preset) {
+#endif
         THIS->activeSettings = eModemPreset;
+#if defined(T_LORA_PAGER)
+        THIS->beginPagerSettings();
+#endif
         lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->preset2val(THIS->db.config.lora.modem_preset));
 
         char buf[60];
         sprintf(buf, _("FrequencySlot: %d (%g MHz)"), THIS->db.config.lora.channel_num,
                 LoRaPresets::getRadioFreq(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset,
                                           THIS->db.config.lora.channel_num));
+#if defined(T_LORA_PAGER)
+        if (!THIS->db.config.lora.use_preset)
+            lv_snprintf(buf, sizeof(buf), _("Custom radio: %g MHz"),
+                        THIS->db.config.lora.override_frequency + THIS->db.config.lora.frequency_offset);
+#endif
         lv_label_set_text(objects.frequency_slot_label, buf);
 
         uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset);
@@ -1811,7 +2039,14 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
         lv_slider_set_value(objects.frequency_slot_slider, THIS->db.config.lora.channel_num, LV_ANIM_OFF);
 
         lv_obj_clear_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
+#if defined(T_LORA_PAGER)
+        lv_obj_set_state(THIS->radioEnabledCheckbox, LV_STATE_CHECKED, THIS->db.config.lora.tx_enabled);
+        lv_obj_set_state(objects.settings_modem_preset_dropdown, LV_STATE_DISABLED, !THIS->db.config.lora.use_preset);
+        lv_obj_set_state(objects.frequency_slot_slider, LV_STATE_DISABLED, !THIS->db.config.lora.use_preset);
+        lv_group_focus_obj(THIS->radioEnabledCheckbox);
+#else
         lv_group_focus_obj(objects.settings_modem_preset_dropdown);
+#endif
         THIS->disablePanel(objects.controller_panel);
     }
 }
@@ -1823,10 +2058,18 @@ void TFTView_320x240::ui_event_wifi_button(lv_event_t *e)
         lv_textarea_set_text(objects.settings_wifi_ssid_textarea, THIS->db.config.network.wifi_ssid);
         lv_textarea_set_text(objects.settings_wifi_password_textarea, THIS->db.config.network.wifi_psk);
         lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+#if defined(T_LORA_PAGER)
+        lv_obj_set_state(THIS->wifiEnabledCheckbox, LV_STATE_CHECKED, THIS->db.config.network.wifi_enabled);
+        lv_group_focus_obj(THIS->wifiEnabledCheckbox);
+#else
         lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
+#endif
         THIS->disablePanel(objects.controller_panel);
         THIS->disablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eWifi;
+#if defined(T_LORA_PAGER)
+        THIS->beginPagerSettings();
+#endif
     }
 }
 
@@ -2020,12 +2263,21 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
             }
         }
 
+#if defined(T_LORA_PAGER)
+        lv_obj_set_state(THIS->bannerEnabledCheckbox, LV_STATE_CHECKED, THIS->db.uiConfig.alert_enabled);
+        lv_dropdown_set_selected(objects.settings_ringtone_dropdown,
+                                 THIS->db.uiConfig.ring_tone_id ? THIS->db.uiConfig.ring_tone_id - 1 : 0);
+#else
         lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.uiConfig.ring_tone_id - 1);
+#endif
         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_alert_buzzer_switch);
         THIS->disablePanel(objects.controller_panel);
         THIS->disablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eAlertBuzzer;
+#if defined(T_LORA_PAGER)
+        THIS->beginPagerSettings();
+#endif
     }
 }
 
@@ -4222,13 +4474,30 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->val2preset(lv_dropdown_get_selected(objects.settings_modem_preset_dropdown));
             meshtastic_Channel &ch = THIS->db.channel[0];
             uint16_t channelNum = lv_slider_get_value(objects.frequency_slot_slider);
+#if defined(T_LORA_PAGER)
+            bool txEnabled = lv_obj_has_state(THIS->radioEnabledCheckbox, LV_STATE_CHECKED);
+            if (!lora.use_preset) {
+                preset = lora.modem_preset;
+                channelNum = lora.channel_num;
+            }
+            if (preset != lora.modem_preset || lora.channel_num != channelNum || txEnabled != lora.tx_enabled) {
+#else
             if (preset != lora.modem_preset || lora.channel_num != channelNum) {
+#endif
                 char buf1[20], buf2[32];
                 lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
+#if defined(T_LORA_PAGER)
+                if (!lora.use_preset)
+                    lv_snprintf(buf1, sizeof(buf1), "%s", _("custom"));
+#endif
                 lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
                 lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
+#if defined(T_LORA_PAGER)
+                lora.tx_enabled = txEnabled;
+#else
                 lora.use_preset = true;
+#endif
                 lora.modem_preset = preset;
                 lora.channel_num = channelNum;
                 THIS->setChannelName(ch);
@@ -4257,18 +4526,70 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             delete[] THIS->channel_scratch;
             break;
         }
+#if defined(T_LORA_PAGER)
+        case eMQTT: {
+            auto &mqtt = THIS->db.module_config.mqtt;
+            bool enabled = lv_dropdown_get_selected(THIS->pagerToggleSettingsDropdown) == 1;
+            if (enabled != mqtt.enabled) {
+                mqtt.enabled = enabled;
+                THIS->updateMQTTModule(mqtt);
+                THIS->controller->sendConfig(meshtastic_ModuleConfig_MQTTConfig{mqtt}, THIS->ownNode);
+                THIS->notifyReboot(true);
+            }
+            lv_dropdown_close(THIS->pagerToggleSettingsDropdown);
+            lv_obj_add_flag(THIS->pagerToggleSettingsPanel, LV_OBJ_FLAG_HIDDEN);
+            THIS->enablePanel(objects.tab_page_basic_settings);
+            lv_group_focus_obj(THIS->mqttSettingsButton);
+            break;
+        }
+        case eGPS: {
+            auto &position = THIS->db.config.position;
+            bool enabled = lv_dropdown_get_selected(THIS->pagerToggleSettingsDropdown) == 1;
+            if (enabled != (position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED)) {
+                position.gps_mode = enabled ? meshtastic_Config_PositionConfig_GpsMode_ENABLED
+                                            : meshtastic_Config_PositionConfig_GpsMode_DISABLED;
+                THIS->updatePositionConfig(position);
+                THIS->controller->sendConfig(meshtastic_Config_PositionConfig{position}, THIS->ownNode);
+                THIS->notifyReboot(true);
+            }
+            lv_dropdown_close(THIS->pagerToggleSettingsDropdown);
+            lv_obj_add_flag(THIS->pagerToggleSettingsPanel, LV_OBJ_FLAG_HIDDEN);
+            THIS->enablePanel(objects.tab_page_basic_settings);
+            lv_group_focus_obj(THIS->gpsSettingsButton);
+            break;
+        }
+#endif
         case eWifi: {
             char buf[30];
             const char *ssid = lv_textarea_get_text(objects.settings_wifi_ssid_textarea);
             const char *psk = lv_textarea_get_text(objects.settings_wifi_password_textarea);
+#if defined(T_LORA_PAGER)
+            bool enabled = lv_obj_has_state(THIS->wifiEnabledCheckbox, LV_STATE_CHECKED);
+            if (enabled && strlen(ssid) == 0) {
+                lv_textarea_set_placeholder_text(objects.settings_wifi_ssid_textarea, _("Network name required"));
+                lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
+                return;
+            }
+#else
             if (strlen(ssid) == 0 || strlen(psk) == 0)
                 return;
+#endif
             lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), ssid[0] ? ssid : _("<not set>"));
             lv_label_set_text(objects.basic_settings_wifi_label, buf);
-            if (strcmp(THIS->db.config.network.wifi_ssid, ssid) != 0 || strcmp(THIS->db.config.network.wifi_psk, psk) != 0) {
+            bool changed =
+                strcmp(THIS->db.config.network.wifi_ssid, ssid) != 0 || strcmp(THIS->db.config.network.wifi_psk, psk) != 0;
+#if defined(T_LORA_PAGER)
+            changed = changed || enabled != THIS->db.config.network.wifi_enabled;
+#endif
+            if (changed) {
                 strcpy(THIS->db.config.network.wifi_ssid, ssid);
                 strcpy(THIS->db.config.network.wifi_psk, psk);
+#if defined(T_LORA_PAGER)
+                THIS->db.config.network.wifi_enabled = enabled;
+                THIS->updateNetworkConfig(THIS->db.config.network);
+#else
                 THIS->db.config.network.wifi_enabled = true;
+#endif
                 THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{THIS->db.config.network}, THIS->ownNode);
                 THIS->notifyReboot(true);
             }
@@ -4400,6 +4721,9 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 
             bool silent = false;
             bool alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
+#if defined(T_LORA_PAGER)
+            silent = !alert_message;
+#endif
             if ((!config.enabled || !config.alert_message_buzzer) && alert_message) {
                 if (!config.enabled || !config.alert_message_buzzer || !config.use_pwm || !config.use_i2s_as_buzzer) {
                     config.enabled = true;
@@ -4420,7 +4744,11 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             THIS->controller->sendConfig(ringtone[silent ? 0 : tone].rtttl, THIS->ownNode);
             THIS->db.uiConfig.ring_tone_id = tone;
             THIS->db.silent = silent;
+#if defined(T_LORA_PAGER)
+            THIS->db.uiConfig.alert_enabled = lv_obj_has_state(THIS->bannerEnabledCheckbox, LV_STATE_CHECKED);
+#else
             THIS->db.uiConfig.alert_enabled = !silent;
+#endif
             THIS->setBellText(THIS->db.uiConfig.alert_enabled, !silent);
             THIS->controller->storeUIConfig(THIS->db.uiConfig);
 
@@ -4512,6 +4840,9 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         THIS->enablePanel(objects.controller_panel);
         THIS->enablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eNone;
+#if defined(T_LORA_PAGER)
+        THIS->finishPagerSettings();
+#endif
     }
 }
 
@@ -4557,10 +4888,30 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
             lv_group_focus_obj(objects.basic_settings_channel_button);
             break;
         }
+#if defined(T_LORA_PAGER)
+        case eMQTT: {
+            lv_dropdown_close(THIS->pagerToggleSettingsDropdown);
+            lv_obj_add_flag(THIS->pagerToggleSettingsPanel, LV_OBJ_FLAG_HIDDEN);
+            THIS->enablePanel(objects.tab_page_basic_settings);
+            lv_group_focus_obj(THIS->mqttSettingsButton);
+            break;
+        }
+        case eGPS: {
+            lv_dropdown_close(THIS->pagerToggleSettingsDropdown);
+            lv_obj_add_flag(THIS->pagerToggleSettingsPanel, LV_OBJ_FLAG_HIDDEN);
+            THIS->enablePanel(objects.tab_page_basic_settings);
+            lv_group_focus_obj(THIS->gpsSettingsButton);
+            break;
+        }
+#endif
         case TFTView_320x240::eWifi: {
             lv_obj_add_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
             THIS->enablePanel(objects.home_panel);
+#if defined(T_LORA_PAGER)
+            lv_group_focus_obj(objects.basic_settings_wifi_button);
+#else
             lv_group_focus_obj(objects.home_wlan_button);
+#endif
             break;
         }
         case TFTView_320x240::eLanguage: {
@@ -4631,6 +4982,9 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         THIS->enablePanel(objects.controller_panel);
         THIS->enablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eNone;
+#if defined(T_LORA_PAGER)
+        THIS->finishPagerSettings();
+#endif
     }
 }
 
@@ -5515,6 +5869,13 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
         lv_obj_add_flag(objects.home_ethernet_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.home_ethernet_button, LV_OBJ_FLAG_HIDDEN);
     }
+#if defined(T_LORA_PAGER)
+    // Re-render configuration state and connection details together.
+    if (db.config.has_network)
+        updateNetworkConfig(db.config.network);
+    if (db.module_config.has_mqtt)
+        updateMQTTModule(db.module_config.mqtt);
+#endif
 }
 
 // ResponseHandler callbacks
@@ -6242,6 +6603,14 @@ void TFTView_320x240::updatePositionConfig(const meshtastic_Config_PositionConfi
 {
     db.config.position = cfg;
     db.config.has_position = true;
+#if defined(T_LORA_PAGER)
+    if (gpsSettingsLabel) {
+        lv_label_set_text_fmt(gpsSettingsLabel, _("GPS: %s"),
+                              cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED ? _("Enabled") : _("Disabled"));
+        if (activeSettings == eNone)
+            lv_obj_remove_state(gpsSettingsButton, LV_STATE_DISABLED);
+    }
+#endif
     if (cfg.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
         if (cfg.fixed_position && db.uiConfig.map_data.has_home) {
             updatePosition(ownNode, db.uiConfig.map_data.home.latitude, db.uiConfig.map_data.home.longitude, 0, 0, 0);
@@ -6266,6 +6635,27 @@ void TFTView_320x240::updateNetworkConfig(const meshtastic_Config_NetworkConfig 
     char buf[40];
     lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), cfg.wifi_ssid[0] ? cfg.wifi_ssid : _("<not set>"));
     lv_label_set_text(objects.basic_settings_wifi_label, buf);
+#if defined(T_LORA_PAGER)
+    const auto &wifi = db.connectionStatus.wifi;
+    const bool hasStatus = db.connectionStatus.has_wifi && wifi.has_status;
+    const bool connected = cfg.wifi_enabled && hasStatus && wifi.status.is_connected;
+    const char *state = !cfg.wifi_enabled ? _("Off")
+                        : connected       ? _("On, connected")
+                        : hasStatus       ? _("On, disconnected")
+                                          : _("On");
+    const char *ssid = cfg.wifi_ssid[0] ? cfg.wifi_ssid : _("Not configured");
+    if (connected) {
+        uint32_t ip = wifi.status.ip_address;
+        lv_label_set_text_fmt(objects.home_wlan_label, _("Wi-Fi: %s\n%s\n%u.%u.%u.%u"), state, ssid, ip & 0xff, (ip >> 8) & 0xff,
+                              (ip >> 16) & 0xff, (ip >> 24) & 0xff);
+    } else {
+        lv_label_set_text_fmt(objects.home_wlan_label, _("Wi-Fi: %s\n%s"), state, ssid);
+    }
+    Themes::recolorButton(objects.home_wlan_button, cfg.wifi_enabled);
+    Themes::recolorText(objects.home_wlan_label, cfg.wifi_enabled);
+    lv_obj_set_style_bg_image_src(objects.home_wlan_button, connected ? &img_home_wlan_button_image : &img_home_wlan_off_image,
+                                  0);
+#endif
 }
 
 void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg)
@@ -6333,10 +6723,18 @@ void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
     } else {
         float frequency = cfg.override_frequency + cfg.frequency_offset;
         sprintf(loraFreq, "LoRa %g MHz\n[%d kHz]", frequency, cfg.bandwidth);
+#if defined(T_LORA_PAGER)
+        lv_obj_remove_state(objects.basic_settings_modem_preset_button, LV_STATE_DISABLED);
+#else
         lv_obj_add_state(objects.basic_settings_modem_preset_button, LV_STATE_DISABLED);
+#endif
     }
 
+#if defined(T_LORA_PAGER)
+    lv_label_set_text_fmt(objects.home_lora_label, _("LoRa TX: %s\n%s"), cfg.tx_enabled ? _("On") : _("Off"), loraFreq);
+#else
     lv_label_set_text(objects.home_lora_label, loraFreq);
+#endif
     Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
     Themes::recolorText(objects.home_lora_label, cfg.tx_enabled);
     if (!cfg.tx_enabled) {
@@ -6348,6 +6746,10 @@ void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
 
 void TFTView_320x240::setBellText(bool banner, bool sound)
 {
+#if defined(T_LORA_PAGER)
+    const char *mode = banner && sound ? _("Banner & Sound") : banner ? _("Banner only") : sound ? _("Sound only") : _("Off");
+    lv_label_set_text_fmt(objects.home_bell_label, _("Alerts: %s"), mode);
+#else
     if (banner && sound) {
         lv_label_set_text(objects.home_bell_label, _("Banner & Sound"));
     } else if (banner) {
@@ -6357,6 +6759,7 @@ void TFTView_320x240::setBellText(bool banner, bool sound)
     } else {
         lv_label_set_text(objects.home_bell_label, _("silent"));
     }
+#endif
 
     char buf[40];
     lv_snprintf(buf, sizeof(buf), _("Message Alert: %s"),
@@ -6586,6 +6989,26 @@ void TFTView_320x240::updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig 
     db.module_config.mqtt = cfg;
     db.module_config.has_mqtt = true;
 
+#if defined(T_LORA_PAGER)
+    const auto &status = db.connectionStatus;
+    const bool hasWifiStatus = status.has_wifi && status.wifi.has_status;
+    const bool hasEthernetStatus = status.has_ethernet && status.ethernet.has_status;
+    const bool connected = cfg.enabled && ((hasWifiStatus && status.wifi.status.is_mqtt_connected) ||
+                                           (hasEthernetStatus && status.ethernet.status.is_mqtt_connected));
+    const char *state = !cfg.enabled                         ? _("Off")
+                        : connected                          ? _("On, connected")
+                        : cfg.proxy_to_client_enabled        ? _("On, client proxy")
+                        : hasWifiStatus || hasEthernetStatus ? _("On, disconnected")
+                                                             : _("On");
+    lv_label_set_text_fmt(objects.home_mqtt_label, _("MQTT: %s\n%s"), state, cfg.root);
+    Themes::recolorButton(objects.home_mqtt_button, cfg.enabled);
+    Themes::recolorText(objects.home_mqtt_label, cfg.enabled);
+    if (mqttSettingsLabel) {
+        lv_label_set_text_fmt(mqttSettingsLabel, _("MQTT: %s"), cfg.enabled ? _("Enabled") : _("Disabled"));
+        if (activeSettings == eNone)
+            lv_obj_remove_state(mqttSettingsButton, LV_STATE_DISABLED);
+    }
+#else
     char buf[32];
     lv_snprintf(buf, sizeof(buf), "%s", db.module_config.mqtt.root);
     lv_label_set_text(objects.home_mqtt_label, buf);
@@ -6594,6 +7017,7 @@ void TFTView_320x240::updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig 
         Themes::recolorButton(objects.home_mqtt_button, false);
         Themes::recolorText(objects.home_mqtt_label, false);
     }
+#endif
 }
 
 void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg)
