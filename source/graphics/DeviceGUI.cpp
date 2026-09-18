@@ -11,10 +11,17 @@ static I2CKeyboardInputDriver *keyboardDriver = nullptr;
 #if LV_USE_LIBINPUT
 #include "input/LinuxInputDriver.h"
 static LinuxInputDriver *linuxInputDriver = nullptr;
+#ifdef USE_X11
+#include "graphics/driver/X11Driver.h"
+#endif
 #else
 #if defined(INPUTDRIVER_ENCODER_TYPE)
 #include "input/EncoderInputDriver.h"
 static EncoderInputDriver *encoderDriver = nullptr;
+#endif
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+#include "input/RotaryInputDriver.h"
+static RotaryInputDriver *rotaryDriver = nullptr;
 #endif
 #if defined(INPUTDRIVER_MATRIX_TYPE)
 #include "input/KeyMatrixInputDriver.h"
@@ -41,6 +48,9 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     encoderDriver = new EncoderInputDriver;
 #endif
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+    rotaryDriver = new RotaryInputDriver;
+#endif
 #if defined(INPUTDRIVER_MATRIX_TYPE)
     keyMatrixDriver = new KeyMatrixInputDriver;
 #endif
@@ -48,8 +58,10 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
     buttonDriver = new ButtonInputDriver;
 #endif
 #endif
-    if (!inputdriver)
+    if (!inputdriver) {
+        ILOG_DEBUG("Create default InputDriver instance");
         inputdriver = InputDriver::instance();
+    }
 }
 
 void DeviceGUI::init(IClientBase *client)
@@ -63,12 +75,24 @@ void DeviceGUI::init(IClientBase *client)
     if (keyboardDriver)
         keyboardDriver->init();
 #if LV_USE_LIBINPUT
-    if (linuxInputDriver)
+    if (linuxInputDriver) {
         linuxInputDriver->init();
+#ifdef USE_X11
+        // check if X11 driver is valid, if so get the assigned X11 keyboard
+        if (X11Driver::isInitialized()) {
+            lv_indev_t *kbd = X11Driver::getKeyboard();
+            linuxInputDriver->setKeyboard(kbd);
+        }
+#endif
+    }
 #endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     if (encoderDriver)
         encoderDriver->init();
+#endif
+#if defined(INPUTDRIVER_ROTARY_TYPE)
+    if (rotaryDriver)
+        rotaryDriver->init();
 #endif
 #if defined(INPUTDRIVER_MATRIX_TYPE)
     if (keyMatrixDriver)
@@ -82,11 +106,6 @@ void DeviceGUI::init(IClientBase *client)
         inputdriver->init();
 
     displaydriver->printConfig();
-}
-
-void DeviceGUI::toggleDisplay(void)
-{
-    displaydriver->toggleDisplay();
 }
 
 /**

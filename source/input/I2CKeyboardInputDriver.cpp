@@ -81,7 +81,7 @@ TDeckKeyboardInputDriver::TDeckKeyboardInputDriver(uint8_t address)
 void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    uint8_t bytes = Wire.requestFrom(address, 1);
+    uint8_t bytes = Wire.requestFrom(address, (uint8_t)1);
     if (Wire.available() > 0 && bytes > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
@@ -103,46 +103,311 @@ void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
     data->key = (uint32_t)keyValue;
 }
 
+// ---------- TCA8418 Register Definitions ----------
+#define TCA8418_REG_CFG 0x01
+#define TCA8418_REG_INT_STAT 0x02
+#define TCA8418_REG_KEY_LCK_EC 0x03
+#define TCA8418_REG_KEY_EVENT_A 0x04
+#define TCA8418_REG_KP_GPIO_1 0x1D
+#define TCA8418_REG_KP_GPIO_2 0x1E
+#define TCA8418_REG_KP_GPIO_3 0x1F
+#define TCA8418_REG_GPIO_DIR_1 0x23
+#define TCA8418_REG_GPIO_DIR_2 0x24
+#define TCA8418_REG_GPIO_DIR_3 0x25
+#define TCA8418_REG_GPI_EM_1 0x20
+#define TCA8418_REG_GPI_EM_2 0x21
+#define TCA8418_REG_GPI_EM_3 0x22
+#define TCA8418_REG_GPIO_INT_LVL_1 0x26
+#define TCA8418_REG_GPIO_INT_LVL_2 0x27
+#define TCA8418_REG_GPIO_INT_LVL_3 0x28
+#define TCA8418_REG_GPIO_INT_EN_1 0x1A
+#define TCA8418_REG_GPIO_INT_EN_2 0x1B
+#define TCA8418_REG_GPIO_INT_EN_3 0x1C
+#define TCA8418_REG_DEBOUNCE_DIS_1 0x29
+#define TCA8418_REG_DEBOUNCE_DIS_2 0x2A
+#define TCA8418_REG_DEBOUNCE_DIS_3 0x2B
+
+// Helper to write a register
+static void tca8418WriteReg(uint8_t address, uint8_t reg, uint8_t value)
+{
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    Wire.write(value);
+    Wire.endTransmission();
+}
+
+// Helper to read a register
+static uint8_t tca8418ReadReg(uint8_t address, uint8_t reg)
+{
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    Wire.endTransmission();
+    Wire.requestFrom(address, (uint8_t)1);
+    if (Wire.available()) {
+        return Wire.read();
+    }
+    return 0;
+}
+
 // ---------- TCA8418KeyboardInputDriver Implementation ----------
+
+static uint8_t tca8418Address = 0x34;
 
 TCA8418KeyboardInputDriver::TCA8418KeyboardInputDriver(uint8_t address)
 {
+    tca8418Address = address;
     registerI2CKeyboard(this, "TCA8418 Keyboard", address);
 }
 
 void TCA8418KeyboardInputDriver::init(void)
 {
-    // Additional initialization for TCA8418 if needed
     I2CKeyboardInputDriver::init();
+
+    // Initialize TCA8418 - set up keyboard matrix
+    ILOG_DEBUG("TCA8418 init at address 0x%02X", tca8418Address);
+
+    // Set all GPIO pins to input
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_DIR_1, 0x00);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_DIR_2, 0x00);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_DIR_3, 0x00);
+
+    // Add all pins to key events
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPI_EM_1, 0xFF);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPI_EM_2, 0xFF);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPI_EM_3, 0xFF);
+
+    // Set all pins to falling edge interrupts
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_INT_LVL_1, 0x00);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_INT_LVL_2, 0x00);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_INT_LVL_3, 0x00);
+
+    // Enable interrupts for all pins
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_INT_EN_1, 0xFF);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_INT_EN_2, 0xFF);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_GPIO_INT_EN_3, 0xFF);
+
+    // Enable debounce
+    tca8418WriteReg(tca8418Address, TCA8418_REG_DEBOUNCE_DIS_1, 0x00);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_DEBOUNCE_DIS_2, 0x00);
+    tca8418WriteReg(tca8418Address, TCA8418_REG_DEBOUNCE_DIS_3, 0x00);
+
+    // Flush any pending key events
+    while (tca8418ReadReg(tca8418Address, TCA8418_REG_KEY_EVENT_A) != 0) {
+        // Keep reading until FIFO is empty
+    }
+
+    // Clear interrupt status
+    tca8418WriteReg(tca8418Address, TCA8418_REG_INT_STAT, 0x03);
+
+    // Enable key event interrupt (critical for key FIFO to work)
+    uint8_t cfg = tca8418ReadReg(tca8418Address, TCA8418_REG_CFG);
+    cfg |= 0x01; // KE_IEN - Key events interrupt enable
+    tca8418WriteReg(tca8418Address, TCA8418_REG_CFG, cfg);
+
+    ILOG_INFO("TCA8418 keyboard initialized (CFG=0x%02X)", cfg);
 }
 
 void TCA8418KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    // TODO
-    char keyValue = 0;
     data->state = LV_INDEV_STATE_RELEASED;
-    data->key = (uint32_t)keyValue;
+    data->key = 0;
+
+    // Read key count from KEY_LCK_EC register (bits 0-3)
+    Wire.beginTransmission(address);
+    Wire.write(TCA8418_REG_KEY_LCK_EC);
+    Wire.endTransmission();
+    Wire.requestFrom(address, (uint8_t)1);
+    if (Wire.available()) {
+        uint8_t keyCount = Wire.read() & 0x0F;
+        if (keyCount > 0) {
+            // Read key event from FIFO
+            Wire.beginTransmission(address);
+            Wire.write(TCA8418_REG_KEY_EVENT_A);
+            Wire.endTransmission();
+            Wire.requestFrom(address, (uint8_t)1);
+            if (Wire.available()) {
+                uint8_t keyEvent = Wire.read();
+                uint8_t keyCode = keyEvent & 0x7F;
+                bool pressed = (keyEvent & 0x80) != 0;
+
+                if (pressed && keyCode > 0) {
+                    data->state = LV_INDEV_STATE_PRESSED;
+                    data->key = keyCode; // Will be mapped by subclass
+                    ILOG_DEBUG("TCA8418 key event: code=%d pressed=%d", keyCode, pressed);
+                }
+            }
+        }
+    }
 }
 
 // ---------- TLoraPagerKeyboardInputDriver Implementation ----------
 
-TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address) : TCA8418KeyboardInputDriver(address)
+TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address)
+    : TCA8418KeyboardInputDriver(address), address(address)
 {
-    registerI2CKeyboard(this, "TLora Pager Keyboard", address);
 }
 
 void TLoraPagerKeyboardInputDriver::init(void)
 {
-    // Additional initialization for TLora-Pager if needed
-    TCA8418KeyboardInputDriver::init();
+    I2CKeyboardInputDriver::init();
+    resetKeys();
+    backlight = 0;
+
+    // Four rows and ten columns; unused GPIOs must not produce keyboard events.
+    const uint8_t setup[][2] = {{0x01, 0x00}, {0x1A, 0x00}, {0x1B, 0x00}, {0x1C, 0x00}, {0x1D, 0x0F}, {0x1E, 0xFF},
+                                {0x1F, 0x03}, {0x20, 0x00}, {0x21, 0x00}, {0x22, 0x00}, {0x23, 0x00}, {0x24, 0x00},
+                                {0x25, 0x00}, {0x29, 0x00}, {0x2A, 0x00}, {0x2B, 0x00}};
+    initialized = true;
+    for (const auto &setting : setup) {
+        if (!writeRegister(setting[0], setting[1])) {
+            initialized = false;
+            break;
+        }
+    }
+    initialized = initialized && flushEvents() && writeRegister(0x01, 0x09);
+    if (!initialized)
+        ILOG_ERROR("Could not initialize T-LoRa Pager keyboard");
+
+#ifdef KB_BL_PIN
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcAttach(KB_BL_PIN, 1000, 8);
+    ledcWrite(KB_BL_PIN, 0);
+#else
+    ledcSetup(4, 1000, 8);
+    ledcAttachPin(KB_BL_PIN, 4);
+    ledcWrite(4, 0);
+#endif
+#endif
 }
 
 void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    // TODO
-    char keyValue = 0;
-    data->state = LV_INDEV_STATE_RELEASED;
-    data->key = (uint32_t)keyValue;
+    static constexpr uint8_t shiftKey = 29;
+    static constexpr uint8_t symKey = 21;
+    static constexpr uint8_t shift = 1;
+    static constexpr uint8_t sym = 2;
+    static const char letters[] = "qwertyuiopasdfghjkl\0\0zxcvbnm\0\0 ";
+    static const char symbols[] = "1234567890*/+-=:'\"@\0\0_$;?!,.\0\0\0";
+
+    data->continue_reading = false;
+    uint8_t event = pendingEvent;
+    pendingEvent = 0;
+    uint8_t status = 0;
+    if (!initialized || (!event && !readRegister(0x02, status))) {
+        resetKeys();
+    } else if (status & 0x08) {
+        // Overflow may have lost a release; discard the incomplete sequence.
+        flushEvents();
+        resetKeys();
+    } else if (event || readRegister(0x04, event)) {
+        if (event == 0) {
+            if (status & 0x01)
+                writeRegister(0x02, 0x01);
+        } else {
+            data->continue_reading = true;
+            uint8_t key = event & 0x7F;
+            bool pressed = event & 0x80;
+            if (key >= 1 && key <= 31) {
+                uint32_t bit = uint32_t(1) << (key - 1);
+                uint8_t modifier = key == shiftKey ? shift : (key == symKey ? sym : 0);
+                if (!pressed) {
+                    pressedKeys &= ~bit;
+                    heldModifiers &= ~modifier;
+                    if (key == activeKey)
+                        activeKey = 0;
+                } else if (!(pressedKeys & bit)) {
+                    if (modifier) {
+                        pressedKeys |= bit;
+                        heldModifiers |= modifier;
+                        latchedModifiers ^= modifier;
+                        modifierTime = millis();
+                    } else if (activeKey) {
+                        // LVGL needs a release between overlapping printable keys.
+                        activeKey = 0;
+                        pendingEvent = event;
+                    } else {
+                        pressedKeys |= bit;
+                        if (uint32_t(millis() - modifierTime) > 1500)
+                            latchedModifiers = 0;
+                        uint8_t modifiers = heldModifiers | latchedModifiers;
+                        latchedModifiers = 0;
+                        uint32_t value = (modifiers & sym) ? symbols[key - 1] : letters[key - 1];
+                        if (!(modifiers & sym) && (modifiers & shift) && value >= 'a' && value <= 'z')
+                            value -= 'a' - 'A';
+                        if (key == 20)
+                            value = (modifiers & sym) ? ((modifiers & shift) ? LV_KEY_PREV : LV_KEY_NEXT) : LV_KEY_ENTER;
+                        else if (key == 30)
+                            value = (modifiers & sym) ? LV_KEY_ESC : LV_KEY_BACKSPACE;
+                        else if (key == 31 && (modifiers & sym))
+                            toggleBacklight();
+                        if (value) {
+                            activeKey = key;
+                            keyValue = value;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        resetKeys();
+    }
+    data->state = activeKey ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+    data->key = keyValue;
+}
+
+bool TLoraPagerKeyboardInputDriver::readRegister(uint8_t reg, uint8_t &value)
+{
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    if (Wire.endTransmission(false) != 0 || Wire.requestFrom((int)address, 1) != 1 || !Wire.available())
+        return false;
+    value = Wire.read();
+    return true;
+}
+
+bool TLoraPagerKeyboardInputDriver::writeRegister(uint8_t reg, uint8_t value)
+{
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    Wire.write(value);
+    return Wire.endTransmission() == 0;
+}
+
+bool TLoraPagerKeyboardInputDriver::flushEvents(void)
+{
+    uint8_t event = 0;
+    for (unsigned i = 0; i < 10; ++i) {
+        if (!readRegister(0x04, event))
+            return false;
+        if (!event)
+            break;
+    }
+    for (uint8_t reg = 0x11; reg <= 0x13; ++reg) {
+        if (!readRegister(reg, event))
+            return false;
+    }
+    return writeRegister(0x02, 0x1F);
+}
+
+void TLoraPagerKeyboardInputDriver::resetKeys(void)
+{
+    pressedKeys = 0;
+    heldModifiers = 0;
+    latchedModifiers = 0;
+    activeKey = 0;
+    pendingEvent = 0;
+}
+
+void TLoraPagerKeyboardInputDriver::toggleBacklight(void)
+{
+    backlight = backlight == 0 ? 40 : (backlight == 40 ? 127 : 0);
+#ifdef KB_BL_PIN
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcWrite(KB_BL_PIN, backlight);
+#else
+    ledcWrite(4, backlight);
+#endif
+#endif
 }
 
 // ---------- TDeckProKeyboardInputDriver Implementation ----------
@@ -154,7 +419,7 @@ TDeckProKeyboardInputDriver::TDeckProKeyboardInputDriver(uint8_t address) : TCA8
 
 void TDeckProKeyboardInputDriver::init(void)
 {
-    // Additional initialization for TLora-Pager if needed
+    // additional initialization for TLora-Pager if needed
     TCA8418KeyboardInputDriver::init();
 }
 
@@ -176,13 +441,13 @@ BBQ10KeyboardInputDriver::BBQ10KeyboardInputDriver(uint8_t address)
 void BBQ10KeyboardInputDriver::init(void)
 {
     I2CKeyboardInputDriver::init();
-    // Additional initialization for BBQ10 if needed
+    // additional initialization for BBQ10 if needed
 }
 
 void BBQ10KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    uint8_t bytes = Wire.requestFrom(address, 1);
+    uint8_t bytes = Wire.requestFrom(address, (uint8_t)1);
     if (Wire.available() > 0 && bytes > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
@@ -206,7 +471,7 @@ void BBQ10KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
 
 // ---------- CardKBInputDriver Implementation ----------
 
-CardKBInputDriver::CardKBInputDriver(uint8_t address, TwoWire &wire_) : wire(wire_)
+CardKBInputDriver::CardKBInputDriver(uint8_t address)
 {
     registerI2CKeyboard(this, "Card Keyboard", address);
 }
@@ -214,9 +479,9 @@ CardKBInputDriver::CardKBInputDriver(uint8_t address, TwoWire &wire_) : wire(wir
 void CardKBInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
     char keyValue = 0;
-    wire.requestFrom(address, 1);
-    if (wire.available() > 0) {
-        keyValue = wire.read();
+    Wire.requestFrom(address, (uint8_t)1);
+    if (Wire.available() > 0) {
+        keyValue = Wire.read();
         // ignore empty reads and keycode 224 which causes internal issues
         if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
             data->state = LV_INDEV_STATE_PRESSED;

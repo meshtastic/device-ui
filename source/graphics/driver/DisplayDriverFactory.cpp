@@ -39,6 +39,9 @@
 #ifdef T_LORA_PAGER
 #include "graphics/LGFX/LGFX_T_LORA_PAGER.h"
 #endif
+#ifdef T_DISPLAY_S3_PRO
+#include "graphics/LGFX/LGFX_T_DISPLAY_S3_PRO.h"
+#endif
 #ifdef PICOMPUTER_S3
 #include "graphics/LGFX/LGFX_PICOMPUTER_S3.h"
 #endif
@@ -57,35 +60,23 @@
 #ifdef ESP32_2432S022
 #include "graphics/LGFX/LGFX_ESP2432S022.h"
 #endif
-#ifdef ESP32_NM_CYD_C5
-#include "graphics/LGFX/LGFX_ESP_NM_CYD_C5.h"
-#endif
 #ifdef ESP32_2432S028RV1
 #include "graphics/LGFX/LGFX_ESP2432S028RV1.h"
 #endif
 #ifdef ESP32_2432S028RV2
 #include "graphics/LGFX/LGFX_ESP2432S028RV2.h"
 #endif
-#ifdef JC4827W543C
-#include "graphics/LGFX/LGFX_JC4827W543C.h"
-#endif
 #ifdef WT32_SC01
 #include "graphics/LGFX/LGFX_WT_SC01PLUS.h"
 #endif
-#ifdef HELTEC_TRACKER
+#if defined(HELTEC_TRACKER) || defined(HELTEC_WIRELESS_TRACKER_V2)
 #include "graphics/LGFX/LGFX_HELTEC_TRACKER.h"
 #endif
 #ifdef HELTEC_VISION_MASTER_T190
 #include "graphics/LGFX/LGFX_VISION_MASTER_T190.h"
 #endif
-#ifdef SEEED_WIO_TRACKER_L2
-#include "graphics/LGFX/LGFX_WIO_TRACKER_L2.h"
-#endif
 #ifdef NODEMCU_32S
 #include "graphics/LGFX/LGFX_ESPILI9341XPT2046.h"
-#endif
-#if defined(HELTEC_V4_TFT) || defined(HELTEC_V4_R8_TFT)
-#include "graphics/LGFX/LGFX_HELTEC_V4_TFT.h"
 #endif
 #endif
 
@@ -126,7 +117,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #endif
 #if defined(USE_FRAMEBUFFER)
     if (cfg._device == DisplayDriverConfig::device_t::FB) {
-        return &FBDriver::create(cfg);
+        return &FBDriver::create(cfg.width(), cfg.height());
     }
 #endif
 #if defined(USE_X11)
@@ -150,6 +141,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(T_LORA_PAGER)
     case DisplayDriverConfig::device_t::TLORA_PAGER:
         return new LGFXDriver<LGFX_TLORA_PAGER>(cfg.width(), cfg.height());
+        break;
+#elif defined(T_DISPLAY_S3_PRO)
+    case DisplayDriverConfig::device_t::TDISPLAY_S3PRO:
+        return new LGFXDriver<LGFX_TDISPLAY_S3PRO>(cfg.width(), cfg.height());
         break;
 #elif defined(SENSECAP_INDICATOR)
     case DisplayDriverConfig::device_t::INDICATOR:
@@ -183,9 +178,9 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::ELECROW_ADV:
         return new LGFXDriver<LGFX_ELECROW70>(cfg.width(), cfg.height());
         break;
-#elif defined(HELTEC_TRACKER)
+#elif defined(HELTEC_TRACKER) || defined(HELTEC_WIRELESS_TRACKER_V2)
     case DisplayDriverConfig::device_t::HELTEC_TRACKER:
-        // return new LGFXDriver<LGFX_HELTEC_TRACKER>(cfg.width(), cfg.height());
+        return new LGFXDriver<LGFX_HELTEC_TRACKER>(cfg.width(), cfg.height());
         break;
 #elif defined(HELTEC_VISION_MASTER_T190)
     case DisplayDriverConfig::device_t::VISION_MASTER_T190:
@@ -195,10 +190,6 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::WT32_SC01_PLUS:
         return new LGFXDriver<LGFX_WT_SC01_PLUS>(cfg.width(), cfg.height());
         break;
-#elif defined(ESP32_NM_CYD_C5)
-    case DisplayDriverConfig::device_t::NM_CYD_C5:
-        return new LGFXDriver<LGFX_ESP_NM_CYD_C5>(cfg.width(), cfg.height());
-        break;
 #elif defined(ESP2432S028RV1)
     case DisplayDriverConfig::device_t::ESP2432S028RV1:
         return new LGFXDriver<LGFX_ESP2432S028RV1>(cfg.width(), cfg.height());
@@ -207,22 +198,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::ESP2432S028RV2:
         return new LGFXDriver<LGFX_ESP2432S028RV2>(cfg.width(), cfg.height());
         break;
-#elif defined(JC4827W543C)
-    case DisplayDriverConfig::device_t::ESPJC4827W543C:
-        return new LGFXDriver<LGFX_JC4827W543C>(cfg.width(), cfg.height());
-        break;
-#elif defined(HELTEC_V4_TFT) || defined(HELTEC_V4_R8_TFT)
-    case DisplayDriverConfig::device_t::HELTECV4_TFT:
-        return new LGFXDriver<LGFX_HELTEC_V4_TFT>(cfg.width(), cfg.height());
-        break;
-#elif defined(SEEED_WIO_TRACKER_L2)
-    case DisplayDriverConfig::device_t::WIO_TRACKER_L2:
-        return new LGFXDriver<LGFX_WIO_TRACKER_L2>(cfg.width(), cfg.height());
-        break;
 #endif
 #elif defined(USE_FRAMEBUFFER)
     case DisplayDriverConfig::device_t::FB:
-        return &FBDriver::create(cfg);
+        return &FBDriver::create(cfg.width(), cfg.height());
         break;
 #elif defined(USE_X11)
     case DisplayDriverConfig::device_t::X11:

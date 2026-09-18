@@ -71,23 +71,22 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
       - [x] Display sleep
       - [x] Heartbeat timer based on device input actions
     - [x] Localisation support
-      - [x] Danish translation
-      - [x] Dutch translation
-      - [x] Finnish translation
-      - [x] French translation
       - [x] German translation
-      - [x] Greek translation
-      - [x] Italian translation
-      - [x] Netherlands translation
+      - [x] Spanish translation
+      - [x] Portuguese translation
+      - [x] Swedish translation
       - [x] Norwegian translation
+      - [x] Finnish translation
       - [x] Polish translation
       - [x] Portuguese translation
-      - [x] Portuguese translation
+      - [x] Netherlands translation
+      - [x] Dutch translation
+      - [x] Italian translation
+      - [x] French translation
       - [x] Russian translation
       - [x] Slovenian translation
-      - [x] Spanish translation
-      - [x] Swedish translation
       - [x] Turkish translation
+      - [x] Greek translation
       - [x] Ukrainian translation
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
@@ -132,7 +131,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
     - [x] Map
       - [x] Tiles dynamic loading
         - [x] SD card
-        - [x] WLAN
+        - [ ] WLAN
       - [x] Pan & Zoom
       - [x] Node locations
       - [ ] Location precision
