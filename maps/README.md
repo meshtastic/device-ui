@@ -12,11 +12,11 @@ find maps -name "*.png" -exec mogrify -colors 256 -depth 8  +dither -define png:
 
 ## Installing
 
-Prepare a SDCard and format it with the SD formatting tool provided by [www.sdcard.org](https://www.sdcard.org/downloads/). Format the SD card as MBR (sometimes also called "msdos") partition table. Meshtastic UI supports both FAT32 and exFAT partitions, with exFAT being the recommended format.
+Prepare a SDCard and format it with the SD formatting tool provided by [www.sdcard.org](https://www.sdcard.org/downloads/).
 
 Unzip the contents of the zip file(s) into the SD card's root folder retaining the subfolder structure `/maps/<style>/z/x/y`.
 
-Insert the SD card into the MUI device. On MUI's home screen you can check if the card is detected properly: scroll down to the SD card icon, press the button and you'll find information about the total size, file system format, and used space of the SD card. If there is no SD card icon, the SD card is not available.
+Insert the SD card into the MUI device. On MUI's home screen you can check if the card is detected properly: scroll down to the SD card image, press the button and you'll find information about the total size, file system format, and used space of the SD card. 
 <br>Note: whenever you remove or insert the SD card you should press the button afterwards to get a consistent state.
 
 Pressing on the Map button in the main button bar will open the map panel and show the surrounding area of where you are positioned according your GPS, or near other nodes with position, or at your saved home position, or at a default location. In case you see only empty tiles which may be the case when you have not yet downloaded detailed map tiles for your location, zoom out to at least level 6 which will then load the tiles on your SD card.
@@ -27,10 +27,8 @@ Long pressing the Map button allows to choose between the map styles found on SD
 
 The map tiles are in .png format of size 256x256 pixel and zoom levels 1 - 20, where 1 represents the entire earth and 20 a mid-sized building.
 
-A web tool for convenient downloading of further map tiles, run by community member @zmiguel, can be found here: [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/).
-It provides automated downloading of MUI-compatible map tiles in 8-bit color, in both <ins>.zip</ins> and <ins>.pmtiles</ins> formats. It uses its own tile server with data from OpenStreetMap. Tiles are updated every week and cached for 1 week.
-
-This service is not affiliated with Meshtastic, and the tile server is not guaranteed to have 99% uptime. Pre-generated bundles for the most popular regions are also available for download on this tool indefinitely.
+A graphical tool for convenient downloading of further map tiles can be found here: [map-tile-downloader](https://github.com/mattdrum/map-tile-downloader)
+It provides an automated download of MUI compatible map tiles using map raster tile APIs from different configurable providers. With this downloader tool you can extent the existing map styles by further zoom levels or download your favorite map styles according your preference.
 
 Please read the instructions carefully and don't abuse the freely provided services.
 
@@ -41,56 +39,9 @@ Note: when choosing a region for downloading tiles you're advised to adapt the z
 If you like to check of how many tiles an area is composed of you can make use of this [Tile Calculator](https://tools.geofabrik.de/calc) provided by Geofabrik.
 <br>
 
-## Protomaps (.pmtiles)
-
-MUI >= 2.8.1 supports [protomaps](https://protomaps.com) [PMTiles](https://github.com/protomaps/PMTiles) png raster format, i.e. all downloaded .png raster tiles can be packed into a single PMTiles archive which is then put into the SD cards' styles folder with the exact same basename as the style directory itself, e.g. `maps/OSM/OSM.pmtiles`. Upon map style selection MUI will check for existence of such .pmtiles file and automatically load the required tiles from the archive. Tiles not found in the archive will be searched in the z/x/y directory and if that fails downloaded via [WiFi](#wifi-download) if connected. The PMTiles archive on SD card is read-only and downloaded fallback tiles are stored beside it in the tile directories 0-19.
-
-Note, that not all .pmtiles are automatically supported, e.g. those that contain .jpg or vector tiles format won't work with MUI.
-
-There are several ways to generate the protomaps .pmtiles format:
-
-1. Download xyz raster tiles in mbtiles format (e.g. using [QGIS](https://qgis.org) or [maptiler engine](https://www.maptiler.com/engine))
-   and convert the mbtiles archive to pmtiles using https://github.com/protomaps/go-pmtiles/releases :
-
-   ```bash
-   pmtiles convert style.mbtiles style.pmtiles
-   ```
-
-2. Convert your existing xyz tiles folder directly into pmtiles using [versaTiles](https://docs.versatiles.org/) .
-
-   - Linux
-     ```bash
-     curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
-     versatiles style-dir style.pmtiles
-     ```
-   - Windows
-     ```bash
-     irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
-     versatiles style-dir style.pmtiles
-     ```
-
-3. Download pre-generated .pmtiles bundles directly from [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/bundles) tool.
-
-Finally put the style.pmtiles archive into the _maps/style_ folder on SD card (note the matching style name here!). Don't forget to also drop a matching .url file into the same style folder if you want automatic WiFi map tile downloads of missing tiles.
-
-### Self-hosting Protomaps
-
-With the following command you can serve pmtiles in your network:
-
-```bash
-pmtiles serve .
-```
-
-This will provide access to all pmtiles in the current directory. The URL template to access e.g. _style.pmtiles_ is
-`http://host-ip:8080/style/{z}/{x}/{y}.png`.
-
-## WiFi Download
-
-If WiFi is enabled and an internet connection is present then map tiles that are not found on SD card are downloaded via the internet. To achieve this you have to provide your own [raster map style URL template](https://wiki.openstreetmap.org/wiki/Raster_tile_providers) either by entering it into the URL text field of the map options panel or by putting a tiles .url file into the style folder of the SD card. This file must contain a single line with the url template to download from. The link above gives you a choice of ~50 download URLs. Once an .url file is found in the style folder all successfully downloaded map tiles are also stored in the same style folder of the SD card. This also works in parallel with pmtiles, i.e. tiles not found in the pmtiles archive nor in the xyz folder structure are downloaded via the provided URL and stored back on SD card (note: the pmtiles archive is read-only and will not be touched).
-
 # Extra maps
 
-A small group of map tile enthusiasts (special thanks to @joyel24, @teddy1602 & @zmiguel) like to share their downloaded tiles. In this section you'll find torrents or direct links for downloading complete sets of map tiles of various zoom levels.
+A small group of map tile enthusiasts (special thanks to @joyel24 & @teddy1602) like to share their downloaded tiles. In this section you'll find torrents for downloading complete sets of map tiles of various zoom levels.
 
 ## France
 
@@ -98,18 +49,7 @@ Entire France Atlas style zoom 6 to 13: [Torrent Magnet Link](https://tinyurl.co
 <br>Entire France Outdoors style zoom 1 to 13: [Torrent Magnet Link](https://tinyurl.com/3xhpn7j7) ~3.9GB md5: c02b89e9d5d2c7d5b3d902e6429dd5c4
 
 ## Netherlands
-
 Entire Netherlands Standard style zoom 1 to 14 including Amsterdam until zoom 17: [Torrent Magnet Link](https://tinyurl.com/4vpuhd7n) ~956MB md5: 30ccf6484c99ae0b0765cff19acfc67e
-
-## United States of America
-
-Entire USA (all fifty states) standard OSM-style zoom 1 to 12, downloaded from OSM on 3/3/2026: [Torrent Magnet Link](https://tinyurl.com/339tcx45) ~1.4GB md5: 3e2b9c010949d35710be8bf62f838ecb5e07cff2
-
-## Oxed's Map tiles
-
-Multiple bundles available (World 0-9, EU 0-13, US 0-13, EU countries 0-15, US states 0-15) along with a self-checkout tool to download 8-bit optimized tiles for your selected area
-
-Bundles can be found [here](https://download.tiles.coalition.space/bundles) and the self-checkout map can be found [here](https://download.tiles.coalition.space)
 
 <br>Refer to [Credits and Attribution](#Credits-and-Attribution) for the origin of the provided map tiles.
 
@@ -118,15 +58,6 @@ Bundles can be found [here](https://download.tiles.coalition.space/bundles) and 
 `dir=<root_torrent_dir> ; find "$dir" -type f -exec md5sum {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | md5sum`
 
 <br>
-
-# Compatibility
-
-- 🟢 **Seeed Wio Tracker L2**: Confirmed to work with Fat32 formatted SD. Due to the SDIO bus driver exFat is not yet supported.
-- 🟢 **Elecrow ThinkNode M9**: Confirmed to work, except some functionality is not yet available via keypad.
-- 🟢 **LILYGO T-Deck**: Confirmed to work
-- 🟢 **CrowPanel Advance HMI**: Confirmed to work on 2.4", 2.8", and 3.5" models
-- 🟢 **Seeed SenseCAP Indicator**: The MicroSD card slot is physically not connected with the ESP32-S3 where the MUI is running. To access it it requires a [firmware download](https://github.com/meshtastic/indicator_rp2040/releases) and flashing to the RP2040 coprocessor.
-- 🟡/🟢 **Heltec V4 Kit**: The older version does not have a MicroSD card slot and the available PSRAM is just 2 MB. When WiFi is enabled then map tiles are downloaded via the internet and converted into grayscale tiles to lower the memory consumption. The 8MB PSRAM version has full colored map support.
 
 # Credits and Attribution
 

@@ -160,8 +160,8 @@
 
     #define LV_DRAW_SW_SUPPORT_RGB565        1
     #define LV_DRAW_SW_SUPPORT_RGB565A8      1
-    #define LV_DRAW_SW_SUPPORT_RGB888        0
-    #define LV_DRAW_SW_SUPPORT_XRGB8888      0
+    #define LV_DRAW_SW_SUPPORT_RGB888        1
+    #define LV_DRAW_SW_SUPPORT_XRGB8888      1
     #define LV_DRAW_SW_SUPPORT_ARGB8888      1
     #define LV_DRAW_SW_SUPPORT_L8            1
     #define LV_DRAW_SW_SUPPORT_AL88          1
@@ -378,7 +378,7 @@
 #endif
 
 /*Default cache size in bytes.
- *Used by image decoders such as `lv_png` to keep the decoded image in the memory.
+ *Used by image decoders such as `lv_lodepng` to keep the decoded image in the memory.
  *If size is not set to 0, the decoder will fail to decode when the cache is full.
  *If size is 0, the cache function is not enabled and the decoded mem will be released immediately after use.*/
 #ifndef LV_CACHE_DEF_SIZE
@@ -497,17 +497,17 @@
  *https://fonts.google.com/specimen/Montserrat*/
 #define LV_FONT_MONTSERRAT_8  0
 #define LV_FONT_MONTSERRAT_10 1
-#define LV_FONT_MONTSERRAT_12 0
+#define LV_FONT_MONTSERRAT_12 1 // only for T190
 #define LV_FONT_MONTSERRAT_14 0
 #define LV_FONT_MONTSERRAT_16 1 // used for keyboard only
 #define LV_FONT_MONTSERRAT_18 0
-#define LV_FONT_MONTSERRAT_20 0
+#define LV_FONT_MONTSERRAT_20 1 // only for T-Watch Ultra
 #define LV_FONT_MONTSERRAT_22 0
 #define LV_FONT_MONTSERRAT_24 0
 #define LV_FONT_MONTSERRAT_26 0
 #define LV_FONT_MONTSERRAT_28 0
 #define LV_FONT_MONTSERRAT_30 0
-#define LV_FONT_MONTSERRAT_32 0
+#define LV_FONT_MONTSERRAT_32 1 // only for T-Watch Ultra
 #define LV_FONT_MONTSERRAT_34 0
 #define LV_FONT_MONTSERRAT_36 0
 #define LV_FONT_MONTSERRAT_38 0
@@ -651,11 +651,11 @@
 
 #define LV_USE_LOTTIE     0  /*Requires: lv_canvas, thorvg */
 
-#define LV_USE_MENU       0
+#define LV_USE_MENU       1
 
 #define LV_USE_MSGBOX     0
 
-#define LV_USE_ROLLER     0   /*Requires: lv_label*/
+#define LV_USE_ROLLER     1   /*Requires: lv_label*/
 
 #define LV_USE_SCALE      0
 

@@ -15,7 +15,7 @@
 
 extern const uint8_t MT_MAGIC_0;
 
-UARTClient::UARTClient(const char *name) : SerialClient(name), isActive(false), _serial(nullptr) {}
+UARTClient::UARTClient(void) : SerialClient("uart"), isActive(false), _serial(nullptr) {}
 
 /**
  * @brief init serial interface
@@ -60,13 +60,13 @@ void UARTClient::init(void)
 bool UARTClient::connect(void)
 {
     if (clientStatus != eConnected) {
-        ILOG_DEBUG("serial client connecting...");
+        ILOG_DEBUG("UARTClient connecting...");
         setConnectionStatus(eConnecting, "Connecting...");
         time_t timeout = millis();
         while (!*_serial) {
             if ((millis() - timeout) > 5) {
                 setConnectionStatus(eError, "Connection failed!");
-                ILOG_WARN("serial client connection failed!");
+                ILOG_WARN("UARTClient connection failed!");
                 return false;
             }
         }
@@ -84,7 +84,7 @@ bool UARTClient::connect(void)
 
         if (isActive) {
             setConnectionStatus(eConnected, "Connected!");
-            ILOG_INFO("serial client connected! (skipped %d bytes)", skipped);
+            ILOG_INFO("UARTClient connected! (skipped %d bytes)", skipped);
         } else {
             // pretend to be connected and start sending data
             clientStatus = eConnected;
@@ -95,7 +95,7 @@ bool UARTClient::connect(void)
 
 bool UARTClient::disconnect(void)
 {
-    ILOG_DEBUG("serial client disconnecting...");
+    ILOG_DEBUG("UARTClient disconnecting...");
     isActive = false;
     setConnectionStatus(eDisconnected, "Disconnected");
     return SerialClient::disconnect();

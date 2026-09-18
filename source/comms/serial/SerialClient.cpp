@@ -2,19 +2,20 @@
 #include "comms/MeshEnvelope.h"
 #include "util/ILog.h"
 #include <time.h>
-#if defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifdef ARCH_ESP32
 #include "driver/uart.h"
 #include "esp_sleep.h"
 #include <assert.h>
 #endif
 
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #else
 #include <thread>
 #endif
+#include "Arduino.h"
 
 #ifndef SLEEP_TIME_IDLE
 #define SLEEP_TIME_IDLE 50 // ms
@@ -26,12 +27,8 @@
 SerialClient *SerialClient::instance = nullptr;
 
 SerialClient::SerialClient(const char *name)
-    : pb_size(0), notifyConnectionStatus(nullptr), connectionStatus(eDisconnected), clientStatus(eDisconnected),
-      connectionInfo(nullptr), shutdown(false), taskExited(true),
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
-      taskHandle(nullptr),
-#endif
-      threadName(name)
+    : pb_size(0), notifyConnectionStatus(nullptr), connectionStatus(eDisconnected),
+      clientStatus(eDisconnected), connectionInfo(nullptr), shutdown(false), threadName(name)
 {
     buffer = new uint8_t[PB_BUFSIZE + MT_HEADER_SIZE];
     instance = this;
@@ -40,20 +37,16 @@ SerialClient::SerialClient(const char *name)
 void SerialClient::init(void)
 {
     ILOG_TRACE("SerialClient::init() creating %s task", threadName);
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
-    taskExited = false;
-    if (xTaskCreateUniversal(task_loop, threadName, 8192, this, 1, &taskHandle, 0) != pdPASS) {
-        taskHandle = nullptr;
-        taskExited = true;
-    }
+#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
+    xTaskCreateUniversal(task_loop, threadName, 8192, NULL, 1, NULL, 0);
 #elif defined(ARCH_PORTDUINO)
-    taskThread = std::thread([this] {
+    new std::thread([] {
 #ifdef __APPLE__
-        pthread_setname_np(this->threadName);
+        pthread_setname_np(threadName);
 #else
-        pthread_setname_np(pthread_self(), this->threadName);
+        pthread_setname_np(pthread_self(), instance->threadName);
 #endif
-        task_loop(this);
+        instance->task_loop(nullptr);
     });
 #else
 // #error "unsupported architecture"
@@ -64,7 +57,7 @@ void SerialClient::init(void)
  * @brief Do light sleep, wake on pin GPIO (touch IRQ or button press)
  *
  * @param pin
- * @return true - wake reason was due to (button) pin GPIO
+ * @return true - wake reason was due to pin GPIO
  * @return false - other reason (received serial data)
  */
 bool SerialClient::sleep(int16_t pin)
@@ -107,21 +100,9 @@ bool SerialClient::sleep(int16_t pin)
         ILOG_ERROR("esp_light_sleep_start result %d", res);
     }
 
-    esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
-    ILOG_INFO("Exit light sleep cause: %d, gpio=%d", (int)cause, (int)digitalRead((uint8_t)pin));
-
-#ifdef BUTTON_PIN
-    gpio_wakeup_disable((gpio_num_t)pin);
-#endif
-#if defined(WAKE_ON_SERIAL)
-#if defined(USE_SERIAL0)
-    esp_sleep_disable_uart_wakeup(UART_NUM_0);
-#elif defined(USE_SERIAL1)
-    esp_sleep_disable_uart_wakeup(UART_NUM_1);
-#endif
-#endif
-
-    return cause == ESP_SLEEP_WAKEUP_GPIO;
+    // esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
+    // ILOG_INFO("Exit light sleep cause: %d, gpio=%d", cause, digitalRead((uint8_t)pin));
+    return digitalRead((uint8_t)pin) == 0;
 #else
     return false;
 #endif
@@ -164,7 +145,7 @@ bool SerialClient::isStandalone(void)
 bool SerialClient::send(meshtastic_ToRadio &&to)
 {
     static uint32_t id = 1;
-    ILOG_DEBUG("SerialClient::send() push packet %d to server", id);
+    ILOG_TRACE("SerialClient::send() push packet %d to server", id);
     queue.clientSend(DataPacket<meshtastic_ToRadio>(id++, to));
     return false;
 }
@@ -197,19 +178,6 @@ void SerialClient::task_handler(void)
 SerialClient::~SerialClient()
 {
     shutdown = true;
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
-    if (taskHandle != nullptr) {
-        while (!taskExited) {
-            vTaskDelay(pdMS_TO_TICKS(10));
-        }
-        taskHandle = nullptr;
-    }
-#endif
-#ifdef ARCH_PORTDUINO
-    if (taskThread.joinable()) {
-        taskThread.join();
-    }
-#endif
     delete[] buffer;
 };
 
@@ -263,34 +231,33 @@ void SerialClient::handleSendPacket(void)
  * @brief Sending and receiving packets to/from packet queue
  *
  */
-void SerialClient::task_loop(void *arg)
+void SerialClient::task_loop(void *)
 {
-    auto *client = static_cast<SerialClient *>(arg);
     delay(1000);
     ILOG_TRACE("SerialClient::task_loop running");
-    while (!client->shutdown) {
+    while (!instance->shutdown) {
         int sleep_time = SLEEP_TIME_IDLE;
-        size_t space_left = PB_BUFSIZE - client->pb_size;
-        if (client->clientStatus == eConnected) {
-            size_t bytes_read = client->receive(&client->buffer[client->pb_size], space_left);
+        size_t space_left = PB_BUFSIZE - instance->pb_size;
+        if (instance->clientStatus == eConnected) {
+            size_t bytes_read = instance->receive(&instance->buffer[instance->pb_size], space_left);
             if (bytes_read > 0) {
-                client->pb_size += bytes_read;
+                instance->pb_size += bytes_read;
                 size_t payload_len;
                 bool valid = false;
                 do {
-                    valid = MeshEnvelope::validate(client->buffer, client->pb_size, payload_len);
+                    valid = MeshEnvelope::validate(instance->buffer, instance->pb_size, payload_len);
                     if (valid) {
-                        client->handlePacketReceived();
-                        MeshEnvelope::invalidate(client->buffer, client->pb_size, payload_len);
+                        instance->handlePacketReceived();
+                        MeshEnvelope::invalidate(instance->buffer, instance->pb_size, payload_len);
                     }
-                } while (valid && client->pb_size > 0);
+                } while (valid && instance->pb_size > 0);
                 sleep_time = SLEEP_TIME_ACTIVE;
             }
         }
-        if (client->clientStatus == eConnected) {
+        if (instance->clientStatus == eConnected) {
             // send a packet if available
-            if (client->queue.clientQueueSize() > 0) {
-                client->handleSendPacket();
+            if (instance->queue.clientQueueSize() > 0) {
+                instance->handleSendPacket();
             }
         }
 #if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32)
@@ -299,8 +266,4 @@ void SerialClient::task_loop(void *arg)
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
 #endif
     }
-    client->taskExited = true;
-#if defined(HAS_FREE_RTOS) || defined(ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32)
-    vTaskDelete(nullptr);
-#endif
 }

@@ -26,10 +26,10 @@ class DisplayDriverConfig
         THMI,
         TDECK,
         TLORA_PAGER,
+        TDISPLAY_S3PRO,
         INDICATOR,
         BPICOMPUTER_S3,
         TWATCH_S3,
-        TWATCH_ULTRA,
         UNPHONE_V9,
         ELECROW_ADV,
         HELTEC_TRACKER,
@@ -37,12 +37,8 @@ class DisplayDriverConfig
         WT32_SC01_PLUS,
         ESP2432S028RV1,
         ESP2432S028RV2,
-        ESPJC4827W543C,
         ESP4848S040,
-        MAKERFABS480X480,
-        HELTECV4_TFT,
-        WIO_TRACKER_L2,
-        NM_CYD_C5
+        MAKERFABS480X480
     };
 
     struct panel_config_t {
@@ -173,7 +169,6 @@ class DisplayDriverConfig
   private:
     friend class DisplayDriverFactory;
     friend class LGFXConfig;
-    friend class FBDriver;
 
     enum device_t _device;
     panel_config_t _panel;

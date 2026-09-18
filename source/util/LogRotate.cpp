@@ -1,6 +1,5 @@
 #include "util/LogRotate.h"
 #include "util/ILog.h"
-#include "util/ISpiLock.h"
 #include <ctime>
 
 #define FILE_PREFIX "log_"
@@ -14,7 +13,6 @@ LogRotate::LogRotate(fs::FS &fs, const char *logDir, uint32_t maxLen, uint32_t m
 
 void LogRotate::init(void)
 {
-    ISpiLock::Guard bus;
     if (!_fs.exists(rootDirName)) {
         _fs.mkdir(rootDirName);
         ILOG_INFO("LogRotate: no log files found.");
@@ -51,7 +49,6 @@ void LogRotate::init(void)
 
 bool LogRotate::readNext(ILogEntry &entry)
 {
-    ISpiLock::Guard bus;
     if (!rootDir) {
         rootDir = _fs.open(rootDirName);
         if (!rootDir)
@@ -86,7 +83,6 @@ bool LogRotate::readNext(ILogEntry &entry)
 
 bool LogRotate::write(const ILogEntry &entry)
 {
-    ISpiLock::Guard bus;
     time_t start = millis();
     if (currentSize + entry.size() >= c_maxFileSize || totalSize + entry.size() >= c_maxSize) {
         // log rotation
@@ -118,7 +114,6 @@ bool LogRotate::write(const ILogEntry &entry)
  */
 bool LogRotate::clear(void)
 {
-    ISpiLock::Guard bus;
     time_t start = millis();
     File root = _fs.open(rootDirName);
 

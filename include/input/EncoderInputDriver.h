@@ -8,8 +8,11 @@ class EncoderInputDriver : public InputDriver
     EncoderInputDriver(void);
 
     virtual void init(void) override;
-    virtual ~EncoderInputDriver(void) {}
+    virtual ~EncoderInputDriver(void);
 
+#if defined(T_LORA_PAGER)
+    static void intRotaryHandler(void);
+#endif
     static void intPressHandler(void);
     static void intDownHandler(void);
     static void intUpHandler(void);
@@ -17,7 +20,15 @@ class EncoderInputDriver : public InputDriver
     static void intRightHandler(void);
 
   protected:
-    enum EncoderActionType { TB_ACTION_NONE, TB_ACTION_PRESSED, TB_ACTION_UP, TB_ACTION_DOWN, TB_ACTION_LEFT, TB_ACTION_RIGHT };
+    enum EncoderActionType {
+        TB_ACTION_NONE,
+        TB_ACTION_PRESSED,
+        TB_ACTION_UP,
+        TB_ACTION_DOWN,
+        TB_ACTION_LEFT,
+        TB_ACTION_RIGHT,
+        TB_ACTION_ESC
+    };
 
     static volatile EncoderActionType action;
 
