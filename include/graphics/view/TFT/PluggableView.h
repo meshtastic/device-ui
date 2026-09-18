@@ -30,6 +30,7 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void init(IClientBase *client) override;
     bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) override;
     void task_handler(void) override;
+    void updateLocalGPSStatus(const LocalGPSStatus &status) override;
 
     void setMyInfo(uint32_t nodeNum) override;
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node, const meshtastic_User &cfg) override;
@@ -174,4 +175,5 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     bool formatSD;                                        // offer to format SD card
     MapPanel *map = nullptr;                              // map
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
+    bool localGPSHasPosition = false;
 };

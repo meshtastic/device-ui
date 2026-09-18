@@ -35,3 +35,19 @@ size_t SharedQueue::clientQueueSize() const
 {
     return clientQueue.size();
 }
+
+void SharedQueue::setLocalGPSStatus(const LocalGPSStatus &status)
+{
+    std::lock_guard<std::mutex> lock(gpsMutex);
+    gpsStatus = status;
+    hasGPSStatus = true;
+}
+
+bool SharedQueue::getLocalGPSStatus(LocalGPSStatus &status) const
+{
+    std::lock_guard<std::mutex> lock(gpsMutex);
+    if (!hasGPSStatus)
+        return false;
+    status = gpsStatus;
+    return true;
+}

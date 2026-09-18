@@ -2,6 +2,7 @@
 
 #include "mesh-pb-constants.h"
 #include "stdint.h"
+#include "util/LocalGPSStatus.h"
 #include <functional>
 
 /**
@@ -27,6 +28,7 @@ class IClientBase
 
     virtual bool send(meshtastic_ToRadio &&to) = 0;
     virtual meshtastic_FromRadio receive(void) = 0;
+    virtual bool getLocalGPSStatus(LocalGPSStatus &status) { return false; }
     virtual ~IClientBase(){};
 
     virtual void task_handler(void){};

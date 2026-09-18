@@ -1,7 +1,9 @@
 #pragma once
 
+#include "LocalGPSStatus.h"
 #include "Packet.h"
 #include "PacketQueue.h"
+#include <mutex>
 
 /**
  * @brief Queue wrapper that aggregates two thread queues (namely client and server)
@@ -25,11 +27,18 @@ class SharedQueue
     virtual Packet::PacketPtr clientReceive();
     virtual size_t clientQueueSize() const;
 
+    void setLocalGPSStatus(const LocalGPSStatus &status);
+    bool getLocalGPSStatus(LocalGPSStatus &status) const;
+
   private:
     // the server pushes into serverQueue and the client pushes into clientQueue
     // receiving is done from the opposite queue, respectively
     PacketQueue<Packet> serverQueue;
     PacketQueue<Packet> clientQueue;
+    // Coalesce receiver updates instead of adding them to the packet backlog.
+    mutable std::mutex gpsMutex;
+    LocalGPSStatus gpsStatus;
+    bool hasGPSStatus = false;
 };
 
 extern SharedQueue *sharedQueue;

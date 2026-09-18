@@ -593,14 +593,8 @@ void PluggableView::updatePositionConfig(const meshtastic_Config_PositionConfig 
 {
     db.config.position = cfg;
     db.config.has_position = true;
-    if (cfg.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
-        if (cfg.fixed_position && db.uiConfig.map_data.has_home) {
-            updatePosition(ownNode, db.uiConfig.map_data.home.latitude, db.uiConfig.map_data.home.longitude, 0, 0, 0);
-        }
-        // grey out text to indicate it's a fixed position vs. actual GPS position
-        // Themes::recolorText(objects.home_location_label, !cfg.fixed_position);
-    }
-    // Themes::recolorButton(objects.home_location_button, cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
+    if (dashboard)
+        dashboard->updatePositionConfig(cfg);
 }
 
 void PluggableView::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
@@ -709,11 +703,12 @@ void PluggableView::updateDisplayConfig(const meshtastic_Config_DisplayConfig &c
 void PluggableView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision)
 {
     if (nodeNum == ownNode) {
-        if (dashboard)
+        const bool useReceiver = localGPSHasPosition && !db.config.position.fixed_position &&
+                                 db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+        if (dashboard && !useReceiver)
             dashboard->updatePosition(lat, lon, alt, sats, precision,
                                       db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC);
-
-        if (lat != 0 && lon != 0) {
+        if (!useReceiver && (lat != 0 || lon != 0)) {
             hasPosition = true;
             myLatitude = lat;
             myLongitude = lon;
@@ -768,6 +763,26 @@ void PluggableView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, i
 
     applyNodesFilter(nodeNum);
 #endif
+}
+
+void PluggableView::updateLocalGPSStatus(const LocalGPSStatus &status)
+{
+    localGPSHasPosition = status.hasPosition;
+    const bool useReceiver = status.hasPosition && !db.config.position.fixed_position &&
+                             db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+    if (dashboard) {
+        if (useReceiver)
+            dashboard->updatePosition(status.latitude_i, status.longitude_i, status.altitude, status.satellites, 0,
+                                      db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC);
+        dashboard->updateLocalGPSStatus(status);
+    }
+    if (useReceiver) {
+        hasPosition = true;
+        myLatitude = status.latitude_i;
+        myLongitude = status.longitude_i;
+        if (map)
+            map->setGpsPosition(myLatitude * 1e-7f, myLongitude * 1e-7f);
+    }
 }
 
 // TODO: move into NodesPlugin

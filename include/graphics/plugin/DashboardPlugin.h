@@ -4,6 +4,7 @@
 #include "meshtastic/clientonly.pb.h"
 #include "meshtastic/connection_status.pb.h"
 #include "meshtastic/mesh.pb.h"
+#include "util/LocalGPSStatus.h"
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -105,6 +106,8 @@ class DashboardPlugin : public GfxPlugin
     void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg);
     void updateSignalStrength(int32_t rssi, float snr);
     void updatePosition(int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision, bool metric);
+    void updateLocalGPSStatus(const LocalGPSStatus &status);
+    void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg);
     void updateSDCard(bool cardDetected, const char *info = nullptr);
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status);
     void updateFreeMem(uint32_t freeHeapBytes, uint32_t lvglFreeBytes);
@@ -118,6 +121,15 @@ class DashboardPlugin : public GfxPlugin
     void handleAction(Action actionId, WidgetIndex idx, int event_code) /*override*/;
 
   private:
+    void renderGPSStatus();
+
+    LocalGPSStatus gpsStatus{};
+    bool gpsStatusKnown = false;
+    bool gpsEnabled = false;
+    bool fixedPosition = false;
+    bool metricUnits = true;
+    uint32_t packetSatellites = 0;
+    std::string positionDetails;
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
 
