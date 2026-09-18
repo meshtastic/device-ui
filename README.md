@@ -43,6 +43,8 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 
 ## Message input
 
+Message bubbles show the message text and, for received group messages, the sender name on a separate line. Per-message dates and times are omitted from the display, including restored history. Message logs retain their timestamps and delivery indicators keep their existing behavior.
+
 On the shared landscape/portrait TFT view, **Settings > Input Control > Double-space period** enables a physical-keyboard shortcut: press Space twice within half a second after a word to insert a period and trailing space. The option defaults to off and applies only to message composition. Held keys, slow spaces and spaces after sentence punctuation retain their normal behavior. Enter immediately after the shortcut sends the message; manually typed Space+Enter still starts a new line. Select OK to save or Cancel to discard the selection.
 
 The preference is stored locally in the internal filesystem at `/prefs/double-space-period` as one byte (`0` or `1`); it requires no SD card and does not change the Meshtastic configuration protocol. Missing or invalid data defaults to off. A failed save keeps the settings dialog open with an error. This local preference is not included in the existing device-profile backup.
