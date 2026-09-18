@@ -52,3 +52,9 @@ bool PacketServer::available() const
     assert(queue);
     return queue->serverQueueSize() < max_packet_queue_size;
 }
+
+void PacketServer::setLocalGPSStatus(const LocalGPSStatus &status)
+{
+    assert(queue);
+    queue->setLocalGPSStatus(status);
+}

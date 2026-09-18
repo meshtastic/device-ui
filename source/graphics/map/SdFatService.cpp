@@ -82,6 +82,8 @@ bool SdFatService::load(const char *name, void *img)
         return false;
     }
 #else
+    size_t len = 0;
+    uint8_t *pngImage = nullptr;
     {
         ISpiLock::Guard bus;
 
@@ -92,14 +94,14 @@ bool SdFatService::load(const char *name, void *img)
             return false;
         }
 
-        size_t len = (size_t)file.size();
+        len = (size_t)file.size();
         if (len == 0) {
             ILOG_DEBUG("Tile %s is empty", name);
             file.close();
             return false;
         }
 
-        uint8_t *pngImage = (uint8_t *)lv_malloc(len);
+        pngImage = (uint8_t *)lv_malloc(len);
         if (!pngImage) {
             ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
             file.close();

@@ -1,6 +1,6 @@
 #include "graphics/map/PMTileService.h"
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SDCARD_SHARE_SPI) || defined(SENSECAP_INDICATOR)
 
 #include "util/Gunzip.h"
 #include "util/ILog.h"
@@ -85,12 +85,14 @@ void PMTileService::closeArchive(void)
 bool PMTileService::openArchive(void)
 {
     const char *style = MapTileSettings::getTileStyle();
-    if (openedStyle[0] && strcmp(openedStyle, style) == 0) {
+    const auto revision = MapTileSettings::getSourceRevision();
+    if (openedStyle[0] && openedRevision == revision && strcmp(openedStyle, style) == 0) {
         return archiveValid;
     }
     closeArchive();
     strncpy(openedStyle, style, sizeof(openedStyle) - 1);
     openedStyle[sizeof(openedStyle) - 1] = '\0';
+    openedRevision = revision;
 
     char fname[128];
     if (!archivePathForStyle(fname, sizeof(fname))) {

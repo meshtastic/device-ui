@@ -44,6 +44,32 @@ bool URLService::load(const char *name, void *img)
 
 lv_image_dsc_t *URLService::loadRaw(const char *name)
 {
+    return prepareLoad(name)();
+}
+
+ITileService::PreparedLoad URLService::prepareLoad(const char *name)
+{
+    const std::string filename = name ? name : "";
+    const bool cache = MapTileSettings::saveOK();
+    const bool color = MapTileSettings::color();
+    const uint32_t revision = MapTileSettings::getSourceRevision();
+    const uint32_t uniqueId = MapTileSettings::getUniqueId();
+    // Resolve on the UI task: a queued filename must never acquire the URL of a
+    // different provider selected while it waits for the worker.
+    const auto url = !cache && TileProvider::url() == "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                         ? std::string()
+                         : TileProvider::url(name);
+    return [this, filename, url, cache, color, revision, uniqueId]() {
+        return loadUrl(filename, url, cache, color, revision, uniqueId);
+    };
+}
+
+lv_image_dsc_t *URLService::loadUrl(const std::string &filename, const std::string &url, bool cache, bool color,
+                                  uint32_t sourceRevision, uint32_t uniqueId)
+{
+    const char *name = filename.c_str();
+    if (sourceRevision != MapTileSettings::getSourceRevision())
+        return nullptr;
     if (WiFi.status() != WL_CONNECTED) {
         ILOG_DEBUG("URLService::loadRaw skipped (WiFi not connected)");
         return nullptr;
@@ -55,7 +81,6 @@ lv_image_dsc_t *URLService::loadRaw(const char *name)
     esp_wifi_set_ps(WIFI_PS_NONE);
 #endif
 
-    std::string url = TileProvider::url(name);
     if (url.empty()) {
         return nullptr;
     }
@@ -74,7 +99,7 @@ lv_image_dsc_t *URLService::loadRaw(const char *name)
     http.setReuse(true);
 
     if (!http.begin(url.c_str())) {
-        ILOG_ERROR("ERROR begin %s", url.c_str());
+        ILOG_ERROR("ERROR begin tile %s", name);
         return nullptr;
     }
 
@@ -82,21 +107,21 @@ lv_image_dsc_t *URLService::loadRaw(const char *name)
     http.addHeader("Connection", "keep-alive");
     char userAgentBuf[128];
     snprintf(userAgentBuf, sizeof(userAgentBuf), "meshtastic/2.8 (ESP32; ID-%08X) contact@meshtastic.org",
-             MapTileSettings::getUniqueId());
+             uniqueId);
 
     http.setUserAgent(userAgentBuf);
     http.setTimeout(MUI_MAX_TLS_TIMEOUT);
 
     int httpCode = http.GET();
     if (httpCode != HTTP_CODE_OK) {
-        ILOG_ERROR("ERROR GET %s : %d", url.c_str(), httpCode);
+        ILOG_ERROR("ERROR GET tile %s : %d", name, httpCode);
         http.end();
         return nullptr;
     }
 
     int contentLen = http.getSize();
     if (contentLen <= 0) {
-        ILOG_WARN("GET %s : empty", url.c_str());
+        ILOG_WARN("GET tile %s : empty", name);
         http.end();
         return nullptr;
     }
@@ -104,7 +129,7 @@ lv_image_dsc_t *URLService::loadRaw(const char *name)
     len = (size_t)contentLen;
     pngImage = (uint8_t *)lv_malloc(len);
     if (!pngImage) {
-        ILOG_ERROR("lv_malloc failed for %s (%u bytes)", url.c_str(), (unsigned int)len);
+        ILOG_ERROR("lv_malloc failed for tile %s (%u bytes)", name, (unsigned int)len);
         http.end();
         return nullptr;
     }
@@ -144,22 +169,22 @@ lv_image_dsc_t *URLService::loadRaw(const char *name)
     }
 
     if (bytesRead != len) {
-        ILOG_ERROR("http read error %s : %u != %u", url.c_str(), (unsigned int)bytesRead, (unsigned int)len);
+        ILOG_ERROR("http read error for tile %s : %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
         http.end();
         return nullptr;
     }
 
-    ILOG_DEBUG("SUCCESS: GET %s (%u bytes)", url.c_str(), (unsigned int)len);
+    ILOG_DEBUG("SUCCESS: GET tile %s (%u bytes)", name, (unsigned int)len);
 
     lv_image_dsc_t *img_dsc = nullptr;
-    bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
+    bool decoded = color ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
     http.end();
     if (!decoded) {
         ILOG_ERROR("Failed to decode tile image %s", name);
         return nullptr; // pngGuard frees pngImage
     }
 
-    if (saveCB && MapTileSettings::saveOK()) {
+    if (saveCB && cache && sourceRevision == MapTileSettings::getSourceRevision()) {
         bool saveResult = saveCB(name, pngImage, len);
         ILOG_DEBUG("save png to SD -> %s", saveResult ? "OK" : "failed");
     }

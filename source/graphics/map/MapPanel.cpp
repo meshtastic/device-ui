@@ -501,8 +501,8 @@ void MapPanel::update(uint32_t id, float lat, float lon)
     auto it = mapObjects.find(id);
     if (it != mapObjects.end()) {
         it->second->point = GeoPoint(lat, lon, MapTileSettings::getZoomLevel());
+        drawObject(*it->second);
     }
-    drawObject(*it->second);
 }
 
 void MapPanel::update(uint32_t id, bool filtered)

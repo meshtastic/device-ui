@@ -97,12 +97,34 @@ bool CURLService::load(const char *name, void *img)
 
 lv_image_dsc_t *CURLService::loadRaw(const char *name)
 {
+    return prepareLoad(name)();
+}
+
+ITileService::PreparedLoad CURLService::prepareLoad(const char *name)
+{
+    const std::string filename = name ? name : "";
+    const bool cache = MapTileSettings::saveOK();
+    const bool color = MapTileSettings::color();
+    const uint32_t revision = MapTileSettings::getSourceRevision();
+    const auto url = !cache && TileProvider::url() == "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                         ? std::string()
+                         : TileProvider::url(name);
+    return [this, filename, url, cache, color, revision]() {
+        return loadUrl(filename, url, cache, color, revision);
+    };
+}
+
+lv_image_dsc_t *CURLService::loadUrl(const std::string &filename, const std::string &url, bool cache, bool color,
+                                   uint32_t sourceRevision)
+{
+    const char *name = filename.c_str();
+    if (sourceRevision != MapTileSettings::getSourceRevision())
+        return nullptr;
     const uint64_t nowMs = monotonicMs();
     if (nowMs < offlineUntilMs) {
         return nullptr;
     }
 
-    std::string url = TileProvider::url(name);
     if (url.empty()) {
         return nullptr;
     }
@@ -158,34 +180,34 @@ lv_image_dsc_t *CURLService::loadRaw(const char *name)
             ILOG_WARN("Network error(%d), pausing HTTP tile fetches for %lu ms", (int)res,
                       (unsigned long)CURL_OFFLINE_BACKOFF_MS);
         }
-        ILOG_ERROR("ERROR GET %s : %s (HTTP %ld)", url.c_str(), curl_easy_strerror(res), httpCode);
+        ILOG_ERROR("ERROR GET tile %s : %s (HTTP %ld)", name, curl_easy_strerror(res), httpCode);
         lv_free(buf.data);
         return nullptr;
     }
 
     if (httpCode < 200 || httpCode >= 300) {
-        ILOG_ERROR("ERROR GET %s : HTTP %ld", url.c_str(), httpCode);
+        ILOG_ERROR("ERROR GET tile %s : HTTP %ld", name, httpCode);
         lv_free(buf.data);
         return nullptr;
     }
 
     if (buf.size == 0) {
-        ILOG_WARN("GET %s : empty response", url.c_str());
+        ILOG_WARN("GET tile %s : empty response", name);
         lv_free(buf.data);
         return nullptr;
     }
 
-    ILOG_DEBUG("SUCCESS: GET %s (%u bytes, HTTP %ld)", url.c_str(), (unsigned int)buf.size, httpCode);
+    ILOG_DEBUG("SUCCESS: GET tile %s (%u bytes, HTTP %ld)", name, (unsigned int)buf.size, httpCode);
     offlineUntilMs = 0;
 
-    if (saveCB && MapTileSettings::saveOK()) {
+    if (saveCB && cache && sourceRevision == MapTileSettings::getSourceRevision()) {
         bool result = saveCB(name, buf.data, buf.size);
         ILOG_DEBUG("save png to cache -> %s", result ? "OK" : "failed");
     }
 
     lv_image_dsc_t *img_dsc = nullptr;
     bool decoded =
-        MapTileSettings::color() ? decodeImgColor(buf.data, buf.size, &img_dsc) : decodeImgGrey(buf.data, buf.size, &img_dsc);
+        color ? decodeImgColor(buf.data, buf.size, &img_dsc) : decodeImgGrey(buf.data, buf.size, &img_dsc);
     lv_free(buf.data);
     buf.data = nullptr;
 

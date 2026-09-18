@@ -17,6 +17,7 @@ char MapTileSettings::tileFormat[MapTileSettings::TILE_FORMAT_SIZE] = "png"; // 
 bool MapTileSettings::pmTiles = false;                                       // selected style is a .pmtiles archive
 bool MapTileSettings::debug = false;                                         // draw tile frame and info
 bool MapTileSettings::save = false;                                          // ok to save tile back to SD card
+std::atomic<uint32_t> MapTileSettings::sourceRevision{0};
 #ifdef MAP_TILES_GREY
 bool MapTileSettings::colorTiles = false;
 #else
@@ -25,6 +26,7 @@ bool MapTileSettings::colorTiles = true;
 
 void MapTileSettings::setTileStyle(const char *p)
 {
+    ++sourceRevision;
     styleToDir(p, tileStyle, TILE_STYLE_SIZE);
     styleToDir(tileStyle, tileDir, TILE_STYLE_SIZE);
     appendSlash(tileStyle);

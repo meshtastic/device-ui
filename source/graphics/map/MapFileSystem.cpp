@@ -1,6 +1,6 @@
 #include "graphics/map/MapFileSystem.h"
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SDCARD_SHARE_SPI) || defined(SENSECAP_INDICATOR)
 
 #include "util/ISpiLock.h"
 #include <cstring>

@@ -15,9 +15,12 @@ class URLService : public ITileService
     bool load(const char *name, void *img) override;
     bool isAsync() const override { return true; }
     lv_image_dsc_t *loadRaw(const char *name) override;
+    PreparedLoad prepareLoad(const char *name) override;
     virtual ~URLService();
 
   private:
+    lv_image_dsc_t *loadUrl(const std::string &filename, const std::string &url, bool cache, bool color,
+                           uint32_t sourceRevision, uint32_t uniqueId);
     Callback saveCB = nullptr;
     HTTPClient http;
 };

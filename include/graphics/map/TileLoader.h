@@ -51,7 +51,7 @@ class AsyncTileLoader
     struct Request {
         uint32_t hash;
         uint32_t generation;
-        char filename[IMG_PATH_LEN];
+        ITileService::PreparedLoad load;
     };
 
     void workerLoop();

@@ -13,7 +13,6 @@ static constexpr uint32_t WORKER_EXIT_TIMEOUT_MS = 10000; // wait for worker to 
 
 void AsyncTileLoader::workerTask(void *arg)
 {
-    static_cast<AsyncTileLoader *>(arg)->workerLoop();
     AsyncTileLoader *self = static_cast<AsyncTileLoader *>(arg);
     self->workerLoop();
     self->exited_ = true;
@@ -85,14 +84,13 @@ void AsyncTileLoader::stop()
 
 void AsyncTileLoader::enqueue(uint32_t hash, uint32_t generation, const char *filename)
 {
-    if (!filename)
+    if (!filename || !service_)
         return;
     Request req;
     req.hash = hash;
     req.generation = generation;
-    strncpy(req.filename, filename, IMG_PATH_LEN - 1);
-    req.filename[IMG_PATH_LEN - 1] = '\0';
-    requestQueue_.push(req);
+    req.load = service_->prepareLoad(filename);
+    requestQueue_.push(std::move(req));
 }
 
 void AsyncTileLoader::drainResults(std::function<void(Result &)> consumer)
@@ -123,10 +121,10 @@ void AsyncTileLoader::workerLoop()
         Request req;
         if (!requestQueue_.pop(req, 200)) // blocks up to 200 ms, then re-checks running_
             continue;
-        if (!service_)
+        if (!req.load)
             continue;
 
-        lv_image_dsc_t *img_dsc = service_->loadRaw(req.filename);
+        lv_image_dsc_t *img_dsc = req.load();
         Result result{req.hash, req.generation, img_dsc};
         resultQueue_.push(result);
     }

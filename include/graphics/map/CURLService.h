@@ -25,9 +25,12 @@ class CURLService : public ITileService
     bool load(const char *name, void *img) override;
     bool isAsync() const override { return true; }
     lv_image_dsc_t *loadRaw(const char *name) override;
+    PreparedLoad prepareLoad(const char *name) override;
     virtual ~CURLService();
 
   private:
+    lv_image_dsc_t *loadUrl(const std::string &filename, const std::string &url, bool cache, bool color,
+                           uint32_t sourceRevision);
     Callback saveCB = nullptr;
     CURL *curlHandle = nullptr;
     uint64_t offlineUntilMs = 0;

@@ -6,7 +6,7 @@
 #include "graphics/map/pmtiles.hpp"
 #include "lvgl.h"
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SDCARD_SHARE_SPI) || defined(SENSECAP_INDICATOR)
 
 /**
  * Serves raster tiles out of a single .pmtiles archive on the SD card.
@@ -37,6 +37,7 @@ class PMTileService : public ITileService
     ITileService *fallback;
     IMapFileSystem *archiveFS;
     char openedStyle[MapTileSettings::TILE_STYLE_SIZE];
+    uint32_t openedRevision = 0;
     bool archiveValid;
 
     pmtiles::headerv3 pmHeader;

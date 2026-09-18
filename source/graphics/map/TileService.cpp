@@ -74,6 +74,7 @@ void TileService::resetAsync()
 
 TileService::~TileService()
 {
-    delete service;
+    // The async backup can still be saving into the primary SD service.
     delete backup;
+    delete service;
 }

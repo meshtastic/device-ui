@@ -7,12 +7,23 @@ std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates;
 
 std::string TileProvider::url(const char *filename)
 {
-    // try to match /z/x/y.png at the end of file path
+    // Source directory names can contain digits. Parse the final three path
+    // components instead of mistaking a digit in the style name for the zoom.
+    if (!filename)
+        return {};
+    const char *slash[3] = {};
+    for (const char *p = filename; *p; ++p) {
+        if (*p == '/') {
+            slash[0] = slash[1];
+            slash[1] = slash[2];
+            slash[2] = p;
+        }
+    }
     int x, y, z;
-    int matched = sscanf(filename, "%*[^0-9]%d/%d/%d.png", &z, &x, &y);
+    int matched = slash[0] ? sscanf(slash[0], "/%d/%d/%d.png", &z, &x, &y) : 0;
     if (matched != 3) {
         ILOG_ERROR("failed to extract z/x/y from %s", filename);
-        x = y = z = 0;
+        return {};
     }
     return url(z, x, y);
 }
@@ -47,7 +58,7 @@ const std::string TileProvider::url(void)
 {
     std::string provider, url;
     int16_t providerId = MapTileSettings::getTileProvider();
-    if (providerId >= 0) {
+    if (providerId >= 0 && static_cast<std::size_t>(providerId) < urlTemplates.size()) {
         std::tie(provider, url) = urlTemplates[providerId];
     }
     return url;

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <string_view>
+#include <atomic>
 
 /**
  * Global settings for raster tile map
@@ -35,7 +36,11 @@ class MapTileSettings
     static void setDefaultLon(float lon) { defaultLon = lon; }
 
     static const char *getPrefix(void) { return prefix; }
-    static void setPrefix(const char *p) { copyBounded(prefix, PREFIX_SIZE, p); }
+    static void setPrefix(const char *p)
+    {
+        ++sourceRevision;
+        copyBounded(prefix, PREFIX_SIZE, p);
+    }
 
     static const char *getTileStyle(void) { return tileStyle; }
     static void setTileStyle(const char *p);
@@ -52,7 +57,11 @@ class MapTileSettings
     static void setTileFormat(const char *p) { copyBounded(tileFormat, TILE_FORMAT_SIZE, p); }
 
     static int16_t getTileProvider(void) { return tileProviderId; }
-    static void setTileProvider(int16_t id) { tileProviderId = id; }
+    static void setTileProvider(int16_t id)
+    {
+        ++sourceRevision;
+        tileProviderId = id;
+    }
 
     static uint32_t getUniqueId(void) { return uniqueId; }
     static void setUniqueId(uint32_t id) { uniqueId = id; }
@@ -64,7 +73,14 @@ class MapTileSettings
     static void setDebug(bool on) { debug = on; }
 
     static bool saveOK(void) { return save; }
-    static void setSaveOK(bool ok) { save = ok; }
+    static void setSaveOK(bool ok)
+    {
+        ++sourceRevision;
+        save = ok;
+    }
+    // Worker requests may only save while their source/card selection is still
+    // current. The remaining source settings are captured on the UI task.
+    static uint32_t getSourceRevision(void) { return sourceRevision.load(); }
 
   private:
     static void appendSlash(char *dst)
@@ -106,4 +122,5 @@ class MapTileSettings
     static bool pmTiles;
     static bool debug;
     static bool save;
+    static std::atomic<uint32_t> sourceRevision;
 };

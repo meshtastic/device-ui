@@ -4,6 +4,7 @@
 #include <functional>
 #include <stddef.h>
 #include <stdint.h>
+#include <string>
 
 /**
  * Abstract TileService interface; load tile from any source
@@ -24,6 +25,15 @@ class ITileService
     // background-safe: fetch + decode only; returns heap-allocated lv_image_dsc_t or nullptr
     // caller owns the result; no LVGL object calls
     virtual lv_image_dsc_t *loadRaw(const char *name) { return nullptr; }
+
+    // UI task: bind mutable source settings before the request is queued. The
+    // returned operation runs on the worker and must not use LVGL objects.
+    using PreparedLoad = std::function<lv_image_dsc_t *()>;
+    virtual PreparedLoad prepareLoad(const char *name)
+    {
+        const std::string filename = name ? name : "";
+        return [this, filename]() { return loadRaw(filename.c_str()); };
+    }
 
     // callback type used by tick() to deliver completed async results on the UI task
     using AsyncResultConsumer = std::function<void(uint32_t hash, uint32_t generation, lv_image_dsc_t *img_dsc)>;
