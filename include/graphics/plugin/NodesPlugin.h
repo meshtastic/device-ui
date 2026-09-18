@@ -8,9 +8,10 @@
 #include <string>
 
 /**
- * NodesPlugin - concrete dashboard plugin that implements business logic for the nodes panel.
- * UI widgets are referenced by small indices (enum Widget) and placed into the GfxPlugin widget array.
- * updateXYZ(...) methods update changes to UI.
+ * NodesPlugin - concrete dashboard plugin that implements business logic for
+ * the nodes panel. UI widgets are referenced by small indices (enum Widget) and
+ * placed into the GfxPlugin widget array. updateXYZ(...) methods update changes
+ * to UI.
  */
 class NodesPlugin : public GfxPlugin
 {
@@ -40,7 +41,8 @@ class NodesPlugin : public GfxPlugin
     NodesPlugin();
     virtual ~NodesPlugin();
 
-    // init override: store resolver/parent and optionally auto-register widgets by name
+    // init override: store resolver/parent and optionally auto-register widgets
+    // by name
     void init(lv_obj_t *parent, WidgetResolver resolver, std::size_t widgetCount = WIDGET_COUNT, lv_group_t *group = nullptr,
               lv_indev_t *indev = nullptr, GfxPlugin::RegisterWidget registerWidget = GfxPlugin::RegisterWidget::All) override;
 
@@ -59,6 +61,11 @@ class NodesPlugin : public GfxPlugin
     const char *getLongName(uint32_t nodeId);
 
     // Business logic methods: update UI
+    lv_obj_t *createRow(lv_obj_t *parent, uint32_t nodeId, uint8_t channel, const char *shortName, const char *longName,
+                        bool favorite);
+    void bindRow(lv_obj_t *row, uint32_t nodeId, uint8_t channel);
+    void updateRow(lv_obj_t *row, const char *shortName, const char *longName, bool favorite);
+
     virtual void updateNodesOnline(uint32_t online, uint32_t nodeCount);
     virtual void updateName(const char *shortName, const char *longName);
 

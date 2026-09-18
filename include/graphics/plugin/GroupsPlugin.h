@@ -69,6 +69,7 @@ class GroupsPlugin : public GfxPlugin
 
     // Business logic methods: update UI
     virtual void updateName(uint8_t index, const char *groupName);
+    void updateChannel(uint8_t index, const char *groupName, bool enabled);
 
   protected:
     // helper

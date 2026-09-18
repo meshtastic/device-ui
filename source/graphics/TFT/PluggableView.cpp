@@ -125,8 +125,10 @@ bool PluggableView::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         init_screens();
 
     // initialize own node panel
-    if (ownNode && objects.node_button)
+    if (ownNode && objects.node_button) {
         nodes[ownNode] = objects.node_button;
+        node->bindRow(objects.node_button, ownNode, 0);
+    }
 
     // check SD card
     updateSDCard();
@@ -487,6 +489,10 @@ void PluggableView::notifyDisconnected(const char *info)
 void PluggableView::setMyInfo(uint32_t nodeNum)
 {
     ownNode = nodeNum;
+    if (node && objects.node_button && nodeNum) {
+        nodes[nodeNum] = objects.node_button;
+        node->bindRow(objects.node_button, nodeNum, 0);
+    }
 }
 
 // home screen
@@ -771,18 +777,16 @@ void PluggableView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, i
 }
 
 // TODO: move into NodesPlugin
-void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &nodei,
+void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &info,
                                     const meshtastic_User &cfg)
 {
     auto it = nodes.find(nodeNum);
     if (it == nodes.end()) {
-        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, nodei.last_heard, (MeshtasticView::eRole)cfg.role,
-                cfg.public_key.size != 0, nodei.is_favorite, nodei.is_ignored, cfg.has_is_unmessagable && cfg.is_unmessagable);
-    } else {
-        if (it->first == ownNode) {
-            if (node)
-                node->updateName(cfg.short_name, cfg.long_name);
-        }
+        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, info.last_heard, (MeshtasticView::eRole)cfg.role,
+                cfg.public_key.size != 0, info.is_favorite, info.is_ignored, cfg.has_is_unmessagable && cfg.is_unmessagable);
+    } else if (node) {
+        node->bindRow(it->second, nodeNum, channel);
+        node->updateRow(it->second, cfg.short_name, cfg.long_name, info.is_favorite);
     }
 }
 
@@ -790,84 +794,47 @@ void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const mes
 void PluggableView::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
                             eRole role, bool hasKey, bool isFav, bool isIgnored, bool unmessagable)
 {
-    ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s), role=%d", nodeCount, nodeNum, lastHeard, userLong, userShort,
-               role);
-
-    lv_group_t *oldGroup = lv_group_get_default();
+    if (!node)
+        return;
+    lv_group_t *previous = lv_group_get_default();
     lv_group_set_default(nodesGroup);
-
-    // NodeButton
-    lv_obj_t *obj = lv_button_create(objects.nodes_panel);
-    lv_obj_set_pos(obj, 0, 0);
-    lv_obj_set_size(obj, LV_PCT(100), 20);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff444444), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(obj, lv_color_hex(0xfff0f0f0), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff707070), LV_PART_MAIN | LV_STATE_PRESSED);
-    lv_obj_set_style_border_color(obj, lv_color_hex(0xff24fb00), LV_PART_MAIN | LV_STATE_PRESSED);
-    lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN | LV_STATE_PRESSED);
-    lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_PRESSED);
-    {
-        lv_obj_t *parent_obj = obj;
-        {
-            lv_obj_t *obj = lv_image_create(parent_obj);
-            lv_obj_set_pos(obj, -14, 0);
-            lv_obj_set_size(obj, 20, 20);
-            if (isFav)
-                lv_image_set_src(obj, &img_heart_image);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-        {
-            // NodeShortName
-            lv_obj_t *obj = lv_label_create(parent_obj);
-            objects.node_short_name = obj;
-            lv_obj_set_pos(obj, 10, 0);
-            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_label_set_text_fmt(obj, "%d %s", (int)ch, userShort);
-        }
-        {
-            // NodeLongName
-            lv_obj_t *obj = lv_label_create(parent_obj);
-            objects.node_long_name = obj;
-            lv_obj_set_pos(obj, 70, 0);
-            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_label_set_text(obj, userLong);
-        }
-    }
-    lv_obj_set_user_data(obj, (void *)(uint32_t)ch);
-    nodes[nodeNum] = obj;
-    nodeCount++;
+    nodes[nodeNum] = node->createRow(objects.nodes_panel, nodeNum, ch, userShort, userLong, isFav);
+    nodeCount = nodes.size();
     updateNodesStatus();
-    lv_group_set_default(oldGroup);
+    lv_group_set_default(previous);
 }
 
 void PluggableView::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_User &cfg)
 {
-#if 0 // TODO: interface for nodePlugin to pass index
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end() && it->second) {
-        if (it->first == ownNode) {
-            if (node)
-                node->updateName(cfg.short_name, cfg.long_name);
-        }
+    auto row = nodes.find(nodeNum);
+    if (node && row != nodes.end()) {
+        node->bindRow(row->second, nodeNum, ch);
+        lv_label_set_text(lv_obj_get_child(row->second, 1), cfg.short_name);
+        lv_label_set_text(lv_obj_get_child(row->second, 2), cfg.long_name);
     }
-#endif
+}
+
+void PluggableView::removeNode(uint32_t nodeNum)
+{
+    if (map)
+        map->remove(nodeNum);
+    auto row = nodes.find(nodeNum);
+    if (row != nodes.end() && nodeNum != ownNode) {
+        lv_obj_delete(row->second);
+        nodes.erase(row);
+    }
+    nodeCount = nodes.size();
+    updateNodesStatus();
 }
 
 void PluggableView::updateChannelConfig(const meshtastic_Channel &ch)
 {
+    if (ch.index < 0 || ch.index >= c_max_channels)
+        return;
     db.channel[ch.index] = ch;
 
-    if (groups) {
-        if (ch.role != meshtastic_Channel_Role_DISABLED) {
-            groups->updateName(ch.index, ch.settings.name);
-        } else {
-            // ?
-        }
-    }
+    if (groups)
+        groups->updateChannel(ch.index, ch.settings.name, ch.role != meshtastic_Channel_Role_DISABLED);
 }
 
 /**
