@@ -46,7 +46,7 @@ class TDeckKeyboardInputDriver : public I2CKeyboardInputDriver
 class TCA8418KeyboardInputDriver : public I2CKeyboardInputDriver
 {
   public:
-    TCA8418KeyboardInputDriver(uint8_t address);
+    TCA8418KeyboardInputDriver(uint8_t address, const char *name = "TCA8418 Keyboard");
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TCA8418KeyboardInputDriver(void) {}
@@ -58,7 +58,27 @@ class TLoraPagerKeyboardInputDriver : public TCA8418KeyboardInputDriver
     TLoraPagerKeyboardInputDriver(uint8_t address);
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
+    // Keep software keyboard access available if hardware initialization failed.
+    virtual bool supportsTextInput(void) { return initialized; }
     virtual ~TLoraPagerKeyboardInputDriver(void) {}
+
+  private:
+    bool readRegister(uint8_t reg, uint8_t &value);
+    bool writeRegister(uint8_t reg, uint8_t value);
+    bool flushEvents(void);
+    void resetKeys(void);
+    void toggleBacklight(void);
+
+    uint8_t address;
+    bool initialized = false;
+    uint32_t pressedKeys = 0;
+    uint8_t heldModifiers = 0;
+    uint8_t latchedModifiers = 0;
+    uint32_t modifierTime = 0;
+    uint8_t activeKey = 0;
+    uint32_t keyValue = 0;
+    uint8_t pendingEvent = 0;
+    uint8_t backlight = 0;
 };
 
 class TDeckProKeyboardInputDriver : public TCA8418KeyboardInputDriver
