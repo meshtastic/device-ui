@@ -8,6 +8,7 @@
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
 #include "graphics/map/MapPanel.h"
+#include "graphics/plugin/ListRowStyle.h"
 #include "images.h"
 #include "input/InputDriver.h"
 #include "lv_i18n.h"
@@ -80,7 +81,11 @@ void PluggableView::init(IClientBase *client)
     indev = InputDriver::instance()->getPointer();
 #endif
 
+    // Decorative boot widgets must never become encoder targets.
+    lv_group_t *bootGroup = lv_group_get_default();
+    lv_group_set_default(nullptr);
     ui_init_boot();
+    lv_group_set_default(bootGroup);
 
     time(&lastrun60);
     time(&lastrun10);
@@ -126,6 +131,7 @@ bool PluggableView::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     // initialize own node panel
     if (ownNode && objects.node_button)
         nodes[ownNode] = objects.node_button;
+    setMyInfo(ownNode);
 
     // check SD card
     updateSDCard();
@@ -233,7 +239,9 @@ void PluggableView::ui_events_init(void)
     node->setOnNodeButton([this](lv_event_t *e) {
         uint32_t nodeId = (unsigned long)lv_event_get_user_data(e);
         messages->loadScreen();
-        messages->showMessages(nodeId, (uint8_t)(unsigned long)lv_obj_get_user_data(nodes[nodeId]));
+        auto row = nodes.find(nodeId);
+        const uint8_t channel = row != nodes.end() ? (uintptr_t)lv_obj_get_user_data(row->second) : 0;
+        messages->showMessages(nodeId, channel);
     });
 #endif
 #ifdef MUI_GROUPS_PLUGIN
@@ -269,17 +277,28 @@ void PluggableView::ui_events_init(void)
         if (to == UINT32_MAX) {
             requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
             pki = false;
-        }
-        else {
+        } else {
             requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)to, callback);
-            ch = (uint8_t)(unsigned long)lv_obj_get_user_data(nodes[to]);
+            auto row = nodes.find(to);
+            if (row != nodes.end())
+                ch = (uint8_t)(uintptr_t)lv_obj_get_user_data(row->second);
         }
         controller->sendTextMessage(to, ch, db.config.lora.hop_limit, msgTime, requestId, pki, msg);
         return requestId;
     });
 #endif
 
-    // TODO: old style, create lambda callbacks as above
+    if (messages) {
+        messages->setOwnNode(ownNode);
+        messages->setNodeNameResolver([this](uint32_t id) { return nodeName(id); });
+        messages->setOnUnreadChanged([this](uint32_t count) {
+            unreadMessages = count;
+            if (dashboard)
+                dashboard->updateUnreadMessages(count);
+        });
+    }
+
+    // Navigation callbacks for the remaining menu screens.
     lv_obj_add_event_cb(objects.map_button, this->ui_event_MapButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.clock_button, this->ui_event_ClockButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.music_button, this->ui_event_MusicButton, LV_EVENT_ALL, NULL);
@@ -290,13 +309,13 @@ void PluggableView::ui_events_init(void)
     lv_obj_add_event_cb(objects.power_button, this->ui_event_PowerButton, LV_EVENT_ALL, NULL);
 
     // top back buttons of each plugin
-    lv_obj_add_event_cb(objects.top_home_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_nodes_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_groups_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_chat_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.top_home_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_nodes_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_groups_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_chat_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.top_map_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_clock_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_settings_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.top_clock_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_settings_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
 }
 
 /**
@@ -367,7 +386,7 @@ void PluggableView::ui_event_MapButton(lv_event_t *e)
 void PluggableView::ui_event_ClockButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.clock, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->clockGroup);
         lv_group_focus_obj(objects.top_clock_back_button);
@@ -380,7 +399,7 @@ void PluggableView::ui_event_ClockButton(lv_event_t *e)
 void PluggableView::ui_event_MusicButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->musicGroup);
         // lv_group_focus_obj(objects.top_music_back_button);
@@ -393,7 +412,7 @@ void PluggableView::ui_event_MusicButton(lv_event_t *e)
 void PluggableView::ui_event_StatisticsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->statisticsGroup);
         // lv_group_focus_obj(objects.top_statistics_back_button);
@@ -406,7 +425,7 @@ void PluggableView::ui_event_StatisticsButton(lv_event_t *e)
 void PluggableView::ui_event_ToolsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->toolsGroup);
         // lv_group_focus_obj(objects.top_tools_back_button);
@@ -419,7 +438,7 @@ void PluggableView::ui_event_ToolsButton(lv_event_t *e)
 void PluggableView::ui_event_AppsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->homeGroup);
         // lv_group_focus_obj(objects.top_apps_back_button);
@@ -445,7 +464,7 @@ void PluggableView::ui_event_SettingsButton(lv_event_t *e)
 void PluggableView::ui_event_PowerButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         create_screen_blank();
         lv_screen_load_anim(objects.blank, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 500, false);
         THIS->controller->requestShutdown(5, THIS->ownNode);
@@ -486,6 +505,16 @@ void PluggableView::notifyDisconnected(const char *info)
 void PluggableView::setMyInfo(uint32_t nodeNum)
 {
     ownNode = nodeNum;
+    if (messages)
+        messages->setOwnNode(nodeNum);
+}
+
+std::string PluggableView::nodeName(uint32_t nodeNum) const
+{
+    auto row = nodes.find(nodeNum);
+    if (row == nodes.end() || !row->second)
+        return {};
+    return lv_label_get_text(lv_obj_get_child(row->second, 1));
 }
 
 // home screen
@@ -1287,22 +1316,12 @@ void PluggableView::restoreMessage(const LogMessage &msg)
 
 void PluggableView::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore)
 {
-    if (messages) {
-        messages->newMessage(from, to, ch, msg, msgtime); // TODO: add eventId
-#if 0
-            // display msg popup if not already viewing the messages
-            if (container != activeMsgContainer || activePanel != objects.messages_panel) {
-                unreadMessages++;
-                updateUnreadMessages();
-                if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
-                    showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
-                }
-                lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
-            }
-            if (container != activeMsgContainer)
-                highlightChat(from, to, ch);
-#endif
-    }
+    if (!messages)
+        return;
+    if (restore)
+        messages->restoreMessage(from, to, ch, msg, msgtime, false);
+    else
+        messages->newMessage(from, to, ch, msg, msgtime);
 }
 
 void PluggableView::packetReceived(const meshtastic_MeshPacket &p)

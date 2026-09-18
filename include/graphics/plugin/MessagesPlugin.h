@@ -7,7 +7,8 @@
 #include <unordered_map>
 
 /**
- * dynamic widgets, to be implemented by the view (ideally as a user widget in eez-studio)
+ * dynamic widgets, to be implemented by the view (ideally as a user widget in
+ * eez-studio)
  */
 class IMessagesWidgetFactory
 {
@@ -47,11 +48,13 @@ class MessagesPlugin : public GfxPlugin
 
     using Callback = std::function<void(lv_event_t *)>;
     using SendCallback = std::function<uint32_t(uint32_t to, uint8_t ch, uint32_t msgTime, const char *msg)>;
+    using NodeNameResolver = std::function<std::string(uint32_t)>;
 
     MessagesPlugin(IMessagesWidgetFactory &factory);
     virtual ~MessagesPlugin();
 
-    // init override: store resolver/parent and optionally auto-register widgets by name
+    // init override: store resolver/parent and optionally auto-register widgets
+    // by name
     void init(lv_obj_t *parent, WidgetResolver resolver, std::size_t widgetCount = WIDGET_COUNT, lv_group_t *group = nullptr,
               lv_indev_t *indev = nullptr, GfxPlugin::RegisterWidget registerWidget = GfxPlugin::RegisterWidget::All) override;
 
@@ -61,6 +64,21 @@ class MessagesPlugin : public GfxPlugin
     // Set view-level callbacks for plugin operations
     void setOnCancel(const Callback &cb) { onCancel = cb; }
     void setOnSendMessage(const SendCallback &cb) { onSendMessage = cb; }
+    void setOwnNode(uint32_t nodeNum) { ownNode = nodeNum; }
+    void setNodeNameResolver(const NodeNameResolver &resolver) { nodeNameResolver = resolver; }
+    void setDoubleSpacePeriod(bool enabled)
+    {
+        doubleSpacePeriod = enabled;
+        spacePending = false;
+        automaticPeriodSpace = false;
+    }
+    bool getDoubleSpacePeriod() const { return doubleSpacePeriod; }
+    void setNotificationsEnabled(bool enabled);
+    void setNotificationsSuppressed(bool suppressed);
+    void setOnUnreadChanged(const std::function<void(uint32_t)> &callback);
+    uint32_t getUnreadCount() const { return unreadCount; }
+    void onHide() override;
+    void task_handler(time_t millis) override;
 
     // Register menu widgets with default names
     void registerStandardWidgets(void) override;
@@ -82,19 +100,17 @@ class MessagesPlugin : public GfxPlugin
     virtual void handleResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err);
     // erase chats
     virtual void clearChatHistory(void);
-    virtual void eraseChat(uint8_t ch) {}
-    virtual void eraseChat(uint32_t nodeId) {}
+    virtual void eraseChat(uint8_t ch);
+    virtual void eraseChat(uint32_t nodeId);
 
   protected:
     virtual void addChat(uint32_t from, uint32_t to, uint8_t ch);
     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
-    virtual uint32_t timestamp(char *buf, uint32_t datetime, bool update);
 
     // handleAction: map compact Action values to plugin callbacks
     void handleAction(Action actionId, WidgetIndex idx, int event_code) /*override*/;
 
-    uint32_t ownNode;
-    uint32_t actTime;
+    uint32_t ownNode = 0;
     t9_kb_t *kb = nullptr;
     lv_obj_t *messageInput = nullptr;
     lv_obj_t *chatPanel = nullptr;
@@ -107,17 +123,51 @@ class MessagesPlugin : public GfxPlugin
   private:
     // lvgl event handlers
     static void ui_event_message_ready(lv_event_t *e);
+    static void ui_event_message_key(lv_event_t *e);
     static void ui_event_ChatButton(lv_event_t *e);
+    static void ui_event_screen_unloaded(lv_event_t *e);
 
     // helpers
     virtual void sendMessage(const char *msg);
-    virtual void addMessage(lv_obj_t *container, uint32_t time, uint32_t requestId, const char *msg); // newly written message
+    virtual void addMessage(lv_obj_t *container, uint32_t time, uint32_t requestId,
+                            const char *msg); // newly written message
     virtual void newMessage(lv_obj_t *container, uint32_t msgTime, uint32_t nodeNum, uint8_t ch, const char *msg);
+    void submitMessage(void);
+    void handleMessageInput(lv_event_t *e);
+    uint32_t conversationIndex(uint32_t from, uint32_t to, uint8_t ch) const;
+    bool isReadingHistory(lv_obj_t *container) const;
+    void scrollToLatest(lv_obj_t *container, lv_obj_t *message);
+    void receiveMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t msgTime, bool notify);
+    bool conversationIsVisible(uint32_t index) const;
+    bool overlayIsVisible() const;
+    void clearUnread(uint32_t index);
+    void updateUnread(uint32_t index);
+    void showNotification(uint32_t from, uint32_t index, uint8_t channel, const char *message);
+    void dismissNotification();
+    static void notificationEvent(lv_event_t *event);
+    static void notificationTimeout(lv_timer_t *timer);
 
-    // plugin callback (default implementation can be overwritten by a specific view)
+    // plugin callback (default implementation can be overwritten by a specific
+    // view)
     Callback onMessageInput = nullptr;
     Callback onCancel = nullptr;
     SendCallback onSendMessage = nullptr;
+    NodeNameResolver nodeNameResolver = nullptr;
+    std::function<void(uint32_t)> unreadChanged;
+    std::unordered_map<uint32_t, uint32_t> unread;
+    std::unordered_map<uint32_t, lv_obj_t *> unreadBadges;
+    uint32_t unreadCount = 0;
+    bool notificationsEnabled = false;
+    bool notificationsSuppressed = false;
+    lv_obj_t *notification = nullptr;
+    lv_timer_t *notificationTimer = nullptr;
+    uint32_t notificationConversation = 0;
+    uint8_t notificationChannel = 0;
+    bool doubleSpacePeriod = false;
+    bool spacePending = false;
+    bool automaticPeriodSpace = false;
+    uint32_t lastSpaceAt = 0;
+    uint32_t lastSpaceCursor = 0;
 
     // view reference that implements the dynamic widget
     IMessagesWidgetFactory &widgetFactory;
