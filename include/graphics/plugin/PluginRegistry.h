@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <time.h>
 #include <unordered_map>
 
 class GfxPlugin;

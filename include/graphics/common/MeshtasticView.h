@@ -5,6 +5,7 @@
 #include "graphics/driver/DisplayDriverConfig.h"
 #include "lvgl.h"
 #include "mesh-pb-constants.h"
+#include "util/LocalGPSStatus.h"
 #include "util/LogMessage.h"
 #include <array>
 #include <stdint.h>
@@ -74,6 +75,8 @@ class MeshtasticView : public DeviceGUI
 
     // methods to update view
     virtual bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) { return true; }
+    virtual void updateUIConfig(const meshtastic_DeviceUIConfig &uiconfig) { setupUIConfig(uiconfig); }
+    virtual void updateLocalGPSStatus(const LocalGPSStatus &status) {}
     virtual void setMyInfo(uint32_t nodeNum);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                    bool can_shutdown);
@@ -140,8 +143,8 @@ class MeshtasticView : public DeviceGUI
 
     virtual void notifyRestoreMessages(int32_t percentage) {}
     virtual void notifyMessagesRestored(void);
-    virtual void notifyConnected(const char *info){};
-    virtual void notifyDisconnected(const char *info){};
+    virtual void notifyConnected(const char *info) {};
+    virtual void notifyDisconnected(const char *info) {};
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);

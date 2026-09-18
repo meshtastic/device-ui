@@ -28,6 +28,7 @@ ViewController::ViewController()
 
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
+    lastGPSPollMs = millis();
     time(&lastrun1);
     time(&lastrun10);
     view = gui;
@@ -63,6 +64,15 @@ void ViewController::runOnce(void)
         else {
             if (myNodeNum == 0 || view->getState() != MeshtasticView::eProgrammingMode)
                 receive();
+        }
+
+        // Receiver state changes independently of position broadcasts and wall time.
+        const uint32_t nowMs = millis();
+        if (nowMs - lastGPSPollMs >= 1000) {
+            lastGPSPollMs = nowMs;
+            LocalGPSStatus status;
+            if (setupDone && configCompleted && client->getLocalGPSStatus(status))
+                view->updateLocalGPSStatus(status);
         }
 
         // executed every 10s:
@@ -434,7 +444,7 @@ bool ViewController::sendAdminMessage(meshtastic_AdminMessage &config, uint32_t 
 {
     meshtastic_Data_payload_t payload;
     payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &config);
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload, true);
+    return payload.size && send(nodeId, meshtastic_PortNum_ADMIN_APP, payload, true);
 }
 
 /**
@@ -445,7 +455,7 @@ bool ViewController::sendAdminMessage(meshtastic_AdminMessage &&config, uint32_t
 {
     meshtastic_Data_payload_t payload;
     payload.size = pb_encode_to_bytes(payload.bytes, DATA_PAYLOAD_LEN, &meshtastic_AdminMessage_msg, &config);
-    return send(nodeId, meshtastic_PortNum_ADMIN_APP, payload, true);
+    return payload.size && send(nodeId, meshtastic_PortNum_ADMIN_APP, payload, true);
 }
 
 void ViewController::sendHeartbeat(void)
@@ -685,7 +695,12 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 
     ILOG_DEBUG("handleFromRadio variant %u, id=%d", from.which_payload_variant, from.id);
     if (from.which_payload_variant == meshtastic_FromRadio_deviceuiConfig_tag) {
-        setupDone = view->setupUIConfig(from.deviceuiConfig);
+        if (setupDone && view->getState() != MeshtasticView::eEnterProgrammingMode &&
+            view->getState() != MeshtasticView::eWaitingForReboot) {
+            view->updateUIConfig(from.deviceuiConfig);
+        } else {
+            setupDone = view->setupUIConfig(from.deviceuiConfig);
+        }
     } else if (from.which_payload_variant == meshtastic_FromRadio_my_info_tag) {
         const meshtastic_MyNodeInfo &info = from.my_info;
         view->setMyInfo(info.my_node_num);

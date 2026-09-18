@@ -20,6 +20,7 @@ class PacketClient : public IClientBase
     bool isStandalone(void) override;
     bool send(meshtastic_ToRadio &&to) override;
     meshtastic_FromRadio receive(void) override;
+    bool getLocalGPSStatus(LocalGPSStatus &status) override;
 
     virtual bool hasData() const;
     virtual bool available() const;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "util/LocalGPSStatus.h"
 #include "util/Packet.h"
 #include "util/PacketQueue.h"
 
@@ -22,6 +23,7 @@ class PacketServer
     // template<typename T> T receivePacket();
     virtual bool hasData() const;
     virtual bool available() const;
+    void setLocalGPSStatus(const LocalGPSStatus &status);
 
   private:
     SharedQueue *queue;
