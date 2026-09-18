@@ -107,6 +107,7 @@ class ViewController
     IClientBase *client;
     uint32_t sendId;
     uint32_t myNodeNum;
+    uint32_t lastGPSPollMs = 0;
     time_t lastrun1;
     time_t lastrun10;
     time_t restoreTimer;
