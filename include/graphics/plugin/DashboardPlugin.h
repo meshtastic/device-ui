@@ -4,6 +4,7 @@
 #include "meshtastic/clientonly.pb.h"
 #include "meshtastic/connection_status.pb.h"
 #include "meshtastic/mesh.pb.h"
+#include "meshtastic/module_config.pb.h"
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -105,6 +106,10 @@ class DashboardPlugin : public GfxPlugin
     void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg);
     void updateSignalStrength(int32_t rssi, float snr);
     void updatePosition(int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision, bool metric);
+    void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg);
+    void updateMQTTConfig(const meshtastic_ModuleConfig_MQTTConfig &cfg);
+    void updateNotifications(bool enabled);
+    void updateSound(bool enabled);
     void updateSDCard(bool cardDetected, const char *info = nullptr);
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status);
     void updateFreeMem(uint32_t freeHeapBytes, uint32_t lvglFreeBytes);
@@ -118,6 +123,14 @@ class DashboardPlugin : public GfxPlugin
     void handleAction(Action actionId, WidgetIndex idx, int event_code) /*override*/;
 
   private:
+    void renderConnectionStatus();
+    void renderNotifications();
+    bool notificationsEnabled = false;
+    bool soundEnabled = false;
+    bool soundKnown = false;
+    bool networkEnabled = false;
+    bool mqttEnabled = false;
+    meshtastic_DeviceConnectionStatus connectionStatus{};
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
 

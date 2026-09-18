@@ -163,13 +163,19 @@ void DashboardPlugin::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     // LoRa label
     lv_obj_t *loraLbl = getWidget(static_cast<WidgetIndex>(Widget::LoRaLabel));
     if (loraLbl) {
-        char loraFreq[64];
-        float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
-        if (cfg.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
-            snprintf(loraFreq, sizeof(loraFreq), "LoRa %g MHz\n[%s kHz]", frequency,
-                     LoRaPresets::getBandwidthString(cfg.modem_preset));
+        char loraFreq[96];
+        // The shared preset table predates newer firmware enum values. Preserve
+        // their config while avoiding an out-of-range table lookup in the UI.
+        if (cfg.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
+            snprintf(loraFreq, sizeof(loraFreq), "%s", _("Radio: Region unset"));
+        } else if (!cfg.use_preset || cfg.region > 22 || cfg.modem_preset > 8) {
+            snprintf(loraFreq, sizeof(loraFreq), "%s\n%s", cfg.tx_enabled ? _("Radio: On") : _("Radio: Off"),
+                     _("Current radio configuration"));
         } else {
-            snprintf(loraFreq, sizeof(loraFreq), "region unset");
+            const float frequency =
+                LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
+            snprintf(loraFreq, sizeof(loraFreq), "%s\nLoRa %g MHz [%s kHz]", cfg.tx_enabled ? _("Radio: On") : _("Radio: Off"),
+                     frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
         }
         lv_label_set_text(loraLbl, loraFreq);
         // Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
@@ -264,21 +270,75 @@ void DashboardPlugin::updateSDCard(bool cardDetected, const char *info)
     }
 }
 
+void DashboardPlugin::updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg)
+{
+    networkEnabled = cfg.wifi_enabled || cfg.eth_enabled;
+    renderConnectionStatus();
+}
+
+void DashboardPlugin::updateMQTTConfig(const meshtastic_ModuleConfig_MQTTConfig &cfg)
+{
+    mqttEnabled = cfg.enabled;
+    renderConnectionStatus();
+}
+
 void DashboardPlugin::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
 {
-    // WLAN / connection
-    lv_obj_t *wlanLbl = getWidget(static_cast<WidgetIndex>(Widget::WlanButton));
-    if (status.has_wifi) {
-        if (status.wifi.has_status) {
-            char buf[32];
-            uint32_t ip = status.wifi.status.ip_address;
-            snprintf(buf, sizeof(buf), "%d.%d.%d.%d", ip & 0xff, (ip & 0xff00) >> 8, (ip & 0xff0000) >> 16,
-                     (ip & 0xff000000) >> 24);
-            // if widget is a label
-            lv_label_set_text(wlanLbl, buf);
+    connectionStatus = status;
+    renderConnectionStatus();
+}
+
+void DashboardPlugin::renderConnectionStatus()
+{
+    const bool connected =
+        connectionStatus.has_wifi && connectionStatus.wifi.has_status && connectionStatus.wifi.status.is_connected;
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::WlanLabel));
+    if (label) {
+        if (networkEnabled && connected) {
+            const uint32_t ip = connectionStatus.wifi.status.ip_address;
+            lv_label_set_text_fmt(label, "%s\n%u.%u.%u.%u", _("Wi-Fi: Connected"), ip & 0xff, (ip >> 8) & 0xff, (ip >> 16) & 0xff,
+                                  (ip >> 24) & 0xff);
+        } else {
+            lv_label_set_text(label, networkEnabled ? _("Wi-Fi: On, disconnected") : _("Wi-Fi: Off"));
         }
     }
+    auto *button = getWidget(static_cast<WidgetIndex>(Widget::WlanButton));
+    if (button)
+        lv_obj_set_style_bg_image_src(button, connected ? &img_home_wlan_icon : &img_home_wlan_off_icon, 0);
+    label = getWidget(static_cast<WidgetIndex>(Widget::MqttLabel));
+    if (label) {
+        const bool mqttConnected = connected && connectionStatus.wifi.status.is_mqtt_connected;
+        lv_label_set_text(label, !mqttEnabled    ? _("MQTT: Off")
+                                 : mqttConnected ? _("MQTT: Connected")
+                                                 : _("MQTT: On, disconnected"));
+    }
 }
+
+void DashboardPlugin::updateNotifications(bool enabled)
+{
+    notificationsEnabled = enabled;
+    renderNotifications();
+}
+
+void DashboardPlugin::updateSound(bool enabled)
+{
+    soundEnabled = enabled;
+    soundKnown = true;
+    renderNotifications();
+}
+
+void DashboardPlugin::renderNotifications()
+{
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::BellLabel));
+    if (!label)
+        return;
+    const char *popups = notificationsEnabled ? _("Message popups: On") : _("Message popups: Off");
+    if (soundKnown)
+        lv_label_set_text_fmt(label, "%s\n%s", popups, soundEnabled ? _("Sound: On") : _("Sound: Off"));
+    else
+        lv_label_set_text(label, popups);
+}
+
 
 void DashboardPlugin::updateFreeMem(uint32_t freeHeapBytes, uint32_t lvglFreeBytes)
 {
