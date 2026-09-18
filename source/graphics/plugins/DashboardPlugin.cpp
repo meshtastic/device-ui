@@ -279,6 +279,12 @@ void DashboardPlugin::updateConnectionStatus(const meshtastic_DeviceConnectionSt
         }
     }
 }
+void DashboardPlugin::updateUnreadMessages(uint32_t count)
+{
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::MailLabel));
+    if (label)
+        lv_label_set_text_fmt(label, _p("%u unread messages", count), count);
+}
 
 void DashboardPlugin::updateFreeMem(uint32_t freeHeapBytes, uint32_t lvglFreeBytes)
 {

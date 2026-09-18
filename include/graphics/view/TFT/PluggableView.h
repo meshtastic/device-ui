@@ -118,6 +118,7 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     int32_t signalStrength2Percent(int32_t rx_rssi, float rx_snr);
     void setBellText(bool banner, bool sound);
     void updateLocationMap(uint32_t objects);
+    std::string nodeName(uint32_t nodeNum) const;
 
     uint32_t timestamp(char *buf, uint32_t time, bool update = false);
 

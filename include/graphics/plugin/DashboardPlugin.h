@@ -105,6 +105,7 @@ class DashboardPlugin : public GfxPlugin
     void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg);
     void updateSignalStrength(int32_t rssi, float snr);
     void updatePosition(int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision, bool metric);
+    void updateUnreadMessages(uint32_t count);
     void updateSDCard(bool cardDetected, const char *info = nullptr);
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status);
     void updateFreeMem(uint32_t freeHeapBytes, uint32_t lvglFreeBytes);

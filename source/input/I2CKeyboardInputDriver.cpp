@@ -242,154 +242,172 @@ void TCA8418KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev
 
 // ---------- TLoraPagerKeyboardInputDriver Implementation ----------
 
-// T-Pager keyboard layout: 4 rows x 10 columns = 31 keys
-// Key mapping from TCA8418 key codes to characters [normal, shift, sym]
-static const char TLoraPagerKeyMap[31][3] = {
-    {'q', 'Q', '1'},    // Key 1
-    {'w', 'W', '2'},    // Key 2
-    {'e', 'E', '3'},    // Key 3
-    {'r', 'R', '4'},    // Key 4
-    {'t', 'T', '5'},    // Key 5
-    {'y', 'Y', '6'},    // Key 6
-    {'u', 'U', '7'},    // Key 7
-    {'i', 'I', '8'},    // Key 8
-    {'o', 'O', '9'},    // Key 9
-    {'p', 'P', '0'},    // Key 10
-    {'a', 'A', '*'},    // Key 11
-    {'s', 'S', '/'},    // Key 12
-    {'d', 'D', '+'},    // Key 13
-    {'f', 'F', '-'},    // Key 14
-    {'g', 'G', '='},    // Key 15
-    {'h', 'H', ':'},    // Key 16
-    {'j', 'J', '\''},   // Key 17
-    {'k', 'K', '"'},    // Key 18
-    {'l', 'L', '@'},    // Key 19
-    {0x0D, 0x09, 0x0A}, // Key 20: Enter, Tab (shift), Enter (sym)
-    {0, 0, 0},          // Key 21: Sym modifier (no output)
-    {'z', 'Z', '_'},    // Key 22
-    {'x', 'X', '$'},    // Key 23
-    {'c', 'C', ';'},    // Key 24
-    {'v', 'V', '?'},    // Key 25
-    {'b', 'B', '!'},    // Key 26
-    {'n', 'N', ','},    // Key 27
-    {'m', 'M', '.'},    // Key 28
-    {0, 0, 0},          // Key 29: Shift modifier (no output)
-    {0x08, 0x08, 0x1B}, // Key 30: Backspace, Backspace (shift), ESC (sym)
-    {' ', ' ', ' '}     // Key 31: Space
-};
-
-// Modifier key indices (0-based)
-static const uint8_t MODIFIER_SYM_KEY = 20;   // Key 21
-static const uint8_t MODIFIER_SHIFT_KEY = 28; // Key 29
-
-// Modifier state (sticky toggles)
-static uint8_t modifierState = 0; // 0=normal, 1=shift, 2=sym
-
-TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address) : TCA8418KeyboardInputDriver(address)
+TLoraPagerKeyboardInputDriver::TLoraPagerKeyboardInputDriver(uint8_t address)
+    : TCA8418KeyboardInputDriver(address), address(address)
 {
-    // Don't register here - parent TCA8418KeyboardInputDriver already registers
 }
 
 void TLoraPagerKeyboardInputDriver::init(void)
 {
-    TCA8418KeyboardInputDriver::init();
+    I2CKeyboardInputDriver::init();
+    resetKeys();
+    backlight = 0;
 
-    // Set up T-Pager keyboard matrix: 4 rows x 10 columns
-    // Rows 0-3 (bits 0-3 in KP_GPIO_1)
-    tca8418WriteReg(tca8418Address, TCA8418_REG_KP_GPIO_1, 0x0F);
-    // Columns 0-7 (bits 0-7 in KP_GPIO_2)
-    tca8418WriteReg(tca8418Address, TCA8418_REG_KP_GPIO_2, 0xFF);
-    // Columns 8-9 (bits 0-1 in KP_GPIO_3)
-    tca8418WriteReg(tca8418Address, TCA8418_REG_KP_GPIO_3, 0x03);
+    // Four rows and ten columns; unused GPIOs must not produce keyboard events.
+    const uint8_t setup[][2] = {{0x01, 0x00}, {0x1A, 0x00}, {0x1B, 0x00}, {0x1C, 0x00}, {0x1D, 0x0F}, {0x1E, 0xFF},
+                                {0x1F, 0x03}, {0x20, 0x00}, {0x21, 0x00}, {0x22, 0x00}, {0x23, 0x00}, {0x24, 0x00},
+                                {0x25, 0x00}, {0x29, 0x00}, {0x2A, 0x00}, {0x2B, 0x00}};
+    initialized = true;
+    for (const auto &setting : setup) {
+        if (!writeRegister(setting[0], setting[1])) {
+            initialized = false;
+            break;
+        }
+    }
+    initialized = initialized && flushEvents() && writeRegister(0x01, 0x09);
+    if (!initialized)
+        ILOG_ERROR("Could not initialize T-LoRa Pager keyboard");
 
-    ILOG_INFO("TLoraPagerKeyboardInputDriver initialized (4x10 matrix)");
+#ifdef KB_BL_PIN
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcAttach(KB_BL_PIN, 1000, 8);
+    ledcWrite(KB_BL_PIN, 0);
+#else
+    ledcSetup(4, 1000, 8);
+    ledcAttachPin(KB_BL_PIN, 4);
+    ledcWrite(4, 0);
+#endif
+#endif
 }
 
 void TLoraPagerKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    data->state = LV_INDEV_STATE_RELEASED;
-    data->key = 0;
+    static constexpr uint8_t shiftKey = 29;
+    static constexpr uint8_t symKey = 21;
+    static constexpr uint8_t shift = 1;
+    static constexpr uint8_t sym = 2;
+    static const char letters[] = "qwertyuiopasdfghjkl\0\0zxcvbnm\0\0 ";
+    static const char symbols[] = "1234567890*/+-=:'\"@\0\0_$;?!,.\0\0\0";
 
-    // read key count from KEY_LCK_EC register (bits 0-3)
-    Wire.beginTransmission(address);
-    Wire.write(TCA8418_REG_KEY_LCK_EC);
-    Wire.endTransmission();
-    Wire.requestFrom(address, (uint8_t)1);
-    if (Wire.available()) {
-        uint8_t keyCount = Wire.read() & 0x0F;
-
-        if (keyCount > 0) {
-            // read key event from FIFO
-            // ILOG_DEBUG("keycount: %d", keyCount);
-            Wire.beginTransmission(address);
-            Wire.write(TCA8418_REG_KEY_EVENT_A);
-            Wire.endTransmission();
-            Wire.requestFrom(address, (uint8_t)1);
-            if (Wire.available()) {
-                uint8_t keyEvent = Wire.read();
-                uint8_t keyCode = keyEvent & 0x7F;
-                bool pressed = (keyEvent & 0x80) != 0;
-                // ILOG_DEBUG("keyCount: %d, keyEvent: %02x, keyCode: %02x, pressed:%d", (int)keyCount, (int)keyEvent,
-                // (int)keyCode, (int)pressed);
-
-                if (pressed && keyCode > 0 && keyCode <= 31) {
-                    uint8_t keyIndex = keyCode - 1;
-
-                    // check for modifier keys
-                    if (keyIndex == MODIFIER_SHIFT_KEY) {
-                        // toggle shift modifier
-                        modifierState = (modifierState == 1) ? 0 : 1;
-                        // ILOG_DEBUG("T-Pager: Shift toggled, modifierState=%d", modifierState);
-                        return;
-                    }
-                    if (keyIndex == MODIFIER_SYM_KEY) {
-                        // toggle sym modifier
-                        modifierState = (modifierState == 2) ? 0 : 2;
-                        // ILOG_DEBUG("T-Pager: Sym toggled, modifierState=%d altHeld=%d", modifierState, modifierState == 2);
-                        return;
-                    }
-
-                    // get character based on modifier state
-                    char keyChar = TLoraPagerKeyMap[keyIndex][modifierState];
-
-                    if (keyChar != 0) {
-                        data->state = LV_INDEV_STATE_PRESSED;
-
-                        // map special keys to LVGL key codes
-                        switch (keyChar) {
-                        case 0x0A: // Enter
-                        case 0x0D: // Enter
-                            if (modifierState == 2)
-                                data->key = LV_KEY_ENTER;
-                            else
-                                data->key = 0x0D;
-                            break;
-                        case 0x09: // Tab
-                            data->key = LV_KEY_NEXT;
-                            break;
-                        case 0x08: // Backspace
-                            if (modifierState == 2)
-                                data->key = LV_KEY_ESC;
-                            else
-                                data->key = LV_KEY_BACKSPACE;
-                            break;
-                        case 0x1B: // ESC
-                            data->key = LV_KEY_ESC;
-                            break;
-                        default:
-                            data->key = (uint32_t)keyChar;
-                            break;
+    data->continue_reading = false;
+    uint8_t event = pendingEvent;
+    pendingEvent = 0;
+    uint8_t status = 0;
+    if (!initialized || (!event && !readRegister(0x02, status))) {
+        resetKeys();
+    } else if (status & 0x08) {
+        // Overflow may have lost a release; discard the incomplete sequence.
+        flushEvents();
+        resetKeys();
+    } else if (event || readRegister(0x04, event)) {
+        if (event == 0) {
+            if (status & 0x01)
+                writeRegister(0x02, 0x01);
+        } else {
+            data->continue_reading = true;
+            uint8_t key = event & 0x7F;
+            bool pressed = event & 0x80;
+            if (key >= 1 && key <= 31) {
+                uint32_t bit = uint32_t(1) << (key - 1);
+                uint8_t modifier = key == shiftKey ? shift : (key == symKey ? sym : 0);
+                if (!pressed) {
+                    pressedKeys &= ~bit;
+                    heldModifiers &= ~modifier;
+                    if (key == activeKey)
+                        activeKey = 0;
+                } else if (!(pressedKeys & bit)) {
+                    if (modifier) {
+                        pressedKeys |= bit;
+                        heldModifiers |= modifier;
+                        latchedModifiers ^= modifier;
+                        modifierTime = millis();
+                    } else if (activeKey) {
+                        // LVGL needs a release between overlapping printable keys.
+                        activeKey = 0;
+                        pendingEvent = event;
+                    } else {
+                        pressedKeys |= bit;
+                        if (uint32_t(millis() - modifierTime) > 1500)
+                            latchedModifiers = 0;
+                        uint8_t modifiers = heldModifiers | latchedModifiers;
+                        latchedModifiers = 0;
+                        uint32_t value = (modifiers & sym) ? symbols[key - 1] : letters[key - 1];
+                        if (!(modifiers & sym) && (modifiers & shift) && value >= 'a' && value <= 'z')
+                            value -= 'a' - 'A';
+                        if (key == 20)
+                            value = (modifiers & sym) ? ((modifiers & shift) ? LV_KEY_PREV : LV_KEY_NEXT) : LV_KEY_ENTER;
+                        else if (key == 30)
+                            value = (modifiers & sym) ? LV_KEY_ESC : LV_KEY_BACKSPACE;
+                        else if (key == 31 && (modifiers & sym))
+                            toggleBacklight();
+                        if (value) {
+                            activeKey = key;
+                            keyValue = value;
                         }
-                        // ILOG_DEBUG("T-Pager key: code=%d mod=%d char='%c' lvkey=%d", keyCode, modifierState, keyChar,
-                        // data->key);
-
-                        // clear modifier after a regular key press (one-shot behavior)
-                        modifierState = 0;
                     }
                 }
             }
         }
+    } else {
+        resetKeys();
     }
+    data->state = activeKey ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+    data->key = keyValue;
+}
+
+bool TLoraPagerKeyboardInputDriver::readRegister(uint8_t reg, uint8_t &value)
+{
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    if (Wire.endTransmission(false) != 0 || Wire.requestFrom((int)address, 1) != 1 || !Wire.available())
+        return false;
+    value = Wire.read();
+    return true;
+}
+
+bool TLoraPagerKeyboardInputDriver::writeRegister(uint8_t reg, uint8_t value)
+{
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    Wire.write(value);
+    return Wire.endTransmission() == 0;
+}
+
+bool TLoraPagerKeyboardInputDriver::flushEvents(void)
+{
+    uint8_t event = 0;
+    for (unsigned i = 0; i < 10; ++i) {
+        if (!readRegister(0x04, event))
+            return false;
+        if (!event)
+            break;
+    }
+    for (uint8_t reg = 0x11; reg <= 0x13; ++reg) {
+        if (!readRegister(reg, event))
+            return false;
+    }
+    return writeRegister(0x02, 0x1F);
+}
+
+void TLoraPagerKeyboardInputDriver::resetKeys(void)
+{
+    pressedKeys = 0;
+    heldModifiers = 0;
+    latchedModifiers = 0;
+    activeKey = 0;
+    pendingEvent = 0;
+}
+
+void TLoraPagerKeyboardInputDriver::toggleBacklight(void)
+{
+    backlight = backlight == 0 ? 40 : (backlight == 40 ? 127 : 0);
+#ifdef KB_BL_PIN
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcWrite(KB_BL_PIN, backlight);
+#else
+    ledcWrite(4, backlight);
+#endif
+#endif
 }
 
 // ---------- TDeckProKeyboardInputDriver Implementation ----------
