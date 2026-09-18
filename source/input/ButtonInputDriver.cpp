@@ -8,6 +8,7 @@ ButtonInputDriver::ButtonInputDriver(void) {}
 
 void ButtonInputDriver::init(void)
 {
+    LOG_INFO("Initialize button input driver type %d", INPUTDRIVER_BUTTON_TYPE);
     button = lv_indev_create();
     lv_indev_set_type(button, LV_INDEV_TYPE_BUTTON);
     lv_indev_set_read_cb(button, button_read);
@@ -25,8 +26,11 @@ void ButtonInputDriver::init(void)
     }
     lv_indev_set_group(button, inputGroup);
     lv_indev_enable(button, false);
-
+#if defined(INPUTDRIVER_BUTTON_PULLUP)
+    pinMode(INPUTDRIVER_BUTTON_TYPE, INPUT_PULLUP);
+#else
     pinMode(INPUTDRIVER_BUTTON_TYPE, INPUT);
+#endif
 }
 
 void ButtonInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *data)

@@ -19,10 +19,8 @@ class DisplayDriver
     virtual bool hasTouch(void) { return false; }
     virtual bool hasButton(void) { return false; }
     virtual bool hasLight(void) { return false; }
-    virtual void task_handler(void) { lv_timer_periodic_handler(); }
-    virtual void forceWakeup(void) {}
+    virtual void task_handler(void) { lv_timer_periodic_handler(); };
     virtual bool isPowersaving() { return false; }
-    virtual void toggleDisplay(void);
     virtual void printConfig(void) {}
     virtual ~DisplayDriver() {}
 
@@ -44,7 +42,4 @@ class DisplayDriver
     DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;
-
-  private:
-    static void displayToggleCb(void *displayDriver);
 };

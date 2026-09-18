@@ -77,10 +77,10 @@ class MeshtasticView : public DeviceGUI
     virtual void setMyInfo(uint32_t nodeNum);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                    bool can_shutdown);
-    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt);
-    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg);
+    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node);
+    virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node, const meshtastic_User &cfg);
     virtual void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard,
-                         eRole role, bool hasKey, bool viaMqtt);
+                         eRole role, bool hasKey, bool isFav, bool isIgnored, bool unmessagable);
     virtual void updateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_User &cfg);
     virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision);
     virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
@@ -169,8 +169,6 @@ class MeshtasticView : public DeviceGUI
     ViewController *controller;
     ResponseHandler requests;
     std::unordered_map<uint32_t, lv_obj_t *> nodes;       // node panels
-    std::unordered_map<uint32_t, lv_obj_t *> messages;    // message containers (within ui_MessagesPanel)
-    std::unordered_map<uint32_t, lv_obj_t *> chats;       // active chats (within ui_ChatPanel)
     std::array<lv_obj_t *, c_max_channels> channel;       // TODO channel name and info
     std::array<lv_obj_t *, c_max_channels> channelGroup;  // message containers for channel group
     uint32_t nodeCount = 1, nodesOnline = 1, ownNode = 0; // node info

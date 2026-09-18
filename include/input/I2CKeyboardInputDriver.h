@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Arduino.h"
-#include "Wire.h"
 #include "input/InputDriver.h"
 #include <list>
 #include <memory>
@@ -58,6 +56,24 @@ class TLoraPagerKeyboardInputDriver : public TCA8418KeyboardInputDriver
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TLoraPagerKeyboardInputDriver(void) {}
+
+  private:
+    bool readRegister(uint8_t reg, uint8_t &value);
+    bool writeRegister(uint8_t reg, uint8_t value);
+    bool flushEvents(void);
+    void resetKeys(void);
+    void toggleBacklight(void);
+
+    uint8_t address;
+    bool initialized = false;
+    uint32_t pressedKeys = 0;
+    uint8_t heldModifiers = 0;
+    uint8_t latchedModifiers = 0;
+    uint32_t modifierTime = 0;
+    uint8_t activeKey = 0;
+    uint32_t keyValue = 0;
+    uint8_t pendingEvent = 0;
+    uint8_t backlight = 0;
 };
 
 class TDeckProKeyboardInputDriver : public TCA8418KeyboardInputDriver
@@ -81,12 +97,9 @@ class BBQ10KeyboardInputDriver : public I2CKeyboardInputDriver
 class CardKBInputDriver : public I2CKeyboardInputDriver
 {
   public:
-    CardKBInputDriver(uint8_t address, TwoWire &wire_ = Wire);
+    CardKBInputDriver(uint8_t address);
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~CardKBInputDriver(void) {}
-
-  private:
-    TwoWire &wire;
 };
 
 class MPR121KeyboardInputDriver : public I2CKeyboardInputDriver

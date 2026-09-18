@@ -17,22 +17,12 @@ class DeviceScreen
 {
   public:
     static DeviceScreen &create(void);
-
-    /**
-     * @param spiLock the host's bus lock, for boards where the display or SD card shares
-     * an SPI bus with peripherals the host drives itself. See ISpiLock - note the
-     * reentrancy requirement.
-     *
-     * Taken by reference rather than pointer so that create(nullptr) stays unambiguous
-     * against the config-taking overloads below.
-     */
     static DeviceScreen &create(ISpiLock &spiLock);
     static DeviceScreen &create(const DisplayDriverConfig *cfg, ISpiLock *spiLock = nullptr);
     static DeviceScreen &create(DisplayDriverConfig &&cfg, ISpiLock *spiLock = nullptr);
 
     void init(IClientBase *client);
     void task_handler(void);
-    void toggleDisplay(void);
 
 #if defined(ARDUINO_ARCH_ESP32)
     int prepareSleep(void *);

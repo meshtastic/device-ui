@@ -587,14 +587,13 @@ bool ViewController::receive(void)
 {
     bool gotPacket = false;
     if (client->isConnected()) {
-        uint16_t received = 0;
         do {
             meshtastic_FromRadio from = client->receive();
             if (from.which_payload_variant) {
                 handleFromRadio(from);
             }
             gotPacket = from.which_payload_variant != 0;
-        } while (gotPacket && received++ < 7); // handle max 7 packets in one go
+        } while (gotPacket);
         return true;
     }
     return false;
@@ -642,10 +641,6 @@ void ViewController::restoreTextMessages(void)
     LogMessageEnv msg;
 
     if (log.readNext(msg)) {
-        if (msg.ch >= c_max_channels) {
-            ILOG_WARN("skipping stored message with invalid channel %d", (int)msg.ch);
-            return;
-        }
         msgCounter++;
         msgTotalSize += msg.size();
         view->restoreMessage(msg);
@@ -712,10 +707,9 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
             case meshtastic_FromRadio_node_info_tag: {
                 const meshtastic_NodeInfo &node = from.node_info;
                 if (node.has_user) {
-                    view->addOrUpdateNode(node.num, node.channel, node.last_heard, node.user);
+                    view->addOrUpdateNode(node.num, node.channel, node, node.user);
                 } else {
-                    view->addOrUpdateNode(node.num, node.channel, node.last_heard, MeshtasticView::eRole::unknown, false,
-                                          node.via_mqtt);
+                    view->addOrUpdateNode(node.num, node.channel, node);
                 }
                 if (node.has_position) {
                     view->updatePosition(node.num, node.position.latitude_i, node.position.longitude_i, node.position.altitude, 0,
@@ -925,8 +919,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_ALERT_APP:
     case meshtastic_PortNum_DETECTION_SENSOR_APP:
-    case meshtastic_PortNum_TEXT_MESSAGE_APP:
-    case meshtastic_PortNum_RANGE_TEST_APP: {
+    case meshtastic_PortNum_TEXT_MESSAGE_APP: {
         ILOG_INFO("received text message '%s'", (const char *)p.decoded.payload.bytes);
         if (!messagesRestored && log.count() > 0) {
             // houston we have a problem! Haven't finished restoring messages incrementally while new ones come in
@@ -939,10 +932,6 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             }
         }
         uint32_t time = p.rx_time;
-        if (p.channel >= c_max_channels) {
-            ILOG_WARN("ignoring message with invalid channel %d", (int)p.channel);
-            break;
-        }
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
         log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
                                 (const uint8_t *)p.decoded.payload.bytes));
@@ -1045,6 +1034,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                     // invalid channel or interface
                 case meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY:
                     // this response is sent by the other node when encryption keys differ (outdated)
+                case meshtastic_Routing_Error_PKI_FAILED:
                     view->handleResponse(p.from, p.decoded.request_id, routing, p);
                     break;
                 default:
