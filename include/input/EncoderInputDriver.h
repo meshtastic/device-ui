@@ -8,8 +8,11 @@ class EncoderInputDriver : public InputDriver
     EncoderInputDriver(void);
 
     virtual void init(void) override;
-    virtual ~EncoderInputDriver(void) {}
+    virtual ~EncoderInputDriver(void);
 
+#if defined(T_LORA_PAGER)
+    static void intRotaryHandler(void);
+#endif
     static void intPressHandler(void);
     static void intDownHandler(void);
     static void intUpHandler(void);
