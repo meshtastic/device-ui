@@ -3,7 +3,7 @@
 #include "lvgl.h"
 #include "util/ISpiLock.h"
 
-#include "graphics/common/SdCard.h"
+#include "filesystem/SdCard.h"
 #include "graphics/map/MapTileSettings.h"
 #include "graphics/map/SdFatService.h"
 #include "util/ILog.h"
@@ -42,7 +42,7 @@ static bool ensureParentDirectories(const char *path)
 
 SdFatService::SdFatService() : ITileService(DRIVE_LETTER ":")
 {
-#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
+#if LV_USE_FS_ARDUINO_SD
     static lv_fs_drv_t drv;
     lv_fs_drv_init(&drv);
     drv.letter = DRIVE_LETTER[0];
@@ -82,10 +82,9 @@ bool SdFatService::load(const char *name, void *img)
         return false;
     }
 #else
+    uint8_t *pngImage = nullptr;
     {
         ISpiLock::Guard bus;
-
-        // optimized PNGdec decoding
         FsFile file = SDFs.open(name, O_RDONLY);
         if (!file) {
             ILOG_DEBUG("Failed to open tile %s from SD", name);
@@ -99,7 +98,7 @@ bool SdFatService::load(const char *name, void *img)
             return false;
         }
 
-        uint8_t *pngImage = (uint8_t *)lv_malloc(len);
+        pngImage = (uint8_t *)lv_malloc(len);
         if (!pngImage) {
             ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
             file.close();
