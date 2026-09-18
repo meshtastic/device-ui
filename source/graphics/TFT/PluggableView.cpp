@@ -8,6 +8,7 @@
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
 #include "graphics/map/MapPanel.h"
+#include "graphics/plugin/ListRowStyle.h"
 #include "images.h"
 #include "input/InputDriver.h"
 #include "lv_i18n.h"

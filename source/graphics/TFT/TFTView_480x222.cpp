@@ -7,6 +7,7 @@
 #include "graphics/map/MapPanel.h"
 #include "images.h"
 #include "input/InputDriver.h"
+#include "graphics/plugin/ListRowStyle.h"
 #include "lv_i18n.h"
 #include "lvgl.h"
 #include "lvgl_private.h"
