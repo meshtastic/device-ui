@@ -3,6 +3,7 @@
 #include "comms/IClientBase.h"
 #include "graphics/DeviceGUI.h"
 #include "graphics/driver/DisplayDriverConfig.h"
+#include "util/ISpiLock.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "esp_sleep.h"
@@ -16,8 +17,9 @@ class DeviceScreen
 {
   public:
     static DeviceScreen &create(void);
-    static DeviceScreen &create(const DisplayDriverConfig *cfg);
-    static DeviceScreen &create(DisplayDriverConfig &&cfg);
+    static DeviceScreen &create(ISpiLock &spiLock);
+    static DeviceScreen &create(const DisplayDriverConfig *cfg, ISpiLock *spiLock = nullptr);
+    static DeviceScreen &create(DisplayDriverConfig &&cfg, ISpiLock *spiLock = nullptr);
 
     void init(IClientBase *client);
     void task_handler(void);

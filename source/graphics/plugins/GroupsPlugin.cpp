@@ -4,6 +4,7 @@
 
 #include "Arduino.h"
 #include "graphics/plugin/GroupsPlugin.h"
+#include "graphics/plugin/ListRowStyle.h"
 #include "images.h"
 #include "lv_i18n.h"
 #include "lvgl.h"
@@ -26,6 +27,31 @@ void GroupsPlugin::init(lv_obj_t *parent, WidgetResolver resolver, std::size_t w
 {
     p = this;
     GfxPlugin::init(parent, resolver, widgetCount, group, indev, registerWidget);
+    auto *first = getGroupButtonWidget(0);
+    if (first)
+        ListRowStyle::container(lv_obj_get_parent(first));
+    for (uint8_t index = 0; index < 8; ++index) {
+        auto *row = getGroupButtonWidget(index);
+        auto *name = getGroupNameWidget(index);
+        if (!row || !name)
+            continue;
+        ListRowStyle::row(row);
+        lv_obj_set_height(row, 53);
+        auto *number = lv_obj_get_child(row, 0);
+        lv_obj_align(number, LV_ALIGN_TOP_LEFT, 42, 1);
+        lv_label_set_text_fmt(number, _("Channel %u"), index);
+        ListRowStyle::text(number);
+        lv_obj_align(name, LV_ALIGN_TOP_LEFT, 0, 22);
+        lv_obj_set_width(name, LV_PCT(100));
+        lv_obj_set_style_pad_left(name, 42, 0);
+        lv_label_set_long_mode(name, LV_LABEL_LONG_DOT);
+        ListRowStyle::text(name);
+        // Every channel has an icon, including unnamed secondary channels.
+        auto *icon = lv_image_create(row);
+        lv_image_set_src(icon, &img_home_nodes_icon);
+        lv_obj_align(icon, LV_ALIGN_LEFT_MID, 0, 0);
+        ListRowStyle::text(icon);
+    }
 }
 
 void GroupsPlugin::registerStandardWidgets(void)
@@ -88,12 +114,10 @@ void GroupsPlugin::registerStandardEventCallbacks(void)
 void GroupsPlugin::ui_event_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         if (p->onGroupButton) {
             p->onGroupButton(e);
         }
-        lv_obj_t *target = lv_event_get_target_obj(e);
-        lv_obj_remove_state(target, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
     }
 }
 
@@ -110,7 +134,22 @@ void GroupsPlugin::updateName(uint8_t index, const char *groupName)
 {
     lv_obj_t *nameWidget = getGroupNameWidget(index);
     if (nameWidget) {
-        lv_label_set_text(nameWidget, groupName);
+        lv_label_set_text(nameWidget, groupName && *groupName ? groupName
+                                      : index == 0            ? _("Primary channel")
+                                                              : _("Unnamed channel"));
+    }
+}
+
+void GroupsPlugin::updateChannel(uint8_t index, const char *groupName, bool enabled)
+{
+    auto *row = getGroupButtonWidget(index);
+    if (!row)
+        return;
+    if (enabled) {
+        updateName(index, groupName);
+        lv_obj_remove_flag(row, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(row, LV_OBJ_FLAG_HIDDEN);
     }
 }
 

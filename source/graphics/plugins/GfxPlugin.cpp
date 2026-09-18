@@ -1,5 +1,6 @@
 #include "graphics/plugin/GfxPlugin.h"
 #include "graphics/plugin/PluginRegistry.h"
+#include "input/InputDriver.h"
 #include "lvgl.h"
 
 PluginRegistry pluginRegistry;
@@ -52,6 +53,9 @@ void GfxPlugin::loadScreen(lv_screen_load_anim_t anim, uint32_t time)
         lv_screen_load_anim(parent, anim, time, 0, false);
     if (indev && group)
         lv_indev_set_group(indev, group);
+    auto *input = InputDriver::instance();
+    if (group && input->hasKeyboardDevice())
+        lv_indev_set_group(input->getKeyboard(), group);
 }
 
 void GfxPlugin::setWidget(WidgetIndex idx, lv_obj_t *obj, bool onEvent)
