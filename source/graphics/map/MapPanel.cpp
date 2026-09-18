@@ -1,11 +1,14 @@
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/MapTileSettings.h"
+#include "graphics/map/TileProvider.h"
 #include "graphics/map/TileService.h"
 #include "screens.h"
 #include "util/ILog.h"
 #include <assert.h>
 
-#define HASH(X, Y) (((X) << 16) | ((Y)&0xFFFF))
+#define HASH(X, Y) (((X) << 16) | ((Y) & 0xFFFF))
+
+extern OSMTiles<lv_obj_t> *osm;
 
 MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
     : widthPixel(320), heightPixel(240),
@@ -13,9 +16,8 @@ MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
       current(home), scrolled(home), panel(p), homeLocationImage(nullptr), gpsPositionImage(nullptr), noTileImage(nullptr),
       service(new TileService(s)), objectsOnMap(0)
 {
-    extern OSMTiles<lv_obj_t> *osm;
-    osm = OSMTiles<lv_obj_t>::create([this](const char *name, void *img) -> bool { return service->load(name, img); });
-
+    // loadcb only uses non-async (fast) services; async tiles go through AsyncTileService
+    osm = OSMTiles<lv_obj_t>::create([this](const char *name, void *img) -> bool { return service->loadSyncOnly(name, img); });
     center();
 }
 
@@ -27,16 +29,55 @@ void MapPanel::redraw(void)
     static int16_t x = INT16_MAX;
     static int16_t y = INT16_MAX;
 
+    constexpr uint32_t RETRY_MS = 10000;
+
+    auto tickDue = [](uint32_t now, uint32_t due) -> bool {
+        return (int32_t)(now - due) >= 0; // wrap-safe
+    };
+
+    // retry one failed tile per redraw() call
+    auto retryFailedTile = [&]() {
+        if (failedTilesRetryAt_.empty())
+            return;
+
+        const uint32_t now = lv_tick_get();
+
+        for (auto it = failedTilesRetryAt_.begin(); it != failedTilesRetryAt_.end(); ++it) {
+            if (!tickDue(now, it->second))
+                continue;
+
+            auto tileIt = tiles.find(it->first);
+            if (tileIt == tiles.end()) {
+                failedTilesRetryAt_.erase(it);
+                return;
+            }
+
+            MapTile &tile = *tileIt->second;
+            if (tile.isPending) {
+                it->second = now + RETRY_MS; // still waiting; push back retry window
+                return;
+            }
+
+            loadTile(it->first, tile.getX(), tile.getY());
+            return;
+        }
+    };
+
     if (needsRedraw) {
         needsRedraw = false;
         redrawCompleted = false;
         x = 0;
         y = 0;
+        generation_++;
+        service->resetAsync();
         tiles.clear();
+        failedTilesRetryAt_.clear();
     }
 
-    if (redrawCompleted)
+    if (redrawCompleted) {
+        retryFailedTile();
         return;
+    }
 
     int16_t size = MapTileSettings::getTileSize();
 #if defined(MAP_FULL_REDRAW)
@@ -49,7 +90,7 @@ void MapPanel::redraw(void)
                 return;
             }
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
-            tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
+            loadTile(hash, x * size + xOffset, y * size + yOffset);
         }
     }
     redrawCompleted = true;
@@ -60,7 +101,7 @@ void MapPanel::redraw(void)
         if (x < tilesX && y < tilesY) {
             uint32_t hash = HASH(xStart + x, yStart + y);
             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
-            tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
+            loadTile(hash, x * size + xOffset, y * size + yOffset);
             x++;
         } else {
             if (y < tilesY) {
@@ -105,7 +146,7 @@ void MapPanel::drawLocation(void)
         }
     }
     if (objects.map_location_label) {
-        char buf[30];
+        char buf[40];
         sprintf(buf, "%0.4f %0.4f", scrolled.latitude, scrolled.longitude);
         lv_label_set_text(objects.map_location_label, buf);
         lv_obj_move_foreground(objects.map_location_label);
@@ -173,6 +214,23 @@ void MapPanel::center(void)
     needsRedraw = true;
 }
 
+void MapPanel::loadTile(uint32_t hash, int tx, int ty)
+{
+    constexpr uint32_t RETRY_MS = 10000;
+    bool ok = tiles[hash]->load(panel, tx, ty, noTileImage);
+    if (ok) {
+        failedTilesRetryAt_.erase(hash);
+    } else if (service->hasAsync()) {
+        osm->resolveFilename(*tiles[hash]);
+        tiles[hash]->isPending = true;
+        service->loadAsync(hash, generation_, tiles[hash]->filename);
+        failedTilesRetryAt_.erase(hash); // in-flight; task_handler re-schedules on failure
+    } else {
+        tiles[hash]->markLoadFailed();
+        failedTilesRetryAt_[hash] = lv_tick_get() + RETRY_MS; // upsert: add or push deadline
+    }
+}
+
 void MapPanel::setTileService(ITileService *s)
 {
     service->setService(s);
@@ -237,6 +295,8 @@ void MapPanel::moveCurrent(void)
 
 void MapPanel::setZoom(uint8_t zoom)
 {
+    if (zoom > TileProvider::maxZoom())
+        zoom = TileProvider::maxZoom();
     if (zoom > 1 && zoom <= 20) {
         ILOG_DEBUG("setZoom: %d", zoom);
         MapTileSettings::setZoomLevel(zoom);
@@ -365,7 +425,7 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
                     yOffset -= size;
                 }
                 tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
-                tiles[hash]->load(panel, xpos, ypos, noTileImage);
+                loadTile(hash, xpos, ypos);
             } else {
                 // check if tile is still visible after scrolling
                 MapTile &tile = *tiles[hash];
@@ -441,8 +501,8 @@ void MapPanel::update(uint32_t id, float lat, float lon)
     auto it = mapObjects.find(id);
     if (it != mapObjects.end()) {
         it->second->point = GeoPoint(lat, lon, MapTileSettings::getZoomLevel());
+        drawObject(*it->second);
     }
-    drawObject(*it->second);
 }
 
 void MapPanel::update(uint32_t id, bool filtered)
@@ -483,6 +543,8 @@ void MapPanel::setNoTileImage(const lv_image_dsc_t *img_src)
 
 void MapPanel::forceRedraw(bool onlyObjects)
 {
+    if (MapTileSettings::getZoomLevel() > TileProvider::maxZoom())
+        setZoom(TileProvider::maxZoom());
     if (onlyObjects) {
         drawObjects();
         drawLocation();
@@ -491,8 +553,70 @@ void MapPanel::forceRedraw(bool onlyObjects)
     }
 }
 
+MapPanel::TileStatus MapPanel::getTileStatus() const
+{
+    if (needsRedraw || !redrawCompleted)
+        return TileStatus::Loading;
+
+    bool ready = false, loading = false, failed = false;
+    const int16_t size = MapTileSettings::getTileSize();
+    for (const auto &entry : tiles) {
+        const MapTile &tile = *entry.second;
+        if (tile.getX() >= widthPixel || tile.getY() >= heightPixel || tile.getX() + size <= 0 || tile.getY() + size <= 0)
+            continue;
+        switch (tile.getLoadState()) {
+        case MapTile::LoadState::Ready:
+            ready = true;
+            break;
+        case MapTile::LoadState::Loading:
+            loading = true;
+            break;
+        case MapTile::LoadState::Failed:
+            failed = true;
+            break;
+        }
+    }
+    if (failed)
+        return ready ? TileStatus::Incomplete : TileStatus::Unavailable;
+    return ready && !loading ? TileStatus::Ready : TileStatus::Loading;
+}
+
 void MapPanel::task_handler(void)
 {
+    constexpr uint32_t RETRY_MS = 10000;
+
+    // drain async results before redraw so applyImage() runs on the UI task
+    service->tick([this](uint32_t hash, uint32_t generation, lv_image_dsc_t *img_dsc) {
+        if (generation != generation_) {
+            if (img_dsc) {
+                if (img_dsc->data)
+                    lv_free((void *)img_dsc->data);
+                lv_free(img_dsc);
+            }
+            return;
+        }
+        auto it = tiles.find(hash);
+        if (it == tiles.end()) {
+            if (img_dsc) {
+                if (img_dsc->data)
+                    lv_free((void *)img_dsc->data);
+                lv_free(img_dsc);
+            }
+            return;
+        }
+        MapTile &tile = *it->second;
+        if (img_dsc) {
+            tile.applyImage(img_dsc);
+            failedTilesRetryAt_.erase(hash);
+            drawLocation();
+            drawObjects();
+        } else {
+            tile.markLoadFailed();
+            if (failedTilesRetryAt_.find(hash) == failedTilesRetryAt_.end())
+                failedTilesRetryAt_[hash] = lv_tick_get() + RETRY_MS;
+        }
+    });
+
     redraw();
 }
 
