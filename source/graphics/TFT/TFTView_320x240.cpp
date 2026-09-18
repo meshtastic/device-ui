@@ -4877,6 +4877,26 @@ void TFTView_320x240::handleAddMessage(char *msg)
     addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
 }
 
+void TFTView_320x240::layoutMessageBubble(lv_obj_t *label, const char *text)
+{
+    lv_obj_set_style_pad_hor(label, 6, LV_PART_MAIN);
+    lv_obj_set_style_pad_ver(label, 4, LV_PART_MAIN);
+    lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+
+    lv_obj_t *row = lv_obj_get_parent(label);
+    lv_obj_update_layout(row);
+    const int32_t frame = lv_obj_get_style_space_left(label, LV_PART_MAIN) + lv_obj_get_style_space_right(label, LV_PART_MAIN);
+    const int32_t maxTextWidth = std::max<int32_t>(1, lv_obj_get_content_width(row) * 9 / 10 - frame);
+    lv_point_t size;
+    // Measure the same font and spacing LVGL draws, including explicit newlines.
+    lv_text_get_size(&size, text, lv_obj_get_style_text_font(label, LV_PART_MAIN),
+                     lv_obj_get_style_text_letter_space(label, LV_PART_MAIN),
+                     lv_obj_get_style_text_line_space(label, LV_PART_MAIN), maxTextWidth, LV_TEXT_FLAG_NONE);
+    lv_obj_set_content_width(label, std::min<int32_t>(maxTextWidth, std::max<int32_t>(24, size.x)));
+    lv_obj_set_height(label, LV_SIZE_CONTENT);
+    lv_label_set_text(label, text);
+}
+
 /**
  * display message that has just been written and sent out
  */
@@ -4898,15 +4918,10 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t, uint32_t request
     hiddenPanel->user_data = (void *)requestId;
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
-    // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_12, 0);
-    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>(width, 200) + 10, 40));
-    lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
+    add_style_chat_message_style(textLabel);
+    layoutMessageBubble(textLabel, msg);
     lv_obj_set_y(textLabel, 0);
     lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
-    lv_label_set_text(textLabel, msg);
-
-    add_style_chat_message_style(textLabel);
 
     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
     lv_obj_move_foreground(objects.message_input_area);
@@ -6863,13 +6878,9 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_set_style_pad_bottom(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
-    // calculate expected size of text bubble, to make it look nicer
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_14, 0);
-    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 40));
-    lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
-    lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(msgLabel, msg);
     add_style_new_message_style(msgLabel);
+    layoutMessageBubble(msgLabel, msg);
+    lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
     lv_obj_add_flag(msgLabel, LV_OBJ_FLAG_CLICK_FOCUSABLE);
     lv_obj_add_event_cb(msgLabel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
 
