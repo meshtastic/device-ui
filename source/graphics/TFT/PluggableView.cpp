@@ -12,6 +12,7 @@
 #include "images.h"
 #include "input/InputDriver.h"
 #include "lv_i18n.h"
+#include "styles.h"
 #include "ui.h"
 #include "util/Colors.h"
 #include "util/ILog.h"
@@ -134,12 +135,77 @@ bool PluggableView::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         node->bindRow(objects.node_button, ownNode, 0);
     }
     setMyInfo(ownNode);
+    applyUIConfig();
+    if (db.uiConfig.screen_lock && settings)
+        settings->unlockScreen([this]() {
+            if (messages)
+                messages->setNotificationsSuppressed(false);
+        });
 
     // check SD card
     updateSDCard();
 
     lv_disp_trig_activity(NULL);
     return true;
+}
+
+void PluggableView::applyUIConfig()
+{
+    displaydriver->setBrightness(db.uiConfig.screen_brightness);
+    displaydriver->setScreenTimeout(db.uiConfig.screen_timeout);
+    if (!screensInitialised)
+        return;
+    const bool light = db.uiConfig.theme == meshtastic_Theme_LIGHT;
+    const bool red = db.uiConfig.theme == meshtastic_Theme_RED;
+    lv_display_t *display = lv_display_get_default();
+    lv_display_set_theme(display, lv_theme_default_init(display, lv_palette_main(red ? LV_PALETTE_RED : LV_PALETTE_BLUE),
+                                                        lv_palette_main(LV_PALETTE_GREEN), !light, LV_FONT_DEFAULT));
+    ListRowStyle::setTheme(db.uiConfig.theme);
+    const auto background = ListRowStyle::background();
+    const auto foreground = ListRowStyle::foreground();
+    auto *pageStyle = get_style_page_style_MAIN_DEFAULT();
+    lv_style_set_bg_color(pageStyle, background);
+    lv_style_set_text_color(pageStyle, foreground);
+    lv_obj_report_style_change(pageStyle);
+    auto *header = get_style_top_panel_style_MAIN_DEFAULT();
+    lv_style_set_bg_color(header, lv_color_hex(red ? 0x542020 : light ? 0x67ea94 : 0x37507e));
+    lv_style_set_text_color(header, foreground);
+    lv_obj_report_style_change(header);
+    for (auto *screen : {objects.menu, objects.home, objects.nodes, objects.groups, objects.chats, objects.map, objects.clock,
+                         objects.settings}) {
+        if (screen) {
+            lv_obj_set_style_bg_color(screen, background, 0);
+            lv_obj_set_style_text_color(screen, foreground, 0);
+        }
+    }
+    if (messages)
+        messages->setNotificationsEnabled(db.uiConfig.alert_enabled);
+    refreshSettingsStatus();
+}
+
+void PluggableView::updateUIConfig(const meshtastic_DeviceUIConfig &config)
+{
+    if (config.version != 1)
+        return;
+    // Keep all persisted fields, but leave screens, chat drafts and focus intact.
+    const bool lockEnabled = !db.uiConfig.screen_lock && config.screen_lock;
+    db.uiConfig = config;
+    applyUIConfig();
+    if (lockEnabled && settings)
+        settings->unlockScreen([this]() {
+            if (messages)
+                messages->setNotificationsSuppressed(false);
+        });
+}
+
+void PluggableView::screenSaving(bool enabled)
+{
+    // The PIN overlay owns input while the display still wakes on any key.
+    if (enabled && db.uiConfig.screen_lock && settings)
+        settings->unlockScreen([this]() {
+            if (messages)
+                messages->setNotificationsSuppressed(false);
+        });
 }
 
 /**
@@ -214,6 +280,18 @@ void PluggableView::ui_init(void)
     // create and wire settings plugin
     SETUP_INDEV(settingsGroup);
     create_screen_settings();
+    lv_obj_add_flag(objects.settings_panel_1, LV_OBJ_FLAG_HIDDEN);
+    lv_group_remove_obj(objects.settings_menu);
+    settings = new SettingsPlugin(*controller, *inputdriver, db.uiConfig, db.config, db.module_config);
+    settings->configure(objects.settings, objects.settings_panel, settingsGroup, indev);
+    settings->setOnApplyUI([this](const meshtastic_DeviceUIConfig &cfg) { updateUIConfig(cfg); });
+    settings->setOnChanged([this]() { refreshSettingsStatus(); });
+    settings->setOnDoubleSpacePeriod([this](bool enabled) {
+        if (messages)
+            messages->setDoubleSpacePeriod(enabled);
+    });
+    if (messages)
+        messages->setDoubleSpacePeriod(settings->doubleSpacePeriodEnabled());
 #endif
     // finishes creating all plugins, goto home menu screen
     menu->loadScreen();
@@ -298,6 +376,26 @@ void PluggableView::ui_events_init(void)
             if (dashboard)
                 dashboard->updateUnreadMessages(count);
         });
+    }
+    if (dashboard) {
+        dashboard->setOnOpenMessages([this](lv_event_t *) { messages->loadScreen(); });
+        dashboard->setOnOpenNodes([this](lv_event_t *) { node->loadScreen(); });
+        dashboard->setOnToggleLoRa([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::Radio); });
+        dashboard->setOnToggleSound([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::Popups); });
+        dashboard->setOnToggleGPS([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::GPS); });
+        dashboard->setOnToggleWLAN([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::WiFi); });
+        dashboard->setOnToggleMQTT([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::MQTT); });
+        dashboard->setOnToggleTime([this](lv_event_t *) {
+            lv_screen_load(objects.clock);
+            if (indev)
+                lv_indev_set_group(indev, clockGroup);
+            if (inputdriver->hasKeyboardDevice())
+                lv_indev_set_group(inputdriver->getKeyboard(), clockGroup);
+        });
+        dashboard->setOnToggleMem([this](lv_event_t *) { updateFreeMem(); });
+        // A channel-share editor is not present in the plugin view yet.
+        lv_obj_add_flag(objects.home_qr_button, LV_OBJ_FLAG_HIDDEN);
+        dashboard->setOnRefreshSDCard([this](lv_event_t *) { updateSDCard(); });
     }
 
     // Navigation callbacks for the remaining menu screens.
@@ -452,15 +550,10 @@ void PluggableView::ui_event_AppsButton(lv_event_t *e)
 
 void PluggableView::ui_event_SettingsButton(lv_event_t *e)
 {
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
-        lv_screen_load_anim(objects.settings, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
-        lv_indev_set_group(THIS->indev, THIS->settingsGroup);
-        // lv_group_focus_obj(objects.top_settings_back_button);
-        lv_obj_remove_state(objects.settings_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-    } else if (event_code == LV_EVENT_FOCUSED) {
+    if (lv_event_get_code(e) == LV_EVENT_SHORT_CLICKED && THIS->settings)
+        THIS->settings->loadScreen();
+    else if (lv_event_get_code(e) == LV_EVENT_FOCUSED)
         lv_label_set_text(objects.menu_label, "Settings");
-    }
 }
 
 void PluggableView::ui_event_PowerButton(lv_event_t *e)
@@ -558,42 +651,8 @@ void PluggableView::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 {
     db.config.lora = cfg;
     db.config.has_lora = true;
-
-    // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
-    if (!db.config.lora.channel_num) {
-        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
-                                                                 THIS->db.channel[0].settings.name);
-    }
-
     if (dashboard)
-        dashboard->updateLoRaConfig(db.config.lora);
-
-#if 0
-    char region[30];
-    lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
-    lv_label_set_text(objects.basic_settings_region_label, region);
-
-    char buf1[20], buf2[32];
-    lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
-    lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
-    lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
-    lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
-
-    uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
-    lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-    lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
-
-    if (db.config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
-        // update channel names again now that region is known
-        for (int i = 0; i < c_max_channels; i++) {
-            if (db.channel[i].has_settings && db.channel[i].role != meshtastic_Channel_Role_DISABLED) {
-                setChannelName(db.channel[i]);
-            }
-        }
-    } else {
-        requestSetup();
-    }
-#endif
+        dashboard->updateLoRaConfig(cfg);
 }
 
 /**
@@ -634,93 +693,48 @@ void PluggableView::updatePositionConfig(const meshtastic_Config_PositionConfig 
 void PluggableView::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
 {
     db.connectionStatus = status;
-    if (status.has_wifi) {
-        if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
-            if (status.wifi.has_status) {
-                char buf[20];
-                uint32_t ip = status.wifi.status.ip_address;
-                sprintf(buf, "%d.%d.%d.%d", ip & 0xff, (ip & 0xff00) >> 8, (ip & 0xff0000) >> 16, (ip & 0xff000000) >> 24);
-                lv_label_set_text(objects.home_wlan_label, buf);
-                // Themes::recolorButton(objects.home_wlan_button, true);
-                // Themes::recolorText(objects.home_wlan_label, true);
-                if (status.wifi.status.is_connected) {
-                    lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
-                } else {
-                    lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_icon,
-                                                LV_PART_MAIN | LV_STATE_DEFAULT);
-                }
+    if (dashboard)
+        dashboard->updateConnectionStatus(status);
+}
 
-                if (status.wifi.status.is_mqtt_connected) {
-                    // Themes::recolorButton(objects.home_mqtt_button, true, 255);
-                    // Themes::recolorText(objects.home_mqtt_label, true);
-                } else {
-                    // Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
-                    // Themes::recolorText(objects.home_mqtt_label, false);
-                }
-            }
-        } else {
-            // Themes::recolorButton(objects.home_wlan_button, false);
-            // Themes::recolorText(objects.home_wlan_label, false);
-            if (status.wifi.status.is_mqtt_connected) {
-                // Themes::recolorButton(objects.home_mqtt_button, true, 255);
-                // Themes::recolorText(objects.home_mqtt_label, true);
-            } else {
-                // Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled, 100);
-                // Themes::recolorText(objects.home_mqtt_label, false);
-            }
-            lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-    } else {
-        lv_obj_add_flag(objects.home_wlan_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(objects.home_wlan_button, LV_OBJ_FLAG_HIDDEN);
-    }
-#if 0
-    if (status.has_bluetooth) {
-        if (db.config.bluetooth.enabled) {
-            if (status.bluetooth.is_connected) {
-                char buf[20];
-                uint32_t mac = ownNode;
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-                sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff, (mac & 0xff00) >> 8, (mac & 0xff0000) >> 16,
-                        (mac & 0xff000000) >> 24);
-                lv_label_set_text(objects.home_bluetooth_label, buf);
-                lv_obj_set_style_bg_opa(objects.home_bluetooth_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
-            } else {
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-            }
-        } else {
-            lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_off_button_image,
-                                        LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-    } else {
-        lv_obj_add_flag(objects.home_bluetooth_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(objects.home_bluetooth_button, LV_OBJ_FLAG_HIDDEN);
-    }
+void PluggableView::updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg)
+{
+    db.config.network = cfg;
+    db.config.has_network = true;
+    refreshSettingsStatus();
+}
 
-    if (status.has_ethernet) {
-        if (status.ethernet.status.is_connected) {
-            char buf[20];
-            uint32_t mac = ownNode;
-            sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
-            lv_label_set_text(objects.home_ethernet_label, buf);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_opa(objects.home_ethernet_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        } else {
-            lv_obj_set_style_bg_img_recolor_opa(objects.home_ethernet_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-    } else {
-        lv_obj_add_flag(objects.home_ethernet_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(objects.home_ethernet_button, LV_OBJ_FLAG_HIDDEN);
+void PluggableView::updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg)
+{
+    db.module_config.mqtt = cfg;
+    db.module_config.has_mqtt = true;
+    refreshSettingsStatus();
+}
+
+void PluggableView::updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg)
+{
+    db.module_config.external_notification = cfg;
+    db.module_config.has_external_notification = true;
+    refreshSettingsStatus();
+}
+
+void PluggableView::refreshSettingsStatus()
+{
+    if (dashboard) {
+        if (db.config.has_lora)
+            dashboard->updateLoRaConfig(db.config.lora);
+        if (db.config.has_network)
+            dashboard->updateNetworkConfig(db.config.network);
+        if (db.config.has_position)
+            dashboard->updatePositionConfig(db.config.position);
+        if (db.module_config.has_mqtt)
+            dashboard->updateMQTTConfig(db.module_config.mqtt);
+        dashboard->updateNotifications(db.uiConfig.alert_enabled);
+        if (db.module_config.has_external_notification)
+            dashboard->updateSound(db.module_config.external_notification.enabled &&
+                                   db.module_config.external_notification.alert_message_buzzer);
     }
-#endif
+    updateConnectionStatus(db.connectionStatus);
 }
 
 void PluggableView::updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg)
@@ -1432,6 +1446,8 @@ void PluggableView::onTextMessageCallback(const ResponseHandler::Request &req, R
 
 void PluggableView::task_handler(void)
 {
+    if (messages)
+        messages->setNotificationsSuppressed(settings && settings->isLocked());
     MeshtasticView::task_handler();
 
     if (screensInitialised) {

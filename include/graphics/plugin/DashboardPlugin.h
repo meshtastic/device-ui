@@ -4,6 +4,7 @@
 #include "meshtastic/clientonly.pb.h"
 #include "meshtastic/connection_status.pb.h"
 #include "meshtastic/mesh.pb.h"
+#include "meshtastic/module_config.pb.h"
 #include "util/LocalGPSStatus.h"
 #include <cstdint>
 #include <functional>
@@ -110,6 +111,10 @@ class DashboardPlugin : public GfxPlugin
     void updatePosition(int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision, bool metric);
     void updateLocalGPSStatus(const LocalGPSStatus &status);
     void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg);
+    void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg);
+    void updateMQTTConfig(const meshtastic_ModuleConfig_MQTTConfig &cfg);
+    void updateNotifications(bool enabled);
+    void updateSound(bool enabled);
     void updateUnreadMessages(uint32_t count);
     void updateSDCard(bool cardDetected, const char *info = nullptr);
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status);
@@ -126,6 +131,8 @@ class DashboardPlugin : public GfxPlugin
   private:
     void configureRows();
     void renderGPSStatus();
+    void renderConnectionStatus();
+    void renderNotifications();
 
     LocalGPSStatus gpsStatus{};
     bool gpsStatusKnown = false;
@@ -134,6 +141,12 @@ class DashboardPlugin : public GfxPlugin
     bool metricUnits = true;
     uint32_t packetSatellites = 0;
     std::string positionDetails;
+    bool notificationsEnabled = false;
+    bool soundEnabled = false;
+    bool soundKnown = false;
+    bool networkEnabled = false;
+    bool mqttEnabled = false;
+    meshtastic_DeviceConnectionStatus connectionStatus{};
 
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
