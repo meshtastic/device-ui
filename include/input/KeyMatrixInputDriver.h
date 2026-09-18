@@ -8,7 +8,6 @@ class KeyMatrixInputDriver : public InputDriver
     KeyMatrixInputDriver(void);
 
     virtual void init(void) override;
-    bool supportsTextInput(void) override { return true; }
     virtual ~KeyMatrixInputDriver(void) {}
 
   private:

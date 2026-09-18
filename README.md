@@ -41,18 +41,6 @@ Vectors and icons by <a href="https://www.svgrepo.com/" target="_blank">SVG Repo
 Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 </p>
 
-## Message input
-
-Message bubbles show the message text and, for received group messages, the sender name on a separate line. Per-message dates and times are omitted from the display, including restored history. Message logs retain their timestamps and delivery indicators keep their existing behavior.
-
-Sent and received bubbles share padding and size to their displayed font and text. Longer messages wrap within 90% of the conversation width; short messages stay compact without premature wrapping.
-
-On the shared landscape/portrait TFT view, **Settings > Input Control > Double-space period** enables a physical-keyboard shortcut: press Space twice within half a second after a word to insert a period and trailing space. The option defaults to off and applies only to message composition. Held keys, slow spaces and spaces after sentence punctuation retain their normal behavior. Enter immediately after the shortcut sends the message; manually typed Space+Enter still starts a new line. Select OK to save or Cancel to discard the selection.
-
-The preference is stored locally in the internal filesystem at `/prefs/double-space-period` as one byte (`0` or `1`); it requires no SD card and does not change the Meshtastic configuration protocol. Missing or invalid data defaults to off. A failed save keeps the settings dialog open with an error. This local preference is not included in the existing device-profile backup.
-
-On devices with a physical text keyboard and encoder, opening a conversation shows the newest messages. Turn the encoder to scroll history while typing. Incoming messages preserve your position while reading older messages. Hold the encoder button to return to control navigation. The encoder button does not send drafts; the keyboard Enter behavior is unchanged.
-
 ## :pencil: TODOs
 
 ### General Architecture
@@ -83,23 +71,22 @@ On devices with a physical text keyboard and encoder, opening a conversation sho
       - [x] Display sleep
       - [x] Heartbeat timer based on device input actions
     - [x] Localisation support
-      - [x] Danish translation
-      - [x] Dutch translation
-      - [x] Finnish translation
-      - [x] French translation
       - [x] German translation
-      - [x] Greek translation
-      - [x] Italian translation
-      - [x] Netherlands translation
+      - [x] Spanish translation
+      - [x] Portuguese translation
+      - [x] Swedish translation
       - [x] Norwegian translation
+      - [x] Finnish translation
       - [x] Polish translation
       - [x] Portuguese translation
-      - [x] Portuguese translation
+      - [x] Netherlands translation
+      - [x] Dutch translation
+      - [x] Italian translation
+      - [x] French translation
       - [x] Russian translation
       - [x] Slovenian translation
-      - [x] Spanish translation
-      - [x] Swedish translation
       - [x] Turkish translation
+      - [x] Greek translation
       - [x] Ukrainian translation
     - [ ] Support dynamic OLED / Color(TFT) selection
     - [x] Add support for UI scaling and try eliminate fixed positioning (lvgl v9)
@@ -144,7 +131,7 @@ On devices with a physical text keyboard and encoder, opening a conversation sho
     - [x] Map
       - [x] Tiles dynamic loading
         - [x] SD card
-        - [x] WLAN
+        - [ ] WLAN
       - [x] Pan & Zoom
       - [x] Node locations
       - [ ] Location precision

@@ -17,7 +17,6 @@ DeviceScreen &DeviceScreen::create(void)
 
 DeviceScreen &DeviceScreen::create(ISpiLock &spiLock)
 {
-    // Installed before anything is constructed, so even panel init is guarded.
     ISpiLock::install(&spiLock);
     return *new DeviceScreen(nullptr);
 }
@@ -74,11 +73,6 @@ void DeviceScreen::init(IClientBase *client)
 void DeviceScreen::task_handler(void)
 {
     gui->task_handler();
-}
-
-void DeviceScreen::toggleDisplay(void)
-{
-    gui->toggleDisplay();
 }
 
 #if defined(ARDUINO_ARCH_ESP32)

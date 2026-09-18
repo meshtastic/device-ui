@@ -23,9 +23,9 @@ class TFTView_320x240 : public MeshtasticView
     void setMyInfo(uint32_t nodeNum) override;
     void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                            bool can_shutdown) override;
-    void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg) override;
+    void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node, const meshtastic_User &cfg) override;
     void addNode(uint32_t nodeNum, uint8_t channel, const char *userShort, const char *userLong, uint32_t lastHeard, eRole role,
-                 bool hasKey, bool unmessagable) override;
+                 bool hasKey, bool isFav, bool isIgnored, bool unmessagable) override;
     void updateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_User &cfg) override;
     void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision) override;
     void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) override;
@@ -171,7 +171,7 @@ class TFTView_320x240 : public MeshtasticView
     // mark sent message as received
     virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err);
     // set node image based on role
-    virtual void setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img);
+    virtual void setNodeImage(uint32_t nodeNum, eRole role, bool isFav, bool unmessagable, lv_obj_t *img);
     // apply filter and count number of filtered nodes
     virtual void updateNodesFiltered(bool reset);
     // set last heard to now, update nodes online
@@ -184,16 +184,6 @@ class TFTView_320x240 : public MeshtasticView
     virtual void updateTime(void);
     // update SD card slot info
     virtual bool updateSDCard(void);
-    // re-read only the card statistics (a co-processor may compute them in
-    // the background), polling a bounded number of times until they arrive
-    void refreshSDCardStats(void);
-    void armSDCardStatsPoll(void);
-    // release the card so it can be pulled safely; a tap mounts it again
-    void ejectSDCard(void);
-#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
-    void formatSDCardLabel(char *buf, size_t len);
-#endif
-    uint16_t sdStatsPolls = 0;
     // format SD card if invalid
     virtual void formatSDCard(void);
     // update time display on home screen
@@ -206,10 +196,6 @@ class TFTView_320x240 : public MeshtasticView
     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
     // remove objects from map
     virtual void removeFromMap(uint32_t nodeNum);
-    // set url provider and dropdown and return url if present
-    virtual std::string setUrlProvider(const char *style);
-    // show or hide URL template input
-    virtual void showUrlInputArea(bool show);
 
     std::function<void(uint32_t id, uint16_t x, uint16_t y, uint8_t)> drawObjectCB;
 
@@ -230,28 +216,13 @@ class TFTView_320x240 : public MeshtasticView
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
     void hideKeyboard(lv_obj_t *panel);
-    // abort a running slide animation and restore panel/keyboard position at once
-    void resetKeyboardSlide(void);
     lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
 
     void enablePanel(lv_obj_t *panel);
     void disablePanel(lv_obj_t *panel);
     void setGroupFocus(lv_obj_t *panel);
-    void focusMessageInput(void);
-    void layoutMessageBubble(lv_obj_t *label, const char *text);
     void setInputGroup(void);
-    void updateInputControls(void);
-    void initMessageInputSettings(void);
-    bool saveDoubleSpacePeriod(bool enabled);
-    void handleMessageInput(lv_event_t *e);
-    lv_obj_t *doubleSpaceSwitch = nullptr;
-    lv_obj_t *doubleSpaceHint = nullptr;
-    bool doubleSpacePeriod = false;
-    bool spacePending = false;
-    bool automaticPeriodSpace = false;
-    uint32_t lastSpaceAt = 0;
-    uint32_t lastSpaceCursor = 0;
-    void updateGroupChannel(uint8_t chId);
+    void setInputButtonLabel(void);
 
     void backup(uint32_t option);
     void restore(uint32_t option);
@@ -267,10 +238,6 @@ class TFTView_320x240 : public MeshtasticView
     void updateSignalStrength(int32_t rssi, float snr);
     int32_t signalStrength2Percent(int32_t rx_rssi, float rx_snr);
 
-    uint32_t preset2val(meshtastic_Config_LoRaConfig_ModemPreset preset);
-    meshtastic_Config_LoRaConfig_ModemPreset val2preset(uint32_t val);
-    uint32_t region2val(meshtastic_Config_LoRaConfig_RegionCode region);
-    meshtastic_Config_LoRaConfig_RegionCode val2region(uint32_t val);
     uint32_t role2val(meshtastic_Config_DeviceConfig_Role role);
     meshtastic_Config_DeviceConfig_Role val2role(uint32_t val);
     uint32_t language2val(meshtastic_Language lang);
@@ -286,8 +253,8 @@ class TFTView_320x240 : public MeshtasticView
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);
     void setChannelName(const meshtastic_Channel &ch);
+    uint32_t timestamp(char *buf, uint32_t time, bool update);
     void updateLocationMap(uint32_t objects);
-    void attribution(std::string url);
 
     // response callbacks
     void onTextMessageCallback(const ResponseHandler::Request &, ResponseHandler::EventType, int32_t);
@@ -339,8 +306,6 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_Keyboard(lv_event_t *e);
 
     static void ui_event_message_ready(lv_event_t *e);
-    static void ui_event_message_input(lv_event_t *e);
-    static void ui_event_message_encoder(lv_event_t *e);
 
     static void ui_event_user_button(lv_event_t *e);
     static void ui_event_role_button(lv_event_t *e);
@@ -359,7 +324,6 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_backup_button(lv_event_t *e);
     static void ui_event_reset_button(lv_event_t *e);
     static void ui_event_reboot_button(lv_event_t *e);
-    static void ui_event_about_button(lv_event_t *e);
     static void ui_event_device_reboot_button(lv_event_t *e);
     static void ui_event_device_progmode_button(lv_event_t *e);
     static void ui_event_device_shutdown_button(lv_event_t *e);
@@ -376,8 +340,6 @@ class TFTView_320x240 : public MeshtasticView
     static void ui_event_modem_preset_dropdown(lv_event_t *e);
     static void ui_event_setup_region_dropdown(lv_event_t *e);
     static void ui_event_map_style_dropdown(lv_event_t *e);
-    static void ui_event_map_url_dropdown(lv_event_t *e);
-    static void ui_event_map_url_textarea(lv_event_t *e);
 
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 
@@ -429,35 +391,31 @@ class TFTView_320x240 : public MeshtasticView
 
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
-    static TFTView_320x240 *gui;                     // singleton pattern
-    bool screensInitialised;                         // true if init_screens is completed
-    uint32_t nodesFiltered;                          // no. hidden nodes in node list
-    bool nodesChanged;                               // true if nodes changed (added or purged)
-    bool processingFilter;                           // indicates that filtering is ongoing
-    bool packetLogEnabled;                           // display received packets
-    bool detectorRunning;                            // meshDetector is active
-    bool cardDetected;                               // SD has been detected
-    bool formatSD;                                   // offer to format SD card
-    uint16_t buttonSize;                             // size of group/chat buttons in pixels
-    uint16_t statisticTableRows;                     // number of rows in statistics table
-    uint16_t packetCounter;                          // number of packets in packet log
-    time_t lastrun60, lastrun10, lastrun5, lastrun1; // timers for task loop
-    time_t actTime, uptime, lastHeard;               // actual time and uptime; time last heard a node
-    bool hasPosition;                                // if our position is known
-    int32_t myLatitude, myLongitude;                 // our current position as reported by firmware
-    void *topNodeLL;                                 // pointer to topmost button in group ll
-    uint32_t scans;                                  // scanner counter
-    lv_anim_t radar;                                 // radar animation
-    static uint32_t currentNode;                     // current selected node
-    static lv_obj_t *currentPanel;                   // current selected node panel
-    static lv_obj_t *spinnerButton;                  // start button animation
-    static time_t startTime;                         // time when start button was pressed
-    static uint32_t pinKeys;                         // number of keys pressed (lock screen)
-    static bool screenLocked;                        // screen lock active
-    static bool screenUnlockRequest;                 // screen unlock request (via button)
-    enum KbdSlide { eKbdHidden, eKbdSliding, eKbdShown };
-    static KbdSlide kbdSlideState;                        // slide state of the on-screen keyboard
-    static int32_t kbdPanelBaseY;                         // messages panel y at rest (INT32_MIN: not captured yet)
+    static TFTView_320x240 *gui;                          // singleton pattern
+    bool screensInitialised;                              // true if init_screens is completed
+    uint32_t nodesFiltered;                               // no. hidden nodes in node list
+    bool nodesChanged;                                    // true if nodes changed (added or purged)
+    bool processingFilter;                                // indicates that filtering is ongoing
+    bool packetLogEnabled;                                // display received packets
+    bool detectorRunning;                                 // meshDetector is active
+    bool formatSD;                                        // offer to format SD card
+    uint16_t buttonSize;                                  // size of group/chat buttons in pixels
+    uint16_t statisticTableRows;                          // number of rows in statistics table
+    uint16_t packetCounter;                               // number of packets in packet log
+    time_t lastrun60, lastrun10, lastrun5, lastrun1;      // timers for task loop
+    time_t actTime, uptime, lastHeard;                    // actual time and uptime; time last heard a node
+    bool hasPosition;                                     // if our position is known
+    int32_t myLatitude, myLongitude;                      // our current position as reported by firmware
+    void *topNodeLL;                                      // pointer to topmost button in group ll
+    uint32_t scans;                                       // scanner counter
+    lv_anim_t radar;                                      // radar animation
+    static uint32_t currentNode;                          // current selected node
+    static lv_obj_t *currentPanel;                        // current selected node panel
+    static lv_obj_t *spinnerButton;                       // start button animation
+    static time_t startTime;                              // time when start button was pressed
+    static uint32_t pinKeys;                              // number of keys pressed (lock screen)
+    static bool screenLocked;                             // screen lock active
+    static bool screenUnlockRequest;                      // screen unlock request (via button)
     uint32_t selectedHops;                                // remember selected choice
     bool chooseNodeSignalScanner;                         // chose a target node for signal scanner
     bool chooseNodeTraceRoute;                            // chose a target node for trace route
@@ -467,6 +425,8 @@ class TFTView_320x240 : public MeshtasticView
     lv_obj_t *qr;                                         // qr code
     MapPanel *map = nullptr;                              // map
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
+    std::unordered_map<uint32_t, lv_obj_t *> messages;    // message containers (within ui_MessagesPanel)
+    std::unordered_map<uint32_t, lv_obj_t *> chats;       // active chats (within ui_ChatPanel)
     // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
         meshtastic_User user;

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Arduino.h"
-#include "Wire.h"
 #include "input/InputDriver.h"
 #include <list>
 #include <memory>
@@ -38,7 +36,6 @@ class TDeckKeyboardInputDriver : public I2CKeyboardInputDriver
 {
   public:
     TDeckKeyboardInputDriver(uint8_t address);
-    bool supportsTextInput(void) override { return true; }
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TDeckKeyboardInputDriver(void) {}
 };
@@ -46,7 +43,7 @@ class TDeckKeyboardInputDriver : public I2CKeyboardInputDriver
 class TCA8418KeyboardInputDriver : public I2CKeyboardInputDriver
 {
   public:
-    TCA8418KeyboardInputDriver(uint8_t address, const char *name = "TCA8418 Keyboard");
+    TCA8418KeyboardInputDriver(uint8_t address);
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~TCA8418KeyboardInputDriver(void) {}
@@ -58,8 +55,6 @@ class TLoraPagerKeyboardInputDriver : public TCA8418KeyboardInputDriver
     TLoraPagerKeyboardInputDriver(uint8_t address);
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
-    // Keep software keyboard access available if hardware initialization failed.
-    virtual bool supportsTextInput(void) { return initialized; }
     virtual ~TLoraPagerKeyboardInputDriver(void) {}
 
   private:
@@ -94,7 +89,6 @@ class BBQ10KeyboardInputDriver : public I2CKeyboardInputDriver
 {
   public:
     BBQ10KeyboardInputDriver(uint8_t address);
-    bool supportsTextInput(void) override { return true; }
     void init(void) override;
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~BBQ10KeyboardInputDriver(void) {}
@@ -103,13 +97,9 @@ class BBQ10KeyboardInputDriver : public I2CKeyboardInputDriver
 class CardKBInputDriver : public I2CKeyboardInputDriver
 {
   public:
-    CardKBInputDriver(uint8_t address, TwoWire &wire_ = Wire);
-    bool supportsTextInput(void) override { return true; }
+    CardKBInputDriver(uint8_t address);
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
     virtual ~CardKBInputDriver(void) {}
-
-  private:
-    TwoWire &wire;
 };
 
 class MPR121KeyboardInputDriver : public I2CKeyboardInputDriver
