@@ -30,6 +30,7 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void init(IClientBase *client) override;
     bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) override;
     void task_handler(void) override;
+    void removeNode(uint32_t nodeNum) override;
 
     void setMyInfo(uint32_t nodeNum) override;
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node, const meshtastic_User &cfg) override;

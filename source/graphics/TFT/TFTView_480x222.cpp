@@ -151,14 +151,30 @@ lv_obj_t *TFTView_480x222::createChatWidget(lv_obj_t *parent, uint32_t index)
     lv_obj_t *chIdLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 2];
     lv_obj_t *chGroupNameLabel = ((lv_obj_t **)&objects)[startWidgetIndex + 3];
 
+    ListRowStyle::row(chatBtn);
+    ListRowStyle::text(chIdLabel);
+    ListRowStyle::text(chGroupNameLabel);
+    lv_obj_set_size(chImage, 24, 24);
+    lv_obj_align(chImage, LV_ALIGN_LEFT_MID, 0, 0);
+    lv_image_set_src(chImage, &img_chats_icon);
+    lv_obj_set_width(chIdLabel, LV_PCT(85));
+    lv_obj_set_width(chGroupNameLabel, LV_PCT(85));
+    lv_label_set_long_mode(chIdLabel, LV_LABEL_LONG_DOT);
+    lv_label_set_long_mode(chGroupNameLabel, LV_LABEL_LONG_DOT);
+    lv_obj_align(chIdLabel, LV_ALIGN_TOP_LEFT, 32, 0);
+    lv_obj_align(chGroupNameLabel, LV_ALIGN_TOP_LEFT, 32, 19);
     if (index < 8) {
-        lv_label_set_text_fmt(chIdLabel, "%d", index);
-        lv_label_set_text(chGroupNameLabel, db.channel[index].settings.name);
+        lv_label_set_text_fmt(chIdLabel, _("Channel %d"), index);
+        lv_label_set_text(chGroupNameLabel,
+                          db.channel[index].settings.name[0] ? db.channel[index].settings.name : _("<unset>"));
     } else {
         auto it = nodes.find(index);
         if (it != nodes.end()) {
             lv_label_set_text(chIdLabel, lv_label_get_text(it->second->LV_OBJ_IDX(node_lbs_idx)));
             lv_label_set_text(chGroupNameLabel, lv_label_get_text(it->second->LV_OBJ_IDX(node_lbl_idx)));
+        } else {
+            lv_label_set_text_fmt(chIdLabel, "%04x", index & 0xffff);
+            lv_label_set_text_fmt(chGroupNameLabel, "!%08x", index);
         }
     }
     return chatBtn;

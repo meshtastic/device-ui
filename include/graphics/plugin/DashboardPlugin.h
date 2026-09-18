@@ -9,10 +9,11 @@
 #include <string>
 
 /**
- * DashboardPlugin - concrete dashboard plugin that implements business logic for the home/dashboard panel.
- * Plugin stores the updated dashboard state
- * UI widgets are referenced by small indices (enum Widget) and placed into the GfxPlugin widget array.
- * updateXYZ(...) methods update internal state and push changes to UI.
+ * DashboardPlugin - concrete dashboard plugin that implements business logic
+ * for the home/dashboard panel. Plugin stores the updated dashboard state UI
+ * widgets are referenced by small indices (enum Widget) and placed into the
+ * GfxPlugin widget array. updateXYZ(...) methods update internal state and push
+ * changes to UI.
  */
 class DashboardPlugin : public GfxPlugin
 {
@@ -73,7 +74,8 @@ class DashboardPlugin : public GfxPlugin
     DashboardPlugin();
     virtual ~DashboardPlugin();
 
-    // init override: store resolver/parent and optionally auto-register widgets by name
+    // init override: store resolver/parent and optionally auto-register widgets
+    // by name
     void init(lv_obj_t *parent, WidgetResolver resolver, std::size_t widgetCount = WIDGET_COUNT, lv_group_t *group = nullptr,
               lv_indev_t *indev = nullptr, GfxPlugin::RegisterWidget registerWidget = GfxPlugin::RegisterWidget::All) override;
 
@@ -119,6 +121,8 @@ class DashboardPlugin : public GfxPlugin
     void handleAction(Action actionId, WidgetIndex idx, int event_code) /*override*/;
 
   private:
+    void configureRows();
+
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
 

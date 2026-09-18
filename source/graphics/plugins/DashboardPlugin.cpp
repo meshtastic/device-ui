@@ -1,6 +1,7 @@
 #include "graphics/plugin/DashboardPlugin.h"
 #include "Arduino.h"
 #include "graphics/common/LoRaPresets.h"
+#include "graphics/plugin/ListRowStyle.h"
 #include "images.h"
 #include "lv_i18n.h"
 #include "lvgl.h"
@@ -22,6 +23,7 @@ void DashboardPlugin::init(lv_obj_t *parent, WidgetResolver resolver, std::size_
 {
     p = this;
     GfxPlugin::init(parent, resolver, widgetCount, group, indev, registerWidget);
+    configureRows();
 }
 
 void DashboardPlugin::loadScreen(lv_screen_load_anim_t anim, uint32_t time)
@@ -46,6 +48,8 @@ void DashboardPlugin::registerStandardWidgets(void)
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::SignalPctLabel), objects.home_signal_pct_label);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::BellButton), objects.home_bell_button);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::BellLabel), objects.home_bell_label);
+    setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::LocationButton), objects.home_location_button);
+    setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::LocationLabel), objects.home_location_label);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::WlanButton), objects.home_wlan_button);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::WlanLabel), objects.home_wlan_label);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::MqttButton), objects.home_mqtt_button);
@@ -57,6 +61,85 @@ void DashboardPlugin::registerStandardWidgets(void)
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::QrButton), objects.home_qr_button);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::QrLabel), objects.home_qr_label);
 #endif
+}
+
+namespace
+{
+void drawDashboardIcon(lv_event_t *event)
+{
+    auto *icon = lv_event_get_target_obj(event);
+    auto *row = lv_obj_get_parent(icon);
+    const void *source = lv_obj_get_style_bg_image_src(row, LV_PART_MAIN);
+    lv_image_header_t header;
+    if (!source || lv_image_decoder_get_info(source, &header) != LV_RESULT_OK)
+        return;
+    lv_area_t area;
+    lv_obj_get_coords(icon, &area);
+    area.x1 += (lv_area_get_width(&area) - static_cast<int32_t>(header.w)) / 2;
+    area.y1 += (lv_area_get_height(&area) - static_cast<int32_t>(header.h)) / 2;
+    area.x2 = area.x1 + header.w - 1;
+    area.y2 = area.y1 + header.h - 1;
+    lv_draw_image_dsc_t draw;
+    lv_draw_image_dsc_init(&draw);
+    draw.base.layer = lv_event_get_layer(event);
+    lv_obj_init_draw_image_dsc(icon, LV_PART_MAIN, &draw);
+    draw.src = source;
+    draw.recolor = lv_obj_get_style_bg_image_recolor(row, LV_PART_MAIN);
+    draw.recolor_opa = lv_obj_get_style_bg_image_recolor_opa(row, LV_PART_MAIN);
+    draw.image_area = area;
+    lv_draw_image(draw.base.layer, &draw, &area);
+}
+} // namespace
+
+void DashboardPlugin::configureRows()
+{
+    struct Row {
+        Widget button;
+        Widget label;
+    };
+    const Row rows[] = {
+        {Widget::MailButton, Widget::MailLabel},         {Widget::NodesButton, Widget::NodesLabel},
+        {Widget::TimeButton, Widget::TimeLabel},         {Widget::LoRaButton, Widget::LoRaLabel},
+        {Widget::SignalButton, Widget::SignalLabel},     {Widget::BellButton, Widget::BellLabel},
+        {Widget::LocationButton, Widget::LocationLabel}, {Widget::WlanButton, Widget::WlanLabel},
+        {Widget::MqttButton, Widget::MqttLabel},         {Widget::SdButton, Widget::SdLabel},
+        {Widget::MemoryButton, Widget::MemoryLabel},     {Widget::QrButton, Widget::QrLabel},
+    };
+    auto *first = getWidget(static_cast<WidgetIndex>(Widget::MailButton));
+    if (!first)
+        return;
+    ListRowStyle::container(lv_obj_get_parent(first));
+    for (const auto &entry : rows) {
+        auto *row = getWidget(static_cast<WidgetIndex>(entry.button));
+        auto *label = getWidget(static_cast<WidgetIndex>(entry.label));
+        if (!row || !label)
+            continue;
+        ListRowStyle::row(row);
+        lv_obj_set_style_pad_column(row, 8, 0);
+        lv_obj_set_style_bg_image_opa(row, LV_OPA_TRANSP, 0);
+        lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(row, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+        // Keep icon sources on the existing button: runtime status updates remain
+        // authoritative, while its image is drawn in the row's leading column.
+        auto *icon = lv_obj_create(row);
+        lv_obj_remove_style_all(icon);
+        lv_obj_set_size(icon, 36, 36);
+        ListRowStyle::text(icon);
+        lv_obj_add_event_cb(icon, drawDashboardIcon, LV_EVENT_DRAW_MAIN, nullptr);
+        lv_obj_set_parent(label, row);
+        lv_obj_set_pos(label, 0, 0);
+        lv_obj_set_size(label, 0, LV_SIZE_CONTENT);
+        lv_obj_set_flex_grow(label, 1);
+        lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+        ListRowStyle::text(label);
+    }
+    auto *signal = getWidget(static_cast<WidgetIndex>(Widget::SignalPctLabel));
+    auto *signalRow = getWidget(static_cast<WidgetIndex>(Widget::SignalButton));
+    if (signal && signalRow) {
+        lv_obj_set_parent(signal, signalRow);
+        lv_obj_set_pos(signal, 0, 0);
+        ListRowStyle::text(signal);
+    }
 }
 
 void DashboardPlugin::registerStandardWidgetActions(void)
@@ -115,17 +198,17 @@ void DashboardPlugin::registerStandardEventCallbacks(void)
 
     lv_obj_t *memory_button = p->getWidget(static_cast<WidgetIndex>(Widget::MemoryButton));
     if (memory_button)
-        lv_obj_add_event_cb(memory_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onRefreshSDCard);
+        lv_obj_add_event_cb(memory_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleMem);
 
     lv_obj_t *qr_button = p->getWidget(static_cast<WidgetIndex>(Widget::QrButton));
     if (qr_button)
-        lv_obj_add_event_cb(qr_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onRefreshSDCard);
+        lv_obj_add_event_cb(qr_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleQR);
 }
 
 void DashboardPlugin::ui_event_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == EVENT_CLICKED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         DashboardPlugin::Callback *onPress = (DashboardPlugin::Callback *)(lv_event_get_user_data(e));
         if (onPress && *onPress)
             (*onPress)(e);
@@ -257,11 +340,9 @@ void DashboardPlugin::updatePosition(int32_t lat, int32_t lon, int32_t alt, uint
 
 void DashboardPlugin::updateSDCard(bool cardDetected, const char *info)
 {
-    // SD label
-    lv_obj_t *sdLbl = getWidget(static_cast<WidgetIndex>(Widget::SdLabel));
-    if (sdLbl) {
-        lv_label_set_text(sdLbl, info);
-    }
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::SdLabel));
+    if (label)
+        lv_label_set_text(label, info && *info ? info : cardDetected ? _("SD card: Ready") : _("SD card: Not detected"));
 }
 
 void DashboardPlugin::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
@@ -306,7 +387,8 @@ void DashboardPlugin::updateNodesStatus(uint32_t online, uint32_t total)
         lv_label_set_text_fmt(nodesLbl, _p("%u of %u nodes online", total), online, total);
 
     // if (nodesFiltered)
-    //     lv_snprintf(buf, sizeof(buf), _("Filter: %d of %d nodes"), nodeCount - nodesFiltered, nodeCount);
+    //     lv_snprintf(buf, sizeof(buf), _("Filter: %d of %d nodes"), nodeCount -
+    //     nodesFiltered, nodeCount);
     // lv_label_set_text(objects.top_nodes_online_label, buf);
 }
 
