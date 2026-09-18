@@ -7,12 +7,13 @@
 #define SD_SPI_FREQUENCY 50000000
 #endif
 
+#if defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
+#include "ff.h"
+#define SDCARD_FATFS_DRIVE "0:"
 #if defined(HAS_SD_MMC)
 fs::SDMMCFS &SDFs = SD_MMC;
 using File = fs::File;
-#elif defined(ARCH_PORTDUINO)
-fs::FS &SDFs = PortduinoFS;
-#elif defined(SDCARD_SHARE_SPI)
+#else
 #if defined(SDCARD_USE_SPI1)
 extern SPIClass SPI_HSPI;
 static SPIClass &SDHandler = SPI_HSPI; // re-use existing SPI1 instance
@@ -20,6 +21,9 @@ static SPIClass &SDHandler = SPI_HSPI; // re-use existing SPI1 instance
 static SPIClass &SDHandler = SPI; // re-use existing SPI instance
 #endif
 fs::SDFS &SDFs = SD;
+#endif
+#elif defined(ARCH_PORTDUINO)
+fs::FS &SDFs = PortduinoFS;
 #elif defined(HAS_SDCARD)
 #ifdef SDCARD_USE_SPI1
 extern SPIClass SPI_HSPI;
@@ -118,11 +122,6 @@ bool SDCard::init(void)
 }
 
 #else
-
-#include "ff.h"
-
-// the card is FatFs drive 0; SDMMCFS itself assumes the same in totalBytes()
-#define SDCARD_FATFS_DRIVE "0:"
 
 bool SDCard::init(void)
 {
@@ -272,6 +271,7 @@ bool SDCard::hasMapArchive(const char *folder, const char *style)
     if (!file)
         return false;
     file.close();
+    ILOG_DEBUG("found %s", filename.c_str());
     return true;
 }
 
