@@ -1,0 +1,117 @@
+#include "graphics/map/TileProvider.h"
+#include "graphics/map/MapTileSettings.h"
+#include "util/ILog.h"
+#include <algorithm>
+
+std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates;
+
+std::string TileProvider::url(const char *filename)
+{
+    // Source directory names can contain digits. Parse the final three path
+    // components instead of mistaking a digit in the style name for the zoom.
+    if (!filename)
+        return {};
+    const char *slash[3] = {};
+    for (const char *p = filename; *p; ++p) {
+        if (*p == '/') {
+            slash[0] = slash[1];
+            slash[1] = slash[2];
+            slash[2] = p;
+        }
+    }
+    int x, y, z;
+    int matched = slash[0] ? sscanf(slash[0], "/%d/%d/%d.png", &z, &x, &y) : 0;
+    if (matched != 3) {
+        ILOG_ERROR("failed to extract z/x/y from %s", filename);
+        return {};
+    }
+    return url(z, x, y);
+}
+
+std::string TileProvider::url(int z, int x, int y)
+{
+    std::string provider, url;
+    if (urlTemplates.empty() || MapTileSettings::getTileProvider() == -1) {
+        ILOG_WARN("no URL template available");
+        return url;
+    }
+
+    int16_t selected = MapTileSettings::getTileProvider();
+    if (selected >= urlTemplates.size()) {
+        ILOG_WARN("tile provider index out of range: %u (max %u)", (unsigned int)selected,
+                  (unsigned int)(urlTemplates.size() - 1));
+        return url;
+    }
+
+    std::tie(provider, url) = urlTemplates[selected];
+    size_t pos;
+    while ((pos = url.find("{z}")) != std::string::npos)
+        url.replace(pos, 3, std::to_string(z));
+    while ((pos = url.find("{x}")) != std::string::npos)
+        url.replace(pos, 3, std::to_string(x));
+    while ((pos = url.find("{y}")) != std::string::npos)
+        url.replace(pos, 3, std::to_string(y));
+    return url;
+}
+
+const std::string TileProvider::url(void)
+{
+    std::string provider, url;
+    int16_t providerId = MapTileSettings::getTileProvider();
+    if (providerId >= 0 && static_cast<std::size_t>(providerId) < urlTemplates.size()) {
+        std::tie(provider, url) = urlTemplates[providerId];
+    }
+    return url;
+}
+
+uint8_t TileProvider::maxZoom(void)
+{
+    return url() == "https://tile.openstreetmap.org/{z}/{x}/{y}.png" ? 19 : 20;
+}
+
+const std::vector<std::string> TileProvider::templates(void)
+{
+    std::vector<std::string> templates;
+    for (auto &it : urlTemplates) {
+        std::string provider, url;
+        std::tie(provider, url) = it;
+        templates.push_back(url);
+    }
+    return templates;
+}
+
+const std::string TileProvider::providers()
+{
+    std::string providers;
+    for (auto &it : urlTemplates) {
+        std::string provider, url;
+        std::tie(provider, url) = it;
+        if (!providers.empty())
+            providers += "\n";
+        providers += provider;
+    }
+    return providers;
+}
+
+int TileProvider::addTemplate(const std::string &name, const std::string &tmpl)
+{
+    auto it = std::find(urlTemplates.begin(), urlTemplates.end(), std::tuple<std::string, std::string>({name, tmpl}));
+    if (it == urlTemplates.end()) {
+        urlTemplates.push_back({name, tmpl});
+        return urlTemplates.size() - 1;
+    } else {
+        return it - urlTemplates.begin();
+    }
+}
+
+void TileProvider::selectTemplate(int idx)
+{
+    if (idx >= 0 && idx < (int)urlTemplates.size()) {
+        MapTileSettings::setTileProvider(idx);
+    }
+}
+
+int TileProvider::selectedTemplate(void)
+{
+    return MapTileSettings::getTileProvider();
+}

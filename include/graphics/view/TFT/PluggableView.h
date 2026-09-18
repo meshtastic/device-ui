@@ -4,6 +4,7 @@
 #include "graphics/plugin/ClockPlugin.h"
 #include "graphics/plugin/DashboardPlugin.h"
 #include "graphics/plugin/GroupsPlugin.h"
+#include "graphics/plugin/MapPlugin.h"
 #include "graphics/plugin/MessagesPlugin.h"
 #include "graphics/plugin/NodesPlugin.h"
 #include "graphics/plugin/ScrollMenuPlugin.h"
@@ -90,13 +91,6 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     virtual bool updateSDCard(void);
     // update time display on home screen
     virtual void updateFreeMem(void);
-    // show map and load tiles
-    virtual void loadMap(void);
-    // add objects on map
-    virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
-    // remove objects from map
-    virtual void removeFromMap(uint32_t nodeNum);
-
     virtual void ui_events_init(void);
 
     // lvgl event callbacks
@@ -125,7 +119,6 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void updateSignalStrength(int32_t rssi, float snr);
     int32_t signalStrength2Percent(int32_t rx_rssi, float rx_snr);
     void setBellText(bool banner, bool sound);
-    void updateLocationMap(uint32_t objects);
     void refreshSettingsStatus();
     void applyUIConfig();
     std::string nodeName(uint32_t nodeNum) const;
@@ -145,7 +138,7 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     GroupsPlugin *groups = nullptr;
     MessagesPlugin *messages = nullptr;
     ClockPlugin *clock = nullptr;
-    // MapPlugin *map = nullptr;
+    MapPlugin *map = nullptr;
     SettingsPlugin *settings = nullptr;
 
     // input device and groups for (encoder/button) navigation
@@ -183,8 +176,6 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
 
     meshtastic_DeviceProfile_full db{}; // full copy of the node's configuration db (except nodeinfos) plus ui data
 
-    bool formatSD;                                        // offer to format SD card
-    MapPanel *map = nullptr;                              // map
-    std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
+    bool formatSD; // offer to format SD card
     bool localGPSHasPosition = false;
 };
