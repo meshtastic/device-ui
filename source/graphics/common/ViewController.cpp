@@ -28,6 +28,7 @@ ViewController::ViewController()
 
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
+    lastGPSPollMs = millis();
     time(&lastrun1);
     time(&lastrun10);
     view = gui;
@@ -63,6 +64,15 @@ void ViewController::runOnce(void)
         else {
             if (myNodeNum == 0 || view->getState() != MeshtasticView::eProgrammingMode)
                 receive();
+        }
+
+        // Receiver state changes independently of position broadcasts and wall time.
+        const uint32_t nowMs = millis();
+        if (nowMs - lastGPSPollMs >= 1000) {
+            lastGPSPollMs = nowMs;
+            LocalGPSStatus status;
+            if (setupDone && configCompleted && client->getLocalGPSStatus(status))
+                view->updateLocalGPSStatus(status);
         }
 
         // executed every 10s:

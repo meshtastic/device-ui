@@ -300,42 +300,73 @@ void DashboardPlugin::updateSignalStrength(int32_t rssi, float snr)
 
 void DashboardPlugin::updatePosition(int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision, bool metric)
 {
-    lv_obj_t *locationLbl = getWidget(static_cast<WidgetIndex>(Widget::LocationLabel));
-    if (locationLbl) {
-        int32_t altU = abs(alt) < 10000 ? alt : 0;
-        char units[3] = {};
-        if (metric) {
-            units[0] = 'm';
-        } else {
-            units[0] = 'f';
-            units[1] = 't';
-            altU = int32_t(float(altU) * 3.28084);
-        }
-
-        char buf[64];
-        int latSeconds = (int)round(lat * 1e-7 * 3600);
-        int latDegrees = latSeconds / 3600;
-        latSeconds = abs(latSeconds % 3600);
-        int latMinutes = latSeconds / 60;
-        latSeconds %= 60;
-        char latLetter = (lat > 0) ? 'N' : 'S';
-
-        int lonSeconds = (int)round(lon * 1e-7 * 3600);
-        int lonDegrees = lonSeconds / 3600;
-        lonSeconds = abs(lonSeconds % 3600);
-        int lonMinutes = lonSeconds / 60;
-        lonSeconds %= 60;
-        char lonLetter = (lon > 0) ? 'E' : 'W';
-
-        if (sats)
-            sprintf(buf, "%c%02i° %2i'%02i\"   %u sats\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes,
-                    latSeconds, sats, lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
-        else
-            sprintf(buf, "%c%02i° %2i'%02i\"\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes, latSeconds,
-                    lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
-
-        lv_label_set_text(locationLbl, buf);
+    metricUnits = metric;
+    if (!gpsStatusKnown && sats)
+        packetSatellites = sats;
+    if (lat != 0 || lon != 0 || (gpsStatusKnown && gpsStatus.hasPosition)) {
+        const int32_t altitude = metric ? alt : static_cast<int32_t>(alt * 3.28084f);
+        char buf[96];
+        snprintf(buf, sizeof(buf), "%.5f, %.5f  %ld %s", lat * 1e-7, lon * 1e-7, static_cast<long>(altitude),
+                 metric ? "m" : "ft");
+        positionDetails = buf;
     }
+    renderGPSStatus();
+}
+
+void DashboardPlugin::updateLocalGPSStatus(const LocalGPSStatus &status)
+{
+    gpsStatus = status;
+    gpsStatusKnown = true;
+    if (status.hasPosition && !fixedPosition)
+        updatePosition(status.latitude_i, status.longitude_i, status.altitude, status.satellites, 0, metricUnits);
+    else
+        renderGPSStatus();
+}
+
+void DashboardPlugin::updatePositionConfig(const meshtastic_Config_PositionConfig &cfg)
+{
+    gpsEnabled = cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+    fixedPosition = cfg.fixed_position;
+    renderGPSStatus();
+}
+
+void DashboardPlugin::renderGPSStatus()
+{
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::LocationLabel));
+    if (!label)
+        return;
+    const char *state = !gpsEnabled            ? _("GPS: Off")
+                        : !gpsStatusKnown      ? _("GPS: On")
+                        : !gpsStatus.connected ? _("GPS: On, receiver unavailable")
+                        : !gpsStatus.awake     ? _("GPS: On, sleeping")
+                        : gpsStatus.hasFix     ? _("GPS: On, fix acquired")
+                                               : _("GPS: On, searching");
+    std::string text = state;
+    if (gpsEnabled && gpsStatusKnown) {
+        char satellites[64];
+        if (gpsStatus.satellitesValid) {
+            const bool current = gpsStatus.awake && gpsStatus.satellitesAgeMs < 5000;
+            snprintf(satellites, sizeof(satellites), current ? _("Satellites used: %u") : _("Satellites used: %u (last)"),
+                     gpsStatus.satellites);
+        } else {
+            snprintf(satellites, sizeof(satellites), "%s", _("Satellites: waiting for data"));
+        }
+        text += std::string("\n") + satellites;
+    } else if (gpsEnabled && packetSatellites) {
+        char satellites[64];
+        snprintf(satellites, sizeof(satellites), _("Satellites used: %u (last)"), packetSatellites);
+        text += std::string("\n") + satellites;
+    }
+    if (!positionDetails.empty()) {
+        if (fixedPosition)
+            text += std::string("\n") + _("Fixed position:");
+        else if (!gpsEnabled || !gpsStatusKnown || !gpsStatus.hasFix)
+            text += std::string("\n") + _("Last position:");
+        text += std::string("\n") + positionDetails;
+    } else if (gpsEnabled && gpsStatusKnown && gpsStatus.hasTime) {
+        text += std::string("\n") + _("Time acquired; waiting for position");
+    }
+    lv_label_set_text(label, text.c_str());
 }
 
 void DashboardPlugin::updateSDCard(bool cardDetected, const char *info)
