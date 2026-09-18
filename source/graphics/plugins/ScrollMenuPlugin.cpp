@@ -3,6 +3,7 @@
 #ifdef MUI_SCROLLMENU_PLUGIN
 
 #include "Arduino.h"
+#include "graphics/plugin/ListRowStyle.h"
 #include "graphics/plugin/ScrollMenuPlugin.h"
 #include "images.h"
 #include "lv_i18n.h"
@@ -10,10 +11,6 @@
 
 #ifndef MENU_PLUGIN_CUSTOM_WIDGET_NAMES
 #include "screens.h"
-#endif
-
-#ifndef INDEV_EVENT_TRIGGER
-#define INDEV_EVENT_TRIGGER LV_EVENT_PRESSED
 #endif
 
 static ScrollMenuPlugin *p = nullptr;
@@ -27,6 +24,8 @@ void ScrollMenuPlugin::init(lv_obj_t *parent, WidgetResolver resolver, std::size
 {
     p = this;
     GfxPlugin::init(parent, resolver, widgetCount, group, indev, registerWidget);
+    for (WidgetIndex index = static_cast<WidgetIndex>(Widget::HomeButton); index < WIDGET_COUNT; ++index)
+        ListRowStyle::focus(getWidget(index));
 }
 
 void ScrollMenuPlugin::loadScreen(lv_screen_load_anim_t anim, uint32_t time)
@@ -115,21 +114,15 @@ void ScrollMenuPlugin::registerStandardEventCallbacks(void)
 void ScrollMenuPlugin::ui_event_MenuButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == INDEV_EVENT_TRIGGER) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         ScrollMenuPlugin::Callback *onPress = (ScrollMenuPlugin::Callback *)(lv_event_get_user_data(e));
         if (onPress && onPress->cb)
             onPress->cb(e);
-    } else if (event_code == LV_EVENT_CLICKED) {
-#ifdef ARCH_PORTDUINO // TODO only if using mouse pointer
-        ScrollMenuPlugin::Callback *onPress = (ScrollMenuPlugin::Callback *)(lv_event_get_user_data(e));
-        if (onPress && onPress->cb)
-            onPress->cb(e);
-#endif
     } else if (event_code == LV_EVENT_FOCUSED || event_code == LV_EVENT_PRESSED) {
         lv_obj_t *menuLbl = p->getWidget(static_cast<WidgetIndex>(Widget::MenuLabel));
         if (menuLbl) {
             ScrollMenuPlugin::Callback *cbLabel = (ScrollMenuPlugin::Callback *)(lv_event_get_user_data(e));
-            lv_label_set_text(menuLbl, cbLabel ? cbLabel->name : _("<defunct>"));
+            lv_label_set_text(menuLbl, cbLabel && cbLabel->name ? cbLabel->name : "");
         }
     }
 }

@@ -1,6 +1,7 @@
 #include "graphics/plugin/DashboardPlugin.h"
 #include "Arduino.h"
 #include "graphics/common/LoRaPresets.h"
+#include "graphics/plugin/ListRowStyle.h"
 #include "images.h"
 #include "lv_i18n.h"
 #include "lvgl.h"
@@ -22,6 +23,7 @@ void DashboardPlugin::init(lv_obj_t *parent, WidgetResolver resolver, std::size_
 {
     p = this;
     GfxPlugin::init(parent, resolver, widgetCount, group, indev, registerWidget);
+    configureRows();
 }
 
 void DashboardPlugin::loadScreen(lv_screen_load_anim_t anim, uint32_t time)
@@ -46,6 +48,8 @@ void DashboardPlugin::registerStandardWidgets(void)
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::SignalPctLabel), objects.home_signal_pct_label);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::BellButton), objects.home_bell_button);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::BellLabel), objects.home_bell_label);
+    setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::LocationButton), objects.home_location_button);
+    setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::LocationLabel), objects.home_location_label);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::WlanButton), objects.home_wlan_button);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::WlanLabel), objects.home_wlan_label);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::MqttButton), objects.home_mqtt_button);
@@ -57,6 +61,85 @@ void DashboardPlugin::registerStandardWidgets(void)
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::QrButton), objects.home_qr_button);
     setWidget(static_cast<GfxPlugin::WidgetIndex>(DashboardPlugin::Widget::QrLabel), objects.home_qr_label);
 #endif
+}
+
+namespace
+{
+void drawDashboardIcon(lv_event_t *event)
+{
+    auto *icon = lv_event_get_target_obj(event);
+    auto *row = lv_obj_get_parent(icon);
+    const void *source = lv_obj_get_style_bg_image_src(row, LV_PART_MAIN);
+    lv_image_header_t header;
+    if (!source || lv_image_decoder_get_info(source, &header) != LV_RESULT_OK)
+        return;
+    lv_area_t area;
+    lv_obj_get_coords(icon, &area);
+    area.x1 += (lv_area_get_width(&area) - static_cast<int32_t>(header.w)) / 2;
+    area.y1 += (lv_area_get_height(&area) - static_cast<int32_t>(header.h)) / 2;
+    area.x2 = area.x1 + header.w - 1;
+    area.y2 = area.y1 + header.h - 1;
+    lv_draw_image_dsc_t draw;
+    lv_draw_image_dsc_init(&draw);
+    draw.base.layer = lv_event_get_layer(event);
+    lv_obj_init_draw_image_dsc(icon, LV_PART_MAIN, &draw);
+    draw.src = source;
+    draw.recolor = lv_obj_get_style_bg_image_recolor(row, LV_PART_MAIN);
+    draw.recolor_opa = lv_obj_get_style_bg_image_recolor_opa(row, LV_PART_MAIN);
+    draw.image_area = area;
+    lv_draw_image(draw.base.layer, &draw, &area);
+}
+} // namespace
+
+void DashboardPlugin::configureRows()
+{
+    struct Row {
+        Widget button;
+        Widget label;
+    };
+    const Row rows[] = {
+        {Widget::MailButton, Widget::MailLabel},         {Widget::NodesButton, Widget::NodesLabel},
+        {Widget::TimeButton, Widget::TimeLabel},         {Widget::LoRaButton, Widget::LoRaLabel},
+        {Widget::SignalButton, Widget::SignalLabel},     {Widget::BellButton, Widget::BellLabel},
+        {Widget::LocationButton, Widget::LocationLabel}, {Widget::WlanButton, Widget::WlanLabel},
+        {Widget::MqttButton, Widget::MqttLabel},         {Widget::SdButton, Widget::SdLabel},
+        {Widget::MemoryButton, Widget::MemoryLabel},     {Widget::QrButton, Widget::QrLabel},
+    };
+    auto *first = getWidget(static_cast<WidgetIndex>(Widget::MailButton));
+    if (!first)
+        return;
+    ListRowStyle::container(lv_obj_get_parent(first));
+    for (const auto &entry : rows) {
+        auto *row = getWidget(static_cast<WidgetIndex>(entry.button));
+        auto *label = getWidget(static_cast<WidgetIndex>(entry.label));
+        if (!row || !label)
+            continue;
+        ListRowStyle::row(row);
+        lv_obj_set_style_pad_column(row, 8, 0);
+        lv_obj_set_style_bg_image_opa(row, LV_OPA_TRANSP, 0);
+        lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(row, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+        // Keep icon sources on the existing button: runtime status updates remain
+        // authoritative, while its image is drawn in the row's leading column.
+        auto *icon = lv_obj_create(row);
+        lv_obj_remove_style_all(icon);
+        lv_obj_set_size(icon, 36, 36);
+        ListRowStyle::text(icon);
+        lv_obj_add_event_cb(icon, drawDashboardIcon, LV_EVENT_DRAW_MAIN, nullptr);
+        lv_obj_set_parent(label, row);
+        lv_obj_set_pos(label, 0, 0);
+        lv_obj_set_size(label, 0, LV_SIZE_CONTENT);
+        lv_obj_set_flex_grow(label, 1);
+        lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+        ListRowStyle::text(label);
+    }
+    auto *signal = getWidget(static_cast<WidgetIndex>(Widget::SignalPctLabel));
+    auto *signalRow = getWidget(static_cast<WidgetIndex>(Widget::SignalButton));
+    if (signal && signalRow) {
+        lv_obj_set_parent(signal, signalRow);
+        lv_obj_set_pos(signal, 0, 0);
+        ListRowStyle::text(signal);
+    }
 }
 
 void DashboardPlugin::registerStandardWidgetActions(void)
@@ -115,17 +198,17 @@ void DashboardPlugin::registerStandardEventCallbacks(void)
 
     lv_obj_t *memory_button = p->getWidget(static_cast<WidgetIndex>(Widget::MemoryButton));
     if (memory_button)
-        lv_obj_add_event_cb(memory_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onRefreshSDCard);
+        lv_obj_add_event_cb(memory_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleMem);
 
     lv_obj_t *qr_button = p->getWidget(static_cast<WidgetIndex>(Widget::QrButton));
     if (qr_button)
-        lv_obj_add_event_cb(qr_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onRefreshSDCard);
+        lv_obj_add_event_cb(qr_button, this->ui_event_button, LV_EVENT_ALL, (void *)&onToggleQR);
 }
 
 void DashboardPlugin::ui_event_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == EVENT_CLICKED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         DashboardPlugin::Callback *onPress = (DashboardPlugin::Callback *)(lv_event_get_user_data(e));
         if (onPress && *onPress)
             (*onPress)(e);
@@ -163,13 +246,19 @@ void DashboardPlugin::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     // LoRa label
     lv_obj_t *loraLbl = getWidget(static_cast<WidgetIndex>(Widget::LoRaLabel));
     if (loraLbl) {
-        char loraFreq[64];
-        float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
-        if (cfg.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
-            snprintf(loraFreq, sizeof(loraFreq), "LoRa %g MHz\n[%s kHz]", frequency,
-                     LoRaPresets::getBandwidthString(cfg.modem_preset));
+        char loraFreq[96];
+        // The shared preset table predates newer firmware enum values. Preserve
+        // their config while avoiding an out-of-range table lookup in the UI.
+        if (cfg.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
+            snprintf(loraFreq, sizeof(loraFreq), "%s", _("Radio: Region unset"));
+        } else if (!cfg.use_preset || cfg.region > 22 || cfg.modem_preset > 8) {
+            snprintf(loraFreq, sizeof(loraFreq), "%s\n%s", cfg.tx_enabled ? _("Radio: On") : _("Radio: Off"),
+                     _("Current radio configuration"));
         } else {
-            snprintf(loraFreq, sizeof(loraFreq), "region unset");
+            const float frequency =
+                LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
+            snprintf(loraFreq, sizeof(loraFreq), "%s\nLoRa %g MHz [%s kHz]", cfg.tx_enabled ? _("Radio: On") : _("Radio: Off"),
+                     frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
         }
         lv_label_set_text(loraLbl, loraFreq);
         // Themes::recolorButton(objects.home_lora_button, cfg.tx_enabled);
@@ -217,67 +306,156 @@ void DashboardPlugin::updateSignalStrength(int32_t rssi, float snr)
 
 void DashboardPlugin::updatePosition(int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision, bool metric)
 {
-    lv_obj_t *locationLbl = getWidget(static_cast<WidgetIndex>(Widget::LocationLabel));
-    if (locationLbl) {
-        int32_t altU = abs(alt) < 10000 ? alt : 0;
-        char units[3] = {};
-        if (metric) {
-            units[0] = 'm';
-        } else {
-            units[0] = 'f';
-            units[1] = 't';
-            altU = int32_t(float(altU) * 3.28084);
-        }
-
-        char buf[64];
-        int latSeconds = (int)round(lat * 1e-7 * 3600);
-        int latDegrees = latSeconds / 3600;
-        latSeconds = abs(latSeconds % 3600);
-        int latMinutes = latSeconds / 60;
-        latSeconds %= 60;
-        char latLetter = (lat > 0) ? 'N' : 'S';
-
-        int lonSeconds = (int)round(lon * 1e-7 * 3600);
-        int lonDegrees = lonSeconds / 3600;
-        lonSeconds = abs(lonSeconds % 3600);
-        int lonMinutes = lonSeconds / 60;
-        lonSeconds %= 60;
-        char lonLetter = (lon > 0) ? 'E' : 'W';
-
-        if (sats)
-            sprintf(buf, "%c%02i° %2i'%02i\"   %u sats\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes,
-                    latSeconds, sats, lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
-        else
-            sprintf(buf, "%c%02i° %2i'%02i\"\n%c%02i° %2i'%02i\"   %d%s", latLetter, abs(latDegrees), latMinutes, latSeconds,
-                    lonLetter, abs(lonDegrees), lonMinutes, lonSeconds, altU, units);
-
-        lv_label_set_text(locationLbl, buf);
+    metricUnits = metric;
+    if (!gpsStatusKnown && sats)
+        packetSatellites = sats;
+    if (lat != 0 || lon != 0 || (gpsStatusKnown && gpsStatus.hasPosition)) {
+        const int32_t altitude = metric ? alt : static_cast<int32_t>(alt * 3.28084f);
+        char buf[96];
+        snprintf(buf, sizeof(buf), "%.5f, %.5f  %ld %s", lat * 1e-7, lon * 1e-7, static_cast<long>(altitude),
+                 metric ? "m" : "ft");
+        positionDetails = buf;
     }
+    renderGPSStatus();
+}
+
+void DashboardPlugin::updateLocalGPSStatus(const LocalGPSStatus &status)
+{
+    gpsStatus = status;
+    gpsStatusKnown = true;
+    if (status.hasPosition && !fixedPosition)
+        updatePosition(status.latitude_i, status.longitude_i, status.altitude, status.satellites, 0, metricUnits);
+    else
+        renderGPSStatus();
+}
+
+void DashboardPlugin::updatePositionConfig(const meshtastic_Config_PositionConfig &cfg)
+{
+    gpsEnabled = cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+    fixedPosition = cfg.fixed_position;
+    renderGPSStatus();
+}
+
+void DashboardPlugin::renderGPSStatus()
+{
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::LocationLabel));
+    if (!label)
+        return;
+    const char *state = !gpsEnabled            ? _("GPS: Off")
+                        : !gpsStatusKnown      ? _("GPS: On")
+                        : !gpsStatus.connected ? _("GPS: On, receiver unavailable")
+                        : !gpsStatus.awake     ? _("GPS: On, sleeping")
+                        : gpsStatus.hasFix     ? _("GPS: On, fix acquired")
+                                               : _("GPS: On, searching");
+    std::string text = state;
+    if (gpsEnabled && gpsStatusKnown) {
+        char satellites[64];
+        if (gpsStatus.satellitesValid) {
+            const bool current = gpsStatus.awake && gpsStatus.satellitesAgeMs < 5000;
+            snprintf(satellites, sizeof(satellites), current ? _("Satellites used: %u") : _("Satellites used: %u (last)"),
+                     gpsStatus.satellites);
+        } else {
+            snprintf(satellites, sizeof(satellites), "%s", _("Satellites: waiting for data"));
+        }
+        text += std::string("\n") + satellites;
+    } else if (gpsEnabled && packetSatellites) {
+        char satellites[64];
+        snprintf(satellites, sizeof(satellites), _("Satellites used: %u (last)"), packetSatellites);
+        text += std::string("\n") + satellites;
+    }
+    if (!positionDetails.empty()) {
+        if (fixedPosition)
+            text += std::string("\n") + _("Fixed position:");
+        else if (!gpsEnabled || !gpsStatusKnown || !gpsStatus.hasFix)
+            text += std::string("\n") + _("Last position:");
+        text += std::string("\n") + positionDetails;
+    } else if (gpsEnabled && gpsStatusKnown && gpsStatus.hasTime) {
+        text += std::string("\n") + _("Time acquired; waiting for position");
+    }
+    lv_label_set_text(label, text.c_str());
 }
 
 void DashboardPlugin::updateSDCard(bool cardDetected, const char *info)
 {
-    // SD label
-    lv_obj_t *sdLbl = getWidget(static_cast<WidgetIndex>(Widget::SdLabel));
-    if (sdLbl) {
-        lv_label_set_text(sdLbl, info);
-    }
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::SdLabel));
+    if (label)
+        lv_label_set_text(label, info && *info ? info : cardDetected ? _("SD card: Ready") : _("SD card: Not detected"));
+}
+
+void DashboardPlugin::updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg)
+{
+    networkEnabled = cfg.wifi_enabled || cfg.eth_enabled;
+    renderConnectionStatus();
+}
+
+void DashboardPlugin::updateMQTTConfig(const meshtastic_ModuleConfig_MQTTConfig &cfg)
+{
+    mqttEnabled = cfg.enabled;
+    renderConnectionStatus();
 }
 
 void DashboardPlugin::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
 {
-    // WLAN / connection
-    lv_obj_t *wlanLbl = getWidget(static_cast<WidgetIndex>(Widget::WlanButton));
-    if (status.has_wifi) {
-        if (status.wifi.has_status) {
-            char buf[32];
-            uint32_t ip = status.wifi.status.ip_address;
-            snprintf(buf, sizeof(buf), "%d.%d.%d.%d", ip & 0xff, (ip & 0xff00) >> 8, (ip & 0xff0000) >> 16,
-                     (ip & 0xff000000) >> 24);
-            // if widget is a label
-            lv_label_set_text(wlanLbl, buf);
+    connectionStatus = status;
+    renderConnectionStatus();
+}
+
+void DashboardPlugin::renderConnectionStatus()
+{
+    const bool connected =
+        connectionStatus.has_wifi && connectionStatus.wifi.has_status && connectionStatus.wifi.status.is_connected;
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::WlanLabel));
+    if (label) {
+        if (networkEnabled && connected) {
+            const uint32_t ip = connectionStatus.wifi.status.ip_address;
+            lv_label_set_text_fmt(label, "%s\n%u.%u.%u.%u", _("Wi-Fi: Connected"), ip & 0xff, (ip >> 8) & 0xff, (ip >> 16) & 0xff,
+                                  (ip >> 24) & 0xff);
+        } else {
+            lv_label_set_text(label, networkEnabled ? _("Wi-Fi: On, disconnected") : _("Wi-Fi: Off"));
         }
     }
+    auto *button = getWidget(static_cast<WidgetIndex>(Widget::WlanButton));
+    if (button)
+        lv_obj_set_style_bg_image_src(button, connected ? &img_home_wlan_icon : &img_home_wlan_off_icon, 0);
+    label = getWidget(static_cast<WidgetIndex>(Widget::MqttLabel));
+    if (label) {
+        const bool mqttConnected = connected && connectionStatus.wifi.status.is_mqtt_connected;
+        lv_label_set_text(label, !mqttEnabled    ? _("MQTT: Off")
+                                 : mqttConnected ? _("MQTT: Connected")
+                                                 : _("MQTT: On, disconnected"));
+    }
+}
+
+void DashboardPlugin::updateNotifications(bool enabled)
+{
+    notificationsEnabled = enabled;
+    renderNotifications();
+}
+
+void DashboardPlugin::updateSound(bool enabled)
+{
+    soundEnabled = enabled;
+    soundKnown = true;
+    renderNotifications();
+}
+
+void DashboardPlugin::renderNotifications()
+{
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::BellLabel));
+    if (!label)
+        return;
+    const char *popups = notificationsEnabled ? _("Message popups: On") : _("Message popups: Off");
+    if (soundKnown)
+        lv_label_set_text_fmt(label, "%s\n%s", popups, soundEnabled ? _("Sound: On") : _("Sound: Off"));
+    else
+        lv_label_set_text(label, popups);
+}
+
+void DashboardPlugin::updateUnreadMessages(uint32_t count)
+{
+    auto *label = getWidget(static_cast<WidgetIndex>(Widget::MailLabel));
+    if (label)
+        lv_label_set_text_fmt(label, _p("%u unread messages", count), count);
 }
 
 void DashboardPlugin::updateFreeMem(uint32_t freeHeapBytes, uint32_t lvglFreeBytes)
@@ -300,7 +478,8 @@ void DashboardPlugin::updateNodesStatus(uint32_t online, uint32_t total)
         lv_label_set_text_fmt(nodesLbl, _p("%u of %u nodes online", total), online, total);
 
     // if (nodesFiltered)
-    //     lv_snprintf(buf, sizeof(buf), _("Filter: %d of %d nodes"), nodeCount - nodesFiltered, nodeCount);
+    //     lv_snprintf(buf, sizeof(buf), _("Filter: %d of %d nodes"), nodeCount -
+    //     nodesFiltered, nodeCount);
     // lv_label_set_text(objects.top_nodes_online_label, buf);
 }
 

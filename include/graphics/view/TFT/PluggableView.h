@@ -4,9 +4,11 @@
 #include "graphics/plugin/ClockPlugin.h"
 #include "graphics/plugin/DashboardPlugin.h"
 #include "graphics/plugin/GroupsPlugin.h"
+#include "graphics/plugin/MapPlugin.h"
 #include "graphics/plugin/MessagesPlugin.h"
 #include "graphics/plugin/NodesPlugin.h"
 #include "graphics/plugin/ScrollMenuPlugin.h"
+#include "graphics/plugin/SettingsPlugin.h"
 #include "meshtastic/clientonly.pb.h"
 
 class LogMessage;
@@ -30,6 +32,10 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void init(IClientBase *client) override;
     bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) override;
     void task_handler(void) override;
+    void screenSaving(bool enabled) override;
+    void updateUIConfig(const meshtastic_DeviceUIConfig &config) override;
+    void updateLocalGPSStatus(const LocalGPSStatus &status) override;
+    void removeNode(uint32_t nodeNum) override;
 
     void setMyInfo(uint32_t nodeNum) override;
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &node, const meshtastic_User &cfg) override;
@@ -46,12 +52,15 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void updateDeviceConfig(const meshtastic_Config_DeviceConfig &cfg) override {}
     void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg) override;
     void updatePowerConfig(const meshtastic_Config_PowerConfig &cfg) override {}
-    void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg) override {}
+    void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg) override;
     void updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg) override;
     void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg) override;
     void updateBluetoothConfig(const meshtastic_Config_BluetoothConfig &cfg, uint32_t id = 0) override {}
     void updateSecurityConfig(const meshtastic_Config_SecurityConfig &cfg) override {}
     void updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg) override {}
+
+    void updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg) override;
+    void updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg) override;
 
     void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) override;
     void restoreMessage(const LogMessage &msg) override;
@@ -82,13 +91,6 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     virtual bool updateSDCard(void);
     // update time display on home screen
     virtual void updateFreeMem(void);
-    // show map and load tiles
-    virtual void loadMap(void);
-    // add objects on map
-    virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
-    // remove objects from map
-    virtual void removeFromMap(uint32_t nodeNum);
-
     virtual void ui_events_init(void);
 
     // lvgl event callbacks
@@ -117,7 +119,9 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     void updateSignalStrength(int32_t rssi, float snr);
     int32_t signalStrength2Percent(int32_t rx_rssi, float rx_snr);
     void setBellText(bool banner, bool sound);
-    void updateLocationMap(uint32_t objects);
+    void refreshSettingsStatus();
+    void applyUIConfig();
+    std::string nodeName(uint32_t nodeNum) const;
 
     uint32_t timestamp(char *buf, uint32_t time, bool update = false);
 
@@ -134,7 +138,8 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
     GroupsPlugin *groups = nullptr;
     MessagesPlugin *messages = nullptr;
     ClockPlugin *clock = nullptr;
-    // MapPlugin *map = nullptr;
+    MapPlugin *map = nullptr;
+    SettingsPlugin *settings = nullptr;
 
     // input device and groups for (encoder/button) navigation
     lv_indev_t *indev = nullptr;
@@ -171,7 +176,6 @@ class PluggableView : public MeshtasticView, public IMessagesWidgetFactory
 
     meshtastic_DeviceProfile_full db{}; // full copy of the node's configuration db (except nodeinfos) plus ui data
 
-    bool formatSD;                                        // offer to format SD card
-    MapPanel *map = nullptr;                              // map
-    std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
+    bool formatSD; // offer to format SD card
+    bool localGPSHasPosition = false;
 };

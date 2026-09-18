@@ -75,6 +75,11 @@ bool PacketClient::hasData() const
     return queue->serverQueueSize() > 0;
 }
 
+bool PacketClient::getLocalGPSStatus(LocalGPSStatus &status)
+{
+    return is_connected && queue && queue->getLocalGPSStatus(status);
+}
+
 bool PacketClient::available() const
 {
     assert(queue);

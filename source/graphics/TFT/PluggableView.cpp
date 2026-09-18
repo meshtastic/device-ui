@@ -7,10 +7,11 @@
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "graphics/driver/DisplayDriverFactory.h"
-#include "graphics/map/MapPanel.h"
+#include "graphics/plugin/ListRowStyle.h"
 #include "images.h"
 #include "input/InputDriver.h"
 #include "lv_i18n.h"
+#include "styles.h"
 #include "ui.h"
 #include "util/Colors.h"
 #include "util/ILog.h"
@@ -29,31 +30,12 @@ fs::FS &fileSystem = LittleFS;
 
 #if defined(ARCH_PORTDUINO)
 #include "util/LinuxHelper.h"
-// #include "graphics/map/LinuxFileSystemService.h"
-#include "graphics/map/SDCardService.h"
-#elif defined(HAS_SD_MMC)
-#include "graphics/map/SDCardService.h"
-#else
-#include "graphics/map/SdFatService.h"
 #endif
 #include "graphics/common/SdCard.h"
-
-LV_IMAGE_DECLARE(img_no_tile_image);
 
 #define THIS PluggableView::instance() // need to use this in all static methods
 
 #define VALID_TIME(T) (T > 1000000 && T < UINT32_MAX)
-
-enum ScrollDirection {
-    scrollDownLeft = 1,
-    scrollDown = 2,
-    scrollDownRight = 3,
-    scrollLeft = 4,
-    scrollRight = 6,
-    scrollUpLeft = 7,
-    scrollUp = 8,
-    scrollUpRight = 9,
-};
 
 PluggableView *PluggableView::gui = nullptr;
 
@@ -80,7 +62,11 @@ void PluggableView::init(IClientBase *client)
     indev = InputDriver::instance()->getPointer();
 #endif
 
+    // Decorative boot widgets must never become encoder targets.
+    lv_group_t *bootGroup = lv_group_get_default();
+    lv_group_set_default(nullptr);
     ui_init_boot();
+    lv_group_set_default(bootGroup);
 
     time(&lastrun60);
     time(&lastrun10);
@@ -124,14 +110,82 @@ bool PluggableView::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         init_screens();
 
     // initialize own node panel
-    if (ownNode && objects.node_button)
+    if (ownNode && objects.node_button) {
         nodes[ownNode] = objects.node_button;
+        node->bindRow(objects.node_button, ownNode, 0);
+    }
+    setMyInfo(ownNode);
+    applyUIConfig();
+    if (db.uiConfig.screen_lock && settings)
+        settings->unlockScreen([this]() {
+            if (messages)
+                messages->setNotificationsSuppressed(false);
+        });
 
     // check SD card
     updateSDCard();
 
     lv_disp_trig_activity(NULL);
     return true;
+}
+
+void PluggableView::applyUIConfig()
+{
+    displaydriver->setBrightness(db.uiConfig.screen_brightness);
+    displaydriver->setScreenTimeout(db.uiConfig.screen_timeout);
+    if (!screensInitialised)
+        return;
+    const bool light = db.uiConfig.theme == meshtastic_Theme_LIGHT;
+    const bool red = db.uiConfig.theme == meshtastic_Theme_RED;
+    lv_display_t *display = lv_display_get_default();
+    lv_display_set_theme(display, lv_theme_default_init(display, lv_palette_main(red ? LV_PALETTE_RED : LV_PALETTE_BLUE),
+                                                        lv_palette_main(LV_PALETTE_GREEN), !light, LV_FONT_DEFAULT));
+    ListRowStyle::setTheme(db.uiConfig.theme);
+    const auto background = ListRowStyle::background();
+    const auto foreground = ListRowStyle::foreground();
+    auto *pageStyle = get_style_page_style_MAIN_DEFAULT();
+    lv_style_set_bg_color(pageStyle, background);
+    lv_style_set_text_color(pageStyle, foreground);
+    lv_obj_report_style_change(pageStyle);
+    auto *header = get_style_top_panel_style_MAIN_DEFAULT();
+    lv_style_set_bg_color(header, lv_color_hex(red ? 0x542020 : light ? 0x67ea94 : 0x37507e));
+    lv_style_set_text_color(header, foreground);
+    lv_obj_report_style_change(header);
+    for (auto *screen : {objects.menu, objects.home, objects.nodes, objects.groups, objects.chats, objects.map, objects.clock,
+                         objects.settings}) {
+        if (screen) {
+            lv_obj_set_style_bg_color(screen, background, 0);
+            lv_obj_set_style_text_color(screen, foreground, 0);
+        }
+    }
+    if (messages)
+        messages->setNotificationsEnabled(db.uiConfig.alert_enabled);
+    refreshSettingsStatus();
+}
+
+void PluggableView::updateUIConfig(const meshtastic_DeviceUIConfig &config)
+{
+    if (config.version != 1)
+        return;
+    // Keep all persisted fields, but leave screens, chat drafts and focus intact.
+    const bool lockEnabled = !db.uiConfig.screen_lock && config.screen_lock;
+    db.uiConfig = config;
+    applyUIConfig();
+    if (lockEnabled && settings)
+        settings->unlockScreen([this]() {
+            if (messages)
+                messages->setNotificationsSuppressed(false);
+        });
+}
+
+void PluggableView::screenSaving(bool enabled)
+{
+    // The PIN overlay owns input while the display still wakes on any key.
+    if (enabled && db.uiConfig.screen_lock && settings)
+        settings->unlockScreen([this]() {
+            if (messages)
+                messages->setNotificationsSuppressed(false);
+        });
 }
 
 /**
@@ -194,6 +248,9 @@ void PluggableView::ui_init(void)
     // create and wire map plugin
     SETUP_INDEV(mapGroup);
     create_screen_map();
+    map = new MapPlugin();
+    map->init(objects.map, nullptr, MapPlugin::WIDGET_COUNT, mapGroup, indev);
+    map->setConfig(&db.uiConfig, [this]() { controller->storeUIConfig(db.uiConfig); });
 #endif
 #ifdef MUI_CLOCK_PLUGIN
     // create and wire clock plugin
@@ -206,6 +263,18 @@ void PluggableView::ui_init(void)
     // create and wire settings plugin
     SETUP_INDEV(settingsGroup);
     create_screen_settings();
+    lv_obj_add_flag(objects.settings_panel_1, LV_OBJ_FLAG_HIDDEN);
+    lv_group_remove_obj(objects.settings_menu);
+    settings = new SettingsPlugin(*controller, *inputdriver, db.uiConfig, db.config, db.module_config);
+    settings->configure(objects.settings, objects.settings_panel, settingsGroup, indev);
+    settings->setOnApplyUI([this](const meshtastic_DeviceUIConfig &cfg) { updateUIConfig(cfg); });
+    settings->setOnChanged([this]() { refreshSettingsStatus(); });
+    settings->setOnDoubleSpacePeriod([this](bool enabled) {
+        if (messages)
+            messages->setDoubleSpacePeriod(enabled);
+    });
+    if (messages)
+        messages->setDoubleSpacePeriod(settings->doubleSpacePeriodEnabled());
 #endif
     // finishes creating all plugins, goto home menu screen
     menu->loadScreen();
@@ -233,7 +302,9 @@ void PluggableView::ui_events_init(void)
     node->setOnNodeButton([this](lv_event_t *e) {
         uint32_t nodeId = (unsigned long)lv_event_get_user_data(e);
         messages->loadScreen();
-        messages->showMessages(nodeId, (uint8_t)(unsigned long)lv_obj_get_user_data(nodes[nodeId]));
+        auto row = nodes.find(nodeId);
+        const uint8_t channel = row != nodes.end() ? (uintptr_t)lv_obj_get_user_data(row->second) : 0;
+        messages->showMessages(nodeId, channel);
     });
 #endif
 #ifdef MUI_GROUPS_PLUGIN
@@ -269,17 +340,57 @@ void PluggableView::ui_events_init(void)
         if (to == UINT32_MAX) {
             requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)(long)ch, callback);
             pki = false;
-        }
-        else {
+        } else {
             requestId = requests.addRequest(ResponseHandler::TextMessageRequest, (void *)to, callback);
-            ch = (uint8_t)(unsigned long)lv_obj_get_user_data(nodes[to]);
+            auto row = nodes.find(to);
+            if (row != nodes.end())
+                ch = (uint8_t)(uintptr_t)lv_obj_get_user_data(row->second);
         }
         controller->sendTextMessage(to, ch, db.config.lora.hop_limit, msgTime, requestId, pki, msg);
         return requestId;
     });
 #endif
 
-    // TODO: old style, create lambda callbacks as above
+    if (messages) {
+        messages->setOwnNode(ownNode);
+        messages->setNodeNameResolver([this](uint32_t id) { return nodeName(id); });
+        messages->setOnUnreadChanged([this](uint32_t count) {
+            unreadMessages = count;
+            if (dashboard)
+                dashboard->updateUnreadMessages(count);
+        });
+    }
+    if (dashboard) {
+        dashboard->setOnOpenMessages([this](lv_event_t *) { messages->loadScreen(); });
+        dashboard->setOnOpenNodes([this](lv_event_t *) { node->loadScreen(); });
+        dashboard->setOnToggleLoRa([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::Radio); });
+        dashboard->setOnToggleSound([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::Popups); });
+        dashboard->setOnToggleGPS([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::GPS); });
+        dashboard->setOnToggleWLAN([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::WiFi); });
+        dashboard->setOnToggleMQTT([this](lv_event_t *) { settings->open(SettingsPlugin::Editor::MQTT); });
+        dashboard->setOnToggleTime([this](lv_event_t *) {
+            lv_screen_load(objects.clock);
+            if (indev)
+                lv_indev_set_group(indev, clockGroup);
+            if (inputdriver->hasKeyboardDevice())
+                lv_indev_set_group(inputdriver->getKeyboard(), clockGroup);
+        });
+        dashboard->setOnToggleMem([this](lv_event_t *) { updateFreeMem(); });
+        // A channel-share editor is not present in the plugin view yet.
+        lv_obj_add_flag(objects.home_qr_button, LV_OBJ_FLAG_HIDDEN);
+        dashboard->setOnRefreshSDCard([this](lv_event_t *) { updateSDCard(); });
+    }
+    if (map) {
+        map->setOnBack([this]() { menu->loadScreen(); });
+        map->setOnOpenWifi([this]() { settings->open(SettingsPlugin::Editor::WiFi); });
+        map->setOnOpenNode([this](uint32_t id) {
+            messages->loadScreen();
+            auto row = nodes.find(id);
+            messages->showMessages(id, row != nodes.end() ? (uintptr_t)lv_obj_get_user_data(row->second) : 0);
+        });
+    }
+
+    // Navigation callbacks for the remaining menu screens.
     lv_obj_add_event_cb(objects.map_button, this->ui_event_MapButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.clock_button, this->ui_event_ClockButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.music_button, this->ui_event_MusicButton, LV_EVENT_ALL, NULL);
@@ -290,13 +401,12 @@ void PluggableView::ui_events_init(void)
     lv_obj_add_event_cb(objects.power_button, this->ui_event_PowerButton, LV_EVENT_ALL, NULL);
 
     // top back buttons of each plugin
-    lv_obj_add_event_cb(objects.top_home_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_nodes_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_groups_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_chat_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_map_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_clock_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(objects.top_settings_back_button, this->ui_event_TopBackButton, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.top_home_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_nodes_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_groups_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_chat_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_clock_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.top_settings_back_button, this->ui_event_TopBackButton, LV_EVENT_SHORT_CLICKED, NULL);
 }
 
 /**
@@ -352,14 +462,10 @@ void PluggableView::ui_event_TopBackButton(lv_event_t *e)
 // TODO: will be replaced by 'setOnOpenXXX' callbacks, see above
 void PluggableView::ui_event_MapButton(lv_event_t *e)
 {
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
-        lv_screen_load_anim(objects.map, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
-        lv_indev_set_group(THIS->indev, THIS->mapGroup);
-        THIS->loadMap();
-        lv_group_focus_obj(objects.top_map_back_button);
-        lv_obj_remove_state(objects.map_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-    } else if (event_code == LV_EVENT_FOCUSED) {
+    if (lv_event_get_code(e) == LV_EVENT_SHORT_CLICKED && THIS->map) {
+        THIS->map->loadScreen();
+        THIS->map->showPanel();
+    } else if (lv_event_get_code(e) == LV_EVENT_FOCUSED) {
         lv_label_set_text(objects.menu_label, "Map");
     }
 }
@@ -367,7 +473,7 @@ void PluggableView::ui_event_MapButton(lv_event_t *e)
 void PluggableView::ui_event_ClockButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.clock, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->clockGroup);
         lv_group_focus_obj(objects.top_clock_back_button);
@@ -380,7 +486,7 @@ void PluggableView::ui_event_ClockButton(lv_event_t *e)
 void PluggableView::ui_event_MusicButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->musicGroup);
         // lv_group_focus_obj(objects.top_music_back_button);
@@ -393,7 +499,7 @@ void PluggableView::ui_event_MusicButton(lv_event_t *e)
 void PluggableView::ui_event_StatisticsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->statisticsGroup);
         // lv_group_focus_obj(objects.top_statistics_back_button);
@@ -406,7 +512,7 @@ void PluggableView::ui_event_StatisticsButton(lv_event_t *e)
 void PluggableView::ui_event_ToolsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->toolsGroup);
         // lv_group_focus_obj(objects.top_tools_back_button);
@@ -419,7 +525,7 @@ void PluggableView::ui_event_ToolsButton(lv_event_t *e)
 void PluggableView::ui_event_AppsButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         lv_screen_load_anim(objects.home, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
         lv_indev_set_group(THIS->indev, THIS->homeGroup);
         // lv_group_focus_obj(objects.top_apps_back_button);
@@ -431,21 +537,16 @@ void PluggableView::ui_event_AppsButton(lv_event_t *e)
 
 void PluggableView::ui_event_SettingsButton(lv_event_t *e)
 {
-    lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
-        lv_screen_load_anim(objects.settings, LV_SCR_LOAD_ANIM_MOVE_TOP, 500, 0, false);
-        lv_indev_set_group(THIS->indev, THIS->settingsGroup);
-        // lv_group_focus_obj(objects.top_settings_back_button);
-        lv_obj_remove_state(objects.settings_button, lv_state_t(LV_STATE_CHECKED | LV_STATE_PRESSED));
-    } else if (event_code == LV_EVENT_FOCUSED) {
+    if (lv_event_get_code(e) == LV_EVENT_SHORT_CLICKED && THIS->settings)
+        THIS->settings->loadScreen();
+    else if (lv_event_get_code(e) == LV_EVENT_FOCUSED)
         lv_label_set_text(objects.menu_label, "Settings");
-    }
 }
 
 void PluggableView::ui_event_PowerButton(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
-    if (event_code == LV_EVENT_PRESSED) {
+    if (event_code == LV_EVENT_SHORT_CLICKED) {
         create_screen_blank();
         lv_screen_load_anim(objects.blank, LV_SCR_LOAD_ANIM_FADE_OUT, 4000, 500, false);
         THIS->controller->requestShutdown(5, THIS->ownNode);
@@ -486,6 +587,22 @@ void PluggableView::notifyDisconnected(const char *info)
 void PluggableView::setMyInfo(uint32_t nodeNum)
 {
     ownNode = nodeNum;
+    if (messages)
+        messages->setOwnNode(nodeNum);
+    if (map)
+        map->setOwnNode(nodeNum);
+    if (node && objects.node_button && nodeNum) {
+        nodes[nodeNum] = objects.node_button;
+        node->bindRow(objects.node_button, nodeNum, 0);
+    }
+}
+
+std::string PluggableView::nodeName(uint32_t nodeNum) const
+{
+    auto row = nodes.find(nodeNum);
+    if (row == nodes.end() || !row->second)
+        return {};
+    return lv_label_get_text(lv_obj_get_child(row->second, 1));
 }
 
 // home screen
@@ -523,42 +640,8 @@ void PluggableView::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
 {
     db.config.lora = cfg;
     db.config.has_lora = true;
-
-    // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
-    if (!db.config.lora.channel_num) {
-        db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
-                                                                 THIS->db.channel[0].settings.name);
-    }
-
     if (dashboard)
-        dashboard->updateLoRaConfig(db.config.lora);
-
-#if 0
-    char region[30];
-    lv_snprintf(region, sizeof(region), _("Region: %s"), LoRaPresets::loRaRegionToString(cfg.region));
-    lv_label_set_text(objects.basic_settings_region_label, region);
-
-    char buf1[20], buf2[32];
-    lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, cfg.modem_preset);
-    lv_dropdown_get_selected_str(objects.settings_modem_preset_dropdown, buf1, sizeof(buf1));
-    lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
-    lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
-
-    uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
-    lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-    lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
-
-    if (db.config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
-        // update channel names again now that region is known
-        for (int i = 0; i < c_max_channels; i++) {
-            if (db.channel[i].has_settings && db.channel[i].role != meshtastic_Channel_Role_DISABLED) {
-                setChannelName(db.channel[i]);
-            }
-        }
-    } else {
-        requestSetup();
-    }
-#endif
+        dashboard->updateLoRaConfig(cfg);
 }
 
 /**
@@ -592,106 +675,59 @@ void PluggableView::updatePositionConfig(const meshtastic_Config_PositionConfig 
 {
     db.config.position = cfg;
     db.config.has_position = true;
-    if (cfg.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
-        if (cfg.fixed_position && db.uiConfig.map_data.has_home) {
-            updatePosition(ownNode, db.uiConfig.map_data.home.latitude, db.uiConfig.map_data.home.longitude, 0, 0, 0);
-        }
-        // grey out text to indicate it's a fixed position vs. actual GPS position
-        // Themes::recolorText(objects.home_location_label, !cfg.fixed_position);
-    }
-    // Themes::recolorButton(objects.home_location_button, cfg.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
+    if (dashboard)
+        dashboard->updatePositionConfig(cfg);
 }
 
 void PluggableView::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
 {
     db.connectionStatus = status;
-    if (status.has_wifi) {
-        if (db.config.network.wifi_enabled || db.config.network.eth_enabled) {
-            if (status.wifi.has_status) {
-                char buf[20];
-                uint32_t ip = status.wifi.status.ip_address;
-                sprintf(buf, "%d.%d.%d.%d", ip & 0xff, (ip & 0xff00) >> 8, (ip & 0xff0000) >> 16, (ip & 0xff000000) >> 24);
-                lv_label_set_text(objects.home_wlan_label, buf);
-                // Themes::recolorButton(objects.home_wlan_button, true);
-                // Themes::recolorText(objects.home_wlan_label, true);
-                if (status.wifi.status.is_connected) {
-                    lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
-                } else {
-                    lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_icon,
-                                                LV_PART_MAIN | LV_STATE_DEFAULT);
-                }
+    if (dashboard)
+        dashboard->updateConnectionStatus(status);
+    if (map)
+        map->updateNetwork(db.config.network.wifi_enabled,
+                           status.has_wifi && status.wifi.has_status && status.wifi.status.is_connected,
+                           status.has_wifi && status.wifi.has_status);
+}
 
-                if (status.wifi.status.is_mqtt_connected) {
-                    // Themes::recolorButton(objects.home_mqtt_button, true, 255);
-                    // Themes::recolorText(objects.home_mqtt_label, true);
-                } else {
-                    // Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled);
-                    // Themes::recolorText(objects.home_mqtt_label, false);
-                }
-            }
-        } else {
-            // Themes::recolorButton(objects.home_wlan_button, false);
-            // Themes::recolorText(objects.home_wlan_label, false);
-            if (status.wifi.status.is_mqtt_connected) {
-                // Themes::recolorButton(objects.home_mqtt_button, true, 255);
-                // Themes::recolorText(objects.home_mqtt_label, true);
-            } else {
-                // Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled, 100);
-                // Themes::recolorText(objects.home_mqtt_label, false);
-            }
-            lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-    } else {
-        lv_obj_add_flag(objects.home_wlan_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(objects.home_wlan_button, LV_OBJ_FLAG_HIDDEN);
-    }
-#if 0
-    if (status.has_bluetooth) {
-        if (db.config.bluetooth.enabled) {
-            if (status.bluetooth.is_connected) {
-                char buf[20];
-                uint32_t mac = ownNode;
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-                sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff, (mac & 0xff00) >> 8, (mac & 0xff0000) >> 16,
-                        (mac & 0xff000000) >> 24);
-                lv_label_set_text(objects.home_bluetooth_label, buf);
-                lv_obj_set_style_bg_opa(objects.home_bluetooth_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
-            } else {
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-            }
-        } else {
-            lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_off_button_image,
-                                        LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-    } else {
-        lv_obj_add_flag(objects.home_bluetooth_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(objects.home_bluetooth_button, LV_OBJ_FLAG_HIDDEN);
-    }
+void PluggableView::updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg)
+{
+    db.config.network = cfg;
+    db.config.has_network = true;
+    refreshSettingsStatus();
+}
 
-    if (status.has_ethernet) {
-        if (status.ethernet.status.is_connected) {
-            char buf[20];
-            uint32_t mac = ownNode;
-            sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
-            lv_label_set_text(objects.home_ethernet_label, buf);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_opa(objects.home_ethernet_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        } else {
-            lv_obj_set_style_bg_img_recolor_opa(objects.home_ethernet_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-    } else {
-        lv_obj_add_flag(objects.home_ethernet_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(objects.home_ethernet_button, LV_OBJ_FLAG_HIDDEN);
+void PluggableView::updateMQTTModule(const meshtastic_ModuleConfig_MQTTConfig &cfg)
+{
+    db.module_config.mqtt = cfg;
+    db.module_config.has_mqtt = true;
+    refreshSettingsStatus();
+}
+
+void PluggableView::updateExtNotificationModule(const meshtastic_ModuleConfig_ExternalNotificationConfig &cfg)
+{
+    db.module_config.external_notification = cfg;
+    db.module_config.has_external_notification = true;
+    refreshSettingsStatus();
+}
+
+void PluggableView::refreshSettingsStatus()
+{
+    if (dashboard) {
+        if (db.config.has_lora)
+            dashboard->updateLoRaConfig(db.config.lora);
+        if (db.config.has_network)
+            dashboard->updateNetworkConfig(db.config.network);
+        if (db.config.has_position)
+            dashboard->updatePositionConfig(db.config.position);
+        if (db.module_config.has_mqtt)
+            dashboard->updateMQTTConfig(db.module_config.mqtt);
+        dashboard->updateNotifications(db.uiConfig.alert_enabled);
+        if (db.module_config.has_external_notification)
+            dashboard->updateSound(db.module_config.external_notification.enabled &&
+                                   db.module_config.external_notification.alert_message_buzzer);
     }
-#endif
+    updateConnectionStatus(db.connectionStatus);
 }
 
 void PluggableView::updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg)
@@ -708,80 +744,54 @@ void PluggableView::updateDisplayConfig(const meshtastic_Config_DisplayConfig &c
 void PluggableView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision)
 {
     if (nodeNum == ownNode) {
-        if (dashboard)
+        const bool useReceiver = localGPSHasPosition && !db.config.position.fixed_position &&
+                                 db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+        if (dashboard && !useReceiver)
             dashboard->updatePosition(lat, lon, alt, sats, precision,
                                       db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC);
-
-        if (lat != 0 && lon != 0) {
+        if (!useReceiver && (lat != 0 || lon != 0)) {
             hasPosition = true;
             myLatitude = lat;
             myLongitude = lon;
-#if 0
-            // go through existing node list and update distance
-            // TODO: need incremental update!?
-            for (auto &it : nodes) {
-                if (it.first != ownNode) {
-                    int32_t nlat = (long)it.second->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                    int32_t nlon = (long)it.second->LV_OBJ_IDX(node_pos2_idx)->user_data;
-                    if (nlat != 0 && nlon != 0) {
-                        updateDistance(it.first, nlat, nlon);
-                    }
-                }
-            }
-#endif
-            // update own location on map
             if (map)
-                map->setGpsPosition(lat * 1e-7, lon * 1e-7);
+                map->setGpsPosition(lat, lon);
         }
-    } else {
-        if (lat != 0 && lon != 0) {
-            if (hasPosition) {
-                // updateDistance(nodeNum, lat, lon);
-            }
-            addOrUpdateMap(nodeNum, lat, lon);
-        }
+    } else if (map && (lat != 0 || lon != 0)) {
+        map->updateNode(nodeNum, lat, lon, nodeName(nodeNum).c_str());
     }
-#if 0
-    if (lat != 0 && lon != 0) {
-        int32_t altU = abs(alt) < 10000 ? alt : 0;
-        char units[3] = {};
-        if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
-            units[0] = 'm';
-        } else {
-            units[0] = 'f';
-            units[1] = 't';
-            altU = int32_t(float(altU) * 3.28084);
-        }
-        char buf[32];
-        sprintf(buf, "%.5f %.5f", lat * 1e-7, lon * 1e-7);
-        lv_obj_t *panel = nodes[nodeNum];
-        lv_label_set_text(panel->LV_OBJ_IDX(node_pos1_idx), buf);
-        if (sats)
-            sprintf(buf, "%d%s MSL  %u sats", altU, units, sats);
-        sprintf(buf, "%d%s MSL", altU, units);
-        lv_label_set_text(panel->LV_OBJ_IDX(node_pos2_idx), buf);
-        // store lat/lon in user_data, because we need these values later to calculate the distance to us
-        panel->LV_OBJ_IDX(node_pos1_idx)->user_data = (void *)lat;
-        panel->LV_OBJ_IDX(node_pos2_idx)->user_data = (void *)lon;
-    }
+}
 
-    applyNodesFilter(nodeNum);
-#endif
+void PluggableView::updateLocalGPSStatus(const LocalGPSStatus &status)
+{
+    localGPSHasPosition = status.hasPosition;
+    const bool useReceiver = status.hasPosition && !db.config.position.fixed_position &&
+                             db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+    if (dashboard) {
+        if (useReceiver)
+            dashboard->updatePosition(status.latitude_i, status.longitude_i, status.altitude, status.satellites, 0,
+                                      db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC);
+        dashboard->updateLocalGPSStatus(status);
+    }
+    if (useReceiver) {
+        hasPosition = true;
+        myLatitude = status.latitude_i;
+        myLongitude = status.longitude_i;
+        if (map)
+            map->setGpsPosition(myLatitude, myLongitude);
+    }
 }
 
 // TODO: move into NodesPlugin
-void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &nodei,
+void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_NodeInfo &info,
                                     const meshtastic_User &cfg)
 {
     auto it = nodes.find(nodeNum);
     if (it == nodes.end()) {
-        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, nodei.last_heard, (MeshtasticView::eRole)cfg.role,
-                cfg.public_key.size != 0, nodei.is_favorite, nodei.is_ignored, cfg.has_is_unmessagable && cfg.is_unmessagable);
-    } else {
-        if (it->first == ownNode) {
-            if (node)
-                node->updateName(cfg.short_name, cfg.long_name);
-        }
+        addNode(nodeNum, channel, cfg.short_name, cfg.long_name, info.last_heard, (MeshtasticView::eRole)cfg.role,
+                cfg.public_key.size != 0, info.is_favorite, info.is_ignored, cfg.has_is_unmessagable && cfg.is_unmessagable);
+    } else if (node) {
+        node->bindRow(it->second, nodeNum, channel);
+        node->updateRow(it->second, cfg.short_name, cfg.long_name, info.is_favorite);
     }
 }
 
@@ -789,84 +799,47 @@ void PluggableView::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, const mes
 void PluggableView::addNode(uint32_t nodeNum, uint8_t ch, const char *userShort, const char *userLong, uint32_t lastHeard,
                             eRole role, bool hasKey, bool isFav, bool isIgnored, bool unmessagable)
 {
-    ILOG_DEBUG("addNode(%d): num=0x%08x, lastseen=%d, name=%s(%s), role=%d", nodeCount, nodeNum, lastHeard, userLong, userShort,
-               role);
-
-    lv_group_t *oldGroup = lv_group_get_default();
+    if (!node)
+        return;
+    lv_group_t *previous = lv_group_get_default();
     lv_group_set_default(nodesGroup);
-
-    // NodeButton
-    lv_obj_t *obj = lv_button_create(objects.nodes_panel);
-    lv_obj_set_pos(obj, 0, 0);
-    lv_obj_set_size(obj, LV_PCT(100), 20);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff444444), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(obj, lv_color_hex(0xfff0f0f0), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff707070), LV_PART_MAIN | LV_STATE_PRESSED);
-    lv_obj_set_style_border_color(obj, lv_color_hex(0xff24fb00), LV_PART_MAIN | LV_STATE_PRESSED);
-    lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN | LV_STATE_PRESSED);
-    lv_obj_set_style_text_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_PRESSED);
-    {
-        lv_obj_t *parent_obj = obj;
-        {
-            lv_obj_t *obj = lv_image_create(parent_obj);
-            lv_obj_set_pos(obj, -14, 0);
-            lv_obj_set_size(obj, 20, 20);
-            if (isFav)
-                lv_image_set_src(obj, &img_heart_image);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-        {
-            // NodeShortName
-            lv_obj_t *obj = lv_label_create(parent_obj);
-            objects.node_short_name = obj;
-            lv_obj_set_pos(obj, 10, 0);
-            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_label_set_text_fmt(obj, "%d %s", (int)ch, userShort);
-        }
-        {
-            // NodeLongName
-            lv_obj_t *obj = lv_label_create(parent_obj);
-            objects.node_long_name = obj;
-            lv_obj_set_pos(obj, 70, 0);
-            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_label_set_text(obj, userLong);
-        }
-    }
-    lv_obj_set_user_data(obj, (void *)(uint32_t)ch);
-    nodes[nodeNum] = obj;
-    nodeCount++;
+    nodes[nodeNum] = node->createRow(objects.nodes_panel, nodeNum, ch, userShort, userLong, isFav);
+    nodeCount = nodes.size();
     updateNodesStatus();
-    lv_group_set_default(oldGroup);
+    lv_group_set_default(previous);
 }
 
 void PluggableView::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_User &cfg)
 {
-#if 0 // TODO: interface for nodePlugin to pass index
-    auto it = nodes.find(nodeNum);
-    if (it != nodes.end() && it->second) {
-        if (it->first == ownNode) {
-            if (node)
-                node->updateName(cfg.short_name, cfg.long_name);
-        }
+    auto row = nodes.find(nodeNum);
+    if (node && row != nodes.end()) {
+        node->bindRow(row->second, nodeNum, ch);
+        lv_label_set_text(lv_obj_get_child(row->second, 1), cfg.short_name);
+        lv_label_set_text(lv_obj_get_child(row->second, 2), cfg.long_name);
     }
-#endif
+}
+
+void PluggableView::removeNode(uint32_t nodeNum)
+{
+    if (map)
+        map->removeNode(nodeNum);
+    auto row = nodes.find(nodeNum);
+    if (row != nodes.end() && nodeNum != ownNode) {
+        lv_obj_delete(row->second);
+        nodes.erase(row);
+    }
+    nodeCount = nodes.size();
+    updateNodesStatus();
 }
 
 void PluggableView::updateChannelConfig(const meshtastic_Channel &ch)
 {
+    if (ch.index < 0 || ch.index >= c_max_channels)
+        return;
     db.channel[ch.index] = ch;
 
-    if (groups) {
-        if (ch.role != meshtastic_Channel_Role_DISABLED) {
-            groups->updateName(ch.index, ch.settings.name);
-        } else {
-            // ?
-        }
-    }
+    if (groups)
+        groups->updateChannel(ch.index, ch.settings.name, ch.role != meshtastic_Channel_Role_DISABLED);
 }
 
 /**
@@ -895,6 +868,8 @@ bool PluggableView::updateSDCard(void)
 {
     bool cardDetected = false;
     formatSD = false;
+    if (map)
+        map->updateStorage(nullptr, false);
     if (sdCard) {
         delete sdCard;
         sdCard = nullptr;
@@ -978,238 +953,12 @@ bool PluggableView::updateSDCard(void)
 #endif
     if (!sdCard)
         sdCard = new NoSdCard;
+    if (map)
+        map->updateStorage(sdCard, cardDetected);
+    if (dashboard)
+        dashboard->updateSDCard(cardDetected);
     return cardDetected;
 }
-
-void PluggableView::loadMap(void)
-{
-    if (!map) {
-        lv_group_set_default(mapGroup);
-#if LV_USE_FS_ARDUINO_SD
-        map = new MapPanel(objects.map_panel);
-#elif defined(HAS_SD_MMC)
-        map = new MapPanel(objects.map_panel, new SDCardService());
-#elif defined(HAS_SDCARD)
-        map = new MapPanel(objects.map_panel, new SdFatService());
-#elif defined(ARCH_PORTDUINO)
-        map = new MapPanel(objects.map_panel, new SDCardService()); // TODO: LinuxFileSystemService
-#else
-        map = new MapPanel(objects.map_panel);
-#endif
-        MapTileSettings::setDebug(true);
-#if 0
-        if (!nodeObjects.empty()) {
-            for (auto it : nodeObjects) {
-                lv_obj_t *p = nodes[it.first];
-                float lat = 1e-7 * (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                float lon = 1e-7 * (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
-                map->add(it.first, lat, lon, drawObjectCB);
-                lv_obj_add_flag(it.second, LV_OBJ_FLAG_CLICKABLE);
-                lv_obj_add_event_cb(it.second, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)it.first);
-            }
-        }
-#endif
-    }
-
-    if (sdCard) {
-        if (!sdCard->isUpdated()) {
-            map->setNoTileImage(&img_no_tile_image);
-            std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
-            if (mapStyles.find("/map") != mapStyles.end()) {
-                // no styles found, but the /map directory, so use it
-                MapTileSettings::setPrefix("/map");
-                MapTileSettings::setTileStyle("");
-                // lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
-            }
-#if 0
-            else if (!mapStyles.empty()) {
-                // populate dropdown
-                uint16_t pos = 0;
-                bool savedStyleOK = false;
-                lv_dropdown_set_options(objects.map_style_dropdown, "");
-                for (auto it : mapStyles) {
-                    lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), pos);
-                    if (it == db.uiConfig.map_data.style) {
-                        lv_dropdown_set_selected(objects.map_style_dropdown, pos);
-                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
-                        savedStyleOK = true;
-                    }
-                    pos++;
-                }
-                if (!savedStyleOK) {
-                    // no such style on SD, pick first one we found
-                    char style[20];
-                    lv_dropdown_set_selected(objects.map_style_dropdown, 0);
-                    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
-                    MapTileSettings::setTileStyle(style);
-                }
-                MapTileSettings::setPrefix("/maps");
-            }
-#endif
-            else {
-                // messageAlert(_("No map tiles found on SDCard!"), true);
-                map->setNoTileImage(&img_no_tile_image);
-            }
-            map->forceRedraw();
-        }
-    } else {
-        // lv_dropdown_set_options(objects.map_style_dropdown, "");
-    }
-
-    lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
-}
-
-void PluggableView::updateLocationMap(uint32_t num)
-{
-    lv_label_set_text_fmt(objects.top_map_label, _("Locations Map (%d/%d)"), num, nodeCount);
-}
-
-/**
- * add node location image for display on map
- */
-void PluggableView::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
-{
-    auto it = nodeObjects.find(nodeNum);
-#if 0
-    if (it == nodeObjects.end()) {
-        uint32_t bgColor, fgColor;
-        std::tie(bgColor, fgColor) = nodeColor(nodeNum);
-        lv_obj_t *img = lv_image_create(objects.raw_map_panel);
-        lv_obj_set_size(img, 40, 35);
-        lv_img_set_src(img, &img_circle_image);
-        lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);
-        lv_obj_set_style_opa(img, 180, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_image_recolor(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_image_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_top(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_bottom(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_left(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_right(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-        lv_obj_t *lbl = lv_label_create(img);
-        lv_obj_set_pos(lbl, 0, 0);
-        lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-        lv_obj_set_style_text_color(lbl, lv_color_black(), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_image_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_font(lbl, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-        lv_obj_t *p = nodes[nodeNum];
-        lv_label_set_text_fmt(lbl, "%s", lv_label_get_text(p->LV_OBJ_IDX(node_lbs_idx)));
-
-        // position label callback
-        lv_obj_add_flag(p->LV_OBJ_IDX(node_pos1_idx), LV_OBJ_FLAG_CLICKABLE);
-        lv_obj_add_event_cb(p->LV_OBJ_IDX(node_pos1_idx), ui_event_positionButton, LV_EVENT_CLICKED, (void *)p);
-
-        nodeObjects[nodeNum] = img;
-        if (map) {
-            map->add(nodeNum, lat * 1e-7, lon * 1e-7, drawObjectCB);
-            lv_obj_add_flag(img, LV_OBJ_FLAG_CLICKABLE);
-            lv_obj_add_event_cb(img, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
-            updateLocationMap(map->getObjectsOnMap());
-        }
-    }
-    else {
-        if (map) {
-            map->update(it->first, lat * 1e-7, lon * 1e-7);
-        }
-    }
-#endif
-}
-
-void PluggableView::removeFromMap(uint32_t nodeNum)
-{
-    auto it = nodeObjects.find(nodeNum);
-    if (it == nodeObjects.end())
-        return;
-#if 0
-    lv_obj_t *img = it->second;
-    if (map) {
-        map->remove(it->first);
-        updateLocationMap(map->getObjectsOnMap());
-    }
-    nodeObjects.erase(nodeNum);
-    lv_obj_remove_event_cb(img, ui_event_mapNodeButton);
-    lv_obj_delete(img);
-#endif
-}
-
-#if 0
-void PluggableView::ui_screen_event_cb(lv_event_t *e)
-{
-    if (THIS->activePanel == objects.map_panel) {
-        lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
-        switch (dir) {
-        case LV_DIR_LEFT:
-            e->user_data = (void *)scrollRight;
-            break;
-        case LV_DIR_RIGHT:
-            e->user_data = (void *)scrollLeft;
-            break;
-        case LV_DIR_TOP:
-            e->user_data = (void *)scrollDown;
-            break;
-        case LV_DIR_BOTTOM:
-            e->user_data = (void *)scrollUp;
-            break;
-        default:
-            break;
-        }
-        ILOG_DEBUG("gesture: %d", (uint16_t)dir);
-        THIS->ui_event_arrow(e);
-    }
-}
-
-void PluggableView::ui_event_arrow(lv_event_t *e)
-{
-    if (THIS->map && THIS->map->redrawComplete()) {
-        uint16_t deltaX = 0;
-        uint16_t deltaY = 0;
-        ScrollDirection direction = (ScrollDirection)(unsigned long)e->user_data;
-        switch (direction) {
-        case scrollDownLeft:
-            deltaX = 1;
-            deltaY = -1;
-            break;
-        case scrollDown:
-            deltaX = 0;
-            deltaY = -1;
-            break;
-        case scrollDownRight:
-            deltaX = -1;
-            deltaY = -1;
-            break;
-        case scrollLeft:
-            deltaX = 1;
-            deltaY = 0;
-            break;
-        case scrollRight:
-            deltaX = -1;
-            deltaY = 0;
-            break;
-        case scrollUpLeft:
-            deltaX = 1;
-            deltaY = 1;
-            break;
-        case scrollUp:
-            deltaX = 0;
-            deltaY = 1;
-            break;
-        case scrollUpRight:
-            deltaX = -1;
-            deltaY = 1;
-            break;
-        default:
-            break;
-        };
-        if (!THIS->map->scroll(deltaX, deltaY))
-            THIS->map->forceRedraw();
-    }
-    THIS->updateLocationMap(THIS->map->getObjectsOnMap());
-}
-#endif
 
 void PluggableView::updateTime(void)
 {
@@ -1287,22 +1036,12 @@ void PluggableView::restoreMessage(const LogMessage &msg)
 
 void PluggableView::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore)
 {
-    if (messages) {
-        messages->newMessage(from, to, ch, msg, msgtime); // TODO: add eventId
-#if 0
-            // display msg popup if not already viewing the messages
-            if (container != activeMsgContainer || activePanel != objects.messages_panel) {
-                unreadMessages++;
-                updateUnreadMessages();
-                if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled) {
-                    showMessagePopup(from, to, ch, lv_label_get_text(nodes[from]->LV_OBJ_IDX(node_lbl_idx)));
-                }
-                lv_obj_add_flag(container, LV_OBJ_FLAG_HIDDEN);
-            }
-            if (container != activeMsgContainer)
-                highlightChat(from, to, ch);
-#endif
-    }
+    if (!messages)
+        return;
+    if (restore)
+        messages->restoreMessage(from, to, ch, msg, msgtime, false);
+    else
+        messages->newMessage(from, to, ch, msg, msgtime);
 }
 
 void PluggableView::packetReceived(const meshtastic_MeshPacket &p)
@@ -1431,54 +1170,22 @@ void PluggableView::onTextMessageCallback(const ResponseHandler::Request &req, R
 
 void PluggableView::task_handler(void)
 {
+    if (messages)
+        messages->setNotificationsSuppressed(settings && settings->isLocked());
     MeshtasticView::task_handler();
-
-    if (screensInitialised) {
-        if (map) {
-            lv_group_t *current = lv_group_get_default();
-            lv_group_set_default(mapGroup); // TODO: add MapPanel::setGroup() interface
-            map->task_handler();
-            lv_group_set_default(current);
-        }
-
-        if (curtime - lastrun1 >= 1) { // call every 1s
-            pluginRegistry.task_handler(curtime);
-            if (map) {
-                lv_group_t *current = lv_group_get_default();
-                lv_group_set_default(mapGroup);
-                updateLocationMap(THIS->map->getObjectsOnMap());
-                lv_group_set_default(current);
-            }
-
-            lastrun1 = curtime;
-            actTime++;
-            updateTime();
-        }
+    if (!screensInitialised)
+        return;
+    pluginRegistry.task_handler(curtime);
+    if (curtime - lastrun1 >= 1) {
+        lastrun1 = curtime;
+        actTime++;
+        updateTime();
     }
-
-    if (curtime - lastrun10 >= 10) { // call every 10s
+    if (curtime - lastrun10 >= 10) {
         lastrun10 = curtime;
         updateFreeMem();
-
-        if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
+        if (db.config.network.wifi_enabled && !displaydriver->isPowersaving())
             controller->requestDeviceConnectionStatus();
-        }
-    }
-
-    if (curtime - lastrun60 >= 60) { // call every 60s
-        lastrun60 = curtime;
-        // updateAllLastHeard();
-
-        // if (detectorRunning) {
-        //     controller->sendPing();
-        // }
-
-        // if we didn't hear any node for 1h assume we have no signal
-        if (curtime - lastHeard > secs_until_offline) {
-            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_label_set_text(objects.home_signal_label, _("no signal"));
-            lv_label_set_text(objects.home_signal_pct_label, "");
-        }
     }
 }
 

@@ -4,13 +4,53 @@
 #include "Arduino.h"
 #include "util/ILog.h"
 
+#if defined(T_LORA_PAGER)
+#include "RotaryEncoder.h"
+#include <limits>
+
+// RotaryEncoder::process() and its debounce table live in flash. Arduino installs
+// ordinary GPIO interrupts in this target, so they pause while flash is unavailable.
+#if defined(CONFIG_ARDUINO_ISR_IRAM) && CONFIG_ARDUINO_ISR_IRAM
+#error "The Pager rotary decoder requires CONFIG_ARDUINO_ISR_IRAM to be disabled"
+#endif
+
+namespace
+{
+RotaryEncoder *pagerRotary = nullptr;
+portMUX_TYPE pagerRotaryMux = portMUX_INITIALIZER_UNLOCKED;
+int32_t pagerDetents = 0;
+bool pagerButtonSample = false;
+bool pagerButtonPressed = false;
+uint32_t pagerButtonChangedAt = 0;
+} // namespace
+#endif
+
 volatile EncoderInputDriver::EncoderActionType EncoderInputDriver::action = TB_ACTION_NONE;
 
 EncoderInputDriver::EncoderInputDriver(void) {}
 
+EncoderInputDriver::~EncoderInputDriver(void)
+{
+#if defined(T_LORA_PAGER)
+    detachInterrupt(INPUTDRIVER_ENCODER_UP);
+    detachInterrupt(INPUTDRIVER_ENCODER_DOWN);
+    delete pagerRotary;
+    pagerRotary = nullptr;
+#endif
+}
+
 void EncoderInputDriver::init(void)
 {
     LOG_INFO("Initialize encoder input driver type %d", INPUTDRIVER_ENCODER_TYPE);
+#if defined(T_LORA_PAGER)
+    // Decode every A/B edge, not their levels at the much slower LVGL read rate.
+    pagerRotary = new RotaryEncoder(INPUTDRIVER_ENCODER_UP, INPUTDRIVER_ENCODER_DOWN, INPUTDRIVER_ENCODER_BTN);
+    pagerDetents = 0;
+    pagerButtonSample = pagerButtonPressed = false;
+    pagerButtonChangedAt = millis();
+    attachInterrupt(INPUTDRIVER_ENCODER_UP, intRotaryHandler, CHANGE);
+    attachInterrupt(INPUTDRIVER_ENCODER_DOWN, intRotaryHandler, CHANGE);
+#else
     if (INPUTDRIVER_ENCODER_TYPE == 1) {
 #ifdef INPUTDRIVER_ENCODER_LEFT
         pinMode(INPUTDRIVER_ENCODER_LEFT, INPUT_PULLUP);
@@ -74,6 +114,8 @@ void EncoderInputDriver::init(void)
 #endif
     }
 
+#endif
+
     encoder = lv_indev_create();
     lv_indev_set_type(encoder, LV_INDEV_TYPE_ENCODER);
     lv_indev_set_read_cb(encoder, encoder_read);
@@ -87,6 +129,31 @@ void EncoderInputDriver::init(void)
 
 void EncoderInputDriver::encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
+#if defined(T_LORA_PAGER)
+    portENTER_CRITICAL(&pagerRotaryMux);
+    // LVGL's enc_diff is int16_t. Preserve any overflow for the next read.
+    int32_t detents = pagerDetents;
+    if (detents > std::numeric_limits<int16_t>::max())
+        detents = std::numeric_limits<int16_t>::max();
+    else if (detents < std::numeric_limits<int16_t>::min())
+        detents = std::numeric_limits<int16_t>::min();
+    pagerDetents -= detents;
+    data->continue_reading = pagerDetents != 0;
+    portEXIT_CRITICAL(&pagerRotaryMux);
+
+    bool pressed = digitalRead(INPUTDRIVER_ENCODER_BTN) == LOW;
+    uint32_t now = millis();
+    if (pressed != pagerButtonSample) {
+        pagerButtonSample = pressed;
+        pagerButtonChangedAt = now;
+    }
+    if (now - pagerButtonChangedAt >= 20)
+        pagerButtonPressed = pagerButtonSample;
+
+    data->enc_diff = static_cast<int16_t>(detents);
+    data->key = LV_KEY_ENTER;
+    data->state = pagerButtonPressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+#else
     data->key = 0;
     data->enc_diff = 0;
     data->state = LV_INDEV_STATE_RELEASED;
@@ -219,7 +286,21 @@ void EncoderInputDriver::encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
             }
         }
     }
+#endif
 }
+
+#if defined(T_LORA_PAGER)
+void EncoderInputDriver::intRotaryHandler(void)
+{
+    portENTER_CRITICAL_ISR(&pagerRotaryMux);
+    auto direction = pagerRotary->process();
+    if (direction == RotaryEncoder::DIRECTION_CW && pagerDetents < std::numeric_limits<int32_t>::max())
+        ++pagerDetents;
+    else if (direction == RotaryEncoder::DIRECTION_CCW && pagerDetents > std::numeric_limits<int32_t>::min())
+        --pagerDetents;
+    portEXIT_CRITICAL_ISR(&pagerRotaryMux);
+}
+#endif
 
 void EncoderInputDriver::intPressHandler()
 {

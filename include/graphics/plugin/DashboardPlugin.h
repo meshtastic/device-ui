@@ -4,15 +4,18 @@
 #include "meshtastic/clientonly.pb.h"
 #include "meshtastic/connection_status.pb.h"
 #include "meshtastic/mesh.pb.h"
+#include "meshtastic/module_config.pb.h"
+#include "util/LocalGPSStatus.h"
 #include <cstdint>
 #include <functional>
 #include <string>
 
 /**
- * DashboardPlugin - concrete dashboard plugin that implements business logic for the home/dashboard panel.
- * Plugin stores the updated dashboard state
- * UI widgets are referenced by small indices (enum Widget) and placed into the GfxPlugin widget array.
- * updateXYZ(...) methods update internal state and push changes to UI.
+ * DashboardPlugin - concrete dashboard plugin that implements business logic
+ * for the home/dashboard panel. Plugin stores the updated dashboard state UI
+ * widgets are referenced by small indices (enum Widget) and placed into the
+ * GfxPlugin widget array. updateXYZ(...) methods update internal state and push
+ * changes to UI.
  */
 class DashboardPlugin : public GfxPlugin
 {
@@ -73,7 +76,8 @@ class DashboardPlugin : public GfxPlugin
     DashboardPlugin();
     virtual ~DashboardPlugin();
 
-    // init override: store resolver/parent and optionally auto-register widgets by name
+    // init override: store resolver/parent and optionally auto-register widgets
+    // by name
     void init(lv_obj_t *parent, WidgetResolver resolver, std::size_t widgetCount = WIDGET_COUNT, lv_group_t *group = nullptr,
               lv_indev_t *indev = nullptr, GfxPlugin::RegisterWidget registerWidget = GfxPlugin::RegisterWidget::All) override;
 
@@ -105,6 +109,13 @@ class DashboardPlugin : public GfxPlugin
     void updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg);
     void updateSignalStrength(int32_t rssi, float snr);
     void updatePosition(int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision, bool metric);
+    void updateLocalGPSStatus(const LocalGPSStatus &status);
+    void updatePositionConfig(const meshtastic_Config_PositionConfig &cfg);
+    void updateNetworkConfig(const meshtastic_Config_NetworkConfig &cfg);
+    void updateMQTTConfig(const meshtastic_ModuleConfig_MQTTConfig &cfg);
+    void updateNotifications(bool enabled);
+    void updateSound(bool enabled);
+    void updateUnreadMessages(uint32_t count);
     void updateSDCard(bool cardDetected, const char *info = nullptr);
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status);
     void updateFreeMem(uint32_t freeHeapBytes, uint32_t lvglFreeBytes);
@@ -118,6 +129,25 @@ class DashboardPlugin : public GfxPlugin
     void handleAction(Action actionId, WidgetIndex idx, int event_code) /*override*/;
 
   private:
+    void configureRows();
+    void renderGPSStatus();
+    void renderConnectionStatus();
+    void renderNotifications();
+
+    LocalGPSStatus gpsStatus{};
+    bool gpsStatusKnown = false;
+    bool gpsEnabled = false;
+    bool fixedPosition = false;
+    bool metricUnits = true;
+    uint32_t packetSatellites = 0;
+    std::string positionDetails;
+    bool notificationsEnabled = false;
+    bool soundEnabled = false;
+    bool soundKnown = false;
+    bool networkEnabled = false;
+    bool mqttEnabled = false;
+    meshtastic_DeviceConnectionStatus connectionStatus{};
+
     // lvgl event handlers
     static void ui_event_button(lv_event_t *e);
 

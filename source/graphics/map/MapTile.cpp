@@ -29,14 +29,15 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
     removeImage();
     img = lv_image_create(p);
     lv_obj_set_pos(img, posx, posy);
-    lv_obj_set_style_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_opa(img, 255, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_size(img, MapTileSettings::getTileSize(), MapTileSettings::getTileSize());
     if (MapTileSettings::getDebug()) {
-        lv_obj_set_style_border_width(img, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_width(img, 1, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         lbl = lv_label_create(img);
         lv_obj_set_pos(lbl, 0, 0);
         lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-        lv_obj_set_style_text_color(lbl, lv_color_hex(0xff101010), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_color(lbl, lv_color_hex(0xff101010),
+                                    (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         lv_label_set_text_fmt(lbl, "(%d/%d/%d) -> %d,%d", MapTileSettings::getZoomLevel(), xTile, yTile, posx, posy);
     }
 
@@ -45,8 +46,8 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
     // use lvgl built-in img loader
     char fname[128];
     fname[0] = LV_FS_ARDUINO_SD_LETTER;
-    sprintf(&fname[1], ":%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileStyle(), zoomLevel, xTile,
-            yTile, MapTileSettings::getTileFormat());
+    sprintf(&fname[1], ":%s/%s%d/%d/%d.%s", MapTileSettings::getPrefix(), MapTileSettings::getTileDir(), zoomLevel, xTile, yTile,
+            MapTileSettings::getTileFormat());
     ILOG_DEBUG("SD file: %s", fname);
     lv_image_set_src(img, fname);
     if (lv_image_get_src((lv_obj_t *)img)) {
@@ -58,19 +59,24 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
         result = osm->load(*this, img);
         if (!result) {
             if (img_src) {
+                // ILOG_DEBUG("set no-tile-image (%d/%d/%d)", MapTileSettings::getZoomLevel(), xTile, yTile);
                 lv_image_set_src((lv_obj_t *)img, img_src);
-                lv_obj_set_style_opa(img, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_opa(img, 100, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
                 if (!MapTileSettings::getDebug()) {
                     lv_obj_t *lbl = lv_label_create(img);
                     lv_obj_set_pos(lbl, 0, 50);
                     lv_obj_set_align(lbl, LV_ALIGN_CENTER);
                     lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_obj_set_style_text_color(lbl, lv_color_hex(0xff505050), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_color(lbl, lv_color_hex(0xff505050),
+                                                (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
                     lv_label_set_text_fmt(lbl, "(%d/%d/%d)", MapTileSettings::getZoomLevel(), xTile, yTile);
                 }
             }
         }
     }
+    if (result)
+        loadState = LoadState::Ready;
+    // Keep the last failure visible while a background retry is pending.
     return result;
 }
 
@@ -86,13 +92,70 @@ bool MapTile::move(int16_t posx, int16_t posy)
     return true;
 }
 
+void MapTile::applyImage(lv_image_dsc_t *img_dsc)
+{
+    isPending = false;
+    if (!img || !img_dsc) {
+        loadState = LoadState::Failed;
+        if (img_dsc) {
+            if (img_dsc->data)
+                lv_free((void *)img_dsc->data);
+            lv_free(img_dsc);
+        }
+        return;
+    }
+    // free the old source (placeholder or prior async image) if MapTile owns it
+    const void *old_src = lv_image_get_src(img);
+    lv_image_set_src(img, nullptr);
+    if (old_src && lv_image_src_get_type(old_src) == LV_IMAGE_SRC_VARIABLE) {
+        const lv_image_dsc_t *old_dsc = (const lv_image_dsc_t *)old_src;
+        const bool ownedByMapTile =
+            (old_dsc->header.magic == LV_IMAGE_HEADER_MAGIC) && (old_dsc->header.flags & LV_IMAGE_FLAGS_USER1);
+        if (ownedByMapTile) {
+            if (old_dsc->data)
+                lv_free((void *)old_dsc->data);
+            lv_free((void *)old_dsc);
+        }
+    }
+    lv_image_set_src(img, img_dsc);
+    loadState = LoadState::Ready;
+    lv_obj_set_style_opa(img, 255, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
+    // remove the (z/x/y) placeholder label that load() adds in non-debug mode
+    if (!MapTileSettings::getDebug()) {
+        for (int32_t i = (int32_t)lv_obj_get_child_count(img) - 1; i >= 0; i--)
+            lv_obj_delete(lv_obj_get_child(img, i));
+    } else if (lbl) {
+        lv_label_set_text_fmt(lbl, "(%d/%d/%d) -> %d,%d", MapTileSettings::getZoomLevel(), xTile, yTile, x, y);
+    }
+}
+
 void MapTile::removeImage(void)
 {
-    if (img) {
-        // ILOG_DEBUG("remove image %d/%d", xTile, yTile);
-        lv_obj_delete(img);
-        img = nullptr;
+    if (!img) {
+        return;
     }
+
+    const void *src = lv_image_get_src(img);
+    /* clear the source first so LVGL stops referencing it */
+    lv_image_set_src(img, NULL);
+
+    if (src && lv_image_src_get_type(src) == LV_IMAGE_SRC_VARIABLE) {
+        const lv_image_dsc_t *img_dsc = (const lv_image_dsc_t *)src;
+        const bool ownedByMapTile =
+            (img_dsc->header.magic == LV_IMAGE_HEADER_MAGIC) && (img_dsc->header.flags & LV_IMAGE_FLAGS_USER1);
+        if (ownedByMapTile) {
+            // ILOG_INFO("%d/%d: free tile image %d bytes", xTile, yTile, img_dsc->data_size);
+            if (img_dsc->data) {
+                lv_free((void *)img_dsc->data);
+            }
+            lv_free((void *)img_dsc);
+        } else {
+            // ILOG_INFO("%d/%d: tile image %d bytes -> not owned", xTile, yTile, img_dsc->data_size);
+        }
+    }
+
+    lv_obj_delete(img);
+    img = nullptr;
 }
 
 MapTile::~MapTile()
