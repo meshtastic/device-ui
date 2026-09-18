@@ -164,7 +164,7 @@ class MeshtasticView : public DeviceGUI
     bool lastHeardToString(uint32_t lastHeard, char *buf);
     const char *deviceRoleToString(enum eRole role);
     std::string pskToBase64(uint8_t *bytes, uint32_t size);
-    bool base64ToPsk(const std::string &base64, uint8_t *bytes, uint16_t &size);
+    bool base64ToPsk(const std::string &base64, uint8_t *bytes, uint16_t &size, uint32_t maxSize = 32);
 
     ViewController *controller;
     ResponseHandler requests;
