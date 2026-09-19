@@ -2,6 +2,7 @@
 
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"
+#include "filesystem/IFileSystem.h"
 #include "graphics/common/BatteryLevel.h"
 #include "graphics/common/LoRaPresets.h"
 #include "graphics/common/Ringtones.h"
@@ -53,12 +54,12 @@ fs::FS &fileSystem = LittleFS;
 #elif defined(SENSECAP_INDICATOR)
 #include "graphics/map/RemoteSDService.h"
 #elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
-#include "comms/UiFtpServer.h"
+#if defined(CONFIG_IDF_TARGET_ESP32P4)
+#include "graphics/map/SDMMCCardService.h"
+#else
 #include "graphics/map/SDCardService.h"
-#elif defined(SDCARD_SHARE_SPI)
-// #include "comms/WebDAVServer.h"
+#endif
 #include "comms/UiFtpServer.h"
-#include "graphics/map/SDCardService.h"
 #else
 #if defined(HAS_SDCARD)
 // #include "comms/WebDAVServer.h"
@@ -67,7 +68,7 @@ fs::FS &fileSystem = LittleFS;
 #endif
 #include "graphics/map/SdFatService.h"
 #endif
-#include "graphics/common/SdCard.h"
+#include "filesystem/SdCard.h"
 #include "graphics/map/PMTileService.h"
 
 #ifndef MAX_NUM_NODES_VIEW
@@ -470,7 +471,6 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     }
 
     lv_disp_trig_activity(NULL);
-
     return true;
 }
 
@@ -850,6 +850,9 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_add_event_cb(objects.tools_packet_log_panel, ui_event_scroll_panel, LV_EVENT_KEY, NULL);
 
     // add event callback to to apply custom drawing for statistics table
+    lv_obj_add_event_cb(objects.statistics_table, ui_event_statistics_table, LV_EVENT_DRAW_TASK_ADDED, NULL);
+    lv_obj_add_flag(objects.statistics_table, LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS);
+
     // statistics table item size
     int32_t width = 36;
     int32_t rows = 12;
@@ -3479,7 +3482,11 @@ void TFTView_320x240::loadMap(void)
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+        auto tileService = new SDMMCCardService();
+#else
         auto tileService = new SDCardService();
+#endif
         map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SDMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
@@ -3497,6 +3504,7 @@ void TFTView_320x240::loadMap(void)
 #else
         map = new MapPanel(objects.raw_map_panel, new AsyncTileService(new URLService()));
 #endif
+
         map->setHomeLocationImage(objects.home_location_image);
         lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(objects.home_location_image, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)ownNode);
@@ -5639,10 +5647,10 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_group_add_obj(defaultPanelGroup, textLabel);
     // calculate expected size of text bubble, to make it look nicer
 #if LV_VERSION_CHECK(9, 3, 0)
-    lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_12, 0);
+    lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_14, 0);
 #else // 9.5.0
     lv_text_attributes_t attributes = {0};
-    lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_12, &attributes);
+    lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_14, &attributes);
 #endif
     lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>((int32_t)width + 10, 200) + 10, 50));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
@@ -6168,7 +6176,7 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float 
                 switch (status) {
                 case BatteryLevel::Plugged:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_plug_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                     break;
                 case BatteryLevel::Charging:
                     lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image,
@@ -6414,75 +6422,6 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
         lv_obj_add_flag(objects.home_ethernet_button, LV_OBJ_FLAG_HIDDEN);
     }
 }
-
-#if 0
-void TFTView_320x240::updateTransferStatus(void)
-{
-#if defined(HAS_SDCARD)
-    // Check WebDAV status and transfer progress (polled every 1s)
-    WebDAVServer *webdav = WebDAVServer::instance();
-    if (!webdav)
-        return;
-
-    bool wifiConnected = webdav->isWiFiConnected();
-    bool serverRunning = webdav->isRunning();
-
-    if (webdav->checkStatusChanged()) {
-        // Initialize mDNS only once WiFi is actually connected
-        static bool mdnsInitialized = false;
-        if (wifiConnected && serverRunning && !mdnsInitialized) {
-            webdav->initMDNS();
-            mdnsInitialized = true;
-        } else if (!wifiConnected) {
-            mdnsInitialized = false;
-        }
-
-        if (wifiConnected && serverRunning) {
-            lv_label_set_text(objects.home_transfer_label, _("WebDAV server ready\n://" WEBDAV_HOSTNAME ".local"));
-        } else if (serverRunning) {
-            lv_label_set_text(objects.home_transfer_label, _("Connecting..."));
-        } else if (wifiConnected) {
-            lv_label_set_text(objects.home_transfer_label, _("WebDAV not ready"));
-        } else {
-            lv_label_set_text(objects.home_transfer_label, _("WebDAV off"));
-        }
-
-        // Update label color based on status
-        Themes::recolorText(objects.home_transfer_label, wifiConnected && serverRunning);
-    }
-    // check for ongoing transfers
-    else {
-        static bool transferring = false;
-        bool previous = transferring;
-        transferring = webdav->isTransferInProgress();
-        if (transferring != previous) {
-            if (transferring) {
-                lv_label_set_text(objects.home_transfer_label, _("Transfer in progress..."));
-            } else {
-                lv_label_set_text(objects.home_transfer_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
-            }
-        }
-
-        // check for degraded wifi signal
-        static bool degraded = false;
-        if (wifiConnected && serverRunning) {
-            uint32_t rssi = webdav->RSSI();
-            if (rssi > -70) {
-                if (degraded) {
-                    lv_label_set_text(objects.home_transfer_label, _("WebDAV server ready\ndav://" WEBDAV_HOSTNAME ".local"));
-                    degraded = false;
-                }
-            } else {
-                if (!degraded) {
-                    lv_label_set_text_fmt(objects.home_transfer_label, _("Weak WiFi Signal\nRSSI: %d dBm"), rssi);
-                    degraded = true;
-                }
-            }
-        }
-    }
-#endif
-}
-#endif
 
 void TFTView_320x240::updateTransferStatus(void)
 {
@@ -7489,33 +7428,49 @@ void TFTView_320x240::backup(uint32_t option)
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
 
+    auto fs = createFileSystem();
+    if (!fs) {
+        ILOG_ERROR("Failed to create file system");
+        return;
+    }
+
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+    std::string fullPath = std::string("/sdcard") + path.str();
+    std::string keyDir = "/sdcard/keys";
+#else
+    std::string fullPath = path.str();
+    std::string keyDir = "/keys";
+#endif
+
     // The bus is held for the card access only - messageAlert() below is LVGL work.
     bool written = false;
+    std::string lastError;
     {
         ISpiLock::Guard bus;
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
-        SDFs.mkdir("/keys");
-        File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
-#else
-        SDFs.mkdir("/keys");
-        FsFile sd = SDFs.open(path.str().c_str(), O_RDWR | O_CREAT);
-#endif
-        if (sd) {
-            sd.println("config:");
-            sd.println("  security:");
-            sd.print("      privateKey: base64:");
-            sd.println(pskToBase64(privkey.bytes, privkey.size).c_str());
-            sd.print("      publicKey: base64:");
-            sd.println(pskToBase64(pubkey.bytes, pubkey.size).c_str());
-            written = true;
+
+        // Create keys directory
+        if (!fs->mkdir(keyDir)) {
+            ILOG_WARN("mkdir %s: %s", keyDir.c_str(), fs->getLastError().c_str());
         }
-        sd.close();
+
+        // Write keys to file
+        if (fs->open(fullPath, "w")) {
+            bool result = true;
+            result &= fs->printf("config:\n") > 0;
+            result &= fs->printf("  security:\n") > 0;
+            result &= fs->printf("      privateKey: base64:%s\n", pskToBase64(privkey.bytes, privkey.size).c_str()) > 0;
+            result &= fs->printf("      publicKey: base64:%s\n", pskToBase64(pubkey.bytes, pubkey.size).c_str()) > 0;
+            fs->close();
+            written = result;
+        } else {
+            lastError = fs->getLastError();
+        }
     }
 
     if (written) {
         ILOG_INFO("backup pub/priv keys done.");
     } else {
-        ILOG_ERROR("open file %s for backup failed", path.str().c_str());
+        ILOG_ERROR("open file %s for backup failed: %s", fullPath.c_str(), lastError.c_str());
         messageAlert(_("Failed to write keys!"), true);
     }
 #endif
@@ -7530,36 +7485,70 @@ void TFTView_320x240::restore(uint32_t option)
     std::stringstream path;
     path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
 
+    auto fs = createFileSystem();
+    if (!fs) {
+        ILOG_ERROR("Failed to create file system");
+        return;
+    }
+
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+    std::string fullPath = std::string("/sdcard") + path.str();
+#else
+    std::string fullPath = path.str();
+#endif
+
     // Read the file out under the bus guard, then release it: sendConfig() goes to the
     // radio - which needs this same bus from another task - and messageAlert() is LVGL.
     bool opened = false;
-    String privKey, pubKey;
+    std::string lastError;
+    std::string privateLine;
+    std::string publicLine;
     {
         ISpiLock::Guard bus;
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
-        File sd = SDFs.open(path.str().c_str(), FILE_READ);
-#else
-        FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
-#endif
-        if (sd) {
+
+        // read and parse the YAML file for keys
+        if (fs->open(fullPath, "r")) {
             opened = true;
-            // TODO: improve parsing file contents
-            sd.readStringUntil('\n');           // config:
-            sd.readStringUntil('\n');           // security:
-            privKey = sd.readStringUntil('\n'); // privateKey: base64:
-            pubKey = sd.readStringUntil('\n');  // publicKey: base64:
+            char line[320];
+
+            // read file line by line
+            while (fs->readLine(line, sizeof(line))) {
+                if (strstr(line, "privateKey:") != nullptr) {
+                    privateLine = line;
+                } else if (strstr(line, "publicKey:") != nullptr) {
+                    publicLine = line;
+                }
+            }
+            fs->close();
+        } else {
+            lastError = fs->getLastError();
         }
-        sd.close();
     }
 
     if (!opened) {
-        ILOG_ERROR("open file %s failed", path.str().c_str());
+        ILOG_ERROR("open file %s failed: %s", fullPath.c_str(), lastError.c_str());
         messageAlert(_("Failed to retrieve keys!"), true);
-    } else if (privKey.indexOf("privateKey:") > 0 && pubKey.indexOf("publicKey:") > 0) {
-        String b64priv = privKey.substring(privKey.lastIndexOf(":") + 1);
-        String b64pub = pubKey.substring(pubKey.lastIndexOf(":") + 1);
-        b64priv.trim();
-        b64pub.trim();
+    } else if (!privateLine.empty() && !publicLine.empty()) {
+        // trim whitespace and extract base64 values
+        auto trim = [](std::string &s) {
+            while (!s.empty() && (s.back() == '\n' || s.back() == '\r' || s.back() == ' ' || s.back() == '\t')) {
+                s.pop_back();
+            }
+            size_t p = 0;
+            while (p < s.size() && (s[p] == ' ' || s[p] == '\t')) {
+                p++;
+            }
+            if (p > 0) {
+                s.erase(0, p);
+            }
+        };
+
+        std::string b64priv = privateLine.substr(privateLine.find_last_of(':') + 1);
+        std::string b64pub = publicLine.substr(publicLine.find_last_of(':') + 1);
+        trim(b64priv);
+        trim(b64pub);
+
+        // decode and send to radio
         if (base64ToPsk(b64priv.c_str(), privkey.bytes, privkey.size) && base64ToPsk(b64pub.c_str(), pubkey.bytes, pubkey.size) &&
             controller->sendConfig(meshtastic_Config_SecurityConfig{db.config.security})) {
             ILOG_INFO("restore pub/priv keys sent to radio");
@@ -7568,7 +7557,7 @@ void TFTView_320x240::restore(uint32_t option)
             messageAlert(_("Failed to restore keys!"), true);
         }
     } else {
-        ILOG_ERROR("file %s contents don't match backup", path.str().c_str());
+        ILOG_ERROR("file %s contents don't match backup", fullPath.c_str());
         messageAlert(_("Failed to parse keys!"), true);
     }
 #endif
@@ -8833,7 +8822,7 @@ void TFTView_320x240::armSDCardStatsPoll(void)
     lv_timer_t *poll = lv_timer_create(
         [](lv_timer_t *) {
             pollPending = false;
-            TFTView_320x240::instance()->refreshSDCardStats();
+            THIS->refreshSDCardStats();
         },
         10 * 1000, NULL);
     if (!poll)

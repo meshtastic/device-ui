@@ -21,10 +21,8 @@ class IMapFileSystem
 
 #if (defined(SDCARD_SHARE_SPI) || defined(HAS_SD_MMC)) && !defined(ARCH_PORTDUINO)
 #include "FS.h"
-#include "graphics/common/SdCard.h"
-#else
-#include "graphics/common/SdCard.h"
 #endif
+#include "filesystem/SdCard.h"
 
 // On SDIO the archive is read through FatFs instead of the VFS: fs::File::seek()
 // takes a uint32_t and ends in fseek(long), so exFAT offsets past 2 GiB fail.
@@ -52,7 +50,7 @@ class SDMapFileSystem : public IMapFileSystem
 
 #elif defined(HAS_SDCARD) && !defined(SENSECAP_INDICATOR)
 
-#include "graphics/common/SdCard.h"
+#include "filesystem/SdCard.h"
 
 class SdFatMapFileSystem : public IMapFileSystem
 {

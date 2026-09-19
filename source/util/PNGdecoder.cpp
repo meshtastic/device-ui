@@ -104,9 +104,7 @@ bool decodeImgColor(const void *data, size_t size, lv_image_dsc_t **img)
         return false;
     }
 
-    struct PNGDrawContext ctx {
-        png, rgb565Data, width
-    };
+    struct PNGDrawContext ctx{png, rgb565Data, width};
 
     // Decode (0 disables CRC checks to speed up runtime)
     rc = png->decode(&ctx, 0);
@@ -194,9 +192,7 @@ bool decodeImgGrey(const void *data, size_t size, lv_image_dsc_t **img)
         return false;
     }
 
-    struct PNGGreyDrawContext ctx {
-        png, l8Data, width
-    };
+    struct PNGGreyDrawContext ctx{png, l8Data, width};
 
     rc = png->decode(&ctx, 0);
     png->close();
