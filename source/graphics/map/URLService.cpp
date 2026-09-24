@@ -6,7 +6,7 @@
 #include "util/ILog.h"
 #include "util/PNGDecoder.h"
 
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARCH_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32P4)
 
 #include "WiFi.h"
 #include "esp_wifi.h"

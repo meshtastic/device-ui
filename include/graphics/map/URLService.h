@@ -3,7 +3,7 @@
 #include "graphics/map/TileService.h"
 #include <functional>
 
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARCH_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32P4)
 #include "HTTPClient.h"
 
 class URLService : public ITileService
