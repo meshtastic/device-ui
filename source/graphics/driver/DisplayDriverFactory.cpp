@@ -60,6 +60,9 @@
 #ifdef CROWPANEL_ADV_P4_70_90_101
 #include "graphics/LGFX/LGFX_ELECROW_P4_70_90_101.h"
 #endif
+#ifdef ELECROW_MX
+#include "graphics/LGFX/LGFX_ELECROW_MX.h"
+#endif
 #ifdef ESP32_2432S022
 #include "graphics/LGFX/LGFX_ESP2432S022.h"
 #endif
@@ -188,6 +191,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(ELECROW_PANEL)
     case DisplayDriverConfig::device_t::ELECROW_ADV:
         return new LGFXDriver<LGFX_ELECROW70>(cfg.width(), cfg.height());
+        break;
+#elif defined(ELECROW_MX)
+    case DisplayDriverConfig::device_t::ELECROW_P4_MX:
+        return new LGFXDriver<LGFX_ELECROW_MX>(cfg.width(), cfg.height());
         break;
 #elif defined(HELTEC_TRACKER)
     case DisplayDriverConfig::device_t::HELTEC_TRACKER:
