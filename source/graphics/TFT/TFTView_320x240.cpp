@@ -616,6 +616,12 @@ void TFTView_320x240::apply_hotfix(void)
     }
 
     lv_obj_move_foreground(objects.keyboard);
+#if LV_USE_GESTURE_RECOGNITION
+    // let map gestures started on a node image reach ui_screen_event_cb on the main screen
+    lv_obj_add_flag(objects.map_panel, LV_OBJ_FLAG_EVENT_BUBBLE);
+    lv_obj_add_flag(objects.raw_map_panel, LV_OBJ_FLAG_EVENT_BUBBLE);
+    lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_EVENT_BUBBLE);
+#endif
     lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(objects.detector_start_label, _("Start"));
@@ -2398,6 +2404,40 @@ void TFTView_320x240::ui_event_zoomOut(lv_event_t *e)
     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
 }
 
+/**
+ * Two-finger pinch/spread: one zoom level per PINCH_ZOOM_STEP change of the finger distance
+ */
+void TFTView_320x240::ui_event_mapPinch(lv_event_t *e)
+{
+#if LV_USE_GESTURE_RECOGNITION
+    static int applied = 0; // levels already zoomed during the ongoing pinch
+    lv_indev_gesture_state_t state = lv_event_get_gesture_state(e, LV_INDEV_GESTURE_PINCH);
+    float scale = lv_event_get_pinch_scale(e);
+    if (!THIS->map || scale <= 0.0f)
+        return;
+
+    int levels = (int)floorf(fabsf(logf(scale)) / logf(PINCH_ZOOM_STEP));
+    if (scale < 1.0f)
+        levels = -levels;
+
+    bool ended = state == LV_INDEV_GESTURE_STATE_ENDED;
+#ifdef DEBUG_TOUCH_GESTURE
+    ILOG_DEBUG("mapPinch state=%d scale=%.2f levels=%d applied=%d zoom=%d redrawComplete=%d", state, scale, levels, applied,
+               MapTileSettings::getZoomLevel(), THIS->map->redrawComplete());
+#endif
+    if (levels != applied && (ended || THIS->map->redrawComplete())) {
+        THIS->map->setZoom(MapTileSettings::getZoomLevel() + levels - applied);
+        THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+        applied = levels;
+    }
+    if (ended) {
+        applied = 0;
+        // swallow the click the release would otherwise send to the first finger's object
+        lv_indev_reset((lv_indev_t *)lv_event_get_param(e), NULL);
+    }
+#endif
+}
+
 void TFTView_320x240::ui_event_lockGps(lv_event_t *e)
 {
     bool gpsLocked = lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED);
@@ -2578,6 +2618,16 @@ void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
 void TFTView_320x240::ui_screen_event_cb(lv_event_t *e)
 {
     if (THIS->activePanel == objects.map_panel) {
+#if LV_USE_GESTURE_RECOGNITION
+        // the indev's gesture type is sticky; only an attached recognizer marks a multi-touch event
+        for (int type = LV_INDEV_GESTURE_PINCH; type < LV_INDEV_GESTURE_CNT; type++) {
+            if (lv_event_get_gesture_state(e, (lv_indev_gesture_type_t)type) != LV_INDEV_GESTURE_STATE_NONE) {
+                if (type == LV_INDEV_GESTURE_PINCH)
+                    ui_event_mapPinch(e);
+                return;
+            }
+        }
+#endif
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         switch (dir) {
         case LV_DIR_LEFT:
@@ -2912,6 +2962,9 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
         uint32_t bgColor, fgColor;
         std::tie(bgColor, fgColor) = nodeColor(nodeNum);
         lv_obj_t *img = lv_image_create(objects.raw_map_panel);
+#if LV_USE_GESTURE_RECOGNITION
+        lv_obj_add_flag(img, LV_OBJ_FLAG_EVENT_BUBBLE);
+#endif
         lv_obj_set_size(img, 40, 35);
         lv_img_set_src(img, &img_circle_image);
         lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);
