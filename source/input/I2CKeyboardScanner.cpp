@@ -76,9 +76,9 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 #endif
 #ifdef SCAN_I2C1_BUS_RESET
     ILOG_DEBUG("Resetting I2C1 bus ...");
-    Wire.end();
+    Wire1.end();
     delay(10);
-    Wire.begin(I2C_SDA1, I2C_SCL1, 100000);
+    Wire1.begin(I2C_SDA1, I2C_SCL1, 100000);
     delay(10);
 #endif
 
