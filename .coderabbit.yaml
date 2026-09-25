@@ -26,14 +26,14 @@ reviews:
     - '!generated/**'
 
   path_instructions:
-    - path: 'source/**/*'
+    - path: source/**/*
       instructions: >
         Evaluate the structural design and object-oriented patterns used.
         Focus on the architectural design, adherence to SOLID principles, object-oriented design patterns,
         separation of concerns, testability (unit tests), and system maintainability.
         Flag high coupling, introduction of unnecessary dependencies, weak cohesion, or architectural violations.
         Navigate logical layers of code changes, visualize relationships, and explore their blast radius.
-    - path: 'tests/**'
+    - path: tests/**
       instructions: >
         Review tests as executable specifications of user-visible or component behavior.
         Check that changed behavior has focused coverage, especially boundary conditions,
