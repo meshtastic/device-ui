@@ -193,7 +193,7 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
         return new LGFXDriver<LGFX_ELECROW70>(cfg.width(), cfg.height());
         break;
 #elif defined(ELECROW_MX)
-    case DisplayDriverConfig::device_t::ELECROW_ADV:
+    case DisplayDriverConfig::device_t::ELECROW_P4_MX:
         return new LGFXDriver<LGFX_ELECROW_MX>(cfg.width(), cfg.height());
         break;
 #elif defined(HELTEC_TRACKER)
