@@ -68,10 +68,17 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 
     // Reset I2C bus to clear any stuck state left by touch driver LovyanGFX operations
 #ifdef SCAN_I2C_BUS_RESET
-    ILOG_DEBUG("Resetting I2C bus ...");
+    ILOG_DEBUG("Resetting I2C0 bus ...");
     Wire.end();
     delay(10);
     Wire.begin(I2C_SDA, I2C_SCL, 100000);
+    delay(10);
+#endif
+#ifdef SCAN_I2C1_BUS_RESET
+    ILOG_DEBUG("Resetting I2C1 bus ...");
+    Wire.end();
+    delay(10);
+    Wire.begin(I2C_SDA1, I2C_SCL1, 100000);
     delay(10);
 #endif
 
