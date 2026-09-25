@@ -2706,8 +2706,10 @@ void TFTView_320x240::loadMap(void)
         auto tileService = new SDCardService();
 #endif
         map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SDMapFileSystem()));
+#if !defined(CONFIG_IDF_TARGET_ESP32P4) // requires esp-hosted networking for wifi
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
+#endif
 #elif defined(HAS_SDCARD)
         auto tileService = new SdFatService();
         map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SdFatMapFileSystem()));
