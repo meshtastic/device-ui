@@ -1,5 +1,7 @@
 #pragma once
 
+#include "util/ILog.h"
+
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 
@@ -9,7 +11,9 @@
 #if !defined(CONFIG_IDF_TARGET_ESP32P4)
 #error "CONFIG_IDF_TARGET_ESP32P4 should be set"
 #endif
-
+#if !CONFIG_SPIRAM
+#error "CONFIG_SPIRAM should be set"
+#endif
 #include "graphics/LGFX/experimental/esp32p4/Panel_EK79007D.hpp"
 
 // ThinkNode MX specific configuration of GT911 touch driver
@@ -19,14 +23,7 @@ class GT911_MX : public lgfx::Touch_GT911
     static constexpr int GT911_I2C_ADDR_1 = 0x14;
     static constexpr int GT911_I2C_ADDR_2 = 0x5D;
 
-    bool init(void) override
-    {
-        bool result = lgfx::Touch_GT911::init();
-        if (result) {
-            checkAndConfigureGT911();
-        }
-        return result;
-    }
+    bool init(void) override { return lgfx::Touch_GT911::init() && checkAndConfigureGT911(); }
 
   private:
     bool transactionWriteReadWithAddrRetry(const uint8_t *writeBuf, size_t writeLen, uint8_t *readBuf, size_t readLen)
@@ -107,7 +104,7 @@ class GT911_MX : public lgfx::Touch_GT911
         return transactionWriteReadWithAddrRetry(writeBuf, sizeof(writeBuf), configBlock, sizeof(configBlock));
     }
 
-    void checkAndConfigureGT911(void)
+    bool checkAndConfigureGT911(void)
     {
         // Log the runtime bus config that LovyanGFX selected during init.
         ILOG_DEBUG("GT911 I2C config: port=%d addr=0x%02X sda=%d scl=%d freq=%u", _cfg.i2c_port, _cfg.i2c_addr, _cfg.pin_sda,
@@ -128,7 +125,7 @@ class GT911_MX : public lgfx::Touch_GT911
         uint8_t configBlockSmall[16] = {0};
         if (!readGT911ConfigBlock16(configBlockSmall)) {
             ILOG_ERROR("Failed to read GT911 config block at 0x8047");
-            return;
+            return false;
         }
 
         uint8_t configVersion = configBlockSmall[0];   // Register 0x8047
@@ -149,14 +146,14 @@ class GT911_MX : public lgfx::Touch_GT911
         ILOG_INFO("Current TP INT Driver Mode:  %s", intModeNames[intTriggerMode]);
 
         if (intTriggerMode == 0x02) {
-            return;
+            return true;
         }
 
         uint8_t configBlock[184] = {0};
         uint8_t writeReg[2] = {0x80, 0x47};
         if (!transactionWriteReadWithAddrRetry(writeReg, sizeof(writeReg), configBlock, sizeof(configBlock))) {
             ILOG_ERROR("Failed to read full GT911 config block for update");
-            return;
+            return false;
         }
 
         configBlock[6] = static_cast<uint8_t>((configBlock[6] & 0xFC) | 0x02);
@@ -166,13 +163,13 @@ class GT911_MX : public lgfx::Touch_GT911
 
         if (!writeGT911ConfigBlock(configBlock)) {
             ILOG_ERROR("Failed to write updated GT911 config block");
-            return;
+            return false;
         }
 
         uint8_t verifyBlock[16] = {0};
         if (!readGT911ConfigBlock16(verifyBlock)) {
             ILOG_ERROR("GT911 config write done, but readback failed");
-            return;
+            return false;
         }
 
         uint8_t verifyVersion = verifyBlock[0];
@@ -182,7 +179,9 @@ class GT911_MX : public lgfx::Touch_GT911
         } else {
             ILOG_ERROR("GT911 TP_INT verification failed: mode=0x%02X (expected 0x02), version=0x%02X", verifyMode,
                        verifyVersion);
+            return false;
         }
+        return true;
     }
 
     // Helper function to read a string from GT911 registers
@@ -248,15 +247,12 @@ class LGFX_ELECROW_MX : public lgfx::LGFX_Device
 
     bool init_impl(bool use_reset, bool use_clear) override
     {
-#if !CONFIG_SPIRAM
-        ESP_LOGE("LGFX", "ELECROW_MX needs PSRAM enabled");
-        if (false)
-#elif CONFIG_SPIRAM_SPEED <= 80
+#if CONFIG_SPIRAM_SPEED <= 80
         ESP_LOGE("LGFX", "ELECROW_MX needs PSRAM speed above 80 MHz");
 #endif
-            if (_bus_instance.init()) {
-                lgfx::delay(250);
-            }
+        if (_bus_instance.init()) {
+            lgfx::delay(250);
+        }
         return lgfx::LGFX_Device::init_impl(use_reset, use_clear);
     }
 
