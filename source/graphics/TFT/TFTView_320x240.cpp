@@ -2706,10 +2706,8 @@ void TFTView_320x240::loadMap(void)
         auto tileService = new SDCardService();
 #endif
         map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SDMapFileSystem()));
-#ifndef CONFIG_IDF_TARGET_ESP32P4 //TODO: needs esp-hosted wifi solution
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
-#endif
 #elif defined(HAS_SDCARD)
         auto tileService = new SdFatService();
         map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SdFatMapFileSystem()));
@@ -4172,12 +4170,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 strcpy(user.short_name, userShort);
                 strcpy(user.long_name, userLong);
                 THIS->controller->sendConfig(user, THIS->ownNode);
-                if (userShort[0] != '\0' || userLong[0] != '\0')
-                    THIS->notifyReboot(true);
-                else {
-                    THIS->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
-                }
             }
+            THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.initial_setup_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.home_button);
