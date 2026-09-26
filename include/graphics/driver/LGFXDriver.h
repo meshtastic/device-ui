@@ -329,6 +329,8 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
     static uint8_t prevCount = 0;
     static bool multiTouch = false;
     static lv_point_t lastPoint = {0, 0};
+    static lv_point_t multiBase = {0, 0};    // pointer position when the second finger landed
+    static lv_point_t centroidBase = {0, 0}; // finger centroid at that moment
 
     lgfx::touch_point_t tp[maxPoints];
     uint8_t count;
@@ -362,13 +364,19 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
 
     if (count == 0)
         data->point = lastPoint;
-    // hold the pointer still until all fingers are up so multi-touch never scrolls, swipes or re-presses
-    if (count >= 2)
-        multiTouch = true;
-    if (multiTouch) {
+    // while two fingers are down the pointer follows their centroid from where it was, so a pinch can also pan
+    // without a jump; once a finger lifts it holds still and stays released until all fingers are up
+    if (count >= 2) {
+        lv_point_t centroid = {(tp[0].x + tp[1].x) / 2, (tp[0].y + tp[1].y) / 2};
+        if (!multiTouch || lastCount < 2) {
+            multiBase = lastCount ? lastPoint : centroid;
+            centroidBase = centroid;
+            multiTouch = true;
+        }
+        data->point = {multiBase.x + centroid.x - centroidBase.x, multiBase.y + centroid.y - centroidBase.y};
+    } else if (multiTouch) {
         data->point = lastPoint;
-        if (count < 2)
-            data->state = LV_INDEV_STATE_RELEASED;
+        data->state = LV_INDEV_STATE_RELEASED;
         if (count == 0)
             multiTouch = false;
     }
@@ -502,6 +510,8 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         lv_indev_set_pinch_down_threshold(DisplayDriver::touch, 1.0f / PINCH_ZOOM_STEP);
         // LVGL 9.3 defaults the rotate threshold to 0, so rotation wins instantly and locks out pinch
         lv_indev_set_rotation_rad_threshold(DisplayDriver::touch, 0.8f);
+        // a recognized two-finger swipe would lock out pinch; panning uses the centroid pointer instead
+        DisplayDriver::touch->recognizers[LV_INDEV_GESTURE_TWO_FINGERS_SWIPE].recog_fn = nullptr;
 #endif
 #ifdef USE_TOUCH_EVENTS
         if (lgfx->touch()->config()->pin_int > 0) {
