@@ -597,6 +597,26 @@ void TFTView_320x240::apply_hotfix(void)
         }
     }
 
+    // On wide displays the button bar stops growing at its max width while the generated panels still start at 12%,
+    // leaving a black stripe in between. Move every 12%-anchored panel onto the bar and grow it back to its right edge.
+    if (h > 480) {
+        int32_t generatedX = (int32_t)(h * 12) / 100;
+        int32_t barWidth = LV_CLAMP(lv_obj_get_style_min_width(objects.button_panel, LV_PART_MAIN), generatedX,
+                                    lv_obj_get_style_max_width(objects.button_panel, LV_PART_MAIN));
+        uint32_t childCount = lv_obj_get_child_count(objects.main_screen);
+        for (uint32_t i = 0; i < childCount; i++) {
+            lv_obj_t *panel = lv_obj_get_child(objects.main_screen, i);
+            int32_t x = lv_obj_get_style_x(panel, LV_PART_MAIN);
+            if (!LV_COORD_IS_PCT(x) || LV_COORD_GET_PCT(x) != 12)
+                continue;
+            int32_t w = lv_obj_get_style_width(panel, LV_PART_MAIN);
+            if (LV_COORD_IS_PCT(w))
+                w = (int32_t)(h * LV_COORD_GET_PCT(w)) / 100;
+            lv_obj_set_x(panel, barWidth);
+            lv_obj_set_width(panel, generatedX + w - barWidth);
+        }
+    }
+
     // fix size for 480 pixel height displays
     if (v >= 480) {
         // keyboard size limit
@@ -2749,12 +2769,29 @@ void TFTView_320x240::ui_event_mapDrag(lv_event_t *e)
     int16_t dx = acc.x >= stepX ? 1 : (acc.x <= -stepX ? -1 : 0);
     int16_t dy = acc.y >= stepY ? 1 : (acc.y <= -stepY ? -1 : 0);
     if ((dx || dy) && THIS->map->redrawComplete()) {
-        if (!THIS->map->scroll(dx, dy, MAP_DRAG_FRACTION))
-            THIS->map->forceRedraw();
-        acc.x -= dx * stepX;
-        acc.y -= dy * stepY;
+        // one axis per call: scroll() rejects the whole request when either axis is at the map edge
+        bool scrolled = false;
+        if (dx) {
+            if (THIS->map->scroll(dx, 0, MAP_DRAG_FRACTION)) {
+                acc.x -= dx * stepX;
+                scrolled = true;
+            } else {
+                acc.x = 0;
+            }
+        }
+        if (dy && !scrolled) {
+            if (THIS->map->scroll(0, dy, MAP_DRAG_FRACTION)) {
+                acc.y -= dy * stepY;
+                scrolled = true;
+            } else {
+                acc.y = 0;
+            }
+        }
         mapDragged = true;
-        THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+        if (scrolled)
+            THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+        else
+            THIS->map->forceRedraw();
     }
 #endif
 }
