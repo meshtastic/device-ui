@@ -72,6 +72,10 @@ fs::FS &fileSystem = LittleFS;
 #define PACKET_LOGS_MAX 200
 #endif
 
+#ifndef MAP_DRAG_FRACTION
+#define MAP_DRAG_FRACTION 8 // drag panning step as fraction of the map panel size
+#endif
+
 LV_IMAGE_DECLARE(img_circle_image);
 LV_IMAGE_DECLARE(img_no_tile_image);
 LV_IMAGE_DECLARE(node_location_pin24_image);
@@ -139,6 +143,10 @@ static void kbdSlideAnimCB(void *var, int32_t v)
 {
     lv_obj_set_y((lv_obj_t *)var, v);
 }
+
+#if LV_USE_GESTURE_RECOGNITION
+static bool mapDragged = false; // suppresses the node click at the end of a drag
+#endif
 
 TFTView_320x240 *TFTView_320x240::instance(void)
 {
@@ -589,6 +597,26 @@ void TFTView_320x240::apply_hotfix(void)
         }
     }
 
+    // On wide displays the button bar stops growing at its max width while the generated panels still start at 12%,
+    // leaving a black stripe in between. Move every 12%-anchored panel onto the bar and grow it back to its right edge.
+    if (h > 480) {
+        int32_t generatedX = (int32_t)(h * 12) / 100;
+        int32_t barWidth = LV_CLAMP(lv_obj_get_style_min_width(objects.button_panel, LV_PART_MAIN), generatedX,
+                                    lv_obj_get_style_max_width(objects.button_panel, LV_PART_MAIN));
+        uint32_t childCount = lv_obj_get_child_count(objects.main_screen);
+        for (uint32_t i = 0; i < childCount; i++) {
+            lv_obj_t *panel = lv_obj_get_child(objects.main_screen, i);
+            int32_t x = lv_obj_get_style_x(panel, LV_PART_MAIN);
+            if (!LV_COORD_IS_PCT(x) || LV_COORD_GET_PCT(x) != 12)
+                continue;
+            int32_t w = lv_obj_get_style_width(panel, LV_PART_MAIN);
+            if (LV_COORD_IS_PCT(w))
+                w = (int32_t)(h * LV_COORD_GET_PCT(w)) / 100;
+            lv_obj_set_x(panel, barWidth);
+            lv_obj_set_width(panel, generatedX + w - barWidth);
+        }
+    }
+
     // fix size for 480 pixel height displays
     if (v >= 480) {
         // keyboard size limit
@@ -616,6 +644,12 @@ void TFTView_320x240::apply_hotfix(void)
     }
 
     lv_obj_move_foreground(objects.keyboard);
+#if LV_USE_GESTURE_RECOGNITION
+    // let map gestures started on a node image reach ui_screen_event_cb on the main screen
+    lv_obj_add_flag(objects.map_panel, LV_OBJ_FLAG_EVENT_BUBBLE);
+    lv_obj_add_flag(objects.raw_map_panel, LV_OBJ_FLAG_EVENT_BUBBLE);
+    lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_EVENT_BUBBLE);
+#endif
     lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(objects.detector_start_label, _("Start"));
@@ -923,6 +957,10 @@ void TFTView_320x240::ui_events_init(void)
 
     // map settings and navigation
     lv_obj_add_event_cb(objects.main_screen, ui_screen_event_cb, LV_EVENT_GESTURE, NULL);
+#if LV_USE_GESTURE_RECOGNITION
+    lv_obj_add_event_cb(objects.main_screen, ui_event_mapDrag, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.main_screen, ui_event_mapDrag, LV_EVENT_PRESSING, NULL);
+#endif
     lv_obj_add_event_cb(objects.arrow_up_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)8);
     lv_obj_add_event_cb(objects.arrow_left_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)4);
     lv_obj_add_event_cb(objects.arrow_right_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)6);
@@ -2398,6 +2436,40 @@ void TFTView_320x240::ui_event_zoomOut(lv_event_t *e)
     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
 }
 
+/**
+ * Two-finger pinch/spread: one zoom level per PINCH_ZOOM_STEP change of the finger distance
+ */
+void TFTView_320x240::ui_event_mapPinch(lv_event_t *e)
+{
+#if LV_USE_GESTURE_RECOGNITION
+    static int applied = 0; // levels already zoomed during the ongoing pinch
+    lv_indev_gesture_state_t state = lv_event_get_gesture_state(e, LV_INDEV_GESTURE_PINCH);
+    float scale = lv_event_get_pinch_scale(e);
+    if (!THIS->map || scale <= 0.0f)
+        return;
+
+    int levels = (int)floorf(fabsf(logf(scale)) / logf(PINCH_ZOOM_STEP));
+    if (scale < 1.0f)
+        levels = -levels;
+
+    bool ended = state == LV_INDEV_GESTURE_STATE_ENDED;
+#ifdef DEBUG_TOUCH_GESTURE
+    ILOG_DEBUG("mapPinch state=%d scale=%.2f levels=%d applied=%d zoom=%d redrawComplete=%d", state, scale, levels, applied,
+               MapTileSettings::getZoomLevel(), THIS->map->redrawComplete());
+#endif
+    if (levels != applied && (ended || THIS->map->redrawComplete())) {
+        THIS->map->setZoom(MapTileSettings::getZoomLevel() + levels - applied);
+        THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+        applied = levels;
+    }
+    if (ended) {
+        applied = 0;
+        // swallow the click the release would otherwise send to the first finger's object
+        lv_indev_reset((lv_indev_t *)lv_event_get_param(e), NULL);
+    }
+#endif
+}
+
 void TFTView_320x240::ui_event_lockGps(lv_event_t *e)
 {
     bool gpsLocked = lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED);
@@ -2522,6 +2594,10 @@ void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
 
 void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
 {
+#if LV_USE_GESTURE_RECOGNITION
+    if (mapDragged)
+        return;
+#endif
     // navigate to node in node list
     uint32_t nodeNum = (unsigned long)e->user_data;
     ILOG_DEBUG("map node %08x", nodeNum);
@@ -2578,6 +2654,17 @@ void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
 void TFTView_320x240::ui_screen_event_cb(lv_event_t *e)
 {
     if (THIS->activePanel == objects.map_panel) {
+#if LV_USE_GESTURE_RECOGNITION
+        // the indev's gesture type is sticky; only an attached recognizer marks a multi-touch event
+        for (int type = LV_INDEV_GESTURE_PINCH; type < LV_INDEV_GESTURE_CNT; type++) {
+            if (lv_event_get_gesture_state(e, (lv_indev_gesture_type_t)type) != LV_INDEV_GESTURE_STATE_NONE) {
+                if (type == LV_INDEV_GESTURE_PINCH)
+                    ui_event_mapPinch(e);
+                return;
+            }
+        }
+        return; // one-finger swipes are handled continuously by ui_event_mapDrag
+#endif
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         switch (dir) {
         case LV_DIR_LEFT:
@@ -2646,6 +2733,67 @@ void TFTView_320x240::ui_event_arrow(lv_event_t *e)
             THIS->map->forceRedraw();
     }
     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+}
+
+/**
+ * Pan the map in steps while a finger drags over it
+ */
+void TFTView_320x240::ui_event_mapDrag(lv_event_t *e)
+{
+#if LV_USE_GESTURE_RECOGNITION
+    static lv_point_t acc = {0, 0};
+    lv_indev_t *indev = lv_indev_active();
+    if (lv_event_get_code(e) == LV_EVENT_PRESSED) {
+        acc = {0, 0};
+        mapDragged = false;
+        return;
+    }
+    if (THIS->activePanel != objects.map_panel || !THIS->map || !indev)
+        return;
+
+    lv_area_t area;
+    lv_point_t point, vect;
+    lv_obj_get_coords(objects.raw_map_panel, &area);
+    lv_indev_get_point(indev, &point);
+    if (!lv_area_is_point_on(&area, &point, 0))
+        return;
+
+    int32_t tileSize = MapTileSettings::getTileSize();
+    int32_t stepX = LV_MIN(lv_area_get_width(&area) / MAP_DRAG_FRACTION, tileSize);
+    int32_t stepY = LV_MIN(lv_area_get_height(&area) / MAP_DRAG_FRACTION, tileSize);
+    lv_indev_get_vect(indev, &vect);
+    // bounded so the map does not keep moving after the finger stopped while redraws lag behind
+    acc.x = LV_CLAMP(-2 * stepX, acc.x + vect.x, 2 * stepX);
+    acc.y = LV_CLAMP(-2 * stepY, acc.y + vect.y, 2 * stepY);
+
+    int16_t dx = acc.x >= stepX ? 1 : (acc.x <= -stepX ? -1 : 0);
+    int16_t dy = acc.y >= stepY ? 1 : (acc.y <= -stepY ? -1 : 0);
+    if ((dx || dy) && THIS->map->redrawComplete()) {
+        // one axis per call: scroll() rejects the whole request when either axis is at the map edge
+        bool scrolled = false;
+        if (dx) {
+            if (THIS->map->scroll(dx, 0, MAP_DRAG_FRACTION)) {
+                acc.x -= dx * stepX;
+                scrolled = true;
+            } else {
+                acc.x = 0;
+            }
+        }
+        if (dy && !scrolled) {
+            if (THIS->map->scroll(0, dy, MAP_DRAG_FRACTION)) {
+                acc.y -= dy * stepY;
+                scrolled = true;
+            } else {
+                acc.y = 0;
+            }
+        }
+        mapDragged = true;
+        if (scrolled)
+            THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+        else
+            THIS->map->forceRedraw();
+    }
+#endif
 }
 
 void TFTView_320x240::ui_event_navHome(lv_event_t *e)
@@ -2912,6 +3060,9 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
         uint32_t bgColor, fgColor;
         std::tie(bgColor, fgColor) = nodeColor(nodeNum);
         lv_obj_t *img = lv_image_create(objects.raw_map_panel);
+#if LV_USE_GESTURE_RECOGNITION
+        lv_obj_add_flag(img, LV_OBJ_FLAG_EVENT_BUBBLE);
+#endif
         lv_obj_set_size(img, 40, 35);
         lv_img_set_src(img, &img_circle_image);
         lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);

@@ -390,6 +390,8 @@ class TFTView_320x240 : public MeshtasticView
 
     // map navigation
     static void ui_screen_event_cb(lv_event_t *e);
+    static void ui_event_mapPinch(lv_event_t *e);
+    static void ui_event_mapDrag(lv_event_t *e);
     static void ui_event_arrow(lv_event_t *e);
     static void ui_event_navHome(lv_event_t *e);
     static void ui_event_zoomSlider(lv_event_t *e);

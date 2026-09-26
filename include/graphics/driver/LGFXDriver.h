@@ -317,6 +317,80 @@ template <class LGFX> void LGFXDriver<LGFX>::rounder_cb(lv_event_t *e)
 }
 #endif
 
+#if LV_USE_GESTURE_RECOGNITION && !defined(CUSTOM_TOUCH_DRIVER)
+#ifdef DEBUG_TOUCH_GESTURE
+#include "src/indev/lv_indev_gesture_private.h"
+#endif
+// Multi-touch read for LVGL's gesture recognizers; needs a touch driver reporting stable point ids.
+template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
+{
+    constexpr uint8_t maxPoints = 2; // LVGL recognizers track two contacts
+    static lgfx::touch_point_t prev[maxPoints];
+    static uint8_t prevCount = 0;
+    static bool multiTouch = false;
+    static lv_point_t lastPoint = {0, 0};
+
+    lgfx::touch_point_t tp[maxPoints];
+    uint8_t count;
+    uint8_t lastCount = prevCount;
+    {
+        ISpiLock::Guard bus;
+        count = lgfx->getTouch(tp, maxPoints);
+    }
+
+    // recognizers count fingers by id, so a lifted finger must be reported once as released
+    lv_indev_touch_data_t events[maxPoints * 2];
+    uint16_t n = 0;
+    uint32_t now = lv_tick_get();
+    for (uint8_t i = 0; i < prevCount; i++) {
+        bool lifted = true;
+        for (uint8_t j = 0; j < count; j++) {
+            if (tp[j].id == prev[i].id)
+                lifted = false;
+        }
+        if (lifted)
+            events[n++] = {{prev[i].x, prev[i].y}, LV_INDEV_STATE_RELEASED, (uint8_t)prev[i].id, now};
+    }
+    for (uint8_t j = 0; j < count; j++) {
+        events[n++] = {{tp[j].x, tp[j].y}, LV_INDEV_STATE_PRESSED, (uint8_t)tp[j].id, now};
+        prev[j] = tp[j];
+    }
+    prevCount = count;
+
+    lv_indev_gesture_recognizers_update(indev_driver, events, n);
+    lv_indev_gesture_recognizers_set_data(indev_driver, data);
+
+    if (count == 0)
+        data->point = lastPoint;
+    // hold the pointer still until all fingers are up so multi-touch never scrolls, swipes or re-presses
+    if (count >= 2)
+        multiTouch = true;
+    if (multiTouch) {
+        data->point = lastPoint;
+        if (count < 2)
+            data->state = LV_INDEV_STATE_RELEASED;
+        if (count == 0)
+            multiTouch = false;
+    }
+    lastPoint = data->point;
+
+#ifdef DEBUG_TOUCH_GESTURE
+    if (count || lastCount) {
+        const auto &p = indev_driver->recognizers[LV_INDEV_GESTURE_PINCH];
+        const auto &r = indev_driver->recognizers[LV_INDEV_GESTURE_ROTATE];
+        const auto &s = indev_driver->recognizers[LV_INDEV_GESTURE_TWO_FINGERS_SWIPE];
+        ILOG_DEBUG("touch n=%u ev=%u p1(%u)=%d/%d p2(%u)=%d/%d | pinch st=%d fc=%u scale=%.2f | rot st=%d rad=%.2f | "
+                   "swipe st=%d dx=%.0f dy=%.0f | out %s %d/%d",
+                   count, n, count > 0 ? tp[0].id : 0, count > 0 ? tp[0].x : -1, count > 0 ? tp[0].y : -1,
+                   count > 1 ? tp[1].id : 0, count > 1 ? tp[1].x : -1, count > 1 ? tp[1].y : -1, p.state,
+                   p.info ? p.info->finger_cnt : 0, p.info ? p.info->scale : 0.0f, r.state,
+                   r.info ? r.info->rotation - r.info->p_rotation : 0.0f, s.state, s.info ? s.info->delta_x : 0.0f,
+                   s.info ? s.info->delta_y : 0.0f, data->state == LV_INDEV_STATE_PRESSED ? "PR" : "REL", data->point.x,
+                   data->point.y);
+    }
+#endif
+}
+#else
 template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
     uint16_t touchX = 0, touchY = 0;
@@ -340,6 +414,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         // ILOG_DEBUG("Touch(%hd/%hd)", touchX, touchY);
     }
 }
+#endif
 
 template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
 {
@@ -422,6 +497,12 @@ template <class LGFX> void LGFXDriver<LGFX>::init(DeviceGUI *gui)
         lv_indev_set_read_cb(DisplayDriver::touch, touchpad_read);
         lv_indev_set_display(DisplayDriver::touch, this->display);
         lv_indev_set_long_press_time(DisplayDriver::touch, defaultLongPressTime);
+#if LV_USE_GESTURE_RECOGNITION
+        lv_indev_set_pinch_up_threshold(DisplayDriver::touch, PINCH_ZOOM_STEP);
+        lv_indev_set_pinch_down_threshold(DisplayDriver::touch, 1.0f / PINCH_ZOOM_STEP);
+        // LVGL 9.3 defaults the rotate threshold to 0, so rotation wins instantly and locks out pinch
+        lv_indev_set_rotation_rad_threshold(DisplayDriver::touch, 0.8f);
+#endif
 #ifdef USE_TOUCH_EVENTS
         if (lgfx->touch()->config()->pin_int > 0) {
             lv_indev_set_mode(DisplayDriver::touch, LV_INDEV_MODE_EVENT);
