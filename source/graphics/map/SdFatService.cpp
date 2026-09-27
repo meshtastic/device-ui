@@ -72,7 +72,8 @@ SdFatService::~SdFatService()
 bool SdFatService::load(const char *name, void *img)
 {
     uint32_t start = millis();
-#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
+    size_t len = 0;
+#if LV_USE_FS_ARDUINO_SD
     char tilePath[128] = DRIVE_LETTER ":";
     strncat(&tilePath[2], name, sizeof(tilePath) - 3);
     // ILOG_DEBUG("SdFatService::load(): %s", tilePath);
@@ -91,7 +92,7 @@ bool SdFatService::load(const char *name, void *img)
             return false;
         }
 
-        size_t len = (size_t)file.size();
+        len = (size_t)file.size();
         if (len == 0) {
             ILOG_DEBUG("Tile %s is empty", name);
             file.close();

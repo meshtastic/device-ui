@@ -22,6 +22,7 @@ class GT911_MX : public lgfx::Touch_GT911
   public:
     static constexpr int GT911_I2C_ADDR_1 = 0x14;
     static constexpr int GT911_I2C_ADDR_2 = 0x5D;
+    static constexpr uint8_t GT911_MIN_TOUCH_POINTS = 2; // pinch gestures need two contacts
 
     bool init(void) override { return lgfx::Touch_GT911::init() && checkAndConfigureGT911(); }
 
@@ -128,9 +129,10 @@ class GT911_MX : public lgfx::Touch_GT911
             return false;
         }
 
-        uint8_t configVersion = configBlockSmall[0];   // Register 0x8047
-        uint8_t moduleSwitch1 = configBlockSmall[6];   // Register 0x804D
-        uint8_t intTriggerMode = moduleSwitch1 & 0x03; // Lowest 2 bits
+        uint8_t configVersion = configBlockSmall[0];      // Register 0x8047
+        uint8_t touchNumber = configBlockSmall[5] & 0x0F; // Register 0x804C
+        uint8_t moduleSwitch1 = configBlockSmall[6];      // Register 0x804D
+        uint8_t intTriggerMode = moduleSwitch1 & 0x03;    // Lowest 2 bits
 
         static constexpr const char *intModeNames[] = {
             "0x00 (Rising Edge Trigger)",
@@ -142,10 +144,11 @@ class GT911_MX : public lgfx::Touch_GT911
         ILOG_DEBUG("--- GT911 Configuration Diagnostics ---");
         ILOG_DEBUG("Config Version (Reg 0x8047): 0x%02X%s", configVersion,
                    configVersion >= 0x5A ? "  <-- WARNING: High version number! Might block lower updates." : "  (Normal range)");
+        ILOG_DEBUG("Touch_Number (Reg 0x804C):  %u", touchNumber);
         ILOG_DEBUG("Module_Switch1 (Reg 0x804D): 0x%02X", moduleSwitch1);
         ILOG_INFO("Current TP INT Driver Mode:  %s", intModeNames[intTriggerMode]);
 
-        if (intTriggerMode == 0x02) {
+        if (intTriggerMode == 0x02 && touchNumber >= GT911_MIN_TOUCH_POINTS) {
             return true;
         }
 
@@ -157,6 +160,9 @@ class GT911_MX : public lgfx::Touch_GT911
         }
 
         configBlock[6] = static_cast<uint8_t>((configBlock[6] & 0xFC) | 0x02);
+        if ((configBlock[5] & 0x0F) < GT911_MIN_TOUCH_POINTS) {
+            configBlock[5] = static_cast<uint8_t>((configBlock[5] & 0xF0) | GT911_MIN_TOUCH_POINTS);
+        }
         if (configBlock[0] < 0xFF) {
             ++configBlock[0];
         }
@@ -174,11 +180,13 @@ class GT911_MX : public lgfx::Touch_GT911
 
         uint8_t verifyVersion = verifyBlock[0];
         uint8_t verifyMode = static_cast<uint8_t>(verifyBlock[6] & 0x03);
-        if (verifyMode == 0x02) {
-            ILOG_INFO("GT911 TP_INT mode confirmed constant LOW after write (version=0x%02X)", verifyVersion);
+        uint8_t verifyTouchNumber = static_cast<uint8_t>(verifyBlock[5] & 0x0F);
+        if (verifyMode == 0x02 && verifyTouchNumber >= GT911_MIN_TOUCH_POINTS) {
+            ILOG_INFO("GT911 TP_INT mode confirmed constant LOW, %u touch points (version=0x%02X)", verifyTouchNumber,
+                      verifyVersion);
         } else {
-            ILOG_ERROR("GT911 TP_INT verification failed: mode=0x%02X (expected 0x02), version=0x%02X", verifyMode,
-                       verifyVersion);
+            ILOG_ERROR("GT911 config verification failed: mode=0x%02X (expected 0x02), touch points=%u, version=0x%02X",
+                       verifyMode, verifyTouchNumber, verifyVersion);
             return false;
         }
         return true;
