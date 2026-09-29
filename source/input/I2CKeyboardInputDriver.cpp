@@ -108,20 +108,32 @@ static void tdeckAddGreekDiacritic(GreekDiacriticState state)
 
 static void tdeckSyncLayoutIndicatorStyle()
 {
+    static const lv_font_t *shownFont = nullptr;
+    static lv_color_t shownColor{};
+    static bool styleInitialized = false;
+
     if (!tdeckLayoutLabel || !objects.top_messages_node_label)
         return;
 
     const lv_font_t *font = lv_obj_get_style_text_font(objects.top_messages_node_label, LV_PART_MAIN);
-    if (font)
+    if (font && (!styleInitialized || shownFont != font)) {
         lv_obj_set_style_text_font(tdeckLayoutLabel, font, LV_PART_MAIN | LV_STATE_DEFAULT);
+        shownFont = font;
+    }
 
-    lv_obj_set_style_text_color(tdeckLayoutLabel,
-                                lv_obj_get_style_text_color(objects.top_messages_node_label, LV_PART_MAIN),
-                                LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_color_t color = lv_obj_get_style_text_color(objects.top_messages_node_label, LV_PART_MAIN);
+    if (!styleInitialized || !lv_color_eq(shownColor, color)) {
+        lv_obj_set_style_text_color(tdeckLayoutLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+        shownColor = color;
+    }
+
+    styleInitialized = true;
 }
 
 static void tdeckUpdateLayoutIndicator(lv_indev_t *indev)
 {
+    static int8_t shownLayout = -1;
+
     if (!tdeckLayoutLabel) {
         tdeckLayoutLabel = lv_label_create(lv_layer_top());
         lv_obj_set_style_text_font(tdeckLayoutLabel, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -139,7 +151,11 @@ static void tdeckUpdateLayoutIndicator(lv_indev_t *indev)
         return;
     }
 
-    lv_label_set_text(tdeckLayoutLabel, tdeckGreekLayout ? "EL" : "EN");
+    if (shownLayout != static_cast<int8_t>(tdeckGreekLayout)) {
+        lv_label_set_text(tdeckLayoutLabel, tdeckGreekLayout ? "EL" : "EN");
+        shownLayout = static_cast<int8_t>(tdeckGreekLayout);
+    }
+
     tdeckSyncLayoutIndicatorStyle();
     lv_obj_remove_flag(tdeckLayoutLabel, LV_OBJ_FLAG_HIDDEN);
 }
@@ -261,8 +277,12 @@ static bool tdeckReadRawMatrix(uint8_t address, uint8_t raw[5])
 
     Wire.beginTransmission(address);
     Wire.write((uint8_t)0x03); // raw mode
-    if (Wire.endTransmission() != 0)
+    if (Wire.endTransmission() != 0) {
+        Wire.beginTransmission(address);
+        Wire.write((uint8_t)0x04); // key mode
+        Wire.endTransmission();
         return false;
+    }
 
     uint8_t bytes = Wire.requestFrom(address, (uint8_t)5);
     uint8_t count = 0;
