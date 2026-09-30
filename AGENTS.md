@@ -1,4 +1,3 @@
-
 # AI Coding Instructions: device-ui
 
 ## Project and Build Context
@@ -51,4 +50,3 @@ Device-specific UI settings are compiler flags in the device's `platformio.ini`,
 1. If LovyanGFX supports both the TFT panel and touch controller, use the generic driver. Define `LGFX_DRIVER_TEMPLATE`, set `LGFX_DRIVER=LGFX_GENERIC`, and set `GFX_DRIVER_INC=\"graphics/LGFX/LGFX_GENERIC.h\"`. Add the panel, touch, bus, GPIO, rotation, and dimensions flags required by that board. See `crowpanel_small_esp32s3_base` in `firmware/variants/esp32s3/elecrow_panel/platformio.ini`.
 2. If the generic LovyanGFX configuration cannot represent the hardware, add a board-specific LovyanGFX device definition under `include/graphics/LGFX/`, then set `LGFX_DRIVER` and `GFX_DRIVER_INC` to that class and header. Include the header in `source/graphics/driver/DisplayDriverFactory.cpp` under the corresponding board define so the driver class is available to the factory. See `LGFX_ELECROW70.h` and `crowpanel_large_esp32s3_base` in the same firmware variant.
 3. Select a UI view independently from the panel's physical resolution. `320x240` is the CMake default and the common TFT layout, but the library may also have specific view implementations for other dimensions; check `source/graphics/common/ViewFactory.cpp` and the matching `generated/ui_<dimensions>/` assets before choosing a `VIEW_*` define. For a panel whose native dimensions differ from the selected layout, `DISPLAY_SET_RESOLUTION` makes the LVGL display use the resolution reported by the LovyanGFX driver; it does not select or create a different UI view.
-
