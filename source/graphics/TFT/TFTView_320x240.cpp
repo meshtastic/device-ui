@@ -6500,7 +6500,7 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                     Themes::recolorText(objects.home_mqtt_label, false);
                 }
             } else {
-                LOG_WARN("wifi has_status is false");
+                ILOG_WARN("wifi has_status is false");
             }
         } else {
             Themes::recolorButton(objects.home_wlan_button, false);
