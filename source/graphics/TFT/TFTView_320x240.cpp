@@ -5259,9 +5259,15 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     }
 }
 
-void TFTView_320x240::setMyInfo(uint32_t nodeNum)
+void TFTView_320x240::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id)
 {
     ownNode = nodeNum;
+    sprintf(db.device_str, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+            device_id.bytes[0], device_id.bytes[1], device_id.bytes[2], device_id.bytes[3],
+            device_id.bytes[4], device_id.bytes[5], device_id.bytes[6], device_id.bytes[7],
+            device_id.bytes[8], device_id.bytes[9], device_id.bytes[10], device_id.bytes[11],
+            device_id.bytes[12], device_id.bytes[13], device_id.bytes[14], device_id.bytes[15]);
+    ILOG_INFO("own node: 0x%02x(%u) device_id: %s", nodeNum, nodeNum, db.device_str);
 }
 
 void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
@@ -6666,7 +6672,7 @@ void TFTView_320x240::backup(uint32_t option)
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
     std::stringstream path;
-    path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+    path << "/keys/" << db.device_str << ".yml";
 
     auto fs = createFileSystem();
     if (!fs) {
@@ -6723,7 +6729,7 @@ void TFTView_320x240::restore(uint32_t option)
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
     std::stringstream path;
-    path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+    path << "/keys/" << db.device_str << ".yml";
 
     auto fs = createFileSystem();
     if (!fs) {
