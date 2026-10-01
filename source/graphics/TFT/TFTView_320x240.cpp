@@ -4307,13 +4307,16 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 uint32_t numChannels = LoRaPresets::getNumChannels(region, lora.modem_preset);
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
+                THIS->showLoRaFrequency(lora);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
             }
 
             char buf[30];
             const char *userShort = lv_textarea_get_text(objects.setup_user_short_textarea);
             const char *userLong = lv_textarea_get_text(objects.setup_user_long_textarea);
-            if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
+            if (userShort[0] == '\0' && userLong[0] == '\0') {
+                THIS->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
+            } else if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
                 lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
                 lv_label_set_text(objects.basic_settings_user_label, buf);
                 lv_label_set_text(objects.user_name_short_label, userShort);
@@ -4324,8 +4327,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 strcpy(user.short_name, userShort);
                 strcpy(user.long_name, userLong);
                 THIS->controller->sendConfig(user, THIS->ownNode);
+                THIS->notifyReboot(true);
             }
-            THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.initial_setup_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.home_button);
