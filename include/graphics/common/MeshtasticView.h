@@ -140,8 +140,8 @@ class MeshtasticView : public DeviceGUI
 
     virtual void notifyRestoreMessages(int32_t percentage) {}
     virtual void notifyMessagesRestored(void);
-    virtual void notifyConnected(const char *info){};
-    virtual void notifyDisconnected(const char *info){};
+    virtual void notifyConnected(const char *info) {};
+    virtual void notifyDisconnected(const char *info) {};
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);
