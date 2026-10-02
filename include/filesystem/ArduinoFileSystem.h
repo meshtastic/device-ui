@@ -2,7 +2,7 @@
 
 #include "IFileSystem.h"
 
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
+#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
 #include "filesystem/SdCard.h"
 
 /**
@@ -31,4 +31,4 @@ class ArduinoFileSystem : public IFileSystem
     std::string lastError;
 };
 
-#endif // ARCH_PORTDUINO || HAS_SD_MMC
+#endif // ARCH_PORTDUINO || HAS_SD_MMC || SDCARD_SHARE_SPI

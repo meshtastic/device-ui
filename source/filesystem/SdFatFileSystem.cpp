@@ -1,4 +1,4 @@
-#if defined(HAS_SDCARD) && !defined(HAS_SD_MMC)
+#if defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(SDCARD_SHARE_SPI)
 
 #include "filesystem/SdFatFileSystem.h"
 #include <cstdarg>

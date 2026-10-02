@@ -178,6 +178,7 @@ class MeshtasticView : public DeviceGUI
     State state = eBooting;                               // states of startup phase
     bool configComplete = false;                          // config request finishe
     bool messagesRestored = false;                        // message restoration process finished
+    bool mustSendHeartbeat = false;                       // whether heartbeat should be sent unconditionally
     time_t lastrun20 = 0;                                 // 20s task
     time_t curtime = 0;                                   // current system time
 };

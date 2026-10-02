@@ -31,6 +31,7 @@ void ui_init_boot() {
     lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), false, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
     
+    ui_create_groups();
     create_screen_boot_screen();
     create_screen_blank_screen();
     loadScreen(SCREEN_ID_BOOT_SCREEN);
