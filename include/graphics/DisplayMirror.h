@@ -29,12 +29,14 @@ class DisplayMirror
   public:
     /**
      * Dirty-rect sink. (x, y, width, height) is the area that changed; pixels
-     * are native little-endian RGB565 with rows tightly packed - true for
-     * LV_DISPLAY_RENDER_MODE_PARTIAL, which is what every driver here uses.
-     * Runs on the LVGL thread ahead of the panel byte-swap, so an observer must
-     * copy what it needs and return.
+     * points at its top-left pixel and rows are stride pixels apart (stride ==
+     * width except in direct render mode, where pixels sit in the whole frame).
+     * Pixels are RGB565 in the display's byte order - see pixelsByteSwapped().
+     * Runs on the LVGL thread while the buffer may be mid-transfer to the panel,
+     * so an observer must copy what it needs, never write, and return.
      */
-    using FrameObserver = void (*)(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels);
+    using FrameObserver = void (*)(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels,
+                                   uint16_t stride);
 
     /**
      * Register the flush callback and the virtual input devices.
@@ -68,6 +70,13 @@ class DisplayMirror
      * a flush may already be in flight.
      */
     static void setFrameObserver(FrameObserver observer);
+
+    /**
+     * True when observed pixels are byte-swapped (big-endian) RGB565, which is
+     * what the panel takes unless the build sets LV_COLOR_FORMAT_NO_RGB_SWAP.
+     * Valid after start().
+     */
+    static bool pixelsByteSwapped(void);
 
     /**
      * Repaint the whole screen, so a newly attached observer gets a complete

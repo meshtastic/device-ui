@@ -8,6 +8,11 @@
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
 #define V_NORM_PX(v_scr_percent) ((int16_t)((screenHeight / 100.0) * (v_scr_percent)))
 
+// finger distance ratio per map zoom level; also the pinch recognition threshold
+#ifndef PINCH_ZOOM_STEP
+#define PINCH_ZOOM_STEP 1.4f
+#endif
+
 typedef lv_display_t LVGLDisplay;
 typedef lv_indev_t LVGLTouch;
 
@@ -39,12 +44,12 @@ class DisplayDriver
     lv_display_t *getDisplay(void) { return display; }
 
     /**
-     * Dirty-rect sink. (x, y, width, height) is the area that changed; pixels are
-     * native little-endian RGB565, rows tightly packed, handed over before any
-     * panel-side byte swap. Runs on the LVGL thread, so a callback must copy what
-     * it needs and return.
+     * Dirty-rect sink. (x, y, width, height) is the area that changed; pixels points
+     * at its top-left pixel in the display's color format, rows stride pixels apart.
+     * Runs on the LVGL thread, so a callback must copy what it needs and return.
      */
-    using FlushCallback = std::function<void(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels)>;
+    using FlushCallback = std::function<void(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels,
+                                             uint16_t stride)>;
 
     /**
      * Observe every flush. Static because the LVGL flush callbacks the subclasses
@@ -54,8 +59,8 @@ class DisplayDriver
     static void setFlushCB(FlushCallback cb);
 
   protected:
-    /** Subclasses call this from their flush callback, ahead of any byte swap. */
-    static void flush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels);
+    /** Subclasses call this from their flush callback with the area LVGL rendered. */
+    static void flush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride);
 
     LVGLGraphics lvgl;
     LVGLDisplay *display;

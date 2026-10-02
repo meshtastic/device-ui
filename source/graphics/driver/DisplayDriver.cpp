@@ -73,8 +73,8 @@ void DisplayDriver::setFlushCB(FlushCallback cb)
     flushCB = std::move(cb);
 }
 
-void DisplayDriver::flush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels)
+void DisplayDriver::flush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride)
 {
     if (flushCB)
-        flushCB(x, y, width, height, pixels);
+        flushCB(x, y, width, height, pixels, stride);
 }

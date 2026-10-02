@@ -19,6 +19,7 @@ std::atomic<bool> fullRefreshRequested{false};
 std::atomic<bool> wakeRequested{false};
 
 DisplayDriver *displaydriver = nullptr;
+bool byteSwapped = false;
 lv_indev_t *pointer = nullptr;
 lv_indev_t *keypad = nullptr;
 lv_indev_t *encoder = nullptr;
@@ -140,14 +141,17 @@ void encoderRead(lv_indev_t *indev, lv_indev_data_t *data)
 void DisplayMirror::start(DisplayDriver *driver)
 {
     displaydriver = driver;
+    lv_display_t *display = driver ? driver->getDisplay() : nullptr;
+    byteSwapped = display && lv_display_get_color_format(display) == LV_COLOR_FORMAT_RGB565_SWAPPED;
 
     // Registered once, never cleared: assigning a std::function while the LVGL
     // thread may be calling it is not safe, so capture is gated on the atomic
     // observer instead and this stays a plain load on the render path.
-    DisplayDriver::setFlushCB([](int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels) {
-        if (auto observer = frameObserver.load(std::memory_order_acquire))
-            observer(x, y, width, height, pixels);
-    });
+    DisplayDriver::setFlushCB(
+        [](int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride) {
+            if (auto observer = frameObserver.load(std::memory_order_acquire))
+                observer(x, y, width, height, pixels, stride);
+        });
 
     // Every physical input driver creates this in its own init() and makes it
     // the default, and those run before a host can call start(); so only a
@@ -189,6 +193,11 @@ void DisplayMirror::stop(void)
 void DisplayMirror::setFrameObserver(FrameObserver observer)
 {
     frameObserver.store(observer, std::memory_order_release);
+}
+
+bool DisplayMirror::pixelsByteSwapped(void)
+{
+    return byteSwapped;
 }
 
 void DisplayMirror::requestFullRefresh(void)

@@ -74,7 +74,7 @@ class MeshtasticView : public DeviceGUI
 
     // methods to update view
     virtual bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) { return true; }
-    virtual void setMyInfo(uint32_t nodeNum);
+    virtual void setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                    bool can_shutdown);
     virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt);
@@ -140,8 +140,8 @@ class MeshtasticView : public DeviceGUI
 
     virtual void notifyRestoreMessages(int32_t percentage) {}
     virtual void notifyMessagesRestored(void);
-    virtual void notifyConnected(const char *info){};
-    virtual void notifyDisconnected(const char *info){};
+    virtual void notifyConnected(const char *info) {};
+    virtual void notifyDisconnected(const char *info) {};
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);

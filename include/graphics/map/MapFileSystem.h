@@ -19,7 +19,7 @@ class IMapFileSystem
 #if defined(SDCARD_SHARE_SPI) && !defined(ARCH_PORTDUINO) && !defined(HAS_SD_MMC)
 #include "SD.h"
 #else
-#include "graphics/common/SdCard.h"
+#include "filesystem/SdCard.h"
 #endif
 
 // On SDIO the archive is read through FatFs instead of the VFS: fs::File::seek()
@@ -48,7 +48,7 @@ class SDMapFileSystem : public IMapFileSystem
 
 #elif defined(HAS_SDCARD) && !defined(SENSECAP_INDICATOR)
 
-#include "graphics/common/SdCard.h"
+#include "filesystem/SdCard.h"
 
 class SdFatMapFileSystem : public IMapFileSystem
 {

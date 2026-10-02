@@ -20,7 +20,7 @@ class TFTView_320x240 : public MeshtasticView
     void task_handler(void) override;
 
     // methods to update view
-    void setMyInfo(uint32_t nodeNum) override;
+    void setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id) override;
     void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                            bool can_shutdown) override;
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg) override;
@@ -390,6 +390,8 @@ class TFTView_320x240 : public MeshtasticView
 
     // map navigation
     static void ui_screen_event_cb(lv_event_t *e);
+    static void ui_event_mapPinch(lv_event_t *e);
+    static void ui_event_mapDrag(lv_event_t *e);
     static void ui_event_arrow(lv_event_t *e);
     static void ui_event_navHome(lv_event_t *e);
     static void ui_event_zoomSlider(lv_event_t *e);
@@ -456,6 +458,7 @@ class TFTView_320x240 : public MeshtasticView
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
     // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
+        char device_str[40];
         meshtastic_User user;
         meshtastic_Channel channel[c_max_channels]; // storage of channel info
         meshtastic_DeviceUIConfig uiConfig;         // storage of persistent UI data

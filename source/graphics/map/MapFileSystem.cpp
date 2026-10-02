@@ -2,6 +2,7 @@
 
 #if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
 
+#include "util/ILog.h"
 #include "util/ISpiLock.h"
 #include <cstring>
 
@@ -61,8 +62,10 @@ bool SDMapFileSystem::readAt(uint64_t offset, uint8_t *buf, uint32_t len)
         return false;
     FIL *f = (FIL *)fil;
     // f_lseek clamps past EOF instead of failing, so confirm where we landed
-    if (f_lseek(f, (FSIZE_t)offset) != FR_OK || (uint64_t)f_tell(f) != offset)
+    if (f_lseek(f, (FSIZE_t)offset) != FR_OK || (uint64_t)f_tell(f) != offset) {
+        ILOG_ERROR("f_lseek failed (exFat related?)");
         return false;
+    }
     UINT read = 0;
     return f_read(f, buf, len, &read) == FR_OK && read == len;
 }
