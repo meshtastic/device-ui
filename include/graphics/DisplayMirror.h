@@ -28,8 +28,11 @@ class DisplayMirror
     static void requestFullRefresh(void);
 
     // remote input, from a single producer thread; dropped when the queue is full
-    static void injectTouch(int16_t x, int16_t y, uint16_t holdMs = 0);
+    static void injectTouch(int16_t x, int16_t y);
+    // held past this device's long-press threshold, so it behaves like a finger
+    static void injectLongPress(int16_t x, int16_t y);
     static void injectKey(uint32_t key); // LV_KEY_* or a printable character
+    static void injectLongPressKey(uint32_t key);
     // moves group focus; negative is backwards, clamped to a byte
     static void injectEncoder(int16_t steps);
 };
