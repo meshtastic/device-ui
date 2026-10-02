@@ -162,7 +162,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 - [x] Status bar with battery symbol
 - [x] UI Keyboard navigation & control
 - [x] Latin supplemental fonts
-- [X] Cyrillic font glyphs
+- [x] Cyrillic font glyphs
 
 ### :pager: T-Deck (also covered: unPhone)
 
@@ -232,7 +232,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 - [x] LilyGo T-HMI support (320x240)
 - [x] Replicator support (esp32 + nrf52 radio)
   - [x] Display driver
-  - [X] 480x480 view -> scaled 320x240
+  - [x] 480x480 view -> scaled 320x240
 - [x] WT32-SC01 (Plus) support (480x320)
   - [x] Display driver
   - [x] 480x320 view -> scaled 320x240
