@@ -48,8 +48,8 @@ class DisplayDriver
      * at its top-left pixel in the display's color format, rows stride pixels apart.
      * Runs on the LVGL thread, so a callback must copy what it needs and return.
      */
-    using FlushCallback = std::function<void(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels,
-                                             uint16_t stride)>;
+    using FlushCallback =
+        std::function<void(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride)>;
 
     /**
      * Observe every flush. Static because the LVGL flush callbacks the subclasses

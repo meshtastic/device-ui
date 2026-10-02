@@ -147,11 +147,10 @@ void DisplayMirror::start(DisplayDriver *driver)
     // Registered once, never cleared: assigning a std::function while the LVGL
     // thread may be calling it is not safe, so capture is gated on the atomic
     // observer instead and this stays a plain load on the render path.
-    DisplayDriver::setFlushCB(
-        [](int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride) {
-            if (auto observer = frameObserver.load(std::memory_order_acquire))
-                observer(x, y, width, height, pixels, stride);
-        });
+    DisplayDriver::setFlushCB([](int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride) {
+        if (auto observer = frameObserver.load(std::memory_order_acquire))
+            observer(x, y, width, height, pixels, stride);
+    });
 
     // Every physical input driver creates this in its own init() and makes it
     // the default, and those run before a host can call start(); so only a
