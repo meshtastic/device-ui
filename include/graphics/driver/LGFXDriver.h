@@ -226,7 +226,7 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-    DisplayDriver::flush(area->x1, area->y1, (uint16_t)w, (uint16_t)h, (const uint16_t *)px_map, (uint16_t)w);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     {
         ISpiLock::Guard bus;
         lgfx->startWrite();
@@ -247,19 +247,16 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-    DisplayDriver::flush(area->x1, area->y1, (uint16_t)w, (uint16_t)h, (const uint16_t *)px_map, (uint16_t)w);
     lgfx->setAddrWindow(area->x1, area->y1, w, h);
     lgfx->pushPixelsDMA((uint16_t *)px_map, w * h);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     lv_display_flush_ready(disp);
 }
 #elif defined(USE_FULL_DOUBLE_BUFFER)
 template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
     auto driver = static_cast<LGFXDriver *>(lv_display_get_driver_data(disp));
-    // Direct mode: px_map is the whole frame, so the rendered area sits at its own offset.
-    const uint16_t stride = (uint16_t)lv_display_get_horizontal_resolution(disp);
-    DisplayDriver::flush(area->x1, area->y1, (uint16_t)lv_area_get_width(area), (uint16_t)lv_area_get_height(area),
-                         (const uint16_t *)px_map + (uint32_t)area->y1 * stride + area->x1, stride);
+    driver->flush(disp, area, px_map);
     if (!driver->flushAreaValid) {
         driver->flushArea = *area;
         driver->flushAreaValid = true;
@@ -296,7 +293,7 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
-    DisplayDriver::flush(area->x1, area->y1, (uint16_t)w, (uint16_t)h, (const uint16_t *)px_map, (uint16_t)w);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     {
         ISpiLock::Guard bus;
         lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);

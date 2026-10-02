@@ -12,8 +12,6 @@
 #include "src/misc/lv_profiler_builtin_private.h"
 #endif
 
-DisplayDriver::FlushCallback DisplayDriver::flushCB;
-
 DisplayDriver::DisplayDriver(uint16_t width, uint16_t height)
     : lvgl(width, height), display(nullptr), touch(nullptr), view(nullptr), screenWidth(width), screenHeight(height)
 {
@@ -68,13 +66,14 @@ void DisplayDriver::displayToggleCb(void *displayDriver)
     }
 }
 
-void DisplayDriver::setFlushCB(FlushCallback cb)
+void DisplayDriver::flush(lv_display_t *disp, const lv_area_t *area, const uint8_t *px_map)
 {
-    flushCB = std::move(cb);
-}
-
-void DisplayDriver::flush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride)
-{
-    if (flushCB)
-        flushCB(x, y, width, height, pixels, stride);
+    if (!flushCB)
+        return;
+    const uint32_t stride = lv_display_get_buf_active(disp)->header.stride / sizeof(uint16_t);
+    const uint16_t *pixels = reinterpret_cast<const uint16_t *>(px_map);
+    // outside partial mode the buffer is the whole frame, not just the area
+    if (disp->render_mode != LV_DISPLAY_RENDER_MODE_PARTIAL)
+        pixels += (uint32_t)area->y1 * stride + area->x1;
+    flushCB(area->x1, area->y1, lv_area_get_width(area), lv_area_get_height(area), pixels, (uint16_t)stride);
 }

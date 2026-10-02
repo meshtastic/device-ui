@@ -5,106 +5,31 @@
 class DisplayDriver;
 
 /**
- * @brief DisplayMirror - streams the rendered screen out to a host and feeds
- *        the host's input back into LVGL.
- *
- * Lets a host (e.g. firmware bridging a phone or desktop client) show the
- * on-device UI elsewhere and drive it remotely. Idle unless a host calls
- * start(): nothing is allocated, no input device is registered, and a flush
- * costs one acquire load.
- *
- * Nothing in the driver framework knows this class exists. start() registers a
- * callback with DisplayDriver and creates its own virtual input devices, so the
- * dependency runs one way only. LVGL stays an implementation detail: none of it
- * appears here, so a host can include this header without taking on the
- * drawing framework.
- *
- * Threading: start(), stop() and the inject*() calls come from the host's
- * thread; the flush callback and the LVGL read callbacks run on the LVGL
- * thread. Events cross between them in lock-free single-producer rings, so no
- * lock is taken on the render path.
+ * @brief Streams the rendered screen to a host and feeds the host's input back
+ *        into LVGL. Idle until start(); no driver knows this class exists.
  */
 class DisplayMirror
 {
   public:
-    /**
-     * Dirty-rect sink. (x, y, width, height) is the area that changed; pixels
-     * points at its top-left pixel and rows are stride pixels apart (stride ==
-     * width except in direct render mode, where pixels sit in the whole frame).
-     * Pixels are RGB565 in the display's byte order - see pixelsByteSwapped().
-     * Runs on the LVGL thread while the buffer may be mid-transfer to the panel,
-     * so an observer must copy what it needs, never write, and return.
-     */
+    // LVGL thread: pixels is the area's top-left, rows stride pixels apart, in the
+    // byte order pixelsByteSwapped() reports. Copy, never write, and return.
     using FrameObserver = void (*)(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels,
                                    uint16_t stride);
 
-    /**
-     * Register the flush callback and the virtual input devices.
-     *
-     * Call once after DeviceScreen::init(), which brings LVGL up, and before
-     * the view builds its widgets: the virtual keypad and encoder join the
-     * default focus group, and LVGL enrols widgets in that group as it creates
-     * them. Any physical input driver has already made the group by this point;
-     * on a board with no input at all, this makes it.
-     *
-     * Must also run before the host starts its UI task. This touches LVGL
-     * directly rather than hopping threads, so it is only safe while nothing
-     * is calling lv_timer_periodic_handler() yet.
-     *
-     * @param driver display driver, used to wake a slept panel - see
-     *               DeviceScreen::getDisplayDriver().
-     */
+    // once, after DeviceScreen::init() and before the UI task starts
     static void start(DisplayDriver *driver);
 
-    /**
-     * Stop capturing frames. The flush callback stays registered and the
-     * virtual input devices stay in the group: both are only safe to install
-     * while the UI is not yet running, and capture is gated on the observer
-     * instead, which any thread may clear at any time.
-     */
-    static void stop(void);
-
-    /**
-     * Frames are captured only while an observer is set. Clearing it stops
-     * capture; wait at least one UI tick before freeing observer state, since
-     * a flush may already be in flight.
-     */
+    // nullptr stops capture; a flush may still be in flight for one UI tick
     static void setFrameObserver(FrameObserver observer);
 
-    /**
-     * True when observed pixels are byte-swapped (big-endian) RGB565, which is
-     * what the panel takes unless the build sets LV_COLOR_FORMAT_NO_RGB_SWAP.
-     * Valid after start().
-     */
     static bool pixelsByteSwapped(void);
 
-    /**
-     * Repaint the whole screen, so a newly attached observer gets a complete
-     * frame rather than whatever happens to change next. Any thread; serviced
-     * on the LVGL thread.
-     */
+    // any thread; repaints the screen and its overlay layers
     static void requestFullRefresh(void);
 
-    // -- Remote input ---------------------------------------------------------
-    // Single-producer: drive these from one thread. Events queue into rings the
-    // LVGL read callbacks drain (15 usable slots each) and are dropped when
-    // full, on the grounds that a client outrunning the UI wants the newest
-    // state, not a backlog.
-
-    /**
-     * A tap at (x, y), held PRESSED for holdMs - 0 being a single read cycle,
-     * around three refresh periods end to end. Pass ~600 for a long press.
-     */
+    // remote input, from a single producer thread; dropped when the queue is full
     static void injectTouch(int16_t x, int16_t y, uint16_t holdMs = 0);
-
-    /** LV_KEY_* or a printable character, delivered to the focused widget. */
-    static void injectKey(uint32_t key);
-
-    /**
-     * Encoder rotation. This, not LV_KEY_UP/DOWN, is what moves focus between
-     * widgets in a group - LVGL routes keypad arrows to the focused widget
-     * instead. Negative steps focus backwards, positive forwards, matching the
-     * trackball driver. Clamped to a single byte.
-     */
+    static void injectKey(uint32_t key); // LV_KEY_* or a printable character
+    // moves group focus; negative is backwards, clamped to a byte
     static void injectEncoder(int16_t steps);
 };

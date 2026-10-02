@@ -43,24 +43,16 @@ class DisplayDriver
 
     lv_display_t *getDisplay(void) { return display; }
 
-    /**
-     * Dirty-rect sink. (x, y, width, height) is the area that changed; pixels points
-     * at its top-left pixel in the display's color format, rows stride pixels apart.
-     * Runs on the LVGL thread, so a callback must copy what it needs and return.
-     */
+    // pixels: top-left of the flushed area, rows stride pixels apart; LVGL thread
     using FlushCallback =
         std::function<void(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride)>;
 
-    /**
-     * Observe every flush. Static because the LVGL flush callbacks the subclasses
-     * register are plain C function pointers with no instance to hand back.
-     * Set once before the UI task starts; there is one display driver per build.
-     */
-    static void setFlushCB(FlushCallback cb);
+    // set once, before the UI task starts
+    void setFlushCB(FlushCallback cb) { flushCB = std::move(cb); }
 
   protected:
-    /** Subclasses call this from their flush callback with the area LVGL rendered. */
-    static void flush(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride);
+    // subclasses call this from their LVGL flush callback
+    void flush(lv_display_t *disp, const lv_area_t *area, const uint8_t *px_map);
 
     LVGLGraphics lvgl;
     LVGLDisplay *display;
@@ -71,5 +63,5 @@ class DisplayDriver
 
   private:
     static void displayToggleCb(void *displayDriver);
-    static FlushCallback flushCB;
+    FlushCallback flushCB;
 };
