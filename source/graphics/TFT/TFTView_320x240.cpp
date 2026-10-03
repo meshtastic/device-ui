@@ -384,6 +384,11 @@ void TFTView_320x240::init_screens(void)
 {
     ILOG_DEBUG("init screens...");
     state = MeshtasticView::eInitScreens;
+#ifdef DEVICE_UI_LINUX_INPUT
+    // widgets only join a group that is the default when they are created
+    if (!lv_group_get_default())
+        lv_group_set_default(lv_group_create());
+#endif
     ui_init();
     apply_hotfix();
 
@@ -454,6 +459,10 @@ void TFTView_320x240::init_screens(void)
     lv_slider_set_range(objects.snr_slider, -20, 9);
 #endif
 
+#ifdef DEVICE_UI_LINUX_INPUT
+    // libinput devices were opened before the screens existed: attach them to the group now
+    setInputGroup();
+#endif
     setInputButtonLabel();
     lv_group_focus_obj(objects.home_button);
 
