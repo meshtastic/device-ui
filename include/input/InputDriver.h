@@ -4,11 +4,6 @@
 #include <string>
 #include <vector>
 
-// libinput devices are only built for Portduino on Linux; every other display leaves this undefined.
-#if defined(ARCH_PORTDUINO) && defined(__linux__) && LV_USE_LIBINPUT
-#define DEVICE_UI_LINUX_INPUT 1
-#endif
-
 /**
  * @brief This base class merges all input devices of its children
  *        into one "set". It allows to create several instances of different(!)
