@@ -142,18 +142,6 @@ typedef struct _objects_t {
     lv_obj_t *home_qr_button;
     lv_obj_t *home_qr_label;
     lv_obj_t *nodes_panel;
-    lv_obj_t *node_panel;
-    lv_obj_t *node_image;
-    lv_obj_t *node_button;
-    lv_obj_t *user_name_label;
-    lv_obj_t *user_name_short_label;
-    lv_obj_t *battery_label;
-    lv_obj_t *last_heard_label;
-    lv_obj_t *signal_label;
-    lv_obj_t *position_label;
-    lv_obj_t *position2_label;
-    lv_obj_t *telemetry1_label;
-    lv_obj_t *telemetry2_label;
     lv_obj_t *groups_panel;
     lv_obj_t *channel_button0;
     lv_obj_t *channel_label0;
