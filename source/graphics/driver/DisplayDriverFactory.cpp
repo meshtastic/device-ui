@@ -54,8 +54,20 @@
 #ifdef ELECROW_PANEL
 #include "graphics/LGFX/LGFX_ELECROW70.h"
 #endif
+#ifdef CROWPANEL_ADV_P4_50
+#include "graphics/LGFX/LGFX_ELECROW_P4_50.h"
+#endif
+#ifdef CROWPANEL_ADV_P4_70_90_101
+#include "graphics/LGFX/LGFX_ELECROW_P4_70_90_101.h"
+#endif
+#ifdef ELECROW_MX
+#include "graphics/LGFX/LGFX_ELECROW_MX.h"
+#endif
 #ifdef ESP32_2432S022
 #include "graphics/LGFX/LGFX_ESP2432S022.h"
+#endif
+#ifdef ESP32_NM_CYD_C5
+#include "graphics/LGFX/LGFX_ESP_NM_CYD_C5.h"
 #endif
 #ifdef ESP32_2432S028RV1
 #include "graphics/LGFX/LGFX_ESP2432S028RV1.h"
@@ -180,6 +192,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
     case DisplayDriverConfig::device_t::ELECROW_ADV:
         return new LGFXDriver<LGFX_ELECROW70>(cfg.width(), cfg.height());
         break;
+#elif defined(ELECROW_MX)
+    case DisplayDriverConfig::device_t::ELECROW_P4_MX:
+        return new LGFXDriver<LGFX_ELECROW_MX>(cfg.width(), cfg.height());
+        break;
 #elif defined(HELTEC_TRACKER)
     case DisplayDriverConfig::device_t::HELTEC_TRACKER:
         // return new LGFXDriver<LGFX_HELTEC_TRACKER>(cfg.width(), cfg.height());
@@ -191,6 +207,10 @@ DisplayDriver *DisplayDriverFactory::create(const DisplayDriverConfig &cfg)
 #elif defined(WT_SC01_PLUS)
     case DisplayDriverConfig::device_t::WT32_SC01_PLUS:
         return new LGFXDriver<LGFX_WT_SC01_PLUS>(cfg.width(), cfg.height());
+        break;
+#elif defined(ESP32_NM_CYD_C5)
+    case DisplayDriverConfig::device_t::NM_CYD_C5:
+        return new LGFXDriver<LGFX_ESP_NM_CYD_C5>(cfg.width(), cfg.height());
         break;
 #elif defined(ESP2432S028RV1)
     case DisplayDriverConfig::device_t::ESP2432S028RV1:

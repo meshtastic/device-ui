@@ -2,6 +2,7 @@
 
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"
+#include "filesystem/IFileSystem.h"
 #include "graphics/common/BatteryLevel.h"
 #include "graphics/common/LoRaPresets.h"
 #include "graphics/common/NodeListRowPresentation.h"
@@ -50,15 +51,30 @@ fs::FS &fileSystem = LittleFS;
 #include "graphics/map/SDCardService.h"
 #elif defined(SENSECAP_INDICATOR)
 #include "graphics/map/RemoteSDService.h"
-#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
+#elif defined(HAS_SD_MMC)
+#if defined(CONFIG_IDF_TARGET_ESP32P4)
+#include "graphics/map/SDMMCCardService.h"
+#else
+#include "graphics/map/SDCardService.h"
+#endif
+#elif defined(SDCARD_SHARE_SPI)
 #include "graphics/map/SDCardService.h"
 #else
 #include "graphics/map/SdFatService.h"
 #endif
-#include "graphics/common/SdCard.h"
+#include "filesystem/SdCard.h"
+#include "graphics/map/PMTileService.h"
+
+#ifndef MAX_NUM_NODES_VIEW
+#define MAX_NUM_NODES_VIEW 250
+#endif
 
 #ifndef PACKET_LOGS_MAX
 #define PACKET_LOGS_MAX 200
+#endif
+
+#ifndef MAP_DRAG_FRACTION
+#define MAP_DRAG_FRACTION 8 // drag panning step as fraction of the map panel size
 #endif
 
 LV_IMAGE_DECLARE(img_circle_image);
@@ -103,6 +119,18 @@ time_t TFTView_320x240::startTime = 0;
 uint32_t TFTView_320x240::pinKeys = 0;
 bool TFTView_320x240::screenLocked = false;
 bool TFTView_320x240::screenUnlockRequest = false;
+TFTView_320x240::KbdSlide TFTView_320x240::kbdSlideState = TFTView_320x240::eKbdHidden;
+int32_t TFTView_320x240::kbdPanelBaseY = INT32_MIN;
+
+// file scope so a running slide can be targeted for deletion by exec callback
+static void kbdSlideAnimCB(void *var, int32_t v)
+{
+    lv_obj_set_y((lv_obj_t *)var, v);
+}
+
+#if LV_USE_GESTURE_RECOGNITION
+static bool mapDragged = false; // suppresses the node click at the end of a drag
+#endif
 
 void *TFTView_320x240::traceRouteNodeCallbackUserData(NodeId id) const
 {
@@ -295,7 +323,8 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     Themes::recolorButton(objects.home_bell_button, false);
     Themes::recolorText(objects.home_bell_label, false);
 
-    lv_obj_set_style_bg_img_recolor(objects.home_button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor(objects.home_button, colorMesh,
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     // set brightness
     if (displaydriver->hasLight())
@@ -371,14 +400,16 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
             lv_img_set_zoom(img, 256);
             lv_obj_set_pos(img, x - 20, y - 24); // img has 40x35 size, needle at 24
             lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);
-            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_BOTTOM_MID, ((lv_style_selector_t)LV_PART_MAIN |
+            // (lv_style_selector_t)LV_STATE_DEFAULT));
         } else {
             // circle image
             lv_img_set_src(img, &img_circle_image);
             lv_img_set_zoom(img, (zoom - 1) * 50 + 80);
             lv_obj_set_pos(img, x - 20, y - 17); // img has 40x35 size, circle at center
             lv_image_set_inner_align(img, LV_IMAGE_ALIGN_CENTER);
-            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            // lv_obj_set_style_align(img->spec_attr->children[0], LV_ALIGN_CENTER, ((lv_style_selector_t)LV_PART_MAIN |
+            // (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     };
 
@@ -461,14 +492,16 @@ void TFTView_320x240::init_screens(void)
     lv_slider_set_range(objects.rssi_slider, -150, -50);
     lv_label_set_text(objects.signal_scanner_snr_scale_label,
                       "14.0\n12.0\n10.0\n8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0");
-    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2,
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_slider_set_range(objects.snr_slider, -17, 15);
 #else
     lv_label_set_text(objects.signal_scanner_rssi_scale_label, "-20\n-30\n-40\n-50\n-60\n-70\n-80\n-90\n-100\n-110\n-120");
     lv_slider_set_range(objects.rssi_slider, -125, -25);
     lv_label_set_text(objects.signal_scanner_snr_scale_label,
                       "8.0\n6.0\n4.0\n2.0\n0.0\n-2.0\n-4.0\n-8.0\n-10.0\n-12.0\n-14.0\n-16.0\n-18.0");
-    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(objects.signal_scanner_snr_scale_label, -2,
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_slider_set_range(objects.snr_slider, -20, 9);
 #endif
 
@@ -497,14 +530,17 @@ void TFTView_320x240::init_screens(void)
 void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 {
     if (activeButton) {
-        lv_obj_set_style_border_width(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_width(activeButton, 0,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         if (Themes::get() == Themes::eDark)
-            lv_obj_set_style_bg_img_recolor_opa(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_img_recolor(activeButton, colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_img_recolor_opa(activeButton, 0,
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_bg_img_recolor(activeButton, colorGray,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
-    lv_obj_set_style_border_width(b, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor(b, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(b, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(b, 3, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor(b, colorMesh, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(b, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     if (activePanel) {
         lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
@@ -515,9 +551,7 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
         }
         if (activePanel == objects.messages_panel) {
             lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
-            if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
-                hideKeyboard(objects.messages_panel);
-            }
+            resetKeyboardSlide();
             uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
             // remove empty messageContainer if we are leaving messages panel
             if (channelOrNode >= c_max_channels) {
@@ -593,7 +627,8 @@ void TFTView_320x240::enterProgrammingMode(void)
         state = MeshtasticView::eProgrammingMode;
         lv_label_set_text(objects.meshtastic_url, _(">> Programming mode <<"));
         lv_label_set_text_fmt(objects.firmware_label, "%06d", db.config.bluetooth.fixed_pin);
-        lv_obj_set_style_text_font(objects.firmware_label, &ui_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(objects.firmware_label, &ui_font_montserrat_20,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_obj_add_flag(objects.boot_logo, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
@@ -621,6 +656,26 @@ void TFTView_320x240::apply_hotfix(void)
         }
     }
 
+    // On wide displays the button bar stops growing at its max width while the generated panels still start at 12%,
+    // leaving a black stripe in between. Move every 12%-anchored panel onto the bar and grow it back to its right edge.
+    if (h > 480) {
+        int32_t generatedX = (int32_t)(h * 12) / 100;
+        int32_t barWidth = LV_CLAMP(lv_obj_get_style_min_width(objects.button_panel, LV_PART_MAIN), generatedX,
+                                    lv_obj_get_style_max_width(objects.button_panel, LV_PART_MAIN));
+        uint32_t childCount = lv_obj_get_child_count(objects.main_screen);
+        for (uint32_t i = 0; i < childCount; i++) {
+            lv_obj_t *panel = lv_obj_get_child(objects.main_screen, i);
+            int32_t x = lv_obj_get_style_x(panel, LV_PART_MAIN);
+            if (!LV_COORD_IS_PCT(x) || LV_COORD_GET_PCT(x) != 12)
+                continue;
+            int32_t w = lv_obj_get_style_width(panel, LV_PART_MAIN);
+            if (LV_COORD_IS_PCT(w))
+                w = (int32_t)(h * LV_COORD_GET_PCT(w)) / 100;
+            lv_obj_set_x(panel, barWidth);
+            lv_obj_set_width(panel, generatedX + w - barWidth);
+        }
+    }
+
     // fix size for 480 pixel height displays
     if (v >= 480) {
         // keyboard size limit
@@ -643,10 +698,17 @@ void TFTView_320x240::apply_hotfix(void)
         buttonSize = 36;
     }
     if (h > 400) {
-        lv_obj_set_style_text_font(objects.home_qr_label, &ui_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(objects.home_qr_label, &ui_font_montserrat_16,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
 
     lv_obj_move_foreground(objects.keyboard);
+#if LV_USE_GESTURE_RECOGNITION
+    // let map gestures started on a node image reach ui_screen_event_cb on the main screen
+    lv_obj_add_flag(objects.map_panel, LV_OBJ_FLAG_EVENT_BUBBLE);
+    lv_obj_add_flag(objects.raw_map_panel, LV_OBJ_FLAG_EVENT_BUBBLE);
+    lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_EVENT_BUBBLE);
+#endif
     lv_obj_add_flag(objects.detector_radar_panel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.detected_node_button, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(objects.detector_start_label, _("Start"));
@@ -733,6 +795,9 @@ void TFTView_320x240::apply_hotfix(void)
     createLabel(objects.settings_about_panel, ABOUT_FRAMEWORK_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_ICONS_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_MAP_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_PNGDEC_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_PMTILES_TEXT);
+    createLabel(objects.settings_about_panel, ABOUT_LIBDEFLATE_TEXT);
 }
 
 void TFTView_320x240::updateTheme(void)
@@ -756,12 +821,18 @@ void TFTView_320x240::updateTheme(void)
     Themes::recolorText(objects.home_memory_label, (bool)objects.home_memory_button->user_data);
 
     lv_opa_t opa = (Themes::get() == Themes::eDark) ? 0 : 255;
-    lv_obj_set_style_bg_img_recolor_opa(objects.home_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(objects.nodes_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(objects.groups_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(objects.messages_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(objects.map_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_recolor_opa(objects.home_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.nodes_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.groups_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.messages_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.map_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     for (int i = 0; i < c_max_channels; i++) {
         if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
@@ -839,6 +910,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.keyboard_button_9, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)9);
     lv_obj_add_event_cb(objects.keyboard_button_10, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)10);
     lv_obj_add_event_cb(objects.keyboard_button_11, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)11);
+    lv_obj_add_event_cb(objects.keyboard_button_12, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)12);
 
     // message text area
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_ALL, NULL);
@@ -941,6 +1013,10 @@ void TFTView_320x240::ui_events_init(void)
 
     // map settings and navigation
     lv_obj_add_event_cb(objects.main_screen, ui_screen_event_cb, LV_EVENT_GESTURE, NULL);
+#if LV_USE_GESTURE_RECOGNITION
+    lv_obj_add_event_cb(objects.main_screen, ui_event_mapDrag, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(objects.main_screen, ui_event_mapDrag, LV_EVENT_PRESSING, NULL);
+#endif
     lv_obj_add_event_cb(objects.arrow_up_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)8);
     lv_obj_add_event_cb(objects.arrow_left_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)4);
     lv_obj_add_event_cb(objects.arrow_right_button, ui_event_arrow, LV_EVENT_CLICKED, (void *)6);
@@ -954,6 +1030,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.map_contrast_slider, ui_event_mapContrastSlider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(objects.map_url_textarea, ui_event_map_url_textarea, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(objects.map_url_textarea, ui_event_map_url_textarea, LV_EVENT_READY, NULL);
 
     // tools buttons
     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
@@ -1243,7 +1321,8 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
             ignoreClicked = false;
             return;
         }
-        lv_obj_set_style_border_color(target, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(target, colorMidGray,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
         uint32_t channelOrNode = (unsigned long)e->user_data;
         if (channelOrNode < c_max_channels) {
@@ -1604,10 +1683,10 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         uint32_t keyBtnIdx = (unsigned long)e->user_data;
         switch (keyBtnIdx) {
         case 0:
-            if (lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+            if (kbdSlideState == eKbdHidden) {
                 lv_obj_remove_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
                 THIS->showKeyboard(objects.message_input_area);
-            } else {
+            } else if (kbdSlideState == eKbdShown) {
                 THIS->hideKeyboard(objects.messages_panel);
             }
             lv_group_focus_obj(objects.message_input_area);
@@ -1655,6 +1734,10 @@ void TFTView_320x240::ui_event_KeyboardButton(lv_event_t *e)
         case 11:
             THIS->showKeyboard(objects.setup_user_long_textarea);
             lv_group_focus_obj(objects.setup_user_long_textarea);
+            break;
+        case 12:
+            THIS->showKeyboard(objects.map_url_textarea);
+            lv_group_focus_obj(objects.map_url_textarea);
             break;
         default:
             ILOG_ERROR("missing keyboard <-> textarea assignment");
@@ -1728,9 +1811,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
             } else {
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
-                if (!lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
-                    THIS->hideKeyboard(objects.messages_panel);
-                }
+                THIS->hideKeyboard(objects.messages_panel);
                 lv_group_focus_obj(objects.message_input_area);
             }
         }
@@ -1770,7 +1851,7 @@ void TFTView_320x240::ui_event_region_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.config.has_lora) {
-        lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
+        lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->region2val(THIS->db.config.lora.region));
         lv_obj_clear_flag(objects.settings_region_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_region_dropdown);
         THIS->disablePanel(objects.controller_panel);
@@ -2363,6 +2444,40 @@ void TFTView_320x240::ui_event_zoomOut(lv_event_t *e)
     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
 }
 
+/**
+ * Two-finger pinch/spread: one zoom level per PINCH_ZOOM_STEP change of the finger distance
+ */
+void TFTView_320x240::ui_event_mapPinch(lv_event_t *e)
+{
+#if LV_USE_GESTURE_RECOGNITION
+    static int applied = 0; // levels already zoomed during the ongoing pinch
+    lv_indev_gesture_state_t state = lv_event_get_gesture_state(e, LV_INDEV_GESTURE_PINCH);
+    float scale = lv_event_get_pinch_scale(e);
+    if (!THIS->map || scale <= 0.0f)
+        return;
+
+    int levels = (int)floorf(fabsf(logf(scale)) / logf(PINCH_ZOOM_STEP));
+    if (scale < 1.0f)
+        levels = -levels;
+
+    bool ended = state == LV_INDEV_GESTURE_STATE_ENDED;
+#ifdef DEBUG_TOUCH_GESTURE
+    ILOG_DEBUG("mapPinch state=%d scale=%.2f levels=%d applied=%d zoom=%d redrawComplete=%d", state, scale, levels, applied,
+               MapTileSettings::getZoomLevel(), THIS->map->redrawComplete());
+#endif
+    if (levels != applied && (ended || THIS->map->redrawComplete())) {
+        THIS->map->setZoom(MapTileSettings::getZoomLevel() + levels - applied);
+        THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+        applied = levels;
+    }
+    if (ended) {
+        applied = 0;
+        // swallow the click the release would otherwise send to the first finger's object
+        lv_indev_reset((lv_indev_t *)lv_event_get_param(e), NULL);
+    }
+#endif
+}
+
 void TFTView_320x240::ui_event_lockGps(lv_event_t *e)
 {
     bool gpsLocked = lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED);
@@ -2374,49 +2489,123 @@ void TFTView_320x240::ui_event_lockGps(lv_event_t *e)
 void TFTView_320x240::ui_event_mapBrightnessSlider(lv_event_t *e)
 {
     uint32_t br = lv_slider_get_value(objects.map_brightness_slider);
-    lv_obj_set_style_bg_color(objects.map_panel, lv_color_make(br, br, br), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(objects.raw_map_panel, lv_color_make(br, br, br), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(objects.map_panel, lv_color_make(br, br, br),
+                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_color(objects.raw_map_panel, lv_color_make(br, br, br),
+                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 }
 
 void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
 {
     uint32_t ct = lv_slider_get_value(objects.map_contrast_slider);
-    lv_obj_set_style_opa(objects.raw_map_panel, ct, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_opa(objects.raw_map_panel, ct, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 }
 
 void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 {
-    lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
-                                 sizeof(THIS->db.uiConfig.map_data.style));
-    MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
-    // set url provider if exist
-    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), THIS->db.uiConfig.map_data.style);
-    if (!url.empty()) {
-        std::string provider = std::string("URL: ") + THIS->db.uiConfig.map_data.style;
-        int entry = TileProvider::addTemplate(provider, url);
-        lv_dropdown_set_selected(objects.map_url_dropdown, entry);
-        TileProvider::selectTemplate(entry);
-        THIS->attribution(url);
+    char style[MapTileSettings::TILE_STYLE_SIZE];
+    lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+    if (strcmp(style, THIS->db.uiConfig.map_data.style) != 0) {
+        strcpy(THIS->db.uiConfig.map_data.style, style);
+        MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
+        std::string url = THIS->setUrlProvider(THIS->db.uiConfig.map_data.style);
+        MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
+        THIS->showUrlInputArea(false);
+        THIS->controller->storeUIConfig(THIS->db.uiConfig);
+        lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->map->forceRedraw();
+    } else {
+        // copy current url template into textarea for editing
+        THIS->showUrlInputArea(true);
+        std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), style);
+        lv_textarea_set_text(objects.map_url_textarea, url.c_str());
+        lv_group_focus_obj(objects.map_url_textarea);
     }
-    MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
-
-    THIS->controller->storeUIConfig(THIS->db.uiConfig);
-    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
-    THIS->map->forceRedraw();
 }
 
 void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
 {
-    uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
-    TileProvider::selectTemplate(urlId);
-    MapTileSettings::setSaveOK(false);
-    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
-    THIS->attribution(TileProvider::url());
-    THIS->map->forceRedraw();
+    char url[128];
+    lv_dropdown_get_selected_str(objects.map_url_dropdown, url, sizeof(url));
+    if (strcmp(url, _(URL_UNSET)) == 0) {
+        lv_textarea_set_text(objects.map_url_textarea, "");
+        lv_obj_set_style_border_color(objects.map_url_textarea, lv_color_hex(0xe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+        THIS->showUrlInputArea(true);
+    } else {
+        uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
+        TileProvider::selectTemplate(urlId);
+        MapTileSettings::setSaveOK(false);
+        lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+        THIS->attribution(TileProvider::url());
+        THIS->map->forceRedraw();
+    }
+}
+
+/**
+ * Check if url template is valid
+ */
+void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_KEY) {
+        uint32_t *key = (uint32_t *)lv_event_get_param(e);
+        if (!key || *key != '\r')
+            return;
+        event_code = LV_EVENT_READY;
+    }
+    if (event_code == LV_EVENT_READY) {
+        std::string url = lv_textarea_get_text(objects.map_url_textarea);
+        if (!url.empty()) {
+            bool urlOk = (url.find("https://") == 0 || url.find("http://") == 0) && url.find("{x}") != std::string::npos &&
+                         url.find("{y}") != std::string::npos && url.find("{z}") != std::string::npos;
+
+            if (urlOk) {
+                ILOG_DEBUG("using user url template: %s", url.c_str());
+                std::string defaultStyle = "default";
+                char style[40];
+                lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
+                if (strlen(style) > 0) {
+                    defaultStyle = style;
+                }
+                lv_obj_set_style_border_color(objects.map_url_textarea, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+                int entry = TileProvider::addTemplate("URL: " + defaultStyle, url);
+                TileProvider::selectTemplate(entry);
+                auto providers = TileProvider::providers();
+                lv_dropdown_set_options(objects.map_url_dropdown, providers.c_str());
+                lv_dropdown_set_selected(objects.map_url_dropdown, entry);
+                if (sdCard) {
+                    if (sdCard->setUrlProvider(MapTileSettings::getPrefix(), defaultStyle.c_str(), url.c_str())) {
+                        THIS->showUrlInputArea(false);
+                        MapTileSettings::setSaveOK(true);
+                    } else
+                        ILOG_ERROR("failed to write %s/%s/.url: %s", MapTileSettings::getPrefix(), defaultStyle.c_str(),
+                                   url.c_str());
+                }
+                lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+                THIS->map->forceRedraw();
+                THIS->attribution(url);
+            } else {
+                ILOG_WARN("wrong user url: %s", url.c_str());
+                lv_obj_set_style_border_color(objects.map_url_textarea, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
+                MapTileSettings::setSaveOK(false);
+            }
+        } else {
+            if (lv_dropdown_get_option_count(objects.map_url_dropdown) > 0) {
+                lv_obj_set_style_border_color(objects.map_url_textarea, lv_color_hex(0xe0e0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+                THIS->showUrlInputArea(false);
+            }
+        }
+    }
 }
 
 void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
 {
+#if LV_USE_GESTURE_RECOGNITION
+    if (mapDragged)
+        return;
+#endif
     // navigate to node in node list
     uint32_t nodeNum = (unsigned long)e->user_data;
     ILOG_DEBUG("map node %08x", nodeNum);
@@ -2426,6 +2615,17 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
         THIS->syncNodeListPresentation();
         if (THIS->virtualNodeList)
             THIS->virtualNodeList->scrollTo(nodeNum, LV_ANIM_ON);
+    }
+}
+
+void TFTView_320x240::showUrlInputArea(bool show)
+{
+    if (show) {
+        lv_obj_remove_flag(objects.map_url_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(objects.map_url_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -2458,6 +2658,17 @@ void TFTView_320x240::ui_event_positionButton(lv_event_t *e)
 void TFTView_320x240::ui_screen_event_cb(lv_event_t *e)
 {
     if (THIS->activePanel == objects.map_panel) {
+#if LV_USE_GESTURE_RECOGNITION
+        // the indev's gesture type is sticky; only an attached recognizer marks a multi-touch event
+        for (int type = LV_INDEV_GESTURE_PINCH; type < LV_INDEV_GESTURE_CNT; type++) {
+            if (lv_event_get_gesture_state(e, (lv_indev_gesture_type_t)type) != LV_INDEV_GESTURE_STATE_NONE) {
+                if (type == LV_INDEV_GESTURE_PINCH)
+                    ui_event_mapPinch(e);
+                return;
+            }
+        }
+        return; // one-finger swipes are handled continuously by ui_event_mapDrag
+#endif
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         switch (dir) {
         case LV_DIR_LEFT:
@@ -2528,6 +2739,67 @@ void TFTView_320x240::ui_event_arrow(lv_event_t *e)
     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
 }
 
+/**
+ * Pan the map in steps while a finger drags over it
+ */
+void TFTView_320x240::ui_event_mapDrag(lv_event_t *e)
+{
+#if LV_USE_GESTURE_RECOGNITION
+    static lv_point_t acc = {0, 0};
+    lv_indev_t *indev = lv_indev_active();
+    if (lv_event_get_code(e) == LV_EVENT_PRESSED) {
+        acc = {0, 0};
+        mapDragged = false;
+        return;
+    }
+    if (THIS->activePanel != objects.map_panel || !THIS->map || !indev)
+        return;
+
+    lv_area_t area;
+    lv_point_t point, vect;
+    lv_obj_get_coords(objects.raw_map_panel, &area);
+    lv_indev_get_point(indev, &point);
+    if (!lv_area_is_point_on(&area, &point, 0))
+        return;
+
+    int32_t tileSize = MapTileSettings::getTileSize();
+    int32_t stepX = LV_MIN(lv_area_get_width(&area) / MAP_DRAG_FRACTION, tileSize);
+    int32_t stepY = LV_MIN(lv_area_get_height(&area) / MAP_DRAG_FRACTION, tileSize);
+    lv_indev_get_vect(indev, &vect);
+    // bounded so the map does not keep moving after the finger stopped while redraws lag behind
+    acc.x = LV_CLAMP(-2 * stepX, acc.x + vect.x, 2 * stepX);
+    acc.y = LV_CLAMP(-2 * stepY, acc.y + vect.y, 2 * stepY);
+
+    int16_t dx = acc.x >= stepX ? 1 : (acc.x <= -stepX ? -1 : 0);
+    int16_t dy = acc.y >= stepY ? 1 : (acc.y <= -stepY ? -1 : 0);
+    if ((dx || dy) && THIS->map->redrawComplete()) {
+        // one axis per call: scroll() rejects the whole request when either axis is at the map edge
+        bool scrolled = false;
+        if (dx) {
+            if (THIS->map->scroll(dx, 0, MAP_DRAG_FRACTION)) {
+                acc.x -= dx * stepX;
+                scrolled = true;
+            } else {
+                acc.x = 0;
+            }
+        }
+        if (dy && !scrolled) {
+            if (THIS->map->scroll(0, dy, MAP_DRAG_FRACTION)) {
+                acc.y -= dy * stepY;
+                scrolled = true;
+            } else {
+                acc.y = 0;
+            }
+        }
+        mapDragged = true;
+        if (scrolled)
+            THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+        else
+            THIS->map->forceRedraw();
+    }
+#endif
+}
+
 void TFTView_320x240::ui_event_navHome(lv_event_t *e)
 {
     static bool ignoreClicked = false;
@@ -2576,22 +2848,31 @@ void TFTView_320x240::loadMap(void)
 #elif defined(SENSECAP_INDICATOR)
         // tiles live on the SD card behind the RP2040, fetched chunk-wise over the interdevice link
         auto tileService = new RemoteSDService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new RemoteMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+        auto tileService = new SDMMCCardService();
+#else
         auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+#endif
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SDMapFileSystem()));
+#if !defined(CONFIG_IDF_TARGET_ESP32P4) // requires esp-hosted networking for wifi
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
+#endif
+#elif defined(CONFIG_IDF_TARGET_ESP32P4)
+        map = new MapPanel(objects.raw_map_panel, nullptr);
 #elif defined(HAS_SDCARD)
         auto tileService = new SdFatService();
-        map = new MapPanel(objects.raw_map_panel, tileService);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SdFatMapFileSystem()));
         map->setBackupService(new AsyncTileService(new URLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #elif defined(ARCH_PORTDUINO)
         auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel, tileService); // TODO: LinuxFileSystemService
+        map = new MapPanel(objects.raw_map_panel,
+                           new PMTileService(tileService, new SDMapFileSystem())); // TODO: LinuxFileSystemService
         map->setBackupService(new AsyncTileService(new CURLService(
             [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
 #else
@@ -2689,24 +2970,32 @@ void TFTView_320x240::loadMap(void)
                 // no styles found, but the /map directory, so use it
                 MapTileSettings::setPrefix("/map");
                 MapTileSettings::setTileStyle("");
+                MapTileSettings::setPMTiles(false);
                 lv_obj_add_flag(objects.map_style_dropdown, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(objects.map_url_dropdown, LV_OBJ_FLAG_HIDDEN);
             } else if (!mapStyles.empty()) {
                 // populate style dropdown
                 bool savedStyleOK = false;
+                char savedTileDir[MapTileSettings::TILE_STYLE_SIZE];
+                MapTileSettings::styleToDir(db.uiConfig.map_data.style, savedTileDir, sizeof(savedTileDir));
                 lv_dropdown_clear_options(objects.map_style_dropdown);
+                lv_dropdown_clear_options(objects.map_url_dropdown);
                 for (auto it : mapStyles) {
                     // add url provider if exist
                     int urlEntry = -1;
-                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), it.c_str());
+                    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+                    MapTileSettings::styleToDir(it.c_str(), tileDir, sizeof(tileDir));
+                    bool hasArchive = sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir);
+                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
                     }
                     lv_dropdown_add_option(objects.map_style_dropdown, it.c_str(), LV_DROPDOWN_POS_LAST);
-                    if (it == db.uiConfig.map_data.style) {
+                    if (it == savedTileDir) {
                         lv_dropdown_set_selected(objects.map_style_dropdown, LV_DROPDOWN_POS_LAST);
-                        MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+                        MapTileSettings::setTileStyle(it.c_str());
+                        MapTileSettings::setPMTiles(hasArchive);
                         savedStyleOK = true;
                         if (urlEntry >= 0) {
                             // set provider url to current style
@@ -2719,27 +3008,38 @@ void TFTView_320x240::loadMap(void)
                 auto providers = TileProvider::providers();
                 if (!providers.empty()) {
                     lv_dropdown_set_options(objects.map_url_dropdown, providers.c_str());
-                    lv_dropdown_set_selected(objects.map_url_dropdown, TileProvider::selectedTemplate());
                 } else {
                     lv_dropdown_clear_options(objects.map_url_dropdown);
                 }
+                showUrlInputArea(providers.empty());
+
+                char style[MapTileSettings::TILE_STYLE_SIZE];
                 if (!savedStyleOK) {
                     // no such style on SD, pick first one we found
-                    char style[30];
                     lv_dropdown_set_selected(objects.map_style_dropdown, 0);
                     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
                     MapTileSettings::setTileStyle(style);
+                } else {
+                    strcpy(style, savedTileDir);
                 }
+                std::string url = setUrlProvider(style);
+                if (!url.empty())
+                    savedStyleOK = true;
 
                 MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
                 MapTileSettings::setPrefix("/maps");
             } else {
+                MapTileSettings::setPMTiles(false);
+                showUrlInputArea(true);
                 // messageAlert(_("No map tiles found on SDCard!"), true);
             }
             map->forceRedraw();
         }
     } else {
+        MapTileSettings::setPMTiles(false);
+        showUrlInputArea(true);
         lv_dropdown_clear_options(objects.map_style_dropdown);
+        lv_dropdown_clear_options(objects.map_url_dropdown);
     }
 
     MapTileSettings::setUniqueId(ownNode);
@@ -2763,26 +3063,34 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
         uint32_t bgColor, fgColor;
         std::tie(bgColor, fgColor) = nodeColor(nodeNum);
         lv_obj_t *img = lv_image_create(objects.raw_map_panel);
+#if LV_USE_GESTURE_RECOGNITION
+        lv_obj_add_flag(img, LV_OBJ_FLAG_EVENT_BUBBLE);
+#endif
         lv_obj_set_size(img, 40, 35);
         lv_img_set_src(img, &img_circle_image);
         lv_image_set_inner_align(img, LV_IMAGE_ALIGN_TOP_MID);
-        lv_obj_set_style_opa(img, 180, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_image_recolor(img, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_image_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_top(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_bottom(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_left(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_right(img, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_opa(img, 180, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_image_recolor(img, lv_color_hex(bgColor),
+                                       ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_image_recolor_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_pad_top(img, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_pad_bottom(img, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_pad_left(img, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_pad_right(img, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
         lv_obj_t *lbl = lv_label_create(img);
         lv_obj_set_pos(lbl, 0, 0);
         lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-        lv_obj_set_style_text_color(lbl, lv_color_black(), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_image_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_font(lbl, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_color(lbl, lv_color_black(),
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_image_recolor_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_text_font(lbl, &lv_font_montserrat_10,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID,
+                               ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID,
+                               ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
         lv_label_set_text_fmt(lbl, "%s", nodeShortName(nodeNum) ? nodeShortName(nodeNum) : "");
 
@@ -2831,6 +3139,35 @@ void TFTView_320x240::attribution(std::string url)
         lv_obj_add_flag(objects.google_logo_image, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.map_attribution_label, LV_OBJ_FLAG_HIDDEN);
     }
+}
+
+std::string TFTView_320x240::setUrlProvider(const char *style)
+{
+    // set url provider if exist
+    char tileDir[MapTileSettings::TILE_STYLE_SIZE];
+    MapTileSettings::styleToDir(style, tileDir, sizeof(tileDir));
+    MapTileSettings::setPMTiles(sdCard && sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir));
+    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
+    if (!url.empty()) {
+        ILOG_DEBUG("set provider url to %s", url.c_str());
+        std::string provider = std::string("URL: ") + style;
+        int entry = TileProvider::addTemplate(provider, url);
+        lv_dropdown_set_selected(objects.map_url_dropdown, entry);
+        TileProvider::selectTemplate(entry);
+        THIS->attribution(url);
+    } else {
+        // no .url found for current style; add a <unset>> field if not exist
+        ILOG_DEBUG("set provider url to %s", _(URL_UNSET));
+        int32_t option = lv_dropdown_get_option_index(objects.map_url_dropdown, _(URL_UNSET));
+        uint32_t entries = lv_dropdown_get_option_count(objects.map_url_dropdown);
+        if (option < 0) {
+            lv_dropdown_add_option(objects.map_url_dropdown, _(URL_UNSET), LV_DROPDOWN_POS_LAST);
+            lv_dropdown_set_selected(objects.map_url_dropdown, entries);
+        } else {
+            lv_dropdown_set_selected(objects.map_url_dropdown, option);
+        }
+    }
+    return url;
 }
 
 void TFTView_320x240::ui_event_mesh_detector(lv_event_t *e)
@@ -2917,7 +3254,8 @@ void TFTView_320x240::ui_event_signal_scanner_start(lv_event_t *e)
             lv_spinner_set_anim_params(obj, 5000, 300);
             lv_obj_set_pos(obj, 0, -50);
             lv_obj_set_size(obj, 68, 68);
-            lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_align(obj, LV_ALIGN_CENTER,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             add_style_spinner_style(obj);
             lv_label_set_text(objects.signal_scanner_start_label, "30s");
             THIS->scans = 6 + 1;
@@ -3002,7 +3340,8 @@ void TFTView_320x240::ui_event_trace_route_start(lv_event_t *e)
             lv_spinner_set_anim_params(obj, 5000, 300);
             lv_obj_set_pos(obj, 0, 0);
             lv_obj_set_size(obj, 68, 68);
-            lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_align(obj, LV_ALIGN_CENTER,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             add_style_spinner_style(obj);
             lv_label_set_text(objects.trace_route_start_label, "30s");
 
@@ -3229,9 +3568,11 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
     lv_obj_set_size(pLabel, LV_PCT(100), LV_SIZE_CONTENT);
     uint32_t bgColor, fgColor;
     std::tie(bgColor, fgColor) = nodeColor(p.from);
-    lv_obj_set_style_bg_color(pLabel, lv_color_hex(bgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(pLabel, lv_color_hex(fgColor), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(pLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(pLabel, lv_color_hex(bgColor),
+                              ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_text_color(pLabel, lv_color_hex(fgColor),
+                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_bg_opa(pLabel, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_label_set_text(pLabel, buf);
 
     // auto-scroll if last item is visible
@@ -3430,21 +3771,22 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
         lv_label_set_text(objects.home_signal_pct_label, buf);
         if (pct > 80) {
             lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_signal_button_image,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else if (pct > 60) {
             lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_strong_signal_image,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else if (pct > 40) {
             lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_good_signal_image,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else if (pct > 20) {
             lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_fair_signal_image,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else if (pct > 1) {
             lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_weak_signal_image,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else {
-            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     }
 }
@@ -3454,7 +3796,7 @@ void TFTView_320x240::updateSignalStrength(int32_t rssi, float snr)
  */
 uint32_t TFTView_320x240::preset2val(meshtastic_Config_LoRaConfig_ModemPreset preset)
 {
-    int32_t val[] = {0, -1, -1, 4, 3, 7, 5, 1, 6, 2};
+    int32_t val[] = {0, -1, -1, 4, 3, 7, 6, 1, 8, 2, 9, 10, 11, 12, 13, 14, 5};
 
     if (preset > (sizeof(val) / sizeof(val[0]) - 1) || val[preset] == -1) {
         ILOG_WARN("unknown or deprecated preset value: %d", preset);
@@ -3471,13 +3813,58 @@ meshtastic_Config_LoRaConfig_ModemPreset TFTView_320x240::val2preset(uint32_t va
     meshtastic_Config_LoRaConfig_ModemPreset preset[] = {
         meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,   meshtastic_Config_LoRaConfig_ModemPreset_LONG_MODERATE,
         meshtastic_Config_LoRaConfig_ModemPreset_LONG_TURBO,  meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_FAST,
-        meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_FAST,
-        meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_SLOW};
+        meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_MEDIUM_TURBO,
+        meshtastic_Config_LoRaConfig_ModemPreset_SHORT_FAST,  meshtastic_Config_LoRaConfig_ModemPreset_SHORT_SLOW,
+        meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO, meshtastic_Config_LoRaConfig_ModemPreset_LITE_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_LITE_SLOW,   meshtastic_Config_LoRaConfig_ModemPreset_NARROW_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW, meshtastic_Config_LoRaConfig_ModemPreset_TINY_FAST,
+        meshtastic_Config_LoRaConfig_ModemPreset_TINY_SLOW};
     if (val > (sizeof(preset) / sizeof(preset[0]) - 1)) {
         ILOG_ERROR("unknown preset value: %d", val);
         return meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
     }
     return preset[val];
+}
+
+/**
+ * Translate proto region enum value to numerical position in dropdown menu
+ * US\nEU_433\nEU_868\nEU_866\nEU_868_NARROW\nCN\nJP\nANZ\nKR\nTW\nRU\nIN\nNZ_865\nTH\nLORA_24\n
+ * UA_433\nMY_433\nMY_919\nSG_923\nPH_433\nPH_868\nPH_915\nANZ_433\nKZ_433\nKZ_863\nNP_865\nBR_902
+ */
+uint32_t TFTView_320x240::region2val(meshtastic_Config_LoRaConfig_RegionCode region)
+{
+    int32_t val[] = {0,  0,  1,  2,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, -1, 16, 17, 18,
+                     19, 20, 21, 22, 23, 24, 25, 26, -1, -1, 3,  -1, -1, 4,  -1, -1, -1, -1, -1};
+
+    if (region > (sizeof(val) / sizeof(val[0]) - 1) || val[region] == -1) {
+        ILOG_WARN("unknown or deprecated region value: %d", region);
+        return 0;
+    }
+    return uint32_t(val[region]);
+}
+
+meshtastic_Config_LoRaConfig_RegionCode TFTView_320x240::val2region(uint32_t val)
+{
+    meshtastic_Config_LoRaConfig_RegionCode region[] = {
+        meshtastic_Config_LoRaConfig_RegionCode_US,       meshtastic_Config_LoRaConfig_RegionCode_EU_433,
+        meshtastic_Config_LoRaConfig_RegionCode_EU_868,   meshtastic_Config_LoRaConfig_RegionCode_EU_866,
+        meshtastic_Config_LoRaConfig_RegionCode_EU_N_868, meshtastic_Config_LoRaConfig_RegionCode_CN,
+        meshtastic_Config_LoRaConfig_RegionCode_JP,       meshtastic_Config_LoRaConfig_RegionCode_ANZ,
+        meshtastic_Config_LoRaConfig_RegionCode_KR,       meshtastic_Config_LoRaConfig_RegionCode_TW,
+        meshtastic_Config_LoRaConfig_RegionCode_RU,       meshtastic_Config_LoRaConfig_RegionCode_IN,
+        meshtastic_Config_LoRaConfig_RegionCode_NZ_865,   meshtastic_Config_LoRaConfig_RegionCode_TH,
+        meshtastic_Config_LoRaConfig_RegionCode_LORA_24,  meshtastic_Config_LoRaConfig_RegionCode_UA_433,
+        meshtastic_Config_LoRaConfig_RegionCode_MY_433,   meshtastic_Config_LoRaConfig_RegionCode_MY_919,
+        meshtastic_Config_LoRaConfig_RegionCode_SG_923,   meshtastic_Config_LoRaConfig_RegionCode_PH_433,
+        meshtastic_Config_LoRaConfig_RegionCode_PH_868,   meshtastic_Config_LoRaConfig_RegionCode_PH_915,
+        meshtastic_Config_LoRaConfig_RegionCode_ANZ_433,  meshtastic_Config_LoRaConfig_RegionCode_KZ_433,
+        meshtastic_Config_LoRaConfig_RegionCode_KZ_863,   meshtastic_Config_LoRaConfig_RegionCode_NP_865,
+        meshtastic_Config_LoRaConfig_RegionCode_BR_902};
+    if (val > (sizeof(region) / sizeof(region[0]) - 1)) {
+        ILOG_ERROR("unknown region value: %d", val);
+        return meshtastic_Config_LoRaConfig_RegionCode_UNSET;
+    }
+    return region[val];
 }
 
 /**
@@ -3894,37 +4281,35 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
     if (event_code == LV_EVENT_CLICKED) {
         switch (THIS->activeSettings) {
         case eSetup: {
+            meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
             meshtastic_Config_LoRaConfig_RegionCode region =
-                (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.setup_region_dropdown) + 1);
+                THIS->val2region(lv_dropdown_get_selected(objects.setup_region_dropdown));
 
-            uint32_t numChannels = LoRaPresets::getNumChannels(region, THIS->db.config.lora.modem_preset);
-            // if (numChannels == 0) {
-            //     // region not possible for selected preset, revert
-            //     lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
-            //     return;
-            // }
+            if (region != lora.region) {
+                if (lora.use_preset)
+                    lora.modem_preset = LoRaPresets::getDefaultPreset(region);
 
-            if (region != THIS->db.config.lora.region) {
-                char buf1[10], buf2[30];
+                char buf1[20], buf2[30];
                 lv_dropdown_get_selected_str(objects.setup_region_dropdown, buf1, sizeof(buf1));
                 lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
+                lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), LoRaPresets::modemPresetToString(lora.modem_preset));
+                lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
-                meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
-                uint32_t defaultSlot = lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? lora.channel_num : 0;
-                if (defaultSlot == 0) {
-                    defaultSlot =
-                        LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset, THIS->db.channel[0].settings.name);
-                }
+                uint32_t defaultSlot = LoRaPresets::getDefaultSlot(region, lora.modem_preset, THIS->db.channel[0].settings.name);
+                uint32_t numChannels = LoRaPresets::getNumChannels(region, lora.modem_preset);
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
+                THIS->showLoRaFrequency(lora);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
             }
 
             char buf[30];
             const char *userShort = lv_textarea_get_text(objects.setup_user_short_textarea);
             const char *userLong = lv_textarea_get_text(objects.setup_user_long_textarea);
-            if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
+            if (userShort[0] == '\0' && userLong[0] == '\0') {
+                THIS->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
+            } else if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
                 lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
                 lv_label_set_text(objects.basic_settings_user_label, buf);
                 strcpy(THIS->db.short_name, userShort);
@@ -3933,8 +4318,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 strcpy(user.short_name, userShort);
                 strcpy(user.long_name, userLong);
                 THIS->controller->sendConfig(user, THIS->ownNode);
+                THIS->notifyReboot(true);
             }
-            THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.initial_setup_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.home_button);
@@ -3979,30 +4364,38 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eRegion: {
+            meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
+            meshtastic_Config_LoRaConfig_ModemPreset preset = lora.modem_preset;
             meshtastic_Config_LoRaConfig_RegionCode region =
-                (meshtastic_Config_LoRaConfig_RegionCode)(lv_dropdown_get_selected(objects.settings_region_dropdown) + 1);
-
-            uint32_t numChannels = LoRaPresets::getNumChannels(region, THIS->db.config.lora.modem_preset);
+                THIS->val2region(lv_dropdown_get_selected(objects.settings_region_dropdown));
+            if (lora.use_preset) {
+                preset = LoRaPresets::getDefaultPreset(region);
+            }
+            uint32_t numChannels = LoRaPresets::getNumChannels(region, preset);
             if (numChannels == 0) {
                 // region not possible for selected preset, revert
-                lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->db.config.lora.region - 1);
+                lv_dropdown_set_selected(objects.settings_region_dropdown, THIS->region2val(lora.region));
                 return;
             }
 
-            if (region != THIS->db.config.lora.region) {
-                char buf1[10], buf2[30];
+            if (region != lora.region) {
+                lora.modem_preset = preset;
+
+                char buf1[20], buf2[30];
                 lv_dropdown_get_selected_str(objects.settings_region_dropdown, buf1, sizeof(buf1));
                 lv_snprintf(buf2, sizeof(buf2), _("Region: %s"), buf1);
                 lv_label_set_text(objects.basic_settings_region_label, buf2);
+                lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), LoRaPresets::modemPresetToString(lora.modem_preset));
+                lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
-                meshtastic_Config_LoRaConfig &lora = THIS->db.config.lora;
+                meshtastic_Channel &ch = THIS->db.channel[0];
                 uint32_t defaultSlot = lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET ? lora.channel_num : 0;
                 if (defaultSlot == 0) {
-                    defaultSlot =
-                        LoRaPresets::getDefaultSlot(region, THIS->db.config.lora.modem_preset, THIS->db.channel[0].settings.name);
+                    defaultSlot = LoRaPresets::getDefaultSlot(region, lora.modem_preset, ch.settings.name);
                 }
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
+                THIS->setChannelName(ch);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
                 THIS->showLoRaFrequency(lora);
             }
@@ -4136,7 +4529,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->setTheme(value);
                 THIS->db.uiConfig.theme = meshtastic_Theme(value);
                 THIS->controller->storeUIConfig(THIS->db.uiConfig);
-                lv_obj_set_style_bg_img_recolor(objects.settings_button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_img_recolor(objects.settings_button, colorMesh,
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             }
 
             lv_obj_add_flag(objects.settings_theme_panel, LV_OBJ_FLAG_HIDDEN);
@@ -4468,8 +4862,7 @@ void TFTView_320x240::ui_event_frequency_slot_slider(lv_event_t *e)
 void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
 {
     lv_obj_t *dropdown = lv_event_get_target_obj(e);
-    meshtastic_Config_LoRaConfig_ModemPreset preset =
-        THIS->val2preset((meshtastic_Config_LoRaConfig_ModemPreset)lv_dropdown_get_selected(dropdown));
+    meshtastic_Config_LoRaConfig_ModemPreset preset = THIS->val2preset(lv_dropdown_get_selected(dropdown));
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
     if (numChannels == 0) {
         // preset not possible for this region, revert
@@ -4513,9 +4906,9 @@ void TFTView_320x240::showUserWidget(UserWidgetFunc createWidget)
     lv_obj_set_size(obj, LV_PCT(88), LV_PCT(90));
     lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(obj, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(obj, colorDarkGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_border_width(obj, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_radius(obj, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     activeWidget = obj;
 
     createWidget(activeWidget, NULL, 0);
@@ -4567,14 +4960,14 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT);
     lv_obj_set_align(hiddenPanel, LV_ALIGN_CENTER);
     lv_obj_clear_flag(hiddenPanel, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_radius(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     add_style_panel_style(hiddenPanel);
 
-    lv_obj_set_style_border_width(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_left(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_right(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_top(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_bottom(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     hiddenPanel->user_data = (void *)requestId;
 
     // add timestamp
@@ -4600,13 +4993,16 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 
     switch (status) {
     case LogMessage::eHeard:
-        lv_obj_set_style_border_color(textLabel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(textLabel, colorYellow,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         break;
     case LogMessage::eAcked:
-        lv_obj_set_style_border_color(textLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(textLabel, colorBlueGreen,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         break;
     case LogMessage::eFailed:
-        lv_obj_set_style_border_color(textLabel, colorRed, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(textLabel, colorRed,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         break;
     default:
         break;
@@ -4642,9 +5038,14 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     syncNodeListPresentation(mutation);
 }
 
-void TFTView_320x240::setMyInfo(uint32_t nodeNum)
+void TFTView_320x240::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id)
 {
     ownNode = nodeNum;
+    sprintf(db.device_str, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", device_id.bytes[0],
+            device_id.bytes[1], device_id.bytes[2], device_id.bytes[3], device_id.bytes[4], device_id.bytes[5],
+            device_id.bytes[6], device_id.bytes[7], device_id.bytes[8], device_id.bytes[9], device_id.bytes[10],
+            device_id.bytes[11], device_id.bytes[12], device_id.bytes[13], device_id.bytes[14], device_id.bytes[15]);
+    ILOG_INFO("own node: 0x%02x(%u) device_id: %s", nodeNum, nodeNum, db.device_str);
 }
 
 void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
@@ -4811,15 +5212,16 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMet
 
     if (nodeNum == ownNode && (metrics.battery_level != 0 || metrics.voltage != 0)) {
         char buf[16];
-        const uint32_t shownLevel = std::min(metrics.battery_level, static_cast<uint32_t>(100));
-        sprintf(buf, "%d%%", shownLevel);
+        if (metrics.battery_level <= 100)
+            sprintf(buf, "%d%%", metrics.battery_level);
+        else
+            buf[0] = '\0';
+
         bool alert = false;
         BatteryLevel level;
         switch (level.calcStatus(metrics.battery_level, metrics.voltage)) {
         case BatteryLevel::Plugged:
             lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_plug_image, LV_PART_MAIN | LV_STATE_DEFAULT);
-            if (shownLevel == 100)
-                buf[0] = '\0';
             break;
         case BatteryLevel::Charging:
             lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_bolt_image, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4840,9 +5242,6 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMet
             lv_obj_set_style_bg_image_src(objects.battery_image, &img_battery_empty_warn_image, LV_PART_MAIN | LV_STATE_DEFAULT);
             buf[0] = '\0';
             alert = true;
-            break;
-        default:
-            break;
         }
         Themes::recolorTopLabel(objects.battery_percentage_label, alert);
         lv_obj_set_style_bg_image_recolor_opa(objects.battery_image, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -4893,10 +5292,10 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                 Themes::recolorText(objects.home_wlan_label, true);
                 if (status.wifi.status.is_connected) {
                     lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_button_image,
-                                                LV_PART_MAIN | LV_STATE_DEFAULT);
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 } else {
                     lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image,
-                                                LV_PART_MAIN | LV_STATE_DEFAULT);
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 }
 
                 if (status.wifi.status.is_mqtt_connected) {
@@ -4917,7 +5316,8 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
                 Themes::recolorButton(objects.home_mqtt_button, db.module_config.mqtt.enabled, 100);
                 Themes::recolorText(objects.home_mqtt_label, false);
             }
-            lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_img_src(objects.home_wlan_button, &img_home_wlan_off_image,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     } else {
         lv_obj_add_flag(objects.home_wlan_label, LV_OBJ_FLAG_HIDDEN);
@@ -4929,24 +5329,30 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
             if (status.bluetooth.is_connected) {
                 char buf[20];
                 uint32_t mac = ownNode;
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorLightGray,
+                                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff, (mac & 0xff00) >> 8, (mac & 0xff0000) >> 16,
                         (mac & 0xff000000) >> 24);
                 lv_label_set_text(objects.home_bluetooth_label, buf);
-                lv_obj_set_style_bg_opa(objects.home_bluetooth_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_bg_opa(objects.home_bluetooth_button, 0,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             } else {
-                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+                lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray,
+                                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_on_button_image,
-                                            LV_PART_MAIN | LV_STATE_DEFAULT);
-                lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+                lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255,
+                                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             }
         } else {
-            lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(objects.home_bluetooth_label, colorMidGray,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             lv_obj_set_style_bg_img_src(objects.home_bluetooth_button, &img_home_bluetooth_off_button_image,
-                                        LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_img_recolor_opa(objects.home_bluetooth_button, 255,
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     } else {
         lv_obj_add_flag(objects.home_bluetooth_label, LV_OBJ_FLAG_HIDDEN);
@@ -4959,11 +5365,15 @@ void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionSt
             uint32_t mac = ownNode;
             sprintf(buf, "??:??:%02x:%02x:%02x:%02x", mac & 0xff000000, mac & 0xff0000, mac & 0xff00, mac & 0xff);
             lv_label_set_text(objects.home_ethernet_label, buf);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_opa(objects.home_ethernet_button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(objects.home_ethernet_label, colorLightGray,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_opa(objects.home_ethernet_button, 0,
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         } else {
-            lv_obj_set_style_bg_img_recolor_opa(objects.home_ethernet_button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_color(objects.home_ethernet_label, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_img_recolor_opa(objects.home_ethernet_button, 255,
+                                                ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_text_color(objects.home_ethernet_label, colorMidGray,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     } else {
         lv_obj_add_flag(objects.home_ethernet_label, LV_OBJ_FLAG_HIDDEN);
@@ -5040,7 +5450,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
                     ILOG_DEBUG("public key mismatch");
                     syncNodeListPresentation(nodeStore.markBadKey(from));
                     lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_slash_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 }
             }
         } else {
@@ -5115,7 +5525,7 @@ void TFTView_320x240::handleTraceRouteResponse(const meshtastic_Routing &routing
         // we got a first ACK to our route request
         if (spinnerButton) {
             lv_obj_set_style_outline_color(objects.trace_route_start_button, lv_color_hex(0xDBD251),
-                                           LV_PART_MAIN | LV_STATE_DEFAULT);
+                                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     }
 }
@@ -5150,14 +5560,14 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
     lv_obj_set_pos(btn, 0, 0);
     lv_obj_set_size(btn, LV_PCT(100), 38);
     add_style_settings_button_style(btn);
-    lv_obj_set_style_align(btn, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(btn, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_ofs_y(btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(btn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(btn, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_align(btn, LV_ALIGN_TOP_MID, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_top(btn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_bottom(btn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_radius(btn, 6, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_shadow_width(btn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_shadow_ofs_y(btn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_border_width(btn, 1, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_border_color(btn, colorMidGray, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     {
         {
             lv_obj_t *img = lv_img_create(btn);
@@ -5169,11 +5579,13 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
             lv_obj_set_pos(img, -5, 3);
             lv_obj_set_size(img, 32, 32);
             lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
-            lv_obj_set_style_border_width(img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_image_recolor_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_align(img, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_radius(img, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_opa(img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(img, 3, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_image_recolor_opa(img, 255,
+                                               ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_align(img, LV_ALIGN_TOP_LEFT,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_radius(img, 6, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_opa(img, 255, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
         {
             // TraceRouteToButtonLabel
@@ -5199,8 +5611,10 @@ void TFTView_320x240::addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel)
                 } else
                     lv_label_set_text(label, _("unknown"));
             }
-            lv_obj_set_style_align(label, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_align(label, LV_ALIGN_TOP_LEFT,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
     }
 }
@@ -5270,7 +5684,7 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
                                           err   ? colorRed
                                           : ack ? colorBlueGreen
                                                 : colorYellow,
-                                          LV_PART_MAIN | LV_STATE_DEFAULT);
+                                          ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
             // store message
             break;
@@ -5416,7 +5830,7 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         setChannelName(ch);
 
         lv_obj_set_width(btn[ch.index], lv_pct(80));
-        lv_obj_set_style_pad_left(btn[ch.index], 8, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_left(btn[ch.index], 8, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
         lv_obj_t *lockImage = NULL;
         if (lv_obj_get_child_cnt(btn[ch.index]) == 1)
@@ -5441,8 +5855,10 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_set_align(lockImage, LV_ALIGN_LEFT_MID);
         lv_obj_add_flag(lockImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
         lv_obj_clear_flag(lockImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-        lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_img_recolor_opa(lockImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_img_recolor(lockImage, lv_color_hex(recolor),
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+        lv_obj_set_style_img_recolor_opa(lockImage, 255,
+                                         ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
         lv_obj_t *bellImage = NULL;
         if (lv_obj_get_child_cnt(btn[ch.index]) < 3)
@@ -5454,7 +5870,8 @@ void TFTView_320x240::updateChannelConfig(const meshtastic_Channel &ch)
         lv_obj_set_align(bellImage, LV_ALIGN_RIGHT_MID);
         lv_obj_add_flag(bellImage, LV_OBJ_FLAG_ADV_HITTEST);  /// Flags
         lv_obj_clear_flag(bellImage, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-        lv_obj_set_style_img_recolor_opa(bellImage, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_img_recolor_opa(bellImage, 255,
+                                         ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         updateGroupChannel(ch.index);
     } else {
         // display smaller button with just the channel number
@@ -5478,7 +5895,8 @@ void TFTView_320x240::updateGroupChannel(uint8_t chId)
 
     lv_obj_t *bellImage = lv_obj_get_child(btn[chId], 2);
     if (db.channel[chId].settings.module_settings.is_muted) {
-        lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_img_recolor(bellImage, lv_color_hex(0xffab0000),
+                                     ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         lv_image_set_src(bellImage, &img_groups_bell_slash_image);
     } else {
         Themes::recolorImage(bellImage, true);
@@ -5674,35 +6092,51 @@ void TFTView_320x240::backup(uint32_t option)
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
     std::stringstream path;
-    path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+    path << "/keys/" << db.device_str << ".yml";
+
+    auto fs = createFileSystem();
+    if (!fs) {
+        ILOG_ERROR("Failed to create file system");
+        return;
+    }
+
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+    std::string fullPath = std::string("/sdcard") + path.str();
+    std::string keyDir = "/sdcard/keys";
+#else
+    std::string fullPath = path.str();
+    std::string keyDir = "/keys";
+#endif
 
     // The bus is held for the card access only - messageAlert() below is LVGL work.
     bool written = false;
+    std::string lastError;
     {
         ISpiLock::Guard bus;
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
-        SDFs.mkdir("/keys");
-        File sd = SDFs.open(path.str().c_str(), FILE_WRITE);
-#else
-        SDFs.mkdir("/keys");
-        FsFile sd = SDFs.open(path.str().c_str(), O_RDWR | O_CREAT);
-#endif
-        if (sd) {
-            sd.println("config:");
-            sd.println("  security:");
-            sd.print("      privateKey: base64:");
-            sd.println(pskToBase64(privkey.bytes, privkey.size).c_str());
-            sd.print("      publicKey: base64:");
-            sd.println(pskToBase64(pubkey.bytes, pubkey.size).c_str());
-            written = true;
+
+        // Create keys directory
+        if (!fs->mkdir(keyDir)) {
+            ILOG_WARN("mkdir %s: %s", keyDir.c_str(), fs->getLastError().c_str());
         }
-        sd.close();
+
+        // Write keys to file
+        if (fs->open(fullPath, "w")) {
+            bool result = true;
+            result &= fs->printf("config:\n") > 0;
+            result &= fs->printf("  security:\n") > 0;
+            result &= fs->printf("      privateKey: base64:%s\n", pskToBase64(privkey.bytes, privkey.size).c_str()) > 0;
+            result &= fs->printf("      publicKey: base64:%s\n", pskToBase64(pubkey.bytes, pubkey.size).c_str()) > 0;
+            fs->close();
+            written = result;
+        } else {
+            lastError = fs->getLastError();
+        }
     }
 
     if (written) {
         ILOG_INFO("backup pub/priv keys done.");
     } else {
-        ILOG_ERROR("open file %s for backup failed", path.str().c_str());
+        ILOG_ERROR("open file %s for backup failed: %s", fullPath.c_str(), lastError.c_str());
         messageAlert(_("Failed to write keys!"), true);
     }
 #endif
@@ -5715,38 +6149,72 @@ void TFTView_320x240::restore(uint32_t option)
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
     std::stringstream path;
-    path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+    path << "/keys/" << db.device_str << ".yml";
+
+    auto fs = createFileSystem();
+    if (!fs) {
+        ILOG_ERROR("Failed to create file system");
+        return;
+    }
+
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
+    std::string fullPath = std::string("/sdcard") + path.str();
+#else
+    std::string fullPath = path.str();
+#endif
 
     // Read the file out under the bus guard, then release it: sendConfig() goes to the
     // radio - which needs this same bus from another task - and messageAlert() is LVGL.
     bool opened = false;
-    String privKey, pubKey;
+    std::string lastError;
+    std::string privateLine;
+    std::string publicLine;
     {
         ISpiLock::Guard bus;
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
-        File sd = SDFs.open(path.str().c_str(), FILE_READ);
-#else
-        FsFile sd = SDFs.open(path.str().c_str(), O_RDONLY);
-#endif
-        if (sd) {
+
+        // read and parse the YAML file for keys
+        if (fs->open(fullPath, "r")) {
             opened = true;
-            // TODO: improve parsing file contents
-            sd.readStringUntil('\n');           // config:
-            sd.readStringUntil('\n');           // security:
-            privKey = sd.readStringUntil('\n'); // privateKey: base64:
-            pubKey = sd.readStringUntil('\n');  // publicKey: base64:
+            char line[320];
+
+            // read file line by line
+            while (fs->readLine(line, sizeof(line))) {
+                if (strstr(line, "privateKey:") != nullptr) {
+                    privateLine = line;
+                } else if (strstr(line, "publicKey:") != nullptr) {
+                    publicLine = line;
+                }
+            }
+            fs->close();
+        } else {
+            lastError = fs->getLastError();
         }
-        sd.close();
     }
 
     if (!opened) {
-        ILOG_ERROR("open file %s failed", path.str().c_str());
+        ILOG_ERROR("open file %s failed: %s", fullPath.c_str(), lastError.c_str());
         messageAlert(_("Failed to retrieve keys!"), true);
-    } else if (privKey.indexOf("privateKey:") > 0 && pubKey.indexOf("publicKey:") > 0) {
-        String b64priv = privKey.substring(privKey.lastIndexOf(":") + 1);
-        String b64pub = pubKey.substring(pubKey.lastIndexOf(":") + 1);
-        b64priv.trim();
-        b64pub.trim();
+    } else if (!privateLine.empty() && !publicLine.empty()) {
+        // trim whitespace and extract base64 values
+        auto trim = [](std::string &s) {
+            while (!s.empty() && (s.back() == '\n' || s.back() == '\r' || s.back() == ' ' || s.back() == '\t')) {
+                s.pop_back();
+            }
+            size_t p = 0;
+            while (p < s.size() && (s[p] == ' ' || s[p] == '\t')) {
+                p++;
+            }
+            if (p > 0) {
+                s.erase(0, p);
+            }
+        };
+
+        std::string b64priv = privateLine.substr(privateLine.find_last_of(':') + 1);
+        std::string b64pub = publicLine.substr(publicLine.find_last_of(':') + 1);
+        trim(b64priv);
+        trim(b64pub);
+
+        // decode and send to radio
         if (base64ToPsk(b64priv.c_str(), privkey.bytes, privkey.size) && base64ToPsk(b64pub.c_str(), pubkey.bytes, pubkey.size) &&
             controller->sendConfig(meshtastic_Config_SecurityConfig{db.config.security})) {
             ILOG_INFO("restore pub/priv keys sent to radio");
@@ -5755,7 +6223,7 @@ void TFTView_320x240::restore(uint32_t option)
             messageAlert(_("Failed to restore keys!"), true);
         }
     } else {
-        ILOG_ERROR("file %s contents don't match backup", path.str().c_str());
+        ILOG_ERROR("file %s contents don't match backup", fullPath.c_str());
         messageAlert(_("Failed to parse keys!"), true);
     }
 #endif
@@ -5942,12 +6410,12 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
                                                LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC)); /// Flags
     lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
     lv_obj_set_scroll_dir(container, LV_DIR_VER);
-    lv_obj_set_style_pad_left(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_row(container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_column(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(container, 6, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_right(container, 6, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_top(container, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_bottom(container, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_row(container, 6, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_column(container, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     // store new message container
     if (to == UINT32_MAX || from == 0) {
@@ -6040,12 +6508,12 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t 
     lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT); /// 50
     lv_obj_set_align(hiddenPanel, LV_ALIGN_CENTER);
     lv_obj_clear_flag(hiddenPanel, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-    lv_obj_set_style_radius(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     add_style_panel_style(hiddenPanel);
-    lv_obj_set_style_pad_left(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(hiddenPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_right(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_top(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_bottom(hiddenPanel, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
 
     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
     // calculate expected size of text bubble, to make it look nicer
@@ -6160,18 +6628,20 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
     lv_obj_add_flag(chatBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
     lv_obj_clear_flag(chatBtn, LV_OBJ_FLAG_SCROLLABLE);
     add_style_home_button_style(chatBtn);
-    lv_obj_set_style_align(chatBtn, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(chatBtn, colorMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_ofs_x(chatBtn, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_ofs_y(chatBtn, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(chatBtn, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(chatBtn, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_row(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_column(chatBtn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_align(chatBtn, LV_ALIGN_TOP_MID,
+                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_border_color(chatBtn, colorMidGray,
+                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_border_width(chatBtn, 1, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_shadow_ofs_x(chatBtn, 1, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_shadow_ofs_y(chatBtn, 2, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_radius(chatBtn, 6, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_left(chatBtn, 3, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_right(chatBtn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_top(chatBtn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_bottom(chatBtn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_row(chatBtn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+    lv_obj_set_style_pad_column(chatBtn, 0, ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     lv_obj_move_to_index(chatBtn, 0);
 
     char buf[64];
@@ -6193,8 +6663,10 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
             lv_obj_set_size(obj, LV_PCT(100), LV_SIZE_CONTENT);
             lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
             lv_label_set_text(obj, buf);
-            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT,
+                                        ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
         }
         {
             // ChatDelButton
@@ -6203,8 +6675,10 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
             lv_obj_set_pos(obj, -3, -1);
             lv_obj_set_size(obj, 40, 23);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-            lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_color(obj, colorDarkRed, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID,
+                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
+            lv_obj_set_style_bg_color(obj, colorDarkRed,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             {
                 lv_obj_t *parent_obj = obj;
@@ -6214,7 +6688,8 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
                     lv_obj_set_pos(chatDelBtn, 0, 0);
                     lv_obj_set_size(chatDelBtn, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(chatDelBtn, _("DEL"));
-                    lv_obj_set_style_align(chatDelBtn, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(chatDelBtn, LV_ALIGN_CENTER,
+                                           ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 }
             }
         }
@@ -6235,7 +6710,8 @@ void TFTView_320x240::highlightChat(uint32_t from, uint32_t to, uint8_t ch)
     auto it = chats.find(index);
     if (it != chats.end()) {
         // mark chat in color
-        lv_obj_set_style_border_color(it->second, colorOrange, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(it->second, colorOrange,
+                                      ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
 }
 
@@ -6368,18 +6844,22 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
     uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (textArea == objects.message_input_area) {
+        if (kbdSlideState != eKbdHidden)
+            return;
+
         // if keyboard is to be shown in message input area then scroll the panel using animation
-        static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
-        static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
+        static auto shown_cb = [](_lv_anim_t *) { kbdSlideState = eKbdShown; };
 
         static lv_anim_t a1;
-        lv_area_t panel_coords;
-        lv_obj_get_coords(objects.messages_panel, &panel_coords);
+        int32_t panelY = lv_obj_get_y(objects.messages_panel);
+        if (kbdPanelBaseY == INT32_MIN)
+            kbdPanelBaseY = panelY;
 
+        kbdSlideState = eKbdSliding;
         lv_anim_init(&a1);
         lv_anim_set_var(&a1, objects.messages_panel);
-        lv_anim_set_exec_cb(&a1, panelAnimCB);
-        lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 - kb_h);
+        lv_anim_set_exec_cb(&a1, kbdSlideAnimCB);
+        lv_anim_set_values(&a1, panelY, kbdPanelBaseY - kb_h);
         lv_anim_set_duration(&a1, 300);
         lv_anim_set_path_cb(&a1, lv_anim_path_linear);
         lv_anim_start(&a1);
@@ -6387,10 +6867,11 @@ void TFTView_320x240::showKeyboard(lv_obj_t *textArea)
         static lv_anim_t a2;
         lv_anim_init(&a2);
         lv_anim_set_var(&a2, objects.keyboard);
-        lv_anim_set_exec_cb(&a2, kbdAnimCB);
+        lv_anim_set_exec_cb(&a2, kbdSlideAnimCB);
         lv_anim_set_values(&a2, v, v - kb_h);
         lv_anim_set_duration(&a2, 300);
         lv_anim_set_path_cb(&a2, lv_anim_path_linear);
+        lv_anim_set_deleted_cb(&a2, shown_cb);
         lv_anim_start(&a2);
     } else {
         if (text_coords.y1 > kb_h + 30) {
@@ -6412,20 +6893,24 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
     lv_area_t kb_coords;
     lv_obj_get_coords(objects.keyboard, &kb_coords);
     uint32_t kb_h = kb_coords.y2 - kb_coords.y1;
+    uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
 
     if (panel == objects.messages_panel) {
-        static auto panelAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
-        static auto kbdAnimCB = [](void *var, int32_t v) { lv_obj_set_y((lv_obj_t *)var, v); };
-        static auto deleted_cb = [](_lv_anim_t *) { lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN); };
+        if (kbdSlideState != eKbdShown)
+            return;
+
+        static auto deleted_cb = [](_lv_anim_t *) {
+            lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+            kbdSlideState = eKbdHidden;
+        };
 
         static lv_anim_t a1;
-        lv_area_t panel_coords;
-        lv_obj_get_coords(panel, &panel_coords);
 
+        kbdSlideState = eKbdSliding;
         lv_anim_init(&a1);
         lv_anim_set_var(&a1, panel);
-        lv_anim_set_exec_cb(&a1, panelAnimCB);
-        lv_anim_set_values(&a1, panel_coords.y1, panel_coords.y1 + kb_h);
+        lv_anim_set_exec_cb(&a1, kbdSlideAnimCB);
+        lv_anim_set_values(&a1, lv_obj_get_y(panel), kbdPanelBaseY);
         lv_anim_set_duration(&a1, 300);
         lv_anim_set_path_cb(&a1, lv_anim_path_linear);
         lv_anim_start(&a1);
@@ -6433,13 +6918,28 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
         static lv_anim_t a2;
         lv_anim_init(&a2);
         lv_anim_set_var(&a2, objects.keyboard);
-        lv_anim_set_exec_cb(&a2, kbdAnimCB);
-        lv_anim_set_values(&a2, kb_coords.y1, kb_coords.y1 + kb_h);
+        lv_anim_set_exec_cb(&a2, kbdSlideAnimCB);
+        lv_anim_set_values(&a2, lv_obj_get_y(objects.keyboard), v);
         lv_anim_set_duration(&a2, 300);
         lv_anim_set_path_cb(&a2, lv_anim_path_linear);
         lv_anim_set_deleted_cb(&a2, deleted_cb);
         lv_anim_start(&a2);
     }
+}
+
+/**
+ * @brief Put keyboard and message panel back to their rest position without animating,
+ *        e.g. when a menu button switches panels while a slide is still running.
+ */
+void TFTView_320x240::resetKeyboardSlide(void)
+{
+    lv_anim_delete(objects.messages_panel, kbdSlideAnimCB);
+    lv_anim_delete(objects.keyboard, kbdSlideAnimCB);
+    if (kbdPanelBaseY != INT32_MIN)
+        lv_obj_set_y(objects.messages_panel, kbdPanelBaseY);
+    lv_obj_set_y(objects.keyboard, lv_display_get_vertical_resolution(displaydriver->getDisplay()));
+    lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+    kbdSlideState = eKbdHidden;
 }
 
 lv_obj_t *TFTView_320x240::showQrCode(lv_obj_t *parent, const char *data)
@@ -6966,10 +7466,11 @@ void TFTView_320x240::updateUnreadMessages(void)
     if (unreadMessages > 0) {
         sprintf(buf, unreadMessages == 1 ? _("%d new message") : _("%d new messages"), unreadMessages);
         lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_unread_button_image,
-                                    LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     } else {
         strcpy(buf, _("no new messages"));
-        lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_button_image, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_img_src(objects.home_mail_button, &img_home_mail_button_image,
+                                    ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
     }
     lv_label_set_text(objects.home_mail_label, buf);
 }
@@ -7282,8 +7783,9 @@ void TFTView_320x240::task_handler(void)
                 if (startTime) {
                     if (curtime - startTime > 30) {
                         lv_label_set_text(objects.trace_route_start_label, _("Start"));
-                        lv_obj_set_style_outline_color(objects.trace_route_start_button, colorMesh,
-                                                       LV_PART_MAIN | LV_STATE_DEFAULT);
+                        lv_obj_set_style_outline_color(
+                            objects.trace_route_start_button, colorMesh,
+                            ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                         removeSpinner();
                     } else {
                         char buf[16];
@@ -7311,7 +7813,7 @@ void TFTView_320x240::task_handler(void)
                 // if we didn't hear any node for 1h assume we have no signal
                 if (curtime - lastHeard > secs_until_offline) {
                     lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
-                                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+                                                  ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                     lv_label_set_text(objects.home_signal_label, _("no signal"));
                     lv_label_set_text(objects.home_signal_pct_label, "");
                 }

@@ -48,7 +48,7 @@ bool MeshtasticView::sleep(int16_t pin)
     return controller->sleep(pin);
 }
 
-void MeshtasticView::setMyInfo(uint32_t nodeNum) {}
+void MeshtasticView::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id) {}
 
 void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                        bool can_shutdown)
@@ -211,7 +211,7 @@ bool MeshtasticView::base64ToPsk(const std::string &base64, uint8_t *bytes, uint
     std::string out;
     auto error = macaron::Base64::Decode(base64, out);
     if (!error.empty()) {
-        ILOG_ERROR("Cannot decode '%s'", base64);
+        ILOG_ERROR("Failed to decode %d bytes long string", base64.size());
         return false;
     } else {
         memcpy((char *)bytes, out.data(), out.size());

@@ -27,7 +27,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void task_handler(void) override;
 
     // methods to update view
-    void setMyInfo(uint32_t nodeNum) override;
+    void setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id) override;
     void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                            bool can_shutdown) override;
     void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt) override;
@@ -217,6 +217,10 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
     // remove objects from map
     virtual void removeFromMap(uint32_t nodeNum);
+    // set url provider and dropdown and return url if present
+    virtual std::string setUrlProvider(const char *style);
+    // show or hide URL template input
+    virtual void showUrlInputArea(bool show);
 
     std::function<void(uint32_t id, uint16_t x, uint16_t y, uint8_t)> drawObjectCB;
 
@@ -237,6 +241,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void showKeyboard(lv_obj_t *textArea);
     void hideKeyboard(lv_obj_t *panel);
+    // abort a running slide animation and restore panel/keyboard position at once
+    void resetKeyboardSlide(void);
     lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
 
     void enablePanel(lv_obj_t *panel);
@@ -291,6 +297,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
 
     uint32_t preset2val(meshtastic_Config_LoRaConfig_ModemPreset preset);
     meshtastic_Config_LoRaConfig_ModemPreset val2preset(uint32_t val);
+    uint32_t region2val(meshtastic_Config_LoRaConfig_RegionCode region);
+    meshtastic_Config_LoRaConfig_RegionCode val2region(uint32_t val);
     uint32_t role2val(meshtastic_Config_DeviceConfig_Role role);
     meshtastic_Config_DeviceConfig_Role val2role(uint32_t val);
     uint32_t language2val(meshtastic_Language lang);
@@ -396,6 +404,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     static void ui_event_setup_region_dropdown(lv_event_t *e);
     static void ui_event_map_style_dropdown(lv_event_t *e);
     static void ui_event_map_url_dropdown(lv_event_t *e);
+    static void ui_event_map_url_textarea(lv_event_t *e);
 
     static void ui_event_calibration_screen_loaded(lv_event_t *e);
 
@@ -421,6 +430,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
 
     // map navigation
     static void ui_screen_event_cb(lv_event_t *e);
+    static void ui_event_mapPinch(lv_event_t *e);
+    static void ui_event_mapDrag(lv_event_t *e);
     static void ui_event_arrow(lv_event_t *e);
     static void ui_event_navHome(lv_event_t *e);
     static void ui_event_zoomSlider(lv_event_t *e);
@@ -446,10 +457,10 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
 
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
-    static TFTView_320x240 *gui; // singleton pattern
-    bool screensInitialised;     // true if init_screens is completed
-    uint32_t nodesFiltered;      // no. hidden nodes in node list
-    bool nodesChanged;           // true if nodes changed (added or purged)
+    static TFTView_320x240 *gui;                          // singleton pattern
+    bool screensInitialised;                              // true if init_screens is completed
+    uint32_t nodesFiltered;                               // no. hidden nodes in node list
+    bool nodesChanged;                                    // true if nodes changed (added or purged)
     NodeDiscoverySyncGate nodeListDiscoverySync;
     uint8_t nodeListPresentationBatchDepth = 0;
     bool nodeListPresentationBatchSyncRequested = false;
@@ -475,6 +486,9 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     static uint32_t pinKeys;                              // number of keys pressed (lock screen)
     static bool screenLocked;                             // screen lock active
     static bool screenUnlockRequest;                      // screen unlock request (via button)
+    enum KbdSlide { eKbdHidden, eKbdSliding, eKbdShown };
+    static KbdSlide kbdSlideState;                        // slide state of the on-screen keyboard
+    static int32_t kbdPanelBaseY;                         // messages panel y at rest (INT32_MIN: not captured yet)
     uint32_t selectedHops;                                // remember selected choice
     bool chooseNodeSignalScanner;                         // chose a target node for signal scanner
     bool chooseNodeTraceRoute;                            // chose a target node for trace route
@@ -486,6 +500,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
     // extended default device profile struct with additional required data
     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
+        char device_str[40];
         meshtastic_User user;
         meshtastic_Channel channel[c_max_channels]; // storage of channel info
         meshtastic_DeviceUIConfig uiConfig;         // storage of persistent UI data

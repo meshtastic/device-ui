@@ -6,16 +6,41 @@ on:
   pull_request:
     branches:
       - master
-    paths-ignore:
-      - '**.md'
-      - docs/**
 
   workflow_dispatch: # Adds the manual run button in GitHub web UI
 
 permissions: read-all
 
 jobs:
+  # Single source of truth for the required "build-and-test" check: always triggered,
+  # decides internally whether to skip (docs-only PRs skip the real build and auto-pass).
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code-changed: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for non-doc changes
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")
+          if echo "$changed" | grep -qvE '\.md$|^docs/'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build-and-test:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.code-changed == 'true'
     runs-on: ubuntu-latest
 
     env:

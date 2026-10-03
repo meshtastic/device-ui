@@ -7,6 +7,11 @@
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
 #define V_NORM_PX(v_scr_percent) ((int16_t)((screenHeight / 100.0) * (v_scr_percent)))
 
+// finger distance ratio per map zoom level; also the pinch recognition threshold
+#ifndef PINCH_ZOOM_STEP
+#define PINCH_ZOOM_STEP 1.4f
+#endif
+
 typedef lv_display_t LVGLDisplay;
 typedef lv_indev_t LVGLTouch;
 
