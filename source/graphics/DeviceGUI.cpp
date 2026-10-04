@@ -33,14 +33,9 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 {
 
 #if LV_USE_LIBINPUT
-    if (cfg) {
+    if (cfg)
         linuxInputDriver = new LinuxInputDriver(cfg->keyboard(), cfg->pointer());
-        // the view reads the device names and opens/closes devices through inputdriver
-        inputdriver = linuxInputDriver;
-    }
-//    else
-//        linuxInputDriver = InputDriver::instance();
-#else
+#endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     encoderDriver = new EncoderInputDriver;
 #endif
@@ -49,7 +44,6 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 #endif
 #if defined(INPUTDRIVER_BUTTON_TYPE)
     buttonDriver = new ButtonInputDriver;
-#endif
 #endif
     if (!inputdriver)
         inputdriver = InputDriver::instance();
@@ -65,6 +59,10 @@ void DeviceGUI::init(IClientBase *client)
     keyboardDriver = scanner.scan();
     if (keyboardDriver)
         keyboardDriver->init();
+#if LV_USE_LIBINPUT
+    if (linuxInputDriver)
+        linuxInputDriver->init();
+#endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     if (encoderDriver)
         encoderDriver->init();
@@ -77,8 +75,8 @@ void DeviceGUI::init(IClientBase *client)
     if (buttonDriver)
         buttonDriver->init();
 #endif
-    if (inputdriver)
-        inputdriver->init();
+//    if (inputdriver)
+//        inputdriver->init();
 
     displaydriver->printConfig();
 }

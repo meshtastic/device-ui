@@ -384,11 +384,6 @@ void TFTView_320x240::init_screens(void)
 {
     ILOG_DEBUG("init screens...");
     state = MeshtasticView::eInitScreens;
-#if LV_USE_LIBINPUT
-    // widgets only join a group that is the default when they are created
-    if (!lv_group_get_default())
-        lv_group_set_default(lv_group_create());
-#endif
     ui_init();
     apply_hotfix();
 
@@ -418,6 +413,7 @@ void TFTView_320x240::init_screens(void)
 
 #if LV_USE_LIBINPUT
     lv_obj_clear_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN);
+    setInputGroup();
 #endif
 
 #if defined(USE_I2S_BUZZER) || defined(USE_PIN_BUZZER)
@@ -459,10 +455,6 @@ void TFTView_320x240::init_screens(void)
     lv_slider_set_range(objects.snr_slider, -20, 9);
 #endif
 
-#if LV_USE_LIBINPUT
-    // libinput devices were opened before the screens existed: attach them to the group now
-    setInputGroup();
-#endif
     setInputButtonLabel();
     lv_group_focus_obj(objects.home_button);
 
@@ -7630,13 +7622,14 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
  */
 void TFTView_320x240::setInputGroup(void)
 {
-    lv_group_t *group = lv_group_get_default();
+    if (!input_group)
+        input_group = lv_group_get_default();
 
-    if (group && inputdriver->hasKeyboardDevice())
-        lv_indev_set_group(inputdriver->getKeyboard(), group);
+    if (inputdriver->hasKeyboardDevice())
+        lv_indev_set_group(inputdriver->getKeyboard(), input_group);
 
-    if (group && inputdriver->hasPointerDevice())
-        lv_indev_set_group(inputdriver->getPointer(), group);
+    if (inputdriver->hasPointerDevice())
+        lv_indev_set_group(inputdriver->getPointer(), input_group);
 }
 
 void TFTView_320x240::setInputButtonLabel(void)
