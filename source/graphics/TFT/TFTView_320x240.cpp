@@ -4582,11 +4582,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 
             std::string current_kbd = THIS->inputdriver->getCurrentKeyboardDevice();
             std::string current_ptr = THIS->inputdriver->getCurrentPointerDevice();
-            if (strcmp(current_kbd.c_str(), _("none")) == 0 && strcmp(current_ptr.c_str(), _("none")) == 0 && THIS->input_group) {
-                lv_group_delete(THIS->input_group);
-                THIS->input_group = nullptr;
-            } else if (strcmp(THIS->old_val1_scratch, current_kbd.c_str()) != 0 ||
-                       strcmp(THIS->old_val2_scratch, current_ptr.c_str()) != 0) {
+            if (strcmp(THIS->old_val1_scratch, current_kbd.c_str()) != 0 ||
+                strcmp(THIS->old_val2_scratch, current_ptr.c_str()) != 0) {
                 THIS->setInputGroup();
             }
 
@@ -7622,14 +7619,13 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
  */
 void TFTView_320x240::setInputGroup(void)
 {
-    if (!input_group)
-        input_group = lv_group_get_default();
+    lv_group_t *group = lv_group_get_default();
 
-    if (inputdriver->hasKeyboardDevice())
-        lv_indev_set_group(inputdriver->getKeyboard(), input_group);
+    if (group && inputdriver->hasKeyboardDevice())
+        lv_indev_set_group(inputdriver->getKeyboard(), group);
 
-    if (inputdriver->hasPointerDevice())
-        lv_indev_set_group(inputdriver->getPointer(), input_group);
+    if (group && inputdriver->hasPointerDevice())
+        lv_indev_set_group(inputdriver->getPointer(), group);
 }
 
 void TFTView_320x240::setInputButtonLabel(void)
