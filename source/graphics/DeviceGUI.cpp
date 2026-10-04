@@ -33,8 +33,10 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 {
 
 #if LV_USE_LIBINPUT
-    if (cfg)
+    if (cfg) {
         linuxInputDriver = new LinuxInputDriver(cfg->keyboard(), cfg->pointer());
+        inputdriver = linuxInputDriver;
+    }
 #endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     encoderDriver = new EncoderInputDriver;
@@ -75,8 +77,6 @@ void DeviceGUI::init(IClientBase *client)
     if (buttonDriver)
         buttonDriver->init();
 #endif
-//    if (inputdriver)
-//        inputdriver->init();
 
     displaydriver->printConfig();
 }
