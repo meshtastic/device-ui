@@ -413,6 +413,7 @@ void TFTView_320x240::init_screens(void)
 
 #if LV_USE_LIBINPUT
     lv_obj_clear_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN);
+    setInputGroup();
 #endif
 
 #if defined(USE_I2S_BUZZER) || defined(USE_PIN_BUZZER)
@@ -4581,11 +4582,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 
             std::string current_kbd = THIS->inputdriver->getCurrentKeyboardDevice();
             std::string current_ptr = THIS->inputdriver->getCurrentPointerDevice();
-            if (strcmp(current_kbd.c_str(), _("none")) == 0 && strcmp(current_ptr.c_str(), _("none")) == 0 && THIS->input_group) {
-                lv_group_delete(THIS->input_group);
-                THIS->input_group = nullptr;
-            } else if (strcmp(THIS->old_val1_scratch, current_kbd.c_str()) != 0 ||
-                       strcmp(THIS->old_val2_scratch, current_ptr.c_str()) != 0) {
+            if (strcmp(THIS->old_val1_scratch, current_kbd.c_str()) != 0 ||
+                strcmp(THIS->old_val2_scratch, current_ptr.c_str()) != 0) {
                 THIS->setInputGroup();
             }
 
