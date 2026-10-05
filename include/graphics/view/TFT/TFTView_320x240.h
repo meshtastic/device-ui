@@ -453,7 +453,6 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     lv_obj_t *activeMsgContainer = nullptr;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
-    lv_group_t *input_group = nullptr;
 
     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 

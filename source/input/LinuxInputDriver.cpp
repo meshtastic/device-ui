@@ -10,6 +10,7 @@ LV_IMG_DECLARE(mouse_cursor_icon);
 
 LinuxInputDriver::LinuxInputDriver(const std::string &kbdDevice, const std::string &ptrDevice)
 {
+    ILOG_DEBUG("LinuxInputDriver: kbdDevice='%s' ptrDevice='%s'", kbdDevice.c_str(), ptrDevice.c_str());
     keyboardDevice = kbdDevice;
     pointerDevice = ptrDevice;
 }
@@ -26,6 +27,11 @@ void LinuxInputDriver::init(void)
         usePointerDevice(pointerDevice);
     } else
         pointerDevice = "none";
+
+    if (!inputGroup) {
+        inputGroup = lv_group_create();
+        lv_group_set_default(inputGroup);
+    }
 }
 
 void LinuxInputDriver::task_handler(void) {}
@@ -115,10 +121,14 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
         kb_path = name;
     }
 
+    if (keyboard)
+        releaseKeyboardDevice();
+
     keyboard = lv_libinput_create(LV_INDEV_TYPE_KEYPAD, kb_path.c_str());
     if (keyboard) {
-        ILOG_INFO("Using keyboard device %s", kb_path.c_str());
+        ILOG_INFO("Using keyboard device %s(%s)", kb_path.c_str(), event.c_str());
         keyboardDevice = event;
+        lv_indev_set_group(keyboard, inputGroup);
     } else {
         ILOG_ERROR("Failed to use keyboard device %s", kb_path.c_str());
         keyboardDevice = "none";
@@ -128,7 +138,7 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
 }
 
 /**
- * create input device for keyboard
+ * create input device for pointer
  * name is either eventX or the full path to the input event
  */
 bool LinuxInputDriver::usePointerDevice(const std::string &name)
@@ -149,12 +159,16 @@ bool LinuxInputDriver::usePointerDevice(const std::string &name)
         ptr_path = name;
     }
 
+    if (pointer)
+        releasePointerDevice();
+
     pointer = lv_libinput_create(LV_INDEV_TYPE_POINTER, ptr_path.c_str());
     if (pointer) {
-        ILOG_INFO("Using pointer device %s", ptr_path.c_str());
+        ILOG_INFO("Using pointer device %s(%s)", ptr_path.c_str(), event.c_str());
         lv_obj_t *mouse_cursor = lv_image_create(lv_screen_active());
         lv_image_set_src(mouse_cursor, &mouse_cursor_icon);
         lv_indev_set_cursor(pointer, mouse_cursor);
+        lv_indev_set_group(pointer, lv_group_get_default());
         pointerDevice = event;
         return true;
     } else {
