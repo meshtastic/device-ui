@@ -1,11 +1,16 @@
 #pragma once
 
+#include "lvgl.h"
 #include "meshtastic/mesh.pb.h"
 #include "meshtastic/telemetry.pb.h"
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
+#include <limits>
+#include <new>
 #include <unordered_map>
+#include <utility>
 
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
@@ -86,6 +91,42 @@ struct NodeRecord {
 
 static_assert(sizeof(NodeRecord) <= 192, "NodeRecord must remain compact for non-PSRAM targets");
 
+template <class T> struct NodeStoreAllocator {
+    using value_type = T;
+
+    NodeStoreAllocator() = default;
+    template <class U> constexpr NodeStoreAllocator(const NodeStoreAllocator<U> &) noexcept {}
+
+    T *allocate(size_t count)
+    {
+        if (count > std::numeric_limits<size_t>::max() / sizeof(T)) {
+            throw std::bad_alloc();
+        }
+        void *memory = nullptr;
+    #ifdef UNIT_TEST
+        memory = std::malloc(count * sizeof(T));
+    #else
+        memory = lv_malloc(count * sizeof(T));
+    #endif
+        if (!memory) {
+            throw std::bad_alloc();
+        }
+        return static_cast<T *>(memory);
+    }
+
+    void deallocate(T *memory, size_t) noexcept
+    {
+#ifdef UNIT_TEST
+        std::free(memory);
+    #else
+        lv_free(memory);
+    #endif
+    }
+
+    template <class U> bool operator==(const NodeStoreAllocator<U> &) const noexcept { return true; }
+    template <class U> bool operator!=(const NodeStoreAllocator<U> &) const noexcept { return false; }
+};
+
 enum class NodeMutationKind { Inserted, Updated, Removed, Unchanged };
 
 enum NodeChangedField : uint32_t {
@@ -113,7 +154,8 @@ struct NodeMutation {
 class NodeStore
 {
   public:
-    using Records = std::unordered_map<NodeId, NodeRecord>;
+    using EntryAllocator = NodeStoreAllocator<std::pair<const NodeId, NodeRecord>>;
+    using Records = std::unordered_map<NodeId, NodeRecord, std::hash<NodeId>, std::equal_to<NodeId>, EntryAllocator>;
 
     NodeStore();
 
@@ -138,8 +180,10 @@ class NodeStore
     NodeId selectPurgeCandidate(NodeId incoming, NodeId ownNode, uint32_t now) const;
 
   private:
+    void ensureCapacity();
     void touchRecency(NodeRecord &record);
 
     Records nodes;
+    bool capacityReserved = false;
     uint64_t nextRecencyOrder = 1;
 };

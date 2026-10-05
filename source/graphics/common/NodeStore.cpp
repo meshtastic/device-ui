@@ -147,9 +147,14 @@ NodeMutation updated(NodeId id, uint32_t fields)
 }
 } // namespace
 
-NodeStore::NodeStore()
+NodeStore::NodeStore() = default;
+
+void NodeStore::ensureCapacity()
 {
-    nodes.reserve(MAX_NUM_NODES_VIEW);
+    if (!capacityReserved) {
+        nodes.reserve(MAX_NUM_NODES_VIEW);
+        capacityReserved = true;
+    }
 }
 
 const NodeRecord *NodeStore::find(NodeId id) const
@@ -166,6 +171,7 @@ void NodeStore::touchRecency(NodeRecord &record)
 
 NodeMutation NodeStore::upsertUser(NodeId id, uint8_t channel, uint32_t lastHeard, const meshtastic_User &user, bool viaMqtt)
 {
+    ensureCapacity();
     auto [it, inserted] = nodes.try_emplace(id);
     auto &record = it->second;
     uint32_t changed = NodeFieldNone;
@@ -216,6 +222,7 @@ NodeMutation NodeStore::upsertUser(NodeId id, uint8_t channel, uint32_t lastHear
 
 NodeMutation NodeStore::upsertUnknown(NodeId id, uint8_t channel, uint32_t lastHeard, uint8_t role, bool hasKey, bool viaMqtt)
 {
+    ensureCapacity();
     meshtastic_User fallback = meshtastic_User_init_default;
     std::snprintf(fallback.short_name, sizeof(fallback.short_name), "%04x", id & 0xffff);
     std::snprintf(fallback.long_name, sizeof(fallback.long_name), "Meshtastic %s", fallback.short_name);
