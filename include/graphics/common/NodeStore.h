@@ -103,11 +103,11 @@ template <class T> struct NodeStoreAllocator {
             throw std::bad_alloc();
         }
         void *memory = nullptr;
-    #ifdef UNIT_TEST
+#ifdef UNIT_TEST
         memory = std::malloc(count * sizeof(T));
-    #else
+#else
         memory = lv_malloc(count * sizeof(T));
-    #endif
+#endif
         if (!memory) {
             throw std::bad_alloc();
         }
@@ -118,9 +118,9 @@ template <class T> struct NodeStoreAllocator {
     {
 #ifdef UNIT_TEST
         std::free(memory);
-    #else
+#else
         lv_free(memory);
-    #endif
+#endif
     }
 
     template <class U> bool operator==(const NodeStoreAllocator<U> &) const noexcept { return true; }
