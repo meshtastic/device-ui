@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics/common/MeshtasticView.h"
-#include "graphics/common/NodeDiscoverySyncGate.h"
 #include "graphics/common/NodeStore.h"
 #include "graphics/common/VisibleNodeIndex.h"
 #include "graphics/view/TFT/VirtualNodeList.h"
@@ -43,8 +42,6 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void updatePowerMetrics(uint32_t nodeNum, const meshtastic_PowerMetrics &metrics) override;
     void updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) override;
     void updateHopsAway(uint32_t nodeNum, uint8_t hopsAway) override;
-    void beginNodeListPresentationBatch() override;
-    void endNodeListPresentationBatch() override;
     void updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status) override;
 
     // methods to update device config
@@ -259,7 +256,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void syncVisibleNodeIndex(void);
     void syncNodeListPresentation(void);
     void syncNodeListPresentation(bool forceRebind);
-    void syncNodeListPresentation(const NodeMutation &mutation);
+    void requestNodeListPresentation(const NodeMutation &mutation);
+    void flushNodeListPresentation(void);
     void ensureVirtualNodeList(void);
     bool mutationCanRefreshVirtualRow(const NodeMutation &mutation) const;
     bool refreshVirtualNodePresentation(NodeId id);
@@ -460,11 +458,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     bool screensInitialised;     // true if init_screens is completed
     uint32_t nodesFiltered;      // no. hidden nodes in node list
     bool nodesChanged;           // true if nodes changed (added or purged)
-    NodeDiscoverySyncGate nodeListDiscoverySync;
-    uint8_t nodeListPresentationBatchDepth = 0;
-    bool nodeListPresentationBatchSyncRequested = false;
-    bool nodeListPresentationBatchForceRebind = false;
-    NodeId nodeListPresentationBatchRefreshId = 0;
+    bool nodeListPresentationForceRebind = false;
+    std::set<NodeId> nodeListPresentationRefreshIds;
     bool processingFilter;                           // indicates that filtering is ongoing
     bool packetLogEnabled;                           // display received packets
     bool detectorRunning;                            // meshDetector is active

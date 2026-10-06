@@ -4242,7 +4242,7 @@ void TFTView_320x240::eraseChat(uint32_t channelOrNode)
         lv_obj_del(messages.at(nodeNum));
         messages.erase(nodeNum);
         chats.erase(nodeNum);
-        syncNodeListPresentation(nodeStore.setActiveChat(nodeNum, false));
+        requestNodeListPresentation(nodeStore.setActiveChat(nodeNum, false));
     }
 }
 
@@ -5015,7 +5015,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     const NodeId purgeCandidate =
         !nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW ? nodePurgeCandidate(nodeNum) : 0;
     if (!nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW && !purgeCandidate) {
-        syncNodeListPresentation();
+        nodesChanged = true;
         return;
     }
 
@@ -5033,7 +5033,7 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
-    syncNodeListPresentation(mutation);
+    requestNodeListPresentation(mutation);
 }
 
 void TFTView_320x240::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id)
@@ -5060,14 +5060,14 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_
     const NodeId purgeCandidate =
         !nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW ? nodePurgeCandidate(nodeNum) : 0;
     if (!nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW && !purgeCandidate) {
-        syncNodeListPresentation();
+        nodesChanged = true;
         return;
     }
     mutation = nodeStore.upsertUnknown(nodeNum, channel, modelLastHeard, static_cast<uint8_t>(role), hasKey, viaMqtt);
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
-    syncNodeListPresentation(mutation);
+    requestNodeListPresentation(mutation);
 }
 
 void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, const meshtastic_User &cfg)
@@ -5081,14 +5081,14 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_
     const NodeId purgeCandidate =
         !nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW ? nodePurgeCandidate(nodeNum) : 0;
     if (!nodeStore.find(nodeNum) && nodeStore.size() >= MAX_NUM_NODES_VIEW && !purgeCandidate) {
-        syncNodeListPresentation();
+        nodesChanged = true;
         return;
     }
     mutation = nodeStore.upsertUser(nodeNum, modelChannel, modelLastHeard, cfg, false);
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
-    syncNodeListPresentation(mutation);
+    requestNodeListPresentation(mutation);
 }
 
 /**
@@ -5111,7 +5111,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
     const uint8_t channel = ch < c_max_channels ? ch : (existing ? existing->channel : 0);
     const NodeId purgeCandidate = !existing && nodeStore.size() >= MAX_NUM_NODES_VIEW ? nodePurgeCandidate(nodeNum) : 0;
     if (!existing && nodeStore.size() >= MAX_NUM_NODES_VIEW && !purgeCandidate) {
-        syncNodeListPresentation();
+        nodesChanged = true;
         return;
     }
     const NodeMutation mutation = nodeStore.upsertUser(nodeNum, channel, lastHeard, cfg, false);
@@ -5139,7 +5139,7 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
     char title[96];
     if (chat != chats.end() && chatTitleFromModel(nodeNum, title, sizeof(title)))
         lv_label_set_text(chat->second->spec_attr->children[0], title);
-    syncNodeListPresentation(mutation);
+    requestNodeListPresentation(mutation);
 }
 
 void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision)
@@ -5178,7 +5178,7 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
     } else if (position.hasCoordinates()) {
         addOrUpdateMap(nodeNum, lat, lon);
     }
-    syncNodeListPresentation(mutation);
+    requestNodeListPresentation(mutation);
 }
 
 /**
@@ -5245,22 +5245,22 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMet
         lv_obj_set_style_bg_image_recolor_opa(objects.battery_image, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_label_set_text(objects.battery_percentage_label, buf);
     }
-    syncNodeListPresentation(mutation);
+    requestNodeListPresentation(mutation);
 }
 
 void TFTView_320x240::updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics)
 {
-    syncNodeListPresentation(nodeStore.updateEnvironmentMetrics(nodeNum, metrics));
+    requestNodeListPresentation(nodeStore.updateEnvironmentMetrics(nodeNum, metrics));
 }
 
 void TFTView_320x240::updateAirQualityMetrics(uint32_t nodeNum, const meshtastic_AirQualityMetrics &metrics)
 {
-    syncNodeListPresentation(nodeStore.updateAirQualityMetrics(nodeNum, metrics));
+    requestNodeListPresentation(nodeStore.updateAirQualityMetrics(nodeNum, metrics));
 }
 
 void TFTView_320x240::updatePowerMetrics(uint32_t nodeNum, const meshtastic_PowerMetrics &metrics)
 {
-    syncNodeListPresentation(nodeStore.updatePowerMetrics(nodeNum, metrics));
+    requestNodeListPresentation(nodeStore.updatePowerMetrics(nodeNum, metrics));
 }
 
 /**
@@ -5268,12 +5268,12 @@ void TFTView_320x240::updatePowerMetrics(uint32_t nodeNum, const meshtastic_Powe
  */
 void TFTView_320x240::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr)
 {
-    syncNodeListPresentation(nodeStore.updateSignal(nodeNum, rssi, snr));
+    requestNodeListPresentation(nodeStore.updateSignal(nodeNum, rssi, snr));
 }
 
 void TFTView_320x240::updateHopsAway(uint32_t nodeNum, uint8_t hopsAway)
 {
-    syncNodeListPresentation(nodeStore.updateHops(nodeNum, hopsAway));
+    requestNodeListPresentation(nodeStore.updateHops(nodeNum, hopsAway));
 }
 
 void TFTView_320x240::updateConnectionStatus(const meshtastic_DeviceConnectionStatus &status)
@@ -5446,7 +5446,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
                 // we probably have a wrong key; mark it as bad and don't use in future
                 if (nodeHasKey(from)) {
                     ILOG_DEBUG("public key mismatch");
-                    syncNodeListPresentation(nodeStore.markBadKey(from));
+                    requestNodeListPresentation(nodeStore.markBadKey(from));
                     lv_obj_set_style_bg_image_src(objects.top_messages_node_image, &img_lock_slash_image,
                                                   ((lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT));
                 }
@@ -6614,7 +6614,7 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
         return;
 
     NodeMutation mutation = index >= c_max_channels ? nodeStore.setActiveChat(index, true) : NodeMutation{};
-    syncNodeListPresentation(mutation);
+    requestNodeListPresentation(mutation);
 
     lv_obj_t *chatDelBtn = nullptr;
     lv_obj_t *parent_obj = objects.chats_panel;
@@ -6695,8 +6695,6 @@ void TFTView_320x240::addChat(uint32_t from, uint32_t to, uint8_t ch)
 
     chats[index] = chatBtn;
     updateActiveChats();
-    if (index > c_max_channels)
-        syncNodeListPresentation();
 
     lv_obj_add_event_cb(chatBtn, ui_event_ChatButton, LV_EVENT_ALL, (void *)index);
     lv_obj_add_event_cb(chatDelBtn, ui_event_ChatDelButton, LV_EVENT_CLICKED, (void *)index);
@@ -7161,41 +7159,25 @@ void TFTView_320x240::syncNodeListPresentation(void)
     syncNodeListPresentation(false);
 }
 
-void TFTView_320x240::beginNodeListPresentationBatch()
+void TFTView_320x240::flushNodeListPresentation(void)
 {
-    ++nodeListPresentationBatchDepth;
-}
-
-void TFTView_320x240::endNodeListPresentationBatch()
-{
-    if (!nodeListPresentationBatchDepth || --nodeListPresentationBatchDepth) {
+    if (nodesChanged || processingFilter) {
+        updateNodesFiltered(true);
         return;
     }
 
-    const bool syncRequested = nodeListPresentationBatchSyncRequested;
-    const bool forceRebind = nodeListPresentationBatchForceRebind;
-    const NodeId refreshId = nodeListPresentationBatchRefreshId;
-    nodeListPresentationBatchSyncRequested = false;
-    nodeListPresentationBatchForceRebind = false;
-    nodeListPresentationBatchRefreshId = 0;
-    if (syncRequested) {
-        syncNodeListPresentation(forceRebind);
-        if (refreshId && !forceRebind) {
-            refreshVirtualNodePresentation(refreshId);
-        }
-    } else if (refreshId) {
-        refreshVirtualNodePresentation(refreshId);
+    std::set<NodeId> refreshIds;
+    refreshIds.swap(nodeListPresentationRefreshIds);
+    for (NodeId id : refreshIds) {
+        refreshVirtualNodePresentation(id);
     }
 }
 
 void TFTView_320x240::syncNodeListPresentation(bool forceRebind)
 {
-    if (nodeListPresentationBatchDepth) {
-        nodeListPresentationBatchSyncRequested = true;
-        nodeListPresentationBatchForceRebind = nodeListPresentationBatchForceRebind || forceRebind;
-        return;
-    }
-    forceRebind = forceRebind || nodeListDiscoverySync.forceRebind();
+    forceRebind = forceRebind || nodeListPresentationForceRebind || !nodeListPresentationRefreshIds.empty();
+    nodeListPresentationForceRebind = false;
+    nodeListPresentationRefreshIds.clear();
     syncVisibleNodeIndex();
     if (currentNode && !nodeStore.find(currentNode)) {
         selectNode(0);
@@ -7220,46 +7202,21 @@ void TFTView_320x240::syncNodeListPresentation(bool forceRebind)
         }
     }
     nodesChanged = false;
-    nodeListDiscoverySync.consumeFullSync();
 }
 
-void TFTView_320x240::syncNodeListPresentation(const NodeMutation &mutation)
+void TFTView_320x240::requestNodeListPresentation(const NodeMutation &mutation)
 {
-    const auto policy = nodeListDiscoverySync.observe(mutation, lv_tick_get());
-    if (policy == NodeDiscoverySyncGate::MutationPolicy::Ignore) {
+    if (mutation.kind == NodeMutationKind::Unchanged) {
         return;
     }
-    if (mutation.kind == NodeMutationKind::Inserted) {
-        nodesChanged = true;
-        return;
-    }
-    if (policy == NodeDiscoverySyncGate::MutationPolicy::Defer) {
-        return;
-    }
-    if (nodeListPresentationBatchDepth) {
-        if (mutation.kind == NodeMutationKind::Updated && mutation.id) {
-            if (nodeListPresentationBatchRefreshId && nodeListPresentationBatchRefreshId != mutation.id) {
-                nodeListPresentationBatchSyncRequested = true;
-                nodeListPresentationBatchForceRebind = true;
-                return;
-            }
-            nodeListPresentationBatchRefreshId = mutation.id;
-            if (!mutationCanRefreshVirtualRow(mutation)) {
-                nodeListPresentationBatchSyncRequested = true;
-            }
-            return;
-        }
-        nodeListPresentationBatchSyncRequested = true;
-        nodeListPresentationBatchForceRebind = true;
-        return;
-    }
-    if (mutationCanRefreshVirtualRow(mutation)) {
-        refreshVirtualNodePresentation(mutation.id);
-        return;
-    }
-    syncNodeListPresentation();
     if (mutation.kind == NodeMutationKind::Updated && mutation.id) {
-        refreshVirtualNodePresentation(mutation.id);
+        nodeListPresentationRefreshIds.insert(mutation.id);
+        if (!mutationCanRefreshVirtualRow(mutation)) {
+            nodesChanged = true;
+        }
+    } else {
+        nodesChanged = true;
+        nodeListPresentationForceRebind = true;
     }
 }
 
@@ -7358,7 +7315,7 @@ void TFTView_320x240::nodePositionClicked(NodeId id)
 
 void TFTView_320x240::removeNode(uint32_t nodeNum)
 {
-    syncNodeListPresentation(nodeStore.remove(nodeNum));
+    requestNodeListPresentation(nodeStore.remove(nodeNum));
 }
 
 bool TFTView_320x240::hasKnownNodeForPacket(uint32_t nodeNum) const
@@ -7444,7 +7401,7 @@ void TFTView_320x240::updateNodesFiltered(bool reset, bool forceRebind)
  */
 void TFTView_320x240::updateLastHeard(uint32_t nodeNum)
 {
-    syncNodeListPresentation(nodeStore.updateLastHeard(nodeNum, curtime));
+    requestNodeListPresentation(nodeStore.updateLastHeard(nodeNum, curtime));
 }
 
 /**
@@ -7455,7 +7412,7 @@ void TFTView_320x240::updateAllLastHeard(void)
 {
     if (ownNode)
         nodeStore.updateLastHeard(ownNode, curtime);
-    syncNodeListPresentation();
+    nodesChanged = true;
 }
 
 void TFTView_320x240::updateUnreadMessages(void)
@@ -7816,10 +7773,7 @@ void TFTView_320x240::task_handler(void)
                     lv_label_set_text(objects.home_signal_pct_label, "");
                 }
             }
-        }
-        const bool discoverySyncDue = !nodeListDiscoverySync.pending() || nodeListDiscoverySync.due(lv_tick_get());
-        if ((processingFilter || nodesChanged) && discoverySyncDue) {
-            updateNodesFiltered(nodesChanged, nodeListDiscoverySync.forceRebind());
+            flushNodeListPresentation();
         }
     }
 }
