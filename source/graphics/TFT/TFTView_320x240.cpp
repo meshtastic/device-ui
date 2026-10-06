@@ -5190,20 +5190,6 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
  * @param chUtil
  * @param airUtil
  */
-void TFTView_320x240::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil)
-{
-    meshtastic_DeviceMetrics metrics = meshtastic_DeviceMetrics_init_default;
-    metrics.has_battery_level = true;
-    metrics.battery_level = bat_level;
-    metrics.has_voltage = true;
-    metrics.voltage = voltage;
-    metrics.has_channel_utilization = true;
-    metrics.channel_utilization = chUtil;
-    metrics.has_air_util_tx = true;
-    metrics.air_util_tx = airUtil;
-    updateMetrics(nodeNum, metrics);
-}
-
 void TFTView_320x240::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMetrics &metrics)
 {
     const NodeMutation mutation = nodeStore.updateDeviceMetrics(nodeNum, metrics);
