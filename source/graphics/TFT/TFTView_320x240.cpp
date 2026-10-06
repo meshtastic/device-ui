@@ -5194,7 +5194,8 @@ void TFTView_320x240::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMet
 {
     const NodeMutation mutation = nodeStore.updateDeviceMetrics(nodeNum, metrics);
 
-    if (nodeNum == ownNode && (metrics.battery_level != 0 || metrics.voltage != 0)) {
+    if (nodeNum == ownNode &&
+        ((metrics.has_battery_level && metrics.battery_level != 0) || (metrics.has_voltage && metrics.voltage != 0))) {
         char buf[16];
         if (metrics.battery_level <= 100)
             sprintf(buf, "%d%%", metrics.battery_level);
