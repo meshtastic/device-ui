@@ -12,8 +12,6 @@ classDiagram
         +updatePosition(...)
         +updateMetrics(...)
         +removeNode(...)
-        +beginNodeListPresentationBatch()
-        +endNodeListPresentationBatch()
     }
     class ViewController {
         +handleFromRadio(...)
