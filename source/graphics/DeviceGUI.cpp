@@ -37,11 +37,11 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 {
 
 #if LV_USE_LIBINPUT
-    if (cfg)
+    if (cfg) {
         linuxInputDriver = new LinuxInputDriver(cfg->keyboard(), cfg->pointer());
-//    else
-//        linuxInputDriver = InputDriver::instance();
-#else
+        inputdriver = linuxInputDriver;
+    }
+#endif
 #if defined(INPUTDRIVER_ENCODER_TYPE)
     encoderDriver = new EncoderInputDriver;
 #endif
@@ -54,7 +54,7 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 #if defined(INPUTDRIVER_DIRECTIONALPAD_TYPE)
     padDriver = new DirectionalPadInputDriver;
 #endif
-#endif
+
     if (!inputdriver)
         inputdriver = InputDriver::instance();
 }
@@ -89,8 +89,6 @@ void DeviceGUI::init(IClientBase *client)
     if (padDriver)
         padDriver->init();
 #endif
-    if (inputdriver)
-        inputdriver->init();
 
     displaydriver->printConfig();
 }

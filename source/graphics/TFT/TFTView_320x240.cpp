@@ -528,6 +528,7 @@ void TFTView_320x240::init_screens(void)
 
 #if LV_USE_LIBINPUT
     lv_obj_clear_flag(objects.basic_settings_input_button, LV_OBJ_FLAG_HIDDEN);
+    setInputGroup();
 #endif
 
 #if defined(USE_I2S_BUZZER) || defined(USE_PIN_BUZZER)
@@ -5092,13 +5093,16 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 uint32_t numChannels = LoRaPresets::getNumChannels(region, lora.modem_preset);
                 lora.region = region;
                 lora.channel_num = (defaultSlot <= numChannels ? defaultSlot : 1);
+                THIS->showLoRaFrequency(lora);
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
             }
 
             char buf[30];
             const char *userShort = lv_textarea_get_text(objects.setup_user_short_textarea);
             const char *userLong = lv_textarea_get_text(objects.setup_user_long_textarea);
-            if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
+            if (userShort[0] == '\0' && userLong[0] == '\0') {
+                THIS->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
+            } else if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
                 lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
                 lv_label_set_text(objects.basic_settings_user_label, buf);
                 lv_label_set_text(objects.user_name_short_label, userShort);
@@ -5109,8 +5113,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 strcpy(user.short_name, userShort);
                 strcpy(user.long_name, userLong);
                 THIS->controller->sendConfig(user, THIS->ownNode);
+                THIS->notifyReboot(true);
             }
-            THIS->notifyReboot(true);
 
             lv_obj_add_flag(objects.initial_setup_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.home_button);
@@ -5363,11 +5367,8 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 
             std::string current_kbd = THIS->inputdriver->getCurrentKeyboardDevice();
             std::string current_ptr = THIS->inputdriver->getCurrentPointerDevice();
-            if (strcmp(current_kbd.c_str(), _("none")) == 0 && strcmp(current_ptr.c_str(), _("none")) == 0 && THIS->input_group) {
-                lv_group_delete(THIS->input_group);
-                THIS->input_group = nullptr;
-            } else if (strcmp(THIS->old_val1_scratch, current_kbd.c_str()) != 0 ||
-                       strcmp(THIS->old_val2_scratch, current_ptr.c_str()) != 0) {
+            if (strcmp(THIS->old_val1_scratch, current_kbd.c_str()) != 0 ||
+                strcmp(THIS->old_val2_scratch, current_ptr.c_str()) != 0) {
                 THIS->setInputGroup();
             }
 
@@ -6084,9 +6085,14 @@ void TFTView_320x240::addNode(uint32_t nodeNum, uint8_t ch, const char *userShor
     }
 }
 
-void TFTView_320x240::setMyInfo(uint32_t nodeNum)
+void TFTView_320x240::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id)
 {
     ownNode = nodeNum;
+    sprintf(db.device_str, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", device_id.bytes[0],
+            device_id.bytes[1], device_id.bytes[2], device_id.bytes[3], device_id.bytes[4], device_id.bytes[5],
+            device_id.bytes[6], device_id.bytes[7], device_id.bytes[8], device_id.bytes[9], device_id.bytes[10],
+            device_id.bytes[11], device_id.bytes[12], device_id.bytes[13], device_id.bytes[14], device_id.bytes[15]);
+    ILOG_INFO("own node: 0x%02x(%u) device_id: %s", nodeNum, nodeNum, db.device_str);
 }
 
 void TFTView_320x240::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
@@ -7580,7 +7586,7 @@ void TFTView_320x240::backup(uint32_t option)
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
     std::stringstream path;
-    path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+    path << "/keys/" << db.device_str << ".yml";
 
     auto fs = createFileSystem();
     if (!fs) {
@@ -7637,7 +7643,7 @@ void TFTView_320x240::restore(uint32_t option)
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
     std::stringstream path;
-    path << "/keys/" << std::hex << std::setw(8) << std::setfill('0') << ownNode << ".yml";
+    path << "/keys/" << db.device_str << ".yml";
 
     auto fs = createFileSystem();
     if (!fs) {

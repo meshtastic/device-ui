@@ -693,7 +693,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         setupDone = view->setupUIConfig(from.deviceuiConfig);
     } else if (from.which_payload_variant == meshtastic_FromRadio_my_info_tag) {
         const meshtastic_MyNodeInfo &info = from.my_info;
-        view->setMyInfo(info.my_node_num);
+        view->setMyInfo(info.my_node_num, info.device_id);
         myNodeNum = info.my_node_num;
     } else {
         if (setupDone || (from.which_payload_variant == meshtastic_FromRadio_config_tag &&
