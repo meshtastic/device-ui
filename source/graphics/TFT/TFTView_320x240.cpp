@@ -135,6 +135,14 @@ static void kbdSlideAnimCB(void *var, int32_t v)
     lv_obj_set_y((lv_obj_t *)var, v);
 }
 
+static void clearFocusKeyOnPointerPress(lv_event_t *e)
+{
+    auto *group = static_cast<lv_group_t *>(lv_event_get_user_data(e));
+    lv_obj_t *focused = group ? lv_group_get_focused(group) : nullptr;
+    if (focused)
+        lv_obj_remove_state(focused, LV_STATE_FOCUS_KEY);
+}
+
 #if LV_USE_GESTURE_RECOGNITION
 static bool mapDragged = false; // suppresses the node click at the end of a drag
 #endif
@@ -795,33 +803,53 @@ void TFTView_320x240::apply_hotfix(void)
         lv_group_add_obj(group, objects.zoom_out_button);
     }
 
-    // for keyboard control
-    // lv_indev_t *keyboard = inputdriver->getKeyboard();
-    // if (keyboard && groups.mainButtons) {
-    //  main menu button are moved into own group
-    lv_group_remove_obj(objects.home_button);
-    lv_group_remove_obj(objects.nodes_button);
-    lv_group_remove_obj(objects.groups_button);
-    lv_group_remove_obj(objects.messages_button);
-    lv_group_remove_obj(objects.map_button);
-    lv_group_remove_obj(objects.settings_button);
+    if (!displaydriver->hasTouch()) {
+        // for keyboard control
+        // lv_indev_t *keyboard = inputdriver->getKeyboard();
+        // if (keyboard && groups.mainButtons) {
+        //  main menu button are moved into own group
+        lv_group_remove_obj(objects.home_button);
+        lv_group_remove_obj(objects.nodes_button);
+        lv_group_remove_obj(objects.groups_button);
+        lv_group_remove_obj(objects.messages_button);
+        lv_group_remove_obj(objects.map_button);
+        lv_group_remove_obj(objects.settings_button);
 
-    lv_group_add_obj(groups.mainButtons, objects.home_button);
-    lv_group_add_obj(groups.mainButtons, objects.nodes_button);
-    lv_group_add_obj(groups.mainButtons, objects.groups_button);
-    lv_group_add_obj(groups.mainButtons, objects.messages_button);
-    lv_group_add_obj(groups.mainButtons, objects.map_button);
-    lv_group_add_obj(groups.mainButtons, objects.settings_button);
+        lv_group_add_obj(groups.mainButtons, objects.home_button);
+        lv_group_add_obj(groups.mainButtons, objects.nodes_button);
+        lv_group_add_obj(groups.mainButtons, objects.groups_button);
+        lv_group_add_obj(groups.mainButtons, objects.messages_button);
+        lv_group_add_obj(groups.mainButtons, objects.map_button);
+        lv_group_add_obj(groups.mainButtons, objects.settings_button);
 
-    if (defaultPanelGroup) {
-        // These live on non-active screens and should never be reached by keyboard NEXT/PREV traversal.
-        lv_group_remove_obj(objects.bluetooth_button);
-        lv_group_remove_obj(objects.boot_logo_button);
-        lv_group_remove_obj(objects.blank_screen_button);
-        lv_group_remove_obj(objects.screen_lock_button_matrix);
-#if defined(LVGL_DEBUG_FOCUS)
-        lv_group_set_focus_cb(defaultPanelGroup, TFTView_Debug::ui_group_focus_debug_cb);
-#endif
+        if (defaultPanelGroup) {
+            // These live on non-active screens and should never be reached by keyboard NEXT/PREV traversal.
+            lv_group_remove_obj(objects.bluetooth_button);
+            lv_group_remove_obj(objects.boot_logo_button);
+            lv_group_remove_obj(objects.blank_screen_button);
+            lv_group_remove_obj(objects.screen_lock_button_matrix);
+    #if defined(LVGL_DEBUG_FOCUS)
+            lv_group_set_focus_cb(defaultPanelGroup, TFTView_Debug::ui_group_focus_debug_cb);
+    #endif
+        }
+    }
+    else {
+        // bubbling is only needed for key navigation; gesture-related bubbles are re-added below
+        auto clearEventBubble = [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
+            return LV_OBJ_TREE_WALK_NEXT;
+        };
+        lv_obj_t *screens[] = {objects.main_screen, objects.boot_screen, objects.blank_screen, objects.lock_screen,
+                               objects.calibration_screen};
+        for (lv_obj_t *screen : screens) {
+            if (screen)
+                lv_obj_tree_walk(screen, clearEventBubble, NULL);
+        }
+    }
+
+    for (lv_indev_t *indev = lv_indev_get_next(nullptr); indev; indev = lv_indev_get_next(indev)) {
+        if (lv_indev_get_type(indev) == LV_INDEV_TYPE_POINTER)
+            lv_indev_add_event_cb(indev, clearFocusKeyOnPointerPress, LV_EVENT_PRESSED, defaultPanelGroup);
     }
 
     // Keep click/touch behavior, but prevent these controls from becoming focus targets.

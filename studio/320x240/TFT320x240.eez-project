@@ -25327,12 +25327,6 @@
                 "outline_color": "#2196f3",
                 "outline_opa": 180,
                 "border_width": 1
-              },
-              "FOCUSED": {
-                "outline_width": 0,
-                "border_width": 3,
-                "border_opa": 180,
-                "border_color": "#2196f3"
               }
             }
           }

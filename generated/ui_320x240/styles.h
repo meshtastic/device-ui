@@ -31,7 +31,6 @@ void remove_style_settings_panel_style(lv_obj_t *obj);
 // Style: NodePanelStyle
 lv_style_t *get_style_node_panel_style_MAIN_DEFAULT();
 lv_style_t *get_style_node_panel_style_MAIN_FOCUS_KEY();
-lv_style_t *get_style_node_panel_style_MAIN_FOCUSED();
 void add_style_node_panel_style(lv_obj_t *obj);
 void remove_style_node_panel_style(lv_obj_t *obj);
 
