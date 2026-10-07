@@ -78,9 +78,12 @@ inline bool shortNameFallsBackToId(const char *shortName)
     if (length == 0) {
         return true;
     }
-    lv_point_t size;
-    lv_text_get_size(&size, shortName, &ui_font_montserrat_14, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
-    return size.x <= 4;
+#if LV_VERSION_CHECK(9, 3, 0)
+    return lv_txt_get_width(shortName, length, &ui_font_montserrat_14, 0) <= 4;
+#else // 9.5.0
+    lv_text_attributes_t attributes = {0};
+    return lv_text_get_width(shortName, length, &ui_font_montserrat_14, &attributes) <= 4;
+#endif
 }
 
 inline void formatShortDisplayName(char *dest, size_t destSize, const char *shortName, NodeId nodeId)

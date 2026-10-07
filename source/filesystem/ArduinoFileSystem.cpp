@@ -1,6 +1,6 @@
 #include "Arduino.h"
 
-#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)) && !defined(CONFIG_IDF_TARGET_ESP32P4)
+#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)) && !defined(CONFIG_IDF_TARGET_ESP32P4)
 
 #include "filesystem/ArduinoFileSystem.h"
 #include <cstdarg>
