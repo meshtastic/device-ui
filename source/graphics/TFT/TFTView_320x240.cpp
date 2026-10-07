@@ -828,12 +828,11 @@ void TFTView_320x240::apply_hotfix(void)
             lv_group_remove_obj(objects.boot_logo_button);
             lv_group_remove_obj(objects.blank_screen_button);
             lv_group_remove_obj(objects.screen_lock_button_matrix);
-    #if defined(LVGL_DEBUG_FOCUS)
+#if defined(LVGL_DEBUG_FOCUS)
             lv_group_set_focus_cb(defaultPanelGroup, TFTView_Debug::ui_group_focus_debug_cb);
-    #endif
+#endif
         }
-    }
-    else {
+    } else {
         // bubbling is only needed for key navigation; gesture-related bubbles are re-added below
         auto clearEventBubble = [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
             lv_obj_remove_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);

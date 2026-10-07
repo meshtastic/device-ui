@@ -493,9 +493,9 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     lv_obj_t *activeMsgContainer = nullptr;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
-    lv_group_t *defaultPanelGroup = nullptr;         // The default LVGL group for panel content widgets
+    lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets
 
-    enum BasicSettings activeSettings = eNone;       // active settings menu (used to disable other button presses)
+    enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
 
     static TFTView_320x240 *gui; // singleton pattern
     bool screensInitialised;     // true if init_screens is completed
