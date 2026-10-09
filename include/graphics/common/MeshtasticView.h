@@ -74,7 +74,7 @@ class MeshtasticView : public DeviceGUI
 
     // methods to update view
     virtual bool setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig) { return true; }
-    virtual void setMyInfo(uint32_t nodeNum);
+    virtual void setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id);
     virtual void setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                    bool can_shutdown);
     virtual void addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_t lastHeard, eRole role, bool hasKey, bool viaMqtt);
@@ -83,7 +83,7 @@ class MeshtasticView : public DeviceGUI
                          eRole role, bool hasKey, bool viaMqtt);
     virtual void updateNode(uint32_t nodeNum, uint8_t channel, const meshtastic_User &cfg);
     virtual void updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision);
-    virtual void updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil);
+    virtual void updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMetrics &metrics);
     virtual void updateEnvironmentMetrics(uint32_t nodeNum, const meshtastic_EnvironmentMetrics &metrics) {}
     virtual void updateAirQualityMetrics(uint32_t nodeNum, const meshtastic_AirQualityMetrics &metrics) {}
     virtual void updatePowerMetrics(uint32_t nodeNum, const meshtastic_PowerMetrics &metrics) {}
@@ -140,14 +140,15 @@ class MeshtasticView : public DeviceGUI
 
     virtual void notifyRestoreMessages(int32_t percentage) {}
     virtual void notifyMessagesRestored(void);
-    virtual void notifyConnected(const char *info){};
-    virtual void notifyDisconnected(const char *info){};
+    virtual void notifyConnected(const char *info) {};
+    virtual void notifyDisconnected(const char *info) {};
     virtual void notifyResync(bool show);
     virtual void notifyReboot(bool show);
     virtual void notifyShutdown(void);
     virtual void showMessagePopup(const char *from);
 
     virtual void removeNode(uint32_t nodeNum);
+    virtual bool hasKnownNodeForPacket(uint32_t nodeNum) const;
 
     // local update methods
     virtual void updateLastHeard(uint32_t nodeNum);

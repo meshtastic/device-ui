@@ -1,4 +1,5 @@
 #include "graphics/common/MeshtasticView.h"
+#include "graphics/common/NodeListRowPresentation.h"
 #include "graphics/common/ViewController.h"
 #include "graphics/driver/DisplayDriver.h"
 #include "lv_i18n.h"
@@ -47,7 +48,7 @@ bool MeshtasticView::sleep(int16_t pin)
     return controller->sleep(pin);
 }
 
-void MeshtasticView::setMyInfo(uint32_t nodeNum) {}
+void MeshtasticView::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id) {}
 
 void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,
                                        bool can_shutdown)
@@ -81,7 +82,7 @@ void MeshtasticView::updateNode(uint32_t nodeNum, uint8_t channel, const meshtas
 
 void MeshtasticView::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon, int32_t alt, uint32_t sats, uint32_t precision) {}
 
-void MeshtasticView::updateMetrics(uint32_t nodeNum, uint32_t bat_level, float voltage, float chUtil, float airUtil) {}
+void MeshtasticView::updateMetrics(uint32_t nodeNum, const meshtastic_DeviceMetrics &metrics) {}
 
 void MeshtasticView::updateSignalStrength(uint32_t nodeNum, int32_t rssi, float snr) {}
 
@@ -101,18 +102,21 @@ void MeshtasticView::showMessagePopup(const char *from) {}
 
 void MeshtasticView::updateLastHeard(uint32_t nodeNum) {}
 
+bool MeshtasticView::hasKnownNodeForPacket(uint32_t nodeNum) const
+{
+    return nodes.find(nodeNum) != nodes.end();
+}
+
 void MeshtasticView::packetReceived(const meshtastic_MeshPacket &p)
 {
     // if there's a message from a node we don't know (yet), create it with defaults
-    auto it = nodes.find(p.from);
-    if (it == nodes.end()) {
-        MeshtasticView::addOrUpdateNode(p.from, p.channel, 0, eRole::unknown, false, false);
+    if (!hasKnownNodeForPacket(p.from)) {
+        addOrUpdateNode(p.from, p.channel, 0, eRole::unknown, false, false);
         updateLastHeard(p.from);
     }
     if (p.to != ownNode && p.to != 0xffffffff) {
-        auto it = nodes.find(p.to);
-        if (it == nodes.end()) {
-            MeshtasticView::addOrUpdateNode(p.to, p.channel, 0, eRole::unknown, false, false);
+        if (!hasKnownNodeForPacket(p.to)) {
+            addOrUpdateNode(p.to, p.channel, 0, eRole::unknown, false, false);
             updateLastHeard(p.to);
         }
     }
@@ -129,16 +133,7 @@ void MeshtasticView::removeNode(uint32_t nodeNum) {}
  */
 std::tuple<uint32_t, uint32_t> MeshtasticView::nodeColor(uint32_t nodeNum)
 {
-    uint32_t red = (nodeNum & 0xff0000) >> 16;
-    uint32_t green = (nodeNum & 0xff00) >> 8;
-    uint32_t blue = (nodeNum & 0xff);
-    while (red + green + blue < 0xF0) {
-        red += red / 3 + 10;
-        green += green / 3 + 10;
-        blue += blue / 3 + 10;
-    }
-
-    return std::make_tuple((red << 16) | (green << 8) | blue, (2 * red + 2 * green + blue) > 600 ? 0x000000 : 0xFFFFFF);
+    return NodeListRowPresentation::nodeColors(nodeNum);
 }
 
 /**
@@ -214,7 +209,7 @@ bool MeshtasticView::base64ToPsk(const std::string &base64, uint8_t *bytes, uint
     std::string out;
     auto error = macaron::Base64::Decode(base64, out);
     if (!error.empty()) {
-        ILOG_ERROR("Cannot decode '%s'", base64);
+        ILOG_ERROR("Failed to decode %d bytes long string", base64.size());
         return false;
     } else {
         memcpy((char *)bytes, out.data(), out.size());

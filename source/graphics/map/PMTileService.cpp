@@ -156,7 +156,7 @@ bool PMTileService::loadFromArchive(uint32_t z, uint32_t x, uint32_t y, void *im
             }
             {
                 if (!archiveFS->readAt(dir_offset, dirBuffer, dir_length)) {
-                    ILOG_ERROR("Failed to read %u bytes of pmtiles directory at %llu", (unsigned int)dir_length,
+                    ILOG_ERROR("Failed to read %u bytes of pmtiles directory at %u", (unsigned int)dir_length,
                                (unsigned long long)dir_offset);
                     lv_free(dirBuffer);
                     return false;

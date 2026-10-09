@@ -2,7 +2,7 @@
 
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
-#include <TouchDrvCSTXXX.hpp>
+#include <TouchDrvCST.hpp>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
@@ -50,19 +50,20 @@ class LGFX_Touch : public lgfx::LGFX_Device
     {
         EventBits_t bits = xEventGroupGetBits(eventGrp);
         if (bits & HW_IRQ_TOUCHPAD) {
-            uint8_t tp = touchDrv.getPoint((int16_t *)touchX, (int16_t *)touchY, 1);
-            if (tp == 0) {
+            const TouchPoints &points = touchDrv.getTouchPoints();
+            if (!points.hasPoints()) {
                 xEventGroupClearBits(eventGrp, HW_IRQ_TOUCHPAD);
+                return false;
             }
-            return tp;
+            *touchX = points.getPoint(0).x;
+            *touchY = points.getPoint(0).y;
+            return true;
         }
-        return 0;
+        return false;
     }
 
     void wakeup(void) {} // TODO: use EXPANDS_TOUCH_RST
-    void sleep(void)
-    { /* touchDrv.sleep(); */
-    }
+    void sleep(void) { /* touchDrv.sleep(); */ }
 
   private:
     TouchDrvCST92xx touchDrv;

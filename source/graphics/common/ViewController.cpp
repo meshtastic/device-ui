@@ -693,7 +693,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         setupDone = view->setupUIConfig(from.deviceuiConfig);
     } else if (from.which_payload_variant == meshtastic_FromRadio_my_info_tag) {
         const meshtastic_MyNodeInfo &info = from.my_info;
-        view->setMyInfo(info.my_node_num);
+        view->setMyInfo(info.my_node_num, info.device_id);
         myNodeNum = info.my_node_num;
     } else {
         if (setupDone || (from.which_payload_variant == meshtastic_FromRadio_config_tag &&
@@ -722,8 +722,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
                                          node.position.precision_bits);
                 }
                 if (node.has_device_metrics) {
-                    view->updateMetrics(node.num, node.device_metrics.battery_level, node.device_metrics.voltage,
-                                        node.device_metrics.channel_utilization, node.device_metrics.air_util_tx);
+                    view->updateMetrics(node.num, node.device_metrics);
                 }
                 break;
             }
@@ -980,9 +979,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Telemetry_msg, &telemetry)) {
             switch (telemetry.which_variant) {
             case meshtastic_Telemetry_device_metrics_tag: {
-                meshtastic_DeviceMetrics &metrics = telemetry.variant.device_metrics;
-                view->updateMetrics(p.from, metrics.battery_level, metrics.voltage, metrics.channel_utilization,
-                                    metrics.air_util_tx);
+                view->updateMetrics(p.from, telemetry.variant.device_metrics);
                 break;
             }
             case meshtastic_Telemetry_environment_metrics_tag: {
