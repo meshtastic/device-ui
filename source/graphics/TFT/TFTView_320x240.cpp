@@ -7317,19 +7317,19 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool unmessagab
         source = &img_unmessagable_image;
     } else {
         switch (role) {
-        case client:
         case client_mute:
-        case client_hidden:
-        case tak: {
+        case client_hidden: {
             source = &img_node_client_image;
             break;
         }
-        case router_client: {
+        case tak:
+        case client: {
             source = &img_top_nodes_image;
             break;
         }
         case repeater:
         case router:
+        case router_client: 
         case router_late: {
             source = &img_node_router_image;
             break;
