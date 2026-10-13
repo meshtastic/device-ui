@@ -7329,7 +7329,7 @@ void TFTView_320x240::setNodeImage(uint32_t nodeNum, eRole role, bool unmessagab
         }
         case repeater:
         case router:
-        case router_client: 
+        case router_client:
         case router_late: {
             source = &img_node_router_image;
             break;
