@@ -61,7 +61,11 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 {
     I2CKeyboardInputDriver *driver = nullptr;
 #ifndef ARCH_PORTDUINO
+#ifdef SCAN_SKIP_TCA8418 // board has a non-keyboard device ACKing at 0x34
+    uint8_t i2cKeyboards_bus0[] = {SCAN_CARDKB_ADDR, SCAN_BBQ10_KB_ADDR, SCAN_MPR121_KB_ADDR};
+#else
     uint8_t i2cKeyboards_bus0[] = {SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR, SCAN_BBQ10_KB_ADDR, SCAN_MPR121_KB_ADDR};
+#endif
 #if WIRE_INTERFACES_COUNT >= 2
     uint8_t i2cKeyboards_bus1[] = {SCAN_CARDKB_ADDR, SCAN_TM9_KB_ADDR};
 #endif
@@ -137,6 +141,10 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 #else
         TwoWire &bus1 = Wire1;
         ILOG_DEBUG("I2CKeyboardScanner scanning bus 1 ...");
+#ifdef I2C_SDA1
+        ILOG_DEBUG("sda(%d), scl(%d)", I2C_SDA1, I2C_SCL1);
+        bus1.setPins(I2C_SDA1, I2C_SCL1);
+#endif
 #endif
         for (uint8_t i = 0; i < sizeof(i2cKeyboards_bus1); i++) {
             uint8_t address = i2cKeyboards_bus1[i];
