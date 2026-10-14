@@ -109,6 +109,7 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
   - [x] Display sleep
   - [x] Heartbeat timer based on device input actions
 - [x] Localisation support
+  - [x] Azerbaijani translation
   - [x] Bulgarian translation
   - [x] Czech translation
   - [x] Danish translation
