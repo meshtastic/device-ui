@@ -152,10 +152,12 @@ void setRoleImage(const NodeRecord &record, lv_obj_t *img)
         switch (record.user.role) {
         case meshtastic_Config_DeviceConfig_Role_ROUTER:
         case meshtastic_Config_DeviceConfig_Role_REPEATER:
+        case meshtastic_Config_DeviceConfig_Role_ROUTER_CLIENT:
         case meshtastic_Config_DeviceConfig_Role_ROUTER_LATE:
             source = &img_node_router_image;
             break;
-        case meshtastic_Config_DeviceConfig_Role_ROUTER_CLIENT:
+        case meshtastic_Config_DeviceConfig_Role_CLIENT:
+        case meshtastic_Config_DeviceConfig_Role_TAK:
             source = &img_top_nodes_image;
             break;
         case meshtastic_Config_DeviceConfig_Role_TRACKER:
@@ -164,10 +166,8 @@ void setRoleImage(const NodeRecord &record, lv_obj_t *img)
         case meshtastic_Config_DeviceConfig_Role_TAK_TRACKER:
             source = &img_node_sensor_image;
             break;
-        case meshtastic_Config_DeviceConfig_Role_CLIENT:
         case meshtastic_Config_DeviceConfig_Role_CLIENT_MUTE:
         case meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN:
-        case meshtastic_Config_DeviceConfig_Role_TAK:
             source = &img_node_client_image;
             break;
         default:
