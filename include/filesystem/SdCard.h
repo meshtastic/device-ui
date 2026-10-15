@@ -9,6 +9,7 @@ extern fs::FS &SDFs;
 #elif defined(HAS_SD_MMC)
 #include "SD_MMC.h"             // TODO: replace by SdFat SDIO
 extern fs::SDMMCFS &SDFs;
+using fs::File;
 #elif defined(SDCARD_SHARE_SPI) // share SPI instance with main project
 #include "SD.h"
 #include <stdint.h>
