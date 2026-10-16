@@ -45,10 +45,12 @@ void service_requests(void)
         if (lv_display_t *display = displaydriver->getDisplay())
             lv_display_trigger_activity(display);
     }
-    if (fullRefreshRequested.exchange(false, std::memory_order_acquire)) {
-        lv_obj_invalidate(lv_screen_active());
-        lv_obj_invalidate(lv_layer_top());
-        lv_obj_invalidate(lv_layer_sys());
+    if (fullRefreshRequested.exchange(false, std::memory_order_acquire) && displaydriver) {
+        if (lv_display_t *display = displaydriver->getDisplay()) {
+            lv_obj_invalidate(lv_display_get_screen_active(display));
+            lv_obj_invalidate(lv_display_get_layer_top(display));
+            lv_obj_invalidate(lv_display_get_layer_sys(display));
+        }
     }
 }
 
@@ -176,18 +178,25 @@ void DisplayMirror::start(DisplayDriver *driver)
         lv_group_set_default(group);
     }
 
+    // lv_indev_create() binds to the default display; bind to the mirrored one instead
     keypad = lv_indev_create();
+    if (display)
+        lv_indev_set_display(keypad, display);
     lv_indev_set_type(keypad, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_read_cb(keypad, keypad_read);
     lv_indev_set_group(keypad, group);
 
     encoder = lv_indev_create();
+    if (display)
+        lv_indev_set_display(encoder, display);
     lv_indev_set_type(encoder, LV_INDEV_TYPE_ENCODER);
     lv_indev_set_read_cb(encoder, encoder_read);
     lv_indev_set_group(encoder, group);
 
     const uint16_t longPressTime = touch_long_press_time();
     pointer = lv_indev_create();
+    if (display)
+        lv_indev_set_display(pointer, display);
     lv_indev_set_type(pointer, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(pointer, pointer_read);
     if (longPressTime)
