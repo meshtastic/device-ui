@@ -3,6 +3,7 @@
 #define LGFX_USE_V1
 #include "Wire.h"
 #include "util/ILog.h"
+#include "util/ISpiLock.h"
 #include <LovyanGFX.hpp>
 
 #ifndef SPI_FREQUENCY
@@ -76,6 +77,8 @@ class Wio_Tracker_Light : public lgfx::v1::ILight
   private:
     bool writeReg(uint8_t reg, uint8_t value)
     {
+        // GT911 touch drives I2C0 through LovyanGFX's own register-level driver, not Wire's lock
+        ISpiLock::Guard bus;
         Wire.beginTransmission(LP5814_I2C_ADDR_DEFAULT);
         Wire.write(reg);
         Wire.write(value);

@@ -46,7 +46,7 @@ class InputDriver
     static lv_group_t *getInputGroup(void) { return inputGroup; }
 
   protected:
-    InputDriver(void) : keyboardDevice("none"), pointerDevice("none") {}
+    InputDriver(void) { driver = this; }
     static InputDriver *driver;
     static lv_indev_t *keyboard;
     static lv_indev_t *pointer;
@@ -55,6 +55,6 @@ class InputDriver
     static lv_group_t *inputGroup;
 
     // used for linux hot plugging and unplugging
-    std::string keyboardDevice; // current keyboard device string in use
-    std::string pointerDevice;  // current pointer device string in use
+    static std::string keyboardDevice; // current keyboard device string in use
+    static std::string pointerDevice;  // current pointer device string in use
 };
