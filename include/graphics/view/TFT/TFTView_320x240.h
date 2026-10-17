@@ -267,6 +267,10 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void updateTheme(void);
     void ui_events_init(void);
     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
+    void showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
+    void focusActivePanel(void);
+    void setPanelInputContext(void);
+    void previewMainButton(lv_obj_t *button);
     void showKeyboard(lv_obj_t *textArea);
     void hideKeyboard(lv_obj_t *panel);
     // abort a running slide animation and restore panel/keyboard position at once
@@ -367,6 +371,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     static void ui_event_MessagesButton(lv_event_t *e);
     static void ui_event_MapButton(lv_event_t *e);
     static void ui_event_SettingsButton(lv_event_t *e);
+    static void ui_event_MainButtonFocused(lv_event_t *e);
 
     static void ui_event_ScreenKey(lv_event_t *e);
     static void ui_event_MapPanel(lv_event_t *e);

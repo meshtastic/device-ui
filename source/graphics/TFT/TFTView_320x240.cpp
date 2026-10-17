@@ -170,6 +170,15 @@ static lv_obj_t *firstFocusable(lv_obj_t *root, lv_group_t *group)
     return search.found;
 }
 
+static bool isInside(const lv_obj_t *obj, const lv_obj_t *ancestor)
+{
+    for (; obj; obj = lv_obj_get_parent(obj)) {
+        if (obj == ancestor)
+            return true;
+    }
+    return false;
+}
+
 #if LV_USE_GESTURE_RECOGNITION
 static bool mapDragged = false; // suppresses the node click at the end of a drag
 #endif
@@ -688,6 +697,54 @@ void TFTView_320x240::init_screens(void)
  */
 void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
 {
+    showActivePanel(b, p, tp);
+    focusActivePanel();
+}
+
+/**
+ * @brief reset the input context for key navigation inside the active panel
+ */
+void TFTView_320x240::setPanelInputContext(void)
+{
+    if (activePanel == objects.map_panel) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Map);
+    } else {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+    }
+    input_policy::InputContextState::instance().setEditMode(false);
+    input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+}
+
+/**
+ * @brief move input group and focus into the active panel
+ */
+void TFTView_320x240::focusActivePanel(void)
+{
+    setInputGroup(defaultPanelGroup);
+    setPanelInputContext();
+
+    if (activePanel == objects.messages_panel) {
+        lv_group_focus_obj(objects.message_input_area);
+    } else { // if (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice()) {
+        if (activePanel == objects.nodes_panel && virtualNodeList) {
+            reconcileVirtualNodeListInputGroup(true);
+            if (currentNode && visibleNodes.contains(currentNode)) {
+                virtualNodeList->focus(currentNode);
+            } else if (!visibleNodes.ids().empty()) {
+                virtualNodeList->focus(visibleNodes.ids().front());
+            } else {
+                nodeFocusBoundary(true);
+            }
+        } else
+            setGroupFocus(activePanel);
+    }
+}
+
+/**
+ * @brief switch active button, panel and top panel without touching input group and focus
+ */
+void TFTView_320x240::showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
+{
     if (activeButton) {
         lv_obj_set_style_border_width(activeButton, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         if (Themes::get() == Themes::eDark)
@@ -704,7 +761,6 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
         lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
         if (activePanel == objects.nodes_panel) {
             lv_obj_add_flag(objects.nodes_panel, LV_OBJ_FLAG_HIDDEN);
-            setInputGroup(defaultPanelGroup);
             virtualNodeListInputVisibilityKnown = false;
         }
         if (activePanel == objects.messages_panel) {
@@ -743,36 +799,51 @@ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     activeButton = b;
     activePanel = p;
     lastMainButton = b; // Track which main button was selected for ESC return
-
-    setInputGroup(defaultPanelGroup);
     input_policy::InputContextState::instance().setActivePanelId((uint32_t)(uintptr_t)activePanel);
-    if (activePanel == objects.map_panel) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Map);
-    } else {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-    }
-    input_policy::InputContextState::instance().setEditMode(false);
-    input_policy::InputContextState::instance().setCanLeaveEditMode(false);
-
-    if (activePanel == objects.messages_panel) {
-        lv_group_focus_obj(objects.message_input_area);
-    } else { // if (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice()) {
-        if (activePanel == objects.nodes_panel && virtualNodeList) {
-            reconcileVirtualNodeListInputGroup(true);
-            if (currentNode && visibleNodes.contains(currentNode)) {
-                virtualNodeList->focus(currentNode);
-            } else if (!visibleNodes.ids().empty()) {
-                virtualNodeList->focus(visibleNodes.ids().front());
-            } else {
-                nodeFocusBoundary(true);
-            }
-        } else
-            setGroupFocus(activePanel);
-    }
 
     lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN);
     activeSettings = eNone;
+}
+
+/**
+ * @brief show the panel of a main menu button while the focus stays in the button menu
+ */
+void TFTView_320x240::previewMainButton(lv_obj_t *button)
+{
+    if (activeSettings != eNone || button == activeButton)
+        return;
+
+    // the default group is the button menu here; panel widgets created on the way belong to the panel group
+    GroupGuard group_guard(defaultPanelGroup);
+    if (button == objects.home_button) {
+        showActivePanel(button, objects.home_panel, objects.top_panel);
+    } else if (button == objects.nodes_button) {
+        showActivePanel(button, objects.nodes_panel, objects.top_nodes_panel);
+    } else if (button == objects.groups_button) {
+        showActivePanel(button, objects.groups_panel, objects.top_groups_panel);
+    } else if (button == objects.messages_button) {
+        if (messagesRestored)
+            showActivePanel(button, objects.chats_panel, objects.top_chats_panel);
+    } else if (button == objects.map_button) {
+        showActivePanel(button, objects.map_panel, objects.top_map_panel);
+        loadMap();
+    } else if (button == objects.settings_button) {
+        if (!db.uiConfig.settings_lock)
+            showActivePanel(button, objects.controller_panel, objects.top_settings_panel);
+    }
+}
+
+void TFTView_320x240::ui_event_MainButtonFocused(lv_event_t *e)
+{
+    lv_obj_t *button = lv_event_get_current_target_obj(e);
+    lv_indev_t *indev = lv_indev_active();
+    if (!indev || lv_indev_get_type(indev) != LV_INDEV_TYPE_KEYPAD || lv_obj_get_group(button) != groups.mainButtons)
+        return;
+    // only when stepping through the button menu, not when focus returns to it
+    const uint32_t key = lv_indev_get_key(indev);
+    if (key == LV_KEY_NEXT || key == LV_KEY_PREV)
+        THIS->previewMainButton(button);
 }
 
 void TFTView_320x240::enterProgrammingMode(void)
@@ -1152,6 +1223,9 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.messages_button, this->ui_event_MessagesButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.map_button, this->ui_event_MapButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.settings_button, this->ui_event_SettingsButton, LV_EVENT_ALL, NULL);
+    for (lv_obj_t *button : {objects.home_button, objects.nodes_button, objects.groups_button, objects.messages_button,
+                             objects.map_button, objects.settings_button})
+        lv_obj_add_event_cb(button, ui_event_MainButtonFocused, LV_EVENT_FOCUSED, NULL);
 
     lv_obj_add_event_cb(objects.button_panel, this->ui_event_ButtonPanel, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.map_panel, this->ui_event_MapPanel, LV_EVENT_KEY, NULL);
@@ -1732,21 +1806,18 @@ void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
         }
         case LV_KEY_RIGHT: {
             // move to visible object on right pane; restore the last focused object in the panel group
+            lv_obj_t *lastFocused = lv_group_get_focused(THIS->defaultPanelGroup);
             if (THIS->activePanel == objects.nodes_panel && THIS->virtualNodeList && !THIS->visibleNodes.empty()) {
                 THIS->reconcileVirtualNodeListInputGroup(true);
-            } else {
-                lv_obj_t *lastFocused = lv_group_get_focused(THIS->defaultPanelGroup);
+                THIS->setPanelInputContext();
+            } else if (isInside(lastFocused, THIS->activePanel)) {
                 THIS->setInputGroup(THIS->defaultPanelGroup);
-                if (lastFocused)
-                    lv_group_focus_obj(lastFocused);
-            }
-            if (THIS->activePanel == objects.map_panel) {
-                input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Map);
+                lv_group_focus_obj(lastFocused);
+                THIS->setPanelInputContext();
             } else {
-                input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+                // panel was only previewed from the button menu
+                THIS->focusActivePanel();
             }
-            input_policy::InputContextState::instance().setEditMode(false);
-            input_policy::InputContextState::instance().setCanLeaveEditMode(false);
             lv_event_stop_processing(e);
             break;
         }
@@ -1872,7 +1943,10 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
             ignoreClicked = false;
             return;
         }
-        if (THIS->activePanel == objects.map_panel) {
+        // from the button menu the (previewed) map is entered instead of toggling its controls
+        const bool fromButtonMenu = THIS->inputdriver->hasKeyboardDevice() &&
+                                    lv_indev_get_group(THIS->inputdriver->getKeyboard()) == groups.mainButtons;
+        if (THIS->activePanel == objects.map_panel && !fromButtonMenu) {
             input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Map);
             // toggle navigation and zoom slider
             static bool toggle = true;
