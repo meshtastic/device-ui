@@ -722,22 +722,7 @@ void TFTView_320x240::focusActivePanel(void)
 {
     setInputGroup(defaultPanelGroup);
     setPanelInputContext();
-
-    if (activePanel == objects.messages_panel) {
-        lv_group_focus_obj(objects.message_input_area);
-    } else { // if (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice()) {
-        if (activePanel == objects.nodes_panel && virtualNodeList) {
-            reconcileVirtualNodeListInputGroup(true);
-            if (currentNode && visibleNodes.contains(currentNode)) {
-                virtualNodeList->focus(currentNode);
-            } else if (!visibleNodes.ids().empty()) {
-                virtualNodeList->focus(visibleNodes.ids().front());
-            } else {
-                nodeFocusBoundary(true);
-            }
-        } else
-            setGroupFocus(activePanel);
-    }
+    setGroupFocus(activePanel);
 }
 
 /**
@@ -1808,7 +1793,13 @@ void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
             // move to visible object on right pane; restore the last focused object in the panel group
             lv_obj_t *lastFocused = lv_group_get_focused(THIS->defaultPanelGroup);
             if (THIS->activePanel == objects.nodes_panel && THIS->virtualNodeList && !THIS->visibleNodes.empty()) {
-                THIS->reconcileVirtualNodeListInputGroup(true);
+                const NodeId lastNode = THIS->virtualNodeList->lastFocusedNode();
+                if (lastNode && THIS->visibleNodes.contains(lastNode)) {
+                    THIS->reconcileVirtualNodeListInputGroup(true);
+                    THIS->virtualNodeList->focus(lastNode);
+                } else {
+                    THIS->setGroupFocus(objects.nodes_panel);
+                }
                 THIS->setPanelInputContext();
             } else if (isInside(lastFocused, THIS->activePanel)) {
                 THIS->setInputGroup(THIS->defaultPanelGroup);
@@ -8068,6 +8059,15 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
         lv_group_focus_obj(objects.home_mail_button);
     } else if (panel == objects.nodes_panel) {
         reconcileVirtualNodeListInputGroup(true);
+        if (virtualNodeList) {
+            if (currentNode && visibleNodes.contains(currentNode)) {
+                virtualNodeList->focus(currentNode);
+            } else if (!visibleNodes.ids().empty()) {
+                virtualNodeList->focus(visibleNodes.ids().front());
+            } else {
+                nodeFocusBoundary(true);
+            }
+        }
     } else if (panel == objects.groups_panel) {
         lv_group_focus_obj(objects.channel_button0);
     } else if (panel == objects.messages_panel) {
