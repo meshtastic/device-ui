@@ -145,6 +145,31 @@ static void clearFocusKeyOnPointerPress(lv_event_t *e)
         lv_obj_remove_state(focused, LV_STATE_FOCUS_KEY);
 }
 
+// first visible and enabled widget below root that belongs to group
+static lv_obj_t *firstFocusable(lv_obj_t *root, lv_group_t *group)
+{
+    struct Search {
+        lv_group_t *group;
+        lv_obj_t *found;
+    } search{group, nullptr};
+    if (!root)
+        return nullptr;
+    lv_obj_tree_walk(
+        root,
+        [](lv_obj_t *obj, void *user) -> lv_obj_tree_walk_res_t {
+            auto *s = static_cast<Search *>(user);
+            if (lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN))
+                return LV_OBJ_TREE_WALK_SKIP_CHILDREN;
+            if (lv_obj_get_group(obj) == s->group && !lv_obj_has_state(obj, LV_STATE_DISABLED)) {
+                s->found = obj;
+                return LV_OBJ_TREE_WALK_END;
+            }
+            return LV_OBJ_TREE_WALK_NEXT;
+        },
+        &search);
+    return search.found;
+}
+
 #if LV_USE_GESTURE_RECOGNITION
 static bool mapDragged = false; // suppresses the node click at the end of a drag
 #endif
@@ -1695,9 +1720,12 @@ void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
             break;
         }
         case LV_KEY_LEFT: {
-            // use left key in main menu also as long press
+            // left key in main menu acts as a complete long press, incl. the CLICKED handlers expect after it
             if (THIS->activeSettings == eNone) {
-                lv_obj_send_event(lv_event_get_target_obj(e), LV_EVENT_LONG_PRESSED, nullptr);
+                lv_obj_t *button = lv_event_get_target_obj(e);
+                if (lv_obj_send_event(button, LV_EVENT_LONG_PRESSED, nullptr) == LV_RESULT_OK &&
+                    lv_obj_send_event(button, LV_EVENT_RELEASED, nullptr) == LV_RESULT_OK)
+                    lv_obj_send_event(button, LV_EVENT_CLICKED, nullptr);
                 lv_event_stop_processing(e);
             }
             break;
@@ -7991,6 +8019,11 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::ButtonMatrix);
     } else if (panel == objects.controller_panel) {
         lv_group_focus_obj(objects.basic_settings_user_button);
+    } else if (panel == objects.node_options_panel) {
+        lv_obj_t *pages = lv_tabview_get_content(objects.node_options_tab_view);
+        lv_obj_t *page = lv_obj_get_child(pages, (int32_t)lv_tabview_get_tab_active(objects.node_options_tab_view));
+        if (lv_obj_t *first = firstFocusable(page, defaultPanelGroup))
+            lv_group_focus_obj(first);
     } else {
         ILOG_DEBUG("focus: children count: %d", lv_obj_get_child_count(panel));
         for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
