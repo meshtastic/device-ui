@@ -559,14 +559,18 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         dispatcher.registerHandler(input_policy::UICommand::SendPing, [this](const input_policy::CommandPayload &) {
             if (screenLocked)
                 return;
-            const auto context = input_policy::InputContextState::instance().getSnapshot();
-            if (context.focusSemantic == input_policy::FocusSemantic::Map) {
-                // toggle gpsLock checked state
-                lv_obj_set_state(objects.gps_lock_button, LV_STATE_CHECKED,
-                                 !lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED));
-                lv_obj_send_event(objects.gps_lock_button, LV_EVENT_CLICKED, NULL);
-            } else {
-                controller->sendPing();
+            if (db.config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED) {
+                const auto context = input_policy::InputContextState::instance().getSnapshot();
+                if (context.focusSemantic == input_policy::FocusSemantic::Map ||
+                    context.focusSemantic == input_policy::FocusSemantic::MapZoom ||
+                    context.focusSemantic == input_policy::FocusSemantic::MapControls) {
+                    // toggle gpsLock checked state
+                    lv_obj_set_state(objects.gps_lock_button, LV_STATE_CHECKED,
+                                     !lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED));
+                    lv_obj_send_event(objects.gps_lock_button, LV_EVENT_CLICKED, NULL);
+                } else {
+                    controller->sendPing();
+                }
             }
         });
         // TODO: implement LeaveEditMode
