@@ -25,6 +25,10 @@ PolicyDecision FocusTraversalPolicy::evaluate(const InputEvent &event, const Inp
         POLICY_DEBUG("[FocusTraversal] Keeping up/down for button matrix navigation");
         return PolicyDecision{}; // pass through UP/DOWN/LEFT/RIGHT unchanged
     }
+    if (context.focusSemantic == FocusSemantic::Dropdown && context.isEditMode) {
+        POLICY_DEBUG("[FocusTraversal] Keeping up/down for open dropdown list");
+        return PolicyDecision{};
+    }
     PolicyDecision decision{};
     if (event.action == InputAction::NavigateUp) {
         decision.type = DecisionType::Remap;

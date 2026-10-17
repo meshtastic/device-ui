@@ -15,10 +15,12 @@
 #include "graphics/map/MapPanel.h"
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
+#include "graphics/view/TFT/DropdownKeyNavigation.h"
 #include "graphics/view/TFT/TFTView_Debug.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/InputDriver.h"
+#include "input/KeypadReleaseGuard.h"
 #include "input/policy/InputContextState.h"
 #include "input/policy/UICommandDispatcher.h"
 #include "lv_i18n.h"
@@ -849,6 +851,8 @@ void TFTView_320x240::apply_hotfix(void)
     for (lv_indev_t *indev = lv_indev_get_next(nullptr); indev; indev = lv_indev_get_next(indev)) {
         if (lv_indev_get_type(indev) == LV_INDEV_TYPE_POINTER)
             lv_indev_add_event_cb(indev, clearFocusKeyOnPointerPress, LV_EVENT_PRESSED, defaultPanelGroup);
+        else if (lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD)
+            KeypadReleaseGuard::attach(indev);
     }
 
     // Keep click/touch behavior, but prevent these controls from becoming focus targets.
@@ -962,6 +966,7 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_add_event_cb(objects.tab_page_tools, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_filter, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_highlight, ui_event_tab_page, LV_EVENT_KEY, NULL);
+    DropdownKeyNavigation::attach(objects.main_screen);
     // add key navigation for about panel
     lv_group_add_obj(defaultPanelGroup, objects.settings_about_panel);
     lv_group_add_obj(defaultPanelGroup, objects.tools_statistics_panel);
@@ -5363,6 +5368,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 }
                 if (strcmp(new_val_kbd, _("none")) != 0) {
                     error &= THIS->inputdriver->useKeyboardDevice(new_val_kbd);
+                    KeypadReleaseGuard::attach(THIS->inputdriver->getKeyboard());
                 }
             }
             if (strcmp(THIS->old_val2_scratch, new_val_ptr) != 0) {
