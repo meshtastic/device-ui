@@ -122,6 +122,25 @@ TEST_CASE("escape closes an open dropdown without reaching the surrounding dialo
     CHECK(f.parentKeys == expected);
 }
 
+TEST_CASE("escape on a closed non-bubbling dropdown still reaches its parent")
+{
+    DropdownFixture f;
+    lv_obj_remove_flag(f.dropdown, LV_OBJ_FLAG_EVENT_BUBBLE);
+
+    f.sendKey(LV_KEY_LEFT);
+    CHECK(f.parentKeys.empty());
+
+    f.sendKey(LV_KEY_ESC);
+    const std::vector<uint32_t> expected{LV_KEY_ESC};
+    CHECK(f.parentKeys == expected);
+
+    lv_dropdown_open(f.dropdown);
+    f.parentKeys.clear();
+    f.sendKey(LV_KEY_ESC);
+    CHECK_FALSE(lv_dropdown_is_open(f.dropdown));
+    CHECK(f.parentKeys.empty());
+}
+
 TEST_CASE("deleting an open dropdown leaves edit mode")
 {
     DropdownFixture f;

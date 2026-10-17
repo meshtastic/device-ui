@@ -51,9 +51,15 @@ void handleKey(lv_event_t *e, lv_obj_t *dropdown)
         lv_obj_t *parent = lv_obj_get_parent(dropdown);
         if (!open && parent && lv_obj_has_flag(dropdown, LV_OBJ_FLAG_EVENT_BUBBLE))
             lv_obj_send_event(parent, LV_EVENT_KEY, lv_event_get_param(e));
-    } else if (key == LV_KEY_ESC && open) {
-        // close the list only, not the dialog around it
-        lv_event_stop_bubbling(e);
+    } else if (key == LV_KEY_ESC) {
+        lv_obj_t *parent = lv_obj_get_parent(dropdown);
+        if (open) {
+            // close the list only, not the dialog around it
+            lv_event_stop_bubbling(e);
+        } else if (parent && !lv_obj_has_flag(dropdown, LV_OBJ_FLAG_EVENT_BUBBLE)) {
+            // generated dropdowns don't bubble, but ESC must still leave the panel or dialog
+            lv_obj_send_event(parent, LV_EVENT_KEY, lv_event_get_param(e));
+        }
     }
 }
 
