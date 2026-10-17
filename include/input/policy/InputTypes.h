@@ -28,6 +28,8 @@ enum class FocusSemantic {
     Keyboard,     // virtual keyboard visible: UP/DOWN still remap to PREV/NEXT (LVGL has no row awareness)
     ButtonMatrix, // PIN pad: pass through all directional keys, no PREV/NEXT remap
     Dropdown,     // dropdown list open (edit mode): UP/DOWN move the selection, no PREV/NEXT remap
+    MapZoom,      // map: UP/DOWN zoom, LEFT/RIGHT pan, no PREV/NEXT remap
+    MapControls,  // map buttons: regular focus traversal
 };
 
 // Defines normalized high-level actions resolved from raw input.

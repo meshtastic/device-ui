@@ -771,6 +771,9 @@ void TFTView_320x240::showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     lv_obj_clear_flag(p, LV_OBJ_FLAG_HIDDEN);
     if (p == objects.nodes_panel) {
         ensureVirtualNodeList();
+    } else if (p == objects.map_panel && !displaydriver->hasTouch()) {
+        // without touch the map buttons only appear in map controls mode
+        showMapControls(false);
     }
 
     if (tp) {
@@ -1407,6 +1410,17 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.zoom_in_button, ui_event_zoomIn, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.zoom_out_button, ui_event_zoomOut, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.gps_lock_button, ui_event_lockGps, LV_EVENT_CLICKED, NULL);
+    // direction keys would toggle the checkable gps lock button without applying the lock
+    lv_obj_add_event_cb(
+        objects.gps_lock_button,
+        [](lv_event_t *e) {
+            const uint32_t key = lv_event_get_key(e);
+            if (key == LV_KEY_LEFT || key == LV_KEY_RIGHT || key == LV_KEY_UP || key == LV_KEY_DOWN) {
+                lv_event_stop_processing(e);
+                lv_obj_send_event(objects.map_panel, LV_EVENT_KEY, lv_event_get_param(e));
+            }
+        },
+        (lv_event_code_t)(LV_EVENT_KEY | LV_EVENT_PREPROCESS), NULL);
     lv_obj_add_event_cb(objects.map_brightness_slider, ui_event_mapBrightnessSlider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_contrast_slider, ui_event_mapContrastSlider, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
@@ -1801,12 +1815,12 @@ void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
                     THIS->setGroupFocus(objects.nodes_panel);
                 }
                 THIS->setPanelInputContext();
-            } else if (isInside(lastFocused, THIS->activePanel)) {
+            } else if (THIS->activePanel != objects.map_panel && isInside(lastFocused, THIS->activePanel)) {
                 THIS->setInputGroup(THIS->defaultPanelGroup);
                 lv_group_focus_obj(lastFocused);
                 THIS->setPanelInputContext();
             } else {
-                // panel was only previewed from the button menu
+                // panel was only previewed from the button menu, or the map which always starts panning
                 THIS->focusActivePanel();
             }
             lv_event_stop_processing(e);
@@ -1847,8 +1861,38 @@ void TFTView_320x240::ui_event_scroll_panel(lv_event_t *e)
     }
 }
 
+/**
+ * @brief switch the map key handling between panning, zooming and navigating the map buttons
+ */
+void TFTView_320x240::setMapInputState(input_policy::FocusSemantic semantic)
+{
+    const bool controls = semantic == input_policy::FocusSemantic::MapControls;
+    if (controls)
+        showMapControls(true);
+    lv_group_focus_obj(objects.nav_button);
+    if (!controls) {
+        // keys still land on the home button and bubble up to the map panel, but no focus is shown
+        lv_obj_remove_state(objects.nav_button, LV_STATE_FOCUS_KEY);
+        if (!displaydriver->hasTouch())
+            showMapControls(false);
+    }
+    input_policy::InputContextState::instance().setFocusSemantic(semantic);
+}
+
+void TFTView_320x240::showMapControls(bool show)
+{
+    const bool hasGps = db.config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT;
+    lv_obj_set_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN, !show || !hasGps);
+    if (!show)
+        lv_obj_add_flag(objects.zoom_slider, LV_OBJ_FLAG_HIDDEN);
+}
+
 void TFTView_320x240::ui_event_MapPanel(lv_event_t *e)
 {
+    using input_policy::FocusSemantic;
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_KEY) {
         const void *param = lv_event_get_param(e);
@@ -1858,7 +1902,17 @@ void TFTView_320x240::ui_event_MapPanel(lv_event_t *e)
         uint32_t c = *(const uint32_t *)param;
 
         const auto context = input_policy::InputContextState::instance().getSnapshot();
-        if (context.focusSemantic != input_policy::FocusSemantic::Map) {
+        if (context.focusSemantic == FocusSemantic::MapControls) {
+            // the focused map button handles ENTER itself
+            if (c == LV_KEY_ESC || c == LV_KEY_LEFT) {
+                THIS->setMapInputState(FocusSemantic::Map);
+                lv_event_stop_processing(e);
+            } else if (c == LV_KEY_RIGHT) {
+                lv_event_stop_processing(e);
+            }
+            return;
+        }
+        if (context.focusSemantic != FocusSemantic::Map && context.focusSemantic != FocusSemantic::MapZoom) {
             lv_obj_t *focus = lv_group_get_focused(lv_group_get_default());
             if (c != LV_KEY_ENTER || focus != objects.map_button) {
                 ILOG_DEBUG("ui_event_MapPanel -> ignoring key '%c'(0x%02x), semantic=%d", (char)c, c, (int)context.focusSemantic);
@@ -1867,13 +1921,22 @@ void TFTView_320x240::ui_event_MapPanel(lv_event_t *e)
 
             ILOG_DEBUG("ui_event_MapPanel -> allowing enter on map_button while semantic=%d", (int)context.focusSemantic);
         }
+        const bool zoomMode = context.focusSemantic == FocusSemantic::MapZoom;
         ILOG_DEBUG("ui_event_MapPanel -> processing key '%c'(0x%02x)", (char)c, c);
         switch (c) {
         case LV_KEY_UP:
+            if (zoomMode) {
+                lv_obj_send_event(objects.zoom_in_button, LV_EVENT_CLICKED, (void *)param);
+                break;
+            }
             e->user_data = (void *)scrollUp;
             lv_obj_send_event(objects.arrow_up_button, LV_EVENT_CLICKED, (void *)param);
             break;
         case LV_KEY_DOWN:
+            if (zoomMode) {
+                lv_obj_send_event(objects.zoom_out_button, LV_EVENT_CLICKED, (void *)param);
+                break;
+            }
             e->user_data = (void *)scrollDown;
             lv_obj_send_event(objects.arrow_down_button, LV_EVENT_CLICKED, (void *)param);
             break;
@@ -1898,15 +1961,24 @@ void TFTView_320x240::ui_event_MapPanel(lv_event_t *e)
         case LV_KEY_HOME:
             lv_obj_send_event(objects.nav_button, LV_EVENT_CLICKED, (void *)param);
             break;
-        case LV_KEY_ENTER:
-            lv_obj_send_event(objects.nav_button, LV_EVENT_LONG_PRESSED, (void *)param);
+        case LV_KEY_ENTER: {
+            // swallow the rest of this key press, its release would click the home button
+            lv_indev_t *indev = lv_indev_active();
+            lv_indev_stop_processing(indev);
+            lv_indev_wait_release(indev);
+            THIS->setMapInputState(zoomMode ? FocusSemantic::MapControls : FocusSemantic::MapZoom);
             break;
+        }
         case 0x0d: { // return
             lv_obj_send_event(lv_event_get_target_obj(e), LV_EVENT_CLICKED, nullptr);
             break;
         }
         case LV_KEY_ESC:
-            input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
+            if (zoomMode) {
+                THIS->setMapInputState(FocusSemantic::Map);
+                break;
+            }
+            input_policy::InputContextState::instance().setFocusSemantic(FocusSemantic::Unknown);
             THIS->setInputGroup(groups.mainButtons);
             lv_group_focus_obj(objects.map_button);
             break;
@@ -1938,28 +2010,13 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
         const bool fromButtonMenu = THIS->inputdriver->hasKeyboardDevice() &&
                                     lv_indev_get_group(THIS->inputdriver->getKeyboard()) == groups.mainButtons;
         if (THIS->activePanel == objects.map_panel && !fromButtonMenu) {
-            input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Map);
-            // toggle navigation and zoom slider
-            static bool toggle = true;
-            toggle = !toggle;
-            if (toggle) {
-                // lv_obj_clear_flag(objects.zoom_slider, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
-                lv_group_focus_obj(objects.nav_button);
-            } else {
-                lv_obj_add_flag(objects.zoom_slider, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_add_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_add_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_add_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
-            }
+            // toggle navigation and zoom buttons
+            const bool show = lv_obj_has_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
+            THIS->setMapInputState(input_policy::FocusSemantic::Map);
+            THIS->showMapControls(show);
         } else {
             THIS->ui_set_active(objects.map_button, objects.map_panel, objects.top_map_panel);
             THIS->loadMap();
-            lv_group_focus_obj(objects.nav_button);
         }
         lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
     } else if (event_code == LV_EVENT_LONG_PRESSED && THIS->activeSettings == eNone) {
@@ -3720,6 +3777,12 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
         THIS->map->moveHome();
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         ignoreClicked = true;
+        // while panning or zooming with keys the keypad focus only parks on the home button
+        const auto semantic = input_policy::InputContextState::instance().getSnapshot().focusSemantic;
+        lv_indev_t *indev = lv_indev_active();
+        if (indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD &&
+            (semantic == input_policy::FocusSemantic::Map || semantic == input_policy::FocusSemantic::MapZoom))
+            return;
         float lat, lon;
         THIS->map->setHomePosition();
         THIS->map->getHomeLocation(lat, lon);
@@ -8077,7 +8140,7 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
             lv_group_focus_obj(panel->spec_attr->children[1]); // TODO: does not work
         }
     } else if (panel == objects.map_panel) {
-        lv_group_focus_obj(objects.nav_button);
+        setMapInputState(input_policy::FocusSemantic::Map);
     } else if (panel == objects.settings_about_panel) {
         lv_group_focus_obj(objects.settings_about_panel);
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
@@ -8133,6 +8196,16 @@ void TFTView_320x240::setInputGroup(lv_group_t *group)
                 lv_obj_invalidate(old_focused);
             }
         }
+    }
+
+    // a panel's key handling (e.g. map panning) must not survive in the button menu, also not across screen blanking
+    if (group && group == groups.mainButtons) {
+        auto &context = input_policy::InputContextState::instance();
+        context.setFocusSemantic(input_policy::FocusSemantic::Unknown);
+        context.setEditMode(false);
+        context.setCanLeaveEditMode(false);
+        if (activePanel && activePanel == objects.map_panel && !displaydriver->hasTouch())
+            showMapControls(false);
     }
 
     lv_group_t *inputGroup = nullptr;

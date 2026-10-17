@@ -4,6 +4,7 @@
 #include "graphics/common/NodeStore.h"
 #include "graphics/common/VisibleNodeIndex.h"
 #include "graphics/view/TFT/VirtualNodeList.h"
+#include "input/policy/InputTypes.h"
 #include "meshtastic/clientonly.pb.h"
 #include <array>
 #include <memory>
@@ -271,6 +272,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void focusActivePanel(void);
     void setPanelInputContext(void);
     void previewMainButton(lv_obj_t *button);
+    void setMapInputState(input_policy::FocusSemantic semantic);
+    void showMapControls(bool show);
     void showKeyboard(lv_obj_t *textArea);
     void hideKeyboard(lv_obj_t *panel);
     // abort a running slide animation and restore panel/keyboard position at once

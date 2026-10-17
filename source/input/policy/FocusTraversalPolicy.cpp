@@ -9,8 +9,8 @@ PolicyDecision FocusTraversalPolicy::evaluate(const InputEvent &event, const Inp
                                               const InputCapabilities &) const
 {
     // Keep directional keys in map, multi-line text-edit, and scrollable-panel contexts.
-    if (context.focusSemantic == FocusSemantic::Map || context.focusSemantic == FocusSemantic::TextAreaMultiLine ||
-        context.focusSemantic == FocusSemantic::Scrollable) {
+    if (context.focusSemantic == FocusSemantic::Map || context.focusSemantic == FocusSemantic::MapZoom ||
+        context.focusSemantic == FocusSemantic::TextAreaMultiLine || context.focusSemantic == FocusSemantic::Scrollable) {
         POLICY_DEBUG("[FocusTraversal] Keeping directional key in map/multi-line edit context (semantic=%d)",
                      (int)context.focusSemantic);
         return PolicyDecision{};
