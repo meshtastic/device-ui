@@ -13,8 +13,21 @@
 #define SD_SPI_FREQUENCY 50000000
 #endif
 
+#if defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
+#include "ff.h"
+#define SDCARD_FATFS_DRIVE "0:"
 #if defined(HAS_SD_MMC)
 fs::SDMMCFS &SDFs = SD_MMC;
+using File = fs::File;
+#else
+#if defined(SDCARD_USE_SPI1)
+extern SPIClass SPI_HSPI;
+static SPIClass &SDHandler = SPI_HSPI; // re-use existing SPI1 instance
+#else
+static SPIClass &SDHandler = SPI; // re-use existing SPI instance
+#endif
+fs::SDFS &SDFs = SD;
+#endif
 #elif defined(ARCH_PORTDUINO)
 fs::FS &SDFs = PortduinoFS;
 #elif defined(HAS_SDCARD)
@@ -41,7 +54,7 @@ static std::string mapArchivePath(const char *folder, const char *style)
     return std::string(folder) + "/" + dir + "/" + dir + MapTileSettings::PMTILES_EXTENSION;
 }
 
-#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4) && !defined(SENSECAP_INDICATOR)
+#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
 static bool ensureDirectory(const std::string &path)
 {
     struct stat st = {};
@@ -53,7 +66,7 @@ static bool ensureDirectory(const std::string &path)
 
 // SENSECAP_INDICATOR takes precedence over the generic SD classes, matching
 // the declarations in SdCard.h: the card sits behind the co-processor
-#if defined(ARCH_PORTDUINO) && !defined(SENSECAP_INDICATOR)
+#if defined(ARCH_PORTDUINO)
 
 bool SDCard::init(void)
 {
@@ -92,14 +105,10 @@ uint64_t SDCard::cardSize(void)
 
 SDCard::~SDCard(void) {}
 
-#elif defined(HAS_SD_MMC) && !defined(SENSECAP_INDICATOR)
-
-#include "ff.h"
-
-// the card is FatFs drive 0; SDMMCFS itself assumes the same in totalBytes()
-#define SDCARD_FATFS_DRIVE "0:"
+#elif (defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)) && !defined(SENSECAP_INDICATOR)
 
 #if defined(CONFIG_IDF_TARGET_ESP32P4)
+
 #include "driver/sdmmc_host.h"
 #include "esp_vfs_fat.h"
 #include "sd_protocol_defs.h"
@@ -216,6 +225,37 @@ SDCard::~SDCard(void)
 
 #else // non-P4 HAS_SD_MMC
 
+#if defined(SDCARD_SHARE_SPI)
+bool SDCard::init(void)
+{
+#ifdef SDCARD_INIT_SPI
+    SDHandler.end();
+    SDHandler.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+    SD.end();
+    if (!SD.begin(SDCARD_CS, SDHandler, SD_SPI_FREQUENCY)) {
+        ILOG_DEBUG("No SD_MMC card detected");
+        return false;
+    }
+#endif
+    uint8_t cardType = SD.cardType();
+    if (cardType == CARD_NONE) {
+        ILOG_DEBUG("No SD_MMC card attached");
+        return false;
+    }
+    ILOG_DEBUG("SD_MMC Card Type: %s", cardType == CARD_MMC    ? "MMC"
+                                       : cardType == CARD_SD   ? "SDSC"
+                                       : cardType == CARD_SDHC ? "SDHC"
+                                                               : "UNKNOWN");
+
+    uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+    ILOG_DEBUG("SD Card Size: %lu MB", (uint32_t)cardSize);
+    ILOG_DEBUG("Total space: %lu MB", (uint32_t)(SD.totalBytes() / (1024 * 1024)));
+    ILOG_DEBUG("Used space: %lu MB", (uint32_t)(SD.usedBytes() / (1024 * 1024)));
+
+    return true;
+}
+
+#else
 bool SDCard::init(void)
 {
     ISpiLock::Guard bus;
@@ -226,6 +266,7 @@ bool SDCard::init(void)
     SDFs.setPins(SD_SCLK_PIN, SD_MOSI_PIN, SD_MISO_PIN);
     return SDFs.begin("/sdcard", true);
 }
+#endif
 
 ISdCard::CardType SDCard::cardType(void)
 {
@@ -276,6 +317,10 @@ ISdCard::ErrorType SDCard::errorType(void)
         return ErrorType::eSlotEmpty;
     case CARD_UNKNOWN:
         return ErrorType::eCardError;
+    case CARD_MMC:
+    case CARD_SD:
+    case CARD_SDHC:
+        return ErrorType::eNoError;
     default:
         return ErrorType::eUnknownError;
     }
@@ -434,7 +479,7 @@ bool SDCard::setUrlProvider(const char *folder, const char *style, const char *u
 
 // SENSECAP_INDICATOR takes precedence: the SD card sits behind the
 // co-processor even when a generic SD define is also set
-#elif (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)) && !defined(SENSECAP_INDICATOR)
+#elif (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)) && !defined(SENSECAP_INDICATOR)
 // Non-P4 implementation: use Arduino File API
 
 std::set<std::string> SDCard::loadMapStyles(const char *folder)
@@ -490,6 +535,7 @@ bool SDCard::hasMapArchive(const char *folder, const char *style)
     if (!file)
         return false;
     file.close();
+    ILOG_DEBUG("found %s", filename.c_str());
     return true;
 }
 

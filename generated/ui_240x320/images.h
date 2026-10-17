@@ -99,6 +99,8 @@ extern const lv_img_dsc_t img_no_tile_image;
 extern const lv_img_dsc_t img_circle_image;
 extern const lv_img_dsc_t img_map_google_logo_image;
 extern const lv_img_dsc_t img_top_about_image;
+extern const lv_img_dsc_t img_home_webdav_image;
+extern const lv_img_dsc_t img_map_google_logo_image_1;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -108,7 +110,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[90];
+extern const ext_img_desc_t images[92];
 
 #ifdef __cplusplus
 }
