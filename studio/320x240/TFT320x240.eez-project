@@ -5903,10 +5903,10 @@
                       "sizeMode": "VIRTUAL"
                     }
                   ],
-                  "widgetFlags": "EVENT_BUBBLE|CLICK_FOCUSABLE",
+                  "widgetFlags": "EVENT_BUBBLE|GESTURE_BUBBLE",
                   "hiddenFlag": false,
                   "hiddenFlagType": "literal",
-                  "clickableFlag": true,
+                  "clickableFlag": false,
                   "clickableFlagType": "literal",
                   "flagScrollbarMode": "off",
                   "scrollSnapX": "",
@@ -7148,10 +7148,10 @@
                   "previewValue": 0
                 }
               ],
-              "widgetFlags": "CLICK_FOCUSABLE|EVENT_BUBBLE",
+              "widgetFlags": "EVENT_BUBBLE|GESTURE_BUBBLE",
               "hiddenFlag": true,
               "hiddenFlagType": "literal",
-              "clickableFlag": true,
+              "clickableFlag": false,
               "clickableFlagType": "literal",
               "flagScrollbarMode": "off",
               "checkedStateType": "literal",

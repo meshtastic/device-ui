@@ -6327,7 +6327,7 @@
                       "sizeMode": "VIRTUAL"
                     }
                   ],
-                  "widgetFlags": "",
+                  "widgetFlags": "GESTURE_BUBBLE",
                   "hiddenFlag": false,
                   "hiddenFlagType": "literal",
                   "clickableFlag": false,
@@ -7571,7 +7571,7 @@
                   "previewValue": 0
                 }
               ],
-              "widgetFlags": "",
+              "widgetFlags": "GESTURE_BUBBLE",
               "hiddenFlag": true,
               "hiddenFlagType": "literal",
               "clickableFlag": false,
