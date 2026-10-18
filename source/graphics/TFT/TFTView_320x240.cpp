@@ -2011,8 +2011,8 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
             return;
         }
         // from the button menu the (previewed) map is entered instead of toggling its controls
-        const bool fromButtonMenu = THIS->inputdriver->hasKeyboardDevice() &&
-                                    lv_indev_get_group(THIS->inputdriver->getKeyboard()) == groups.mainButtons;
+        const bool fromButtonMenu =
+            THIS->inputdriver->hasKeyboardDevice() && lv_indev_get_group(THIS->inputdriver->getKeyboard()) == groups.mainButtons;
         if (THIS->activePanel == objects.map_panel && !fromButtonMenu) {
             // toggle navigation and zoom buttons
             const bool show = lv_obj_has_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
