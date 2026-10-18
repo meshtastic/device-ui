@@ -24,6 +24,10 @@ static KeyMatrixInputDriver *keyMatrixDriver = nullptr;
 #include "input/ButtonInputDriver.h"
 static ButtonInputDriver *buttonDriver = nullptr;
 #endif
+#if defined(INPUTDRIVER_DIRECTIONALPAD_TYPE)
+#include "input/DirectionalPadInputDriver.h"
+static DirectionalPadInputDriver *padDriver = nullptr;
+#endif
 #endif
 #include "lvgl.h"
 #include "ui.h"
@@ -47,6 +51,10 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 #if defined(INPUTDRIVER_BUTTON_TYPE)
     buttonDriver = new ButtonInputDriver;
 #endif
+#if defined(INPUTDRIVER_DIRECTIONALPAD_TYPE)
+    padDriver = new DirectionalPadInputDriver;
+#endif
+
     if (!inputdriver)
         inputdriver = InputDriver::instance();
 }
@@ -76,6 +84,10 @@ void DeviceGUI::init(IClientBase *client)
 #if defined(INPUTDRIVER_BUTTON_TYPE)
     if (buttonDriver)
         buttonDriver->init();
+#endif
+#if defined(INPUTDRIVER_DIRECTIONALPAD_TYPE)
+    if (padDriver)
+        padDriver->init();
 #endif
 
     displaydriver->printConfig();
@@ -113,4 +125,16 @@ void DeviceGUI::task_handler(void)
 DeviceGUI::~DeviceGUI()
 {
     delete inputdriver;
+}
+
+void DeviceGUI::prepareSleep(void)
+{
+    if (inputdriver)
+        inputdriver->prepareSleep();
+}
+
+void DeviceGUI::wakeUp(void)
+{
+    if (inputdriver)
+        inputdriver->wakeUp();
 }

@@ -238,7 +238,9 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_align(row.panel, LV_ALIGN_TOP_LEFT);
         lv_obj_set_style_pad_top(row.panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_pad_bottom(row.panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_remove_flag(row.panel, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_GESTURE_BUBBLE));
+        lv_obj_remove_flag(row.panel, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
+                                                                 LV_OBJ_FLAG_SCROLL_CHAIN_HOR));
+        lv_obj_add_flag(row.panel, LV_OBJ_FLAG_EVENT_BUBBLE);
         add_style_node_panel_style(row.panel);
 
         row.img = lv_image_create(row.panel);
@@ -264,7 +266,7 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_style_shadow_width(row.btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_max_height(row.btn, 132, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_min_height(row.btn, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_add_flag(row.btn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+        lv_obj_add_flag(row.btn, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLL_ON_FOCUS | LV_OBJ_FLAG_EVENT_BUBBLE));
         lv_obj_add_event_cb(row.btn, rowClickCallback, LV_EVENT_ALL, this);
 
         row.lblLong = lv_label_create(row.panel);
@@ -327,6 +329,7 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_pos(row.lblTm1, 8, 49);
         lv_obj_set_size(row.lblTm1, 130, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblTm1, LV_LABEL_LONG_CLIP);
+        lv_obj_remove_flag(row.lblTm1, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_set_style_align(row.lblTm1, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_text_align(row.lblTm1, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_add_flag(row.lblTm1, LV_OBJ_FLAG_HIDDEN);
@@ -335,6 +338,7 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_pos(row.lblTm2, 8, 63);
         lv_obj_set_size(row.lblTm2, 130, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblTm2, LV_LABEL_LONG_CLIP);
+        lv_obj_remove_flag(row.lblTm2, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_set_style_align(row.lblTm2, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_text_align(row.lblTm2, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_add_flag(row.lblTm2, LV_OBJ_FLAG_HIDDEN);

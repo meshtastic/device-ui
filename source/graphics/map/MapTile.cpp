@@ -31,6 +31,7 @@ bool MapTile::load(lv_obj_t *p, int16_t posx, int16_t posy, const lv_image_dsc_t
     lv_obj_set_pos(img, posx, posy);
     lv_obj_set_style_opa(img, 255, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_size(img, MapTileSettings::getTileSize(), MapTileSettings::getTileSize());
+    lv_obj_remove_flag(img, lv_obj_flag_t(LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_CLICKABLE));
     if (MapTileSettings::getDebug()) {
         lv_obj_set_style_border_width(img, 1, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         lbl = lv_label_create(img);
