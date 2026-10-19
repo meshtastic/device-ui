@@ -147,6 +147,33 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
         eFtpPassword
     };
 
+    enum class Language {
+        English,
+        Azerbaijani,
+        Bulgarian,
+        Czech,
+        Danish,
+        Deutsch,
+        Greek,
+        Spanish,
+        French,
+        Italian,
+        Hungarian,
+        Dutch,
+        Norwegian,
+        Polish,
+        Portuguese,
+        Russian,
+        Slovenian,
+        Serbian,
+        Finnish,
+        Swedish,
+        Turkish,
+        Ukrainian,
+        SimplyfiedChinese,
+        TraditionalChinese
+    };
+
   protected:
     struct NodeFilter {
         bool unknown;  // filter out unknown nodes
@@ -337,8 +364,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     meshtastic_Config_LoRaConfig_RegionCode val2region(uint32_t val);
     uint32_t role2val(meshtastic_Config_DeviceConfig_Role role);
     meshtastic_Config_DeviceConfig_Role val2role(uint32_t val);
-    uint32_t language2val(meshtastic_Language lang);
-    meshtastic_Language val2language(uint32_t val);
+    Language language2val(meshtastic_Language lang);
+    meshtastic_Language val2language(Language lang);
     void setLocale(meshtastic_Language lang);
     void setLanguage(meshtastic_Language lang);
     void setTimeout(uint32_t timeout);
