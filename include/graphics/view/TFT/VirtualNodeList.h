@@ -96,6 +96,7 @@ class VirtualNodeList
     bool expansionAnimating() const { return expansionAnimationActive; }
     void scrollTo(NodeId id, lv_anim_enable_t anim = LV_ANIM_OFF);
     void focus(NodeId id);
+    NodeId lastFocusedNode() const { return lastFocusedId; }
     lv_group_t *navigationGroup() const { return attachedGroup; }
 #ifdef UNIT_TEST
     int32_t rowHeightForTesting(NodeId id) const { return rowHeight(id); }
