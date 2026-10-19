@@ -32,6 +32,7 @@ class DisplayDriverConfig
         TWATCH_ULTRA,
         UNPHONE_V9,
         ELECROW_ADV,
+        ELECROW_P4_MX,
         HELTEC_TRACKER,
         VISION_MASTER_T190,
         WT32_SC01_PLUS,

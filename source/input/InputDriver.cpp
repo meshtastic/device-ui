@@ -7,6 +7,9 @@ lv_indev_t *InputDriver::encoder = nullptr;
 lv_indev_t *InputDriver::button = nullptr;
 lv_group_t *InputDriver::inputGroup = nullptr;
 
+std::string InputDriver::keyboardDevice = "none";
+std::string InputDriver::pointerDevice = "none";
+
 InputDriver *InputDriver::instance(void)
 {
     if (!driver)

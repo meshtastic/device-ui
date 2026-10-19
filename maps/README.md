@@ -28,7 +28,7 @@ Long pressing the Map button allows to choose between the map styles found on SD
 The map tiles are in .png format of size 256x256 pixel and zoom levels 1 - 20, where 1 represents the entire earth and 20 a mid-sized building.
 
 A web tool for convenient downloading of further map tiles, run by community member @zmiguel, can be found here: [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/).
-It provides automated downloading of MUI-compatible map tiles in 8-bit format. It uses its own tile server with data from OpenStreetMap. Tiles are updated every week and cached for 1 week.
+It provides automated downloading of MUI-compatible map tiles in 8-bit color, in both <ins>.zip</ins> and <ins>.pmtiles</ins> formats. It uses its own tile server with data from OpenStreetMap. Tiles are updated every week and cached for 1 week.
 
 This service is not affiliated with Meshtastic, and the tile server is not guaranteed to have 99% uptime. Pre-generated bundles for the most popular regions are also available for download on this tool indefinitely.
 
@@ -58,25 +58,27 @@ There are several ways to generate the protomaps .pmtiles format:
 
 2. Convert your existing xyz tiles folder directly into pmtiles using [versaTiles](https://docs.versatiles.org/) .
 
-- Linux
-  ```bash
-  curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
-  versatiles style-dir style.pmtiles
-  ```
-- Windows
-  ```bash
-  irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
-  versatiles style-dir style.pmtiles
-  ```
+   - Linux
+     ```bash
+     curl -Ls "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-unix.sh" | sudo sh
+     versatiles style-dir style.pmtiles
+     ```
+   - Windows
+     ```bash
+     irm "https://github.com/versatiles-org/versatiles-rs/releases/latest/download/install-windows.ps1" | iex
+     versatiles style-dir style.pmtiles
+     ```
 
-Finally put the style.pmtiles archive into the maps/style folder on SD card. Don't forget to also drop a matching .url file into the same style folder if you want automatic WiFi map tile downloads of missing tiles.
+3. Download pre-generated .pmtiles bundles directly from [Oxed's Map Tile Downloader](https://download.tiles.coalition.space/bundles) tool.
+
+Finally put the style.pmtiles archive into the _maps/style_ folder on SD card (note the matching style name here!). Don't forget to also drop a matching .url file into the same style folder if you want automatic WiFi map tile downloads of missing tiles.
 
 ### Self-hosting Protomaps
 
 With the following command you can serve pmtiles in your network:
 
 ```bash
-go run main.go serve .
+pmtiles serve .
 ```
 
 This will provide access to all pmtiles in the current directory. The URL template to access e.g. _style.pmtiles_ is

@@ -916,6 +916,18 @@ void remove_style_positive_image_style(lv_obj_t *obj) {
 };
 
 //
+// Style: TabStyle
+//
+
+void add_style_tab_style(lv_obj_t *obj) {
+    (void)obj;
+};
+
+void remove_style_tab_style(lv_obj_t *obj) {
+    (void)obj;
+};
+
+//
 //
 //
 
@@ -948,6 +960,7 @@ void add_style(lv_obj_t *obj, int32_t styleIndex) {
         add_style_spinner_style,
         add_style_chat_message_style,
         add_style_positive_image_style,
+        add_style_tab_style,
     };
     add_style_funcs[styleIndex](obj);
 }
@@ -981,6 +994,7 @@ void remove_style(lv_obj_t *obj, int32_t styleIndex) {
         remove_style_spinner_style,
         remove_style_chat_message_style,
         remove_style_positive_image_style,
+        remove_style_tab_style,
     };
     remove_style_funcs[styleIndex](obj);
 }

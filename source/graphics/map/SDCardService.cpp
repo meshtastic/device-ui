@@ -1,3 +1,5 @@
+#if !defined(CONFIG_IDF_TARGET_ESP32P4)
+
 #include "lvgl.h"
 #include "util/ISpiLock.h"
 
@@ -48,7 +50,7 @@ static bool ensureParentDirectories(const char *path)
 
 SDCardService::SDCardService() : ITileService(DRIVE_LETTER ":")
 {
-#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
+#if LV_USE_FS_ARDUINO_SD
     static lv_fs_drv_t drv;
     lv_fs_drv_init(&drv);
     drv.letter = DRIVE_LETTER[0];
@@ -80,7 +82,8 @@ SDCardService::~SDCardService()
 bool SDCardService::load(const char *name, void *img)
 {
     uint32_t start = millis();
-#if defined(LV_USE_LODEPNG) && LV_USE_LODEPNG
+    size_t len = 0;
+#if LV_USE_FS_ARDUINO_SD
     char tilePath[128] = DRIVE_LETTER ":";
     strncat(&tilePath[2], name, sizeof(tilePath) - 3);
     // ILOG_DEBUG("SDCardService::load(): %s", tilePath);
@@ -90,23 +93,23 @@ bool SDCardService::load(const char *name, void *img)
         return false;
     }
 #else
+    uint8_t *pngImage = nullptr;
     {
         ISpiLock::Guard bus;
-        // optimized PNGdec decoding
         File file = SD.open(name, FILE_READ);
         if (!file) {
             ILOG_DEBUG("Failed to open tile %s from SD", name);
             return false;
         }
 
-        size_t len = (size_t)file.size();
+        len = (size_t)file.size();
         if (len == 0) {
             ILOG_DEBUG("Tile %s is empty", name);
             file.close();
             return false;
         }
 
-        uint8_t *pngImage = (uint8_t *)lv_malloc(len);
+        pngImage = (uint8_t *)lv_malloc(len);
         if (!pngImage) {
             ILOG_ERROR("lv_malloc failed for %s (%u bytes)", name, (unsigned int)len);
             file.close();
@@ -242,3 +245,5 @@ lv_fs_res_t SDCardService::fs_dir_close(lv_fs_drv_t *drv, void *rddir_p)
 {
     return LV_FS_RES_NOT_IMP; // TODO
 }
+
+#endif
