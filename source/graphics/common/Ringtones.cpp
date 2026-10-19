@@ -17,9 +17,9 @@ const Rtttl ringtone[] = {
                    "4p.,c#,f,c#,f,c#,f,c#,f,c#,f"},
     {"Nokia", "Nokia:d=4,o=5,b=225:8e6,8d6,f#,g#,8c#6,8b,d,e,8b,8a,c#,e,2a"},
     {"Ericsson 1",
-     "Ericsson1:d=4,o=6,b=180:32b5,32d,32b5,32d,32b5,32d,32b5,32d,32d,32f,32d,32f,32d,32f,32d,32f,32f,32a,32f,32a,32f,32a,32f,"
+     "Ericcson1:d=4,o=6,b=180:32b5,32d,32b5,32d,32b5,32d,32b5,32d,32d,32f,32d,32f,32d,32f,32d,32f,32f,32a,32f,32a,32f,32a,32f,"
      "32a,32p,32b5,32d,32b5,32d,32b5,32d,32b5,32d,32d,32f,32d,32f,32d,32f,32d,32f,32f,32a,32f,32a,32f,32a,32f,32a,2p"},
-    {"Ericsson 2", "Ericsson2:d=4,o=5,b=355:16b4,16d,16b4,16d,16b4,16d,16b4,16d,16d,16f,16d,16f,16d,16f,16d,16f,16f,16a,16f,16a,"
+    {"Ericsson 2", "Ericcson2:d=4,o=5,b=355:16b4,16d,16b4,16d,16b4,16d,16b4,16d,16d,16f,16d,16f,16d,16f,16d,16f,16f,16a,16f,16a,"
                    "16f,16a,16f,16a,1p"},
     {"Ericsson 3", "Ericsson3:d=16,o=6,b=355:b5,d,b5,d,b5,d,b5,d,d,f,d,f,d,f,d,f,f,a,f,a,f,a,f,a"},
     {"Double Ring", "DoubleRing:d=16,o=5,b=200:c6,f6,c7,c6,f6,c7,c6,f6,c7,8p,c,f,c6,c,f,c6,c,f,c6"},
