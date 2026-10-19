@@ -17810,7 +17810,7 @@
                     }
                   },
                   "groupIndex": 0,
-                  "options": "English\nбългарски\nČeština\nDanish\nDeutsch\nΕλληνικά\nEspañol\nFrançais\nItaliano\nNederlands\nNorsk\nPolski\nPortuguês\nРусский\nSlovenščina\nSrpski\nSuomalainen\nSvenska\nTürkçe\nУкраїнська",
+                  "options": "English\nAzərbaycan\nбългарски\nČeština\nDansk\nDeutsch\nΕλληνικά\nEspañol\nFrançais\nItaliano\nMagyar\nNederlands\nNorsk\nPolski\nPortuguês\nРусский\nSlovenščina\nSrpski\nSuomalainen\nSvenska\nTürkçe\nУкраїнська",
                   "optionsType": "literal",
                   "selected": 0,
                   "selectedType": "literal",
@@ -25837,7 +25837,7 @@
       "ascent": 13,
       "descent": 4,
       "glyphs": [],
-      "lvglRanges": "32 - 127,160 - 255,256 - 383,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
+      "lvglRanges": "32 - 127,160 - 255,256 - 383,399 - 399,601 - 601,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
       "lvglSymbols": "",
       "lvglAdditionalSources": [],
       "lvglGlyphs": {
@@ -25853,6 +25853,14 @@
           {
             "from": 256,
             "to": 383
+          },
+          {
+            "from": 399,
+            "to": 399
+          },
+          {
+            "from": 601,
+            "to": 601
           },
           {
             "from": 880,
@@ -25889,7 +25897,7 @@
       "ascent": 15,
       "descent": 4,
       "glyphs": [],
-      "lvglRanges": "32 - 127,160 - 255,256 - 383,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
+      "lvglRanges": "32 - 127,160 - 255,256 - 383,399 - 399,601 - 601,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
       "lvglSymbols": "",
       "lvglAdditionalSources": [],
       "lvglGlyphs": {
@@ -25905,6 +25913,14 @@
           {
             "from": 256,
             "to": 383
+          },
+          {
+            "from": 399,
+            "to": 399
+          },
+          {
+            "from": 601,
+            "to": 601
           },
           {
             "from": 880,
@@ -25942,7 +25958,7 @@
       "ascent": 17,
       "descent": 5,
       "glyphs": [],
-      "lvglRanges": "32 - 127,160 - 255,256 - 383,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
+      "lvglRanges": "32 - 127,160 - 255,256 - 383,399 - 399,601 - 601,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
       "lvglSymbols": "",
       "lvglAdditionalSources": [],
       "lvglGlyphs": {
@@ -25958,6 +25974,14 @@
           {
             "from": 256,
             "to": 383
+          },
+          {
+            "from": 399,
+            "to": 399
+          },
+          {
+            "from": 601,
+            "to": 601
           },
           {
             "from": 880,
@@ -25995,7 +26019,7 @@
       "ascent": 20,
       "descent": 6,
       "glyphs": [],
-      "lvglRanges": "32 - 127,160 - 255,256 - 383,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
+      "lvglRanges": "32 - 127,160 - 255,256 - 383,399 - 399,601 - 601,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
       "lvglSymbols": "",
       "lvglAdditionalSources": [],
       "lvglGlyphs": {
@@ -26011,6 +26035,14 @@
           {
             "from": 256,
             "to": 383
+          },
+          {
+            "from": 399,
+            "to": 399
+          },
+          {
+            "from": 601,
+            "to": 601
           },
           {
             "from": 880,

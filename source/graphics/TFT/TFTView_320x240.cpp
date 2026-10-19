@@ -2829,7 +2829,8 @@ void TFTView_320x240::ui_event_language_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        lv_dropdown_set_selected(objects.settings_language_dropdown, THIS->language2val(THIS->db.uiConfig.language));
+        lv_dropdown_set_selected(objects.settings_language_dropdown,
+                                 static_cast<uint32_t>(THIS->language2val(THIS->db.uiConfig.language)));
         lv_obj_clear_flag(objects.settings_language_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_language_dropdown);
         THIS->disablePanel(objects.controller_panel);
@@ -4890,111 +4891,119 @@ meshtastic_Config_DeviceConfig_Role TFTView_320x240::val2role(uint32_t val)
 /**
  * Translate language proto enum value to (alphabetical) position in dropdown menu
  */
-uint32_t TFTView_320x240::language2val(meshtastic_Language lang)
+TFTView_320x240::Language TFTView_320x240::language2val(meshtastic_Language lang)
 {
     switch (lang) {
     case meshtastic_Language_ENGLISH:
-        return 0;
+        return Language::English;
     case meshtastic_Language_FRENCH:
-        return 7;
+        return Language::French;
     case meshtastic_Language_GERMAN:
-        return 4;
+        return Language::Deutsch;
     case meshtastic_Language_ITALIAN:
-        return 8;
+        return Language::Italian;
     case meshtastic_Language_PORTUGUESE:
-        return 12;
+        return Language::Portuguese;
     case meshtastic_Language_SPANISH:
-        return 6;
+        return Language::Spanish;
     case meshtastic_Language_SWEDISH:
-        return 17;
+        return Language::Swedish;
     case meshtastic_Language_FINNISH:
-        return 16;
+        return Language::Finnish;
     case meshtastic_Language_POLISH:
-        return 11;
+        return Language::Polish;
     case meshtastic_Language_TURKISH:
-        return 18;
+        return Language::Turkish;
     case meshtastic_Language_SERBIAN:
-        return 15;
+        return Language::Serbian;
     case meshtastic_Language_RUSSIAN:
-        return 13;
+        return Language::Russian;
     case meshtastic_Language_DUTCH:
-        return 9;
+        return Language::Dutch;
     case meshtastic_Language_GREEK:
-        return 5;
+        return Language::Greek;
     case meshtastic_Language_NORWEGIAN:
-        return 10;
+        return Language::Norwegian;
     case meshtastic_Language_SLOVENIAN:
-        return 14;
+        return Language::Slovenian;
     case meshtastic_Language_UKRAINIAN:
-        return 19;
+        return Language::Ukrainian;
     case meshtastic_Language_BULGARIAN:
-        return 1;
+        return Language::Bulgarian;
     case meshtastic_Language_CZECH:
-        return 2;
+        return Language::Czech;
     case meshtastic_Language_DANISH:
-        return 3;
+        return Language::Danish;
+    case meshtastic_Language_HUNGARIAN:
+        return Language::Hungarian;
+    case meshtastic_Language_AZERBAIJANI:
+        return Language::Azerbaijani;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
-        return 20;
+        return Language::SimplyfiedChinese;
     case meshtastic_Language_TRADITIONAL_CHINESE:
-        return 21;
+        return Language::TraditionalChinese;
     default:
         ILOG_WARN("unknown language uiconfig: %d", lang);
     }
-    return 0;
+    return Language::English;
 }
 
 /**
  * Translate value from dropdown menu to language proto enum
  */
-meshtastic_Language TFTView_320x240::val2language(uint32_t val)
+meshtastic_Language TFTView_320x240::val2language(enum class Language lang)
 {
-    switch (val) {
-    case 0:
+    switch (lang) {
+    case Language::English:
         return meshtastic_Language_ENGLISH;
-    case 7:
-        return meshtastic_Language_FRENCH;
-    case 4:
-        return meshtastic_Language_GERMAN;
-    case 8:
-        return meshtastic_Language_ITALIAN;
-    case 12:
-        return meshtastic_Language_PORTUGUESE;
-    case 6:
-        return meshtastic_Language_SPANISH;
-    case 17:
-        return meshtastic_Language_SWEDISH;
-    case 16:
-        return meshtastic_Language_FINNISH;
-    case 11:
-        return meshtastic_Language_POLISH;
-    case 18:
-        return meshtastic_Language_TURKISH;
-    case 15:
-        return meshtastic_Language_SERBIAN;
-    case 13:
-        return meshtastic_Language_RUSSIAN;
-    case 9:
-        return meshtastic_Language_DUTCH;
-    case 5:
-        return meshtastic_Language_GREEK;
-    case 10:
-        return meshtastic_Language_NORWEGIAN;
-    case 14:
-        return meshtastic_Language_SLOVENIAN;
-    case 19:
-        return meshtastic_Language_UKRAINIAN;
-    case 1:
+    case Language::Azerbaijani:
+        return meshtastic_Language_AZERBAIJANI;
+    case Language::Bulgarian:
         return meshtastic_Language_BULGARIAN;
-    case 2:
+    case Language::Czech:
         return meshtastic_Language_CZECH;
-    case 3:
+    case Language::Danish:
         return meshtastic_Language_DANISH;
-    case 20:
+    case Language::Deutsch:
+        return meshtastic_Language_GERMAN;
+    case Language::Greek:
+        return meshtastic_Language_GREEK;
+    case Language::Spanish:
+        return meshtastic_Language_SPANISH;
+    case Language::French:
+        return meshtastic_Language_FRENCH;
+    case Language::Italian:
+        return meshtastic_Language_ITALIAN;
+    case Language::Hungarian:
+        return meshtastic_Language_HUNGARIAN;
+    case Language::Dutch:
+        return meshtastic_Language_DUTCH;
+    case Language::Norwegian:
+        return meshtastic_Language_NORWEGIAN;
+    case Language::Polish:
+        return meshtastic_Language_POLISH;
+    case Language::Portuguese:
+        return meshtastic_Language_PORTUGUESE;
+    case Language::Russian:
+        return meshtastic_Language_RUSSIAN;
+    case Language::Slovenian:
+        return meshtastic_Language_SLOVENIAN;
+    case Language::Serbian:
+        return meshtastic_Language_SERBIAN;
+    case Language::Finnish:
+        return meshtastic_Language_FINNISH;
+    case Language::Swedish:
+        return meshtastic_Language_SWEDISH;
+    case Language::Turkish:
+        return meshtastic_Language_TURKISH;
+    case Language::Ukrainian:
+        return meshtastic_Language_UKRAINIAN;
+    case Language::SimplyfiedChinese:
         return meshtastic_Language_SIMPLIFIED_CHINESE;
-    case 21:
+    case Language::TraditionalChinese:
         return meshtastic_Language_TRADITIONAL_CHINESE;
     default:
-        ILOG_WARN("unknown language val: %d", val);
+        ILOG_WARN("unknown language: %d", static_cast<uint32_t>(lang));
     }
     return meshtastic_Language_ENGLISH;
 }
@@ -5085,6 +5094,14 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
         lv_i18n_set_locale("da");
         locale = "da_DK.UTF-8";
         break;
+    case meshtastic_Language_HUNGARIAN:
+        lv_i18n_set_locale("hu");
+        locale = "hu_HU.UTF-8";
+        break;
+    case meshtastic_Language_AZERBAIJANI:
+        lv_i18n_set_locale("az");
+        locale = "az_AZ.UTF-8";
+        break;
     case meshtastic_Language_SIMPLIFIED_CHINESE:
         lv_i18n_set_locale("cn");
         locale = "zh_CN.UTF-8";
@@ -5111,7 +5128,7 @@ void TFTView_320x240::setLocale(meshtastic_Language lang)
 void TFTView_320x240::setLanguage(meshtastic_Language lang)
 {
     char buf1[20], buf2[40];
-    lv_dropdown_set_selected(objects.settings_language_dropdown, language2val(lang));
+    lv_dropdown_set_selected(objects.settings_language_dropdown, static_cast<uint32_t>(language2val(lang)));
     lv_dropdown_get_selected_str(objects.settings_language_dropdown, buf1, sizeof(buf1));
     lv_snprintf(buf2, sizeof(buf2), _("Language: %s"), buf1);
     lv_label_set_text(objects.basic_settings_language_label, buf2);
@@ -5444,7 +5461,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
         }
         case eLanguage: {
             uint32_t value = lv_dropdown_get_selected(objects.settings_language_dropdown);
-            meshtastic_Language lang = THIS->val2language(value);
+            meshtastic_Language lang = THIS->val2language(static_cast<Language>(value));
             if (lang != THIS->db.uiConfig.language) {
                 THIS->db.uiConfig.language = lang;
                 THIS->controller->storeUIConfig(THIS->db.uiConfig);
