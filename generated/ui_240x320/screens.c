@@ -896,7 +896,7 @@ void create_screen_main_screen() {
                             objects.home_transfer_button = obj;
                             lv_obj_set_pos(obj, 0, 0);
                             lv_obj_set_size(obj, 36, 36);
-                            lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_EVENT_BUBBLE);
+                            lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_EVENT_BUBBLE|LV_OBJ_FLAG_HIDDEN);
                             lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
                             add_style_home_button_style(obj);
                             lv_obj_set_style_bg_image_src(obj, &img_home_webdav_image, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -913,6 +913,7 @@ void create_screen_main_screen() {
                             objects.home_transfer_label = obj;
                             lv_obj_set_pos(obj, 105, 50);
                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
+                            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
                             lv_label_set_text(obj, _("FTP server off"));
                         }
                         {
@@ -4856,7 +4857,7 @@ void create_screen_main_screen() {
                     objects.settings_language_dropdown = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, 150, 30);
-                    lv_dropdown_set_options_static(obj, "English\nбългарски\nČeština\nDanish\nDeutsch\nΕλληνικά\nEspañol\nFrançais\nItaliano\nNederlands\nNorsk\nPolski\nPortuguês\nРусский\nSlovenščina\nSrpski\nSuomalainen\nSvenska\nTürkçe\nУкраїнська");
+                    lv_dropdown_set_options_static(obj, "English\nAzərbaycan\nбългарски\nČeština\nDansk\nDeutsch\nΕλληνικά\nEspañol\nFrançais\nItaliano\nMagyar\nNederlands\nNorsk\nPolski\nPortuguês\nРусский\nSlovenščina\nSrpski\nSuomalainen\nSvenska\nTürkçe\nУкраїнська");
                     lv_dropdown_set_selected(obj, 0);
                     add_style_drop_down_style(obj);
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
