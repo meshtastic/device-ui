@@ -2933,6 +2933,7 @@
                       "heightUnit": "px",
                       "children": [],
                       "widgetFlags": "PRESS_LOCK|CLICK_FOCUSABLE|SNAPPABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN|SCROLLABLE|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|EVENT_BUBBLE",
+                      "hiddenFlag": true,
                       "hiddenFlagType": "literal",
                       "clickableFlag": true,
                       "clickableFlagType": "literal",
@@ -2985,6 +2986,7 @@
                       "heightUnit": "content",
                       "children": [],
                       "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                      "hiddenFlag": true,
                       "hiddenFlagType": "literal",
                       "clickableFlagType": "literal",
                       "checkedStateType": "literal",
@@ -17808,7 +17810,7 @@
                     }
                   },
                   "groupIndex": 0,
-                  "options": "English\nбългарски\nČeština\nDanish\nDeutsch\nΕλληνικά\nEspañol\nFrançais\nItaliano\nNederlands\nNorsk\nPolski\nPortuguês\nРусский\nSlovenščina\nSrpski\nSuomalainen\nSvenska\nTürkçe\nУкраїнська",
+                  "options": "English\nAzərbaycan\nбългарски\nČeština\nDansk\nDeutsch\nΕλληνικά\nEspañol\nFrançais\nItaliano\nMagyar\nNederlands\nNorsk\nPolski\nPortuguês\nРусский\nSlovenščina\nSrpski\nSuomalainen\nSvenska\nTürkçe\nУкраїнська",
                   "optionsType": "literal",
                   "selected": 0,
                   "selectedType": "literal",
@@ -25835,7 +25837,7 @@
       "ascent": 13,
       "descent": 4,
       "glyphs": [],
-      "lvglRanges": "32 - 127,160 - 255,256 - 383,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
+      "lvglRanges": "32 - 127,160 - 255,256 - 383,399 - 399,601 - 601,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
       "lvglSymbols": "",
       "lvglAdditionalSources": [],
       "lvglGlyphs": {
@@ -25851,6 +25853,14 @@
           {
             "from": 256,
             "to": 383
+          },
+          {
+            "from": 399,
+            "to": 399
+          },
+          {
+            "from": 601,
+            "to": 601
           },
           {
             "from": 880,
@@ -25887,7 +25897,7 @@
       "ascent": 15,
       "descent": 4,
       "glyphs": [],
-      "lvglRanges": "32 - 127,160 - 255,256 - 383,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
+      "lvglRanges": "32 - 127,160 - 255,256 - 383,399 - 399,601 - 601,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
       "lvglSymbols": "",
       "lvglAdditionalSources": [],
       "lvglGlyphs": {
@@ -25903,6 +25913,14 @@
           {
             "from": 256,
             "to": 383
+          },
+          {
+            "from": 399,
+            "to": 399
+          },
+          {
+            "from": 601,
+            "to": 601
           },
           {
             "from": 880,
@@ -25940,7 +25958,7 @@
       "ascent": 17,
       "descent": 5,
       "glyphs": [],
-      "lvglRanges": "32 - 127,160 - 255,256 - 383,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
+      "lvglRanges": "32 - 127,160 - 255,256 - 383,399 - 399,601 - 601,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
       "lvglSymbols": "",
       "lvglAdditionalSources": [],
       "lvglGlyphs": {
@@ -25956,6 +25974,14 @@
           {
             "from": 256,
             "to": 383
+          },
+          {
+            "from": 399,
+            "to": 399
+          },
+          {
+            "from": 601,
+            "to": 601
           },
           {
             "from": 880,
@@ -25993,7 +26019,7 @@
       "ascent": 20,
       "descent": 6,
       "glyphs": [],
-      "lvglRanges": "32 - 127,160 - 255,256 - 383,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
+      "lvglRanges": "32 - 127,160 - 255,256 - 383,399 - 399,601 - 601,880 - 1023,1024 - 1279,1280 - 1327,7936 - 131071",
       "lvglSymbols": "",
       "lvglAdditionalSources": [],
       "lvglGlyphs": {
@@ -26009,6 +26035,14 @@
           {
             "from": 256,
             "to": 383
+          },
+          {
+            "from": 399,
+            "to": 399
+          },
+          {
+            "from": 601,
+            "to": 601
           },
           {
             "from": 880,
