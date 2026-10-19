@@ -118,7 +118,11 @@
  * - LV_OS_MQX
  * - LV_OS_SDL2
  * - LV_OS_CUSTOM */
-#define LV_USE_OS   LV_OS_NONE
+#ifdef ARDUINO_ARCH_ESP32
+    #define LV_USE_OS   LV_OS_FREERTOS
+#else
+    #define LV_USE_OS   LV_OS_PTHREAD
+#endif
 
 #if LV_USE_OS == LV_OS_CUSTOM
     #define LV_OS_CUSTOM_INCLUDE <stdint.h>
@@ -655,8 +659,8 @@
 /** Prefix all global extern data with this */
 #define LV_ATTRIBUTE_EXTERN_DATA
 
-/** Use `float` as `lv_value_precise_t` */
-#define LV_USE_FLOAT            0
+/* Use `float` as `lv_value_precise_t` */
+#define LV_USE_FLOAT            1
 
 /** Enable matrix support
  *  - Requires `LV_USE_FLOAT = 1` */

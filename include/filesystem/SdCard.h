@@ -1,18 +1,25 @@
 #pragma once
 
+#define FS_NO_GLOBALS
+
 #if defined(ARCH_PORTDUINO)
 #include "PortduinoFS.h"
 extern fs::FS &SDFs;
 
 #elif defined(HAS_SD_MMC)
-#include "SD_MMC.h" // TODO: replace by SdFat SDIO
+#include "SD_MMC.h"             // TODO: replace by SdFat SDIO
 extern fs::SDMMCFS &SDFs;
-
+using fs::File;
+#elif defined(SDCARD_SHARE_SPI) // share SPI instance with main project
+#include "SD.h"
+#include <stdint.h>
+extern fs::SDFS &SDFs;
 #elif defined(HAS_SDCARD)
 #include "SdFat.h"
 extern SdFs SDFs;
 #endif
 
+#include <cstdint>
 #include <set>
 #include <string>
 
@@ -67,7 +74,9 @@ class ISdCard
 
     bool isUpdated(void) { return updated; }
     virtual std::set<std::string> loadMapStyles(const char *folder) = 0;
+    virtual bool hasMapArchive(const char *folder, const char *style) = 0;
     virtual std::string getUrlProvider(const char *folder, const char *style) = 0;
+    virtual bool setUrlProvider(const char *folder, const char *style, const char *urlTemplate) = 0;
     virtual ~ISdCard(void) {}
 
   protected:
@@ -76,7 +85,7 @@ class ISdCard
 
 // SENSECAP_INDICATOR takes precedence: the SD card sits behind the
 // co-processor even when a generic SD define is also set
-#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)) && !defined(SENSECAP_INDICATOR)
+#if (defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)) && !defined(SENSECAP_INDICATOR)
 class SDCard : public ISdCard
 {
   public:
@@ -90,7 +99,9 @@ class SDCard : public ISdCard
     bool format(void) override { return false; };
 
     std::set<std::string> loadMapStyles(const char *folder) override;
+    bool hasMapArchive(const char *folder, const char *style) override;
     std::string getUrlProvider(const char *folder, const char *style) override;
+    bool setUrlProvider(const char *folder, const char *style, const char *urlTemplate) override;
     virtual ~SDCard(void);
 };
 
@@ -108,7 +119,9 @@ class SdFsCard : public ISdCard
     bool format(void) override;
 
     std::set<std::string> loadMapStyles(const char *folder) override;
+    bool hasMapArchive(const char *folder, const char *style) override;
     std::string getUrlProvider(const char *folder, const char *style) override;
+    bool setUrlProvider(const char *folder, const char *style, const char *urlTemplate) override;
     virtual ~SdFsCard(void) {}
 };
 
@@ -142,7 +155,9 @@ class RemoteSdCard : public ISdCard
     bool format(void) override;
 
     std::set<std::string> loadMapStyles(const char *folder) override;
+    bool hasMapArchive(const char *folder, const char *style) override;
     std::string getUrlProvider(const char *folder, const char *style) override;
+    bool setUrlProvider(const char *folder, const char *style, const char *urlTemplate) override;
     virtual ~RemoteSdCard(void) {}
 
   private:
@@ -171,7 +186,9 @@ class NoSdCard : public ISdCard
         updated = true;
         return std::set<std::string>{};
     }
+    bool hasMapArchive(const char *folder, const char *style) override { return false; }
     std::string getUrlProvider(const char *folder, const char *style) override { return {}; }
+    bool setUrlProvider(const char *folder, const char *style, const char *urlTemplate) override { return false; }
     virtual ~NoSdCard(void) {}
 };
 

@@ -10,7 +10,8 @@ enum KeyboardAddresses {
     SCAN_CARDKB_ADDR = 0x5F,
     SCAN_BBQ10_KB_ADDR = 0x1F,
     SCAN_MPR121_KB_ADDR = 0x5A, // also DRV2605
-    SCAN_TM9_KB_ADDR = 0x6C
+    SCAN_TM9_KB_ADDR1 = 0x6C,
+    SCAN_TM9_KB_ADDR2 = 0x6D
 };
 
 namespace
@@ -61,17 +62,30 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 {
     I2CKeyboardInputDriver *driver = nullptr;
 #ifndef ARCH_PORTDUINO
-    uint8_t i2cKeyboards_bus0[] = {SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR, SCAN_BBQ10_KB_ADDR, SCAN_MPR121_KB_ADDR};
+#ifdef SCAN_SKIP_TCA8418 // board has a non-keyboard device ACKing at 0x34
+    uint8_t i2cKeyboards_bus0[] = {SCAN_CARDKB_ADDR, SCAN_BBQ10_KB_ADDR, SCAN_MPR121_KB_ADDR, SCAN_TM9_KB_ADDR1,
+                                   SCAN_TM9_KB_ADDR2};
+#else
+    uint8_t i2cKeyboards_bus0[] = {SCAN_TCA8418_KB_ADDR, SCAN_CARDKB_ADDR,  SCAN_BBQ10_KB_ADDR,
+                                   SCAN_MPR121_KB_ADDR,  SCAN_TM9_KB_ADDR1, SCAN_TM9_KB_ADDR2};
+#endif
 #if WIRE_INTERFACES_COUNT >= 2
-    uint8_t i2cKeyboards_bus1[] = {SCAN_CARDKB_ADDR, SCAN_TM9_KB_ADDR};
+    uint8_t i2cKeyboards_bus1[] = {SCAN_CARDKB_ADDR, SCAN_TM9_KB_ADDR1};
 #endif
 
     // Reset I2C bus to clear any stuck state left by touch driver LovyanGFX operations
 #ifdef SCAN_I2C_BUS_RESET
-    ILOG_DEBUG("Resetting I2C bus ...");
+    ILOG_DEBUG("Resetting I2C0 bus ...");
     Wire.end();
     delay(10);
     Wire.begin(I2C_SDA, I2C_SCL, 100000);
+    delay(10);
+#endif
+#ifdef SCAN_I2C1_BUS_RESET
+    ILOG_DEBUG("Resetting I2C1 bus ...");
+    Wire1.end();
+    delay(10);
+    Wire1.begin(I2C_SDA1, I2C_SCL1, 100000);
     delay(10);
 #endif
 
@@ -82,8 +96,6 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
     driver = new TLoraPagerKeyboardInputDriver(SCAN_TCA8418_KB_ADDR);
 #elif defined(T_DECK_PRO)
     driver = new TDeckProKeyboardInputDriver(SCAN_TCA8418_KB_ADDR);
-#elif defined(ELECROW_ThinkNode_M9)
-    driver = new TM9KeyboardInputDriver(SCAN_TM9_KB_ADDR);
 #else
     ILOG_DEBUG("I2CKeyboardScanner scanning bus 0 ...");
     for (uint8_t i = 0; i < sizeof(i2cKeyboards_bus0); i++) {
@@ -112,6 +124,9 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
                     driver = new MPR121KeyboardInputDriver(address);
                 }
                 break;
+            case SCAN_TM9_KB_ADDR1:
+            case SCAN_TM9_KB_ADDR2:
+                driver = new TM9KeyboardInputDriver(address);
             default:
                 break;
             }
@@ -130,6 +145,10 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
 #else
         TwoWire &bus1 = Wire1;
         ILOG_DEBUG("I2CKeyboardScanner scanning bus 1 ...");
+#ifdef I2C_SDA1
+        ILOG_DEBUG("sda(%d), scl(%d)", I2C_SDA1, I2C_SCL1);
+        bus1.setPins(I2C_SDA1, I2C_SCL1);
+#endif
 #endif
         for (uint8_t i = 0; i < sizeof(i2cKeyboards_bus1); i++) {
             uint8_t address = i2cKeyboards_bus1[i];
@@ -139,7 +158,7 @@ I2CKeyboardInputDriver *I2CKeyboardScanner::scan(void)
                 case SCAN_CARDKB_ADDR:
                     driver = new CardKBInputDriver(address, bus1);
                     break;
-                case SCAN_TM9_KB_ADDR:
+                case SCAN_TM9_KB_ADDR1:
 #ifdef HAS_STC8H_KB
                     driver = new STC8HKeyboardInputDriver(address, bus1);
 #endif

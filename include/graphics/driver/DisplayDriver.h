@@ -7,6 +7,11 @@
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
 #define V_NORM_PX(v_scr_percent) ((int16_t)((screenHeight / 100.0) * (v_scr_percent)))
 
+// finger distance ratio per map zoom level; also the pinch recognition threshold
+#ifndef PINCH_ZOOM_STEP
+#define PINCH_ZOOM_STEP 1.4f
+#endif
+
 typedef lv_display_t LVGLDisplay;
 typedef lv_indev_t LVGLTouch;
 
@@ -19,8 +24,10 @@ class DisplayDriver
     virtual bool hasTouch(void) { return false; }
     virtual bool hasButton(void) { return false; }
     virtual bool hasLight(void) { return false; }
-    virtual void task_handler(void) { lv_timer_periodic_handler(); };
+    virtual void task_handler(void) { lv_timer_periodic_handler(); }
+    virtual void forceWakeup(void) {}
     virtual bool isPowersaving() { return false; }
+    virtual void toggleDisplay(void);
     virtual void printConfig(void) {}
     virtual ~DisplayDriver() {}
 
@@ -42,4 +49,7 @@ class DisplayDriver
     DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;
+
+  private:
+    static void displayToggleCb(void *displayDriver);
 };

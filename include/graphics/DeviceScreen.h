@@ -32,6 +32,7 @@ class DeviceScreen
 
     void init(IClientBase *client);
     void task_handler(void);
+    void toggleDisplay(void);
 
 #if defined(ARDUINO_ARCH_ESP32)
     int prepareSleep(void *);

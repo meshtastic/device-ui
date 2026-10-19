@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <string_view>
 
 /**
  * Global settings for raster tile map
@@ -10,8 +11,10 @@ class MapTileSettings
 {
   public:
     static constexpr size_t PREFIX_SIZE = 10;
-    static constexpr size_t TILE_STYLE_SIZE = 20;
+    static constexpr size_t TILE_STYLE_SIZE = 24;
     static constexpr size_t TILE_FORMAT_SIZE = 10;
+    static constexpr const char *PMTILES_EXTENSION = ".pmtiles";
+    static constexpr size_t PMTILES_EXTENSION_LEN = std::string_view(PMTILES_EXTENSION).size();
 
     MapTileSettings() = default;
     static uint8_t getDefaultZoom(void) { return zoomDefault; }
@@ -35,15 +38,15 @@ class MapTileSettings
     static void setPrefix(const char *p) { copyBounded(prefix, PREFIX_SIZE, p); }
 
     static const char *getTileStyle(void) { return tileStyle; }
-    static void setTileStyle(const char *p)
-    {
-        copyBounded(tileStyle, TILE_STYLE_SIZE, p);
-        size_t len = strlen(tileStyle);
-        if (len > 0 && tileStyle[len - 1] != '/' && len + 1 < TILE_STYLE_SIZE) {
-            tileStyle[len] = '/';
-            tileStyle[len + 1] = '\0';
-        }
-    }
+    static void setTileStyle(const char *p);
+
+    // directory holding z/x/y tiles for the selected style
+    static const char *getTileDir(void) { return tileDir; }
+    static bool isPMTiles(void) { return pmTiles; }
+    static void setPMTiles(bool enabled) { pmTiles = enabled; }
+
+    // strips the legacy archive extension and trailing slash from a style name
+    static void styleToDir(const char *style, char *dst, size_t dstSize);
 
     static const char *getTileFormat(void) { return tileFormat; }
     static void setTileFormat(const char *p) { copyBounded(tileFormat, TILE_FORMAT_SIZE, p); }
@@ -64,6 +67,15 @@ class MapTileSettings
     static void setSaveOK(bool ok) { save = ok; }
 
   private:
+    static void appendSlash(char *dst)
+    {
+        size_t len = strlen(dst);
+        if (len > 0 && dst[len - 1] != '/' && len + 1 < TILE_STYLE_SIZE) {
+            dst[len] = '/';
+            dst[len + 1] = '\0';
+        }
+    }
+
     static void copyBounded(char *dst, size_t dstSize, const char *src)
     {
         if (!dst || dstSize == 0) {
@@ -89,7 +101,9 @@ class MapTileSettings
     static float defaultLon;
     static char prefix[];
     static char tileStyle[];
+    static char tileDir[];
     static char tileFormat[];
+    static bool pmTiles;
     static bool debug;
     static bool save;
 };

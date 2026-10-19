@@ -32,6 +32,7 @@ class DisplayDriverConfig
         TWATCH_ULTRA,
         UNPHONE_V9,
         ELECROW_ADV,
+        ELECROW_P4_MX,
         HELTEC_TRACKER,
         VISION_MASTER_T190,
         WT32_SC01_PLUS,
@@ -40,7 +41,9 @@ class DisplayDriverConfig
         ESPJC4827W543C,
         ESP4848S040,
         MAKERFABS480X480,
-        HELTECV4_TFT
+        HELTECV4_TFT,
+        WIO_TRACKER_L2,
+        NM_CYD_C5
     };
 
     struct panel_config_t {
@@ -174,6 +177,7 @@ class DisplayDriverConfig
   private:
     friend class DisplayDriverFactory;
     friend class LGFXConfig;
+    friend class FBDriver;
 
     enum device_t _device;
     panel_config_t _panel;

@@ -31,6 +31,53 @@ class ILog
     static ILog *_logger;
 };
 
+#elif defined(USE_ESP_LOG)
+
+// ESP-IDF logging macros - thread-safe hardware logging
+#include <esp_log.h>
+
+#ifndef DEVICEUI_ESP_LOG_TAG
+#define DEVICEUI_ESP_LOG_TAG "DeviceUI"
+#endif
+
+// Keep default output low to avoid UART congestion on embedded targets.
+// Override in build flags, e.g. -DDEVICEUI_ESP_LOG_LEVEL=ESP_LOG_INFO
+#ifndef DEVICEUI_ESP_LOG_LEVEL
+#define DEVICEUI_ESP_LOG_LEVEL ESP_LOG_WARN
+#endif
+
+#if DEVICEUI_ESP_LOG_LEVEL >= ESP_LOG_DEBUG
+#define ILOG_DEBUG(...) ESP_LOGD(DEVICEUI_ESP_LOG_TAG, __VA_ARGS__)
+#else
+#define ILOG_DEBUG(...)
+#endif
+
+#if DEVICEUI_ESP_LOG_LEVEL >= ESP_LOG_INFO
+#define ILOG_INFO(...) ESP_LOGI(DEVICEUI_ESP_LOG_TAG, __VA_ARGS__)
+#else
+#define ILOG_INFO(...)
+#endif
+
+#if DEVICEUI_ESP_LOG_LEVEL >= ESP_LOG_WARN
+#define ILOG_WARN(...) ESP_LOGW(DEVICEUI_ESP_LOG_TAG, __VA_ARGS__)
+#else
+#define ILOG_WARN(...)
+#endif
+
+#if DEVICEUI_ESP_LOG_LEVEL >= ESP_LOG_ERROR
+#define ILOG_ERROR(...) ESP_LOGE(DEVICEUI_ESP_LOG_TAG, __VA_ARGS__)
+#define ILOG_CRIT(...) ESP_LOGE(DEVICEUI_ESP_LOG_TAG, __VA_ARGS__)
+#else
+#define ILOG_ERROR(...)
+#define ILOG_CRIT(...)
+#endif
+
+#if DEVICEUI_ESP_LOG_LEVEL >= ESP_LOG_VERBOSE
+#define ILOG_TRACE(...) ESP_LOGV(DEVICEUI_ESP_LOG_TAG, __VA_ARGS__)
+#else
+#define ILOG_TRACE(...)
+#endif
+
 #elif defined(USE_LOG_DEBUG)
 
 // alternative approach to directly use LOG_DEBUG macros

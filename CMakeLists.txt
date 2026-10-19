@@ -38,6 +38,7 @@ include(FetchContent)
 include(Portduino)
 include(LovyanGFX)
 include(LVGL)
+include(libdeflate)
 include(protobuf)
 include(nanopb)
 include(PNGdec)
@@ -49,7 +50,7 @@ file(GLOB_RECURSE sources      source/* generated/* portduino/* locale/* generat
 file(GLOB_RECURSE sources_test tests/*.cpp)
 
 add_library(DeviceUI ${sources})
-target_link_libraries(DeviceUI PRIVATE lvgl::lvgl LovyanGFX Portduino Protobufs CURL::libcurl)
+target_link_libraries(DeviceUI PRIVATE lvgl::lvgl libdeflate LovyanGFX Portduino Protobufs CURL::libcurl)
 
 # Handle Windows Static linking dependencies if applicable
 if(WIN32)
@@ -68,7 +69,7 @@ target_include_directories(DeviceUI PRIVATE ${GENERATED_FILES_DIR} ${CMAKE_CURRE
 
 if(ENABLE_DOCTESTS)
     target_include_directories(DeviceUI PRIVATE ${doctest_SOURCE_DIR})
-    target_compile_definitions(DeviceUI PRIVATE UNIT_TEST)
+    target_compile_definitions(DeviceUI PUBLIC UNIT_TEST)
     if(ENABLE_DEBUG_LOG)
         target_compile_definitions(DeviceUI PRIVATE DEBUG_UNIT_TEST)
     endif()
@@ -88,7 +89,11 @@ if(ENABLE_DOCTESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/locale
         ${CMAKE_CURRENT_SOURCE_DIR}/portduino
         ${CMAKE_CURRENT_SOURCE_DIR}/generated/${GENERATED_VIEW}
+        ${GENERATED_FILES_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${nanopb_SOURCE_DIR}
     )
+    add_dependencies(tests Protobufs)
     set_target_properties(tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     add_test(NAME tests COMMAND tests)
 endif()

@@ -3,7 +3,8 @@
 #include "graphics/map/TileService.h"
 #include <functional>
 
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32P4)
+#include "HTTPClient.h"
 
 class URLService : public ITileService
 {
@@ -12,10 +13,13 @@ class URLService : public ITileService
 
     URLService(Callback cb = nullptr);
     bool load(const char *name, void *img) override;
+    bool isAsync() const override { return true; }
+    lv_image_dsc_t *loadRaw(const char *name) override;
     virtual ~URLService();
 
   private:
     Callback saveCB = nullptr;
+    HTTPClient http;
 };
 
 #endif

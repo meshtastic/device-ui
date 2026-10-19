@@ -1,4 +1,5 @@
 #include "graphics/driver/DisplayDriver.h"
+#include "src/display/lv_display_private.h"
 #include "util/ILog.h"
 
 #if LV_USE_PROFILER
@@ -47,4 +48,20 @@ void DisplayDriver::init(DeviceGUI *gui)
 #endif
     lv_profiler_builtin_init(&config);
 #endif
+}
+
+void DisplayDriver::toggleDisplay(void)
+{
+    // run in lv thread
+    lv_async_call(displayToggleCb, this);
+}
+
+void DisplayDriver::displayToggleCb(void *displayDriver)
+{
+    DisplayDriver *driver = (DisplayDriver *)displayDriver;
+    if (driver->isPowersaving()) {
+        driver->forceWakeup();
+    } else {
+        driver->display->last_activity_time -= 60 * 60 * 24 * 365;
+    }
 }

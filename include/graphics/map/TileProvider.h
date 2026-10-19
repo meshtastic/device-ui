@@ -4,6 +4,8 @@
 #include <tuple>
 #include <vector>
 
+#define URL_UNSET "URL: <unset>"
+
 class TileProvider
 {
   public:
