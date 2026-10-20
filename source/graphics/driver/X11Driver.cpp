@@ -27,6 +27,8 @@ void X11Driver::init(DeviceGUI *gui)
     char title[25];
     sprintf(title, "Meshtastic (%dx%d)", screenWidth, screenHeight);
     display = lv_x11_window_create(title, screenWidth, screenHeight);
+    if (!display)
+        return;
     // LVGL's X11 driver owns the flush callback; wrap it so the frame observer sees each area too,
     // copied before the original hands the buffer back
     x11Flush = display->flush_cb;

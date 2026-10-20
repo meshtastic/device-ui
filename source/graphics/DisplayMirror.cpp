@@ -164,12 +164,18 @@ void DisplayMirror::start(DisplayDriver *driver)
         return;
     displaydriver = driver;
     lv_display_t *display = driver->getDisplay();
-    byteSwapped = display && lv_display_get_color_format(display) == LV_COLOR_FORMAT_RGB565_SWAPPED;
+    const lv_color_format_t format = display ? lv_display_get_color_format(display) : LV_COLOR_FORMAT_UNKNOWN;
+    byteSwapped = format == LV_COLOR_FORMAT_RGB565_SWAPPED;
 
-    driver->setFlushCB([](int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride) {
-        if (auto observer = frameObserver.load(std::memory_order_acquire))
-            observer(x, y, width, height, pixels, stride);
-    });
+    // frames go out as RGB565; any other format (a 32 bpp framebuffer) would stream garbage, so it streams nothing
+    if (format == LV_COLOR_FORMAT_RGB565 || format == LV_COLOR_FORMAT_RGB565_SWAPPED) {
+        driver->setFlushCB([](int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride) {
+            if (auto observer = frameObserver.load(std::memory_order_acquire))
+                observer(x, y, width, height, pixels, stride);
+        });
+    } else {
+        ILOG_WARN("DisplayMirror: color format %d is not RGB565, frames are not mirrored", (int)format);
+    }
 
     // every input driver makes its group the default in init(); a board with none gets one here
     lv_group_t *group = lv_group_get_default();
