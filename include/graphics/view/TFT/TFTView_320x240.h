@@ -580,7 +580,6 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
 
     // additional local ui data (non-persistent)
     struct meshtastic_DeviceProfile_full : meshtastic_DeviceProfile_ext {
-        bool silent;                                        // sound silenced
         meshtastic_DeviceConnectionStatus connectionStatus; // wifi/bluetooth/ethernet
     };
 
