@@ -1906,10 +1906,23 @@ void TFTView_320x240::setMapInputState(input_policy::FocusSemantic semantic)
         showMapControls(true);
     lv_group_focus_obj(objects.nav_button);
     if (!controls) {
+        if (semantic == input_policy::FocusSemantic::MapZoom) {
+            lv_obj_set_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN, false);
+            lv_obj_set_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN, false);
+            lv_obj_set_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN, false);
+            lv_obj_set_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.arrow_up_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.arrow_left_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.nav_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.arrow_right_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.arrow_down_button, LV_OBJ_FLAG_HIDDEN, true);
+        }
+        else {
+            if (!displaydriver->hasTouch())
+                showMapControls(false);
+        }
         // keys still land on the home button and bubble up to the map panel, but no focus is shown
         lv_obj_remove_state(objects.nav_button, LV_STATE_FOCUS_KEY);
-        if (!displaydriver->hasTouch())
-            showMapControls(false);
     }
     input_policy::InputContextState::instance().setFocusSemantic(semantic);
 }
@@ -1921,6 +1934,11 @@ void TFTView_320x240::showMapControls(bool show)
     lv_obj_set_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN, !show);
     lv_obj_set_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN, !show);
     lv_obj_set_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN, !show || !hasGps);
+    lv_obj_set_flag(objects.arrow_up_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.arrow_left_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.nav_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.arrow_right_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.arrow_down_button, LV_OBJ_FLAG_HIDDEN, !show);
     if (!show)
         lv_obj_add_flag(objects.zoom_slider, LV_OBJ_FLAG_HIDDEN);
 }
