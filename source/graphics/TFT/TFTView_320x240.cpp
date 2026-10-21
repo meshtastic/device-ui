@@ -137,6 +137,37 @@ static void kbdSlideAnimCB(void *var, int32_t v)
     lv_obj_set_y((lv_obj_t *)var, v);
 }
 
+// LVGL's buttonmatrix moves UP/DOWN by row but does not wrap at the top/bottom row
+static uint32_t kbdSelBeforeKey = LV_BUTTONMATRIX_BUTTON_NONE;
+static bool kbdRowWrapping = false;
+
+static void kbdRememberSelection(lv_event_t *e)
+{
+    if (!kbdRowWrapping)
+        kbdSelBeforeKey = lv_buttonmatrix_get_selected_button(lv_event_get_current_target_obj(e));
+}
+
+static void kbdWrapRow(lv_obj_t *kb, uint32_t key)
+{
+    if (kbdRowWrapping || (key != LV_KEY_UP && key != LV_KEY_DOWN))
+        return;
+    uint32_t sel = lv_buttonmatrix_get_selected_button(kb);
+    if (sel == LV_BUTTONMATRIX_BUTTON_NONE || sel != kbdSelBeforeKey)
+        return;
+
+    // walk the opposite way until the far row is reached; terminates as each step changes row
+    uint32_t opposite = key == LV_KEY_UP ? LV_KEY_DOWN : LV_KEY_UP;
+    kbdRowWrapping = true;
+    for (;;) {
+        lv_obj_send_event(kb, LV_EVENT_KEY, &opposite);
+        const uint32_t next = lv_buttonmatrix_get_selected_button(kb);
+        if (next == sel)
+            break;
+        sel = next;
+    }
+    kbdRowWrapping = false;
+}
+
 static void clearFocusKeyOnPointerPress(lv_event_t *e)
 {
     auto *group = static_cast<lv_group_t *>(lv_event_get_user_data(e));
@@ -1258,6 +1289,8 @@ void TFTView_320x240::ui_events_init(void)
 
     // keyboard
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(objects.keyboard, kbdRememberSelection, (lv_event_code_t)(LV_EVENT_KEY | LV_EVENT_PREPROCESS),
+                        NULL);
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_KEY, this);
     lv_obj_add_event_cb(objects.keyboard_button_0, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)0);
     lv_obj_add_event_cb(objects.keyboard_button_1, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)1);
@@ -2614,7 +2647,8 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
         if (!param)
             return;
         uint32_t key = *(const uint32_t *)param;
-        // consume keyboard left/right presses, do not pass to screen handler
+        kbdWrapRow(lv_event_get_target_obj(e), key);
+        // consume keyboard direction presses, do not pass to screen handler
         if (key != LV_KEY_ESC) {
             lv_event_stop_processing(e);
             return;
