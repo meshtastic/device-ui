@@ -1901,6 +1901,7 @@ void TFTView_320x240::ui_event_scroll_panel(lv_event_t *e)
  */
 void TFTView_320x240::setMapInputState(input_policy::FocusSemantic semantic)
 {
+    const auto previous = input_policy::InputContextState::instance().getSnapshot().focusSemantic;
     const bool controls = semantic == input_policy::FocusSemantic::MapControls;
     if (controls)
         showMapControls(true);
@@ -1920,6 +1921,8 @@ void TFTView_320x240::setMapInputState(input_policy::FocusSemantic semantic)
         else {
             if (!displaydriver->hasTouch())
                 showMapControls(false);
+            else if (previous == input_policy::FocusSemantic::MapZoom)
+                showMapControls(true);
         }
         // keys still land on the home button and bubble up to the map panel, but no focus is shown
         lv_obj_remove_state(objects.nav_button, LV_STATE_FOCUS_KEY);
