@@ -1289,8 +1289,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // keyboard
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
-    lv_obj_add_event_cb(objects.keyboard, kbdRememberSelection, (lv_event_code_t)(LV_EVENT_KEY | LV_EVENT_PREPROCESS),
-                        NULL);
+    lv_obj_add_event_cb(objects.keyboard, kbdRememberSelection, (lv_event_code_t)(LV_EVENT_KEY | LV_EVENT_PREPROCESS), NULL);
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_KEY, this);
     lv_obj_add_event_cb(objects.keyboard_button_0, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)0);
     lv_obj_add_event_cb(objects.keyboard_button_1, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)1);
@@ -1917,8 +1916,7 @@ void TFTView_320x240::setMapInputState(input_policy::FocusSemantic semantic)
             lv_obj_set_flag(objects.nav_button, LV_OBJ_FLAG_HIDDEN, true);
             lv_obj_set_flag(objects.arrow_right_button, LV_OBJ_FLAG_HIDDEN, true);
             lv_obj_set_flag(objects.arrow_down_button, LV_OBJ_FLAG_HIDDEN, true);
-        }
-        else {
+        } else {
             if (!displaydriver->hasTouch())
                 showMapControls(false);
             else if (previous == input_policy::FocusSemantic::MapZoom)
