@@ -226,6 +226,7 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     {
         ISpiLock::Guard bus;
         lgfx->startWrite();
@@ -248,12 +249,14 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
     uint32_t h = lv_area_get_height(area);
     lgfx->setAddrWindow(area->x1, area->y1, w, h);
     lgfx->pushPixelsDMA((uint16_t *)px_map, w * h);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     lv_display_flush_ready(disp);
 }
 #elif defined(USE_FULL_DOUBLE_BUFFER)
 template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
     auto driver = static_cast<LGFXDriver *>(lv_display_get_driver_data(disp));
+    driver->flush(disp, area, px_map);
     if (!driver->flushAreaValid) {
         driver->flushArea = *area;
         driver->flushAreaValid = true;
@@ -290,6 +293,7 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     {
         ISpiLock::Guard bus;
         lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
