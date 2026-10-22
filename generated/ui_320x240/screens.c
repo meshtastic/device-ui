@@ -1822,7 +1822,8 @@ void create_screen_main_screen() {
                     objects.map_osd_panel = obj;
                     lv_obj_set_pos(obj, -15, 5);
                     lv_obj_set_size(obj, LV_PCT(89), 180);
-                    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE|LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0x101010), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_bg_opa(obj, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1852,6 +1853,7 @@ void create_screen_main_screen() {
                             lv_obj_set_size(obj, LV_PCT(78), 8);
                             lv_slider_set_range(obj, 0, 255);
                             lv_slider_set_value(obj, 200, LV_ANIM_OFF);
+                            lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
                             lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_bg_color(obj, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1872,6 +1874,7 @@ void create_screen_main_screen() {
                             lv_obj_set_size(obj, LV_PCT(78), 8);
                             lv_slider_set_range(obj, 30, 255);
                             lv_slider_set_value(obj, 200, LV_ANIM_OFF);
+                            lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
                             lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SCROLL_WITH_ARROW);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_bg_color(obj, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1892,6 +1895,8 @@ void create_screen_main_screen() {
                             lv_obj_set_size(obj, LV_PCT(78), LV_SIZE_CONTENT);
                             lv_dropdown_set_options(obj, _("map tiles not found!"));
                             lv_dropdown_set_selected(obj, 0);
+                            lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
+                            lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE);
                             add_style_drop_down_style(obj);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_top(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1908,6 +1913,8 @@ void create_screen_main_screen() {
                             lv_obj_set_size(obj, LV_PCT(78), LV_SIZE_CONTENT);
                             lv_dropdown_set_options(obj, _(""));
                             lv_dropdown_set_selected(obj, 0);
+                            lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
+                            lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE);
                             add_style_drop_down_style(obj);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_top(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1922,7 +1929,8 @@ void create_screen_main_screen() {
                             objects.map_url_panel = obj;
                             lv_obj_set_pos(obj, 0, 92);
                             lv_obj_set_size(obj, LV_PCT(78), 27);
-                            lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+                            lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
+                            lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_SCROLLABLE);
                             lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1942,6 +1950,8 @@ void create_screen_main_screen() {
                                     lv_textarea_set_placeholder_text(obj, "Enter URL template");
                                     lv_textarea_set_one_line(obj, true);
                                     lv_textarea_set_password_mode(obj, false);
+                                    lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
+                                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE);
                                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
                                     lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                                     lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1957,6 +1967,8 @@ void create_screen_main_screen() {
                                     objects.keyboard_button_12 = obj;
                                     lv_obj_set_pos(obj, 0, 0);
                                     lv_obj_set_size(obj, 25, 25);
+                                    lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
+                                    lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE);
                                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
                                     lv_obj_set_style_bg_image_src(obj, &img_keyboard_image, LV_PART_MAIN | LV_STATE_DEFAULT);
                                     lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0x373737), LV_PART_MAIN | LV_STATE_DEFAULT);

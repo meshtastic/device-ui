@@ -8078,6 +8078,9 @@ void TFTView_320x240::cleanupAllOverlays(void)
     if (objects.msg_popup_panel && !lv_obj_has_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN)) {
         hideMessagePopup();
     }
+
+    // Hide map overlay if visible
+    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
 /**
