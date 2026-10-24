@@ -1,11 +1,11 @@
 #if defined(ARDUINO_ARCH_ESP32) && defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(SDCARD_USE_SOFT_SPI)
 
-#include "storage/FatFsStorage.h"
 #include "SD.h"
 #include "SPI.h"
-#include "ff.h"
 #include "diskio.h"
+#include "ff.h"
 #include "sd_diskio.h"
+#include "storage/FatFsStorage.h"
 #include "util/ILog.h"
 
 #ifndef SD_SPI_FREQUENCY

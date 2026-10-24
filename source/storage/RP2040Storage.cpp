@@ -190,9 +190,8 @@ bool RP2040Storage::info(StorageInfo &out)
     uint8_t cardType = state->filesystem.card()->type();
     uint64_t cardBytes = (uint64_t)state->filesystem.card()->sectorCount() * 512;
     out = StorageInfo();
-    out.card = cardType == SD_CARD_TYPE_SDHC
-                   ? (cardBytes > 32ULL * 1024 * 1024 * 1024 ? StorageInfo::eSDXC : StorageInfo::eSDHC)
-                   : StorageInfo::eSD;
+    out.card = cardType == SD_CARD_TYPE_SDHC ? (cardBytes > 32ULL * 1024 * 1024 * 1024 ? StorageInfo::eSDXC : StorageInfo::eSDHC)
+                                             : StorageInfo::eSD;
     uint8_t fatType = state->filesystem.fatType();
     out.fat = fatType == FAT_TYPE_EXFAT   ? StorageInfo::eExFat
               : fatType == FAT_TYPE_FAT32 ? StorageInfo::eFat32

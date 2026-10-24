@@ -1,6 +1,5 @@
 #if defined(ARDUINO_ARCH_ESP32) && defined(SDCARD_USE_SOFT_SPI)
 
-#include "storage/FatFsStorage.h"
 #include "FS.h"
 #include "diskio_impl.h"
 #include "driver/gpio.h"
@@ -8,6 +7,7 @@
 #include "esp_timer.h"
 #include "esp_vfs_fat.h"
 #include "ff.h"
+#include "storage/FatFsStorage.h"
 #include "util/ILog.h"
 #include "vfs_api.h"
 #include <cstdlib>
