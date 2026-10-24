@@ -210,6 +210,31 @@ static bool isInside(const lv_obj_t *obj, const lv_obj_t *ancestor)
     return false;
 }
 
+// Bubbled scroll events toggle LV_STATE_SCROLLED on every ancestor up to the screen, and LVGL answers
+// each toggle with a style refresh of the whole object tree, so keep them local. Text areas also jump
+// to the cursor instead of animating the scroll.
+static void textareaScrollEvent(lv_event_t *e)
+{
+    if (lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t *a = static_cast<lv_anim_t *>(lv_event_get_param(e));
+        if (a)
+            lv_anim_set_duration(a, 0);
+    }
+    lv_event_stop_bubbling(e);
+}
+
+static void containerScrollEvent(lv_event_t *e)
+{
+    lv_event_stop_bubbling(e);
+}
+
+static void keepScrollEventsLocal(lv_obj_t *obj, lv_event_cb_t cb)
+{
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_BEGIN, NULL);
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL, NULL);
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_END, NULL);
+}
+
 #if LV_USE_GESTURE_RECOGNITION
 static bool mapDragged = false; // suppresses the node click at the end of a drag
 #endif
@@ -1326,6 +1351,18 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_wifi_password_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.setup_user_short_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.setup_user_long_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+
+    // keep scroll events of all bubbling scrollable widgets from reaching the screen
+    lv_obj_tree_walk(
+        objects.main_screen,
+        [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
+            if (lv_obj_has_flag(obj, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_has_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE)) {
+                bool isTextarea = lv_obj_check_type(obj, &lv_textarea_class);
+                keepScrollEventsLocal(obj, isTextarea ? textareaScrollEvent : containerScrollEvent);
+            }
+            return LV_OBJ_TREE_WALK_NEXT;
+        },
+        nullptr);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
@@ -7514,6 +7551,7 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
                                                LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC)); /// Flags
     lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
     lv_obj_set_scroll_dir(container, LV_DIR_VER);
+    keepScrollEventsLocal(container, containerScrollEvent);
     lv_obj_set_style_pad_left(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(container, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
