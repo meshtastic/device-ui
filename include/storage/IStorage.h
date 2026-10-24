@@ -76,6 +76,7 @@ class IStorage
     // creates missing parent directories as well
     virtual bool mkdir(const char *path) = 0;
     virtual bool remove(const char *path) = 0;
+    // cb must not call methods on this storage object while list is active.
     virtual bool list(const char *dir, const std::function<void(const char *name, bool isDir)> &cb) = 0;
 
     // Arduino view of the volume (FTP server); nullptr when not available
