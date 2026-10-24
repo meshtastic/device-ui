@@ -5,6 +5,8 @@
 #elif defined(ARCH_PORTDUINO)
 #include "PortduinoFS.h"
 #include "storage/PosixStorage.h"
+#elif defined(ARCH_RP2040) && defined(HAS_SDCARD)
+#include "storage/RP2040Storage.h"
 #elif defined(ARDUINO_ARCH_ESP32) && (defined(HAS_SD_MMC) || defined(HAS_SDCARD))
 #include "storage/FatFsStorage.h"
 #endif
@@ -16,6 +18,8 @@ std::unique_ptr<IStorage> createStorage(void)
     return std::unique_ptr<IStorage>(new RemoteStorage);
 #elif defined(ARCH_PORTDUINO)
     return std::unique_ptr<IStorage>(new PosixStorage(portduinoVFS->mountpoint()));
+#elif defined(ARCH_RP2040) && defined(HAS_SDCARD)
+    return createRP2040Storage();
 #elif defined(ARDUINO_ARCH_ESP32) && defined(HAS_SD_MMC)
     return std::unique_ptr<IStorage>(new FatFsStorage(createSdmmcBus()));
 #elif defined(ARDUINO_ARCH_ESP32) && defined(HAS_SDCARD) && defined(SDCARD_USE_SOFT_SPI)
