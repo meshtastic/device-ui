@@ -113,7 +113,10 @@ IStorage::Status mountResult(SdFs &filesystem, bool mounted)
     SdCard *card = filesystem.card();
     if (!card)
         return IStorage::Status::SlotEmpty;
-    return card->errorCode() == 0 ? IStorage::Status::NoFilesystem : IStorage::Status::CardError;
+    const auto errorCode = card->errorCode();
+    if (errorCode == 0)
+        return IStorage::Status::NoFilesystem;
+    return errorCode == SD_CARD_ERROR_CMD0 ? IStorage::Status::SlotEmpty : IStorage::Status::CardError;
 }
 } // namespace
 
