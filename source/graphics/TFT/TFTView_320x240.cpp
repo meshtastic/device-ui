@@ -1352,23 +1352,17 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.setup_user_short_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.setup_user_long_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
 
-    // keep text area scroll events from bubbling up to the screen
-    lv_obj_t *textareas[] = {objects.message_input_area,
-                             objects.map_url_textarea,
-                             objects.settings_user_short_textarea,
-                             objects.settings_user_long_textarea,
-                             objects.settings_modify_channel_name_textarea,
-                             objects.settings_modify_channel_psk_textarea,
-                             objects.nodes_filter_name_area,
-                             objects.nodes_hl_name_area,
-                             objects.settings_screen_lock_password_textarea,
-                             objects.settings_wifi_ssid_textarea,
-                             objects.settings_wifi_password_textarea,
-                             objects.setup_user_short_textarea,
-                             objects.setup_user_long_textarea};
-    for (lv_obj_t *ta : textareas)
-        keepScrollEventsLocal(ta, textareaScrollEvent);
-    keepScrollEventsLocal(objects.messages_container, containerScrollEvent);
+    // keep scroll events of all bubbling scrollable widgets from reaching the screen
+    lv_obj_tree_walk(
+        objects.main_screen,
+        [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
+            if (lv_obj_has_flag(obj, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_has_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE)) {
+                bool isTextarea = lv_obj_check_type(obj, &lv_textarea_class);
+                keepScrollEventsLocal(obj, isTextarea ? textareaScrollEvent : containerScrollEvent);
+            }
+            return LV_OBJ_TREE_WALK_NEXT;
+        },
+        nullptr);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
