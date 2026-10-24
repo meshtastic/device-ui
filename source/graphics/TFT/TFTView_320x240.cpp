@@ -3922,6 +3922,7 @@ void TFTView_320x240::loadMap(void)
         if (!mapStylesScanned) {
             mapStylesScanned = true;
             map->setNoTileImage(&img_no_tile_image);
+            MapTileSettings::setPrefix("/maps");
             std::set<std::string> mapStyles = MapStorage::loadMapStyles(*storage, MapTileSettings::getPrefix());
             if (mapStyles.find("/map") != mapStyles.end()) {
                 // no styles found, but the /map directory, so use it
