@@ -223,6 +223,11 @@ static void textareaScrollEvent(lv_event_t *e)
     lv_event_stop_bubbling(e);
 }
 
+static void containerScrollEvent(lv_event_t *e)
+{
+    lv_event_stop_bubbling(e);
+}
+
 static void keepScrollEventsLocal(lv_obj_t *obj, lv_event_cb_t cb)
 {
     lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_BEGIN, NULL);
@@ -1363,6 +1368,7 @@ void TFTView_320x240::ui_events_init(void)
                              objects.setup_user_long_textarea};
     for (lv_obj_t *ta : textareas)
         keepScrollEventsLocal(ta, textareaScrollEvent);
+    keepScrollEventsLocal(objects.messages_container, containerScrollEvent);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
@@ -7551,6 +7557,7 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
                                                LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC)); /// Flags
     lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
     lv_obj_set_scroll_dir(container, LV_DIR_VER);
+    keepScrollEventsLocal(container, containerScrollEvent);
     lv_obj_set_style_pad_left(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(container, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
