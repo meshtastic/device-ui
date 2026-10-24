@@ -30,7 +30,8 @@ class FakeRemoteFS : public IRemoteFS
     uint32_t maxChunk = 4096;
     uint32_t reads = 0;
 
-    bool readChunk(const char *path, uint32_t offset, uint8_t *buf, uint32_t len, uint32_t *bytesRead, uint32_t *fileSize) override
+    bool readChunk(const char *path, uint32_t offset, uint8_t *buf, uint32_t len, uint32_t *bytesRead,
+                   uint32_t *fileSize) override
     {
         reads++;
         auto it = files.find(path);
