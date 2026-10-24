@@ -210,6 +210,26 @@ static bool isInside(const lv_obj_t *obj, const lv_obj_t *ancestor)
     return false;
 }
 
+// Bubbled scroll events toggle LV_STATE_SCROLLED on every ancestor up to the screen, and LVGL answers
+// each toggle with a style refresh of the whole object tree, so keep them local. Text areas also jump
+// to the cursor instead of animating the scroll.
+static void textareaScrollEvent(lv_event_t *e)
+{
+    if (lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t *a = static_cast<lv_anim_t *>(lv_event_get_param(e));
+        if (a)
+            lv_anim_set_duration(a, 0);
+    }
+    lv_event_stop_bubbling(e);
+}
+
+static void keepScrollEventsLocal(lv_obj_t *obj, lv_event_cb_t cb)
+{
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_BEGIN, NULL);
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL, NULL);
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_END, NULL);
+}
+
 #if LV_USE_GESTURE_RECOGNITION
 static bool mapDragged = false; // suppresses the node click at the end of a drag
 #endif
@@ -1326,6 +1346,23 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_wifi_password_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.setup_user_short_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.setup_user_long_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
+
+    // keep text area scroll events from bubbling up to the screen
+    lv_obj_t *textareas[] = {objects.message_input_area,
+                             objects.map_url_textarea,
+                             objects.settings_user_short_textarea,
+                             objects.settings_user_long_textarea,
+                             objects.settings_modify_channel_name_textarea,
+                             objects.settings_modify_channel_psk_textarea,
+                             objects.nodes_filter_name_area,
+                             objects.nodes_hl_name_area,
+                             objects.settings_screen_lock_password_textarea,
+                             objects.settings_wifi_ssid_textarea,
+                             objects.settings_wifi_password_textarea,
+                             objects.setup_user_short_textarea,
+                             objects.setup_user_long_textarea};
+    for (lv_obj_t *ta : textareas)
+        keepScrollEventsLocal(ta, textareaScrollEvent);
 
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
