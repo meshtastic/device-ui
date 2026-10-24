@@ -1,4 +1,4 @@
-#ifndef ARDUINO_ARCH_ESP32
+#if defined(ARCH_PORTDUINO) || !defined(ARDUINO)
 
 // 64-bit off_t on 32-bit Linux hosts, so archives beyond 2 GiB stay addressable
 #define _FILE_OFFSET_BITS 64
