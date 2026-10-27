@@ -85,6 +85,23 @@ void ViewController::runOnce(void)
             client->task_handler();
         }
     }
+    writePendingLogs();
+}
+
+void ViewController::queueLog(std::unique_ptr<LogMessageEnv> entry)
+{
+    if (pendingLogs.empty())
+        pendingLogsTime = millis();
+    pendingLogs.push_back(std::move(entry));
+}
+
+void ViewController::writePendingLogs(bool force)
+{
+    if (pendingLogs.empty() || (!force && millis() - pendingLogsTime < c_logWriteDelay))
+        return;
+    for (const auto &entry : pendingLogs)
+        log.write(*entry);
+    pendingLogs.clear();
 }
 
 bool ViewController::sleep(int16_t pin)
@@ -105,6 +122,7 @@ bool ViewController::isStandalone(void)
 
 void ViewController::stop(void)
 {
+    writePendingLogs(true);
     if (client) {
         client->disconnect();
     }
@@ -478,7 +496,8 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, 
 
     if (send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen)) {
         // ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);
-        log.write(LogMessageEnv(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen, (const uint8_t *)textmsg));
+        queueLog(std::make_unique<LogMessageEnv>(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen,
+                                                 (const uint8_t *)textmsg));
     }
 }
 
@@ -666,9 +685,10 @@ void ViewController::restoreTextMessages(void)
 void ViewController::removeTextMessages(uint32_t from, uint32_t to, uint8_t ch)
 {
     if (!from && !to && !ch) {
+        pendingLogs.clear();
         log.clear();
     } else {
-        log.write(LogMessageEnv(from, to, ch, 0L, LogMessage::eDefault, true, 0, nullptr));
+        queueLog(std::make_unique<LogMessageEnv>(from, to, ch, 0L, LogMessage::eDefault, true, 0, nullptr));
     }
 }
 
@@ -943,8 +963,8 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             break;
         }
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
-        log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
-                                (const uint8_t *)p.decoded.payload.bytes));
+        queueLog(std::make_unique<LogMessageEnv>(p.from, p.to, p.channel, time, LogMessage::eDefault, false,
+                                                 p.decoded.payload.size, (const uint8_t *)p.decoded.payload.bytes));
         break;
     }
     case meshtastic_PortNum_POSITION_APP: {

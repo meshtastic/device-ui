@@ -1,8 +1,11 @@
 #pragma once
 
 #include "comms/IClientBase.h"
+#include "util/LogMessage.h"
 #include "util/LogRotate.h"
+#include <memory>
 #include <time.h>
+#include <vector>
 
 class MeshtasticView;
 
@@ -101,9 +104,18 @@ class ViewController
     bool handleFromRadio(const meshtastic_FromRadio &from);
     // handle meshPacket
     bool packetReceived(const meshtastic_MeshPacket &p);
+    // store message log entry with a delay, see writePendingLogs()
+    void queueLog(std::unique_ptr<LogMessageEnv> entry);
+    // write queued message log entries to persistent storage once they are due (or right away if forced)
+    void writePendingLogs(bool force = false);
+
+    // A log write takes 50-300ms on a shared SPI SD card; delay it past the scroll animation of the new message
+    static constexpr uint32_t c_logWriteDelay = 500; // ms
 
     MeshtasticView *view;
     LogRotate log;
+    std::vector<std::unique_ptr<LogMessageEnv>> pendingLogs; // message log entries not yet written
+    uint32_t pendingLogsTime = 0;                            // millis() when the oldest pending entry was queued
     IClientBase *client;
     uint32_t sendId;
     uint32_t myNodeNum;
