@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/common/ChatHistory.h"
 #include "graphics/common/MeshtasticView.h"
 #include "graphics/common/NodeStore.h"
 #include "graphics/common/VisibleNodeIndex.h"
@@ -227,6 +228,16 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status);
     // add new message to container
     virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
+    // store message in the chat history of container and display it as newest bubble
+    virtual void pushChatEntry(lv_obj_t *container, ChatHistory::Entry &&entry);
+    // create the message bubble of a chat history entry at the end of container
+    virtual lv_obj_t *createMessageBubble(lv_obj_t *container, const ChatHistory::Entry &entry);
+    // create the bubbles of the newest messages of all chats once restoring is finished
+    virtual void showRestoredChats(void);
+    // prepend bubbles of older messages when reaching the top of a chat
+    virtual void loadOlderMessages(lv_obj_t *container);
+    // drop bubbles of loaded older messages when leaving a chat
+    virtual void trimChat(lv_obj_t *container);
     // create empty message container for node or group channel
     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
     // display message alert popup
@@ -517,6 +528,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     static void ui_event_mapNodeButton(lv_event_t *e);
     static void ui_event_chatNodeButton(lv_event_t *e);
     static void ui_event_positionButton(lv_event_t *e);
+    static void ui_event_message_container(lv_event_t *e);
 
     // animations
     static void ui_anim_radar_cb(void *var, int32_t r);
@@ -526,6 +538,10 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     lv_obj_t *activeTopPanel = nullptr;
     lv_obj_t *lastMainButton = nullptr;
     lv_obj_t *activeMsgContainer = nullptr;
+    // all messages per message container, only the newest c_chatWindow are bubbles unless older ones are loaded
+    std::unordered_map<lv_obj_t *, ChatHistory> chatHistories;
+    static constexpr size_t c_chatWindow = 100;
+    static constexpr size_t c_chatLoadBatch = 25;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets
