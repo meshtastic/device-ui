@@ -6033,16 +6033,23 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 void TFTView_320x240::pushChatEntry(lv_obj_t *container, ChatHistory::Entry &&entry)
 {
     ChatHistory &history = chatHistories[container];
-    if (!messagesRestored) {
-        // bubbles are created for the newest messages only, once restoring is finished
+    if (history.shownCount() == 0 && (!messagesRestored || container != activeMsgContainer)) {
+        // chats without bubbles get them when first shown
         history.append(std::move(entry), false);
         return;
     }
+    if (history.shownCount() == 0)
+        showChatBubbles(container);
 
+    // don't pull the view away from older messages the user has loaded and is reading
+    bool readingOlder = container == activeMsgContainer && history.shownCount() > c_chatWindow &&
+                        lv_obj_get_scroll_bottom(container) > c_atBottomMargin;
     lv_obj_t *panel = createMessageBubble(container, history.append(std::move(entry), true));
-    deleteOldestBubbles(container, history.trimTo(c_chatWindow));
+    if (!readingOlder)
+        deleteOldestBubbles(container, history.trimTo(c_chatWindow));
     if (state == MeshtasticView::eRunning) {
-        lv_obj_scroll_to_view(panel, LV_ANIM_ON);
+        if (!readingOlder)
+            lv_obj_scroll_to_view(panel, LV_ANIM_ON);
         lv_obj_move_foreground(objects.message_input_area);
     }
 }
@@ -6119,17 +6126,18 @@ lv_obj_t *TFTView_320x240::createMessageBubble(lv_obj_t *container, const ChatHi
     return hiddenPanel;
 }
 
-void TFTView_320x240::showRestoredChats(void)
+void TFTView_320x240::showChatBubbles(lv_obj_t *container)
 {
-    for (auto &it : chatHistories) {
-        ChatHistory &history = it.second;
-        lv_obj_t *panel = nullptr;
-        size_t revealed = history.revealOlder(c_chatWindow);
-        for (size_t i = 0; i < revealed; i++)
-            panel = createMessageBubble(it.first, history.at(history.firstShown() + i));
-        if (panel)
-            lv_obj_scroll_to_view(panel, LV_ANIM_OFF);
-    }
+    auto it = chatHistories.find(container);
+    if (it == chatHistories.end() || it->second.shownCount() > 0)
+        return;
+    ChatHistory &history = it->second;
+    lv_obj_t *panel = nullptr;
+    size_t revealed = history.revealOlder(c_chatWindow);
+    for (size_t i = 0; i < revealed; i++)
+        panel = createMessageBubble(container, history.at(history.firstShown() + i));
+    if (panel)
+        lv_obj_scroll_to_view(panel, LV_ANIM_OFF);
 }
 
 void TFTView_320x240::loadOlderMessages(lv_obj_t *container)
@@ -6174,8 +6182,11 @@ void TFTView_320x240::ui_event_message_container(lv_event_t *e)
     switch (lv_event_get_code(e)) {
     case LV_EVENT_DELETE:
         // deletion of bubbles bubbles up as well
-        if (target == container)
+        if (target == container) {
             THIS->chatHistories.erase(container);
+            if (THIS->activeMsgContainer == container)
+                THIS->activeMsgContainer = objects.messages_container;
+        }
         break;
     case LV_EVENT_SCROLL_END:
         if (target == container && lv_obj_get_scroll_top(container) <= 0)
@@ -6925,7 +6936,7 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
     while (i-- > 0) {
         lv_obj_t *panel = msgContainer->spec_attr->children[i];
         uint32_t requestId = (unsigned long)panel->user_data;
-        if (requestId == id) {
+        if (id != 0 && requestId == id) {
             // now give the textlabel border another color
             lv_obj_t *textLabel = panel->spec_attr->children[0];
             lv_obj_set_style_border_color(textLabel,
@@ -7971,7 +7982,6 @@ void TFTView_320x240::notifyRestoreMessages(int32_t percentage)
 void TFTView_320x240::notifyMessagesRestored(void)
 {
     MeshtasticView::notifyMessagesRestored();
-    showRestoredChats();
     lv_obj_add_flag(objects.msg_restore_panel, LV_OBJ_FLAG_HIDDEN);
     updateActiveChats();
     updateNodesFiltered(true);
@@ -8031,6 +8041,7 @@ void TFTView_320x240::showMessages(uint8_t ch)
     }
 
     activeMsgContainer->user_data = (void *)(uint32_t)ch;
+    showChatBubbles(activeMsgContainer);
     lv_obj_clear_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(objects.top_group_chat_label, lv_label_get_text(channel[ch]));
     ui_set_active(objects.messages_button, objects.messages_panel, objects.top_group_chat_panel);
@@ -8050,6 +8061,7 @@ void TFTView_320x240::showMessages(uint32_t nodeNum)
         activeMsgContainer = newMessageContainer(nodeNum, 0, 0);
     }
     activeMsgContainer->user_data = (void *)nodeNum;
+    showChatBubbles(activeMsgContainer);
     lv_obj_clear_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     if (nodeStore.find(nodeNum)) {
         lv_label_set_text(objects.top_messages_node_label, nodeDisplayName(nodeNum) ? nodeDisplayName(nodeNum) : "");

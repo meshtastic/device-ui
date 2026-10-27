@@ -104,17 +104,19 @@ class ViewController
     bool handleFromRadio(const meshtastic_FromRadio &from);
     // handle meshPacket
     bool packetReceived(const meshtastic_MeshPacket &p);
-    // store message log entry with a delay, see writePendingLogs()
+    // queue an entry of the persisted chat message history (not debug logging), see writePendingLogs()
     void queueLog(std::unique_ptr<LogMessageEnv> entry);
-    // write queued message log entries to persistent storage once they are due (or right away if forced)
+    // persist queued chat message history entries once they are due, or right away if forced (reboot, sleep, chat deleted)
     void writePendingLogs(bool force = false);
 
-    // A log write takes 50-300ms on a shared SPI SD card; delay it past the scroll animation of the new message
+    // Persisting a message (LogRotate::write: open, append and close a file in flash under the SPI bus lock) blocked
+    // the UI task for 44-325 ms on a ThinkNode M9, before the message was even shown. It is deferred until the new
+    // message and its scroll animation have rendered; entries still queued are lost on a crash or power loss.
     static constexpr uint32_t c_logWriteDelay = 500; // ms
 
     MeshtasticView *view;
-    LogRotate log;
-    std::vector<std::unique_ptr<LogMessageEnv>> pendingLogs; // message log entries not yet written
+    LogRotate log;                                           // persisted chat message history in persistentFS
+    std::vector<std::unique_ptr<LogMessageEnv>> pendingLogs; // chat message history entries not yet persisted
     uint32_t pendingLogsTime = 0;                            // millis() when the oldest pending entry was queued
     IClientBase *client;
     uint32_t sendId;

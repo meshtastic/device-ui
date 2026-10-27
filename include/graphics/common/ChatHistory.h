@@ -30,7 +30,7 @@ class ChatHistory
     };
 
     // append newest entry; shown entries get a bubble, others only extend the hidden older range
-    // (only allowed while nothing is shown)
+    // (a hidden append is only honored while nothing is shown, else the entry is shown)
     const Entry &append(Entry &&entry, bool shown);
     // mark up to count of the newest hidden entries as shown; returns the number revealed,
     // which are then at [firstShown(), firstShown() + n)

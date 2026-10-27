@@ -1,13 +1,13 @@
 #include "graphics/common/ChatHistory.h"
 
 #include <algorithm>
-#include <cassert>
 
 const ChatHistory::Entry &ChatHistory::append(Entry &&entry, bool shown)
 {
-    assert(shown || shownCount() == 0);
+    // hiding is only valid while nothing is shown, otherwise the shown range would no longer match the bubbles
+    bool hide = !shown && shownCount() == 0;
     entries.push_back(std::move(entry));
-    if (!shown) {
+    if (hide) {
         shownBegin = entries.size();
     }
     return entries.back();

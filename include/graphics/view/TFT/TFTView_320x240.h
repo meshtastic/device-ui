@@ -232,8 +232,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     virtual void pushChatEntry(lv_obj_t *container, ChatHistory::Entry &&entry);
     // create the message bubble of a chat history entry at the end of container
     virtual lv_obj_t *createMessageBubble(lv_obj_t *container, const ChatHistory::Entry &entry);
-    // create the bubbles of the newest messages of all chats once restoring is finished
-    virtual void showRestoredChats(void);
+    // create the bubbles of the newest messages of a chat that has none yet
+    virtual void showChatBubbles(lv_obj_t *container);
     // prepend bubbles of older messages when reaching the top of a chat
     virtual void loadOlderMessages(lv_obj_t *container);
     // drop bubbles of loaded older messages when leaving a chat
@@ -542,6 +542,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     std::unordered_map<lv_obj_t *, ChatHistory> chatHistories;
     static constexpr size_t c_chatWindow = 100;
     static constexpr size_t c_chatLoadBatch = 25;
+    static constexpr int32_t c_atBottomMargin = 20; // px from the end of a chat still counting as at the bottom
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets

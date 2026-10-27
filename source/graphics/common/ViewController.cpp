@@ -88,6 +88,10 @@ void ViewController::runOnce(void)
     writePendingLogs();
 }
 
+/**
+ * Queue an entry of the persisted chat message history instead of writing it to the filesystem right away,
+ * so that the message is shown before the slow write happens (see c_logWriteDelay)
+ */
 void ViewController::queueLog(std::unique_ptr<LogMessageEnv> entry)
 {
     if (pendingLogs.empty())
@@ -95,6 +99,10 @@ void ViewController::queueLog(std::unique_ptr<LogMessageEnv> entry)
     pendingLogs.push_back(std::move(entry));
 }
 
+/**
+ * Write queued chat message history entries to the filesystem once the oldest has waited c_logWriteDelay.
+ * Called from runOnce(), which runs after LVGL has rendered, and forced before reboot, sleep or a chat deletion.
+ */
 void ViewController::writePendingLogs(bool force)
 {
     if (pendingLogs.empty() || (!force && millis() - pendingLogsTime < c_logWriteDelay))
@@ -106,6 +114,7 @@ void ViewController::writePendingLogs(bool force)
 
 bool ViewController::sleep(int16_t pin)
 {
+    writePendingLogs(true);
     if (client)
         return client->sleep(pin);
     else
@@ -689,6 +698,7 @@ void ViewController::removeTextMessages(uint32_t from, uint32_t to, uint8_t ch)
         log.clear();
     } else {
         queueLog(std::make_unique<LogMessageEnv>(from, to, ch, 0L, LogMessage::eDefault, true, 0, nullptr));
+        writePendingLogs(true); // deleting a chat is rare; don't lose it on reset
     }
 }
 
