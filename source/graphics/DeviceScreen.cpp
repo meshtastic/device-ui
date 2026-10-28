@@ -81,6 +81,13 @@ void DeviceScreen::toggleDisplay(void)
     gui->toggleDisplay();
 }
 
+int DeviceScreen::preparePowerOff(void *)
+{
+    if (!gui->flushPendingWrites(1000))
+        ILOG_WARN("DeviceScreen: pending writes not flushed before power off");
+    return 0;
+}
+
 #if defined(ARDUINO_ARCH_ESP32)
 int DeviceScreen::prepareSleep(void *)
 {

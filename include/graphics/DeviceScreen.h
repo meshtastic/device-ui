@@ -34,6 +34,8 @@ class DeviceScreen
     void task_handler(void);
     void toggleDisplay(void);
 
+    // host is about to reboot or power down (observer callback, called from a host thread)
+    int preparePowerOff(void *);
 #if defined(ARDUINO_ARCH_ESP32)
     int prepareSleep(void *);
     int wakeUp(esp_sleep_wakeup_cause_t cause);

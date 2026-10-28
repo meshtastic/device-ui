@@ -85,7 +85,25 @@ void ViewController::runOnce(void)
             client->task_handler();
         }
     }
-    writePendingLogs();
+    if (flushLogsRequested) {
+        writePendingLogs(true);
+        flushLogsRequested = false;
+    } else {
+        writePendingLogs();
+    }
+}
+
+/**
+ * The pending queue and the log are only touched by the UI task, so another thread just requests the flush.
+ * (No mutex: ESP-IDF allocates a std::mutex lazily on its first lock, which crashed at boot in UiFtpServer.)
+ */
+bool ViewController::flushPendingLogs(uint32_t timeoutMs)
+{
+    flushLogsRequested = true;
+    uint32_t start = millis();
+    while (flushLogsRequested && millis() - start < timeoutMs)
+        delay(10);
+    return !flushLogsRequested;
 }
 
 /**
@@ -101,7 +119,8 @@ void ViewController::queueLog(std::unique_ptr<LogMessageEnv> entry)
 
 /**
  * Write queued chat message history entries to the filesystem once the oldest has waited c_logWriteDelay.
- * Called from runOnce(), which runs after LVGL has rendered, and forced before reboot, sleep or a chat deletion.
+ * Called from runOnce(), which runs after LVGL has rendered, and forced before reboot, sleep, power down or a chat
+ * deletion.
  */
 void ViewController::writePendingLogs(bool force)
 {

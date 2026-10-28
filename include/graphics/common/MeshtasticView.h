@@ -29,6 +29,7 @@ class MeshtasticView : public DeviceGUI
     virtual void task_handler(void);
     virtual void triggerHeartbeat(void);
     virtual bool sleep(int16_t pin);
+    bool flushPendingWrites(uint32_t timeoutMs) override;
 
     uint32_t getMyNodeNum(void) const { return ownNode; }
 

@@ -3,6 +3,7 @@
 #include "comms/IClientBase.h"
 #include "util/LogMessage.h"
 #include "util/LogRotate.h"
+#include <atomic>
 #include <memory>
 #include <time.h>
 #include <vector>
@@ -19,6 +20,9 @@ class ViewController
     virtual void processEvent(void);
     virtual bool isStandalone(void);
     virtual void stop(void);
+    // Have the UI task persist the queued chat message history now and wait up to timeoutMs for it. For host threads
+    // about to reboot or power down; must not be called from the UI task itself.
+    bool flushPendingLogs(uint32_t timeoutMs);
 
     // device config
     virtual uint32_t requestDeviceUIConfig(void);
@@ -110,14 +114,16 @@ class ViewController
     void writePendingLogs(bool force = false);
 
     // Persisting a message (LogRotate::write: open, append and close a file in flash under the SPI bus lock) blocked
-    // the UI task for 44-325 ms on a ThinkNode M9, before the message was even shown. It is deferred until the new
-    // message and its scroll animation have rendered; entries still queued are lost on a crash or power loss.
-    static constexpr uint32_t c_logWriteDelay = 500; // ms
+    // the UI task for 44-325 ms on a ThinkNode M9, before the message was even shown. It is deferred just past one
+    // LVGL refresh period (40 ms) so the frame showing the message is rendered first. Entries still queued are lost
+    // on a crash or power loss; planned reboots and power downs flush them (stop(), sleep(), flushPendingLogs()).
+    static constexpr uint32_t c_logWriteDelay = 50; // ms
 
     MeshtasticView *view;
     LogRotate log;                                           // persisted chat message history in persistentFS
     std::vector<std::unique_ptr<LogMessageEnv>> pendingLogs; // chat message history entries not yet persisted
     uint32_t pendingLogsTime = 0;                            // millis() when the oldest pending entry was queued
+    std::atomic<bool> flushLogsRequested{false};             // set by flushPendingLogs() from another thread
     IClientBase *client;
     uint32_t sendId;
     uint32_t myNodeNum;
