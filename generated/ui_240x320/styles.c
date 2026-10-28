@@ -336,30 +336,14 @@ lv_style_t *get_style_main_screen_style_MAIN_DEFAULT() {
     return style;
 };
 
-void init_style_main_screen_style_MAIN_PRESSED(lv_style_t *style) {
-    lv_style_set_text_font(style, &ui_font_montserrat_14);
-};
-
-lv_style_t *get_style_main_screen_style_MAIN_PRESSED() {
-    static lv_style_t *style;
-    if (!style) {
-        style = (lv_style_t *)lv_malloc(sizeof(lv_style_t));
-        lv_style_init(style);
-        init_style_main_screen_style_MAIN_PRESSED(style);
-    }
-    return style;
-};
-
 void add_style_main_screen_style(lv_obj_t *obj) {
     (void)obj;
     lv_obj_add_style(obj, get_style_main_screen_style_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_add_style(obj, get_style_main_screen_style_MAIN_PRESSED(), LV_PART_MAIN | LV_STATE_PRESSED);
 };
 
 void remove_style_main_screen_style(lv_obj_t *obj) {
     (void)obj;
     lv_obj_remove_style(obj, get_style_main_screen_style_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_remove_style(obj, get_style_main_screen_style_MAIN_PRESSED(), LV_PART_MAIN | LV_STATE_PRESSED);
 };
 
 //
