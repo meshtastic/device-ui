@@ -1356,8 +1356,10 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_tree_walk(
         objects.main_screen,
         [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
-            if (lv_obj_has_flag(obj, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_has_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE)) {
-                bool isTextarea = lv_obj_check_type(obj, &lv_textarea_class);
+            bool isTextarea = lv_obj_check_type(obj, &lv_textarea_class);
+            // touch hotfix strips EVENT_BUBBLE from main-screen widgets, including text areas; register
+            // text areas by type regardless, so their scroll-begin callback still runs
+            if (isTextarea || (lv_obj_has_flag(obj, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_has_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE))) {
                 keepScrollEventsLocal(obj, isTextarea ? textareaScrollEvent : containerScrollEvent);
             }
             return LV_OBJ_TREE_WALK_NEXT;
