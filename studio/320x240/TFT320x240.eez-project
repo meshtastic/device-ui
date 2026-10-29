@@ -25645,9 +25645,6 @@
             "MAIN": {
               "DEFAULT": {
                 "bg_color": "#e0e0e0"
-              },
-              "PRESSED": {
-                "text_font": "montserrat_14"
               }
             }
           }
