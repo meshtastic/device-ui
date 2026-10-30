@@ -14,6 +14,8 @@
 
 class MapPanel;
 class TFTView_Debug;
+class IStorage;
+struct StorageInfo;
 
 /**
  * @brief RAII helper to temporarily change the default LVGL input group
@@ -266,9 +268,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void armSDCardStatsPoll(void);
     // release the card so it can be pulled safely; a tap mounts it again
     void ejectSDCard(void);
-#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
-    void formatSDCardLabel(char *buf, size_t len);
-#endif
+    void formatSDCardLabel(const StorageInfo &info, char *buf, size_t len);
     uint16_t sdStatsPolls = 0;
     // format SD card if invalid
     virtual void formatSDCard(void);
@@ -560,6 +560,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     bool detectorRunning;                            // meshDetector is active
     bool cardDetected;                               // SD has been detected
     bool formatSD;                                   // offer to format SD card
+    IStorage *storage = nullptr;                     // SD card (or host folder)
+    bool mapStylesScanned = false;                   // map styles read from the current mount
     uint16_t buttonSize;                             // size of group/chat buttons in pixels
     uint16_t statisticTableRows;                     // number of rows in statistics table
     uint16_t packetCounter;                          // number of packets in packet log
