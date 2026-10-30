@@ -219,6 +219,31 @@ static void deleteOldestBubbles(lv_obj_t *container, size_t count)
         lv_obj_delete(lv_obj_get_child(container, 0));
 }
 
+// Bubbled scroll events toggle LV_STATE_SCROLLED on every ancestor up to the screen, and LVGL answers
+// each toggle with a style refresh of the whole object tree, so keep them local. Text areas also jump
+// to the cursor instead of animating the scroll.
+static void textareaScrollEvent(lv_event_t *e)
+{
+    if (lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t *a = static_cast<lv_anim_t *>(lv_event_get_param(e));
+        if (a)
+            lv_anim_set_duration(a, 0);
+    }
+    lv_event_stop_bubbling(e);
+}
+
+static void containerScrollEvent(lv_event_t *e)
+{
+    lv_event_stop_bubbling(e);
+}
+
+static void keepScrollEventsLocal(lv_obj_t *obj, lv_event_cb_t cb)
+{
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_BEGIN, NULL);
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL, NULL);
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_END, NULL);
+}
+
 #if LV_USE_GESTURE_RECOGNITION
 static bool mapDragged = false; // suppresses the node click at the end of a drag
 #endif
@@ -1430,6 +1455,20 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_modify_channel_qr_button, ui_event_qr_code, LV_EVENT_CLICKED, NULL);
 
     // screen
+    // keep scroll events of all bubbling scrollable widgets from reaching the screen
+    lv_obj_tree_walk(
+        objects.main_screen,
+        [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
+            bool isTextarea = lv_obj_check_type(obj, &lv_textarea_class);
+            // touch hotfix strips EVENT_BUBBLE from main-screen widgets, including text areas; register
+            // text areas by type regardless, so their scroll-begin callback still runs
+            if (isTextarea || (lv_obj_has_flag(obj, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_has_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE))) {
+                keepScrollEventsLocal(obj, isTextarea ? textareaScrollEvent : containerScrollEvent);
+            }
+            return LV_OBJ_TREE_WALK_NEXT;
+        },
+        nullptr);
+
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
     lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button, LV_EVENT_CLICKED, 0);
     // Preprocess so our handler runs before the button matrix class default handler;
@@ -7575,6 +7614,7 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
     lv_obj_add_event_cb(container, ui_event_message_container, LV_EVENT_DELETE, NULL);
     lv_obj_add_event_cb(container, ui_event_message_container, LV_EVENT_SCROLL_END, NULL);
     lv_obj_add_event_cb(container, ui_event_message_container, LV_EVENT_FOCUSED, NULL);
+    keepScrollEventsLocal(container, containerScrollEvent);
     lv_obj_set_style_pad_left(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(container, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);

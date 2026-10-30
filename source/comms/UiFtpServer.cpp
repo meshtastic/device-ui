@@ -97,10 +97,8 @@ void ftpTransferCallback(FtpTransferOperation operation, const char *filename, u
 
 UiFtpServer *UiFtpServer::instance()
 {
-    static UiFtpServer *ftp = nullptr;
-    if (!ftp) {
-        ftp = new UiFtpServer();
-    }
+    // thread-safe static init: also called from the WiFi event and FTP server tasks
+    static UiFtpServer *ftp = new UiFtpServer();
     return ftp;
 }
 
@@ -242,7 +240,8 @@ bool UiFtpServer::isTransferInProgress()
 
 bool UiFtpServer::isWiFiConnected() const
 {
-    std::lock_guard<std::mutex> lock(mutex);
+    // No class state is read, so don't take the mutex: the UI polls this from boot on, and the
+    // first lock of a std::mutex lazily allocates it, which has crashed while WiFi is starting up.
     return WiFi.status() == WL_CONNECTED;
 }
 
