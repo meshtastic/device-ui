@@ -795,9 +795,11 @@ void TFTView_320x240::showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
             lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
             resetKeyboardSlide();
             uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+            hideChat(activeMsgContainer);
             // remove empty messageContainer if we are leaving messages panel
             if (channelOrNode >= c_max_channels) {
-                if (activeMsgContainer->spec_attr->child_cnt == 0) {
+                if (chatHistories.find(activeMsgContainer) == chatHistories.end() ||
+                    chatHistories.at(activeMsgContainer).size() == 0) {
                     eraseChat(channelOrNode);
                     updateActiveChats();
                     activeMsgContainer = objects.messages_container;
@@ -812,6 +814,8 @@ void TFTView_320x240::showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     }
 
     lv_obj_clear_flag(p, LV_OBJ_FLAG_HIDDEN);
+    if (p == objects.messages_panel)
+        renderChat(activeMsgContainer);
     if (p == objects.nodes_panel) {
         ensureVirtualNodeList();
     } else if (p == objects.map_panel && !displaydriver->hasTouch()) {
@@ -5972,8 +5976,8 @@ void TFTView_320x240::handleAddMessage(char *msg)
         if (msg[i] == CR_REPLACEMENT)
             msg[i] = '\n';
 
-    controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
     addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
+    controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
 }
 
 /**
@@ -5981,6 +5985,19 @@ void TFTView_320x240::handleAddMessage(char *msg)
  */
 void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
                                  LogMessage::MsgStatus status)
+{
+    char text[284]{};
+    const uint32_t length = timestamp(text, msgTime, status == LogMessage::eNone);
+    snprintf(text + length, sizeof(text) - length, "%s", msg);
+    ChatHistory::Entry entry;
+    entry.text = text;
+    entry.sent = true;
+    entry.requestId = requestId;
+    entry.status = status;
+    appendChatEntry(container, std::move(entry));
+}
+
+lv_obj_t *TFTView_320x240::createChatBubble(lv_obj_t *container, const ChatHistory::Entry &entry)
 {
     // Ensure all dynamically created widgets go to the panel content group
     GroupGuard group_guard(defaultPanelGroup);
@@ -5999,13 +6016,8 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_style_pad_right(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    hiddenPanel->user_data = (void *)requestId;
-
-    // add timestamp
-    char buf[284]; // 237 + 4 + 40 + 2 + 1
-    buf[0] = '\0';
-    uint32_t len = timestamp(buf, msgTime, status == LogMessage::eNone);
-    strcat(&buf[len], msg);
+    hiddenPanel->user_data = reinterpret_cast<void *>(static_cast<uintptr_t>(entry.requestId));
+    const char *buf = entry.text.c_str();
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     lv_group_add_obj(defaultPanelGroup, textLabel);
@@ -6016,20 +6028,24 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_text_attributes_t attributes = {0};
     lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_14, &attributes);
 #endif
-    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>((int32_t)width + 10, 200) + 10, 50));
+    lv_obj_set_width(textLabel, entry.sent ? std::max<int32_t>(std::min<int32_t>((int32_t)width + 10, 200) + 10, 50)
+                                           : std::max<int32_t>(std::min<int32_t>((int32_t)width, 160) + 10, 45));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
-    lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
+    lv_obj_set_align(textLabel, entry.sent ? LV_ALIGN_RIGHT_MID : LV_ALIGN_LEFT_MID);
     lv_obj_add_flag(textLabel, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
                                              LV_OBJ_FLAG_SCROLL_ON_FOCUS));
     lv_label_set_text(textLabel, buf);
 
-    add_style_chat_message_style(textLabel);
+    if (entry.sent) {
+        add_style_chat_message_style(textLabel);
+    } else {
+        add_style_new_message_style(textLabel);
+        lv_obj_add_event_cb(textLabel, ui_event_chatNodeButton, LV_EVENT_CLICKED,
+                            reinterpret_cast<void *>(static_cast<uintptr_t>(entry.node)));
+    }
 
-    lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
-    lv_obj_move_foreground(objects.message_input_area);
-
-    switch (status) {
+    switch (entry.status) {
     case LogMessage::eHeard:
         lv_obj_set_style_border_color(textLabel, colorYellow,
                                       (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
@@ -6039,11 +6055,161 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
                                       (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         break;
     case LogMessage::eFailed:
+    case LogMessage::eNoResponse:
         lv_obj_set_style_border_color(textLabel, colorRed,
                                       (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         break;
     default:
         break;
+    }
+    return hiddenPanel;
+}
+
+void TFTView_320x240::appendChatEntry(lv_obj_t *container, ChatHistory::Entry entry)
+{
+    auto &history = chatHistories[container];
+    const size_t previousFirst = history.first();
+    const bool visible = messagesRestored && container == activeMsgContainer && activePanel == objects.messages_panel;
+    const bool ownMessage = entry.sent && entry.status == LogMessage::eNone;
+    const bool jump = ownMessage && !history.atLatest();
+    const bool follow =
+        ownMessage || !history.opened ||
+        (history.atLatest() && (visible ? lv_obj_get_scroll_bottom(container) <= 20 : history.scrollY == INT32_MAX));
+    history.append(std::move(entry), follow);
+    if (!visible || !follow)
+        return;
+    if (jump || !lv_obj_get_child_count(container)) {
+        renderChat(container, true, previousFirst);
+        return;
+    }
+    updatingChat = true;
+    if (history.first() > previousFirst) {
+        auto *oldest = lv_obj_get_child(container, 0);
+        auto *focused = lv_group_get_focused(defaultPanelGroup);
+        if (focused && isInside(focused, oldest))
+            lv_group_focus_obj(objects.message_input_area);
+        lv_obj_delete(oldest);
+    }
+    auto *newest = createChatBubble(container, history.at(history.last() - 1));
+    lv_obj_scroll_to_view(newest, LV_ANIM_ON);
+    history.scrollY = INT32_MAX;
+    updatingChat = false;
+}
+
+void TFTView_320x240::hideChat(lv_obj_t *container)
+{
+    auto found = chatHistories.find(container);
+    if (found == chatHistories.end() || !lv_obj_get_child_count(container))
+        return;
+    auto &history = found->second;
+    history.scrollY =
+        history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);
+    updatingChat = true;
+    auto *focused = lv_group_get_focused(defaultPanelGroup);
+    if (focused && isInside(focused, container))
+        lv_group_focus_obj(objects.message_input_area);
+    lv_obj_clean(container);
+    updatingChat = false;
+}
+
+void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previousFirst)
+{
+    auto found = chatHistories.find(container);
+    if (found == chatHistories.end())
+        return;
+    auto &history = found->second;
+    if (!history.opened) {
+        history.latest();
+        follow = true;
+        history.opened = true;
+    }
+    const int32_t scroll = lv_obj_get_child_count(container) ? lv_obj_get_scroll_y(container) : history.scrollY;
+    updatingChat = true;
+    auto *focused = lv_group_get_focused(defaultPanelGroup);
+    int32_t focusedIndex = -1;
+    if (focused && isInside(focused, container)) {
+        const size_t logicalIndex =
+            (previousFirst == SIZE_MAX ? history.first() : previousFirst) + lv_obj_get_index(lv_obj_get_parent(focused));
+        if (logicalIndex >= history.first() && logicalIndex < history.last())
+            focusedIndex = logicalIndex - history.first();
+        lv_group_focus_obj(objects.message_input_area);
+    }
+    lv_obj_clean(container);
+    for (size_t index = history.first(); index < history.last(); ++index)
+        createChatBubble(container, history.at(index));
+    lv_obj_update_layout(container);
+    if ((follow || scroll == INT32_MAX) && lv_obj_get_child_count(container))
+        lv_obj_scroll_to_view(lv_obj_get_child(container, -1), LV_ANIM_OFF);
+    else
+        lv_obj_scroll_to_y(container, scroll, LV_ANIM_OFF);
+    if (focusedIndex >= 0 && lv_obj_get_child_count(container)) {
+        auto *panel = lv_obj_get_child(container, std::min<int32_t>(focusedIndex, lv_obj_get_child_count(container) - 1));
+        lv_group_focus_obj(lv_obj_get_child(panel, 0));
+    }
+    history.scrollY =
+        history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);
+    updatingChat = false;
+}
+
+void TFTView_320x240::shiftChat(lv_obj_t *container, bool older)
+{
+    auto found = chatHistories.find(container);
+    if (updatingChat || found == chatHistories.end())
+        return;
+    auto &history = found->second;
+    const size_t previousFirst = history.first();
+    const size_t anchor = older ? previousFirst : history.last() - 1;
+    auto *panel = lv_obj_get_child(container, anchor - previousFirst);
+    const int32_t previousY = lv_obj_get_y(panel) - lv_obj_get_scroll_y(container);
+    if (!(older ? history.older() : history.newer()))
+        return;
+    updatingChat = true;
+    renderChat(container, false, previousFirst);
+    updatingChat = true;
+    auto *replacement = lv_obj_get_child(container, anchor - history.first());
+    lv_obj_scroll_to_y(container, lv_obj_get_y(replacement) - previousY, LV_ANIM_OFF);
+    history.scrollY = lv_obj_get_scroll_y(container);
+    updatingChat = false;
+}
+
+void TFTView_320x240::ui_event_chat_history(lv_event_t *event)
+{
+    auto *container = lv_event_get_current_target_obj(event);
+    auto *target = lv_event_get_target_obj(event);
+    const auto code = lv_event_get_code(event);
+    if (code == LV_EVENT_DELETE && target == container) {
+        THIS->chatHistories.erase(container);
+        if (THIS->activeMsgContainer == container)
+            THIS->activeMsgContainer = objects.messages_container;
+        return;
+    }
+    if (THIS->updatingChat || !lv_obj_get_child_count(container))
+        return;
+    if (code == LV_EVENT_SCROLL_END && target == container) {
+        const auto &history = THIS->chatHistories.at(container);
+        if (history.first() && lv_obj_get_scroll_top(container) <= 0)
+            THIS->shiftChat(container, true);
+        else if (!history.atLatest() && lv_obj_get_scroll_bottom(container) <= 0)
+            THIS->shiftChat(container, false);
+    } else if (code == LV_EVENT_FOCUSED && lv_obj_get_parent(lv_obj_get_parent(target)) == container) {
+        const int32_t index = lv_obj_get_index(lv_obj_get_parent(target));
+        if (index == 0 || index == lv_obj_get_child_count(container) - 1) {
+            lv_async_call(
+                [](void *data) {
+                    auto *chat = static_cast<lv_obj_t *>(data);
+                    if (!THIS->chatHistories.count(chat) || THIS->activeMsgContainer != chat ||
+                        THIS->activePanel != objects.messages_panel)
+                        return;
+                    auto *focused = lv_group_get_focused(THIS->defaultPanelGroup);
+                    if (!focused || !isInside(focused, chat))
+                        return;
+                    auto *panel = lv_obj_get_parent(focused);
+                    const int32_t focusedIndex = lv_obj_get_index(panel);
+                    if (focusedIndex == 0 || focusedIndex == lv_obj_get_child_count(chat) - 1)
+                        THIS->shiftChat(chat, focusedIndex == 0);
+                },
+                container);
+        }
     }
 }
 
@@ -6482,10 +6648,12 @@ void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req,
 {
     ILOG_DEBUG("onTextMessageCallback: %d %d", evt, result);
     if (evt == ResponseHandler::found) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, false, result);
+        handleTextMessageResponse((unsigned long)req.cookie, req.packetId, false, result);
     } else if (evt == ResponseHandler::removed) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, true, result);
-    } else {
+        handleTextMessageResponse((unsigned long)req.cookie, req.packetId, true, result);
+    } else if (evt == ResponseHandler::timeout) {
+        controller->setTextMessageStatus(req.packetId, LogMessage::eNoResponse, true);
+        updateChatStatus((unsigned long)req.cookie, req.packetId, LogMessage::eNoResponse);
         ILOG_DEBUG("onTextMessageCallback: timeout!");
     }
 }
@@ -6759,35 +6927,68 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
  */
 void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
 {
+    const bool final = err || ack || channelOrNode < c_max_channels;
+    const auto status = err                                       ? LogMessage::eFailed
+                        : (ack || channelOrNode < c_max_channels) ? LogMessage::eAcked
+                                                                  : LogMessage::eHeard;
+    controller->setTextMessageStatus(id, status, final);
+    updateChatStatus(channelOrNode, id, status);
+}
+
+void TFTView_320x240::updateChatStatus(uint32_t channelOrNode, uint32_t id, LogMessage::MsgStatus status)
+{
     lv_obj_t *msgContainer;
     if (channelOrNode < c_max_channels) {
         msgContainer = channelGroup[(uint8_t)channelOrNode];
-        ack = true; // treat messages sent to group channel same as ack
     } else {
-        msgContainer = messages[channelOrNode];
+        const auto found = messages.find(channelOrNode);
+        msgContainer = found == messages.end() ? nullptr : found->second;
     }
     if (!msgContainer) {
         ILOG_WARN("received unexpected response nodeNum/channel 0x%08x for request id 0x%08x", channelOrNode, id);
         return;
+    }
+    auto history = chatHistories.find(msgContainer);
+    if (history != chatHistories.end()) {
+        history->second.setStatus(id, status);
+        for (size_t index = history->second.first(); index < history->second.last(); ++index) {
+            if (history->second.at(index).requestId == id) {
+                status = history->second.at(index).status;
+                break;
+            }
+        }
     }
     // go through all hiddenPanels and search for requestId
     uint16_t i = msgContainer->spec_attr->child_cnt;
     while (i-- > 0) {
         lv_obj_t *panel = msgContainer->spec_attr->children[i];
         uint32_t requestId = (unsigned long)panel->user_data;
-        if (requestId == id) {
+        if (id && requestId == id) {
             // now give the textlabel border another color
             lv_obj_t *textLabel = panel->spec_attr->children[0];
             lv_obj_set_style_border_color(textLabel,
-                                          err   ? colorRed
-                                          : ack ? colorBlueGreen
-                                                : colorYellow,
+                                          status == LogMessage::eFailed || status == LogMessage::eNoResponse ? colorRed
+                                          : status == LogMessage::eAcked                                     ? colorBlueGreen
+                                                                                                             : colorYellow,
                                           (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
 
             // store message
             break;
         }
     }
+}
+
+void TFTView_320x240::textMessageStatus(uint32_t requestId, LogMessage::MsgStatus status)
+{
+    const auto request = requests.findRequest(requestId, ResponseHandler::TextMessageRequest);
+    if (request.type != ResponseHandler::TextMessageRequest)
+        return;
+    const uint32_t channelOrNode = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(request.cookie));
+    if (channelOrNode < c_max_channels && status == LogMessage::eHeard)
+        status = LogMessage::eAcked;
+    updateChatStatus(channelOrNode, requestId, status);
+    if (status == LogMessage::eAcked || status == LogMessage::eFailed || status == LogMessage::eNoResponse)
+        requests.removeRequest(requestId);
 }
 
 void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
@@ -7454,6 +7655,9 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
                                                LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC)); /// Flags
     lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
     lv_obj_set_scroll_dir(container, LV_DIR_VER);
+    lv_obj_add_event_cb(container, ui_event_chat_history, LV_EVENT_DELETE, nullptr);
+    lv_obj_add_event_cb(container, ui_event_chat_history, LV_EVENT_SCROLL_END, nullptr);
+    lv_obj_add_event_cb(container, ui_event_chat_history, LV_EVENT_FOCUSED, nullptr);
     keepScrollEventsLocal(container, containerScrollEvent);
     lv_obj_set_style_pad_left(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
@@ -7557,45 +7761,10 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
  */
 void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg)
 {
-    // Ensure all dynamically created widgets go to the panel content group
-    GroupGuard group_guard(defaultPanelGroup);
-
-    lv_obj_t *hiddenPanel = lv_obj_create(container);
-    lv_obj_set_width(hiddenPanel, lv_pct(100));
-    lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT); /// 50
-    lv_obj_set_align(hiddenPanel, LV_ALIGN_CENTER);
-    lv_obj_add_flag(hiddenPanel, LV_OBJ_FLAG_EVENT_BUBBLE);
-    lv_obj_clear_flag(hiddenPanel, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-    lv_obj_set_style_radius(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    add_style_panel_style(hiddenPanel);
-    lv_obj_set_style_pad_left(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-
-    lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
-    lv_group_add_obj(defaultPanelGroup, msgLabel);
-    // calculate expected size of text bubble, to make it look nicer
-#if LV_VERSION_CHECK(9, 3, 0)
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_14, 0);
-#else // 9.5.0
-    lv_text_attributes_t attributes = {0};
-    lv_coord_t width = lv_text_get_width(msg, strlen(msg), &ui_font_montserrat_14, &attributes);
-#endif
-    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 45));
-    lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
-    lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
-    lv_obj_add_flag(msgLabel, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
-                                            LV_OBJ_FLAG_SCROLL_ON_FOCUS));
-    lv_label_set_text(msgLabel, msg);
-    add_style_new_message_style(msgLabel);
-    lv_obj_add_flag(msgLabel, LV_OBJ_FLAG_CLICK_FOCUSABLE);
-    lv_obj_add_event_cb(msgLabel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
-
-    if (state == MeshtasticView::eRunning) {
-        lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
-        lv_obj_move_foreground(objects.message_input_area);
-    }
+    ChatHistory::Entry entry;
+    entry.text = msg;
+    entry.node = nodeNum;
+    appendChatEntry(container, std::move(entry));
 }
 
 /**
@@ -7849,6 +8018,7 @@ void TFTView_320x240::showMessages(uint8_t ch)
         return;
     }
 
+    hideChat(activeMsgContainer);
     lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     activeMsgContainer = channelGroup[ch];
     if (!activeMsgContainer) {
@@ -7868,6 +8038,7 @@ void TFTView_320x240::showMessages(uint8_t ch)
  */
 void TFTView_320x240::showMessages(uint32_t nodeNum)
 {
+    hideChat(activeMsgContainer);
     lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     activeMsgContainer = messages[nodeNum];
     if (!activeMsgContainer) {

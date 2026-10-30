@@ -1,6 +1,32 @@
 #include "graphics/common/ResponseHandler.h"
 #include "Arduino.h"
 #include "util/ILog.h"
+#if defined(ARCH_PORTDUINO)
+#include <chrono>
+#include <cstdlib>
+#include <mutex>
+#endif
+
+namespace
+{
+uint32_t randomPacketBits()
+{
+#if defined(ARCH_PORTDUINO)
+    // This block will run exactly ONCE the very first time this function is called
+    static std::once_flag flag;
+    std::call_once(flag, []() {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+        std::srand(static_cast<unsigned int>(nanos));
+    });
+
+    // Your existing code remains unchanged:
+    return std::rand() % (UINT32_MAX & 0x7fffffff);
+#else
+    return random(UINT32_MAX & 0x7fffffff);
+#endif
+}
+} // namespace
 
 uint32_t ResponseHandler::rollingPacketId = 0;
 
@@ -11,14 +37,15 @@ uint32_t ResponseHandler::rollingPacketId = 0;
  */
 ResponseHandler::ResponseHandler(uint32_t timeout) : requestIdCounter(0), maxTime(timeout)
 {
-    rollingPacketId = random(UINT32_MAX & 0x7fffffff);
+    rollingPacketId = randomPacketBits();
 }
 
 uint32_t ResponseHandler::addRequest(uint32_t id, RequestType type, void *cookie, Callback cb)
 {
     requestIdCounter++;
     uint32_t requestId = generatePacketId();
-    pendingRequest[requestId] = Request{.id = id, .timestamp = millis(), .type = type, .cookie = cookie, .cb = cb};
+    pendingRequest[requestId] =
+        Request{.id = id, .timestamp = millis(), .type = type, .cookie = cookie, .cb = cb, .packetId = requestId};
     return requestId;
 }
 
@@ -56,7 +83,7 @@ uint32_t ResponseHandler::generatePacketId(void)
 {
     rollingPacketId++;
     rollingPacketId &= UINT32_MAX >> 22;
-    return rollingPacketId | random(UINT32_MAX & 0x7fffffff) << 10;
+    return rollingPacketId | randomPacketBits() << 10;
 }
 
 /**
@@ -71,7 +98,7 @@ void ResponseHandler::task_handler(void)
     auto it = pendingRequest.begin();
     while (it != pendingRequest.end()) {
         Request &req = it->second;
-        if (req.timestamp + maxTime < millis()) {
+        if (millis() - req.timestamp >= maxTime) {
             ILOG_DEBUG("removing timed out request %08x", it->first);
             if (req.cb)
                 req.cb(req, timeout, 0);
