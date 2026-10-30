@@ -1337,20 +1337,6 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.setup_user_short_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(objects.setup_user_long_textarea, ui_event_textarea_edit_mode, LV_EVENT_ALL, NULL);
 
-    // keep scroll events of all bubbling scrollable widgets from reaching the screen
-    lv_obj_tree_walk(
-        objects.main_screen,
-        [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
-            bool isTextarea = lv_obj_check_type(obj, &lv_textarea_class);
-            // touch hotfix strips EVENT_BUBBLE from main-screen widgets, including text areas; register
-            // text areas by type regardless, so their scroll-begin callback still runs
-            if (isTextarea || (lv_obj_has_flag(obj, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_has_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE))) {
-                keepScrollEventsLocal(obj, isTextarea ? textareaScrollEvent : containerScrollEvent);
-            }
-            return LV_OBJ_TREE_WALK_NEXT;
-        },
-        nullptr);
-
     // basic settings buttons
     lv_obj_add_event_cb(objects.basic_settings_user_button, ui_event_user_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_role_button, ui_event_role_button, LV_EVENT_CLICKED, NULL);
@@ -1443,6 +1429,20 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_modify_channel_qr_button, ui_event_qr_code, LV_EVENT_CLICKED, NULL);
 
     // screen
+    // keep scroll events of all bubbling scrollable widgets from reaching the screen
+    lv_obj_tree_walk(
+        objects.main_screen,
+        [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
+            bool isTextarea = lv_obj_check_type(obj, &lv_textarea_class);
+            // touch hotfix strips EVENT_BUBBLE from main-screen widgets, including text areas; register
+            // text areas by type regardless, so their scroll-begin callback still runs
+            if (isTextarea || (lv_obj_has_flag(obj, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_has_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE))) {
+                keepScrollEventsLocal(obj, isTextarea ? textareaScrollEvent : containerScrollEvent);
+            }
+            return LV_OBJ_TREE_WALK_NEXT;
+        },
+        nullptr);
+
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
     lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button, LV_EVENT_CLICKED, 0);
     // Preprocess so our handler runs before the button matrix class default handler;
