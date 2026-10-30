@@ -1,6 +1,7 @@
 #include "core/lv_global.h"
 #include "util/ILog.h"
 #include <PNGdec.h>
+#include <mutex>
 #include <new> // Required for placement new syntax
 
 // Context structures passed to the row decoder callbacks
@@ -11,10 +12,12 @@ struct PNGDrawContext {
 };
 
 PNG *png = nullptr;
+static std::mutex pngMutex;
 
 #ifdef PNGDEC_SRAM_ALLOC
 void initPNGDecoder(void)
 {
+    std::lock_guard<std::mutex> lock(pngMutex);
     static void *pngBuffer = nullptr;
     if (!pngBuffer) {
         // force allocation into zero-wait-state Internal SRAM (aligned to 32-bit words)
@@ -32,6 +35,7 @@ void initPNGDecoder(void)
 #else
 void initPNGDecoder(void)
 {
+    std::lock_guard<std::mutex> lock(pngMutex);
     static void *pngBuffer = nullptr;
     if (!pngBuffer)
         pngBuffer = lv_malloc(sizeof(PNG));
@@ -48,6 +52,10 @@ void initPNGDecoder(void)
  */
 bool decodeImgColor(const void *data, size_t size, lv_image_dsc_t **img)
 {
+    std::lock_guard<std::mutex> lock(pngMutex);
+    if (!png)
+        return false;
+
     auto PNGDrawCallback = [](PNGDRAW *pDraw) -> int {
         struct PNGDrawContext *ctx = (struct PNGDrawContext *)pDraw->pUser;
 
@@ -158,6 +166,10 @@ static inline uint8_t rgb565ToGrey(uint16_t pixel)
 
 bool decodeImgGrey(const void *data, size_t size, lv_image_dsc_t **img)
 {
+    std::lock_guard<std::mutex> lock(pngMutex);
+    if (!png)
+        return false;
+
     auto PNGGreyDrawCallback = [](PNGDRAW *pDraw) -> int {
         struct PNGGreyDrawContext *ctx = (struct PNGGreyDrawContext *)pDraw->pUser;
         uint8_t *rowDst = ctx->destBuffer + (pDraw->y * ctx->width);
