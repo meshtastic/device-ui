@@ -16,7 +16,7 @@ void workerDelay(uint32_t durationMs)
     std::this_thread::sleep_for(std::chrono::milliseconds(durationMs));
 #endif
 }
-}
+} // namespace
 
 AsyncMessageLog::AsyncMessageLog(Writer writer, Clear clear, Clock clock)
     : writer(std::move(writer)), clear(std::move(clear)), clock(clock ? std::move(clock) : Clock([]() { return millis(); }))

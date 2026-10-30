@@ -15,7 +15,7 @@ uint32_t randomPacketBits()
     return random(UINT32_MAX & 0x7fffffff);
 #endif
 }
-}
+} // namespace
 
 uint32_t ResponseHandler::rollingPacketId = 0;
 

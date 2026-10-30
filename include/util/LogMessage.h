@@ -2,8 +2,8 @@
 
 #include "ILogEntry.h"
 #include <assert.h>
-#include <ctime>
 #include <cstring>
+#include <ctime>
 
 constexpr uint32_t messagePayloadSize = 233;
 
