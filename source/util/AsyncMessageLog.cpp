@@ -150,6 +150,12 @@ bool AsyncMessageLog::prepareShutdown(uint32_t timeoutMs)
     } while (true);
 }
 
+void AsyncMessageLog::resume(void)
+{
+    std::lock_guard<Mutex> guard(mutex);
+    accepting = true;
+}
+
 void AsyncMessageLog::workerLoop()
 {
     while (running) {

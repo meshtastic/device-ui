@@ -32,6 +32,7 @@ class AsyncMessageLog
     void setStatus(uint32_t requestId, LogMessage::MsgStatus status, bool final);
     bool remove(uint32_t from, uint32_t to, uint8_t channel);
     bool prepareShutdown(uint32_t timeoutMs);
+    void resume(void);
 
   private:
     struct Mutex {
