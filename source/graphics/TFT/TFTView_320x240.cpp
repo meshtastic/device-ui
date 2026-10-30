@@ -6070,12 +6070,15 @@ void TFTView_320x240::appendChatEntry(lv_obj_t *container, ChatHistory::Entry en
     auto &history = chatHistories[container];
     const size_t previousFirst = history.first();
     const bool visible = messagesRestored && container == activeMsgContainer && activePanel == objects.messages_panel;
-    const bool follow = !history.opened || (history.atLatest() &&
-                                            (visible ? lv_obj_get_scroll_bottom(container) <= 20 : history.scrollY == INT32_MAX));
+    const bool ownMessage = entry.sent && entry.status == LogMessage::eNone;
+    const bool jump = ownMessage && !history.atLatest();
+    const bool follow =
+        ownMessage || !history.opened ||
+        (history.atLatest() && (visible ? lv_obj_get_scroll_bottom(container) <= 20 : history.scrollY == INT32_MAX));
     history.append(std::move(entry), follow);
     if (!visible || !follow)
         return;
-    if (!lv_obj_get_child_count(container)) {
+    if (jump || !lv_obj_get_child_count(container)) {
         renderChat(container, true, previousFirst);
         return;
     }

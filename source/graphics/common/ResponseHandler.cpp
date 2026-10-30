@@ -2,7 +2,9 @@
 #include "Arduino.h"
 #include "util/ILog.h"
 #if defined(ARCH_PORTDUINO)
+#include <chrono>
 #include <cstdlib>
+#include <mutex>
 #endif
 
 namespace
@@ -10,6 +12,15 @@ namespace
 uint32_t randomPacketBits()
 {
 #if defined(ARCH_PORTDUINO)
+    // This block will run exactly ONCE the very first time this function is called
+    static std::once_flag flag;
+    std::call_once(flag, []() {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+        std::srand(static_cast<unsigned int>(nanos));
+    });
+
+    // Your existing code remains unchanged:
     return std::rand() % (UINT32_MAX & 0x7fffffff);
 #else
     return random(UINT32_MAX & 0x7fffffff);

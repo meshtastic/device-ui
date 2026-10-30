@@ -24,7 +24,6 @@ void MeshtasticView::task_handler(void)
 {
     DeviceGUI::task_handler();
     controller->runOnce();
-    requests.task_handler();
 
     time(&curtime);
     if (curtime - lastrun20 >= 20) {
@@ -35,6 +34,7 @@ void MeshtasticView::task_handler(void)
         }
 
         // cleanup queued requests
+        requests.task_handler();
     }
 };
 
