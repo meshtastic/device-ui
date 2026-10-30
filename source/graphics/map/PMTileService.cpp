@@ -1,15 +1,12 @@
 #include "graphics/map/PMTileService.h"
-
-#if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC) || defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
-
 #include "util/Gunzip.h"
 #include "util/ILog.h"
 #include "util/PNGDecoder.h"
 #include <cstdio>
 #include <cstring>
 
-PMTileService::PMTileService(ITileService *fb, IMapFileSystem *fs)
-    : ITileService(nullptr), fallback(fb), archiveFS(fs), archiveValid(false), pmHeader{}
+PMTileService::PMTileService(IStorage &storage, ITileService *fb)
+    : ITileService(nullptr), storage(storage), fallback(fb), openedGeneration(0), archiveValid(false), pmHeader{}
 {
     openedStyle[0] = '\0';
     memset(cachedDirOffset, 0, sizeof(cachedDirOffset));
@@ -30,7 +27,6 @@ PMTileService::~PMTileService()
 {
     closeArchive();
     delete fallback;
-    delete archiveFS;
 }
 
 bool PMTileService::load(const char *name, void *img)
@@ -71,8 +67,7 @@ bool PMTileService::parseZXY(const char *name, uint32_t &z, uint32_t &x, uint32_
 
 void PMTileService::closeArchive(void)
 {
-    if (archiveFS)
-        archiveFS->close();
+    archive.reset();
     archiveValid = false;
     openedStyle[0] = '\0';
     for (uint8_t i = 0; i < MAX_DIR_DEPTH; i++) {
@@ -85,12 +80,13 @@ void PMTileService::closeArchive(void)
 bool PMTileService::openArchive(void)
 {
     const char *style = MapTileSettings::getTileStyle();
-    if (openedStyle[0] && strcmp(openedStyle, style) == 0) {
+    if (openedStyle[0] && strcmp(openedStyle, style) == 0 && openedGeneration == storage.generation()) {
         return archiveValid;
     }
     closeArchive();
     strncpy(openedStyle, style, sizeof(openedStyle) - 1);
     openedStyle[sizeof(openedStyle) - 1] = '\0';
+    openedGeneration = storage.generation();
 
     char fname[128];
     if (!archivePathForStyle(fname, sizeof(fname))) {
@@ -99,14 +95,15 @@ bool PMTileService::openArchive(void)
     }
     ILOG_DEBUG("SD open pmtiles file: %s", fname);
 
-    if (!archiveFS || !archiveFS->open(fname)) {
+    archive = storage.open(fname, OpenMode::Read);
+    if (!archive) {
         ILOG_ERROR("Failed to open pmtiles file %s", fname);
         return false;
     }
 
     uint8_t header[pmtiles::HEADER_BYTES];
-    if (!archiveFS->readAt(0, header, sizeof(header)) || !pmtiles::deserialize_header(header, sizeof(header), pmHeader)) {
-        archiveFS->close();
+    if (!archive->readAt(0, header, sizeof(header)) || !pmtiles::deserialize_header(header, sizeof(header), pmHeader)) {
+        archive.reset();
         return false;
     }
 
@@ -128,7 +125,7 @@ bool PMTileService::openArchive(void)
     }
 
     if (!archiveValid) {
-        archiveFS->close();
+        archive.reset();
     }
     return archiveValid;
 }
@@ -155,7 +152,7 @@ bool PMTileService::loadFromArchive(uint32_t z, uint32_t x, uint32_t y, void *im
                 return false;
             }
             {
-                if (!archiveFS->readAt(dir_offset, dirBuffer, dir_length)) {
+                if (!archive->readAt(dir_offset, dirBuffer, dir_length)) {
                     ILOG_ERROR("Failed to read %u bytes of pmtiles directory at %u", (unsigned int)dir_length,
                                (unsigned long long)dir_offset);
                     lv_free(dirBuffer);
@@ -194,7 +191,7 @@ bool PMTileService::loadFromArchive(uint32_t z, uint32_t x, uint32_t y, void *im
             return false;
         }
         {
-            if (!archiveFS->readAt(pmHeader.tile_data_offset + entry.offset, tileData, tileLength)) {
+            if (!archive->readAt(pmHeader.tile_data_offset + entry.offset, tileData, tileLength)) {
                 ILOG_ERROR("Failed to read %u bytes of tile data", (unsigned int)tileLength);
                 lv_free(tileData);
                 return false;
@@ -231,5 +228,3 @@ bool PMTileService::loadFromArchive(uint32_t z, uint32_t x, uint32_t y, void *im
     ILOG_DEBUG("Tile %d/%d/%d loaded from archive in %d ms", z, x, y, lv_tick_get() - start);
     return true;
 }
-
-#endif
