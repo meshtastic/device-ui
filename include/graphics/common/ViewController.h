@@ -1,6 +1,7 @@
 #pragma once
 
 #include "comms/IClientBase.h"
+#include "util/AsyncMessageLog.h"
 #include "util/LogRotate.h"
 #include <time.h>
 
@@ -16,6 +17,8 @@ class ViewController
     virtual void processEvent(void);
     virtual bool isStandalone(void);
     virtual void stop(void);
+    bool prepareShutdown(uint32_t timeoutMs);
+    void setTextMessageStatus(uint32_t requestId, LogMessage::MsgStatus status, bool final);
 
     // device config
     virtual uint32_t requestDeviceUIConfig(void);
@@ -104,6 +107,7 @@ class ViewController
 
     MeshtasticView *view;
     LogRotate log;
+    AsyncMessageLog messageLog;
     IClientBase *client;
     uint32_t sendId;
     uint32_t myNodeNum;

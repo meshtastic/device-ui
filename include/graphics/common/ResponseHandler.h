@@ -25,6 +25,7 @@ class ResponseHandler
         enum RequestType type;
         void *cookie;
         Callback cb;
+        uint32_t packetId = 0;
     };
 
     ResponseHandler(uint32_t timeout);

@@ -3,7 +3,7 @@
 #include "ILogEntry.h"
 #include <assert.h>
 #include <ctime>
-#include <memory.h>
+#include <cstring>
 
 constexpr uint32_t messagePayloadSize = 233;
 
@@ -51,7 +51,8 @@ class LogMessageEnv : public LogMessage
         status = _status;
         trashFlag = _trashFlag;
         reserved = 0;
-        memcpy(bytes, msg, _len);
+        if (_len)
+            memcpy(bytes, msg, _len);
     }
 
     size_t size(void) const override { return sizeof(LogMessageHeader) - 8 + _size; }
@@ -64,12 +65,16 @@ class LogMessageEnv : public LogMessage
     virtual size_t deserialize(std::function<size_t(uint8_t *, size_t)> read) override
     {
         size_t len = read((uint8_t *)&_size, sizeof(LogMessageHeader) - 8);
-        if (len && _size < messagePayloadSize) {
-            len += read(bytes, _size);
+        if (len == sizeof(LogMessageHeader) - 8 && _size < messagePayloadSize) {
+            const size_t payloadRead = _size ? read(bytes, _size) : 0;
+            if (payloadRead != _size)
+                return 0;
+            len += payloadRead;
             bytes[_size] = 0;
         } else {
             _size = 0;
             bytes[0] = 0;
+            return 0;
         }
         return len;
     }

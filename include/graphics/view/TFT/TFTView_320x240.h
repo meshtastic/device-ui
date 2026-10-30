@@ -1,4 +1,5 @@
 #pragma once
+#include "graphics/common/ChatHistory.h"
 
 #include "graphics/common/MeshtasticView.h"
 #include "graphics/common/NodeStore.h"
@@ -374,6 +375,14 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void storeNodeOptions(void);
     void eraseChat(uint32_t channelOrNode);
     void clearChatHistory(void);
+    void appendChatEntry(lv_obj_t *container, ChatHistory::Entry entry);
+    lv_obj_t *createChatBubble(lv_obj_t *container, const ChatHistory::Entry &entry);
+    void renderChat(lv_obj_t *container, bool follow = false, size_t previousFirst = SIZE_MAX);
+    void updateChatStatus(uint32_t channelOrNode, uint32_t requestId, LogMessage::MsgStatus status);
+    void textMessageStatus(uint32_t requestId, LogMessage::MsgStatus status) override;
+    void hideChat(lv_obj_t *container);
+    void shiftChat(lv_obj_t *container, bool older);
+    static void ui_event_chat_history(lv_event_t *event);
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);
     void setChannelName(const meshtastic_Channel &ch);
@@ -526,6 +535,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     lv_obj_t *activeTopPanel = nullptr;
     lv_obj_t *lastMainButton = nullptr;
     lv_obj_t *activeMsgContainer = nullptr;
+    std::unordered_map<lv_obj_t *, ChatHistory> chatHistories;
+    bool updatingChat = false;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets

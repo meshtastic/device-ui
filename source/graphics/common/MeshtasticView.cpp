@@ -24,6 +24,7 @@ void MeshtasticView::task_handler(void)
 {
     DeviceGUI::task_handler();
     controller->runOnce();
+    requests.task_handler();
 
     time(&curtime);
     if (curtime - lastrun20 >= 20) {
@@ -34,7 +35,6 @@ void MeshtasticView::task_handler(void)
         }
 
         // cleanup queued requests
-        requests.task_handler();
     }
 };
 
@@ -46,6 +46,11 @@ void MeshtasticView::triggerHeartbeat(void)
 bool MeshtasticView::sleep(int16_t pin)
 {
     return controller->sleep(pin);
+}
+
+bool MeshtasticView::prepareShutdown(uint32_t timeoutMs)
+{
+    return controller->prepareShutdown(timeoutMs);
 }
 
 void MeshtasticView::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id) {}

@@ -1,6 +1,21 @@
 #include "graphics/common/ResponseHandler.h"
 #include "Arduino.h"
 #include "util/ILog.h"
+#if defined(ARCH_PORTDUINO)
+#include <cstdlib>
+#endif
+
+namespace
+{
+uint32_t randomPacketBits()
+{
+#if defined(ARCH_PORTDUINO)
+    return std::rand() % (UINT32_MAX & 0x7fffffff);
+#else
+    return random(UINT32_MAX & 0x7fffffff);
+#endif
+}
+}
 
 uint32_t ResponseHandler::rollingPacketId = 0;
 
@@ -11,14 +26,15 @@ uint32_t ResponseHandler::rollingPacketId = 0;
  */
 ResponseHandler::ResponseHandler(uint32_t timeout) : requestIdCounter(0), maxTime(timeout)
 {
-    rollingPacketId = random(UINT32_MAX & 0x7fffffff);
+    rollingPacketId = randomPacketBits();
 }
 
 uint32_t ResponseHandler::addRequest(uint32_t id, RequestType type, void *cookie, Callback cb)
 {
     requestIdCounter++;
     uint32_t requestId = generatePacketId();
-    pendingRequest[requestId] = Request{.id = id, .timestamp = millis(), .type = type, .cookie = cookie, .cb = cb};
+    pendingRequest[requestId] =
+        Request{.id = id, .timestamp = millis(), .type = type, .cookie = cookie, .cb = cb, .packetId = requestId};
     return requestId;
 }
 
@@ -56,7 +72,7 @@ uint32_t ResponseHandler::generatePacketId(void)
 {
     rollingPacketId++;
     rollingPacketId &= UINT32_MAX >> 22;
-    return rollingPacketId | random(UINT32_MAX & 0x7fffffff) << 10;
+    return rollingPacketId | randomPacketBits() << 10;
 }
 
 /**
@@ -71,7 +87,7 @@ void ResponseHandler::task_handler(void)
     auto it = pendingRequest.begin();
     while (it != pendingRequest.end()) {
         Request &req = it->second;
-        if (req.timestamp + maxTime < millis()) {
+        if (millis() - req.timestamp >= maxTime) {
             ILOG_DEBUG("removing timed out request %08x", it->first);
             if (req.cb)
                 req.cb(req, timeout, 0);
