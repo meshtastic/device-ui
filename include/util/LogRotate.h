@@ -69,4 +69,5 @@ class LogRotate
     uint32_t currentLogWrite; // current log number (when writing)
     uint32_t currentSize;     // size of current written log file
     uint32_t totalSize;       // size of all logs
+    bool rotateRequired = false;
 };

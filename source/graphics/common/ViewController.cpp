@@ -21,8 +21,8 @@ constexpr const char *logDir = "/messages";
  *
  */
 ViewController::ViewController()
-    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), client(nullptr), sendId(1), myNodeNum(0), setupDone(false),
-      configCompleted(false), messagesRestored(false), requestConfigRequired(true)
+    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), messageLog(log), client(nullptr), sendId(1), myNodeNum(0),
+      setupDone(false), configCompleted(false), messagesRestored(false), requestConfigRequired(true)
 {
 }
 
@@ -85,10 +85,14 @@ void ViewController::runOnce(void)
             client->task_handler();
         }
     }
+    if (messagesRestored)
+        messageLog.start();
 }
 
 bool ViewController::sleep(int16_t pin)
 {
+    if (!prepareShutdown(1000))
+        return false;
     if (client)
         return client->sleep(pin);
     else
@@ -105,9 +109,21 @@ bool ViewController::isStandalone(void)
 
 void ViewController::stop(void)
 {
+    if (!prepareShutdown(1000))
+        ILOG_WARN("Message persistence incomplete before stop");
     if (client) {
         client->disconnect();
     }
+}
+
+bool ViewController::prepareShutdown(uint32_t timeoutMs)
+{
+    return messageLog.prepareShutdown(timeoutMs);
+}
+
+void ViewController::setTextMessageStatus(uint32_t requestId, LogMessage::MsgStatus status, bool final)
+{
+    messageLog.setStatus(requestId, status, final);
 }
 
 void ViewController::processEvent(void) {}
@@ -476,9 +492,17 @@ void ViewController::sendTextMessage(uint32_t to, uint8_t ch, uint8_t hopLimit, 
     size_t msgLen = strlen(textmsg);
     assert(msgLen <= (size_t)DATA_PAYLOAD_LEN);
 
-    if (send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg, msgLen)) {
-        // ILOG_DEBUG("storing msg to:0x%08x, ch:%d, time:%d, size:%d, '%s'", to, ch, msgTime, msgLen, textmsg);
-        log.write(LogMessageEnv(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen, (const uint8_t *)textmsg));
+    if (!messageLog.append(std::make_unique<LogMessageEnv>(myNodeNum, to, ch, msgTime, LogMessage::eDefault, false, msgLen,
+                                                           (const uint8_t *)textmsg),
+                           requestId, c_request_timeout)) {
+        ILOG_ERROR("Message log is shutting down; outgoing message rejected");
+        view->textMessageStatus(requestId, LogMessage::eFailed);
+        return;
+    }
+    if (!send(to, ch, hopLimit, requestId, meshtastic_PortNum_TEXT_MESSAGE_APP, false, usePkc, (const uint8_t *)textmsg,
+              msgLen)) {
+        messageLog.setStatus(requestId, LogMessage::eFailed, true);
+        view->textMessageStatus(requestId, LogMessage::eFailed);
     }
 }
 
@@ -655,6 +679,7 @@ void ViewController::restoreTextMessages(void)
         msgCounter = 0;
         msgTotalSize = 0;
         messagesRestored = true;
+        messageLog.start();
         view->notifyMessagesRestored();
     }
 }
@@ -665,11 +690,8 @@ void ViewController::restoreTextMessages(void)
  */
 void ViewController::removeTextMessages(uint32_t from, uint32_t to, uint8_t ch)
 {
-    if (!from && !to && !ch) {
-        log.clear();
-    } else {
-        log.write(LogMessageEnv(from, to, ch, 0L, LogMessage::eDefault, true, 0, nullptr));
-    }
+    if (!messageLog.remove(from, to, ch))
+        ILOG_ERROR("Message log is shutting down; deletion not persisted");
 }
 
 /**
@@ -943,8 +965,9 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             break;
         }
         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
-        log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
-                                (const uint8_t *)p.decoded.payload.bytes));
+        if (!messageLog.append(std::make_unique<LogMessageEnv>(p.from, p.to, p.channel, time, LogMessage::eDefault, false,
+                                                               p.decoded.payload.size, p.decoded.payload.bytes)))
+            ILOG_ERROR("Message log is shutting down; incoming message not persisted");
         break;
     }
     case meshtastic_PortNum_POSITION_APP: {
@@ -1026,6 +1049,13 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
             p.from, p.to, p.channel, p.decoded.dest, p.decoded.source, p.decoded.request_id, p.decoded.reply_id);
         if (pb_decode_from_bytes(p.decoded.payload.bytes, p.decoded.payload.size, &meshtastic_Routing_msg, &routing)) {
             if (routing.which_variant == meshtastic_Routing_error_reason_tag) {
+                const bool failed = routing.error_reason != meshtastic_Routing_Error_NONE;
+                const bool acknowledged = p.from != myNodeNum;
+                const auto status = routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE ? LogMessage::eNoResponse
+                                    : failed                                                     ? LogMessage::eFailed
+                                    : acknowledged                                               ? LogMessage::eAcked
+                                                                                                 : LogMessage::eHeard;
+                messageLog.setStatus(p.decoded.request_id, status, failed || acknowledged);
                 switch (routing.error_reason) {
                 case meshtastic_Routing_Error_NONE:
                 case meshtastic_Routing_Error_MAX_RETRANSMIT:
@@ -1051,6 +1081,7 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
                     ILOG_WARN("got unhandled Routing_Error: %d", routing.error_reason);
                     break;
                 }
+                view->textMessageStatus(p.decoded.request_id, status);
             } else {
                 view->handleResponse(p.from, p.decoded.request_id, routing, p);
             }

@@ -2,7 +2,6 @@
 
 #include "graphics/view/TFT/TFTView_320x240.h"
 #include "Arduino.h"
-#include "filesystem/IFileSystem.h"
 #include "graphics/common/BatteryLevel.h"
 #include "graphics/common/LoRaPresets.h"
 #include "graphics/common/NodeListRowPresentation.h"
@@ -13,6 +12,8 @@
 #include "graphics/map/AsyncTileService.h"
 #include "graphics/map/CURLService.h"
 #include "graphics/map/MapPanel.h"
+#include "graphics/map/PMTileService.h"
+#include "graphics/map/StorageTileService.h"
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
 #include "graphics/view/TFT/DropdownKeyNavigation.h"
@@ -25,6 +26,8 @@
 #include "input/policy/UICommandDispatcher.h"
 #include "lv_i18n.h"
 #include "lvgl_private.h"
+#include "storage/IStorage.h"
+#include "storage/MapStorage.h"
 #include "styles.h"
 #include "ui.h"
 #include "util/About.h"
@@ -52,27 +55,9 @@ fs::FS &fileSystem = LittleFS;
 
 #if defined(ARCH_PORTDUINO)
 #include "util/LinuxHelper.h"
-// #include "graphics/map/LinuxFileSystemService.h"
-#include "graphics/map/SDCardService.h"
-#elif defined(SENSECAP_INDICATOR)
-#include "graphics/map/RemoteSDService.h"
-#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
-#if defined(CONFIG_IDF_TARGET_ESP32P4)
-#include "graphics/map/SDMMCCardService.h"
-#else
-#include "graphics/map/SDCardService.h"
-#endif
+#elif defined(HAS_SDCARD) || defined(HAS_SD_MMC)
 #include "comms/UiFtpServer.h"
-#else
-#if defined(HAS_SDCARD)
-// #include "comms/WebDAVServer.h"
-#include "comms/UiFtpServer.h"
-#include "util/SdFatFileWrapper.h"
 #endif
-#include "graphics/map/SdFatService.h"
-#endif
-#include "filesystem/SdCard.h"
-#include "graphics/map/PMTileService.h"
 
 #ifndef MAX_NUM_NODES_VIEW
 #define MAX_NUM_NODES_VIEW 250
@@ -137,6 +122,37 @@ static void kbdSlideAnimCB(void *var, int32_t v)
     lv_obj_set_y((lv_obj_t *)var, v);
 }
 
+// LVGL's buttonmatrix moves UP/DOWN by row but does not wrap at the top/bottom row
+static uint32_t kbdSelBeforeKey = LV_BUTTONMATRIX_BUTTON_NONE;
+static bool kbdRowWrapping = false;
+
+static void kbdRememberSelection(lv_event_t *e)
+{
+    if (!kbdRowWrapping)
+        kbdSelBeforeKey = lv_buttonmatrix_get_selected_button(lv_event_get_current_target_obj(e));
+}
+
+static void kbdWrapRow(lv_obj_t *kb, uint32_t key)
+{
+    if (kbdRowWrapping || (key != LV_KEY_UP && key != LV_KEY_DOWN))
+        return;
+    uint32_t sel = lv_buttonmatrix_get_selected_button(kb);
+    if (sel == LV_BUTTONMATRIX_BUTTON_NONE || sel != kbdSelBeforeKey)
+        return;
+
+    // walk the opposite way until the far row is reached; terminates as each step changes row
+    uint32_t opposite = key == LV_KEY_UP ? LV_KEY_DOWN : LV_KEY_UP;
+    kbdRowWrapping = true;
+    for (;;) {
+        lv_obj_send_event(kb, LV_EVENT_KEY, &opposite);
+        const uint32_t next = lv_buttonmatrix_get_selected_button(kb);
+        if (next == sel)
+            break;
+        sel = next;
+    }
+    kbdRowWrapping = false;
+}
+
 static void clearFocusKeyOnPointerPress(lv_event_t *e)
 {
     auto *group = static_cast<lv_group_t *>(lv_event_get_user_data(e));
@@ -177,6 +193,31 @@ static bool isInside(const lv_obj_t *obj, const lv_obj_t *ancestor)
             return true;
     }
     return false;
+}
+
+// Bubbled scroll events toggle LV_STATE_SCROLLED on every ancestor up to the screen, and LVGL answers
+// each toggle with a style refresh of the whole object tree, so keep them local. Text areas also jump
+// to the cursor instead of animating the scroll.
+static void textareaScrollEvent(lv_event_t *e)
+{
+    if (lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t *a = static_cast<lv_anim_t *>(lv_event_get_param(e));
+        if (a)
+            lv_anim_set_duration(a, 0);
+    }
+    lv_event_stop_bubbling(e);
+}
+
+static void containerScrollEvent(lv_event_t *e)
+{
+    lv_event_stop_bubbling(e);
+}
+
+static void keepScrollEventsLocal(lv_obj_t *obj, lv_event_cb_t cb)
+{
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_BEGIN, NULL);
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL, NULL);
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_END, NULL);
 }
 
 #if LV_USE_GESTURE_RECOGNITION
@@ -357,6 +398,8 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
         db.uiConfig.version = 1;
         db.uiConfig.screen_brightness = 153;
         db.uiConfig.screen_timeout = 30;
+        db.uiConfig.alert_enabled = true;
+        db.uiConfig.banner_enabled = true;
         controller->storeUIConfig(db.uiConfig);
     }
 
@@ -435,11 +478,7 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
     }
 
     // update home panel bell text
-    setBellText(db.uiConfig.alert_enabled, !db.silent);
-    bool off = !db.uiConfig.alert_enabled && db.silent;
-    Themes::recolorButton(objects.home_bell_button, !off);
-    Themes::recolorText(objects.home_bell_label, !off);
-    objects.home_bell_button->user_data = (void *)off;
+    setBellText(db.uiConfig.banner_enabled, db.uiConfig.alert_enabled);
 
     // check SD card
     updateSDCard();
@@ -756,9 +795,11 @@ void TFTView_320x240::showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
             lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED);
             resetKeyboardSlide();
             uint32_t channelOrNode = (unsigned long)activeMsgContainer->user_data;
+            hideChat(activeMsgContainer);
             // remove empty messageContainer if we are leaving messages panel
             if (channelOrNode >= c_max_channels) {
-                if (activeMsgContainer->spec_attr->child_cnt == 0) {
+                if (chatHistories.find(activeMsgContainer) == chatHistories.end() ||
+                    chatHistories.at(activeMsgContainer).size() == 0) {
                     eraseChat(channelOrNode);
                     updateActiveChats();
                     activeMsgContainer = objects.messages_container;
@@ -773,6 +814,8 @@ void TFTView_320x240::showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
     }
 
     lv_obj_clear_flag(p, LV_OBJ_FLAG_HIDDEN);
+    if (p == objects.messages_panel)
+        renderChat(activeMsgContainer);
     if (p == objects.nodes_panel) {
         ensureVirtualNodeList();
     } else if (p == objects.map_panel && !displaydriver->hasTouch()) {
@@ -1138,7 +1181,7 @@ void TFTView_320x240::updateTheme(void)
 {
     Themes::initStyles();
     Themes::recolorButton(objects.home_lora_button, db.config.lora.tx_enabled);
-    Themes::recolorButton(objects.home_bell_button, db.uiConfig.alert_enabled || !db.silent);
+    Themes::recolorButton(objects.home_bell_button, db.uiConfig.banner_enabled || db.uiConfig.alert_enabled);
     Themes::recolorButton(objects.home_location_button,
                           db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorButton(objects.home_wlan_button, db.config.network.wifi_enabled);
@@ -1146,7 +1189,7 @@ void TFTView_320x240::updateTheme(void)
     Themes::recolorButton(objects.home_sd_card_button, cardDetected);
     Themes::recolorButton(objects.home_memory_button, (bool)objects.home_memory_button->user_data);
     Themes::recolorText(objects.home_lora_label, db.config.lora.tx_enabled);
-    Themes::recolorText(objects.home_bell_label, db.uiConfig.alert_enabled || !db.silent);
+    Themes::recolorText(objects.home_bell_label, db.uiConfig.banner_enabled || db.uiConfig.alert_enabled);
     Themes::recolorText(objects.home_location_label,
                         db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
     Themes::recolorText(objects.home_wlan_label, db.config.network.wifi_enabled);
@@ -1260,6 +1303,7 @@ void TFTView_320x240::ui_events_init(void)
 
     // keyboard
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(objects.keyboard, kbdRememberSelection, (lv_event_code_t)(LV_EVENT_KEY | LV_EVENT_PREPROCESS), NULL);
     lv_obj_add_event_cb(objects.keyboard, ui_event_Keyboard, LV_EVENT_KEY, this);
     lv_obj_add_event_cb(objects.keyboard_button_0, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)0);
     lv_obj_add_event_cb(objects.keyboard_button_1, ui_event_KeyboardButton, LV_EVENT_CLICKED, (void *)1);
@@ -1389,6 +1433,20 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.settings_modify_channel_qr_button, ui_event_qr_code, LV_EVENT_CLICKED, NULL);
 
     // screen
+    // keep scroll events of all bubbling scrollable widgets from reaching the screen
+    lv_obj_tree_walk(
+        objects.main_screen,
+        [](lv_obj_t *obj, void *) -> lv_obj_tree_walk_res_t {
+            bool isTextarea = lv_obj_check_type(obj, &lv_textarea_class);
+            // touch hotfix strips EVENT_BUBBLE from main-screen widgets, including text areas; register
+            // text areas by type regardless, so their scroll-begin callback still runs
+            if (isTextarea || (lv_obj_has_flag(obj, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_has_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE))) {
+                keepScrollEventsLocal(obj, isTextarea ? textareaScrollEvent : containerScrollEvent);
+            }
+            return LV_OBJ_TREE_WALK_NEXT;
+        },
+        nullptr);
+
     lv_obj_add_event_cb(objects.calibration_screen, ui_event_calibration_screen_loaded, LV_EVENT_SCREEN_LOADED, (void *)7);
     lv_obj_add_event_cb(objects.screen_lock_button_matrix, ui_event_pin_screen_button, LV_EVENT_CLICKED, 0);
     // Preprocess so our handler runs before the button matrix class default handler;
@@ -1870,15 +1928,30 @@ void TFTView_320x240::ui_event_scroll_panel(lv_event_t *e)
  */
 void TFTView_320x240::setMapInputState(input_policy::FocusSemantic semantic)
 {
+    const auto previous = input_policy::InputContextState::instance().getSnapshot().focusSemantic;
     const bool controls = semantic == input_policy::FocusSemantic::MapControls;
     if (controls)
         showMapControls(true);
     lv_group_focus_obj(objects.nav_button);
     if (!controls) {
+        if (semantic == input_policy::FocusSemantic::MapZoom) {
+            lv_obj_set_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN, false);
+            lv_obj_set_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN, false);
+            lv_obj_set_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN, false);
+            lv_obj_set_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.arrow_up_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.arrow_left_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.nav_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.arrow_right_button, LV_OBJ_FLAG_HIDDEN, true);
+            lv_obj_set_flag(objects.arrow_down_button, LV_OBJ_FLAG_HIDDEN, true);
+        } else {
+            if (!displaydriver->hasTouch())
+                showMapControls(false);
+            else if (previous == input_policy::FocusSemantic::MapZoom)
+                showMapControls(true);
+        }
         // keys still land on the home button and bubble up to the map panel, but no focus is shown
         lv_obj_remove_state(objects.nav_button, LV_STATE_FOCUS_KEY);
-        if (!displaydriver->hasTouch())
-            showMapControls(false);
     }
     input_policy::InputContextState::instance().setFocusSemantic(semantic);
 }
@@ -1890,6 +1963,11 @@ void TFTView_320x240::showMapControls(bool show)
     lv_obj_set_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN, !show);
     lv_obj_set_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN, !show);
     lv_obj_set_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN, !show || !hasGps);
+    lv_obj_set_flag(objects.arrow_up_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.arrow_left_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.nav_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.arrow_right_button, LV_OBJ_FLAG_HIDDEN, !show);
+    lv_obj_set_flag(objects.arrow_down_button, LV_OBJ_FLAG_HIDDEN, !show);
     if (!show)
         lv_obj_add_flag(objects.zoom_slider, LV_OBJ_FLAG_HIDDEN);
 }
@@ -2225,65 +2303,39 @@ void TFTView_320x240::ui_event_LoRaButton(lv_event_t *e)
 void TFTView_320x240::ui_event_BellButton(lv_event_t *e)
 {
     static bool ignoreClicked = false;
+    auto applyBellState = []() {
+        if (THIS->db.uiConfig.ring_tone_id == 0)
+            THIS->db.uiConfig.ring_tone_id = 1;
+        const uint32_t tone = THIS->db.uiConfig.alert_enabled ? THIS->db.uiConfig.ring_tone_id : 0;
+        THIS->controller->sendConfig(ringtone[tone].rtttl, THIS->ownNode);
+        THIS->setBellText(THIS->db.uiConfig.banner_enabled, THIS->db.uiConfig.alert_enabled);
+        THIS->controller->storeUIConfig(THIS->db.uiConfig);
+    };
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->db.module_config.has_external_notification) {
         if (ignoreClicked) { // prevent long press to enter this setting
             ignoreClicked = false;
             return;
         }
-        // set banner and sound on
-        if (THIS->db.silent && (bool)objects.home_bell_button->user_data) {
-            if (THIS->db.uiConfig.ring_tone_id == 0) {
-                THIS->db.uiConfig.ring_tone_id = 1;
-            }
-            THIS->db.silent = false;
-            THIS->db.uiConfig.alert_enabled = true;
-            THIS->controller->sendConfig(ringtone[THIS->db.uiConfig.ring_tone_id].rtttl, THIS->ownNode);
-            objects.home_bell_button->user_data = (void *)false;
+        bool &banner = THIS->db.uiConfig.banner_enabled;
+        bool &sound = THIS->db.uiConfig.alert_enabled;
+        // cycle: banner & sound -> sound only -> banner only -> banner & sound
+        if (banner && sound) {
+            banner = false;
+        } else if (sound) {
+            banner = true;
+            sound = false;
+        } else {
+            banner = true;
+            sound = true;
         }
-        // toggle sound only
-        else if (THIS->db.uiConfig.alert_enabled && !THIS->db.silent) {
-            if (THIS->db.uiConfig.ring_tone_id == 0) {
-                THIS->db.uiConfig.ring_tone_id = 1;
-            }
-            THIS->db.uiConfig.alert_enabled = false;
-            THIS->controller->sendConfig(ringtone[THIS->db.uiConfig.ring_tone_id].rtttl, THIS->ownNode);
-        }
-        // toggle banner only
-        else if (!THIS->db.uiConfig.alert_enabled && !THIS->db.silent) {
-            THIS->db.silent = true;
-            THIS->db.uiConfig.alert_enabled = true;
-            THIS->controller->sendConfig(ringtone[0].rtttl, THIS->ownNode);
-        }
-        // toggle banner & sound
-        else {
-            if (THIS->db.uiConfig.ring_tone_id == 0) {
-                THIS->db.uiConfig.ring_tone_id = 1;
-            }
-            THIS->db.silent = false;
-            THIS->db.uiConfig.alert_enabled = true;
-            THIS->controller->sendConfig(ringtone[THIS->db.uiConfig.ring_tone_id].rtttl, THIS->ownNode);
-        }
-        THIS->setBellText(THIS->db.uiConfig.alert_enabled, !THIS->db.silent);
-        THIS->controller->storeUIConfig(THIS->db.uiConfig);
+        applyBellState();
     } else if (event_code == LV_EVENT_LONG_PRESSED) {
         ignoreClicked = true;
-        if ((bool)objects.home_bell_button->user_data) {
-            if (THIS->db.uiConfig.ring_tone_id == 0) {
-                THIS->db.uiConfig.ring_tone_id = 1;
-            }
-            THIS->db.silent = false;
-            THIS->db.uiConfig.alert_enabled = true;
-            THIS->controller->sendConfig(ringtone[THIS->db.uiConfig.ring_tone_id].rtttl, THIS->ownNode);
-            objects.home_bell_button->user_data = (void *)false;
-        } else {
-            THIS->db.silent = true;
-            THIS->db.uiConfig.alert_enabled = false;
-            THIS->controller->sendConfig(ringtone[0].rtttl, THIS->ownNode);
-            objects.home_bell_button->user_data = (void *)true;
-        }
-        THIS->setBellText(THIS->db.uiConfig.alert_enabled, !THIS->db.silent);
-        THIS->controller->storeUIConfig(THIS->db.uiConfig);
+        bool off = !THIS->db.uiConfig.banner_enabled && !THIS->db.uiConfig.alert_enabled;
+        THIS->db.uiConfig.banner_enabled = off;
+        THIS->db.uiConfig.alert_enabled = off;
+        applyBellState();
     }
 }
 
@@ -2372,7 +2424,7 @@ void TFTView_320x240::ui_event_home_transfer_button(lv_event_t *e)
             lv_label_set_text(objects.home_transfer_label, _("No WiFi login details"));
             return;
         }
-        if (sdCard->errorType() != ISdCard::ErrorType::eNoError) {
+        if (!THIS->cardDetected) {
             lv_label_set_text(objects.home_transfer_label, _("SD card error"));
             return;
         }
@@ -2419,16 +2471,9 @@ void TFTView_320x240::toggleFtpServer(void)
     if (shouldEnable) {
         // Initialize WiFi (will be no-op if already initialized)
         if (ftpServer->initWiFi(THIS->db.config.network.wifi_ssid, THIS->db.config.network.wifi_psk)) {
-#if defined(HAS_SD_MMC)
-            static fs::FS &fs = SD_MMC;
-#elif defined(SDCARD_SHARE_SPI)
-            static fs::FS &fs = SD;
-#else
-            // Wrap SdFs into fs::FS using the exFat impl pattern
-            static fs::FS fs(fs::FSImplPtr(new SdFsExFatImpl(SDFs)));
-#endif
+            fs::FS *fs = THIS->storage ? THIS->storage->arduinoFS() : nullptr;
             // Try to start server
-            if (ftpServer->start(&fs)) {
+            if (fs && ftpServer->start(fs)) {
                 lv_label_set_text(objects.home_transfer_label, _("FTP server ready"));
                 highlight = true;
             } else {
@@ -2642,7 +2687,8 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
         if (!param)
             return;
         uint32_t key = *(const uint32_t *)param;
-        // consume keyboard left/right presses, do not pass to screen handler
+        kbdWrapRow(lv_event_get_target_obj(e), key);
+        // consume keyboard direction presses, do not pass to screen handler
         if (key != LV_KEY_ESC) {
             lv_event_stop_processing(e);
             return;
@@ -3003,7 +3049,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone && THIS->db.module_config.has_external_notification) {
         bool alert_enabled = THIS->db.module_config.external_notification.alert_message_buzzer &&
-                             THIS->db.module_config.external_notification.enabled && !THIS->db.silent;
+                             THIS->db.module_config.external_notification.enabled && THIS->db.uiConfig.alert_enabled;
         if (alert_enabled) {
             lv_obj_add_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
         } else {
@@ -3487,7 +3533,8 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
     } else {
         // copy current url template into textarea for editing
         THIS->showUrlInputArea(true);
-        std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), style);
+        std::string url =
+            THIS->storage ? MapStorage::getUrlProvider(*THIS->storage, MapTileSettings::getPrefix(), style) : std::string();
         lv_textarea_set_text(objects.map_url_textarea, url.c_str());
         lv_group_focus_obj(objects.map_url_textarea);
     }
@@ -3543,8 +3590,9 @@ void TFTView_320x240::ui_event_map_url_textarea(lv_event_t *e)
                 auto providers = TileProvider::providers();
                 lv_dropdown_set_options(objects.map_url_dropdown, providers.c_str());
                 lv_dropdown_set_selected(objects.map_url_dropdown, entry);
-                if (sdCard) {
-                    if (sdCard->setUrlProvider(MapTileSettings::getPrefix(), defaultStyle.c_str(), url.c_str())) {
+                if (THIS->storage) {
+                    if (MapStorage::setUrlProvider(*THIS->storage, MapTileSettings::getPrefix(), defaultStyle.c_str(),
+                                                   url.c_str())) {
                         THIS->showUrlInputArea(false);
                         MapTileSettings::setSaveOK(true);
                     } else
@@ -3819,40 +3867,15 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
 void TFTView_320x240::loadMap(void)
 {
     if (!map) {
-#if LV_USE_FS_ARDUINO_SD
-        map = new MapPanel(objects.raw_map_panel);
-#elif defined(SENSECAP_INDICATOR)
-        // tiles live on the SD card behind the RP2040, fetched chunk-wise over the interdevice link
-        auto tileService = new RemoteSDService();
-        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new RemoteMapFileSystem()));
-        map->setBackupService(new AsyncTileService(new URLService(
-            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
-#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
-#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
-        auto tileService = new SDMMCCardService();
-#else
-        auto tileService = new SDCardService();
-#endif
-        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SDMapFileSystem()));
-#if !defined(CONFIG_IDF_TARGET_ESP32P4) // requires esp-hosted networking for wifi
-        map->setBackupService(new AsyncTileService(new URLService(
-            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
-#endif
-#elif defined(CONFIG_IDF_TARGET_ESP32P4)
-        map = new MapPanel(objects.raw_map_panel, nullptr);
-#elif defined(HAS_SDCARD)
-        auto tileService = new SdFatService();
-        map = new MapPanel(objects.raw_map_panel, new PMTileService(tileService, new SdFatMapFileSystem()));
-        map->setBackupService(new AsyncTileService(new URLService(
-            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
-#elif defined(ARCH_PORTDUINO)
-        auto tileService = new SDCardService();
-        map = new MapPanel(objects.raw_map_panel,
-                           new PMTileService(tileService, new SDMapFileSystem())); // TODO: LinuxFileSystemService
-        map->setBackupService(new AsyncTileService(new CURLService(
-            [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); })));
-#else
-        map = new MapPanel(objects.raw_map_panel, new AsyncTileService(new URLService()));
+        if (!storage)
+            storage = createStorage().release();
+        auto tileService = new StorageTileService(*storage);
+        map = new MapPanel(objects.raw_map_panel, new PMTileService(*storage, tileService));
+        auto saveTile = [tileService](const char *name, void *img, size_t len) { return tileService->save(name, img, len); };
+#if defined(ARCH_PORTDUINO)
+        map->setBackupService(new AsyncTileService(new CURLService(saveTile)));
+#elif defined(ARDUINO_ARCH_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32P4) // P4 needs esp-hosted networking for wifi
+        map->setBackupService(new AsyncTileService(new URLService(saveTile)));
 #endif
         mapFilterPublicationValid = false;
         map->setHomeLocationImage(objects.home_location_image);
@@ -3938,10 +3961,12 @@ void TFTView_320x240::loadMap(void)
 
     publishMapFilter();
 
-    if (sdCard) {
-        if (!sdCard->isUpdated()) {
+    if (storage) {
+        if (!mapStylesScanned) {
+            mapStylesScanned = true;
             map->setNoTileImage(&img_no_tile_image);
-            std::set<std::string> mapStyles = sdCard->loadMapStyles(MapTileSettings::getPrefix());
+            MapTileSettings::setPrefix("/maps");
+            std::set<std::string> mapStyles = MapStorage::loadMapStyles(*storage, MapTileSettings::getPrefix());
             if (mapStyles.find("/map") != mapStyles.end()) {
                 // no styles found, but the /map directory, so use it
                 MapTileSettings::setPrefix("/map");
@@ -3961,8 +3986,8 @@ void TFTView_320x240::loadMap(void)
                     int urlEntry = -1;
                     char tileDir[MapTileSettings::TILE_STYLE_SIZE];
                     MapTileSettings::styleToDir(it.c_str(), tileDir, sizeof(tileDir));
-                    bool hasArchive = sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir);
-                    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
+                    bool hasArchive = MapStorage::hasMapArchive(*storage, MapTileSettings::getPrefix(), tileDir);
+                    std::string url = MapStorage::getUrlProvider(*storage, MapTileSettings::getPrefix(), tileDir);
                     if (!url.empty()) {
                         urlEntry = TileProvider::addTemplate("URL: " + it, url);
                         lv_dropdown_add_option(objects.map_url_dropdown, std::string("URL: " + it).c_str(), LV_DROPDOWN_POS_LAST);
@@ -4125,8 +4150,8 @@ std::string TFTView_320x240::setUrlProvider(const char *style)
     // set url provider if exist
     char tileDir[MapTileSettings::TILE_STYLE_SIZE];
     MapTileSettings::styleToDir(style, tileDir, sizeof(tileDir));
-    MapTileSettings::setPMTiles(sdCard && sdCard->hasMapArchive(MapTileSettings::getPrefix(), tileDir));
-    std::string url = sdCard->getUrlProvider(MapTileSettings::getPrefix(), tileDir);
+    MapTileSettings::setPMTiles(storage && MapStorage::hasMapArchive(*storage, MapTileSettings::getPrefix(), tileDir));
+    std::string url = storage ? MapStorage::getUrlProvider(*storage, MapTileSettings::getPrefix(), tileDir) : std::string();
     if (!url.empty()) {
         ILOG_DEBUG("set provider url to %s", url.c_str());
         std::string provider = std::string("URL: ") + style;
@@ -5579,7 +5604,6 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             meshtastic_ModuleConfig_ExternalNotificationConfig &config = THIS->db.module_config.external_notification;
             int tone = lv_dropdown_get_selected(objects.settings_ringtone_dropdown) + 1;
 
-            bool silent = false;
             bool alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
             if ((!config.enabled || !config.alert_message_buzzer) && alert_message) {
                 if (!config.enabled || !config.alert_message_buzzer || !config.use_pwm || !config.use_i2s_as_buzzer) {
@@ -5594,15 +5618,13 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 }
                 THIS->notifyReboot(true);
                 THIS->controller->sendConfig(meshtastic_ModuleConfig_ExternalNotificationConfig{config}, THIS->ownNode);
-            } else if (config.alert_message_buzzer && !alert_message) {
-                silent = true;
             }
 
-            THIS->controller->sendConfig(ringtone[silent ? 0 : tone].rtttl, THIS->ownNode);
+            // the banner setting is not part of this dialog and stays untouched
+            THIS->db.uiConfig.alert_enabled = alert_message;
             THIS->db.uiConfig.ring_tone_id = tone;
-            THIS->db.silent = silent;
-            THIS->db.uiConfig.alert_enabled = !silent;
-            THIS->setBellText(THIS->db.uiConfig.alert_enabled, !silent);
+            THIS->controller->sendConfig(ringtone[alert_message ? tone : 0].rtttl, THIS->ownNode);
+            THIS->setBellText(THIS->db.uiConfig.banner_enabled, THIS->db.uiConfig.alert_enabled);
             THIS->controller->storeUIConfig(THIS->db.uiConfig);
 
             lv_obj_add_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
@@ -5954,8 +5976,8 @@ void TFTView_320x240::handleAddMessage(char *msg)
         if (msg[i] == CR_REPLACEMENT)
             msg[i] = '\n';
 
-    controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
     addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
+    controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
 }
 
 /**
@@ -5963,6 +5985,19 @@ void TFTView_320x240::handleAddMessage(char *msg)
  */
 void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
                                  LogMessage::MsgStatus status)
+{
+    char text[284]{};
+    const uint32_t length = timestamp(text, msgTime, status == LogMessage::eNone);
+    snprintf(text + length, sizeof(text) - length, "%s", msg);
+    ChatHistory::Entry entry;
+    entry.text = text;
+    entry.sent = true;
+    entry.requestId = requestId;
+    entry.status = status;
+    appendChatEntry(container, std::move(entry));
+}
+
+lv_obj_t *TFTView_320x240::createChatBubble(lv_obj_t *container, const ChatHistory::Entry &entry)
 {
     // Ensure all dynamically created widgets go to the panel content group
     GroupGuard group_guard(defaultPanelGroup);
@@ -5981,13 +6016,8 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_obj_set_style_pad_right(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    hiddenPanel->user_data = (void *)requestId;
-
-    // add timestamp
-    char buf[284]; // 237 + 4 + 40 + 2 + 1
-    buf[0] = '\0';
-    uint32_t len = timestamp(buf, msgTime, status == LogMessage::eNone);
-    strcat(&buf[len], msg);
+    hiddenPanel->user_data = reinterpret_cast<void *>(static_cast<uintptr_t>(entry.requestId));
+    const char *buf = entry.text.c_str();
 
     lv_obj_t *textLabel = lv_label_create(hiddenPanel);
     lv_group_add_obj(defaultPanelGroup, textLabel);
@@ -5998,20 +6028,24 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
     lv_text_attributes_t attributes = {0};
     lv_coord_t width = lv_text_get_width(buf, strlen(buf), &ui_font_montserrat_14, &attributes);
 #endif
-    lv_obj_set_width(textLabel, std::max<int32_t>(std::min<int32_t>((int32_t)width + 10, 200) + 10, 50));
+    lv_obj_set_width(textLabel, entry.sent ? std::max<int32_t>(std::min<int32_t>((int32_t)width + 10, 200) + 10, 50)
+                                           : std::max<int32_t>(std::min<int32_t>((int32_t)width, 160) + 10, 45));
     lv_obj_set_height(textLabel, LV_SIZE_CONTENT);
     lv_obj_set_y(textLabel, 0);
-    lv_obj_set_align(textLabel, LV_ALIGN_RIGHT_MID);
+    lv_obj_set_align(textLabel, entry.sent ? LV_ALIGN_RIGHT_MID : LV_ALIGN_LEFT_MID);
     lv_obj_add_flag(textLabel, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
                                              LV_OBJ_FLAG_SCROLL_ON_FOCUS));
     lv_label_set_text(textLabel, buf);
 
-    add_style_chat_message_style(textLabel);
+    if (entry.sent) {
+        add_style_chat_message_style(textLabel);
+    } else {
+        add_style_new_message_style(textLabel);
+        lv_obj_add_event_cb(textLabel, ui_event_chatNodeButton, LV_EVENT_CLICKED,
+                            reinterpret_cast<void *>(static_cast<uintptr_t>(entry.node)));
+    }
 
-    lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
-    lv_obj_move_foreground(objects.message_input_area);
-
-    switch (status) {
+    switch (entry.status) {
     case LogMessage::eHeard:
         lv_obj_set_style_border_color(textLabel, colorYellow,
                                       (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
@@ -6021,11 +6055,161 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
                                       (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         break;
     case LogMessage::eFailed:
+    case LogMessage::eNoResponse:
         lv_obj_set_style_border_color(textLabel, colorRed,
                                       (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
         break;
     default:
         break;
+    }
+    return hiddenPanel;
+}
+
+void TFTView_320x240::appendChatEntry(lv_obj_t *container, ChatHistory::Entry entry)
+{
+    auto &history = chatHistories[container];
+    const size_t previousFirst = history.first();
+    const bool visible = messagesRestored && container == activeMsgContainer && activePanel == objects.messages_panel;
+    const bool ownMessage = entry.sent && entry.status == LogMessage::eNone;
+    const bool jump = ownMessage && !history.atLatest();
+    const bool follow =
+        ownMessage || !history.opened ||
+        (history.atLatest() && (visible ? lv_obj_get_scroll_bottom(container) <= 20 : history.scrollY == INT32_MAX));
+    history.append(std::move(entry), follow);
+    if (!visible || !follow)
+        return;
+    if (jump || !lv_obj_get_child_count(container)) {
+        renderChat(container, true, previousFirst);
+        return;
+    }
+    updatingChat = true;
+    if (history.first() > previousFirst) {
+        auto *oldest = lv_obj_get_child(container, 0);
+        auto *focused = lv_group_get_focused(defaultPanelGroup);
+        if (focused && isInside(focused, oldest))
+            lv_group_focus_obj(objects.message_input_area);
+        lv_obj_delete(oldest);
+    }
+    auto *newest = createChatBubble(container, history.at(history.last() - 1));
+    lv_obj_scroll_to_view(newest, LV_ANIM_ON);
+    history.scrollY = INT32_MAX;
+    updatingChat = false;
+}
+
+void TFTView_320x240::hideChat(lv_obj_t *container)
+{
+    auto found = chatHistories.find(container);
+    if (found == chatHistories.end() || !lv_obj_get_child_count(container))
+        return;
+    auto &history = found->second;
+    history.scrollY =
+        history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);
+    updatingChat = true;
+    auto *focused = lv_group_get_focused(defaultPanelGroup);
+    if (focused && isInside(focused, container))
+        lv_group_focus_obj(objects.message_input_area);
+    lv_obj_clean(container);
+    updatingChat = false;
+}
+
+void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previousFirst)
+{
+    auto found = chatHistories.find(container);
+    if (found == chatHistories.end())
+        return;
+    auto &history = found->second;
+    if (!history.opened) {
+        history.latest();
+        follow = true;
+        history.opened = true;
+    }
+    const int32_t scroll = lv_obj_get_child_count(container) ? lv_obj_get_scroll_y(container) : history.scrollY;
+    updatingChat = true;
+    auto *focused = lv_group_get_focused(defaultPanelGroup);
+    int32_t focusedIndex = -1;
+    if (focused && isInside(focused, container)) {
+        const size_t logicalIndex =
+            (previousFirst == SIZE_MAX ? history.first() : previousFirst) + lv_obj_get_index(lv_obj_get_parent(focused));
+        if (logicalIndex >= history.first() && logicalIndex < history.last())
+            focusedIndex = logicalIndex - history.first();
+        lv_group_focus_obj(objects.message_input_area);
+    }
+    lv_obj_clean(container);
+    for (size_t index = history.first(); index < history.last(); ++index)
+        createChatBubble(container, history.at(index));
+    lv_obj_update_layout(container);
+    if ((follow || scroll == INT32_MAX) && lv_obj_get_child_count(container))
+        lv_obj_scroll_to_view(lv_obj_get_child(container, -1), LV_ANIM_OFF);
+    else
+        lv_obj_scroll_to_y(container, scroll, LV_ANIM_OFF);
+    if (focusedIndex >= 0 && lv_obj_get_child_count(container)) {
+        auto *panel = lv_obj_get_child(container, std::min<int32_t>(focusedIndex, lv_obj_get_child_count(container) - 1));
+        lv_group_focus_obj(lv_obj_get_child(panel, 0));
+    }
+    history.scrollY =
+        history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);
+    updatingChat = false;
+}
+
+void TFTView_320x240::shiftChat(lv_obj_t *container, bool older)
+{
+    auto found = chatHistories.find(container);
+    if (updatingChat || found == chatHistories.end())
+        return;
+    auto &history = found->second;
+    const size_t previousFirst = history.first();
+    const size_t anchor = older ? previousFirst : history.last() - 1;
+    auto *panel = lv_obj_get_child(container, anchor - previousFirst);
+    const int32_t previousY = lv_obj_get_y(panel) - lv_obj_get_scroll_y(container);
+    if (!(older ? history.older() : history.newer()))
+        return;
+    updatingChat = true;
+    renderChat(container, false, previousFirst);
+    updatingChat = true;
+    auto *replacement = lv_obj_get_child(container, anchor - history.first());
+    lv_obj_scroll_to_y(container, lv_obj_get_y(replacement) - previousY, LV_ANIM_OFF);
+    history.scrollY = lv_obj_get_scroll_y(container);
+    updatingChat = false;
+}
+
+void TFTView_320x240::ui_event_chat_history(lv_event_t *event)
+{
+    auto *container = lv_event_get_current_target_obj(event);
+    auto *target = lv_event_get_target_obj(event);
+    const auto code = lv_event_get_code(event);
+    if (code == LV_EVENT_DELETE && target == container) {
+        THIS->chatHistories.erase(container);
+        if (THIS->activeMsgContainer == container)
+            THIS->activeMsgContainer = objects.messages_container;
+        return;
+    }
+    if (THIS->updatingChat || !lv_obj_get_child_count(container))
+        return;
+    if (code == LV_EVENT_SCROLL_END && target == container) {
+        const auto &history = THIS->chatHistories.at(container);
+        if (history.first() && lv_obj_get_scroll_top(container) <= 0)
+            THIS->shiftChat(container, true);
+        else if (!history.atLatest() && lv_obj_get_scroll_bottom(container) <= 0)
+            THIS->shiftChat(container, false);
+    } else if (code == LV_EVENT_FOCUSED && lv_obj_get_parent(lv_obj_get_parent(target)) == container) {
+        const int32_t index = lv_obj_get_index(lv_obj_get_parent(target));
+        if (index == 0 || index == lv_obj_get_child_count(container) - 1) {
+            lv_async_call(
+                [](void *data) {
+                    auto *chat = static_cast<lv_obj_t *>(data);
+                    if (!THIS->chatHistories.count(chat) || THIS->activeMsgContainer != chat ||
+                        THIS->activePanel != objects.messages_panel)
+                        return;
+                    auto *focused = lv_group_get_focused(THIS->defaultPanelGroup);
+                    if (!focused || !isInside(focused, chat))
+                        return;
+                    auto *panel = lv_obj_get_parent(focused);
+                    const int32_t focusedIndex = lv_obj_get_index(panel);
+                    if (focusedIndex == 0 || focusedIndex == lv_obj_get_child_count(chat) - 1)
+                        THIS->shiftChat(chat, focusedIndex == 0);
+                },
+                container);
+        }
     }
 }
 
@@ -6464,10 +6648,12 @@ void TFTView_320x240::onTextMessageCallback(const ResponseHandler::Request &req,
 {
     ILOG_DEBUG("onTextMessageCallback: %d %d", evt, result);
     if (evt == ResponseHandler::found) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, false, result);
+        handleTextMessageResponse((unsigned long)req.cookie, req.packetId, false, result);
     } else if (evt == ResponseHandler::removed) {
-        handleTextMessageResponse((unsigned long)req.cookie, req.id, true, result);
-    } else {
+        handleTextMessageResponse((unsigned long)req.cookie, req.packetId, true, result);
+    } else if (evt == ResponseHandler::timeout) {
+        controller->setTextMessageStatus(req.packetId, LogMessage::eNoResponse, true);
+        updateChatStatus((unsigned long)req.cookie, req.packetId, LogMessage::eNoResponse);
         ILOG_DEBUG("onTextMessageCallback: timeout!");
     }
 }
@@ -6741,35 +6927,68 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
  */
 void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
 {
+    const bool final = err || ack || channelOrNode < c_max_channels;
+    const auto status = err                                       ? LogMessage::eFailed
+                        : (ack || channelOrNode < c_max_channels) ? LogMessage::eAcked
+                                                                  : LogMessage::eHeard;
+    controller->setTextMessageStatus(id, status, final);
+    updateChatStatus(channelOrNode, id, status);
+}
+
+void TFTView_320x240::updateChatStatus(uint32_t channelOrNode, uint32_t id, LogMessage::MsgStatus status)
+{
     lv_obj_t *msgContainer;
     if (channelOrNode < c_max_channels) {
         msgContainer = channelGroup[(uint8_t)channelOrNode];
-        ack = true; // treat messages sent to group channel same as ack
     } else {
-        msgContainer = messages[channelOrNode];
+        const auto found = messages.find(channelOrNode);
+        msgContainer = found == messages.end() ? nullptr : found->second;
     }
     if (!msgContainer) {
         ILOG_WARN("received unexpected response nodeNum/channel 0x%08x for request id 0x%08x", channelOrNode, id);
         return;
+    }
+    auto history = chatHistories.find(msgContainer);
+    if (history != chatHistories.end()) {
+        history->second.setStatus(id, status);
+        for (size_t index = history->second.first(); index < history->second.last(); ++index) {
+            if (history->second.at(index).requestId == id) {
+                status = history->second.at(index).status;
+                break;
+            }
+        }
     }
     // go through all hiddenPanels and search for requestId
     uint16_t i = msgContainer->spec_attr->child_cnt;
     while (i-- > 0) {
         lv_obj_t *panel = msgContainer->spec_attr->children[i];
         uint32_t requestId = (unsigned long)panel->user_data;
-        if (requestId == id) {
+        if (id && requestId == id) {
             // now give the textlabel border another color
             lv_obj_t *textLabel = panel->spec_attr->children[0];
             lv_obj_set_style_border_color(textLabel,
-                                          err   ? colorRed
-                                          : ack ? colorBlueGreen
-                                                : colorYellow,
+                                          status == LogMessage::eFailed || status == LogMessage::eNoResponse ? colorRed
+                                          : status == LogMessage::eAcked                                     ? colorBlueGreen
+                                                                                                             : colorYellow,
                                           (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
 
             // store message
             break;
         }
     }
+}
+
+void TFTView_320x240::textMessageStatus(uint32_t requestId, LogMessage::MsgStatus status)
+{
+    const auto request = requests.findRequest(requestId, ResponseHandler::TextMessageRequest);
+    if (request.type != ResponseHandler::TextMessageRequest)
+        return;
+    const uint32_t channelOrNode = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(request.cookie));
+    if (channelOrNode < c_max_channels && status == LogMessage::eHeard)
+        status = LogMessage::eAcked;
+    updateChatStatus(channelOrNode, requestId, status);
+    if (status == LogMessage::eAcked || status == LogMessage::eFailed || status == LogMessage::eNoResponse)
+        requests.removeRequest(requestId);
 }
 
 void TFTView_320x240::packetReceived(const meshtastic_MeshPacket &p)
@@ -7170,112 +7389,57 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
 
 void TFTView_320x240::backup(uint32_t option)
 {
-#if defined(HAS_SDCARD) || defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
     meshtastic_Config_SecurityConfig_public_key_t &pubkey = db.config.security.public_key;
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
-    std::stringstream path;
-    path << "/keys/" << db.device_str << ".yml";
+    std::string fullPath = std::string("/keys/") + db.device_str + ".yml";
 
-    auto fs = createFileSystem();
-    if (!fs) {
-        ILOG_ERROR("Failed to create file system");
-        return;
-    }
-
-#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
-    std::string fullPath = std::string("/sdcard") + path.str();
-    std::string keyDir = "/sdcard/keys";
-#else
-    std::string fullPath = path.str();
-    std::string keyDir = "/keys";
-#endif
-
-    // The bus is held for the card access only - messageAlert() below is LVGL work.
     bool written = false;
-    std::string lastError;
-    {
-        ISpiLock::Guard bus;
+    if (storage) {
+        if (!storage->mkdir("/keys"))
+            ILOG_WARN("mkdir /keys failed");
 
-        // Create keys directory
-        if (!fs->mkdir(keyDir)) {
-            ILOG_WARN("mkdir %s: %s", keyDir.c_str(), fs->getLastError().c_str());
-        }
-
-        // Write keys to file
-        if (fs->open(fullPath, "w")) {
-            bool result = true;
-            result &= fs->printf("config:\n") > 0;
-            result &= fs->printf("  security:\n") > 0;
-            result &= fs->printf("      privateKey: base64:%s\n", pskToBase64(privkey.bytes, privkey.size).c_str()) > 0;
-            result &= fs->printf("      publicKey: base64:%s\n", pskToBase64(pubkey.bytes, pubkey.size).c_str()) > 0;
-            fs->close();
-            written = result;
-        } else {
-            lastError = fs->getLastError();
+        auto file = storage->open(fullPath.c_str(), OpenMode::Write);
+        if (file) {
+            std::string content = "config:\n  security:\n      privateKey: base64:" + pskToBase64(privkey.bytes, privkey.size) +
+                                  "\n      publicKey: base64:" + pskToBase64(pubkey.bytes, pubkey.size) + "\n";
+            written = file->print(content.c_str());
         }
     }
 
     if (written) {
         ILOG_INFO("backup pub/priv keys done.");
     } else {
-        ILOG_ERROR("open file %s for backup failed: %s", fullPath.c_str(), lastError.c_str());
+        ILOG_ERROR("open file %s for backup failed", fullPath.c_str());
         messageAlert(_("Failed to write keys!"), true);
     }
-#endif
 }
 
 void TFTView_320x240::restore(uint32_t option)
 {
-#if defined(HAS_SDCARD) || defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
     meshtastic_Config_SecurityConfig_public_key_t &pubkey = db.config.security.public_key;
     meshtastic_Config_SecurityConfig_private_key_t &privkey = db.config.security.private_key;
 
-    std::stringstream path;
-    path << "/keys/" << db.device_str << ".yml";
+    std::string fullPath = std::string("/keys/") + db.device_str + ".yml";
 
-    auto fs = createFileSystem();
-    if (!fs) {
-        ILOG_ERROR("Failed to create file system");
-        return;
-    }
-
-#if defined(HAS_SD_MMC) && defined(CONFIG_IDF_TARGET_ESP32P4)
-    std::string fullPath = std::string("/sdcard") + path.str();
-#else
-    std::string fullPath = path.str();
-#endif
-
-    // Read the file out under the bus guard, then release it: sendConfig() goes to the
-    // radio - which needs this same bus from another task - and messageAlert() is LVGL.
+    // read the file out completely first: sendConfig() goes to the radio and messageAlert() is LVGL
     bool opened = false;
-    std::string lastError;
     std::string privateLine;
     std::string publicLine;
-    {
-        ISpiLock::Guard bus;
-
-        // read and parse the YAML file for keys
-        if (fs->open(fullPath, "r")) {
-            opened = true;
-            char line[320];
-
-            // read file line by line
-            while (fs->readLine(line, sizeof(line))) {
-                if (strstr(line, "privateKey:") != nullptr) {
-                    privateLine = line;
-                } else if (strstr(line, "publicKey:") != nullptr) {
-                    publicLine = line;
-                }
+    if (auto file = storage ? storage->open(fullPath.c_str(), OpenMode::Read) : nullptr) {
+        opened = true;
+        char line[320];
+        while (file->readLine(line, sizeof(line))) {
+            if (strstr(line, "privateKey:") != nullptr) {
+                privateLine = line;
+            } else if (strstr(line, "publicKey:") != nullptr) {
+                publicLine = line;
             }
-            fs->close();
-        } else {
-            lastError = fs->getLastError();
         }
     }
 
     if (!opened) {
-        ILOG_ERROR("open file %s failed: %s", fullPath.c_str(), lastError.c_str());
+        ILOG_ERROR("open file %s failed", fullPath.c_str());
         messageAlert(_("Failed to retrieve keys!"), true);
     } else if (!privateLine.empty() && !publicLine.empty()) {
         // trim whitespace and extract base64 values
@@ -7309,7 +7473,6 @@ void TFTView_320x240::restore(uint32_t option)
         ILOG_ERROR("file %s contents don't match backup", fullPath.c_str());
         messageAlert(_("Failed to parse keys!"), true);
     }
-#endif
 }
 
 /**
@@ -7436,11 +7599,7 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
         db.uiConfig.ring_tone_id = 1;
 
     // update home panel bell text
-    setBellText(db.uiConfig.alert_enabled, !db.silent);
-    bool off = !db.uiConfig.alert_enabled && db.silent;
-    Themes::recolorButton(objects.home_bell_button, !off);
-    Themes::recolorText(objects.home_bell_label, !off);
-    objects.home_bell_button->user_data = (void *)off;
+    setBellText(db.uiConfig.banner_enabled, db.uiConfig.alert_enabled);
 }
 
 void TFTView_320x240::updateTime(uint32_t timeVal)
@@ -7496,6 +7655,10 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
                                                LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLL_ELASTIC)); /// Flags
     lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_ACTIVE);
     lv_obj_set_scroll_dir(container, LV_DIR_VER);
+    lv_obj_add_event_cb(container, ui_event_chat_history, LV_EVENT_DELETE, nullptr);
+    lv_obj_add_event_cb(container, ui_event_chat_history, LV_EVENT_SCROLL_END, nullptr);
+    lv_obj_add_event_cb(container, ui_event_chat_history, LV_EVENT_FOCUSED, nullptr);
+    keepScrollEventsLocal(container, containerScrollEvent);
     lv_obj_set_style_pad_left(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(container, 6, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(container, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
@@ -7568,7 +7731,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
         if (container != activeMsgContainer || activePanel != objects.messages_panel) {
             unreadMessages++;
             updateUnreadMessages();
-            if (activePanel != objects.messages_panel && db.uiConfig.alert_enabled &&
+            if (activePanel != objects.messages_panel && db.uiConfig.banner_enabled &&
                 !db.channel[ch].settings.module_settings.is_muted) {
                 showMessagePopup(from, to, ch, nodeDisplayName(from) ? nodeDisplayName(from) : "");
             }
@@ -7598,45 +7761,10 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
  */
 void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg)
 {
-    // Ensure all dynamically created widgets go to the panel content group
-    GroupGuard group_guard(defaultPanelGroup);
-
-    lv_obj_t *hiddenPanel = lv_obj_create(container);
-    lv_obj_set_width(hiddenPanel, lv_pct(100));
-    lv_obj_set_height(hiddenPanel, LV_SIZE_CONTENT); /// 50
-    lv_obj_set_align(hiddenPanel, LV_ALIGN_CENTER);
-    lv_obj_add_flag(hiddenPanel, LV_OBJ_FLAG_EVENT_BUBBLE);
-    lv_obj_clear_flag(hiddenPanel, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-    lv_obj_set_style_radius(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    add_style_panel_style(hiddenPanel);
-    lv_obj_set_style_pad_left(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(hiddenPanel, 0, (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
-
-    lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
-    lv_group_add_obj(defaultPanelGroup, msgLabel);
-    // calculate expected size of text bubble, to make it look nicer
-#if LV_VERSION_CHECK(9, 3, 0)
-    lv_coord_t width = lv_txt_get_width(msg, strlen(msg), &ui_font_montserrat_14, 0);
-#else // 9.5.0
-    lv_text_attributes_t attributes = {0};
-    lv_coord_t width = lv_text_get_width(msg, strlen(msg), &ui_font_montserrat_14, &attributes);
-#endif
-    lv_obj_set_width(msgLabel, std::max<int32_t>(std::min<int32_t>((int32_t)(width), 160) + 10, 45));
-    lv_obj_set_height(msgLabel, LV_SIZE_CONTENT);
-    lv_obj_set_align(msgLabel, LV_ALIGN_LEFT_MID);
-    lv_obj_add_flag(msgLabel, lv_obj_flag_t(LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE |
-                                            LV_OBJ_FLAG_SCROLL_ON_FOCUS));
-    lv_label_set_text(msgLabel, msg);
-    add_style_new_message_style(msgLabel);
-    lv_obj_add_flag(msgLabel, LV_OBJ_FLAG_CLICK_FOCUSABLE);
-    lv_obj_add_event_cb(msgLabel, ui_event_chatNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
-
-    if (state == MeshtasticView::eRunning) {
-        lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
-        lv_obj_move_foreground(objects.message_input_area);
-    }
+    ChatHistory::Entry entry;
+    entry.text = msg;
+    entry.node = nodeNum;
+    appendChatEntry(container, std::move(entry));
 }
 
 /**
@@ -7890,6 +8018,7 @@ void TFTView_320x240::showMessages(uint8_t ch)
         return;
     }
 
+    hideChat(activeMsgContainer);
     lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     activeMsgContainer = channelGroup[ch];
     if (!activeMsgContainer) {
@@ -7909,6 +8038,7 @@ void TFTView_320x240::showMessages(uint8_t ch)
  */
 void TFTView_320x240::showMessages(uint32_t nodeNum)
 {
+    hideChat(activeMsgContainer);
     lv_obj_add_flag(activeMsgContainer, LV_OBJ_FLAG_HIDDEN);
     activeMsgContainer = messages[nodeNum];
     if (!activeMsgContainer) {
@@ -8060,6 +8190,9 @@ void TFTView_320x240::cleanupAllOverlays(void)
     if (objects.msg_popup_panel && !lv_obj_has_flag(objects.msg_popup_panel, LV_OBJ_FLAG_HIDDEN)) {
         hideMessagePopup();
     }
+
+    // Hide map overlay if visible
+    lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
 }
 
 /**
@@ -8676,96 +8809,63 @@ bool TFTView_320x240::updateSDCard(void)
 {
     formatSD = false;
     sdStatsPolls = 0; // a fresh detection gets a fresh poll budget
-    if (sdCard) {
-        delete sdCard;
-        sdCard = nullptr;
-    }
-#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
-    char buf[64];
-#if defined(SENSECAP_INDICATOR)
-    sdCard = new RemoteSdCard; // SD card behind the co-processor
-#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
-    sdCard = new SDCard;
-#else
-    sdCard = new SdFsCard;
-#endif
-    ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
+    mapStylesScanned = false;
+    if (!storage)
+        storage = createStorage().release();
+
     ILOG_DEBUG("init SDCard");
-    if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
-        ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
-        cardDetected = true;
-        formatSDCardLabel(buf, sizeof(buf));
-        if (!sdCard->statsValid()) {
+    IStorage::Status status = storage->mount();
+    cardDetected = status == IStorage::Status::Ok;
+
+    if (!storage->hasSlot()) {
+        lv_obj_add_flag(objects.home_sd_card_button, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(objects.home_sd_card_label, LV_OBJ_FLAG_HIDDEN);
+        return cardDetected;
+    }
+
+    char buf[64];
+    StorageInfo info;
+    if (cardDetected && storage->info(info)) {
+        ILOG_DEBUG("SdCard init successful, card type: %d", info.card);
+        formatSDCardLabel(info, buf, sizeof(buf));
+        if (!info.statsValid) {
             // used/free are still being computed in the background on the
             // co-processor; the label shows a placeholder until they arrive
             armSDCardStatsPoll();
         }
         Themes::recolorButton(objects.home_sd_card_button, true);
         Themes::recolorText(objects.home_sd_card_label, true);
+        lv_obj_clear_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
     } else {
-        ILOG_DEBUG("SdCard init failed");
-        err = sdCard->errorType();
-        delete sdCard;
-        sdCard = nullptr;
         cardDetected = false; // a poll must not paint stats over the error
-    }
-
-    if (!cardDetected || err != ISdCard::ErrorType::eNoError) {
-        switch (err) {
-        case ISdCard::ErrorType::eSlotEmpty:
+        switch (status) {
+        case IStorage::Status::SlotEmpty:
             ILOG_ERROR("SD card slot empty");
             lv_snprintf(buf, sizeof(buf), _("SD slot empty"));
             break;
-        case ISdCard::ErrorType::eFormatError:
+        case IStorage::Status::NoFilesystem:
             ILOG_ERROR("SD invalid format");
             lv_snprintf(buf, sizeof(buf), _("SD invalid format"));
             formatSD = true;
             break;
-        case ISdCard::ErrorType::eNoMbrError:
-            ILOG_ERROR("SD mbr not found");
-            lv_snprintf(buf, sizeof(buf), _("SD mbr not found"));
-            formatSD = true;
-            break;
-        case ISdCard::ErrorType::eCardError:
+        default:
             ILOG_ERROR("SD card error");
             lv_snprintf(buf, sizeof(buf), _("SD card error"));
-            break;
-        default:
-            ILOG_ERROR("SD unknown error");
-            lv_snprintf(buf, sizeof(buf), _("SD unknown error"));
             break;
         }
         Themes::recolorButton(objects.home_sd_card_button, false);
         Themes::recolorText(objects.home_sd_card_label, false);
         // allow backup/restore only if there is an SD card detected
         lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
-    } else {
-#if defined(SENSECAP_INDICATOR)
-        // backup/restore writes locally, which the bridged SD does not support yet
-        lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
-#else
-        // enable backup/restore
-        lv_obj_clear_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
-#endif
     }
     lv_label_set_text(objects.home_sd_card_label, buf);
-#else
-    lv_obj_add_flag(objects.home_sd_card_button, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(objects.home_sd_card_label, LV_OBJ_FLAG_HIDDEN);
-#if defined(ARCH_PORTDUINO)
-    cardDetected = true; // use PortduinoFS instead
-    sdCard = new SDCard;
-#endif
-#endif
-    if (!sdCard)
-        sdCard = new NoSdCard;
     return cardDetected;
 }
 
 /**
  * Poll the card statistics until the co-processor has finished computing
- * them. Only the numbers are re-read: recreating the card object would
- * reset its updated flag and make the next loadMap() rescan the styles.
+ * them. Only the numbers are re-read: a re-mount would make the next
+ * loadMap() rescan the styles.
  */
 void TFTView_320x240::armSDCardStatsPoll(void)
 {
@@ -8792,81 +8892,58 @@ void TFTView_320x240::armSDCardStatsPoll(void)
 
 void TFTView_320x240::refreshSDCardStats(void)
 {
-#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
-    if (!sdCard || !cardDetected)
+    if (!storage || !cardDetected)
         return;
-    switch (sdCard->refreshStats()) {
-    case ISdCard::eStatsPending:
-        armSDCardStatsPoll();
-        return;
-    case ISdCard::eStatsUnavailable:
+    StorageInfo info;
+    if (!storage->info(info)) {
         // the card is gone or the link is down: re-detect, which paints the
         // proper error state instead of stale numbers
         updateSDCard();
         return;
-    case ISdCard::eStatsValid:
-        break;
+    }
+    if (!info.statsValid) {
+        armSDCardStatsPoll();
+        return;
     }
     char buf[64];
-    formatSDCardLabel(buf, sizeof(buf));
+    formatSDCardLabel(info, buf, sizeof(buf));
     lv_label_set_text(objects.home_sd_card_label, buf);
-#endif
 }
 
-#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
-// caller guarantees a detected card; used/free are only printed once the
-// card knows them (a co-processor computes them in the background)
-void TFTView_320x240::formatSDCardLabel(char *buf, size_t len)
+// used/free are only printed once the card knows them (a co-processor computes them in the background)
+void TFTView_320x240::formatSDCardLabel(const StorageInfo &info, char *buf, size_t len)
 {
-    ISdCard::CardType cardType = sdCard->cardType();
-    ISdCard::FatType fatType = sdCard->fatType();
-    uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
-    uint32_t totalSpace = sdCard->cardSize() / (1024 * 1024);
-    uint32_t totalSpaceGB = (sdCard->cardSize() + 500000000ULL) / (1000ULL * 1000ULL * 1000ULL);
-    const char *cardTypeStr = cardType == ISdCard::eMMC    ? "MMC"
-                              : cardType == ISdCard::eSD   ? "SDSC"
-                              : cardType == ISdCard::eSDHC ? "SDHC"
-                              : cardType == ISdCard::eSDXC ? "SDXC"
-                                                           : "UNKN";
-    const char *fatTypeStr = fatType == ISdCard::eExFat   ? "exFAT"
-                             : fatType == ISdCard::eFat32 ? "FAT32"
-                             : fatType == ISdCard::eFat16 ? "FAT16"
-                                                          : "???";
-    if (sdCard->statsValid()) {
+    uint32_t usedSpace = info.used / (1024 * 1024);
+    uint32_t totalSpace = info.size / (1024 * 1024);
+    uint32_t totalSpaceGB = (info.size + 500000000ULL) / (1000ULL * 1000ULL * 1000ULL);
+    const char *cardTypeStr = info.card == StorageInfo::eMMC    ? "MMC"
+                              : info.card == StorageInfo::eSD   ? "SDSC"
+                              : info.card == StorageInfo::eSDHC ? "SDHC"
+                              : info.card == StorageInfo::eSDXC ? "SDXC"
+                                                                : "UNKN";
+    const char *fatTypeStr = info.fat == StorageInfo::eExFat   ? "exFAT"
+                             : info.fat == StorageInfo::eFat32 ? "FAT32"
+                             : info.fat == StorageInfo::eFat16 ? "FAT16"
+                                                               : "???";
+    if (info.statsValid) {
         // snprintf, not lv_snprintf: the LVGL one has no %f unless LVGL is
         // built with float support, and prints the conversion verbatim
         snprintf(buf, len, _("%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)"), cardTypeStr, totalSpaceGB, fatTypeStr,
-                 float(sdCard->usedBytes()) / 1024.0f / 1024.0f / 1024.0f,
+                 float(info.used) / 1024.0f / 1024.0f / 1024.0f,
                  totalSpace ? ((usedSpace * 100) + totalSpace / 2) / totalSpace : 0);
     } else {
         lv_snprintf(buf, len, "%s: %d GB (%s)\n%s", cardTypeStr, totalSpaceGB, fatTypeStr, _("Used: ..."));
     }
 }
-#endif
 
 void TFTView_320x240::formatSDCard(void)
 {
-    if (sdCard) {
-        delete sdCard;
-        sdCard = nullptr;
-    }
-#if defined(SENSECAP_INDICATOR)
-    sdCard = new RemoteSdCard;
-#elif defined(HAS_SD_MMC) || defined(SDCARD_SHARE_SPI)
-    sdCard = new SDCard;
-#elif defined(HAS_SDCARD)
-    sdCard = new SdFsCard;
-#endif
-#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
     ILOG_DEBUG("formatting SD card");
-    if (sdCard->format()) {
+    if (storage && storage->format()) {
         updateSDCard();
     } else {
         lv_label_set_text(objects.home_sd_card_label, "SD format failed");
     }
-#endif
-    if (!sdCard)
-        sdCard = new NoSdCard;
 }
 
 /**
@@ -8875,20 +8952,17 @@ void TFTView_320x240::formatSDCard(void)
  */
 void TFTView_320x240::ejectSDCard(void)
 {
-#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
-    if (!sdCard || !sdCard->eject())
+    if (!storage || !storage->eject())
         return;
     ILOG_DEBUG("SD card ejected");
     cardDetected = false;
     formatSD = false;
     sdStatsPolls = 0;
-    delete sdCard;
-    sdCard = new NoSdCard;
+    mapStylesScanned = false;
     lv_label_set_text(objects.home_sd_card_label, _("SD ejected"));
     Themes::recolorButton(objects.home_sd_card_button, false);
     Themes::recolorText(objects.home_sd_card_label, false);
     lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
-#endif
 }
 
 void TFTView_320x240::updateFreeMem(void)

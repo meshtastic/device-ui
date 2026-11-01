@@ -81,6 +81,11 @@ void DeviceScreen::toggleDisplay(void)
     gui->toggleDisplay();
 }
 
+bool DeviceScreen::prepareShutdown(uint32_t timeoutMs)
+{
+    return gui->prepareShutdown(timeoutMs);
+}
+
 #if defined(ARDUINO_ARCH_ESP32)
 int DeviceScreen::prepareSleep(void *)
 {

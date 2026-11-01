@@ -1,6 +1,5 @@
 #include "util/LogRotate.h"
 #include "util/ILog.h"
-#include "util/ISpiLock.h"
 #include <ctime>
 
 #define FILE_PREFIX "log_"
@@ -14,7 +13,6 @@ LogRotate::LogRotate(fs::FS &fs, const char *logDir, uint32_t maxLen, uint32_t m
 
 void LogRotate::init(void)
 {
-    ISpiLock::Guard bus;
     if (!_fs.exists(rootDirName)) {
         _fs.mkdir(rootDirName);
         ILOG_INFO("LogRotate: no log files found.");
@@ -51,7 +49,6 @@ void LogRotate::init(void)
 
 bool LogRotate::readNext(ILogEntry &entry)
 {
-    ISpiLock::Guard bus;
     if (!rootDir) {
         rootDir = _fs.open(rootDirName);
         if (!rootDir)
@@ -76,7 +73,10 @@ bool LogRotate::readNext(ILogEntry &entry)
     }
 
     // elegant way to let the logentry do its work it knows best and pass just a temporary function for reading
+    const size_t entryStart = currentFile.position();
     if (!entry.deserialize([this](uint8_t *buf, size_t size) { return this->currentFile.read(buf, size); })) {
+        if (currentLogRead == currentLogWrite && currentFile.position() > entryStart)
+            rotateRequired = true;
         currentFile.close();
         currentLogRead++;
         return readNext(entry);
@@ -86,9 +86,8 @@ bool LogRotate::readNext(ILogEntry &entry)
 
 bool LogRotate::write(const ILogEntry &entry)
 {
-    ISpiLock::Guard bus;
     // time_t start = millis();
-    if (currentSize + entry.size() >= c_maxFileSize || totalSize + entry.size() >= c_maxSize) {
+    if (rotateRequired || currentSize + entry.size() >= c_maxFileSize || totalSize + entry.size() >= c_maxSize) {
         // log rotation
         ILOG_DEBUG("LogRotation: %d >= %d || %d >= %d", currentSize + entry.size(), c_maxFileSize, totalSize + entry.size(),
                    c_maxSize);
@@ -96,13 +95,24 @@ bool LogRotate::write(const ILogEntry &entry)
         currentSize = 0;
         currentLogWrite++;
         currentLogName = logFileName(currentLogWrite);
+        rotateRequired = false;
         while ((numFiles >= c_maxFiles || totalSize + entry.size() > c_maxSize) && removeLog())
             ;
     }
 
     // elegant way to let the logentry do its work it knows best and pass just a temporary function for writing
     File file = _fs.open(currentLogName, FILE_APPEND);
-    entry.serialize([&file](const uint8_t *buf, size_t size) { return file.write(buf, size); });
+    if (!file)
+        return false;
+    const size_t written = entry.serialize([&file](const uint8_t *buf, size_t size) { return file.write(buf, size); });
+    if (written != entry.size()) {
+        file.close();
+        currentSize += written;
+        totalSize += written;
+        rotateRequired = true;
+        ILOG_ERROR("LogRotate: incomplete message write");
+        return false;
+    }
     file.close();
 
     currentSize += entry.size();
@@ -118,9 +128,12 @@ bool LogRotate::write(const ILogEntry &entry)
  */
 bool LogRotate::clear(void)
 {
-    ISpiLock::Guard bus;
     time_t start = millis();
+    currentFile.close();
+    rootDir.close();
     File root = _fs.open(rootDirName);
+    if (!root)
+        return false;
 
     int count = 0;
     bool error = false;
@@ -152,8 +165,9 @@ bool LogRotate::clear(void)
     currentLogWrite = 1;
     currentSize = 0;
     totalSize = 0;
+    rotateRequired = false;
     currentLogName = logFileName(currentLogWrite);
-    return error;
+    return !error;
 }
 
 /**

@@ -21,6 +21,7 @@ class DeviceGUI
     virtual void prepareSleep(void);
     virtual bool sleep(int16_t pin) { return false; }
     virtual void wakeUp(void);
+    virtual bool prepareShutdown(uint32_t timeoutMs) { return true; }
     virtual void toggleDisplay(void);
     virtual void triggerHeartbeat(void) {}
     // called to inform view to do screen blanking

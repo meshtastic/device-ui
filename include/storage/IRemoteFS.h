@@ -1,7 +1,5 @@
 #pragma once
 
-#include "graphics/map/TileService.h"
-#include "lvgl.h"
 #include <set>
 #include <stdint.h>
 #include <string>
@@ -25,10 +23,9 @@ struct RemoteSdInfo {
 };
 
 /**
- * Backend transport for RemoteSDService: chunked file access on a filesystem
- * that lives on another MCU (e.g. the SD card behind the SenseCAP Indicator
- * RP2040). Implemented and registered by the firmware before the view loads
- * the map.
+ * Transport for RemoteStorage: chunked file access on a filesystem that lives
+ * on another MCU (e.g. the SD card behind the SenseCAP Indicator RP2040).
+ * Implemented and registered by the firmware before the view starts.
  */
 class IRemoteFS
 {
@@ -74,50 +71,4 @@ class IRemoteFS
      */
     virtual bool sdFormat(void) = 0;
     virtual ~IRemoteFS() {}
-};
-
-/**
- * Map tile service for a remote SD card, accessed chunk-wise through an
- * IRemoteFS backend. Registers an LVGL filesystem driver so the image
- * decoder reads tiles like from a local drive.
- */
-class RemoteSDService : public ITileService
-{
-  public:
-    static void setBackend(IRemoteFS *fs);
-    static IRemoteFS *backend(void);
-
-    RemoteSDService();
-    virtual ~RemoteSDService();
-
-    bool load(const char *name, void *img) override;
-    bool save(const char *name, void *img, size_t len) override;
-
-  protected:
-    static void *fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode);
-    static lv_fs_res_t fs_close(lv_fs_drv_t *drv, void *file_p);
-    static lv_fs_res_t fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t btr, uint32_t *br);
-    static lv_fs_res_t fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf, uint32_t btw, uint32_t *bw);
-    static lv_fs_res_t fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence);
-    static lv_fs_res_t fs_tell(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_p);
-
-  private:
-    static IRemoteFS *remoteFS;
-
-    enum { CHUNK_SIZE = 4096 }; // matches FileTransfer.filedata max_size
-
-    typedef struct RemoteFile {
-        char path[256]; // full FAT LFN paths round-trip
-        uint32_t pos;
-        uint32_t size;
-    } RemoteFile;
-
-    // One chunk for all open files: the image decoder opens the same tile
-    // three times and reads it front to back, so they all want the same bytes.
-    static uint8_t cachedChunk[CHUNK_SIZE];
-    static char cachedPath[256];
-    static uint32_t cachedOffset;
-    static uint32_t cachedLen;
-    static uint32_t cachedSize;
-    static uint32_t chunkAt(const char *path, uint32_t pos, uint32_t *fileSize);
 };

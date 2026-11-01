@@ -179,4 +179,36 @@ TEST_CASE("FocusTraversalPolicy keeps up/down for map panning and zooming but no
     }
 }
 
+// Pins four-way navigation on the virtual keyboard: UP/DOWN must reach the buttonmatrix for row
+// changes instead of being remapped to PREV/NEXT, which would move focus off the keyboard.
+TEST_CASE("FocusTraversalPolicy passes all directional keys to the virtual keyboard")
+{
+    InputSourceRegistry registry;
+    auto contextProvider = std::make_shared<StaticContextProvider>();
+    auto dispatcher = std::make_shared<RecordingDispatcher>();
+
+    DefaultInputPolicyFactory factory;
+    auto buildResult = factory.build(registry, contextProvider, dispatcher);
+
+    InputPipeline pipeline(buildResult.bindingResolver, contextProvider, dispatcher);
+    pipeline.setPolicyChain(std::move(buildResult.chain));
+
+    auto forwardedKey = [&](uint32_t key) {
+        InputEvent event{};
+        event.sourceId = "test";
+        event.rawKeyCode = key;
+        event.resolvedKeyCode = key;
+        std::vector<InputEvent> output;
+        pipeline.process(event, InputCapabilities{}, output);
+        REQUIRE(output.size() == 1);
+        return output.front().resolvedKeyCode;
+    };
+
+    contextProvider->snapshot.focusSemantic = FocusSemantic::Keyboard;
+    CHECK(forwardedKey(LV_KEY_UP) == LV_KEY_UP);
+    CHECK(forwardedKey(LV_KEY_DOWN) == LV_KEY_DOWN);
+    CHECK(forwardedKey(LV_KEY_LEFT) == LV_KEY_LEFT);
+    CHECK(forwardedKey(LV_KEY_RIGHT) == LV_KEY_RIGHT);
+}
+
 } // namespace input_policy

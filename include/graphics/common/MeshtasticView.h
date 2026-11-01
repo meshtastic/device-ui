@@ -29,6 +29,7 @@ class MeshtasticView : public DeviceGUI
     virtual void task_handler(void);
     virtual void triggerHeartbeat(void);
     virtual bool sleep(int16_t pin);
+    bool prepareShutdown(uint32_t timeoutMs) override;
 
     uint32_t getMyNodeNum(void) const { return ownNode; }
 
@@ -132,6 +133,7 @@ class MeshtasticView : public DeviceGUI
     }
 
     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_Routing &routing, const meshtastic_MeshPacket &p) {}
+    virtual void textMessageStatus(uint32_t requestId, LogMessage::MsgStatus status) {}
     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) {}
     virtual void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) {}
     virtual void packetReceived(const meshtastic_MeshPacket &p);

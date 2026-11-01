@@ -45,8 +45,7 @@ class ISpiLock
     /**
      * Normally set through DeviceScreen::create(). Kept as a static holder because two
      * classes of call site cannot reach an instance member: the LVGL flush and touch
-     * callbacks are static and have no `this`, and the SD layer (`sdCard`, `SDFs`) is
-     * file-scope globals with no route to a DeviceGUI.
+     * callbacks are static and have no `this`, and the storage layer has no route to a DeviceGUI.
      */
     static void install(ISpiLock *lock);
     static ISpiLock *installed(void);
