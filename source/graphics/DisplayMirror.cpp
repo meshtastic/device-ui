@@ -60,7 +60,9 @@ const input_policy::InputCapabilities mirrorCapabilities = {
 };
 
 // LVGL thread. Remote input must wake a slept panel and still act, or every event is spent as a wake.
-void service_requests(void)
+// Returns true while the panel is still asleep: the driver leaves powersave on its next task_handler
+// pass, and until then the blank screen's wake button would take the input.
+bool service_requests(void)
 {
     if (wakeRequested.exchange(false, std::memory_order_acquire) && displaydriver) {
         if (displaydriver->isPowersaving())
@@ -75,6 +77,7 @@ void service_requests(void)
             lv_obj_invalidate(lv_display_get_layer_sys(display));
         }
     }
+    return displaydriver && displaydriver->isPowersaving();
 }
 
 // A queued touch is held PRESSED for holdMs (at least one read), then RELEASED once.
@@ -85,7 +88,7 @@ void pointer_read(lv_indev_t *indev, lv_indev_data_t *data)
     static uint32_t pressStart = 0;
     static lv_point_t last = {0, 0};
 
-    service_requests();
+    const bool asleep = service_requests();
 
     if (pressing) {
         const Touch &t = touchQueue[touchHead.load(std::memory_order_relaxed)];
@@ -104,7 +107,7 @@ void pointer_read(lv_indev_t *indev, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_RELEASED;
         return;
     }
-    if (touchHead.load(std::memory_order_relaxed) != touchTail.load(std::memory_order_acquire)) {
+    if (!asleep && touchHead.load(std::memory_order_relaxed) != touchTail.load(std::memory_order_acquire)) {
         const Touch &t = touchQueue[touchHead.load(std::memory_order_relaxed)];
         last.x = t.x;
         last.y = t.y;
@@ -160,7 +163,7 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
     static uint32_t pressStart = 0;
     static uint32_t lastKey = 0;
 
-    service_requests();
+    const bool asleep = service_requests();
 
     if (pressing) {
         const Key &k = keyQueue[keyHead.load(std::memory_order_relaxed)];
@@ -179,7 +182,7 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_RELEASED;
         return;
     }
-    if (keyHead.load(std::memory_order_relaxed) != keyTail.load(std::memory_order_acquire)) {
+    if (!asleep && keyHead.load(std::memory_order_relaxed) != keyTail.load(std::memory_order_acquire)) {
         follow_input_group(indev);
         lastKey = resolve_key(keyQueue[keyHead.load(std::memory_order_relaxed)].key);
         if (!lastKey) {
@@ -199,12 +202,12 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
 
 void encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
-    service_requests();
+    const bool asleep = service_requests();
 
     data->state = LV_INDEV_STATE_RELEASED;
     data->enc_diff = 0;
     uint8_t head = encoderHead.load(std::memory_order_relaxed);
-    if (head != encoderTail.load(std::memory_order_acquire)) {
+    if (!asleep && head != encoderTail.load(std::memory_order_acquire)) {
         follow_input_group(indev);
         data->enc_diff = encoderQueue[head];
         encoderHead.store((head + 1) % queueLen, std::memory_order_release);
