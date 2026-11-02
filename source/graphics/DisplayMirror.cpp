@@ -117,6 +117,25 @@ void pointer_read(lv_indev_t *indev, lv_indev_data_t *data)
     data->state = LV_INDEV_STATE_RELEASED;
 }
 
+// The view moves only the physical driver's indevs between groups, so take theirs before acting,
+// falling back to the default group on a board with no keypad or encoder.
+void follow_input_group(lv_indev_t *self)
+{
+    lv_group_t *group = nullptr;
+    for (lv_indev_t *indev = lv_indev_get_next(nullptr); indev && !group; indev = lv_indev_get_next(indev)) {
+        if (indev != keypad && indev != encoder && lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD)
+            group = lv_indev_get_group(indev);
+    }
+    for (lv_indev_t *indev = lv_indev_get_next(nullptr); indev && !group; indev = lv_indev_get_next(indev)) {
+        if (indev != keypad && indev != encoder && lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER)
+            group = lv_indev_get_group(indev);
+    }
+    if (!group)
+        group = lv_group_get_default();
+    if (group && lv_indev_get_group(self) != group)
+        lv_indev_set_group(self, group);
+}
+
 // The same policy chain as a physical D-pad, so arrows traverse focus and command keys dispatch.
 // Returns the key LVGL should see, or 0 when the chain consumed it.
 uint32_t resolve_key(uint32_t key)
@@ -163,6 +182,7 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
         return;
     }
     if (keyHead.load(std::memory_order_relaxed) != keyTail.load(std::memory_order_acquire)) {
+        follow_input_group(indev);
         lastKey = resolve_key(keyQueue[keyHead.load(std::memory_order_relaxed)].key);
         if (!lastKey) {
             keyHead.store((keyHead.load(std::memory_order_relaxed) + 1) % queueLen, std::memory_order_release);
@@ -187,6 +207,7 @@ void encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
     data->enc_diff = 0;
     uint8_t head = encoderHead.load(std::memory_order_relaxed);
     if (head != encoderTail.load(std::memory_order_acquire)) {
+        follow_input_group(indev);
         data->enc_diff = encoderQueue[head];
         encoderHead.store((head + 1) % queueLen, std::memory_order_release);
     }
