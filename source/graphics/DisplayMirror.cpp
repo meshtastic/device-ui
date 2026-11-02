@@ -1,9 +1,16 @@
 #include "graphics/DisplayMirror.h"
 #include "graphics/driver/DisplayDriver.h"
+#include "input/policy/DefaultInputPolicyFactory.h"
+#include "input/policy/InputContextState.h"
+#include "input/policy/InputPipeline.h"
+#include "input/policy/InputSourceRegistry.h"
+#include "input/policy/UICommandDispatcher.h"
 #include "lvgl.h"
 #include "src/indev/lv_indev_private.h"
 #include "util/ILog.h"
 #include <atomic>
+#include <memory>
+#include <vector>
 
 namespace
 {
@@ -35,6 +42,21 @@ Key keyQueue[queueLen];
 std::atomic<uint8_t> keyHead{0}, keyTail{0};
 int8_t encoderQueue[queueLen];
 std::atomic<uint8_t> encoderHead{0}, encoderTail{0};
+
+std::unique_ptr<input_policy::InputPipeline> keyPipeline;
+const input_policy::InputCapabilities mirrorCapabilities = {
+    true,  // hasArrowKeys
+    false, // hasTabKey
+    false, // hasHomeKey
+    false, // hasEndKey
+    false, // hasPgUpPgDownKeys
+    true,  // hasCancelKey
+    true,  // hasEnterKey
+    false, // hasModifiers
+    true,  // supportsLongPress
+    false, // supportsRepeat
+    true   // supportsTextEntry
+};
 
 // LVGL thread. Remote input must wake a slept panel and still act, or every event is spent as a wake.
 void service_requests(void)
@@ -95,6 +117,24 @@ void pointer_read(lv_indev_t *indev, lv_indev_data_t *data)
     data->state = LV_INDEV_STATE_RELEASED;
 }
 
+// The same policy chain as a physical D-pad, so arrows traverse focus and command keys dispatch.
+// Returns the key LVGL should see, or 0 when the chain consumed it.
+uint32_t resolve_key(uint32_t key)
+{
+    if (!keyPipeline)
+        return key;
+    input_policy::InputEvent event{};
+    event.sourceId = "displayMirror";
+    event.rawKeyCode = key;
+    event.resolvedKeyCode = key;
+    event.pressKind = input_policy::PressKind::Press;
+    event.timestampMs = lv_tick_get();
+    std::vector<input_policy::InputEvent> out;
+    if (!keyPipeline->process(event, mirrorCapabilities, out) || out.empty())
+        return 0;
+    return out.front().resolvedKeyCode ? out.front().resolvedKeyCode : out.front().rawKeyCode;
+}
+
 // A queued key is held PRESSED for holdMs (at least one read), then RELEASED once.
 void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
@@ -123,7 +163,12 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
         return;
     }
     if (keyHead.load(std::memory_order_relaxed) != keyTail.load(std::memory_order_acquire)) {
-        lastKey = keyQueue[keyHead.load(std::memory_order_relaxed)].key;
+        lastKey = resolve_key(keyQueue[keyHead.load(std::memory_order_relaxed)].key);
+        if (!lastKey) {
+            keyHead.store((keyHead.load(std::memory_order_relaxed) + 1) % queueLen, std::memory_order_release);
+            data->state = LV_INDEV_STATE_RELEASED;
+            return;
+        }
         pressing = true;
         pressStart = lv_tick_get();
         data->key = lastKey;
@@ -183,6 +228,16 @@ void DisplayMirror::start(DisplayDriver *driver)
         group = lv_group_create();
         lv_group_set_default(group);
     }
+
+    // singletons, so the deleters must not free them
+    auto contextProvider = std::shared_ptr<input_policy::IInputContextProvider>(&input_policy::InputContextState::instance(),
+                                                                                [](input_policy::IInputContextProvider *) {});
+    auto commandDispatcher = std::shared_ptr<input_policy::IUICommandDispatcher>(&input_policy::UICommandDispatcher::instance(),
+                                                                                 [](input_policy::IUICommandDispatcher *) {});
+    input_policy::InputSourceRegistry registry;
+    auto policies = input_policy::DefaultInputPolicyFactory().build(registry, contextProvider, commandDispatcher);
+    keyPipeline = std::make_unique<input_policy::InputPipeline>(policies.bindingResolver, contextProvider, commandDispatcher);
+    keyPipeline->setPolicyChain(std::move(policies.chain));
 
     // lv_indev_create() binds to the default display; bind to the mirrored one instead
     keypad = lv_indev_create();
