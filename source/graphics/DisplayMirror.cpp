@@ -1,5 +1,6 @@
 #include "graphics/DisplayMirror.h"
 #include "graphics/driver/DisplayDriver.h"
+#include "input/InputDriver.h"
 #include "input/policy/DefaultInputPolicyFactory.h"
 #include "input/policy/InputContextState.h"
 #include "input/policy/InputPipeline.h"
@@ -117,19 +118,16 @@ void pointer_read(lv_indev_t *indev, lv_indev_data_t *data)
     data->state = LV_INDEV_STATE_RELEASED;
 }
 
-// The view moves only the physical driver's indevs between groups, so take theirs before acting,
-// falling back to the default group on a board with no keypad or encoder.
+// The view moves only InputDriver's indevs between groups, so take theirs before acting, falling
+// back to the default group, which the view also sets, on a board with neither.
 void follow_input_group(lv_indev_t *self)
 {
+    InputDriver *driver = InputDriver::instance();
     lv_group_t *group = nullptr;
-    for (lv_indev_t *indev = lv_indev_get_next(nullptr); indev && !group; indev = lv_indev_get_next(indev)) {
-        if (indev != keypad && indev != encoder && lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD)
-            group = lv_indev_get_group(indev);
-    }
-    for (lv_indev_t *indev = lv_indev_get_next(nullptr); indev && !group; indev = lv_indev_get_next(indev)) {
-        if (indev != keypad && indev != encoder && lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER)
-            group = lv_indev_get_group(indev);
-    }
+    if (driver->hasKeyboardDevice())
+        group = lv_indev_get_group(driver->getKeyboard());
+    if (!group && driver->hasEncoderDevice())
+        group = lv_indev_get_group(driver->getEncoder());
     if (!group)
         group = lv_group_get_default();
     if (group && lv_indev_get_group(self) != group)
