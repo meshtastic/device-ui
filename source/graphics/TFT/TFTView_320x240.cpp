@@ -8486,13 +8486,27 @@ void TFTView_320x240::reconcileVirtualNodeListInputGroup(bool enteringNodeScreen
         return;
     }
 
-    if (hasVisibleNodes) {
-        setInputGroup(virtualNodeList->navigationGroup());
-    } else {
-        setInputGroup(defaultPanelGroup);
+    // keyboard covers keypads like the directional pad; touch-only devices have no focus navigation
+    lv_indev_t *navigation = inputdriver->hasKeyboardDevice() ? inputdriver->getKeyboard()
+                             : inputdriver->hasEncoderDevice() ? inputdriver->getEncoder()
+                                                               : nullptr;
+    if (!enteringNodeScreen && navigation) {
+        // a node list update must not pull the input away from the button menu or another screen
+        lv_group_t *current = lv_indev_get_group(navigation);
+        if (current != virtualNodeList->navigationGroup() && current != defaultPanelGroup)
+            return;
     }
+
     virtualNodeListInputVisibilityKnown = true;
     virtualNodeListInputHadVisibleNodes = hasVisibleNodes;
+    if (hasVisibleNodes) {
+        setInputGroup(virtualNodeList->navigationGroup());
+    } else if (enteringNodeScreen || !navigation) {
+        setInputGroup(defaultPanelGroup);
+    } else {
+        // the last visible row vanished under the focus; the panel group has nothing focusable here
+        nodeFocusBoundary(true);
+    }
 }
 
 void TFTView_320x240::syncNodeListPresentation(void)
