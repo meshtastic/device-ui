@@ -8487,7 +8487,7 @@ void TFTView_320x240::reconcileVirtualNodeListInputGroup(bool enteringNodeScreen
     }
 
     // keyboard covers keypads like the directional pad; touch-only devices have no focus navigation
-    lv_indev_t *navigation = inputdriver->hasKeyboardDevice() ? inputdriver->getKeyboard()
+    lv_indev_t *navigation = inputdriver->hasKeyboardDevice()  ? inputdriver->getKeyboard()
                              : inputdriver->hasEncoderDevice() ? inputdriver->getEncoder()
                                                                : nullptr;
     if (!enteringNodeScreen && navigation) {
