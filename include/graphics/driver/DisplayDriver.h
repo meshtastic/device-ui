@@ -3,6 +3,7 @@
 #include "graphics/DeviceGUI.h"
 #include "graphics/LVGL/LVGLGraphics.h"
 #include <cstdint>
+#include <functional>
 
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
 #define V_NORM_PX(v_scr_percent) ((int16_t)((screenHeight / 100.0) * (v_scr_percent)))
@@ -42,7 +43,17 @@ class DisplayDriver
 
     lv_display_t *getDisplay(void) { return display; }
 
+    // pixels: top-left of the flushed area, rows stride pixels apart; LVGL thread
+    using FlushCallback =
+        std::function<void(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride)>;
+
+    // set once, before the UI task starts
+    void setFlushCB(FlushCallback cb) { flushCB = std::move(cb); }
+
   protected:
+    // subclasses call this from their LVGL flush callback
+    void flush(lv_display_t *disp, const lv_area_t *area, const uint8_t *px_map);
+
     LVGLGraphics lvgl;
     LVGLDisplay *display;
     LVGLTouch *touch;
@@ -52,4 +63,5 @@ class DisplayDriver
 
   private:
     static void displayToggleCb(void *displayDriver);
+    FlushCallback flushCB;
 };
