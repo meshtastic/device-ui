@@ -7,9 +7,6 @@
 #include "input/policy/InputSourceRegistry.h"
 #include "input/policy/UICommandDispatcher.h"
 #include "util/ILog.h"
-#ifdef T_DECK
-#include "ui.h"
-#endif
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -102,7 +99,6 @@ enum GreekDiacriticState : uint8_t {
 };
 
 static GreekDiacriticState tdeckGreekDiacriticState = GREEK_DIACRITIC_NONE;
-static lv_obj_t *tdeckLayoutLabel = nullptr;
 
 static void tdeckClearGreekDiacritics()
 {
@@ -113,60 +109,6 @@ static void tdeckAddGreekDiacritic(GreekDiacriticState state)
 {
     tdeckGreekDiacriticState = static_cast<GreekDiacriticState>(
         static_cast<uint8_t>(tdeckGreekDiacriticState) | static_cast<uint8_t>(state));
-}
-
-static void tdeckSyncLayoutIndicatorStyle()
-{
-    static const lv_font_t *shownFont = nullptr;
-    static lv_color_t shownColor{};
-    static bool styleInitialized = false;
-
-    if (!tdeckLayoutLabel || !objects.top_messages_node_label)
-        return;
-
-    const lv_font_t *font = lv_obj_get_style_text_font(objects.top_messages_node_label, LV_PART_MAIN);
-    if (font && (!styleInitialized || shownFont != font)) {
-        lv_obj_set_style_text_font(tdeckLayoutLabel, font, LV_PART_MAIN | LV_STATE_DEFAULT);
-        shownFont = font;
-    }
-
-    lv_color_t color = lv_obj_get_style_text_color(objects.top_messages_node_label, LV_PART_MAIN);
-    if (!styleInitialized || !lv_color_eq(shownColor, color)) {
-        lv_obj_set_style_text_color(tdeckLayoutLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
-        shownColor = color;
-    }
-
-    styleInitialized = true;
-}
-
-static void tdeckUpdateLayoutIndicator(lv_indev_t *indev)
-{
-    static int8_t shownLayout = -1;
-
-    if (!tdeckLayoutLabel) {
-        tdeckLayoutLabel = lv_label_create(lv_layer_top());
-        lv_obj_set_style_text_font(tdeckLayoutLabel, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_color(tdeckLayoutLabel, lv_color_hex(0xffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_align(tdeckLayoutLabel, LV_ALIGN_TOP_RIGHT, -60, 2);
-        lv_obj_remove_flag(tdeckLayoutLabel, LV_OBJ_FLAG_CLICKABLE);
-    }
-
-    lv_group_t *group = lv_indev_get_group(indev);
-    lv_obj_t *focused = group ? lv_group_get_focused(group) : nullptr;
-    bool textareaFocused = focused && lv_obj_check_type(focused, &lv_textarea_class);
-
-    if (!textareaFocused) {
-        lv_obj_add_flag(tdeckLayoutLabel, LV_OBJ_FLAG_HIDDEN);
-        return;
-    }
-
-    if (shownLayout != static_cast<int8_t>(tdeckGreekLayout)) {
-        lv_label_set_text(tdeckLayoutLabel, tdeckGreekLayout ? "EL" : "EN");
-        shownLayout = static_cast<int8_t>(tdeckGreekLayout);
-    }
-
-    tdeckSyncLayoutIndicatorStyle();
-    lv_obj_remove_flag(tdeckLayoutLabel, LV_OBJ_FLAG_HIDDEN);
 }
 
 static uint32_t greekUtf8(uint32_t codepoint)
@@ -311,13 +253,13 @@ static bool tdeckReadRawMatrix(uint8_t address, uint8_t raw[5])
 
 void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
+    (void)indev;
+
     uint8_t rawKey = 0;
     uint32_t keyValue = 0;
 
     data->state = LV_INDEV_STATE_RELEASED;
     data->key = 0;
-
-    tdeckUpdateLayoutIndicator(indev);
 
     uint8_t bytes = Wire.requestFrom(address, (uint8_t)1);
     if (Wire.available() > 0 && bytes > 0) {
@@ -339,7 +281,6 @@ void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
                     if (altPressed && spacePressed) {
                         tdeckGreekLayout = !tdeckGreekLayout;
                         tdeckClearGreekDiacritics();
-                        tdeckUpdateLayoutIndicator(indev);
                         ILOG_DEBUG("TDeck keyboard layout: %s", tdeckGreekLayout ? "EL" : "EN");
                         return;
                     }
@@ -419,6 +360,15 @@ void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, 
 }
 
 #endif // T_DECK
+
+bool TDeckKeyboardInputDriver::isGreekLayoutEnabled()
+{
+#ifdef T_DECK
+    return tdeckGreekLayout;
+#else
+    return false;
+#endif
+}
 
 // ---------- TCA8418KeyboardInputDriver Implementation ----------
 
