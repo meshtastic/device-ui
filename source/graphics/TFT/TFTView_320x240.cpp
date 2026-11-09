@@ -20,6 +20,7 @@
 #include "graphics/view/TFT/TFTView_Debug.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
+#include "input/DiacriticRotation.h"
 #include "input/InputDriver.h"
 #include "input/KeypadReleaseGuard.h"
 #include "input/policy/InputContextState.h"
@@ -1098,6 +1099,7 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_add_event_cb(objects.tab_page_filter, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_highlight, ui_event_tab_page, LV_EVENT_KEY, NULL);
     DropdownKeyNavigation::attach(objects.main_screen);
+    DiacriticRotation::attach(objects.main_screen);
     // add key navigation for about panel
     lv_group_add_obj(defaultPanelGroup, objects.settings_about_panel);
     lv_group_add_obj(defaultPanelGroup, objects.tools_statistics_panel);
