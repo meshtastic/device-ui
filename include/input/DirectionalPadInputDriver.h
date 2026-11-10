@@ -71,7 +71,7 @@ class Tca6424Pad
 //   bit 2 → LEFT   (LV_KEY_LEFT)
 //   bit 3 → RIGHT  (LV_KEY_RIGHT)
 //   bit 4 → CONFIRM (LV_KEY_ENTER, long-press supported via LVGL timer)
-//   bit 5 → RETURN (LV_KEY_ESC)
+//   bit 5 → RETURN (LV_KEY_ESC), unless INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO is set
 //
 // Compile-time configuration macros (set via build flags or nicheGraphics.h):
 //
@@ -79,6 +79,8 @@ class Tca6424Pad
 //                                        (required – gates the whole driver)
 //   INPUTDRIVER_DIRECTIONALPAD_I2C_ADDR  TCA6424A I2C address (default 0x22)
 //   INPUTDRIVER_DIRECTIONALPAD_WIRE      TwoWire instance to use (default Wire)
+//   INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO  MCU GPIO carrying RETURN (active-low,
+//                                        polled); expander scan is then bits 0-4
 //   TCA6424_REQUIRES_INIT                Define when this driver must initialise
 //                                        the expander (firmware has not done so)
 //
