@@ -8,4 +8,4 @@ namespace DiacriticRotation
 {
 void rotatePreviousCharacter(lv_obj_t *textarea);
 void attach(lv_obj_t *root);
-}
+} // namespace DiacriticRotation

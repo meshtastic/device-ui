@@ -29,7 +29,7 @@ struct TextareaFixture {
         lv_obj_send_event(textarea, LV_EVENT_KEY, &key);
     }
 };
-}
+} // namespace
 
 TEST_CASE("diacritic key rotates UTF-8 variants and preserves case")
 {
@@ -51,7 +51,8 @@ TEST_CASE("diacritic key rotates UTF-8 variants and preserves case")
 TEST_CASE("diacritic rotation replaces only the character before the cursor")
 {
     TextareaFixture fixture;
-    lv_textarea_set_text(fixture.textarea, "\xF0\x9F\x98\x80\xE2\x82\xAC" "c!");
+    lv_textarea_set_text(fixture.textarea, "\xF0\x9F\x98\x80\xE2\x82\xAC"
+                                           "c!");
     lv_textarea_set_cursor_pos(fixture.textarea, 3);
     fixture.rotate();
     CHECK(std::string(lv_textarea_get_text(fixture.textarea)) == "\xF0\x9F\x98\x80\xE2\x82\xAC\xC3\xA7!");
