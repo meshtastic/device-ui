@@ -301,10 +301,11 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
     // The GPIO has no expander INT; feed its transitions into the same queue.
     int returnLevel = digitalRead(INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO);
     if (returnLevel != lastReturnLevel) {
-        lastReturnLevel = returnLevel;
         PadEvent ev{LV_KEY_ESC, returnLevel == LOW ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED};
         if (xQueueSend(eventQueue, &ev, 0) != pdTRUE) {
             ILOG_WARN("[DirectionalPad] queue full, dropping RETURN state=%d", (int)ev.state);
+        } else {
+            lastReturnLevel = returnLevel;
         }
     }
 #endif
@@ -326,13 +327,11 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
                 return;
             }
             // Released
-#ifdef DISPLAY_POWER_BUTTON_ONLY
             if (!returnActive && !returnLongSent) {
                 data->key = 0;
                 data->state = LV_INDEV_STATE_RELEASED;
                 return;
             }
-#endif
             returnActive = false;
             if (returnLongSent) {
                 // Long press was already dispatched; send Release for 0x101.
