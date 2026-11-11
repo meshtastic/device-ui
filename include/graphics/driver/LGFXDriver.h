@@ -60,7 +60,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     uint32_t screenTimeout;
     uint32_t lastBrightness;
     bool powerSaving;
-    bool forcedWakeup;
+    std::atomic<bool> forcedWakeup;
 
   private:
     void init_lgfx(void);
@@ -109,8 +109,15 @@ template <class LGFX> bool LGFXDriver<LGFX>::hasTouch(void)
 
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+    if (!powerSaving && forcedWakeup.exchange(false)) {
+        this->manuallyBlanked = false;
+        lv_display_trigger_activity(this->display);
+    }
+#endif
     // handle display timeout
-    if ((screenTimeout > 0 && lv_display_get_inactive_time(lv_display_get_default()) > screenTimeout) || powerSaving ||
+    if (this->manuallyBlanked || (screenTimeout > 0 && lv_display_get_inactive_time(lv_display_get_default()) > screenTimeout) ||
+        powerSaving ||
         (DisplayDriver::view->isScreenLocked())) {
         // sleep screen only if there are means for wakeup
         if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
@@ -124,6 +131,11 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     } else {
                         ILOG_INFO("enter powersave");
                         DisplayDriver::view->screenSaving(true);
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+                        DisplayDriver::view->getInputDriver()->prepareSleep();
+                        if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard())
+                            lv_indev_enable(keyboard, false);
+#endif
                         if (hasTouch() && hasButton()) {
                             ILOG_DEBUG("disable touch, enable button input");
                             lv_indev_enable(DisplayDriver::touch, false);
@@ -152,13 +164,18 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         pin_int = BUTTON_PIN;
 #endif
                     }
-                    if (forcedWakeup || (pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
+                    if (forcedWakeup
+#ifndef DISPLAY_POWER_BUTTON_ONLY
+                        || (pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
                         (screenTimeout + 50 > lv_display_get_inactive_time(lv_display_get_default()) &&
-                         !DisplayDriver::view->isScreenLocked())) {
+                         !DisplayDriver::view->isScreenLocked())
+#endif
+                    ) {
                         delay(2); // let the CPU finish to restore all register in case of light sleep
                         // woke up by touch or button
                         ILOG_INFO("leaving powersave");
                         powerSaving = false;
+                        this->manuallyBlanked = false;
                         forcedWakeup = false;
                         DisplayDriver::view->triggerHeartbeat();
                         {
@@ -170,6 +187,14 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                             lgfx->setBrightness(lastBrightness);
                         }
                         DisplayDriver::view->screenSaving(false);
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+                        DisplayDriver::view->getInputDriver()->wakeUp();
+                        if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard()) {
+                            lv_indev_reset(keyboard, nullptr);
+                            lv_indev_enable(keyboard, true);
+                            lv_indev_wait_release(keyboard);
+                        }
+#endif
                         if (hasTouch() && hasButton()) {
                             ILOG_DEBUG("enable touch, disable button input");
                             lv_indev_enable(DisplayDriver::touch, true);

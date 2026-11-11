@@ -66,6 +66,9 @@ uint32_t DirectionalPadInputDriver::prevKey = 0;
 #ifdef INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO
 static int lastReturnLevel = HIGH;
 #endif
+static uint32_t returnPressTime = 0;
+static bool returnActive = false;
+static bool returnLongSent = false;
 
 // ---------------------------------------------------------------------------
 // for use with input policy processing
@@ -138,6 +141,17 @@ void DirectionalPadInputDriver::prepareSleep(void)
 
 void DirectionalPadInputDriver::wakeUp(void)
 {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+    if (eventQueue)
+        xQueueReset(eventQueue);
+    lastPortState = tca.readPort(0);
+#ifdef INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO
+    lastReturnLevel = digitalRead(INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO);
+#endif
+    prevKey = 0;
+    returnActive = false;
+    returnLongSent = false;
+#endif
 #if DIRECTIONALPAD_USE_GPIO_ISR
     if (!gPadIsrAttached) {
         attachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT), intHandler, FALLING);
@@ -247,9 +261,6 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
     // we know whether it is a short or long press:
     //   short press  → ESC PRESSED + RELEASED injected after release
     //   long press   → UICommand 0x101 dispatched via pipeline, ESC suppressed
-    static uint32_t returnPressTime = 0;
-    static bool returnActive = false;
-    static bool returnLongSent = false;
     static uint32_t lastPollMs = 0;
 
 #if !DIRECTIONALPAD_USE_GPIO_ISR
@@ -315,6 +326,13 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
                 return;
             }
             // Released
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+            if (!returnActive && !returnLongSent) {
+                data->key = 0;
+                data->state = LV_INDEV_STATE_RELEASED;
+                return;
+            }
+#endif
             returnActive = false;
             if (returnLongSent) {
                 // Long press was already dispatched; send Release for 0x101.
