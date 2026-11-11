@@ -217,7 +217,14 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     }
                     powerSaving = true;
                 }
-                if (forcedWakeup.exchange(false) || screenTimeout > lv_display_get_inactive_time(lv_display_get_default())) {
+                const bool forced = forcedWakeup.exchange(false);
+                if (forced
+#ifndef DISPLAY_POWER_BUTTON_ONLY
+                    || screenTimeout > lv_display_get_inactive_time(lv_display_get_default())
+#endif
+                ) {
+                    if (forced)
+                        this->manuallyBlanked = false;
                     DisplayDriver::view->blankScreen(false);
                     {
                         ISpiLock::Guard bus;
