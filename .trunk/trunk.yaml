@@ -22,10 +22,10 @@ lint:
     - bandit@1.9.4
     - checkov@3.4.3
     - terrascan@1.19.9
-    - trivy@0.76.1
+    - trivy@0.76.2
     #- trufflehog@3.63.2-rc0
     - taplo@0.10.0
-    - ruff@0.17.3
+    - ruff@0.17.4
     - isort@9.0.2
     - markdownlint@0.50.0
     - oxipng@10.2.1
