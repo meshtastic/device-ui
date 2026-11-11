@@ -209,7 +209,14 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             // no BL pin defined to control brightness, so show blank screen instead
             else {
                 if (!powerSaving) {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+                    DisplayDriver::view->screenSaving(true);
+                    DisplayDriver::view->getInputDriver()->prepareSleep();
+                    if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard())
+                        lv_indev_enable(keyboard, false);
+#else
                     DisplayDriver::view->blankScreen(true);
+#endif
                     {
                         ISpiLock::Guard bus;
                         lgfx->sleep();
@@ -225,7 +232,17 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                 ) {
                     if (forced)
                         this->manuallyBlanked = false;
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+                    DisplayDriver::view->screenSaving(false);
+                    DisplayDriver::view->getInputDriver()->wakeUp();
+                    if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard()) {
+                        lv_indev_reset(keyboard, nullptr);
+                        lv_indev_enable(keyboard, true);
+                        lv_indev_wait_release(keyboard);
+                    }
+#else
                     DisplayDriver::view->blankScreen(false);
+#endif
                     {
                         ISpiLock::Guard bus;
                         lgfx->powerSaveOff();
