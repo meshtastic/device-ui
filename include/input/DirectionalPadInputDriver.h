@@ -8,6 +8,9 @@
 #include "freertos/queue.h"
 #include "input/InputDriver.h"
 
+// Optional platform hook: serializes the expander read with other users of the bus (other tasks).
+bool directionalPadReadPort(uint8_t port, uint8_t &value) __attribute__((weak));
+
 // ---------------------------------------------------------------------------
 // Minimal TCA6424A helper for reading input ports (and optionally initialising
 // the expander when the firmware has not already done so).
@@ -35,6 +38,10 @@ class Tca6424Pad
     // Reading also clears the TCA6424A INT assertion for that port.
     uint8_t readPort(uint8_t port)
     {
+        if (directionalPadReadPort) {
+            uint8_t value;
+            return directionalPadReadPort(port, value) ? value : 0xFF;
+        }
         wire->beginTransmission(address);
         wire->write(port); // INPUT_PORT0 = 0x00, PORT1 = 0x01, PORT2 = 0x02
         if (wire->endTransmission(false) != 0)
