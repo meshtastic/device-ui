@@ -27,9 +27,9 @@ class DisplayDriver
     virtual bool hasLight(void) { return false; }
     virtual void task_handler(void)
     {
-      if (toggleRequested.exchange(false))
-        displayToggleCb(this);
-      lv_timer_periodic_handler();
+        if (toggleRequested.exchange(false))
+            displayToggleCb(this);
+        lv_timer_periodic_handler();
     }
     virtual void forceWakeup(void) {}
     virtual bool isPowersaving() { return false; }

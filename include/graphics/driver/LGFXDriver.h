@@ -117,8 +117,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 #endif
     // handle display timeout
     if (this->manuallyBlanked || (screenTimeout > 0 && lv_display_get_inactive_time(lv_display_get_default()) > screenTimeout) ||
-        powerSaving ||
-        (DisplayDriver::view->isScreenLocked())) {
+        powerSaving || (DisplayDriver::view->isScreenLocked())) {
         // sleep screen only if there are means for wakeup
         if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
             DisplayDriver::view->getInputDriver()->hasKeyboardDevice() || hasButton()) {
