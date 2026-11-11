@@ -217,8 +217,7 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     }
                     powerSaving = true;
                 }
-                if (forcedWakeup.exchange(false) ||
-                    screenTimeout > lv_display_get_inactive_time(lv_display_get_default())) {
+                if (forcedWakeup.exchange(false) || screenTimeout > lv_display_get_inactive_time(lv_display_get_default())) {
                     DisplayDriver::view->blankScreen(false);
                     {
                         ISpiLock::Guard bus;
