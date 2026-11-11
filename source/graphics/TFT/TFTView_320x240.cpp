@@ -7095,6 +7095,9 @@ void TFTView_320x240::screenSaving(bool enabled)
         screenLocked = true;
         screenUnlockRequest = false;
     } else {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+        screenUnlockRequest = true;
+#endif
         if (db.uiConfig.screen_lock) {
             ILOG_DEBUG("showing lock screen");
             lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);

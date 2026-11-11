@@ -2,6 +2,7 @@
 
 #include "graphics/DeviceGUI.h"
 #include "graphics/LVGL/LVGLGraphics.h"
+#include <atomic>
 #include <cstdint>
 
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
@@ -24,7 +25,12 @@ class DisplayDriver
     virtual bool hasTouch(void) { return false; }
     virtual bool hasButton(void) { return false; }
     virtual bool hasLight(void) { return false; }
-    virtual void task_handler(void) { lv_timer_periodic_handler(); }
+    virtual void task_handler(void)
+    {
+        if (toggleRequested.exchange(false))
+            displayToggleCb(this);
+        lv_timer_periodic_handler();
+    }
     virtual void forceWakeup(void) {}
     virtual bool isPowersaving() { return false; }
     virtual void toggleDisplay(void);
@@ -49,7 +55,9 @@ class DisplayDriver
     DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;
+    bool manuallyBlanked = false;
 
   private:
+    std::atomic<bool> toggleRequested{false};
     static void displayToggleCb(void *displayDriver);
 };

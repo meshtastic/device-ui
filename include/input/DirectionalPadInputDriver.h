@@ -8,6 +8,9 @@
 #include "freertos/queue.h"
 #include "input/InputDriver.h"
 
+// Optional platform hook: serializes the expander read with other users of the bus (other tasks).
+bool directionalPadReadPort(uint8_t port, uint8_t &value) __attribute__((weak));
+
 // ---------------------------------------------------------------------------
 // Minimal TCA6424A helper for reading input ports (and optionally initialising
 // the expander when the firmware has not already done so).
@@ -35,6 +38,10 @@ class Tca6424Pad
     // Reading also clears the TCA6424A INT assertion for that port.
     uint8_t readPort(uint8_t port)
     {
+        if (directionalPadReadPort) {
+            uint8_t value;
+            return directionalPadReadPort(port, value) ? value : 0xFF;
+        }
         wire->beginTransmission(address);
         wire->write(port); // INPUT_PORT0 = 0x00, PORT1 = 0x01, PORT2 = 0x02
         if (wire->endTransmission(false) != 0)
@@ -71,7 +78,7 @@ class Tca6424Pad
 //   bit 2 → LEFT   (LV_KEY_LEFT)
 //   bit 3 → RIGHT  (LV_KEY_RIGHT)
 //   bit 4 → CONFIRM (LV_KEY_ENTER, long-press supported via LVGL timer)
-//   bit 5 → RETURN (LV_KEY_ESC)
+//   bit 5 → RETURN (LV_KEY_ESC), unless INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO is set
 //
 // Compile-time configuration macros (set via build flags or nicheGraphics.h):
 //
@@ -79,6 +86,8 @@ class Tca6424Pad
 //                                        (required – gates the whole driver)
 //   INPUTDRIVER_DIRECTIONALPAD_I2C_ADDR  TCA6424A I2C address (default 0x22)
 //   INPUTDRIVER_DIRECTIONALPAD_WIRE      TwoWire instance to use (default Wire)
+//   INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO  MCU GPIO carrying RETURN (active-low,
+//                                        polled); expander scan is then bits 0-4
 //   TCA6424_REQUIRES_INIT                Define when this driver must initialise
 //                                        the expander (firmware has not done so)
 //
