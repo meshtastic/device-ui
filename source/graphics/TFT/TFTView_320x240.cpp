@@ -19,6 +19,7 @@
 #include "graphics/view/TFT/DropdownKeyNavigation.h"
 #include "graphics/view/TFT/NavigationPanelLayout.h"
 #include "graphics/view/TFT/TFTView_Debug.h"
+#include "graphics/view/TFT/TextareaEditContext.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/DiacriticRotation.h"
@@ -2717,9 +2718,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     ILOG_DEBUG("ui_event_message_ready: event_code=%d", event_code);
     if (event_code == LV_EVENT_FOCUSED) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::TextEdit);
-        input_policy::InputContextState::instance().setEditMode(true);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(true);
+        TextareaEditContext::focus(lv_event_get_target_obj(e));
         return;
     }
 
@@ -2792,9 +2791,7 @@ void TFTView_320x240::ui_event_textarea_edit_mode(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
 
     if (event_code == LV_EVENT_FOCUSED) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::TextEdit);
-        input_policy::InputContextState::instance().setEditMode(true);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(true);
+        TextareaEditContext::focus(lv_event_get_target_obj(e));
     } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_READY ||
                event_code == LV_EVENT_CANCEL) {
         // Only reset when still on the messages panel. When switching to another panel,
