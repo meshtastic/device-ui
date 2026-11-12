@@ -46,3 +46,13 @@ void MapTileSettings::styleToDir(const char *style, char *dst, size_t dstSize)
         dst[dstView.size() - 1] = '\0';
     }
 }
+
+bool MapTileSettings::isValidStyleName(const char *style)
+{
+    if (!style)
+        return false;
+    char dir[TILE_STYLE_SIZE];
+    styleToDir(style, dir, sizeof(dir));
+    size_t len = strlen(dir);
+    return len > 0 && len <= STYLE_NAME_MAX && strlen(style) < TILE_STYLE_SIZE;
+}

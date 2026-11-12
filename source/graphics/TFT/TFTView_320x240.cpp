@@ -3521,10 +3521,12 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
 
 void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 {
+    static_assert(MapTileSettings::STYLE_NAME_MAX < sizeof(meshtastic_Map::style),
+                  "map style must fit into meshtastic_Map.style");
     char style[MapTileSettings::TILE_STYLE_SIZE];
     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
     if (strcmp(style, THIS->db.uiConfig.map_data.style) != 0) {
-        strcpy(THIS->db.uiConfig.map_data.style, style);
+        snprintf(THIS->db.uiConfig.map_data.style, sizeof(THIS->db.uiConfig.map_data.style), "%s", style);
         MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
         std::string url = THIS->setUrlProvider(THIS->db.uiConfig.map_data.style);
         MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
