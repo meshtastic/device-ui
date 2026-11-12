@@ -6296,6 +6296,9 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
+    if (nodeNum == ownNode) {
+        db.user = cfg;
+    }
     requestNodeListPresentation(mutation);
 }
 
