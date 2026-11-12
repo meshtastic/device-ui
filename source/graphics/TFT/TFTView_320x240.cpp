@@ -2723,9 +2723,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
     }
 
     if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_CANCEL) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-        input_policy::InputContextState::instance().setEditMode(false);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+        TextareaEditContext::release(lv_event_get_target_obj(e));
         return;
     }
 #ifdef ARCH_PORTDUINO
@@ -2749,15 +2747,14 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 #endif
 
     if (event_code == LV_EVENT_READY) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-        input_policy::InputContextState::instance().setEditMode(false);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+        TextareaEditContext::release(lv_event_get_target_obj(e));
 
         char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
         uint32_t len = strlen(txt);
         if (len) {
             if (txt[len - 1] == ' ') { // use space+return combo to start new line in same message
                 lv_textarea_add_char(objects.message_input_area, CR_REPLACEMENT);
+                TextareaEditContext::focus(objects.message_input_area);
             } else {
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
@@ -2788,21 +2785,7 @@ void TFTView_320x240::ui_event_quick_chat_button(lv_event_t *e)
 
 void TFTView_320x240::ui_event_textarea_edit_mode(lv_event_t *e)
 {
-    lv_event_code_t event_code = lv_event_get_code(e);
-
-    if (event_code == LV_EVENT_FOCUSED) {
-        TextareaEditContext::focus(lv_event_get_target_obj(e));
-    } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_READY ||
-               event_code == LV_EVENT_CANCEL) {
-        // Only reset when still on the messages panel. When switching to another panel,
-        // activePanel is already updated before DEFOCUSED fires, so this prevents the
-        // new panel's semantic (e.g. Map) from being overwritten.
-        if (THIS->activePanel == objects.messages_panel) {
-            input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-            input_policy::InputContextState::instance().setEditMode(false);
-            input_policy::InputContextState::instance().setCanLeaveEditMode(false);
-        }
-    }
+    TextareaEditContext::handleEvent(e);
 }
 
 // basic settings buttons

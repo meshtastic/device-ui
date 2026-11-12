@@ -37,6 +37,7 @@ struct TextareaFixture {
 
     ~TextareaFixture()
     {
+        TextareaEditContext::release(textarea);
         input_policy::InputContextState::instance().setSnapshot(previousContext);
         lv_obj_delete(screen);
     }
@@ -90,4 +91,83 @@ TEST_CASE("one-line textarea focus keeps vertical focus navigation")
     lv_textarea_set_one_line(f.textarea, false);
     TextareaEditContext::focus(f.textarea);
     CHECK(f.processedKey(LV_KEY_UP) == LV_KEY_UP);
+}
+
+TEST_CASE("textarea exit events clear edit context on every panel")
+{
+    TextareaFixture f;
+    lv_obj_add_event_cb(f.textarea, TextareaEditContext::handleEvent, LV_EVENT_ALL, nullptr);
+    auto &context = input_policy::InputContextState::instance();
+    for (uint32_t panelId : {1u, 2u, 3u, 4u}) {
+        // Messages, settings, nodes and setup follow the same lifecycle without panel-specific exceptions.
+        context.setActivePanelId(panelId);
+        for (auto event : {LV_EVENT_DEFOCUSED, LV_EVENT_LEAVE, LV_EVENT_READY, LV_EVENT_CANCEL}) {
+            CAPTURE(panelId);
+            CAPTURE(event);
+            lv_obj_send_event(f.textarea, LV_EVENT_FOCUSED, nullptr);
+            lv_obj_send_event(f.textarea, event, nullptr);
+            const auto snapshot = context.getSnapshot();
+            CHECK(snapshot.focusSemantic == input_policy::FocusSemantic::Unknown);
+            CHECK_FALSE(snapshot.isEditMode);
+            CHECK_FALSE(snapshot.canLeaveEditMode);
+        }
+    }
+}
+
+TEST_CASE("delayed textarea exits preserve a new panel or focused widget context")
+{
+    TextareaFixture f;
+    lv_obj_t *newTextarea = lv_textarea_create(f.screen);
+    lv_obj_add_event_cb(f.textarea, TextareaEditContext::handleEvent, LV_EVENT_ALL, nullptr);
+    lv_obj_add_event_cb(newTextarea, TextareaEditContext::handleEvent, LV_EVENT_ALL, nullptr);
+    auto &context = input_policy::InputContextState::instance();
+    context.setActivePanelId(1);
+    lv_obj_send_event(f.textarea, LV_EVENT_FOCUSED, nullptr);
+
+    SUBCASE("panel transition")
+    {
+        context.setActivePanelId(2);
+        context.setFocusSemantic(input_policy::FocusSemantic::Map);
+        context.setEditMode(false);
+        context.setCanLeaveEditMode(false);
+        lv_obj_send_event(f.textarea, LV_EVENT_DEFOCUSED, nullptr);
+        CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::Map);
+        CHECK(context.getSnapshot().activePanelId == 2);
+    }
+    SUBCASE("panel changes before its focus semantic")
+    {
+        context.setActivePanelId(2);
+        lv_obj_send_event(f.textarea, LV_EVENT_DEFOCUSED, nullptr);
+        CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::TextAreaMultiLine);
+        CHECK(context.getSnapshot().isEditMode);
+        CHECK(context.getSnapshot().canLeaveEditMode);
+    }
+    SUBCASE("new editor in the same panel")
+    {
+        // Both editors use the same semantic; ownership, rather than the semantic alone, distinguishes them.
+        lv_obj_send_event(newTextarea, LV_EVENT_FOCUSED, nullptr);
+        lv_obj_send_event(f.textarea, LV_EVENT_DEFOCUSED, nullptr);
+        CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::TextAreaMultiLine);
+        CHECK(context.getSnapshot().isEditMode);
+        CHECK(context.getSnapshot().canLeaveEditMode);
+        lv_obj_send_event(newTextarea, LV_EVENT_DEFOCUSED, nullptr);
+        CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::Unknown);
+    }
+    SUBCASE("virtual keyboard in the same panel")
+    {
+        context.setFocusSemantic(input_policy::FocusSemantic::Keyboard);
+        lv_obj_send_event(f.textarea, LV_EVENT_DEFOCUSED, nullptr);
+        CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::Keyboard);
+    }
+    SUBCASE("escape already left editing")
+    {
+        context.setFocusSemantic(input_policy::FocusSemantic::Unknown);
+        context.setEditMode(false);
+        context.setCanLeaveEditMode(false);
+        lv_obj_send_event(f.textarea, LV_EVENT_CANCEL, nullptr);
+        CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::Unknown);
+        CHECK_FALSE(context.getSnapshot().isEditMode);
+        CHECK_FALSE(context.getSnapshot().canLeaveEditMode);
+    }
+    TextareaEditContext::release(newTextarea);
 }
