@@ -38,6 +38,14 @@
 #define DIRECTIONALPAD_POLL_INTERVAL_MS 10
 #endif
 
+// With RETURN on an MCU GPIO the expander pin P05 is not scanned (it may float).
+#ifdef INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO
+#define DIRECTIONALPAD_EXPANDER_BITS 5
+#else
+#define DIRECTIONALPAD_EXPANDER_BITS 6
+#endif
+#define DIRECTIONALPAD_EXPANDER_MASK ((1u << DIRECTIONALPAD_EXPANDER_BITS) - 1)
+
 // ---------------------------------------------------------------------------
 // File-scope TCA6424A reader instance
 // ---------------------------------------------------------------------------
@@ -54,6 +62,13 @@ volatile bool DirectionalPadInputDriver::inputPending = false;
 QueueHandle_t DirectionalPadInputDriver::eventQueue = nullptr;
 uint8_t DirectionalPadInputDriver::lastPortState = 0xFF; // all bits high = all buttons released
 uint32_t DirectionalPadInputDriver::prevKey = 0;
+
+#ifdef INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO
+static int lastReturnLevel = HIGH;
+#endif
+static uint32_t returnPressTime = 0;
+static bool returnActive = false;
+static bool returnLongSent = false;
 
 // ---------------------------------------------------------------------------
 // for use with input policy processing
@@ -126,6 +141,17 @@ void DirectionalPadInputDriver::prepareSleep(void)
 
 void DirectionalPadInputDriver::wakeUp(void)
 {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+    if (eventQueue)
+        xQueueReset(eventQueue);
+    lastPortState = tca.readPort(0);
+#ifdef INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO
+    lastReturnLevel = digitalRead(INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO);
+#endif
+    prevKey = 0;
+    returnActive = false;
+    returnLongSent = false;
+#endif
 #if DIRECTIONALPAD_USE_GPIO_ISR
     if (!gPadIsrAttached) {
         attachInterrupt(digitalPinToInterrupt(INPUTDRIVER_DIRECTIONALPAD_INT), intHandler, FALLING);
@@ -152,6 +178,12 @@ void DirectionalPadInputDriver::init(void)
     // Establish a known baseline before any interrupt fires.
     lastPortState = tca.readPort(0);
     ILOG_DEBUG("DirectionalPadInputDriver: baseline read port0=0x%02x", lastPortState);
+
+#ifdef INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO
+    // External pull-up on the board, so no internal pull.
+    pinMode(INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO, INPUT);
+    lastReturnLevel = digitalRead(INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO);
+#endif
 
     // The TCA6424A INT output is active-low open-drain; enable the internal
     // pull-up so the line idles high and only falls when an input changes.
@@ -229,9 +261,6 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
     // we know whether it is a short or long press:
     //   short press  → ESC PRESSED + RELEASED injected after release
     //   long press   → UICommand 0x101 dispatched via pipeline, ESC suppressed
-    static uint32_t returnPressTime = 0;
-    static bool returnActive = false;
-    static bool returnLongSent = false;
     static uint32_t lastPollMs = 0;
 
 #if !DIRECTIONALPAD_USE_GPIO_ISR
@@ -248,7 +277,7 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
         uint8_t current = tca.readPort(0);
         if (current != 0xFF) { // 0xFF is the I2C-error sentinel; skip if bus failed
             uint8_t changed = current ^ lastPortState;
-            for (uint8_t bit = 0; bit < 6; bit++) {
+            for (uint8_t bit = 0; bit < DIRECTIONALPAD_EXPANDER_BITS; bit++) {
                 if (changed & (1u << bit)) {
                     uint32_t key = portBitToLvKey(bit);
                     if (key != 0) {
@@ -268,6 +297,19 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
         }
     }
 
+#ifdef INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO
+    // The GPIO has no expander INT; feed its transitions into the same queue.
+    int returnLevel = digitalRead(INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO);
+    if (returnLevel != lastReturnLevel) {
+        PadEvent ev{LV_KEY_ESC, returnLevel == LOW ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED};
+        if (xQueueSend(eventQueue, &ev, 0) != pdTRUE) {
+            ILOG_WARN("[DirectionalPad] queue full, dropping RETURN state=%d", (int)ev.state);
+        } else {
+            lastReturnLevel = returnLevel;
+        }
+    }
+#endif
+
     // --- Step 2: deliver one queued transition event through the pipeline ----
     PadEvent e;
     if (xQueueReceive(eventQueue, &e, 0) == pdTRUE) {
@@ -285,6 +327,11 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
                 return;
             }
             // Released
+            if (!returnActive && !returnLongSent) {
+                data->key = 0;
+                data->state = LV_INDEV_STATE_RELEASED;
+                return;
+            }
             returnActive = false;
             if (returnLongSent) {
                 // Long press was already dispatched; send Release for 0x101.
@@ -379,8 +426,11 @@ void DirectionalPadInputDriver::button_read(lv_indev_t *indev, lv_indev_data_t *
     // keep reporting PRESSED so LVGL's long-press timer accumulates time.
     // Use prevKey (already pipeline-resolved in step 2) to avoid re-processing
     // the event through the pipeline on every poll cycle.
-    uint8_t heldBits = ~lastPortState & 0x3Fu; // bits 0-5 only
-    if (heldBits != 0 && prevKey != 0) {
+    bool keyHeld = (~lastPortState & DIRECTIONALPAD_EXPANDER_MASK) != 0;
+#ifdef INPUTDRIVER_DIRECTIONALPAD_RETURN_GPIO
+    keyHeld = keyHeld || lastReturnLevel == LOW;
+#endif
+    if (keyHeld && prevKey != 0) {
         data->key = prevKey;
         data->state = LV_INDEV_STATE_PRESSED;
         return;

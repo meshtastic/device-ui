@@ -52,18 +52,32 @@ void DisplayDriver::init(DeviceGUI *gui)
 
 void DisplayDriver::toggleDisplay(void)
 {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+    toggleRequested.store(true);
+#else
     // run in lv thread
     lv_async_call(displayToggleCb, this);
+#endif
 }
 
 void DisplayDriver::displayToggleCb(void *displayDriver)
 {
     DisplayDriver *driver = (DisplayDriver *)displayDriver;
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+    if (driver->isPowersaving() || driver->manuallyBlanked) {
+        driver->manuallyBlanked = false;
+        driver->forceWakeup();
+        lv_display_trigger_activity(driver->display);
+    } else {
+        driver->manuallyBlanked = true;
+    }
+#else
     if (driver->isPowersaving()) {
         driver->forceWakeup();
     } else {
         driver->display->last_activity_time -= 60 * 60 * 24 * 365;
     }
+#endif
 }
 
 void DisplayDriver::flush(lv_display_t *disp, const lv_area_t *area, const uint8_t *px_map)

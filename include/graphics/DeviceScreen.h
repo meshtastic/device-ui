@@ -33,6 +33,7 @@ class DeviceScreen
     void init(IClientBase *client);
     void task_handler(void);
     void toggleDisplay(void);
+    void forceWakeup(void);
     bool prepareShutdown(uint32_t timeoutMs = 1000);
 
     /** The display driver behind this screen, for hosts that drive it directly. */

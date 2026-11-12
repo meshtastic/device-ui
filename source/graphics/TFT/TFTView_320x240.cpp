@@ -20,6 +20,7 @@
 #include "graphics/view/TFT/TFTView_Debug.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
+#include "input/DiacriticRotation.h"
 #include "input/InputDriver.h"
 #include "input/KeypadReleaseGuard.h"
 #include "input/policy/InputContextState.h"
@@ -1098,6 +1099,7 @@ void TFTView_320x240::apply_hotfix(void)
     lv_obj_add_event_cb(objects.tab_page_filter, ui_event_tab_page, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.tab_page_highlight, ui_event_tab_page, LV_EVENT_KEY, NULL);
     DropdownKeyNavigation::attach(objects.main_screen);
+    DiacriticRotation::attach(objects.main_screen);
     // add key navigation for about panel
     lv_group_add_obj(defaultPanelGroup, objects.settings_about_panel);
     lv_group_add_obj(defaultPanelGroup, objects.tools_statistics_panel);
@@ -7093,6 +7095,9 @@ void TFTView_320x240::screenSaving(bool enabled)
         screenLocked = true;
         screenUnlockRequest = false;
     } else {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+        screenUnlockRequest = true;
+#endif
         if (db.uiConfig.screen_lock) {
             ILOG_DEBUG("showing lock screen");
             lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
@@ -8486,13 +8491,27 @@ void TFTView_320x240::reconcileVirtualNodeListInputGroup(bool enteringNodeScreen
         return;
     }
 
-    if (hasVisibleNodes) {
-        setInputGroup(virtualNodeList->navigationGroup());
-    } else {
-        setInputGroup(defaultPanelGroup);
+    // keyboard covers keypads like the directional pad; touch-only devices have no focus navigation
+    lv_indev_t *navigation = inputdriver->hasKeyboardDevice()  ? inputdriver->getKeyboard()
+                             : inputdriver->hasEncoderDevice() ? inputdriver->getEncoder()
+                                                               : nullptr;
+    if (!enteringNodeScreen && navigation) {
+        // a node list update must not pull the input away from the button menu or another screen
+        lv_group_t *current = lv_indev_get_group(navigation);
+        if (current != virtualNodeList->navigationGroup() && current != defaultPanelGroup)
+            return;
     }
+
     virtualNodeListInputVisibilityKnown = true;
     virtualNodeListInputHadVisibleNodes = hasVisibleNodes;
+    if (hasVisibleNodes) {
+        setInputGroup(virtualNodeList->navigationGroup());
+    } else if (enteringNodeScreen || !navigation) {
+        setInputGroup(defaultPanelGroup);
+    } else {
+        // the last visible row vanished under the focus; the panel group has nothing focusable here
+        nodeFocusBoundary(true);
+    }
 }
 
 void TFTView_320x240::syncNodeListPresentation(void)

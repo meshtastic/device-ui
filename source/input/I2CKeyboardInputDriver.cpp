@@ -1,6 +1,7 @@
 
 #include "input/I2CKeyboardInputDriver.h"
 #include "indev/lv_indev_private.h"
+#include "input/DiacriticRotation.h"
 #include "input/policy/DefaultInputPolicyFactory.h"
 #include "input/policy/InputContextState.h"
 #include "input/policy/InputPipeline.h"
@@ -89,18 +90,21 @@ TDeckKeyboardInputDriver::TDeckKeyboardInputDriver(uint8_t address)
 
 void TDeckKeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data)
 {
-    char keyValue = 0;
+    uint32_t keyValue = 0;
     uint8_t bytes = Wire.requestFrom(address, (uint8_t)1);
     if (Wire.available() > 0 && bytes > 0) {
         keyValue = Wire.read();
         // ignore empty reads and keycode 224(E0, shift-0 on T-Deck) which causes internal issues
-        if (keyValue != (char)0x00 && keyValue != (char)0xE0) {
+        if (keyValue != 0x00 && keyValue != 0xE0) {
             data->state = LV_INDEV_STATE_PRESSED;
             ILOG_DEBUG("key press value: %d", (int)keyValue);
 
             switch (keyValue) {
             case 0x0D:
                 keyValue = LV_KEY_ENTER;
+                break;
+            case 0x04: // SHIFT-$
+                keyValue = LV_KEY_CUSTOM_DIACRITIC;
                 break;
             default:
                 break;
@@ -385,8 +389,8 @@ void TM9KeyboardInputDriver::readKeyboard(uint8_t address, lv_indev_t *indev, lv
                 case 0x87: // long-press location -> toggle GPS
                     keyValue = 0x105;
                     break;
-                case 0x88: // button 1st code / location 2nd code -> ignore
-                    keyValue = 0;
+                case 0x88:
+                    keyValue = LV_KEY_CUSTOM_DIACRITIC;
                     break;
                 case 0xB4: // Left
                     keyValue = LV_KEY_LEFT;

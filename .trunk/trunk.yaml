@@ -2,7 +2,7 @@
 # To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
 version: 0.1
 cli:
-  version: 1.25.0
+  version: 1.29.0
 plugins:
   sources:
     - id: trunk
@@ -17,15 +17,15 @@ runtimes:
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
-    - trufflehog@3.99.7
+    - trufflehog@3.99.8
     - yamllint@1.38.0
     - bandit@1.9.4
-    - checkov@3.4.0
+    - checkov@3.4.3
     - terrascan@1.19.9
-    - trivy@0.76.1
+    - trivy@0.76.2
     #- trufflehog@3.63.2-rc0
     - taplo@0.10.0
-    - ruff@0.17.3
+    - ruff@0.17.4
     - isort@9.0.2
     - markdownlint@0.50.0
     - oxipng@10.2.1
