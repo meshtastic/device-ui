@@ -2747,8 +2747,6 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 #endif
 
     if (event_code == LV_EVENT_READY) {
-        TextareaEditContext::release(lv_event_get_target_obj(e));
-
         char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
         uint32_t len = strlen(txt);
         if (len) {
@@ -2756,6 +2754,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
                 lv_textarea_add_char(objects.message_input_area, CR_REPLACEMENT);
                 TextareaEditContext::focus(objects.message_input_area);
             } else {
+                TextareaEditContext::release(lv_event_get_target_obj(e));
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
                 THIS->hideKeyboard(objects.messages_panel);
