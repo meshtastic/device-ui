@@ -6326,9 +6326,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
-    db.user = cfg;
-
     if (nodeNum == ownNode) {
+        db.user = cfg;
         char userLabel[30];
         lv_snprintf(userLabel, sizeof(userLabel), _("User name: %s"), cfg.short_name);
         lv_label_set_text(objects.basic_settings_user_label, userLabel);
