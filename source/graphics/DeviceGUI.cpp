@@ -38,7 +38,7 @@ DeviceGUI::DeviceGUI(const DisplayDriverConfig *cfg, DisplayDriver *driver) : di
 
 #if LV_USE_LIBINPUT
     if (cfg) {
-        linuxInputDriver = new LinuxInputDriver(cfg->keyboard(), cfg->pointer());
+        linuxInputDriver = new LinuxInputDriver(cfg->keyboard(), cfg->pointer(), cfg->keyboardNavigation(), cfg->cursorMode());
         inputdriver = linuxInputDriver;
     }
 #endif

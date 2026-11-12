@@ -46,6 +46,12 @@ DisplayDriverConfig &DisplayDriverConfig::input(input_config_t &&cfg)
     return *this;
 }
 
+DisplayDriverConfig &DisplayDriverConfig::navigation(navigation_config_t &&cfg)
+{
+    _navigation = cfg;
+    return *this;
+}
+
 DisplayDriverConfig &DisplayDriverConfig::light(light_config_t &&cfg)
 {
     _light = cfg;

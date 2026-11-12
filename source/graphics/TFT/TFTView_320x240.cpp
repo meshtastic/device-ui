@@ -17,6 +17,7 @@
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
 #include "graphics/view/TFT/DropdownKeyNavigation.h"
+#include "graphics/view/TFT/NavigationPanelLayout.h"
 #include "graphics/view/TFT/TFTView_Debug.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
@@ -318,6 +319,8 @@ TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *
       packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0), scans(0),
       selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr), db{}
 {
+    if (cfg)
+        navigationScrollbarMode = cfg->navigation().scrollbarMode;
     filter.active = false;
     highlight.active = false;
     objects.main_screen = nullptr;
@@ -1014,6 +1017,11 @@ void TFTView_320x240::apply_hotfix(void)
             lv_obj_set_size(button[i], 72, 72);
         }
     }
+
+    NavigationPanelLayout::configure(objects.button_panel,
+                                     {objects.home_button, objects.nodes_button, objects.groups_button, objects.messages_button,
+                                      objects.map_button, objects.settings_button},
+                                     navigationScrollbarMode);
 
     // On wide displays the button bar stops growing at its max width while the generated panels still start at 12%,
     // leaving a black stripe in between. Move every 12%-anchored panel onto the bar and grow it back to its right edge.
@@ -1745,6 +1753,12 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
         const auto context = input_policy::InputContextState::instance().getSnapshot();
         if (context.focusSemantic == input_policy::FocusSemantic::ButtonMatrix) {
             lv_obj_send_event(objects.screen_lock_button_matrix, LV_EVENT_KEY, param);
+            lv_event_stop_processing(e);
+            return;
+        }
+
+        if (c != LV_KEY_ESC && (context.focusSemantic == input_policy::FocusSemantic::TextEdit ||
+                                context.focusSemantic == input_policy::FocusSemantic::TextAreaMultiLine)) {
             lv_event_stop_processing(e);
             return;
         }
