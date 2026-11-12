@@ -36,9 +36,12 @@ TEST_CASE("MapTileSettings::isValidStyleName")
 {
     CHECK(MapTileSettings::isValidStyleName("osm"));
     CHECK(MapTileSettings::isValidStyleName("OpenTopoMapOutdoors"));
-    CHECK(MapTileSettings::isValidStyleName("OpenTopoMapOutdoors/"));
+    CHECK(MapTileSettings::isValidStyleName("osm/"));
     CHECK(MapTileSettings::isValidStyleName("osm.pmtiles"));
     CHECK_FALSE(MapTileSettings::isValidStyleName("OpenTopoMapOutdoors1"));
+    // the saved name keeps the extension, so stripping must not rescue an overlong name
+    CHECK_FALSE(MapTileSettings::isValidStyleName("OpenTopoMapOutdoor.pmtiles"));
+    CHECK_FALSE(MapTileSettings::isValidStyleName("OpenTopoMapOutdoors/"));
     CHECK_FALSE(MapTileSettings::isValidStyleName(""));
     CHECK_FALSE(MapTileSettings::isValidStyleName(nullptr));
 }

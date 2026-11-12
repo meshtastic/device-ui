@@ -49,10 +49,10 @@ void MapTileSettings::styleToDir(const char *style, char *dst, size_t dstSize)
 
 bool MapTileSettings::isValidStyleName(const char *style)
 {
-    if (!style)
+    // the name is saved as-is into meshtastic_Map.style, so the unstripped length must fit too
+    if (!style || strlen(style) > STYLE_NAME_MAX)
         return false;
     char dir[TILE_STYLE_SIZE];
     styleToDir(style, dir, sizeof(dir));
-    size_t len = strlen(dir);
-    return len > 0 && len <= STYLE_NAME_MAX && strlen(style) < TILE_STYLE_SIZE;
+    return dir[0] != '\0';
 }
