@@ -110,7 +110,7 @@ pl:
   'hops: %d': 'Skoki: %d'
   unknown: nieznany
   <no name>: <brak nazwy>
-  '%d active chat(s)': '%d aktywnych czatów'
+  '%d active chat(s)': 'Aktywne czaty: %d'
   "New message from \n%s": |-
     Nowa wiadomość od 
     %s

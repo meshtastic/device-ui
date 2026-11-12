@@ -2350,7 +2350,7 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"hops: %d", "Skoki: %d"},
     {"unknown", "nieznany"},
     {"<no name>", "<brak nazwy>"},
-    {"%d active chat(s)", "%d aktywnych czatów"},
+    {"%d active chat(s)", "Aktywne czaty: %d"},
     {"New message from \n%s", "Nowa wiadomość od \n%s"},
     {"Input Control: %s/%s", "Kontrola wprowadzania: %s/%s"},
     {"%d of %d nodes online", "%d z %d węzłów online"},
