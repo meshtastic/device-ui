@@ -4588,51 +4588,18 @@ void TFTView_320x240::writePacketLog(const meshtastic_MeshPacket &p)
 
 void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
 {
-    struct Stats {
-        uint32_t id;
-        uint16_t row;
-        uint16_t tel;
-        uint16_t pos;
-        uint16_t inf;
-        uint16_t trc;
-        uint16_t txt;
-        uint16_t nbr;
-        uint32_t sum;
-
-        bool operator==(const Stats &rhs) const { return id == rhs.id; }
-
-        Stats &operator+=(const Stats &rhs)
-        {
-            this->tel += rhs.tel;
-            this->pos += rhs.pos;
-            this->inf += rhs.inf;
-            this->trc += rhs.trc;
-            this->txt += rhs.txt;
-            this->nbr += rhs.nbr;
-            this->sum += 1;
-            return *this;
-        }
-
-        bool operator<(const Stats &rhs) const
-        {
-            return sum > rhs.sum; // sort reverse but skip equal values
-        }
-    };
-    static std::list<Stats> stats;
-
     if (p.from == 0) {
         // clear table
-        stats.clear();
+        packetStats.clear();
         for (int i = 1; i < statisticTableRows; i++) {
-            for (int j = 0; j < 7; j++) {
-                lv_table_set_cell_value(objects.statistics_table, i, j, "");
-            }
+            clearStatisticsRow(i);
         }
         return;
     }
 
     // update statistic for node
-    Stats stat = {p.from};
+    PacketStatistics::Entry stat;
+    stat.id = p.from;
     switch (p.decoded.portnum) {
     case meshtastic_PortNum_TELEMETRY_APP: {
         meshtastic_Telemetry telemetry;
@@ -4677,46 +4644,20 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
         return;
     }
 
-    std::list<Stats>::iterator it = std::find(stats.begin(), stats.end(), stat);
-    if (it == stats.end()) {
-        stat.row = stats.size();
-        stat.sum = 1;
-        // TODO: stop if memory limit is reached
-        stats.push_back(stat);
-    } else {
-        *it += stat;
+    if (!packetStats.add(stat)) {
+        ILOG_WARN("packet statistics full, ignoring node 0x%08x", p.from);
+        return;
     }
 
-    stats.sort();
-
     // fill packet statistics table
-    char buf[10];
-    int row = 1;
+    uint16_t row = 1;
     bool move = false;
 
-    for (auto it2 : stats) {
-        if (it2.id == p.from || move) {
-            buf[0] = '\0';
-            const char *shortName = nodeShortName(it2.id);
-            if (shortName)
-                NodeListRowPresentation::formatShortDisplayName(buf, sizeof(buf), shortName, it2.id);
-
-            lv_table_set_cell_value(objects.statistics_table, row, 0, buf);
-            sprintf(buf, "%d", it2.tel);
-            lv_table_set_cell_value(objects.statistics_table, row, 1, buf);
-            sprintf(buf, "%d", it2.pos);
-            lv_table_set_cell_value(objects.statistics_table, row, 2, buf);
-            sprintf(buf, "%d", it2.inf);
-            lv_table_set_cell_value(objects.statistics_table, row, 3, buf);
-            sprintf(buf, "%d", it2.trc);
-            lv_table_set_cell_value(objects.statistics_table, row, 4, buf);
-            sprintf(buf, "%d", it2.nbr);
-            lv_table_set_cell_value(objects.statistics_table, row, 5, buf);
-            sprintf(buf, "%d", it2.sum);
-            lv_table_set_cell_value(objects.statistics_table, row, 6, buf);
-
-            if (row != it2.row) {
-                it2.row = row;
+    for (auto &it : packetStats.all()) {
+        if (it.id == p.from || move) {
+            writeStatisticsRow(row, it);
+            if (row != it.row) {
+                it.row = row;
                 move = true;
             } else {
                 break;
@@ -4726,6 +4667,53 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
         if (row >= statisticTableRows) // fill rows till bottom of 320x240 display
             break;
     }
+}
+
+void TFTView_320x240::writeStatisticsRow(uint16_t row, const PacketStatistics::Entry &stat)
+{
+    char buf[12];
+    buf[0] = '\0';
+    const char *shortName = nodeShortName(stat.id);
+    if (shortName)
+        NodeListRowPresentation::formatShortDisplayName(buf, sizeof(buf), shortName, stat.id);
+
+    lv_table_set_cell_value(objects.statistics_table, row, 0, buf);
+    snprintf(buf, sizeof(buf), "%u", stat.tel);
+    lv_table_set_cell_value(objects.statistics_table, row, 1, buf);
+    snprintf(buf, sizeof(buf), "%u", stat.pos);
+    lv_table_set_cell_value(objects.statistics_table, row, 2, buf);
+    snprintf(buf, sizeof(buf), "%u", stat.inf);
+    lv_table_set_cell_value(objects.statistics_table, row, 3, buf);
+    snprintf(buf, sizeof(buf), "%u", stat.trc);
+    lv_table_set_cell_value(objects.statistics_table, row, 4, buf);
+    snprintf(buf, sizeof(buf), "%u", stat.nbr);
+    lv_table_set_cell_value(objects.statistics_table, row, 5, buf);
+    snprintf(buf, sizeof(buf), "%u", (unsigned)stat.sum);
+    lv_table_set_cell_value(objects.statistics_table, row, 6, buf);
+}
+
+void TFTView_320x240::clearStatisticsRow(uint16_t row)
+{
+    for (int j = 0; j < 7; j++) {
+        lv_table_set_cell_value(objects.statistics_table, row, j, "");
+    }
+}
+
+/**
+ * @brief drop the packet statistics of a purged node and close the gap in the table
+ */
+void TFTView_320x240::purgeNodeStatistics(uint32_t nodeNum)
+{
+    uint16_t row = packetStats.remove(nodeNum);
+    if (row == 0 || row >= statisticTableRows)
+        return;
+    auto &all = packetStats.all();
+    for (size_t i = row - 1; i < all.size() && row < statisticTableRows; i++, row++) {
+        writeStatisticsRow(row, all[i]);
+        all[i].row = row;
+    }
+    if (row < statisticTableRows)
+        clearStatisticsRow(row);
 }
 
 void TFTView_320x240::ui_event_statistics_table(lv_event_t *e)
@@ -6906,6 +6894,7 @@ void TFTView_320x240::purgeNode(uint32_t nodeNum)
         updateActiveChats();
     }
     removeFromMap(nodeNum);
+    purgeNodeStatistics(nodeNum);
     nodeStore.remove(nodeNum);
     if (currentNode == nodeNum)
         selectNode(0);

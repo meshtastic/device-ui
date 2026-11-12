@@ -3,6 +3,7 @@
 
 #include "graphics/common/MeshtasticView.h"
 #include "graphics/common/NodeStore.h"
+#include "graphics/common/PacketStatistics.h"
 #include "graphics/common/VisibleNodeIndex.h"
 #include "graphics/view/TFT/VirtualNodeList.h"
 #include "input/policy/InputTypes.h"
@@ -340,11 +341,14 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void handleTraceRouteResponse(const meshtastic_Routing &routing);
     void addNodeToTraceRoute(uint32_t nodeNum, lv_obj_t *panel);
     void purgeNode(uint32_t nodeNum);
+    void purgeNodeStatistics(uint32_t nodeNum);
     void removeSpinner(void);
     void *traceRouteNodeCallbackUserData(NodeId id) const;
     void packetDetected(const meshtastic_MeshPacket &p);
     void writePacketLog(const meshtastic_MeshPacket &p);
     void updateStatistics(const meshtastic_MeshPacket &p);
+    void writeStatisticsRow(uint16_t row, const PacketStatistics::Entry &stat);
+    void clearStatisticsRow(uint16_t row);
     void updateSignalStrength(int32_t rssi, float snr);
     int32_t signalStrength2Percent(int32_t rx_rssi, float rx_snr);
     void selectNode(NodeId id);
@@ -590,6 +594,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
         meshtastic_Channel channel[c_max_channels]; // storage of channel info
         meshtastic_DeviceUIConfig uiConfig;         // storage of persistent UI data
     };
+
+    PacketStatistics packetStats{MAX_NUM_NODES_VIEW};
 
     // additional local ui data (non-persistent)
     struct meshtastic_DeviceProfile_full : meshtastic_DeviceProfile_ext {
