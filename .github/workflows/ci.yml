@@ -15,12 +15,12 @@ jobs:
   # Single source of truth for the required "build-and-test" check: always triggered,
   # decides internally whether to skip (docs-only PRs skip the real build and auto-pass).
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       code-changed: ${{ steps.filter.outputs.code }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -41,7 +41,7 @@ jobs:
   build-and-test:
     needs: detect-changes
     if: needs.detect-changes.outputs.code-changed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       CTEST_OUTPUT_ON_FAILURE: 1
@@ -49,7 +49,7 @@ jobs:
     steps:
       # Step 1: Download your repository code
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Step 2: Install core build tools AND your 3rd party apt packages
       - name: Install System Dependencies
@@ -77,7 +77,7 @@ jobs:
 
       # Step 3: Set up grpc-tools for Nanopb
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.x
           cache: pip # Automatically caches grpcio-tools downloads
