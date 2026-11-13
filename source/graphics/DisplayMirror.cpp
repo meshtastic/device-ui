@@ -155,6 +155,18 @@ uint32_t resolve_key(uint32_t key)
     return out.front().resolvedKeyCode ? out.front().resolvedKeyCode : out.front().rawKeyCode;
 }
 
+// True when a key event sent to obj bubbles all the way up to its screen.
+bool bubbles_to_screen(lv_obj_t *obj)
+{
+    if (!obj)
+        return false;
+    for (lv_obj_t *o = obj; lv_obj_get_parent(o); o = lv_obj_get_parent(o)) {
+        if (!lv_obj_has_flag(o, LV_OBJ_FLAG_EVENT_BUBBLE))
+            return false;
+    }
+    return true;
+}
+
 // A queued key is held PRESSED for holdMs (at least one read), then RELEASED once.
 void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
@@ -162,6 +174,7 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
     static bool needRelease = false;
     static uint32_t pressStart = 0;
     static uint32_t lastKey = 0;
+    static bool escToScreen = false;
 
     const bool asleep = service_requests();
 
@@ -178,6 +191,11 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
     }
     if (needRelease) {
         needRelease = false;
+        if (escToScreen) {
+            escToScreen = false;
+            uint32_t esc = LV_KEY_ESC;
+            lv_obj_send_event(lv_screen_active(), LV_EVENT_KEY, &esc);
+        }
         data->key = lastKey;
         data->state = LV_INDEV_STATE_RELEASED;
         return;
@@ -189,6 +207,12 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
             keyHead.store((keyHead.load(std::memory_order_relaxed) + 1) % queueLen, std::memory_order_release);
             data->state = LV_INDEV_STATE_RELEASED;
             return;
+        }
+        if (lastKey == LV_KEY_ESC) {
+            // Touch boards strip EVENT_BUBBLE from screen widgets, so Esc on a focused widget never
+            // reaches the screen's back handler; deliver it there ourselves when bubbling would not.
+            lv_group_t *group = lv_indev_get_group(indev);
+            escToScreen = !bubbles_to_screen(group ? lv_group_get_focused(group) : nullptr);
         }
         pressing = true;
         pressStart = lv_tick_get();
