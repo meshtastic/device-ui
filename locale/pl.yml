@@ -145,6 +145,8 @@ pl:
   '!Enter Filter ...': '!Wpisz filtr...'
   Enter Filter ...: Wpisz filtr...
   'WiFi: %s': ~
+  Share my node: Udostępnij mój węzeł
+  'Public key: %s': 'Klucz publiczny: %s'
   <not set>: <nieustawione>
   region unset: brak regionu
   Banner & Sound: Baner i dźwięk
