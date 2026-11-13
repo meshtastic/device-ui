@@ -4648,6 +4648,11 @@ void TFTView_320x240::updateStatistics(const meshtastic_MeshPacket &p)
         return;
     }
 
+    // senders the node store rejected have no node to be purged with, so keep them out of the table
+    if (!hasKnownNodeForPacket(p.from)) {
+        ILOG_DEBUG("packet statistics: ignoring unknown node 0x%08x", p.from);
+        return;
+    }
     if (!packetStats.add(stat)) {
         ILOG_WARN("packet statistics full, ignoring node 0x%08x", p.from);
         return;
