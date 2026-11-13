@@ -182,14 +182,9 @@ uint32_t ViewController::requestRingtone(uint32_t nodeId)
  */
 bool ViewController::playRingtone(uint32_t nodeId)
 {
-#ifdef meshtastic_AdminMessage_play_ringtone_request_tag
     return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_play_ringtone_request_tag,
                                                     .play_ringtone_request = true},
                             nodeId ? nodeId : myNodeNum);
-#else
-    (void)nodeId;
-    return false;
-#endif
 }
 
 /**
