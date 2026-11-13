@@ -306,7 +306,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void hideKeyboard(lv_obj_t *panel);
     // abort a running slide animation and restore panel/keyboard position at once
     void resetKeyboardSlide(void);
-    lv_obj_t *showQrCode(lv_obj_t *parent, const char *data);
+    lv_obj_t *showQrCode(lv_obj_t *parent, const char *data, const char *caption = nullptr);
+    void deleteQrCode(void);
 
     void enablePanel(lv_obj_t *panel);
     void disablePanel(lv_obj_t *panel);
@@ -581,6 +582,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     std::array<lv_obj_t *, c_max_channels> ch_label;      // indexable label list for settings
     meshtastic_Channel *channel_scratch;                  // temporary scratch copy of channel db
     lv_obj_t *qr;                                         // qr code
+    lv_obj_t *qrCaption = nullptr;                        // text shown below the qr code
     MapPanel *map = nullptr;                              // map
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
     // extended default device profile struct with additional required data

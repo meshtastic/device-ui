@@ -2360,6 +2360,7 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Secondary Channels", "Kanały dodatkowe"},
     {"Rebooting ...", "Uruchamiam ponownie ..."},
     {"Shutting down ...", "Wyłączam ..."},
+    {"Share my node", "Udostępnij mój węzeł"},
     {NULL, NULL} // End mark
 };
 

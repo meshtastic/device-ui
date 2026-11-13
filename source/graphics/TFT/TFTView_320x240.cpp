@@ -35,6 +35,7 @@
 #include "util/FileLoader.h"
 #include "util/ILog.h"
 #include "util/ISpiLock.h"
+#include "util/KeyFingerprint.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -2554,15 +2555,16 @@ void TFTView_320x240::ui_event_QrButton(lv_event_t *e)
             c = '\0';
     }
     std::string qr = "https://meshtastic.org/v/#" + base64Https;
+    std::string publicKey =
+        THIS->pskToBase64((uint8_t *)THIS->db.config.security.public_key.bytes, THIS->db.config.security.public_key.size);
     lv_obj_remove_flag(objects.home_show_qr_panel, LV_OBJ_FLAG_HIDDEN);
-    THIS->qr = THIS->showQrCode(objects.home_show_qr_panel, qr.c_str());
+    THIS->qr = THIS->showQrCode(objects.home_show_qr_panel, qr.c_str(), publicKey.c_str());
 }
 
 void TFTView_320x240::ui_event_CancelQrButton(lv_event_t *e)
 {
     lv_obj_add_flag(objects.home_show_qr_panel, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_delete(THIS->qr);
-    THIS->qr = nullptr;
+    THIS->deleteQrCode();
 }
 
 void TFTView_320x240::ui_event_BlankScreenButton(lv_event_t *e)
@@ -3306,8 +3308,7 @@ void TFTView_320x240::ui_event_qr_code(lv_event_t *e)
     lv_obj_remove_state(objects.keyboard_button_3, LV_STATE_DISABLED);
     lv_obj_remove_state(objects.keyboard_button_4, LV_STATE_DISABLED);
     lv_obj_add_flag(objects.settings_modify_channel_qr_panel, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_delete(THIS->qr);
-    THIS->qr = nullptr;
+    THIS->deleteQrCode();
 }
 
 void TFTView_320x240::ui_event_delete_channel(lv_event_t *e)
@@ -7547,10 +7548,13 @@ void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfi
     db.config.security = cfg;
     db.config.has_security = true;
 
-    // display public key in qr code label
-    char buf[64];
-    lv_snprintf(buf, sizeof(buf), "%s", pskToBase64((uint8_t *)cfg.public_key.bytes, cfg.public_key.size).c_str());
-    lv_label_set_text(objects.home_qr_label, buf);
+    // show a short fingerprint of the public key next to the qr button; the full key is shown together with the qr code
+    if (cfg.public_key.size == 0) {
+        lv_label_set_text(objects.home_qr_label, _("no public key"));
+    } else {
+        std::string fingerprint = keyFingerprint(pskToBase64((uint8_t *)cfg.public_key.bytes, cfg.public_key.size));
+        lv_label_set_text_fmt(objects.home_qr_label, "%s\n%s", _("Share my node"), fingerprint.c_str());
+    }
 }
 
 void TFTView_320x240::updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg)
@@ -8187,8 +8191,7 @@ void TFTView_320x240::cleanupAllOverlays(void)
     // Close QR code if visible
     if (qr) {
         lv_obj_add_flag(objects.home_show_qr_panel, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_delete(qr);
-        qr = nullptr;
+        deleteQrCode();
     }
 
     // Close message popup if visible
@@ -8215,23 +8218,52 @@ void TFTView_320x240::resetKeyboardSlide(void)
     kbdSlideState = eKbdHidden;
 }
 
-lv_obj_t *TFTView_320x240::showQrCode(lv_obj_t *parent, const char *data)
+lv_obj_t *TFTView_320x240::showQrCode(lv_obj_t *parent, const char *data, const char *caption)
 {
     // Ensure all dynamically created widgets go to the panel content group
     GroupGuard group_guard(defaultPanelGroup);
 
     lv_color_t bg_color = colorMesh;
     lv_color_t fg_color = lv_palette_darken(LV_PALETTE_BLUE, 4);
+    int32_t captionHeight = 0;
+    if (caption && *caption) {
+        const lv_font_t *font = &ui_font_montserrat_12;
+        qrCaption = lv_label_create(parent);
+        lv_obj_set_width(qrCaption, LV_PCT(100));
+        lv_label_set_long_mode(qrCaption, LV_LABEL_LONG_WRAP);
+        lv_obj_set_style_text_align(qrCaption, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_style_text_font(qrCaption, font, 0);
+        lv_obj_set_style_text_color(qrCaption, fg_color, 0);
+        lv_label_set_text(qrCaption, caption);
+        lv_obj_align(qrCaption, LV_ALIGN_BOTTOM_MID, 0, 0);
+        captionHeight = 2 * lv_font_get_line_height(font) + 4; // base64 key wraps to two lines on small panels
+    }
     qr = lv_qrcode_create(parent);
-    int32_t size = std::min<int32_t>(lv_obj_get_width(parent), lv_obj_get_height(parent)) - 8;
+    int32_t size = std::min<int32_t>(lv_obj_get_width(parent), lv_obj_get_height(parent) - captionHeight) - 8;
     lv_qrcode_set_size(qr, size);
     lv_qrcode_set_dark_color(qr, fg_color);
     lv_qrcode_set_light_color(qr, bg_color);
     lv_qrcode_update(qr, data, strlen(data));
-    lv_obj_center(qr);
+    if (captionHeight) {
+        lv_obj_align(qr, LV_ALIGN_TOP_MID, 0, 4);
+    } else {
+        lv_obj_center(qr);
+    }
     lv_obj_set_style_border_color(qr, fg_color, 0);
     lv_obj_set_style_border_width(qr, 4, 0);
     return qr;
+}
+
+void TFTView_320x240::deleteQrCode(void)
+{
+    if (qrCaption) {
+        lv_obj_delete(qrCaption);
+        qrCaption = nullptr;
+    }
+    if (qr) {
+        lv_obj_delete(qr);
+        qr = nullptr;
+    }
 }
 
 /**
