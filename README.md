@@ -84,17 +84,14 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 Linux clients can select explicitly configured libinput devices and framebuffer interaction preferences through `DisplayDriverConfig`:
 
 ```cpp
-DisplayDriverConfig config(DisplayDriverConfig::device_t::FB, width, height);
-DisplayDriverConfig::input_config_t input;
-input.keyboardDevice = keyboardPath;
-input.pointerDevice = pointerPath;
-input.keyboardNavigation = true;
-input.cursorMode = DisplayDriverConfig::cursor_mode_t::AUTO;
-config.input(std::move(input));
-
-DisplayDriverConfig::navigation_config_t navigation;
-navigation.scrollbarMode = DisplayDriverConfig::scrollbar_mode_t::OFF;
-config.navigation(std::move(navigation));
+DisplayDriverConfig displayConfig(DisplayDriverConfig::device_t::FB, width, height);
+displayConfig.input(DisplayDriverConfig::input_config_t{
+                    .keyboardDevice = keyboardPath,
+                    .pointerDevice = pointerPath,
+                    .keyboardNavigation = true,
+                    .cursorMode = DisplayDriverConfig::cursor_mode_t::AUTO})
+             .navigation(DisplayDriverConfig::navigation_config_t{
+                    .scrollbarMode = DisplayDriverConfig::scrollbar_mode_t::OFF});
 ```
 
 `keyboardNavigation` defaults to `true`: arrows use the shared context-aware input policy for menu focus while preserving text,
