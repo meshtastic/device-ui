@@ -1,0 +1,102 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  rebaseWhen: 'conflicted',
+  extends: [
+    ':dependencyDashboard',
+    ':semanticCommitTypeAll(chore)',
+    ':ignoreModulesAndTests',
+    ':noUnscheduledUpdates',
+    'schedule:daily',
+    'group:recommended',
+    'replacements:all',
+    'workarounds:all',
+  ],
+  baseBranchPatterns: ['master'],
+  forkProcessing: 'enabled',
+  commitMessageTopic: '{{depName}}',
+  labels: ['dependencies'],
+
+  customDatasources: {
+    pio: {
+      description: 'PlatformIO Registry',
+      defaultRegistryUrlTemplate: 'https://api.registry.platformio.org/v3/packages/{{packageName}}',
+      format: 'json',
+      transformTemplates: [
+        '{"releases": [$map($.versions, function($v) { { "version": $v.name, "releaseTimestamp": $v.released_at } })], "homepage": $encodeUrl($join(["https://registry.platformio.org/",$.type,"/",$.owner.username,"/",$.name])) }',
+      ],
+    },
+  },
+
+  customManagers: [
+    // ---- CMake FetchContent, annotated with `# renovate:` comments directly above GIT_TAG ----
+    {
+      // # renovate: datasource=github-tags packageName=lvgl/lvgl
+      // GIT_TAG  v9.3.0
+      customType: 'regex',
+      description: 'Match CMake FetchContent dependencies with tag ref',
+      managerFilePatterns: ['/\\.cmake$/'],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>[a-z-]+)(?: depName=(?<depName>\\S+))? packageName=(?<packageName>\\S+)(?: versioning=(?<versioning>[a-z-]+))?\\s+GIT_TAG\\s+"?(?<currentValue>[^"\\s]+)"?\\s',
+      ],
+      versioningTemplate: '{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}',
+    },
+    {
+      // # renovate: datasource=git-refs depName=mverch67/libdeflate packageName=https://github.com/mverch67/libdeflate gitBranch=master
+      // GIT_TAG  "<40-char sha>"
+      customType: 'regex',
+      description: 'Match CMake FetchContent dependencies with git commit ref',
+      managerFilePatterns: ['/\\.cmake$/'],
+      matchStrings: [
+        '# renovate: datasource=git-refs(?: depName=(?<depName>\\S+))? packageName=(?<packageName>\\S+) gitBranch=(?<gitBranch>\\S+)\\s+GIT_TAG\\s+"?(?<currentDigest>[0-9a-f]{40})"?\\s',
+      ],
+      datasourceTemplate: 'git-refs',
+      currentValueTemplate: '{{{gitBranch}}}',
+      versioningTemplate: 'git',
+    },
+
+    // ---- library.json (plain JSON, so no annotation comments; match the GitHub archive URLs directly) ----
+    {
+      // e.g. "https://github.com/lvgl/lvgl/archive/refs/tags/v9.3.0.zip"
+      customType: 'regex',
+      description: 'Match library.json dependencies with github tag ref',
+      managerFilePatterns: ['/(^|/)library\\.json$/'],
+      matchStrings: [
+        '"https://github\\.com/(?<packageName>[^/"]+/[^/"]+)/archive/refs/tags/(?<currentValue>[^"]+?)\\.zip"',
+      ],
+      datasourceTemplate: 'github-tags',
+      depNameTemplate: '{{{packageName}}}',
+      versioningTemplate: 'semver-coerced',
+    },
+    {
+      // e.g. "https://github.com/mverch67/libdeflate/archive/<40-char sha>.zip"
+      customType: 'regex',
+      description: 'Match library.json dependencies with git commit ref',
+      managerFilePatterns: ['/(^|/)library\\.json$/'],
+      matchStrings: [
+        '"https://github\\.com/(?<packageName>[^/"]+/[^/"]+)/archive/(?<currentDigest>[0-9a-f]{40})\\.zip"',
+      ],
+      datasourceTemplate: 'git-refs',
+      depNameTemplate: '{{{packageName}}}',
+      packageNameTemplate: 'https://github.com/{{{packageName}}}',
+      // Branch to follow for new commits. The PNGdec pin only exists on the fork's
+      // `mverch67-patch-1` branch (one commit ahead of master), so following master would drop it.
+      currentValueTemplate: '{{#if (equals packageName "mverch67/PNGdec")}}mverch67-patch-1{{else}}master{{/if}}',
+      versioningTemplate: 'git',
+    },
+  ],
+
+  packageRules: [
+    {
+      // Link commit-pinned deps (depName is always `owner/repo`) to a GitHub compare view.
+      matchManagers: ['custom.regex'],
+      matchDatasources: ['git-refs'],
+      changelogUrl: 'https://github.com/{{depName}}/compare/{{currentDigest}}...{{newDigest}}',
+    },
+    {
+      // nanopb tags are `nanopb-0.4.9.1` (prefixed, four components), which semver-coerced can't parse.
+      // Its unprefixed tags include mis-formatted aliases like `0.4.93`, so only the prefixed tags are used.
+      matchDepNames: ['nanopb/nanopb'],
+      versioning: 'regex:^nanopb-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?$',
+    },
+  ],
+}

@@ -2,6 +2,7 @@ message(STATUS "Fetching LovyanGFX ...")
 FetchContent_Declare(
     LovyanGFX
     GIT_REPOSITORY "https://github.com/lovyan03/LovyanGFX"
+    # renovate: datasource=github-tags packageName=lovyan03/LovyanGFX
     GIT_TAG  1.2.26
 )
 FetchContent_MakeAvailable(LovyanGFX)

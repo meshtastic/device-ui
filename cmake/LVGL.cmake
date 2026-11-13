@@ -8,6 +8,7 @@ add_compile_definitions(LV_USE_LIBINPUT=1)
 add_compile_definitions(LV_LIBINPUT_XKB=1)
 FetchContent_Declare(lvgl 
                      GIT_REPOSITORY https://github.com/lvgl/lvgl.git
+                     # renovate: datasource=github-tags packageName=lvgl/lvgl
                      GIT_TAG  v9.3.0
 )
 FetchContent_MakeAvailable(lvgl)
