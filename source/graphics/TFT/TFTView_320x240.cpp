@@ -17,7 +17,9 @@
 #include "graphics/map/TileProvider.h"
 #include "graphics/map/URLService.h"
 #include "graphics/view/TFT/DropdownKeyNavigation.h"
+#include "graphics/view/TFT/NavigationPanelLayout.h"
 #include "graphics/view/TFT/TFTView_Debug.h"
+#include "graphics/view/TFT/TextareaEditContext.h"
 #include "graphics/view/TFT/Themes.h"
 #include "images.h"
 #include "input/DiacriticRotation.h"
@@ -319,6 +321,8 @@ TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *
       packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0), scans(0),
       selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr), db{}
 {
+    if (cfg)
+        navigationScrollbarMode = cfg->navigation().scrollbarMode;
     filter.active = false;
     highlight.active = false;
     objects.main_screen = nullptr;
@@ -1017,6 +1021,11 @@ void TFTView_320x240::apply_hotfix(void)
             lv_obj_set_size(button[i], 72, 72);
         }
     }
+
+    NavigationPanelLayout::configure(objects.button_panel,
+                                     {objects.home_button, objects.nodes_button, objects.groups_button, objects.messages_button,
+                                      objects.map_button, objects.settings_button},
+                                     navigationScrollbarMode);
 
     // On wide displays the button bar stops growing at its max width while the generated panels still start at 12%,
     // leaving a black stripe in between. Move every 12%-anchored panel onto the bar and grow it back to its right edge.
@@ -1750,6 +1759,12 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
         const auto context = input_policy::InputContextState::instance().getSnapshot();
         if (context.focusSemantic == input_policy::FocusSemantic::ButtonMatrix) {
             lv_obj_send_event(objects.screen_lock_button_matrix, LV_EVENT_KEY, param);
+            lv_event_stop_processing(e);
+            return;
+        }
+
+        if (c != LV_KEY_ESC && (context.focusSemantic == input_policy::FocusSemantic::TextEdit ||
+                                context.focusSemantic == input_policy::FocusSemantic::TextAreaMultiLine)) {
             lv_event_stop_processing(e);
             return;
         }
@@ -2708,16 +2723,12 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     ILOG_DEBUG("ui_event_message_ready: event_code=%d", event_code);
     if (event_code == LV_EVENT_FOCUSED) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::TextEdit);
-        input_policy::InputContextState::instance().setEditMode(true);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(true);
+        TextareaEditContext::focus(lv_event_get_target_obj(e));
         return;
     }
 
     if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_CANCEL) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-        input_policy::InputContextState::instance().setEditMode(false);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(false);
+        TextareaEditContext::release(lv_event_get_target_obj(e));
         return;
     }
 #ifdef ARCH_PORTDUINO
@@ -2741,16 +2752,14 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 #endif
 
     if (event_code == LV_EVENT_READY) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-        input_policy::InputContextState::instance().setEditMode(false);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(false);
-
         char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
         uint32_t len = strlen(txt);
         if (len) {
             if (txt[len - 1] == ' ') { // use space+return combo to start new line in same message
                 lv_textarea_add_char(objects.message_input_area, CR_REPLACEMENT);
+                TextareaEditContext::focus(objects.message_input_area);
             } else {
+                TextareaEditContext::release(lv_event_get_target_obj(e));
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
                 THIS->hideKeyboard(objects.messages_panel);
@@ -2780,23 +2789,7 @@ void TFTView_320x240::ui_event_quick_chat_button(lv_event_t *e)
 
 void TFTView_320x240::ui_event_textarea_edit_mode(lv_event_t *e)
 {
-    lv_event_code_t event_code = lv_event_get_code(e);
-
-    if (event_code == LV_EVENT_FOCUSED) {
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::TextEdit);
-        input_policy::InputContextState::instance().setEditMode(true);
-        input_policy::InputContextState::instance().setCanLeaveEditMode(true);
-    } else if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_READY ||
-               event_code == LV_EVENT_CANCEL) {
-        // Only reset when still on the messages panel. When switching to another panel,
-        // activePanel is already updated before DEFOCUSED fires, so this prevents the
-        // new panel's semantic (e.g. Map) from being overwritten.
-        if (THIS->activePanel == objects.messages_panel) {
-            input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-            input_policy::InputContextState::instance().setEditMode(false);
-            input_policy::InputContextState::instance().setCanLeaveEditMode(false);
-        }
-    }
+    TextareaEditContext::handleEvent(e);
 }
 
 // basic settings buttons
@@ -6296,6 +6289,9 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
+    if (nodeNum == ownNode) {
+        db.user = cfg;
+    }
     requestNodeListPresentation(mutation);
 }
 
@@ -6326,9 +6322,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
-    db.user = cfg;
-
     if (nodeNum == ownNode) {
+        db.user = cfg;
         char userLabel[30];
         lv_snprintf(userLabel, sizeof(userLabel), _("User name: %s"), cfg.short_name);
         lv_label_set_text(objects.basic_settings_user_label, userLabel);

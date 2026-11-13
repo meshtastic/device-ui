@@ -161,7 +161,12 @@
     #define LV_DRAW_SW_SUPPORT_RGB565        1
     #define LV_DRAW_SW_SUPPORT_RGB565A8      1
     #define LV_DRAW_SW_SUPPORT_RGB888        0
-    #define LV_DRAW_SW_SUPPORT_XRGB8888      0
+    /* the Linux fbdev driver renders 32 bpp framebuffers as XRGB8888 */
+    #if defined(USE_FRAMEBUFFER)
+    #define LV_DRAW_SW_SUPPORT_XRGB8888  1
+    #else
+    #define LV_DRAW_SW_SUPPORT_XRGB8888  0
+    #endif
     #define LV_DRAW_SW_SUPPORT_ARGB8888      1
     #define LV_DRAW_SW_SUPPORT_L8            1
     #define LV_DRAW_SW_SUPPORT_AL88          1
