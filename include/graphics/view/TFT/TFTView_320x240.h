@@ -582,6 +582,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     std::array<lv_obj_t *, c_max_channels> ch_label;      // indexable label list for settings
     meshtastic_Channel *channel_scratch;                  // temporary scratch copy of channel db
     lv_obj_t *qr;                                         // qr code
+    lv_obj_t *aboutPublicKey = nullptr;                   // public key line in the about panel
     MapPanel *map = nullptr;                              // map
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
     // extended default device profile struct with additional required data
