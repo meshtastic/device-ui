@@ -4,7 +4,8 @@ message(STATUS "Fetching nanopb ...")
 FetchContent_Declare(
     nanopb
     GIT_REPOSITORY https://github.com/nanopb/nanopb.git
-    GIT_TAG 0.4.9.1
+    # renovate: datasource=github-tags packageName=nanopb/nanopb
+    GIT_TAG nanopb-0.4.9.1
 )
 FetchContent_MakeAvailable(nanopb)
 

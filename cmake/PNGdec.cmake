@@ -2,6 +2,7 @@ message(STATUS "Fetching PNGdec ...")
 FetchContent_Declare(
     PNGdec
     GIT_REPOSITORY "https://github.com/mverch67/PNGdec"
+    # renovate: datasource=git-refs depName=mverch67/PNGdec packageName=https://github.com/mverch67/PNGdec gitBranch=mverch67-patch-1
     GIT_TAG  d88b6fe2ec8d49c2b097a529b34d1d615ca5cf1b
 )
 FetchContent_MakeAvailable(PNGdec)
