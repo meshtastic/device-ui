@@ -3,6 +3,7 @@ message(STATUS "Fetching Portduino ...")
 FetchContent_Declare(
     Portduino
     GIT_REPOSITORY "https://github.com/mverch67/framework-portduino"
+    # renovate: datasource=git-refs depName=mverch67/framework-portduino packageName=https://github.com/mverch67/framework-portduino gitBranch=master
     GIT_TAG  "ce0ed7e9c62f3082b30ee9a5c369f30c1e55194a"
 )
 FetchContent_MakeAvailable(Portduino)
