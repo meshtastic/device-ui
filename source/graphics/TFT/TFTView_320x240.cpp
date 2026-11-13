@@ -35,6 +35,7 @@
 #include "util/FileLoader.h"
 #include "util/ILog.h"
 #include "util/ISpiLock.h"
+#include "util/KeyFingerprint.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -1168,11 +1169,13 @@ void TFTView_320x240::apply_hotfix(void)
                                          LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_WITH_ARROW | LV_OBJ_FLAG_SNAPPABLE));
         lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_label_set_text(obj, label);
+        return obj;
     };
 
     char fw[128];
     snprintf(fw, sizeof(fw), ABOUT_FIRMWARE_TEXT, firmware_version);
     createLabel(objects.settings_about_panel, fw);
+    aboutPublicKey = createLabel(objects.settings_about_panel, "");
     createLabel(objects.settings_about_panel, ABOUT_FRAMEWORK_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_ICONS_TEXT);
     createLabel(objects.settings_about_panel, ABOUT_MAP_TEXT);
@@ -7545,10 +7548,15 @@ void TFTView_320x240::updateSecurityConfig(const meshtastic_Config_SecurityConfi
     db.config.security = cfg;
     db.config.has_security = true;
 
-    // display public key in qr code label
-    char buf[64];
-    lv_snprintf(buf, sizeof(buf), "%s", pskToBase64((uint8_t *)cfg.public_key.bytes, cfg.public_key.size).c_str());
-    lv_label_set_text(objects.home_qr_label, buf);
+    // the home screen only gets a short fingerprint of the public key; the full key is listed in the about panel
+    if (cfg.public_key.size == 0) {
+        lv_label_set_text(objects.home_qr_label, _("no public key"));
+        lv_label_set_text_fmt(aboutPublicKey, _("Public key: %s"), _("no public key"));
+    } else {
+        std::string key = pskToBase64((uint8_t *)cfg.public_key.bytes, cfg.public_key.size);
+        lv_label_set_text_fmt(objects.home_qr_label, "%s\n%s", _("Share my node"), keyFingerprint(key).c_str());
+        lv_label_set_text_fmt(aboutPublicKey, _("Public key: %s"), key.c_str());
+    }
 }
 
 void TFTView_320x240::updateSessionKeyConfig(const meshtastic_Config_SessionkeyConfig &cfg)

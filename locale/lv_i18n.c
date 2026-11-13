@@ -2368,6 +2368,8 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Secondary Channels", "Kanały dodatkowe"},
     {"Rebooting ...", "Uruchamiam ponownie ..."},
     {"Shutting down ...", "Wyłączam ..."},
+    {"Share my node", "Udostępnij mój węzeł"},
+    {"Public key: %s", "Klucz publiczny: %s"},
     {"silent", "cichy"},
     {"WiFi: <not setup>", "WiFi: <nieskonfigurowane>"},
     {"Lock: off/off", "Blokada: wyłączony/wyłączony"},
