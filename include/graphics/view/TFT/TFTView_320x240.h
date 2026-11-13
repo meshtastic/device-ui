@@ -291,6 +291,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     static TFTView_320x240 *instance(const DisplayDriverConfig &cfg);
     TFTView_320x240();
     TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
+    DisplayDriverConfig::scrollbar_mode_t navigationScrollbarMode = DisplayDriverConfig::scrollbar_mode_t::AUTO;
 
     void enterProgrammingMode(void);
     void updateTheme(void);
