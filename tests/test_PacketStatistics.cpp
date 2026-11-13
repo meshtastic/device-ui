@@ -38,12 +38,15 @@ TEST_CASE("PacketStatistics enforces the node limit")
 
 TEST_CASE("PacketStatistics removes purged nodes without releasing capacity")
 {
-    PacketStatistics stats(10);
+    PacketStatistics stats(5);
     for (uint32_t id = 1; id <= 5; id++)
         stats.add(text(id));
+    stats.add(text(3)); // node 3 leads the table
     size_t capacity = stats.capacity();
+    REQUIRE(stats.all()[0].id == 3);
+    CHECK_FALSE(stats.add(text(6))); // table is full
 
-    CHECK(stats.remove(3) == 3);
+    CHECK(stats.remove(3) == 1); // reports the sorted row the node occupied
     CHECK(stats.remove(3) == 0);
     CHECK(stats.size() == 4);
     CHECK(stats.capacity() == capacity);
