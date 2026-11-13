@@ -911,6 +911,8 @@ void TFTView_320x240::enterProgrammingMode(void)
         lv_obj_add_flag(objects.boot_logo, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.boot_logo_button, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+        // the label may be hidden by a full-screen custom boot logo
+        lv_obj_remove_flag(objects.firmware_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
         lv_group_add_obj(lv_group_get_default(), objects.bluetooth_button);
         lv_group_focus_obj(objects.bluetooth_button);
