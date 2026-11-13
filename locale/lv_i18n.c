@@ -2361,6 +2361,7 @@ static lv_i18n_phrase_t pl_singulars[] = {
     {"Rebooting ...", "Uruchamiam ponownie ..."},
     {"Shutting down ...", "Wyłączam ..."},
     {"Share my node", "Udostępnij mój węzeł"},
+    {"Public key: %s", "Klucz publiczny: %s"},
     {NULL, NULL} // End mark
 };
 
