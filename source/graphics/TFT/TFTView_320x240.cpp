@@ -912,6 +912,8 @@ void TFTView_320x240::enterProgrammingMode(void)
         lv_obj_add_flag(objects.boot_logo, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(objects.boot_logo_button, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.boot_logo_button, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+        // the label may be hidden by a full-screen custom boot logo
+        lv_obj_remove_flag(objects.firmware_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(objects.bluetooth_button, LV_OBJ_FLAG_HIDDEN);
         lv_group_add_obj(lv_group_get_default(), objects.bluetooth_button);
         lv_group_focus_obj(objects.bluetooth_button);
@@ -3524,10 +3526,12 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
 
 void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 {
+    static_assert(MapTileSettings::STYLE_NAME_MAX < sizeof(meshtastic_Map::style),
+                  "map style must fit into meshtastic_Map.style");
     char style[MapTileSettings::TILE_STYLE_SIZE];
     lv_dropdown_get_selected_str(objects.map_style_dropdown, style, sizeof(style));
     if (strcmp(style, THIS->db.uiConfig.map_data.style) != 0) {
-        strcpy(THIS->db.uiConfig.map_data.style, style);
+        snprintf(THIS->db.uiConfig.map_data.style, sizeof(THIS->db.uiConfig.map_data.style), "%s", style);
         MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
         std::string url = THIS->setUrlProvider(THIS->db.uiConfig.map_data.style);
         MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
