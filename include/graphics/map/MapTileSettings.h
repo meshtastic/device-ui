@@ -12,6 +12,10 @@ class MapTileSettings
   public:
     static constexpr size_t PREFIX_SIZE = 10;
     static constexpr size_t TILE_STYLE_SIZE = 24;
+    // longest accepted style directory name; must fit meshtastic_Map.style (nanopb max_size 20)
+    // and tileStyle including the trailing slash
+    static constexpr size_t STYLE_NAME_MAX = 19;
+    static_assert(STYLE_NAME_MAX + 2 <= TILE_STYLE_SIZE, "tileStyle must hold the style name, a trailing slash and NUL");
     static constexpr size_t TILE_FORMAT_SIZE = 10;
     static constexpr const char *PMTILES_EXTENSION = ".pmtiles";
     static constexpr size_t PMTILES_EXTENSION_LEN = std::string_view(PMTILES_EXTENSION).size();
@@ -47,6 +51,8 @@ class MapTileSettings
 
     // strips the legacy archive extension and trailing slash from a style name
     static void styleToDir(const char *style, char *dst, size_t dstSize);
+    // true if the directory name fits into tileStyle (with trailing slash) and the saved UI config
+    static bool isValidStyleName(const char *style);
 
     static const char *getTileFormat(void) { return tileFormat; }
     static void setTileFormat(const char *p) { copyBounded(tileFormat, TILE_FORMAT_SIZE, p); }
