@@ -212,7 +212,10 @@ void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
             // Touch boards strip EVENT_BUBBLE from screen widgets, so Esc on a focused widget never
             // reaches the screen's back handler; deliver it there ourselves when bubbling would not.
             lv_group_t *group = lv_indev_get_group(indev);
-            escToScreen = !bubbles_to_screen(group ? lv_group_get_focused(group) : nullptr);
+            lv_obj_t *focused = group ? lv_group_get_focused(group) : nullptr;
+            // an open dropdown takes Esc to close only its list
+            const bool dropdownOpen = focused && lv_obj_check_type(focused, &lv_dropdown_class) && lv_dropdown_is_open(focused);
+            escToScreen = !dropdownOpen && !bubbles_to_screen(focused);
         }
         pressing = true;
         pressStart = lv_tick_get();
