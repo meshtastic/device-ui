@@ -27,9 +27,9 @@ ViewController::ViewController()
 }
 
 ViewController::ViewController(AsyncMessageLog::Writer writer, AsyncMessageLog::Clear clear)
-        : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), messageLog(std::move(writer), std::move(clear)),
-            client(nullptr), sendId(1), myNodeNum(0), setupDone(false), configCompleted(false), messagesRestored(false),
-            requestConfigRequired(true)
+    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), messageLog(std::move(writer), std::move(clear)),
+      client(nullptr), sendId(1), myNodeNum(0), setupDone(false), configCompleted(false), messagesRestored(false),
+      requestConfigRequired(true)
 {
 }
 
