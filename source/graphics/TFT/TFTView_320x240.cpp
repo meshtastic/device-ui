@@ -757,6 +757,11 @@ void TFTView_320x240::setPanelInputContext(void)
 {
     if (activePanel == objects.map_panel) {
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Map);
+    } else if (activePanel == objects.settings_about_panel || activePanel == objects.tools_statistics_panel ||
+               activePanel == objects.tools_packet_log_panel) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
+    } else if (activePanel == objects.settings_screen_lock_panel) {
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::ButtonMatrix);
     } else {
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
     }
@@ -772,6 +777,39 @@ void TFTView_320x240::focusActivePanel(void)
     setInputGroup(defaultPanelGroup);
     setPanelInputContext();
     setGroupFocus(activePanel);
+}
+
+/**
+ * @brief restore input group and last focused widget inside the active panel
+ */
+void TFTView_320x240::restoreActivePanelFocus(void)
+{
+    if (!activePanel)
+        return;
+
+    lv_obj_t *lastFocused = lv_group_get_focused(defaultPanelGroup);
+    if (activePanel == objects.nodes_panel && virtualNodeList && !visibleNodes.empty()) {
+        setPanelInputContext();
+        const NodeId lastNode = virtualNodeList->lastFocusedNode();
+        if (lastNode && visibleNodes.contains(lastNode)) {
+            reconcileVirtualNodeListInputGroup(true);
+            virtualNodeList->focus(lastNode);
+        } else {
+            setGroupFocus(objects.nodes_panel);
+        }
+    } else if (activePanel == objects.messages_panel && objects.keyboard &&
+               !lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+        setInputGroup(defaultPanelGroup);
+        setPanelInputContext();
+        lv_group_focus_obj(objects.keyboard);
+        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Keyboard);
+    } else if (activePanel != objects.map_panel && isInside(lastFocused, activePanel)) {
+        setInputGroup(defaultPanelGroup);
+        setPanelInputContext();
+        lv_group_focus_obj(lastFocused);
+    } else {
+        focusActivePanel();
+    }
 }
 
 /**
@@ -1888,25 +1926,7 @@ void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
             break;
         }
         case LV_KEY_RIGHT: {
-            // move to visible object on right pane; restore the last focused object in the panel group
-            lv_obj_t *lastFocused = lv_group_get_focused(THIS->defaultPanelGroup);
-            if (THIS->activePanel == objects.nodes_panel && THIS->virtualNodeList && !THIS->visibleNodes.empty()) {
-                const NodeId lastNode = THIS->virtualNodeList->lastFocusedNode();
-                if (lastNode && THIS->visibleNodes.contains(lastNode)) {
-                    THIS->reconcileVirtualNodeListInputGroup(true);
-                    THIS->virtualNodeList->focus(lastNode);
-                } else {
-                    THIS->setGroupFocus(objects.nodes_panel);
-                }
-                THIS->setPanelInputContext();
-            } else if (THIS->activePanel != objects.map_panel && isInside(lastFocused, THIS->activePanel)) {
-                THIS->setInputGroup(THIS->defaultPanelGroup);
-                lv_group_focus_obj(lastFocused);
-                THIS->setPanelInputContext();
-            } else {
-                // panel was only previewed from the button menu, or the map which always starts panning
-                THIS->focusActivePanel();
-            }
+            THIS->restoreActivePanelFocus();
             lv_event_stop_processing(e);
             break;
         }
@@ -2723,6 +2743,11 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     ILOG_DEBUG("ui_event_message_ready: event_code=%d", event_code);
     if (event_code == LV_EVENT_FOCUSED) {
+        // Ignore internal focus evacuation so it does not hijack the active group or edit state.
+        if (THIS && THIS->evacuatingChatFocus)
+            return;
+        if (THIS && THIS->defaultPanelGroup)
+            THIS->setInputGroup(THIS->defaultPanelGroup);
         TextareaEditContext::focus(lv_event_get_target_obj(e));
         return;
     }
@@ -2789,6 +2814,8 @@ void TFTView_320x240::ui_event_quick_chat_button(lv_event_t *e)
 
 void TFTView_320x240::ui_event_textarea_edit_mode(lv_event_t *e)
 {
+    if (lv_event_get_code(e) == LV_EVENT_FOCUSED && THIS && THIS->defaultPanelGroup)
+        THIS->setInputGroup(THIS->defaultPanelGroup);
     TextareaEditContext::handleEvent(e);
 }
 
@@ -3339,10 +3366,7 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
         lv_obj_clear_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
         lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
-        if (objects.nodes_panel && THIS->activePanel == objects.nodes_panel) {
-            THIS->reconcileVirtualNodeListInputGroup(true);
-        }
+        THIS->restoreActivePanelFocus();
     };
 
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -3356,6 +3380,7 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
             lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
             if (!screenLocked) {
                 lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
+                THIS->restoreActivePanelFocus();
             } else {
                 // TODO: init screen saver
             }
@@ -6067,6 +6092,34 @@ lv_obj_t *TFTView_320x240::createChatBubble(lv_obj_t *container, const ChatHisto
     return hiddenPanel;
 }
 
+bool TFTView_320x240::isDefaultPanelGroupActive(void) const
+{
+    if (!defaultPanelGroup || !inputdriver)
+        return false;
+    if (inputdriver->hasKeyboardDevice() && lv_indev_get_group(inputdriver->getKeyboard()) != defaultPanelGroup)
+        return false;
+    if (inputdriver->hasEncoderDevice() && lv_indev_get_group(inputdriver->getEncoder()) != defaultPanelGroup)
+        return false;
+    return true;
+}
+
+void TFTView_320x240::evacuateChatFocus(lv_obj_t *target, bool suppressFocusEffects)
+{
+    auto *focused = lv_group_get_focused(defaultPanelGroup);
+    if (!focused || !isInside(focused, target))
+        return;
+    // Keep defaultPanelGroup->obj_focus off deleted bubbles without triggering LVGL's active-group hijack.
+    const bool previousSuppress = evacuatingChatFocus;
+    if (suppressFocusEffects)
+        evacuatingChatFocus = true;
+    lv_group_focus_obj(objects.message_input_area);
+    evacuatingChatFocus = previousSuppress;
+    if (suppressFocusEffects) {
+        lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY | LV_STATE_EDITED);
+        lv_obj_invalidate(objects.message_input_area);
+    }
+}
+
 void TFTView_320x240::appendChatEntry(lv_obj_t *container, ChatHistory::Entry entry)
 {
     auto &history = chatHistories[container];
@@ -6087,9 +6140,7 @@ void TFTView_320x240::appendChatEntry(lv_obj_t *container, ChatHistory::Entry en
     updatingChat = true;
     if (history.first() > previousFirst) {
         auto *oldest = lv_obj_get_child(container, 0);
-        auto *focused = lv_group_get_focused(defaultPanelGroup);
-        if (focused && isInside(focused, oldest))
-            lv_group_focus_obj(objects.message_input_area);
+        evacuateChatFocus(oldest, !isDefaultPanelGroupActive());
         lv_obj_delete(oldest);
     }
     auto *newest = createChatBubble(container, history.at(history.last() - 1));
@@ -6107,9 +6158,7 @@ void TFTView_320x240::hideChat(lv_obj_t *container)
     history.scrollY =
         history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);
     updatingChat = true;
-    auto *focused = lv_group_get_focused(defaultPanelGroup);
-    if (focused && isInside(focused, container))
-        lv_group_focus_obj(objects.message_input_area);
+    evacuateChatFocus(container, true);
     lv_obj_clean(container);
     updatingChat = false;
 }
@@ -6126,6 +6175,7 @@ void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previo
         history.opened = true;
     }
     const int32_t scroll = lv_obj_get_child_count(container) ? lv_obj_get_scroll_y(container) : history.scrollY;
+    const bool panelGroupActive = isDefaultPanelGroupActive();
     updatingChat = true;
     auto *focused = lv_group_get_focused(defaultPanelGroup);
     int32_t focusedIndex = -1;
@@ -6134,7 +6184,7 @@ void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previo
             (previousFirst == SIZE_MAX ? history.first() : previousFirst) + lv_obj_get_index(lv_obj_get_parent(focused));
         if (logicalIndex >= history.first() && logicalIndex < history.last())
             focusedIndex = logicalIndex - history.first();
-        lv_group_focus_obj(objects.message_input_area);
+        evacuateChatFocus(container, !panelGroupActive || focusedIndex >= 0);
     }
     lv_obj_clean(container);
     for (size_t index = history.first(); index < history.last(); ++index)
@@ -6146,7 +6196,13 @@ void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previo
         lv_obj_scroll_to_y(container, scroll, LV_ANIM_OFF);
     if (focusedIndex >= 0 && lv_obj_get_child_count(container)) {
         auto *panel = lv_obj_get_child(container, std::min<int32_t>(focusedIndex, lv_obj_get_child_count(container) - 1));
-        lv_group_focus_obj(lv_obj_get_child(panel, 0));
+        if (lv_obj_t *target = lv_obj_get_child(panel, 0)) {
+            lv_group_focus_obj(target);
+            if (!panelGroupActive) {
+                lv_obj_remove_state(target, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY);
+                lv_obj_invalidate(target);
+            }
+        }
     }
     history.scrollY =
         history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);
@@ -7075,12 +7131,11 @@ void TFTView_320x240::blankScreen(bool enable)
         setInputGroup(groups.mainButtons);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
     } else {
-        if (objects.main_screen)
+        if (objects.main_screen) {
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        else
+            restoreActivePanelFocus();
+        } else {
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        if (objects.nodes_panel && activePanel == objects.nodes_panel) {
-            reconcileVirtualNodeListInputGroup(true);
         }
     }
 }
@@ -7111,9 +7166,7 @@ void TFTView_320x240::screenSaving(bool enabled)
                 ui_event_cancel(&e);
             }
             screenLocked = false;
-            if (objects.nodes_panel && activePanel == objects.nodes_panel) {
-                reconcileVirtualNodeListInputGroup(true);
-            }
+            restoreActivePanelFocus();
         } else {
             ILOG_DEBUG("showing boot screen");
             setInputGroup(defaultPanelGroup);
