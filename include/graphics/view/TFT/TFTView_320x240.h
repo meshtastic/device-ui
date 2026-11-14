@@ -387,6 +387,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);
     void setChannelName(const meshtastic_Channel &ch);
+    void syncOwnNodeUser(const meshtastic_User &cfg);
+    void applyOwnUserNames(const char *userShort, const char *userLong);
     uint32_t timestamp(char *buf, uint32_t time, bool update);
     void updateLocationMap(uint32_t objects);
     void attribution(std::string url);

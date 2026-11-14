@@ -2798,8 +2798,8 @@ void TFTView_320x240::ui_event_user_button(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
-        lv_textarea_set_text(objects.settings_user_short_textarea, THIS->db.short_name);
-        lv_textarea_set_text(objects.settings_user_long_textarea, THIS->db.long_name);
+        lv_textarea_set_text(objects.settings_user_short_textarea, THIS->db.user.short_name);
+        lv_textarea_set_text(objects.settings_user_long_textarea, THIS->db.user.long_name);
         lv_obj_clear_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_user_short_textarea);
         THIS->disablePanel(objects.controller_panel);
@@ -5326,21 +5326,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                 THIS->controller->sendConfig(meshtastic_Config_LoRaConfig{lora}, THIS->ownNode);
             }
 
-            char buf[30];
             const char *userShort = lv_textarea_get_text(objects.setup_user_short_textarea);
             const char *userLong = lv_textarea_get_text(objects.setup_user_long_textarea);
             if (userShort[0] == '\0' && userLong[0] == '\0') {
                 THIS->ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
-            } else if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
-                lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
-                lv_label_set_text(objects.basic_settings_user_label, buf);
-                strcpy(THIS->db.short_name, userShort);
-                strcpy(THIS->db.long_name, userLong);
-                meshtastic_User user{}; // TODO: don't overwrite is_licensed
-                strcpy(user.short_name, userShort);
-                strcpy(user.long_name, userLong);
-                THIS->controller->sendConfig(user, THIS->ownNode);
-                THIS->notifyReboot(true);
+            } else {
+                THIS->applyOwnUserNames(userShort, userLong);
             }
 
             lv_obj_add_flag(objects.initial_setup_panel, LV_OBJ_FLAG_HIDDEN);
@@ -5348,20 +5339,9 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             break;
         }
         case eUsername: {
-            char buf[30];
             const char *userShort = lv_textarea_get_text(objects.settings_user_short_textarea);
             const char *userLong = lv_textarea_get_text(objects.settings_user_long_textarea);
-            if (strcmp(userShort, THIS->db.short_name) || strcmp(userLong, THIS->db.long_name)) {
-                lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
-                lv_label_set_text(objects.basic_settings_user_label, buf);
-                strcpy(THIS->db.short_name, userShort);
-                strcpy(THIS->db.long_name, userLong);
-                meshtastic_User user{}; // TODO: don't overwrite is_licensed
-                strcpy(user.short_name, userShort);
-                strcpy(user.long_name, userLong);
-                THIS->controller->sendConfig(user, THIS->ownNode);
-                THIS->notifyReboot(true);
-            }
+            THIS->applyOwnUserNames(userShort, userLong);
             lv_obj_add_flag(objects.settings_username_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_user_button);
             break;
@@ -6296,10 +6276,55 @@ void TFTView_320x240::addOrUpdateNode(uint32_t nodeNum, uint8_t channel, uint32_
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
-    if (nodeNum == ownNode) {
-        db.user = cfg;
+    if (ownNode && nodeNum == ownNode) {
+        syncOwnNodeUser(cfg);
     }
     requestNodeListPresentation(mutation);
+}
+
+void TFTView_320x240::syncOwnNodeUser(const meshtastic_User &cfg)
+{
+    db.user = cfg;
+    std::snprintf(db.short_name, sizeof(db.short_name), "%s", cfg.short_name);
+    std::snprintf(db.long_name, sizeof(db.long_name), "%s", cfg.long_name);
+    db.config.device.role = cfg.role;
+
+    if (screensInitialised) {
+        char userLabel[64];
+        lv_snprintf(userLabel, sizeof(userLabel), _("User name: %s"), cfg.short_name);
+        lv_label_set_text(objects.basic_settings_user_label, userLabel);
+
+        char roleName[30], roleLabel[48];
+        lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(meshtastic_Config_DeviceConfig_Role(cfg.role)));
+        lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, roleName, sizeof(roleName));
+        lv_snprintf(roleLabel, sizeof(roleLabel), _("Device Role: %s"), roleName);
+        lv_label_set_text(objects.basic_settings_role_label, roleLabel);
+    }
+}
+
+void TFTView_320x240::applyOwnUserNames(const char *userShort, const char *userLong)
+{
+    if (!userShort || !userLong)
+        return;
+    if (strcmp(userShort, db.user.short_name) == 0 && strcmp(userLong, db.user.long_name) == 0)
+        return;
+
+    meshtastic_User user = db.user; // keeps is_licensed and other owner fields
+    std::snprintf(user.short_name, sizeof(user.short_name), "%s", userShort);
+    std::snprintf(user.long_name, sizeof(user.long_name), "%s", userLong);
+    if (!controller->sendConfig(user, ownNode)) {
+        ILOG_ERROR("Failed to send user config");
+        return;
+    }
+
+    char buf[64];
+    lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
+    lv_label_set_text(objects.basic_settings_user_label, buf);
+    std::snprintf(db.short_name, sizeof(db.short_name), "%s", userShort);
+    std::snprintf(db.long_name, sizeof(db.long_name), "%s", userLong);
+    std::snprintf(db.user.short_name, sizeof(db.user.short_name), "%s", userShort);
+    std::snprintf(db.user.long_name, sizeof(db.user.long_name), "%s", userLong);
+    notifyReboot(true);
 }
 
 /**
@@ -6329,20 +6354,8 @@ void TFTView_320x240::updateNode(uint32_t nodeNum, uint8_t ch, const meshtastic_
     if (purgeCandidate) {
         purgeNode(purgeCandidate);
     }
-    if (nodeNum == ownNode) {
-        db.user = cfg;
-        char userLabel[30];
-        lv_snprintf(userLabel, sizeof(userLabel), _("User name: %s"), cfg.short_name);
-        lv_label_set_text(objects.basic_settings_user_label, userLabel);
-
-        char roleName[30], roleLabel[40];
-        lv_dropdown_set_selected(objects.settings_device_role_dropdown, role2val(meshtastic_Config_DeviceConfig_Role(cfg.role)));
-        lv_dropdown_get_selected_str(objects.settings_device_role_dropdown, roleName, sizeof(roleName));
-        lv_snprintf(roleLabel, sizeof(roleLabel), _("Device Role: %s"), roleName);
-        lv_label_set_text(objects.basic_settings_role_label, roleLabel);
-        strcpy(db.short_name, cfg.short_name);
-        strcpy(db.long_name, cfg.long_name);
-        db.config.device.role = cfg.role;
+    if (ownNode && nodeNum == ownNode) {
+        syncOwnNodeUser(cfg);
     }
 
     auto chat = chats.find(nodeNum);

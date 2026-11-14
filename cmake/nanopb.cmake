@@ -55,8 +55,8 @@ set(GENERATED_FILES)
 foreach(PROTO_FILE ${PROTO_FILES})
     get_filename_component(PROTO_FILE_NAME ${PROTO_FILE} NAME_WE)
     add_custom_command(
-        OUTPUT ${GENERATED_FILES_DIR}/meshtastic/${PROTO_FILE_NAME}.pb.cpp ${GENERATED_FILES_DIR}/${PROTO_FILE_NAME}.pb.h
-        COMMAND ${CMAKE_COMMAND} -E env PYTHONWARNINGS=ignore::UserWarning
+        OUTPUT ${GENERATED_FILES_DIR}/meshtastic/${PROTO_FILE_NAME}.pb.cpp ${GENERATED_FILES_DIR}/meshtastic/${PROTO_FILE_NAME}.pb.h
+        COMMAND ${CMAKE_COMMAND} -E env PYTHONWARNINGS=ignore::UserWarning NANOPB_PB2_TEMP_DIR=1
                 ${nanopb_SOURCE_DIR}/generator/protoc 
                 --experimental_allow_proto3_optional 
                 --nanopb_out=-S.cpp:${GENERATED_FILES_DIR} 
