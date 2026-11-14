@@ -31,6 +31,7 @@ class AsyncMessageLog
     bool append(std::unique_ptr<LogMessageEnv> entry, uint32_t requestId = 0, uint32_t timeoutMs = 0);
     void setStatus(uint32_t requestId, LogMessage::MsgStatus status, bool final);
     bool remove(uint32_t from, uint32_t to, uint8_t channel);
+    bool flush(uint32_t timeoutMs);
     bool prepareShutdown(uint32_t timeoutMs);
 
   private:
@@ -50,13 +51,17 @@ class AsyncMessageLog
         uint32_t queuedAt = 0;
         uint32_t timeoutMs = 0;
         bool clear = false;
+        uint64_t seq = 0;
     };
+    bool drainPending(uint32_t timeoutMs, bool stopAccepting);
     void workerLoop();
     Writer writer;
     Clear clear;
     Clock clock;
     Mutex mutex;
     std::list<Pending> pending;
+    uint64_t nextSeq = 1;
+    uint64_t activeSeq = 0;
     bool accepting = true;
     bool busy = false;
     std::atomic<bool> running{false};

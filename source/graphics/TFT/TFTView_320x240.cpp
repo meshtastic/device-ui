@@ -7103,6 +7103,7 @@ void TFTView_320x240::blankScreen(bool enable)
             lv_screen_load_anim(objects.boot_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         }
     }
+    MeshtasticView::blankScreen(enable);
 }
 
 void TFTView_320x240::screenSaving(bool enabled)
@@ -7139,6 +7140,7 @@ void TFTView_320x240::screenSaving(bool enabled)
             screenLocked = false;
         }
     }
+    MeshtasticView::screenSaving(enabled);
 }
 
 bool TFTView_320x240::isScreenLocked(void)

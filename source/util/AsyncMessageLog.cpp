@@ -1,6 +1,7 @@
 #include "util/AsyncMessageLog.h"
 #include "Arduino.h"
 #include "util/ILog.h"
+#include <algorithm>
 #include <mutex>
 #ifndef ARDUINO_ARCH_ESP32
 #include <chrono>
@@ -88,7 +89,7 @@ bool AsyncMessageLog::append(std::unique_ptr<LogMessageEnv> entry, uint32_t requ
     std::lock_guard<Mutex> guard(mutex);
     if (!accepting)
         return false;
-    pending.push_back(Pending{std::move(entry), requestId, clock(), timeoutMs, false});
+    pending.push_back(Pending{std::move(entry), requestId, clock(), timeoutMs, false, nextSeq++});
     return true;
 }
 
@@ -123,25 +124,48 @@ bool AsyncMessageLog::remove(uint32_t from, uint32_t to, uint8_t channel)
                                                          : ((item.entry->from == from && item.entry->to == to) ||
                                                             (item.entry->from == to && item.entry->to == from))));
     });
-    pending.push_back(
-        Pending{std::make_unique<LogMessageEnv>(from, to, channel, 0, LogMessage::eDefault, true, 0, nullptr), 0, 0, 0, clear});
+    pending.push_back(Pending{std::make_unique<LogMessageEnv>(from, to, channel, 0, LogMessage::eDefault, true, 0, nullptr), 0, 0,
+                              0, clear, nextSeq++});
     return true;
+}
+
+bool AsyncMessageLog::flush(uint32_t timeoutMs)
+{
+    return drainPending(timeoutMs, false);
 }
 
 bool AsyncMessageLog::prepareShutdown(uint32_t timeoutMs)
 {
+    return drainPending(timeoutMs, true);
+}
+
+bool AsyncMessageLog::drainPending(uint32_t timeoutMs, bool stopAccepting)
+{
+    uint64_t targetSeq = 0;
     {
         std::lock_guard<Mutex> guard(mutex);
-        accepting = false;
+        if (stopAccepting) {
+            accepting = false;
+        } else if (!running) {
+            return pending.empty() && !busy;
+        }
+        targetSeq = nextSeq - 1;
         for (auto &item : pending) {
             item.requestId = 0;
+        }
+        if (!busy &&
+            std::none_of(pending.begin(), pending.end(), [targetSeq](const Pending &item) { return item.seq <= targetSeq; })) {
+            return true;
         }
     }
     const uint32_t started = millis();
     do {
         {
             std::lock_guard<Mutex> guard(mutex);
-            if (pending.empty() && !busy)
+            const bool activeDone = !busy || activeSeq > targetSeq;
+            const bool queueDone =
+                std::none_of(pending.begin(), pending.end(), [targetSeq](const Pending &item) { return item.seq <= targetSeq; });
+            if (activeDone && queueDone)
                 return true;
         }
         if (!running || millis() - started >= timeoutMs)
@@ -167,6 +191,7 @@ void AsyncMessageLog::workerLoop()
                 item = std::move(*position);
                 pending.erase(position);
                 busy = true;
+                activeSeq = item.seq;
                 found = true;
                 break;
             }
@@ -179,6 +204,7 @@ void AsyncMessageLog::workerLoop()
         {
             std::lock_guard<Mutex> guard(mutex);
             busy = false;
+            activeSeq = 0;
             if (!written)
                 pending.push_front(std::move(item));
         }

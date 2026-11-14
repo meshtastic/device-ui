@@ -3,6 +3,7 @@
 #include "comms/IClientBase.h"
 #include "util/AsyncMessageLog.h"
 #include "util/LogRotate.h"
+#include <atomic>
 #include <time.h>
 
 class MeshtasticView;
@@ -17,6 +18,7 @@ class ViewController
     virtual void processEvent(void);
     virtual bool isStandalone(void);
     virtual void stop(void);
+    bool flushMessageLog(uint32_t timeoutMs = 1000);
     bool prepareShutdown(uint32_t timeoutMs);
     void setTextMessageStatus(uint32_t requestId, LogMessage::MsgStatus status, bool final);
 
@@ -84,6 +86,7 @@ class ViewController
     void setConfigRequested(bool required);
 
   protected:
+    ViewController(AsyncMessageLog::Writer writer, AsyncMessageLog::Clear clear, AsyncMessageLog::Clock clock = {});
     // generic send method to send a (decoded) payload in a meshpacket to radio
     virtual bool send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload, bool wantRsp = false);
     // generic send method to send a decoded byte string in a meshpacket to radio
@@ -118,4 +121,6 @@ class ViewController
     bool configCompleted;       // true if all data from node has been received
     bool messagesRestored;      // true if log messages have been restored
     bool requestConfigRequired; // true if config needs to be reloaded from the node
+    std::atomic<bool> sleepFlushBackoff{false};
+    std::atomic<uint32_t> sleepFlushFailedAt{0};
 };

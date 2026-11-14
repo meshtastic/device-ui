@@ -28,8 +28,11 @@ class MeshtasticView : public DeviceGUI
     virtual void init(IClientBase *client);
     virtual void task_handler(void);
     virtual void triggerHeartbeat(void);
+    void prepareSleep(void) override;
     virtual bool sleep(int16_t pin);
     bool prepareShutdown(uint32_t timeoutMs) override;
+    void blankScreen(bool enable) override;
+    void screenSaving(bool enabled) override;
 
     uint32_t getMyNodeNum(void) const { return ownNode; }
 

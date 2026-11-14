@@ -26,6 +26,13 @@ ViewController::ViewController()
 {
 }
 
+ViewController::ViewController(AsyncMessageLog::Writer writer, AsyncMessageLog::Clear clear, AsyncMessageLog::Clock clock)
+    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)),
+      messageLog(std::move(writer), std::move(clear), std::move(clock)), client(nullptr), sendId(1), myNodeNum(0),
+      setupDone(false), configCompleted(false), messagesRestored(false), requestConfigRequired(true)
+{
+}
+
 void ViewController::init(MeshtasticView *gui, IClientBase *_client)
 {
     time(&lastrun1);
@@ -91,10 +98,12 @@ void ViewController::runOnce(void)
 
 bool ViewController::sleep(int16_t pin)
 {
-    if (client)
-        return client->sleep(pin);
-    else
+    if (!client)
         return false;
+    if (!sleepFlushBackoff.load() || millis() - sleepFlushFailedAt.load() >= 10000) {
+        flushMessageLog(1000);
+    }
+    return client->sleep(pin);
 }
 
 bool ViewController::isStandalone(void)
@@ -112,6 +121,18 @@ void ViewController::stop(void)
     if (client) {
         client->disconnect();
     }
+}
+
+bool ViewController::flushMessageLog(uint32_t timeoutMs)
+{
+    if (messageLog.flush(timeoutMs)) {
+        sleepFlushBackoff = false;
+        return true;
+    }
+    ILOG_WARN("Message persistence incomplete before sleep");
+    sleepFlushFailedAt = millis();
+    sleepFlushBackoff = true;
+    return false;
 }
 
 bool ViewController::prepareShutdown(uint32_t timeoutMs)
