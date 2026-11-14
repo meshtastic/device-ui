@@ -5,7 +5,7 @@
  * @brief For simulation on pc/raspberry
  * This class provides an SDL GUI on the local desktop; dimensions are defined
  * in lv_drv_conf.h Usage: define USE_SDL=1 for the rasbian/portduino target and
- * link with -lSDL
+ * link with -lSDL2
  */
 class SDLDriver : public DisplayDriver
 {
