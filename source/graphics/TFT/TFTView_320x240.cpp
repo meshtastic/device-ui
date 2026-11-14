@@ -6309,7 +6309,7 @@ void TFTView_320x240::applyOwnUserNames(const char *userShort, const char *userL
     if (strcmp(userShort, db.user.short_name) == 0 && strcmp(userLong, db.user.long_name) == 0)
         return;
 
-    meshtastic_User user{}; // TODO: don't overwrite is_licensed
+    meshtastic_User user = db.user; // keeps is_licensed and other owner fields
     std::snprintf(user.short_name, sizeof(user.short_name), "%s", userShort);
     std::snprintf(user.long_name, sizeof(user.long_name), "%s", userLong);
     if (!controller->sendConfig(user, ownNode)) {
