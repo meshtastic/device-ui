@@ -1,6 +1,7 @@
 #include "graphics/DeviceScreen.h"
 #include "Arduino.h"
 #include "graphics/common/ViewFactory.h"
+#include "graphics/driver/DisplayDriver.h"
 #include "util/ILog.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -79,6 +80,16 @@ void DeviceScreen::task_handler(void)
 void DeviceScreen::toggleDisplay(void)
 {
     gui->toggleDisplay();
+}
+
+void DeviceScreen::forceWakeup(void)
+{
+    gui->getDisplayDriver()->forceWakeup();
+}
+
+bool DeviceScreen::prepareShutdown(uint32_t timeoutMs)
+{
+    return gui->prepareShutdown(timeoutMs);
 }
 
 #if defined(ARDUINO_ARCH_ESP32)

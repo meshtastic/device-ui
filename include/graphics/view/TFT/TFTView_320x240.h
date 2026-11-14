@@ -1,4 +1,5 @@
 #pragma once
+#include "graphics/common/ChatHistory.h"
 
 #include "graphics/common/MeshtasticView.h"
 #include "graphics/common/NodeStore.h"
@@ -13,6 +14,8 @@
 
 class MapPanel;
 class TFTView_Debug;
+class IStorage;
+struct StorageInfo;
 
 /**
  * @brief RAII helper to temporarily change the default LVGL input group
@@ -255,9 +258,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void armSDCardStatsPoll(void);
     // release the card so it can be pulled safely; a tap mounts it again
     void ejectSDCard(void);
-#if defined(HAS_SDCARD) || defined(SENSECAP_INDICATOR)
-    void formatSDCardLabel(char *buf, size_t len);
-#endif
+    void formatSDCardLabel(const StorageInfo &info, char *buf, size_t len);
     uint16_t sdStatsPolls = 0;
     // format SD card if invalid
     virtual void formatSDCard(void);
@@ -290,6 +291,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     static TFTView_320x240 *instance(const DisplayDriverConfig &cfg);
     TFTView_320x240();
     TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
+    DisplayDriverConfig::scrollbar_mode_t navigationScrollbarMode = DisplayDriverConfig::scrollbar_mode_t::AUTO;
 
     void enterProgrammingMode(void);
     void updateTheme(void);
@@ -374,9 +376,19 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void storeNodeOptions(void);
     void eraseChat(uint32_t channelOrNode);
     void clearChatHistory(void);
+    void appendChatEntry(lv_obj_t *container, ChatHistory::Entry entry);
+    lv_obj_t *createChatBubble(lv_obj_t *container, const ChatHistory::Entry &entry);
+    void renderChat(lv_obj_t *container, bool follow = false, size_t previousFirst = SIZE_MAX);
+    void updateChatStatus(uint32_t channelOrNode, uint32_t requestId, LogMessage::MsgStatus status);
+    void textMessageStatus(uint32_t requestId, LogMessage::MsgStatus status) override;
+    void hideChat(lv_obj_t *container);
+    void shiftChat(lv_obj_t *container, bool older);
+    static void ui_event_chat_history(lv_event_t *event);
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
     void setBellText(bool banner, bool sound);
     void setChannelName(const meshtastic_Channel &ch);
+    void syncOwnNodeUser(const meshtastic_User &cfg);
+    void applyOwnUserNames(const char *userShort, const char *userLong);
     uint32_t timestamp(char *buf, uint32_t time, bool update);
     void updateLocationMap(uint32_t objects);
     void attribution(std::string url);
@@ -526,6 +538,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     lv_obj_t *activeTopPanel = nullptr;
     lv_obj_t *lastMainButton = nullptr;
     lv_obj_t *activeMsgContainer = nullptr;
+    std::unordered_map<lv_obj_t *, ChatHistory> chatHistories;
+    bool updatingChat = false;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets
@@ -543,6 +557,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     bool detectorRunning;                            // meshDetector is active
     bool cardDetected;                               // SD has been detected
     bool formatSD;                                   // offer to format SD card
+    IStorage *storage = nullptr;                     // SD card (or host folder)
+    bool mapStylesScanned = false;                   // map styles read from the current mount
     uint16_t buttonSize;                             // size of group/chat buttons in pixels
     uint16_t statisticTableRows;                     // number of rows in statistics table
     uint16_t packetCounter;                          // number of packets in packet log
@@ -568,6 +584,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     std::array<lv_obj_t *, c_max_channels> ch_label;      // indexable label list for settings
     meshtastic_Channel *channel_scratch;                  // temporary scratch copy of channel db
     lv_obj_t *qr;                                         // qr code
+    lv_obj_t *aboutPublicKey = nullptr;                   // public key line in the about panel
     MapPanel *map = nullptr;                              // map
     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
     struct ShortName4 {
@@ -584,7 +601,6 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
 
     // additional local ui data (non-persistent)
     struct meshtastic_DeviceProfile_full : meshtastic_DeviceProfile_ext {
-        bool silent;                                        // sound silenced
         meshtastic_DeviceConnectionStatus connectionStatus; // wifi/bluetooth/ethernet
     };
 

@@ -20,7 +20,7 @@ option(ENABLE_DEBUG_LOG "Enable debug log" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL ON) # with newer cmake versions put all find_package in global scope
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
@@ -49,7 +49,7 @@ find_package(CURL REQUIRED)
 file(GLOB_RECURSE sources      source/* generated/* portduino/* locale/* generated/${GENERATED_VIEW}/*)
 file(GLOB_RECURSE sources_test tests/*.cpp)
 
-add_library(DeviceUI ${sources})
+add_library(DeviceUI ${sources} resources/mouse_cursor_icon.c src/mesh-pb-constants.cpp)
 target_link_libraries(DeviceUI PRIVATE lvgl::lvgl libdeflate LovyanGFX Portduino Protobufs CURL::libcurl)
 
 # Handle Windows Static linking dependencies if applicable

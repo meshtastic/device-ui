@@ -2,7 +2,7 @@
 
 ## Project and Build Context
 
-This repository is the Meshtastic device UI C++17 library. It supports embedded Arduino-based devices and Linux/Portduino; this checkout does not define PlatformIO environments (`platformio.ini`/`variants`). For firmware builds, use the consuming firmware repository's target and build instructions rather than assuming a local PlatformIO target here.
+This repository is the Meshtastic device UI C++20 library. It supports embedded Arduino-based devices and Linux/Portduino; this checkout does not define PlatformIO environments (`platformio.ini`/`variants`). For firmware builds, use the consuming firmware repository's target and build instructions rather than assuming a local PlatformIO target here.
 
 The standalone native build uses CMake, Portduino, LVGL, and doctest. From this repository root:
 
@@ -27,8 +27,8 @@ ctest --test-dir build --output-on-failure
 
 ## Architecture and Platform Boundaries
 
-- C++17 is required (`CMAKE_CXX_STANDARD` is 17 and extensions are disabled).
-- Follow existing subsystem boundaries: public contracts generally live under `include/`, with implementations under `source/`. Reuse established interfaces and factories, such as `IClientBase`, `IFileSystem`, `DisplayDriverFactory`, and `ViewFactory`; do not add a parallel abstraction without a concrete need.
+- C++20 is required (`CMAKE_CXX_STANDARD` is 20 and extensions are disabled).
+- Follow existing subsystem boundaries: public contracts generally live under `include/`, with implementations under `source/`. Reuse established interfaces and factories, such as `IClientBase`, `IStorage`, `DisplayDriverFactory`, and `ViewFactory`; do not add a parallel abstraction without a concrete need.
 - New shared UI behavior should work across all supported devices. Do not scatter `#ifdef DEVICE_X` checks through shared logic to handle individual boards.
 - Put device-specific behavior behind the narrowest suitable existing abstraction. When a new behavior genuinely differs by device, prefer an abstract interface with device-specific implementations selected by a factory, following patterns such as `DisplayDriver` and `DisplayDriverFactory`.
 - Keep device-specific compile-time checks at platform or factory registration boundaries when required by the build or hardware APIs. Follow the existing conditional-registration patterns; do not add an interface or factory when the existing abstraction already handles the variation.

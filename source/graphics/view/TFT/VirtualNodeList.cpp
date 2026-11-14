@@ -259,6 +259,8 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_style_border_width(row.img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
 
         row.btn = lv_button_create(row.panel);
+        // rows join the navigation group only while bound; keep hidden pool buttons out of the default group
+        lv_group_remove_obj(row.btn);
         lv_obj_set_pos(row.btn, 0, 0);
         lv_obj_set_size(row.btn, lv_pct(106), lv_pct(100));
         lv_obj_set_align(row.btn, LV_ALIGN_CENTER);

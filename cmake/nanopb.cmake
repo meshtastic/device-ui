@@ -4,7 +4,8 @@ message(STATUS "Fetching nanopb ...")
 FetchContent_Declare(
     nanopb
     GIT_REPOSITORY https://github.com/nanopb/nanopb.git
-    GIT_TAG 0.4.9.1
+    # renovate: datasource=github-tags packageName=nanopb/nanopb
+    GIT_TAG nanopb-0.4.9.1
 )
 FetchContent_MakeAvailable(nanopb)
 
@@ -54,8 +55,8 @@ set(GENERATED_FILES)
 foreach(PROTO_FILE ${PROTO_FILES})
     get_filename_component(PROTO_FILE_NAME ${PROTO_FILE} NAME_WE)
     add_custom_command(
-        OUTPUT ${GENERATED_FILES_DIR}/meshtastic/${PROTO_FILE_NAME}.pb.cpp ${GENERATED_FILES_DIR}/${PROTO_FILE_NAME}.pb.h
-        COMMAND ${CMAKE_COMMAND} -E env PYTHONWARNINGS=ignore::UserWarning
+        OUTPUT ${GENERATED_FILES_DIR}/meshtastic/${PROTO_FILE_NAME}.pb.cpp ${GENERATED_FILES_DIR}/meshtastic/${PROTO_FILE_NAME}.pb.h
+        COMMAND ${CMAKE_COMMAND} -E env PYTHONWARNINGS=ignore::UserWarning NANOPB_PB2_TEMP_DIR=1
                 ${nanopb_SOURCE_DIR}/generator/protoc 
                 --experimental_allow_proto3_optional 
                 --nanopb_out=-S.cpp:${GENERATED_FILES_DIR} 
@@ -72,4 +73,5 @@ endforeach()
 
 # Add the generated files to the project
 add_library(Protobufs ${GENERATED_SOURCES})
+target_link_libraries(Protobufs PUBLIC protobuf-nanopb-static)
 target_include_directories(Protobufs PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${GENERATED_FILES_DIR} ${nanopb_SOURCE_DIR})

@@ -12,6 +12,7 @@ set(LIBDEFLATE_BUILD_TESTS OFF CACHE BOOL "Build the test programs" FORCE)
 FetchContent_Declare(
     libdeflate
     GIT_REPOSITORY "https://github.com/mverch67/libdeflate.git"
+    # renovate: datasource=git-refs depName=mverch67/libdeflate packageName=https://github.com/mverch67/libdeflate gitBranch=master
     GIT_TAG  "7291dd18ed11df673cce8e33b7f432a1273f1945"
 )
 FetchContent_MakeAvailable(libdeflate)

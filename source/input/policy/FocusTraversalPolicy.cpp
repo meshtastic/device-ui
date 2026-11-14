@@ -15,14 +15,8 @@ PolicyDecision FocusTraversalPolicy::evaluate(const InputEvent &event, const Inp
                      (int)context.focusSemantic);
         return PolicyDecision{};
     }
-    if (context.focusSemantic == FocusSemantic::Keyboard) {
-        if (event.action == InputAction::NavigateLeft || event.action == InputAction::NavigateRight) {
-            POLICY_DEBUG("[FocusTraversal] Keeping Left/Right for keyboard navigation");
-            return PolicyDecision{};
-        }
-    }
-    if (context.focusSemantic == FocusSemantic::ButtonMatrix) {
-        POLICY_DEBUG("[FocusTraversal] Keeping up/down for button matrix navigation");
+    if (context.focusSemantic == FocusSemantic::Keyboard || context.focusSemantic == FocusSemantic::ButtonMatrix) {
+        POLICY_DEBUG("[FocusTraversal] Keeping directional keys for keyboard/button matrix navigation");
         return PolicyDecision{}; // pass through UP/DOWN/LEFT/RIGHT unchanged
     }
     if (context.focusSemantic == FocusSemantic::Dropdown && context.isEditMode) {

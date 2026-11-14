@@ -142,9 +142,18 @@ class DisplayDriverConfig
         int16_t pin_cs = -1;
     };
 
+    enum struct cursor_mode_t { AUTO, ALWAYS, NEVER };
+    enum struct scrollbar_mode_t { AUTO, ON, OFF };
+
     struct input_config_t {
         std::string keyboardDevice;
         std::string pointerDevice;
+        bool keyboardNavigation = true;
+        cursor_mode_t cursorMode = cursor_mode_t::AUTO;
+    };
+
+    struct navigation_config_t {
+        scrollbar_mode_t scrollbarMode = scrollbar_mode_t::AUTO;
     };
 
     struct light_config_t {
@@ -166,6 +175,7 @@ class DisplayDriverConfig
     DisplayDriverConfig &bus(bus_config_t &&cfg);
     DisplayDriverConfig &touch(touch_config_t &&cfg);
     DisplayDriverConfig &input(input_config_t &&cfg);
+    DisplayDriverConfig &navigation(navigation_config_t &&cfg);
     DisplayDriverConfig &light(light_config_t &&cfg);
 
     uint16_t width(void) const { return _width; }
@@ -173,6 +183,9 @@ class DisplayDriverConfig
     float zoom(void) const { return _zoom; }
     const std::string &keyboard(void) const { return _input.keyboardDevice; }
     const std::string &pointer(void) const { return _input.pointerDevice; }
+    bool keyboardNavigation(void) const { return _input.keyboardNavigation; }
+    cursor_mode_t cursorMode(void) const { return _input.cursorMode; }
+    const navigation_config_t &navigation(void) const { return _navigation; }
 
   private:
     friend class DisplayDriverFactory;
@@ -184,6 +197,7 @@ class DisplayDriverConfig
     bus_config_t _bus;
     touch_config_t _touch;
     input_config_t _input;
+    navigation_config_t _navigation;
     light_config_t _light;
     uint16_t _width = c_default_width;
     uint16_t _height = c_default_height;

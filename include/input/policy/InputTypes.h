@@ -25,7 +25,7 @@ enum class FocusSemantic {
     Menu,
     Slider,
     Scrollable,   // panel that uses UP/DOWN for scroll, not group focus traversal
-    Keyboard,     // virtual keyboard visible: UP/DOWN still remap to PREV/NEXT (LVGL has no row awareness)
+    Keyboard,     // virtual keyboard visible: pass through all directional keys, ESC leaves
     ButtonMatrix, // PIN pad: pass through all directional keys, no PREV/NEXT remap
     Dropdown,     // dropdown list open (edit mode): UP/DOWN move the selection, no PREV/NEXT remap
     MapZoom,      // map: UP/DOWN zoom, LEFT/RIGHT pan, no PREV/NEXT remap
