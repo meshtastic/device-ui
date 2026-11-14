@@ -1,4 +1,5 @@
 #include "graphics/common/ResponseHandler.h"
+#include "graphics/common/ViewController.h"
 #include "util/AsyncMessageLog.h"
 #include <algorithm>
 #include <atomic>
@@ -256,4 +257,51 @@ TEST_CASE("response timeout callbacks identify the packet rather than its destin
                             });
     requests.task_handler();
     CHECK(expiredPacket == packetId);
+}
+
+TEST_CASE("ViewController sleep delegates to client without shutting down message log")
+{
+    struct MockSleepClient : IClientBase {
+        int16_t lastSleepPin = -1;
+        bool sleepResult = true;
+        bool disconnected = false;
+        void init(void) override {}
+        bool connect(void) override { return true; }
+        bool disconnect(void) override
+        {
+            disconnected = true;
+            return true;
+        }
+        bool isConnected(void) override { return !disconnected; }
+        bool isStandalone(void) override { return false; }
+        bool sleep(int16_t pin) override
+        {
+            lastSleepPin = pin;
+            return sleepResult;
+        }
+        bool send(meshtastic_ToRadio &&) override { return true; }
+        meshtastic_FromRadio receive(void) override { return meshtastic_FromRadio_init_zero; }
+        void setNotifyCallback(NotifyCallback) override {}
+    };
+
+    struct TestableViewController : ViewController {
+        void attachClient(IClientBase *c) { client = c; }
+        bool appendMessage(std::unique_ptr<LogMessageEnv> entry, uint32_t requestId = 0, uint32_t timeoutMs = 0)
+        {
+            return messageLog.append(std::move(entry), requestId, timeoutMs);
+        }
+    };
+
+    MockSleepClient mockClient;
+    TestableViewController controller;
+
+    CHECK_FALSE(controller.sleep(42));
+    controller.attachClient(&mockClient);
+    CHECK(controller.sleep(42));
+    CHECK(mockClient.lastSleepPin == 42);
+    CHECK(controller.appendMessage(message(1, 2, 0), 99, 60000));
+
+    controller.stop();
+    CHECK(mockClient.disconnected);
+    CHECK_FALSE(controller.appendMessage(message(1, 2, 0)));
 }

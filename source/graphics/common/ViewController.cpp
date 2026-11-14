@@ -91,8 +91,6 @@ void ViewController::runOnce(void)
 
 bool ViewController::sleep(int16_t pin)
 {
-    if (!prepareShutdown(1000))
-        return false;
     if (client)
         return client->sleep(pin);
     else
