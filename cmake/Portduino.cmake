@@ -8,6 +8,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Portduino)
 target_sources(Portduino PRIVATE
+    ${portduino_SOURCE_DIR}/cores/portduino/PortduinoGPIO.cpp
     ${portduino_SOURCE_DIR}/cores/portduino/logging.cpp
     ${portduino_SOURCE_DIR}/cores/portduino/FS/FS.cpp
     ${portduino_SOURCE_DIR}/cores/portduino/FS/PortduinoFS.cpp
