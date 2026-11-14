@@ -3,6 +3,7 @@
 #include "src/display/lv_display_private.h"
 #include "util/ILog.h"
 #include <stdio.h>
+#include <thread>
 
 LV_IMG_DECLARE(mouse_cursor_icon);
 
@@ -37,6 +38,24 @@ void X11Driver::init(DeviceGUI *gui)
         x11Flush(disp, area, px_map);
     });
     lv_x11_inputs_create(display, &mouse_cursor_icon);
+}
+
+/**
+ * Measure how long it takes to call DisplayDriver::task_handler().
+ * Then tell the lvgl library how long it took via lv_tick_inc().
+ */
+void X11Driver::task_handler(void)
+{
+    const int ms = 10;
+    auto start = std::chrono::high_resolution_clock::now();
+    DisplayDriver::task_handler();
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    if (duration.count() < ms) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms - duration.count()));
+    } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 }
 
 #endif
