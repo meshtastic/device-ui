@@ -736,7 +736,9 @@
  *
  *  Enable: LV_USE_FLOAT
  */
+#ifndef LV_USE_GESTURE_RECOGNITION
 #define LV_USE_GESTURE_RECOGNITION 0
+#endif
 
 #if LV_USE_GESTURE_RECOGNITION
 /** Scale the fingers need to pinch down to before pinch events are sent. */
