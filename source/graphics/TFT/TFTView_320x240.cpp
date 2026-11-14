@@ -2743,8 +2743,8 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     ILOG_DEBUG("ui_event_message_ready: event_code=%d", event_code);
     if (event_code == LV_EVENT_FOCUSED) {
-        // Ignore internal focus evacuation from hideChat() so it does not hijack the active group or edit state.
-        if (THIS && THIS->hidingChat)
+        // Ignore internal focus evacuation so it does not hijack the active group or edit state.
+        if (THIS && THIS->evacuatingChatFocus)
             return;
         if (THIS && THIS->defaultPanelGroup)
             THIS->setInputGroup(THIS->defaultPanelGroup);
@@ -6092,6 +6092,34 @@ lv_obj_t *TFTView_320x240::createChatBubble(lv_obj_t *container, const ChatHisto
     return hiddenPanel;
 }
 
+bool TFTView_320x240::isDefaultPanelGroupActive(void) const
+{
+    if (!defaultPanelGroup || !inputdriver)
+        return false;
+    if (inputdriver->hasKeyboardDevice() && lv_indev_get_group(inputdriver->getKeyboard()) != defaultPanelGroup)
+        return false;
+    if (inputdriver->hasEncoderDevice() && lv_indev_get_group(inputdriver->getEncoder()) != defaultPanelGroup)
+        return false;
+    return true;
+}
+
+void TFTView_320x240::evacuateChatFocus(lv_obj_t *target, bool suppressFocusEffects)
+{
+    auto *focused = lv_group_get_focused(defaultPanelGroup);
+    if (!focused || !isInside(focused, target))
+        return;
+    // Keep defaultPanelGroup->obj_focus off deleted bubbles without triggering LVGL's active-group hijack.
+    const bool previousSuppress = evacuatingChatFocus;
+    if (suppressFocusEffects)
+        evacuatingChatFocus = true;
+    lv_group_focus_obj(objects.message_input_area);
+    evacuatingChatFocus = previousSuppress;
+    if (suppressFocusEffects) {
+        lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY | LV_STATE_EDITED);
+        lv_obj_invalidate(objects.message_input_area);
+    }
+}
+
 void TFTView_320x240::appendChatEntry(lv_obj_t *container, ChatHistory::Entry entry)
 {
     auto &history = chatHistories[container];
@@ -6112,9 +6140,7 @@ void TFTView_320x240::appendChatEntry(lv_obj_t *container, ChatHistory::Entry en
     updatingChat = true;
     if (history.first() > previousFirst) {
         auto *oldest = lv_obj_get_child(container, 0);
-        auto *focused = lv_group_get_focused(defaultPanelGroup);
-        if (focused && isInside(focused, oldest))
-            lv_group_focus_obj(objects.message_input_area);
+        evacuateChatFocus(oldest, !isDefaultPanelGroupActive());
         lv_obj_delete(oldest);
     }
     auto *newest = createChatBubble(container, history.at(history.last() - 1));
@@ -6132,12 +6158,8 @@ void TFTView_320x240::hideChat(lv_obj_t *container)
     history.scrollY =
         history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);
     updatingChat = true;
-    hidingChat = true;
-    auto *focused = lv_group_get_focused(defaultPanelGroup);
-    if (focused && isInside(focused, container))
-        lv_group_focus_obj(objects.message_input_area);
+    evacuateChatFocus(container, true);
     lv_obj_clean(container);
-    hidingChat = false;
     updatingChat = false;
 }
 
@@ -6153,6 +6175,7 @@ void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previo
         history.opened = true;
     }
     const int32_t scroll = lv_obj_get_child_count(container) ? lv_obj_get_scroll_y(container) : history.scrollY;
+    const bool panelGroupActive = isDefaultPanelGroupActive();
     updatingChat = true;
     auto *focused = lv_group_get_focused(defaultPanelGroup);
     int32_t focusedIndex = -1;
@@ -6161,7 +6184,7 @@ void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previo
             (previousFirst == SIZE_MAX ? history.first() : previousFirst) + lv_obj_get_index(lv_obj_get_parent(focused));
         if (logicalIndex >= history.first() && logicalIndex < history.last())
             focusedIndex = logicalIndex - history.first();
-        lv_group_focus_obj(objects.message_input_area);
+        evacuateChatFocus(container, !panelGroupActive || focusedIndex >= 0);
     }
     lv_obj_clean(container);
     for (size_t index = history.first(); index < history.last(); ++index)
@@ -6173,7 +6196,13 @@ void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previo
         lv_obj_scroll_to_y(container, scroll, LV_ANIM_OFF);
     if (focusedIndex >= 0 && lv_obj_get_child_count(container)) {
         auto *panel = lv_obj_get_child(container, std::min<int32_t>(focusedIndex, lv_obj_get_child_count(container) - 1));
-        lv_group_focus_obj(lv_obj_get_child(panel, 0));
+        if (lv_obj_t *target = lv_obj_get_child(panel, 0)) {
+            lv_group_focus_obj(target);
+            if (!panelGroupActive) {
+                lv_obj_remove_state(target, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY);
+                lv_obj_invalidate(target);
+            }
+        }
     }
     history.scrollY =
         history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);

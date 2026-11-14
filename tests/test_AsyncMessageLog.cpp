@@ -401,6 +401,7 @@ TEST_CASE("flush timeout uses injected clock safely across 32-bit rollover")
         finished = true;
     });
     ScopeExit joinFlusher{[&] {
+        allowWrite = true;
         clock = 14;
         if (flusher.joinable())
             flusher.join();
@@ -607,6 +608,7 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
 
     // Simulate persistent storage failure across 32-bit clock rollover
     mockClient.sleepResult = false;
+    ScopeExit restoreWrites{[&] { allowWrite = true; }};
     allowWrite = false;
     clock = UINT32_MAX - 1000 - AsyncMessageLog::defaultTimeoutMs;
     REQUIRE(controller.appendMessage(message(1, 6, 0), 105, c_request_timeout));
@@ -614,6 +616,7 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
     bool sleepRet = true;
     std::thread sleepRunner([&] { sleepRet = controller.sleep(42); });
     ScopeExit joinSleepRunner{[&] {
+        allowWrite = true;
         clock = UINT32_MAX - 1000;
         if (sleepRunner.joinable())
             sleepRunner.join();

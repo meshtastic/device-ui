@@ -383,6 +383,8 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void updateChatStatus(uint32_t channelOrNode, uint32_t requestId, LogMessage::MsgStatus status);
     void textMessageStatus(uint32_t requestId, LogMessage::MsgStatus status) override;
     void hideChat(lv_obj_t *container);
+    bool isDefaultPanelGroupActive(void) const;
+    void evacuateChatFocus(lv_obj_t *target, bool suppressFocusEffects);
     void shiftChat(lv_obj_t *container, bool older);
     static void ui_event_chat_history(lv_event_t *event);
     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
@@ -539,7 +541,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     lv_obj_t *activeMsgContainer = nullptr;
     std::unordered_map<lv_obj_t *, ChatHistory> chatHistories;
     bool updatingChat = false;
-    bool hidingChat = false;
+    bool evacuatingChatFocus = false;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets
