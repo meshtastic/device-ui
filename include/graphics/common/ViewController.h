@@ -86,6 +86,8 @@ class ViewController
     void setConfigRequested(bool required);
 
   protected:
+    ViewController(AsyncMessageLog::Writer writer, AsyncMessageLog::Clear clear);
+
     // generic send method to send a (decoded) payload in a meshpacket to radio
     virtual bool send(uint32_t to, meshtastic_PortNum portnum, const meshtastic_Data_payload_t &payload, bool wantRsp = false);
     // generic send method to send a decoded byte string in a meshpacket to radio

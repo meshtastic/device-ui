@@ -133,7 +133,7 @@ void AsyncMessageLog::suspend(void)
     do {
         {
             std::lock_guard<Mutex> guard(mutex);
-            suspended = true;
+            suspended = accepting;
             if (!busy)
                 return;
         }

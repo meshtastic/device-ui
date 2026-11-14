@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <cstring>
 #include <doctest/doctest.h>
+#include <functional>
 #include <future>
 #include <mutex>
 #include <vector>
@@ -50,10 +51,10 @@ struct Recorder {
         return true;
     }
 
-    bool waitFor(size_t count)
+    bool waitFor(size_t count, std::chrono::milliseconds timeout = std::chrono::seconds(2))
     {
         std::unique_lock<std::mutex> guard(mutex);
-        return changed.wait_for(guard, std::chrono::seconds(2), [&] { return entries.size() >= count; });
+        return changed.wait_for(guard, timeout, [&] { return entries.size() >= count; });
     }
 };
 
@@ -61,6 +62,7 @@ struct SleepClient : IClientBase {
     bool standalone = false;
     bool wakeByPin = false;
     int16_t sleepPin = -1;
+    std::function<void()> onSleep;
 
     void init(void) override {}
     bool connect(void) override { return true; }
@@ -70,6 +72,8 @@ struct SleepClient : IClientBase {
     bool sleep(int16_t pin) override
     {
         sleepPin = pin;
+        if (onSleep)
+            onSleep();
         return wakeByPin;
     }
     bool send(meshtastic_ToRadio &&) override { return true; }
@@ -78,7 +82,11 @@ struct SleepClient : IClientBase {
 };
 
 struct SleepController : ViewController {
-    explicit SleepController(IClientBase *connection) { client = connection; }
+    SleepController(IClientBase *connection, Recorder &recorder)
+        : ViewController([&recorder](const LogMessageEnv &entry) { return recorder.write(entry); }, [] { return true; })
+    {
+        client = connection;
+    }
     using ViewController::messageLog;
 };
 } // namespace
@@ -211,25 +219,58 @@ TEST_CASE("terminal shutdown drains messages even while persistence is suspended
     CHECK_FALSE(log.append(message()));
 }
 
-TEST_CASE("controller sleep preserves message acceptance for both client modes and wake reasons")
+TEST_CASE("terminal shutdown takes precedence over later suspension")
+{
+    Recorder recorder;
+    AsyncMessageLog log([&](const LogMessageEnv &entry) { return recorder.write(entry); }, [] { return true; });
+    REQUIRE(log.append(message(), 42, 60000));
+    CHECK_FALSE(log.prepareShutdown(0));
+    log.suspend();
+    REQUIRE(log.start());
+    CHECK(recorder.waitFor(1));
+    CHECK(log.prepareShutdown(1000));
+    CHECK_FALSE(log.append(message()));
+}
+
+TEST_CASE("controller sleep pauses standalone persistence and resumes after either wake reason")
 {
     for (bool standalone : {false, true}) {
         CAPTURE(standalone);
+        Recorder recorder;
         SleepClient client;
         client.standalone = standalone;
-        SleepController controller(&client);
-        REQUIRE(controller.messageLog.append(message(), 42, 60000));
+        SleepController controller(&client, recorder);
+        REQUIRE(controller.messageLog.start());
+        size_t expectedEntries = 0;
         for (bool wakeByPin : {false, true}) {
             CAPTURE(wakeByPin);
+            REQUIRE(controller.messageLog.append(message(), 42, 60000));
+            client.onSleep = [&] {
+                controller.setTextMessageStatus(42, LogMessage::eAcked, true);
+                if (standalone)
+                    CHECK_FALSE(recorder.waitFor(expectedEntries + 1, std::chrono::milliseconds(50)));
+                else
+                    CHECK(recorder.waitFor(expectedEntries + 1));
+            };
             client.wakeByPin = wakeByPin;
             CHECK(controller.sleep(7) == wakeByPin);
             CHECK(client.sleepPin == 7);
+            REQUIRE(recorder.waitFor(++expectedEntries));
             REQUIRE(controller.messageLog.append(message()));
+            REQUIRE(recorder.waitFor(++expectedEntries));
         }
+        REQUIRE(controller.messageLog.prepareShutdown(1000));
+        REQUIRE(recorder.entries.size() == 4);
+        CHECK(recorder.entries[0]->status == LogMessage::eAcked);
+        CHECK(recorder.entries[2]->status == LogMessage::eAcked);
     }
-    SleepController controller(nullptr);
+    Recorder recorder;
+    SleepController controller(nullptr, recorder);
+    REQUIRE(controller.messageLog.start());
     CHECK_FALSE(controller.sleep(7));
-    CHECK(controller.messageLog.append(message()));
+    REQUIRE(controller.messageLog.append(message()));
+    REQUIRE(recorder.waitFor(1));
+    REQUIRE(controller.messageLog.prepareShutdown(1000));
 }
 
 TEST_CASE("chat deletion cancels unresolved entries before writing its tombstone")
