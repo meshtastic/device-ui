@@ -15,6 +15,12 @@
 
 namespace
 {
+template <typename Fn> struct ScopeExit {
+    Fn fn;
+    ~ScopeExit() { fn(); }
+};
+template <typename Fn> ScopeExit(Fn) -> ScopeExit<Fn>;
+
 std::unique_ptr<LogMessageEnv> message(uint32_t from = 1, uint32_t to = 2, uint8_t channel = 0)
 {
     return std::make_unique<LogMessageEnv>(from, to, channel, 123, LogMessage::eDefault, false, 4,
@@ -394,6 +400,11 @@ TEST_CASE("flush timeout uses injected clock safely across 32-bit rollover")
         flushResult = log.flush(rolloverTimeoutMs);
         finished = true;
     });
+    ScopeExit joinFlusher{[&] {
+        clock = 14;
+        if (flusher.joinable())
+            flusher.join();
+    }};
 
     {
         std::unique_lock<std::mutex> guard(mutex);
@@ -446,7 +457,19 @@ TEST_CASE("flush ignores newer unresolved appends arriving concurrently after fl
     REQUIRE(log.start());
 
     std::atomic<bool> flushResult{false};
+    auto releaseWriter = [&] {
+        {
+            std::lock_guard<std::mutex> guard(releaseMutex);
+            allowFirstWrite = true;
+        }
+        releaseWrite.notify_all();
+    };
     std::thread flusher([&] { flushResult = log.flush(); });
+    ScopeExit joinFlusher{[&] {
+        releaseWriter();
+        if (flusher.joinable())
+            flusher.join();
+    }};
     {
         std::unique_lock<std::mutex> guard(startMutex);
         REQUIRE(writeStarted.wait_for(guard, std::chrono::seconds(2), [&] { return inFirstWrite; }));
@@ -454,11 +477,7 @@ TEST_CASE("flush ignores newer unresolved appends arriving concurrently after fl
 
     // Appending a new 60s unresolved DM mid-flush must not force the active flush to time out
     REQUIRE(log.append(message(1, 3, 0), 71, c_request_timeout));
-    {
-        std::lock_guard<std::mutex> guard(releaseMutex);
-        allowFirstWrite = true;
-    }
-    releaseWrite.notify_all();
+    releaseWriter();
     flusher.join();
 
     CHECK(flushResult.load());
@@ -552,7 +571,7 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
     // 1. Display powersave via screenSaving(true) flushes an unresolved DM as eDefault
     REQUIRE(controller.appendMessage(message(1, 2, 0), 101, c_request_timeout));
     view.screenSaving(true);
-    CHECK(recorder.entries.size() == 1);
+    REQUIRE(recorder.entries.size() == 1);
     CHECK(recorder.entries[0]->status == LogMessage::eDefault);
 
     // 2. Display powersave via blankScreen(true) flushes another unresolved DM
@@ -594,6 +613,11 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
 
     bool sleepRet = true;
     std::thread sleepRunner([&] { sleepRet = controller.sleep(42); });
+    ScopeExit joinSleepRunner{[&] {
+        clock = UINT32_MAX - 1000;
+        if (sleepRunner.joinable())
+            sleepRunner.join();
+    }};
     {
         std::unique_lock<std::mutex> guard(attemptMutex);
         REQUIRE(attemptCv.wait_for(guard, std::chrono::seconds(2), [&] { return failedAttempts >= 1; }));

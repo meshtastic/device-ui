@@ -539,6 +539,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     lv_obj_t *activeMsgContainer = nullptr;
     std::unordered_map<lv_obj_t *, ChatHistory> chatHistories;
     bool updatingChat = false;
+    bool hidingChat = false;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets

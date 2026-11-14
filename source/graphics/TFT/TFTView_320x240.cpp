@@ -2743,6 +2743,9 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
     lv_event_code_t event_code = lv_event_get_code(e);
     ILOG_DEBUG("ui_event_message_ready: event_code=%d", event_code);
     if (event_code == LV_EVENT_FOCUSED) {
+        // Ignore internal focus evacuation from hideChat() so it does not hijack the active group or edit state.
+        if (THIS && THIS->hidingChat)
+            return;
         if (THIS && THIS->defaultPanelGroup)
             THIS->setInputGroup(THIS->defaultPanelGroup);
         TextareaEditContext::focus(lv_event_get_target_obj(e));
@@ -6129,10 +6132,12 @@ void TFTView_320x240::hideChat(lv_obj_t *container)
     history.scrollY =
         history.atLatest() && lv_obj_get_scroll_bottom(container) <= 20 ? INT32_MAX : lv_obj_get_scroll_y(container);
     updatingChat = true;
+    hidingChat = true;
     auto *focused = lv_group_get_focused(defaultPanelGroup);
     if (focused && isInside(focused, container))
         lv_group_focus_obj(objects.message_input_area);
     lv_obj_clean(container);
+    hidingChat = false;
     updatingChat = false;
 }
 

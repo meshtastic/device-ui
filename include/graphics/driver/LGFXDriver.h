@@ -123,13 +123,16 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             DisplayDriver::view->getInputDriver()->hasKeyboardDevice() || hasButton()) {
             if (hasLight()) {
                 if (!powerSaving) {
-                    // dim display brightness slowly down
+                    // Keep minimal backlight (brightness 1) until screenSaving(true) flushes
+                    // the message log so dark-screen feedback cannot precede the durable write.
                     uint32_t brightness = lgfx->getBrightness();
-                    if (brightness > 0) {
+                    if (brightness > 1) {
                         lgfx->setBrightness(brightness - 1);
                     } else {
                         ILOG_INFO("enter powersave");
                         DisplayDriver::view->screenSaving(true);
+                        if (brightness > 0)
+                            lgfx->setBrightness(0);
 #ifdef DISPLAY_POWER_BUTTON_ONLY
                         DisplayDriver::view->getInputDriver()->prepareSleep();
                         if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard())

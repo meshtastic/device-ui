@@ -49,8 +49,18 @@ find_package(CURL REQUIRED)
 file(GLOB_RECURSE sources      source/* generated/* portduino/* locale/* generated/${GENERATED_VIEW}/*)
 file(GLOB_RECURSE sources_test tests/*.cpp)
 
-add_library(DeviceUI ${sources} resources/mouse_cursor_icon.c)
-target_link_libraries(DeviceUI PRIVATE lvgl::lvgl libdeflate LovyanGFX Portduino Protobufs CURL::libcurl)
+# Portduino's upstream CMakeLists omits FS/, logging.cpp, and PortduinoGPIO.cpp; include them
+# directly in Portduino so test binaries resolving ViewController/LogRotate/PortduinoFS link cleanly.
+target_sources(Portduino PRIVATE
+    ${Portduino_SOURCE_DIR}/cores/portduino/FS/FS.cpp
+    ${Portduino_SOURCE_DIR}/cores/portduino/FS/PortduinoFS.cpp
+    ${Portduino_SOURCE_DIR}/cores/portduino/FS/vfs_api.cpp
+    ${Portduino_SOURCE_DIR}/cores/portduino/logging.cpp
+    ${Portduino_SOURCE_DIR}/cores/portduino/PortduinoGPIO.cpp
+)
+
+add_library(DeviceUI ${sources} src/mesh-pb-constants.cpp resources/mouse_cursor_icon.c)
+target_link_libraries(DeviceUI PRIVATE lvgl::lvgl libdeflate LovyanGFX Portduino Protobufs protobuf-nanopb-static CURL::libcurl)
 
 # Handle Windows Static linking dependencies if applicable
 if(WIN32)
@@ -82,7 +92,7 @@ if(ENABLE_DOCTESTS)
     include(CTest)
     enable_testing()
     add_executable(tests ${sources_test})
-    target_link_libraries(tests PRIVATE DeviceUI doctest::doctest lvgl::lvgl LovyanGFX Portduino Protobufs)
+    target_link_libraries(tests PRIVATE DeviceUI doctest::doctest lvgl::lvgl LovyanGFX Portduino Protobufs protobuf-nanopb-static)
     target_include_directories(tests PRIVATE 
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
