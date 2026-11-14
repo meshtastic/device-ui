@@ -49,7 +49,7 @@ find_package(CURL REQUIRED)
 file(GLOB_RECURSE sources      source/* generated/* portduino/* locale/* generated/${GENERATED_VIEW}/*)
 file(GLOB_RECURSE sources_test tests/*.cpp)
 
-add_library(DeviceUI ${sources} resources/mouse_cursor_icon.c)
+add_library(DeviceUI ${sources} resources/mouse_cursor_icon.c src/mesh-pb-constants.cpp)
 target_link_libraries(DeviceUI PRIVATE lvgl::lvgl libdeflate LovyanGFX Portduino Protobufs CURL::libcurl)
 
 # Handle Windows Static linking dependencies if applicable

@@ -7,6 +7,12 @@ FetchContent_Declare(
     GIT_TAG  "ce0ed7e9c62f3082b30ee9a5c369f30c1e55194a"
 )
 FetchContent_MakeAvailable(Portduino)
+target_sources(Portduino PRIVATE
+    ${portduino_SOURCE_DIR}/cores/portduino/logging.cpp
+    ${portduino_SOURCE_DIR}/cores/portduino/FS/FS.cpp
+    ${portduino_SOURCE_DIR}/cores/portduino/FS/PortduinoFS.cpp
+    ${portduino_SOURCE_DIR}/cores/portduino/FS/vfs_api.cpp
+)
 include_directories(${portduino_SOURCE_DIR}/cores/portduino)
 include_directories(${portduino_SOURCE_DIR}/cores/portduino/FS)
 include_directories(${portduino_SOURCE_DIR}/cores/arduino)
