@@ -73,4 +73,5 @@ endforeach()
 
 # Add the generated files to the project
 add_library(Protobufs ${GENERATED_SOURCES})
+target_link_libraries(Protobufs PUBLIC protobuf-nanopb-static)
 target_include_directories(Protobufs PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${GENERATED_FILES_DIR} ${nanopb_SOURCE_DIR})
