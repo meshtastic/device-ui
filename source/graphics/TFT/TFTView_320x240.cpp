@@ -24,6 +24,9 @@
 #include "images.h"
 #include "input/DiacriticRotation.h"
 #include "input/InputDriver.h"
+#ifdef T_DECK
+#include "input/I2CKeyboardInputDriver.h"
+#endif
 #include "input/KeypadReleaseGuard.h"
 #include "input/policy/InputContextState.h"
 #include "input/policy/UICommandDispatcher.h"
@@ -119,6 +122,69 @@ bool TFTView_320x240::screenLocked = false;
 bool TFTView_320x240::screenUnlockRequest = false;
 TFTView_320x240::KbdSlide TFTView_320x240::kbdSlideState = TFTView_320x240::eKbdHidden;
 int32_t TFTView_320x240::kbdPanelBaseY = INT32_MIN;
+
+#ifdef T_DECK
+
+static lv_obj_t *tdeckLayoutLabel = nullptr;
+
+/**
+ * Updates the T-Deck EN/EL keyboard layout indicator.
+ */
+static void updateTDeckLayoutIndicator()
+{
+    static int8_t shownLayout = -1;
+    static const lv_font_t *shownFont = nullptr;
+    static lv_color_t shownColor{};
+    static bool styleInitialized = false;
+
+    if (!tdeckLayoutLabel) {
+        tdeckLayoutLabel = lv_label_create(lv_layer_top());
+        lv_obj_set_style_text_font(tdeckLayoutLabel, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_color(tdeckLayoutLabel, lv_color_hex(0xffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_align(tdeckLayoutLabel, LV_ALIGN_TOP_RIGHT, -60, 2);
+        lv_obj_remove_flag(tdeckLayoutLabel, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_flag(tdeckLayoutLabel, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    const auto context = input_policy::InputContextState::instance().getSnapshot();
+    const bool textareaFocused =
+        context.focusSemantic == input_policy::FocusSemantic::TextEdit ||
+        context.focusSemantic == input_policy::FocusSemantic::TextAreaMultiLine;
+
+    if (!textareaFocused) {
+        lv_obj_add_flag(tdeckLayoutLabel, LV_OBJ_FLAG_HIDDEN);
+        return;
+    }
+
+    const bool greekLayout = TDeckKeyboardInputDriver::isGreekLayoutEnabled();
+
+    if (shownLayout != static_cast<int8_t>(greekLayout)) {
+        lv_label_set_text(tdeckLayoutLabel, greekLayout ? "EL" : "EN");
+        shownLayout = static_cast<int8_t>(greekLayout);
+    }
+
+    if (objects.top_messages_node_label) {
+        const lv_font_t *font = lv_obj_get_style_text_font(objects.top_messages_node_label, LV_PART_MAIN);
+
+        if (font && (!styleInitialized || shownFont != font)) {
+            lv_obj_set_style_text_font(tdeckLayoutLabel, font, LV_PART_MAIN | LV_STATE_DEFAULT);
+            shownFont = font;
+        }
+
+        const lv_color_t color = lv_obj_get_style_text_color(objects.top_messages_node_label, LV_PART_MAIN);
+
+        if (!styleInitialized || !lv_color_eq(shownColor, color)) {
+            lv_obj_set_style_text_color(tdeckLayoutLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+            shownColor = color;
+        }
+
+        styleInitialized = true;
+    }
+
+    lv_obj_remove_flag(tdeckLayoutLabel, LV_OBJ_FLAG_HIDDEN);
+}
+
+#endif
 
 // file scope so a running slide can be targeted for deletion by exec callback
 static void kbdSlideAnimCB(void *var, int32_t v)
@@ -9025,7 +9091,9 @@ void TFTView_320x240::task_handler(void)
     MeshtasticView::task_handler();
 
     if (screensInitialised) {
-
+#ifdef T_DECK
+        updateTDeckLayoutIndicator();
+#endif
         if (map && activePanel == objects.map_panel)
             map->task_handler();
 
