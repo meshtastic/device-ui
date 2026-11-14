@@ -6309,6 +6309,14 @@ void TFTView_320x240::applyOwnUserNames(const char *userShort, const char *userL
     if (strcmp(userShort, db.user.short_name) == 0 && strcmp(userLong, db.user.long_name) == 0)
         return;
 
+    meshtastic_User user{}; // TODO: don't overwrite is_licensed
+    std::snprintf(user.short_name, sizeof(user.short_name), "%s", userShort);
+    std::snprintf(user.long_name, sizeof(user.long_name), "%s", userLong);
+    if (!controller->sendConfig(user, ownNode)) {
+        ILOG_ERROR("Failed to send user config");
+        return;
+    }
+
     char buf[64];
     lv_snprintf(buf, sizeof(buf), _("User name: %s"), userShort);
     lv_label_set_text(objects.basic_settings_user_label, buf);
@@ -6316,10 +6324,6 @@ void TFTView_320x240::applyOwnUserNames(const char *userShort, const char *userL
     std::snprintf(db.long_name, sizeof(db.long_name), "%s", userLong);
     std::snprintf(db.user.short_name, sizeof(db.user.short_name), "%s", userShort);
     std::snprintf(db.user.long_name, sizeof(db.user.long_name), "%s", userLong);
-    meshtastic_User user{}; // TODO: don't overwrite is_licensed
-    std::snprintf(user.short_name, sizeof(user.short_name), "%s", userShort);
-    std::snprintf(user.long_name, sizeof(user.long_name), "%s", userLong);
-    controller->sendConfig(user, ownNode);
     notifyReboot(true);
 }
 
