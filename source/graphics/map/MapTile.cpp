@@ -2,6 +2,7 @@
 #include "graphics/map/MapTileSettings.h"
 #include "graphics/map/TileService.h"
 #include "lvgl.h"
+#include "misc/cache/lv_cache.h" // lv_image_cache_drop() is not exported by lvgl.h in 9.6
 #include "util/ILog.h"
 
 #include <assert.h>
@@ -92,6 +93,7 @@ void MapTile::applyImage(lv_image_dsc_t *img_dsc)
         const bool ownedByMapTile =
             (old_dsc->header.magic == LV_IMAGE_HEADER_MAGIC) && (old_dsc->header.flags & LV_IMAGE_FLAGS_USER1);
         if (ownedByMapTile) {
+            lv_image_cache_drop(old_dsc);
             if (old_dsc->data)
                 lv_free((void *)old_dsc->data);
             lv_free((void *)old_dsc);
@@ -124,6 +126,7 @@ void MapTile::removeImage(void)
             (img_dsc->header.magic == LV_IMAGE_HEADER_MAGIC) && (img_dsc->header.flags & LV_IMAGE_FLAGS_USER1);
         if (ownedByMapTile) {
             // ILOG_INFO("%d/%d: free tile image %d bytes", xTile, yTile, img_dsc->data_size);
+            lv_image_cache_drop(img_dsc);
             if (img_dsc->data) {
                 lv_free((void *)img_dsc->data);
             }
