@@ -31,6 +31,8 @@ class AsyncMessageLog
     bool append(std::unique_ptr<LogMessageEnv> entry, uint32_t requestId = 0, uint32_t timeoutMs = 0);
     void setStatus(uint32_t requestId, LogMessage::MsgStatus status, bool final);
     bool remove(uint32_t from, uint32_t to, uint8_t channel);
+    void suspend(void);
+    void resume(void);
     bool prepareShutdown(uint32_t timeoutMs);
 
   private:
@@ -59,6 +61,7 @@ class AsyncMessageLog
     std::list<Pending> pending;
     bool accepting = true;
     bool busy = false;
+    bool suspended = false;
     std::atomic<bool> running{false};
     std::atomic<bool> exited{true};
 #ifdef ARDUINO_ARCH_ESP32

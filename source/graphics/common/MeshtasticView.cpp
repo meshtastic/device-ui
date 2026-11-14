@@ -53,6 +53,18 @@ bool MeshtasticView::prepareShutdown(uint32_t timeoutMs)
     return controller->prepareShutdown(timeoutMs);
 }
 
+void MeshtasticView::prepareSleep(void)
+{
+    controller->prepareSleep();
+    DeviceGUI::prepareSleep();
+}
+
+void MeshtasticView::wakeUp(void)
+{
+    DeviceGUI::wakeUp();
+    controller->wakeUp();
+}
+
 void MeshtasticView::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id) {}
 
 void MeshtasticView::setDeviceMetaData(int hw_model, const char *version, bool has_bluetooth, bool has_wifi, bool has_eth,

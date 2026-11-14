@@ -91,12 +91,24 @@ void ViewController::runOnce(void)
 
 bool ViewController::sleep(int16_t pin)
 {
-    if (!prepareShutdown(1000))
+    if (!client)
         return false;
-    if (client)
+    if (!client->isStandalone())
         return client->sleep(pin);
-    else
-        return false;
+    prepareSleep();
+    const bool wakeByPin = client->sleep(pin);
+    wakeUp();
+    return wakeByPin;
+}
+
+void ViewController::prepareSleep(void)
+{
+    messageLog.suspend();
+}
+
+void ViewController::wakeUp(void)
+{
+    messageLog.resume();
 }
 
 bool ViewController::isStandalone(void)

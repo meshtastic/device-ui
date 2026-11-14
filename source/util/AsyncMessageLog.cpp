@@ -128,11 +128,31 @@ bool AsyncMessageLog::remove(uint32_t from, uint32_t to, uint8_t channel)
     return true;
 }
 
+void AsyncMessageLog::suspend(void)
+{
+    do {
+        {
+            std::lock_guard<Mutex> guard(mutex);
+            suspended = true;
+            if (!busy)
+                return;
+        }
+        workerDelay(1);
+    } while (true);
+}
+
+void AsyncMessageLog::resume(void)
+{
+    std::lock_guard<Mutex> guard(mutex);
+    suspended = false;
+}
+
 bool AsyncMessageLog::prepareShutdown(uint32_t timeoutMs)
 {
     {
         std::lock_guard<Mutex> guard(mutex);
         accepting = false;
+        suspended = false;
         for (auto &item : pending) {
             item.requestId = 0;
         }
@@ -158,7 +178,7 @@ void AsyncMessageLog::workerLoop()
         {
             std::lock_guard<Mutex> guard(mutex);
             const uint32_t now = clock();
-            for (auto position = pending.begin(); position != pending.end(); ++position) {
+            for (auto position = pending.begin(); !suspended && position != pending.end(); ++position) {
                 if (position->requestId && now - position->queuedAt < position->timeoutMs)
                     break;
                 if (position->requestId && position->entry->status == LogMessage::eDefault)
