@@ -800,6 +800,7 @@ void TFTView_320x240::restoreActivePanelFocus(void)
     } else if (activePanel == objects.messages_panel && objects.keyboard &&
                !lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
         setInputGroup(defaultPanelGroup);
+        setPanelInputContext();
         lv_group_focus_obj(objects.keyboard);
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Keyboard);
     } else if (activePanel != objects.map_panel && isInside(lastFocused, activePanel)) {

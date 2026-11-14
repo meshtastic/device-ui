@@ -9,6 +9,10 @@
 
 namespace
 {
+constexpr uint32_t c_workerPollDelayMs = 1;
+constexpr uint32_t c_workerIdleDelayMs = 10;
+constexpr uint32_t c_workerRetryDelayMs = 100;
+
 void workerDelay(uint32_t durationMs)
 {
 #ifdef ARDUINO_ARCH_ESP32
@@ -44,11 +48,11 @@ void AsyncMessageLog::Mutex::unlock()
 
 AsyncMessageLog::~AsyncMessageLog()
 {
-    prepareShutdown(1000);
+    prepareShutdown();
     running = false;
 #ifdef ARDUINO_ARCH_ESP32
     while (!exited)
-        workerDelay(1);
+        workerDelay(c_workerPollDelayMs);
 #else
     if (worker.joinable())
         worker.join();
@@ -142,8 +146,10 @@ bool AsyncMessageLog::prepareShutdown(uint32_t timeoutMs)
 bool AsyncMessageLog::drainPending(uint32_t timeoutMs, bool stopAccepting)
 {
     uint64_t targetSeq = 0;
+    uint32_t started = 0;
     {
         std::lock_guard<Mutex> guard(mutex);
+        started = clock();
         if (stopAccepting) {
             accepting = false;
         } else if (!running) {
@@ -158,7 +164,6 @@ bool AsyncMessageLog::drainPending(uint32_t timeoutMs, bool stopAccepting)
             return true;
         }
     }
-    const uint32_t started = millis();
     do {
         {
             std::lock_guard<Mutex> guard(mutex);
@@ -168,9 +173,9 @@ bool AsyncMessageLog::drainPending(uint32_t timeoutMs, bool stopAccepting)
             if (activeDone && queueDone)
                 return true;
         }
-        if (!running || millis() - started >= timeoutMs)
+        if (!running || hasElapsed(clock(), started, timeoutMs))
             return false;
-        workerDelay(1);
+        workerDelay(c_workerPollDelayMs);
     } while (true);
 }
 
@@ -183,7 +188,7 @@ void AsyncMessageLog::workerLoop()
             std::lock_guard<Mutex> guard(mutex);
             const uint32_t now = clock();
             for (auto position = pending.begin(); position != pending.end(); ++position) {
-                if (position->requestId && now - position->queuedAt < position->timeoutMs)
+                if (position->requestId && !hasElapsed(now, position->queuedAt, position->timeoutMs))
                     break;
                 if (position->requestId && position->entry->status == LogMessage::eDefault)
                     position->entry->status = LogMessage::eNoResponse;
@@ -197,7 +202,7 @@ void AsyncMessageLog::workerLoop()
             }
         }
         if (!found) {
-            workerDelay(10);
+            workerDelay(c_workerIdleDelayMs);
             continue;
         }
         const bool written = item.clear ? clear() : writer(*item.entry);
@@ -210,8 +215,8 @@ void AsyncMessageLog::workerLoop()
         }
         if (!written) {
             ILOG_ERROR("Message log write failed; retaining queued entry");
-            workerDelay(100);
+            workerDelay(c_workerRetryDelayMs);
         } else
-            workerDelay(1);
+            workerDelay(c_workerPollDelayMs);
     }
 }

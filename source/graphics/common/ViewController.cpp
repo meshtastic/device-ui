@@ -15,6 +15,7 @@ fs::FS &persistentFS = LittleFS;
 
 const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
 constexpr const char *logDir = "/messages";
+constexpr uint32_t c_sleepFlushBackoffMs = 10 * 1000;
 
 /**
  * @brief mediate between GUI view and client interface
@@ -100,8 +101,15 @@ bool ViewController::sleep(int16_t pin)
 {
     if (!client)
         return false;
-    if (!sleepFlushBackoff.load() || millis() - sleepFlushFailedAt.load() >= 10000) {
-        flushMessageLog(1000);
+    // Standalone clients suspend the SoC in client->sleep(); PacketClient uses prepareSleep()/screenSaving().
+    if (client->isStandalone() && (!sleepFlushBackoffActive ||
+                                   AsyncMessageLog::hasElapsed(messageLog.nowMs(), sleepFlushFailedAt, c_sleepFlushBackoffMs))) {
+        if (flushMessageLog()) {
+            sleepFlushBackoffActive = false;
+        } else {
+            sleepFlushFailedAt = messageLog.nowMs();
+            sleepFlushBackoffActive = true;
+        }
     }
     return client->sleep(pin);
 }
@@ -116,7 +124,7 @@ bool ViewController::isStandalone(void)
 
 void ViewController::stop(void)
 {
-    if (!prepareShutdown(1000))
+    if (!prepareShutdown())
         ILOG_WARN("Message persistence incomplete before stop");
     if (client) {
         client->disconnect();
@@ -125,13 +133,9 @@ void ViewController::stop(void)
 
 bool ViewController::flushMessageLog(uint32_t timeoutMs)
 {
-    if (messageLog.flush(timeoutMs)) {
-        sleepFlushBackoff = false;
+    if (messageLog.flush(timeoutMs))
         return true;
-    }
     ILOG_WARN("Message persistence incomplete before sleep");
-    sleepFlushFailedAt = millis();
-    sleepFlushBackoff = true;
     return false;
 }
 

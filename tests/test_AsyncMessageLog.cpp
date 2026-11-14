@@ -302,7 +302,7 @@ TEST_CASE("ViewController sleep delegates to client without shutting down messag
     controller.attachClient(&mockClient);
     CHECK(controller.sleep(42));
     CHECK(mockClient.lastSleepPin == 42);
-    CHECK(controller.appendMessage(message(1, 2, 0), 99, 60000));
+    CHECK(controller.appendMessage(message(1, 2, 0), 99, c_request_timeout));
 
     controller.stop();
     CHECK(mockClient.disconnected);
@@ -313,11 +313,11 @@ TEST_CASE("flush persists pending messages immediately while keeping log active"
 {
     Recorder recorder;
     AsyncMessageLog log([&](const LogMessageEnv &entry) { return recorder.write(entry); }, [] { return true; });
-    REQUIRE(log.append(message(1, 2, 0), 42, 60000));
+    REQUIRE(log.append(message(1, 2, 0), 42, c_request_timeout));
     REQUIRE(log.start());
 
     // Flush before the 60s request timeout expires (e.g. when the screen goes dark)
-    REQUIRE(log.flush(1000));
+    REQUIRE(log.flush());
     REQUIRE(recorder.entries.size() == 1);
     CHECK(recorder.entries[0]->status == LogMessage::eDefault);
 
@@ -325,15 +325,16 @@ TEST_CASE("flush persists pending messages immediately while keeping log active"
     log.setStatus(42, LogMessage::eAcked, true);
 
     // Worker stays active and accepts new outgoing/incoming messages after wake
-    REQUIRE(log.append(message(2, 1, 0), 43, 60000));
+    REQUIRE(log.append(message(2, 1, 0), 43, c_request_timeout));
     log.setStatus(43, LogMessage::eAcked, true);
     REQUIRE(recorder.waitFor(2));
-    REQUIRE(log.prepareShutdown(1000));
+    REQUIRE(log.prepareShutdown());
     CHECK(recorder.entries[1]->status == LogMessage::eAcked);
 }
 
 TEST_CASE("flush before start does not clear pending request ids and flush failure keeps accepting")
 {
+    constexpr uint32_t shortTimeoutMs = 100;
     std::atomic<bool> allowWrite{false};
     Recorder recorder;
     AsyncMessageLog log(
@@ -345,21 +346,74 @@ TEST_CASE("flush before start does not clear pending request ids and flush failu
         [] { return true; });
 
     // Before start(): flush returns false without corrupting unresolved requestIds
-    REQUIRE(log.append(message(1, 2, 0), 51, 60000));
-    CHECK_FALSE(log.flush(100));
+    REQUIRE(log.append(message(1, 2, 0), 51, c_request_timeout));
+    CHECK_FALSE(log.flush(shortTimeoutMs));
     log.setStatus(51, LogMessage::eAcked, true);
 
     REQUIRE(log.start());
     // Write failure returns false cleanly without disabling append()
-    CHECK_FALSE(log.flush(150));
-    REQUIRE(log.append(message(1, 2, 0), 52, 60000));
+    CHECK_FALSE(log.flush(shortTimeoutMs));
+    REQUIRE(log.append(message(1, 2, 0), 52, c_request_timeout));
 
     allowWrite = true;
     log.setStatus(52, LogMessage::eFailed, true);
-    REQUIRE(log.flush(1000));
+    REQUIRE(log.flush());
     REQUIRE(recorder.entries.size() == 2);
     CHECK(recorder.entries[0]->status == LogMessage::eAcked);
     CHECK(recorder.entries[1]->status == LogMessage::eFailed);
+}
+
+TEST_CASE("flush timeout uses injected clock safely across 32-bit rollover")
+{
+    constexpr uint32_t rolloverTimeoutMs = 20;
+    std::atomic<uint32_t> clock{UINT32_MAX - 5};
+    std::atomic<bool> allowWrite{false};
+    std::mutex mutex;
+    std::condition_variable attempted;
+    int attempts = 0;
+    int persisted = 0;
+
+    AsyncMessageLog log(
+        [&](const LogMessageEnv &) {
+            std::lock_guard<std::mutex> guard(mutex);
+            if (allowWrite) {
+                persisted++;
+                return true;
+            }
+            attempts++;
+            attempted.notify_all();
+            return false;
+        },
+        [] { return true; }, [&] { return clock.load(); });
+    REQUIRE(log.append(message(1, 2, 0), 61, c_request_timeout));
+    REQUIRE(log.start());
+
+    std::atomic<bool> finished{false};
+    std::atomic<bool> flushResult{true};
+    std::thread flusher([&] {
+        flushResult = log.flush(rolloverTimeoutMs);
+        finished = true;
+    });
+
+    {
+        std::unique_lock<std::mutex> guard(mutex);
+        REQUIRE(attempted.wait_for(guard, std::chrono::seconds(2), [&] { return attempts >= 1; }));
+    }
+    clock = 13; // elapsed = 19 < 20 across UINT32_MAX wrap
+    {
+        std::unique_lock<std::mutex> guard(mutex);
+        REQUIRE(attempted.wait_for(guard, std::chrono::seconds(2), [&] { return attempts >= 2; }));
+    }
+    CHECK_FALSE(finished.load());
+
+    clock = 14; // elapsed = 20 >= 20
+    flusher.join();
+    CHECK(finished.load());
+    CHECK_FALSE(flushResult.load());
+
+    allowWrite = true;
+    REQUIRE(log.prepareShutdown());
+    CHECK(persisted == 1);
 }
 
 TEST_CASE("flush ignores newer unresolved appends arriving concurrently after flush starts")
@@ -388,18 +442,18 @@ TEST_CASE("flush ignores newer unresolved appends arriving concurrently after fl
         },
         [] { return true; });
 
-    REQUIRE(log.append(message(1, 2, 0), 70, 60000));
+    REQUIRE(log.append(message(1, 2, 0), 70, c_request_timeout));
     REQUIRE(log.start());
 
     std::atomic<bool> flushResult{false};
-    std::thread flusher([&] { flushResult = log.flush(200); });
+    std::thread flusher([&] { flushResult = log.flush(); });
     {
         std::unique_lock<std::mutex> guard(startMutex);
         REQUIRE(writeStarted.wait_for(guard, std::chrono::seconds(2), [&] { return inFirstWrite; }));
     }
 
     // Appending a new 60s unresolved DM mid-flush must not force the active flush to time out
-    REQUIRE(log.append(message(1, 3, 0), 71, 60000));
+    REQUIRE(log.append(message(1, 3, 0), 71, c_request_timeout));
     {
         std::lock_guard<std::mutex> guard(releaseMutex);
         allowFirstWrite = true;
@@ -409,7 +463,7 @@ TEST_CASE("flush ignores newer unresolved appends arriving concurrently after fl
 
     CHECK(flushResult.load());
     CHECK(recorder.entries.size() == 1);
-    CHECK(log.prepareShutdown(1000));
+    CHECK(log.prepareShutdown());
     CHECK(recorder.entries.size() == 2);
 }
 
@@ -419,6 +473,7 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
         int16_t lastSleepPin = -1;
         int sleepCalls = 0;
         bool sleepResult = false;
+        bool standalone = false;
         bool disconnected = false;
         void init(void) override {}
         bool connect(void) override { return true; }
@@ -428,7 +483,7 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
             return true;
         }
         bool isConnected(void) override { return !disconnected; }
-        bool isStandalone(void) override { return false; }
+        bool isStandalone(void) override { return standalone; }
         bool sleep(int16_t pin) override
         {
             lastSleepPin = pin;
@@ -441,8 +496,8 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
     };
 
     struct TestableViewController : ViewController {
-        TestableViewController(AsyncMessageLog::Writer writer, AsyncMessageLog::Clear clear)
-            : ViewController(std::move(writer), std::move(clear))
+        TestableViewController(AsyncMessageLog::Writer writer, AsyncMessageLog::Clear clear, AsyncMessageLog::Clock clock = {})
+            : ViewController(std::move(writer), std::move(clear), std::move(clock))
         {
         }
         void attachClient(IClientBase *c) { client = c; }
@@ -451,31 +506,43 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
         {
             return messageLog.append(std::move(entry), requestId, timeoutMs);
         }
-        bool inBackoff() const { return sleepFlushBackoff.load(); }
+        bool inBackoff() const { return sleepFlushBackoffActive; }
     };
 
     struct TrackingInputDriver : InputDriver {
         bool sleepPrepared = false;
-        ~TrackingInputDriver() override { driver = nullptr; }
+        ~TrackingInputDriver() override
+        {
+            if (driver == this)
+                driver = nullptr;
+        }
         void prepareSleep(void) override { sleepPrepared = true; }
     };
 
     struct TestableMeshtasticView : MeshtasticView {
         TestableMeshtasticView(ViewController *ctrl) : MeshtasticView(nullptr, nullptr, ctrl) {}
+        ~TestableMeshtasticView() override { inputdriver = nullptr; }
     };
 
-    auto *trackingInput = new TrackingInputDriver;
-    (void)trackingInput;
+    TrackingInputDriver trackingInput;
 
     Recorder recorder;
     std::atomic<bool> allowWrite{true};
+    std::atomic<uint32_t> clock{1000};
+    std::mutex attemptMutex;
+    std::condition_variable attemptCv;
+    int failedAttempts = 0;
     TestableViewController controller(
         [&](const LogMessageEnv &entry) {
-            if (!allowWrite)
+            if (!allowWrite) {
+                std::lock_guard<std::mutex> guard(attemptMutex);
+                failedAttempts++;
+                attemptCv.notify_all();
                 return false;
+            }
             return recorder.write(entry);
         },
-        [] { return true; });
+        [] { return true; }, [&] { return clock.load(); });
     MockSleepClient mockClient;
     controller.attachClient(&mockClient);
     REQUIRE(controller.startLog());
@@ -483,46 +550,79 @@ TEST_CASE("MeshtasticView and ViewController sleep flush pending messages withou
     TestableMeshtasticView view(&controller);
 
     // 1. Display powersave via screenSaving(true) flushes an unresolved DM as eDefault
-    REQUIRE(controller.appendMessage(message(1, 2, 0), 101, 60000));
+    REQUIRE(controller.appendMessage(message(1, 2, 0), 101, c_request_timeout));
     view.screenSaving(true);
     CHECK(recorder.entries.size() == 1);
     CHECK(recorder.entries[0]->status == LogMessage::eDefault);
 
     // 2. Display powersave via blankScreen(true) flushes another unresolved DM
-    REQUIRE(controller.appendMessage(message(1, 3, 0), 102, 60000));
+    REQUIRE(controller.appendMessage(message(1, 3, 0), 102, c_request_timeout));
     view.blankScreen(true);
     CHECK(recorder.entries.size() == 2);
 
     // 3. Hardware light-sleep hook prepareSleep() delegates input sleep and flushes
-    REQUIRE(controller.appendMessage(message(1, 4, 0), 103, 60000));
+    REQUIRE(controller.appendMessage(message(1, 4, 0), 103, c_request_timeout));
     view.prepareSleep();
-    CHECK(trackingInput->sleepPrepared);
+    CHECK(trackingInput.sleepPrepared);
     CHECK(recorder.entries.size() == 3);
 
     // 4. Subsequent wake / send continues accepting without "shutting down" error
     view.screenSaving(false);
-    REQUIRE(controller.appendMessage(message(1, 5, 0), 104, 60000));
+    REQUIRE(controller.appendMessage(message(1, 5, 0), 104, c_request_timeout));
 
-    // 5. Polling ViewController::sleep() flushes queued message and enters backoff on write failure
+    // 5. Non-standalone (PacketClient) sleep() delegates without polling flush on dark frames
+    mockClient.standalone = false;
     mockClient.sleepResult = true;
     CHECK(controller.sleep(42));
     CHECK(mockClient.lastSleepPin == 42);
     CHECK(mockClient.sleepCalls == 1);
+    CHECK(recorder.entries.size() == 3);
+    CHECK_FALSE(controller.inBackoff());
+
+    // 6. Standalone (SerialClient) sleep() flushes before light sleep and applies rollover-safe retry backoff
+    mockClient.standalone = true;
+    CHECK(controller.sleep(42));
+    CHECK(mockClient.sleepCalls == 2);
     CHECK(recorder.entries.size() == 4);
     CHECK_FALSE(controller.inBackoff());
 
+    // Simulate persistent storage failure across 32-bit clock rollover
     mockClient.sleepResult = false;
     allowWrite = false;
-    REQUIRE(controller.appendMessage(message(1, 6, 0), 105, 60000));
-    CHECK_FALSE(controller.flushMessageLog(100));
+    clock = UINT32_MAX - 1000 - AsyncMessageLog::defaultTimeoutMs;
+    REQUIRE(controller.appendMessage(message(1, 6, 0), 105, c_request_timeout));
+
+    bool sleepRet = true;
+    std::thread sleepRunner([&] { sleepRet = controller.sleep(42); });
+    {
+        std::unique_lock<std::mutex> guard(attemptMutex);
+        REQUIRE(attemptCv.wait_for(guard, std::chrono::seconds(2), [&] { return failedAttempts >= 1; }));
+    }
+    clock = UINT32_MAX - 1000; // advance by defaultTimeoutMs so flush times out and arms backoff
+    sleepRunner.join();
+    CHECK_FALSE(sleepRet);
+    CHECK(mockClient.sleepCalls == 3);
     CHECK(controller.inBackoff());
 
-    // Subsequent poll calls sleep() without stalling inside flush while in backoff
-    CHECK_FALSE(controller.sleep(42));
-    CHECK(mockClient.sleepCalls == 2);
-
+    // Recover writes and add an unresolved 60s DM; backoff stays active across UINT32_MAX rollover
+    clock = 5000; // elapsed since UINT32_MAX - 1000 = 6001ms (< 10s backoff)
     allowWrite = true;
+    REQUIRE(recorder.waitFor(5)); // previous item 105 finishes asynchronously
+    REQUIRE(controller.appendMessage(message(1, 7, 0), 106, c_request_timeout));
+
+    CHECK_FALSE(controller.sleep(42));
+    CHECK(mockClient.sleepCalls == 4);
+    CHECK(controller.inBackoff());
+    CHECK(recorder.entries.size() == 5); // 106 was NOT flushed during backoff
+
+    // Once 10s backoff elapses across rollover, sleep() retries flush and clears backoff
+    clock = 9000; // elapsed = 10001ms (>= 10s backoff)
+    CHECK_FALSE(controller.sleep(42));
+    CHECK(mockClient.sleepCalls == 5);
+    CHECK_FALSE(controller.inBackoff());
+    REQUIRE(recorder.entries.size() == 6);
+
     controller.stop();
     CHECK(mockClient.disconnected);
-    CHECK(recorder.entries.size() == 5);
+    CHECK(recorder.entries.size() == 6);
 }

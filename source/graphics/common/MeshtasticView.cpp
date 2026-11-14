@@ -47,7 +47,7 @@ void MeshtasticView::prepareSleep(void)
 {
     DeviceGUI::prepareSleep();
     if (controller)
-        controller->flushMessageLog(1000);
+        controller->flushMessageLog();
 }
 
 bool MeshtasticView::sleep(int16_t pin)
@@ -63,13 +63,13 @@ bool MeshtasticView::prepareShutdown(uint32_t timeoutMs)
 void MeshtasticView::blankScreen(bool enable)
 {
     if (enable && controller)
-        controller->flushMessageLog(1000);
+        controller->flushMessageLog();
 }
 
 void MeshtasticView::screenSaving(bool enabled)
 {
     if (enabled && controller)
-        controller->flushMessageLog(1000);
+        controller->flushMessageLog();
 }
 
 void MeshtasticView::setMyInfo(uint32_t nodeNum, meshtastic_MyNodeInfo_device_id_t device_id) {}

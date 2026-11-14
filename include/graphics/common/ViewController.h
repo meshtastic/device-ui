@@ -3,7 +3,6 @@
 #include "comms/IClientBase.h"
 #include "util/AsyncMessageLog.h"
 #include "util/LogRotate.h"
-#include <atomic>
 #include <time.h>
 
 class MeshtasticView;
@@ -18,8 +17,8 @@ class ViewController
     virtual void processEvent(void);
     virtual bool isStandalone(void);
     virtual void stop(void);
-    bool flushMessageLog(uint32_t timeoutMs = 1000);
-    bool prepareShutdown(uint32_t timeoutMs);
+    bool flushMessageLog(uint32_t timeoutMs = AsyncMessageLog::defaultTimeoutMs);
+    bool prepareShutdown(uint32_t timeoutMs = AsyncMessageLog::defaultTimeoutMs);
     void setTextMessageStatus(uint32_t requestId, LogMessage::MsgStatus status, bool final);
 
     // device config
@@ -121,6 +120,6 @@ class ViewController
     bool configCompleted;       // true if all data from node has been received
     bool messagesRestored;      // true if log messages have been restored
     bool requestConfigRequired; // true if config needs to be reloaded from the node
-    std::atomic<bool> sleepFlushBackoff{false};
-    std::atomic<uint32_t> sleepFlushFailedAt{0};
+    bool sleepFlushBackoffActive = false;
+    uint32_t sleepFlushFailedAt = 0;
 };
