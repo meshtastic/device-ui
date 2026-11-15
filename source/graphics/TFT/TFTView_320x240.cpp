@@ -1830,8 +1830,6 @@ void TFTView_320x240::ui_event_ScreenKey(lv_event_t *e)
             THIS->setInputGroup(groups.mainButtons);
             lv_obj_t *target = THIS->lastMainButton ? THIS->lastMainButton : objects.home_button;
             lv_group_focus_obj(target);
-            // Invalidate to ensure focus indicator is redrawn (LVGL 9.6.0 compatibility)
-            lv_obj_invalidate(target);
             lv_event_stop_processing(e); // Stop propagation so panel buttons don't see it
             return;
         }
@@ -1936,8 +1934,6 @@ void TFTView_320x240::ui_event_ButtonPanel(lv_event_t *e)
             } else if (THIS->activePanel != objects.map_panel && isInside(lastFocused, THIS->activePanel)) {
                 THIS->setInputGroup(THIS->defaultPanelGroup);
                 lv_group_focus_obj(lastFocused);
-                // Invalidate to ensure focus indicator is redrawn (LVGL 9.6.0 compatibility)
-                lv_obj_invalidate(lastFocused);
                 THIS->setPanelInputContext();
             } else {
                 // panel was only previewed from the button menu, or the map which always starts panning
@@ -1976,8 +1972,6 @@ void TFTView_320x240::ui_event_scroll_panel(lv_event_t *e)
         THIS->setInputGroup(groups.mainButtons);
         lv_obj_t *target = THIS->lastMainButton ? THIS->lastMainButton : objects.home_button;
         lv_group_focus_obj(target);
-        // Invalidate to ensure focus indicator is redrawn (LVGL 9.6.0 compatibility)
-        lv_obj_invalidate(target);
         lv_event_stop_processing(e);
         return;
     }
@@ -2123,15 +2117,11 @@ void TFTView_320x240::ui_event_MapPanel(lv_event_t *e)
             input_policy::InputContextState::instance().setFocusSemantic(FocusSemantic::Unknown);
             THIS->setInputGroup(groups.mainButtons);
             lv_group_focus_obj(objects.map_button);
-            // Invalidate to ensure focus indicator is redrawn (LVGL 9.6.0 compatibility)
-            lv_obj_invalidate(objects.map_button);
             break;
         case LV_KEY_BACKSPACE:
             input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Unknown);
             THIS->setInputGroup(groups.mainButtons);
             lv_group_focus_obj(objects.home_button); // TODO
-            // Invalidate to ensure focus indicator is redrawn (LVGL 9.6.0 compatibility)
-            lv_obj_invalidate(objects.home_button);
             break;
         default:
             ILOG_DEBUG("ui_event_MapPanel -> unhandled key '%c'(0x%02x)", (char)c, c);
@@ -8424,10 +8414,13 @@ void TFTView_320x240::setInputGroup(lv_group_t *group)
     if (inputGroup && inputdriver->hasEncoderDevice())
         lv_indev_set_group(inputdriver->getEncoder(), inputGroup);
 
-    // In LVGL 9.6.0, switching groups requires the new group to have a focused object
-    // to render the focus indicator. If the group has no focused object, ensure one is set.
-    if (inputGroup && !lv_group_get_focused(inputGroup)) {
-        lv_group_focus_obj(lv_group_get_obj(inputGroup, 0));
+    if (inputGroup && (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice())) {
+        lv_obj_t *focused = lv_group_get_focused(inputGroup);
+        // LVGL 9.6 skips refocusing the same object; inactive groups retain their selection but not its focus state.
+        if (focused && !lv_obj_has_state(focused, LV_STATE_FOCUSED)) {
+            lv_indev_t *indev = inputdriver->hasKeyboardDevice() ? inputdriver->getKeyboard() : inputdriver->getEncoder();
+            lv_obj_send_event(focused, LV_EVENT_FOCUSED, indev);
+        }
     }
 }
 
@@ -8698,8 +8691,6 @@ void TFTView_320x240::nodeFocusBoundary(bool forward)
     setInputGroup(groups.mainButtons);
     lv_obj_t *target = lastMainButton ? lastMainButton : objects.nodes_button;
     lv_group_focus_obj(target);
-    // Invalidate to ensure focus indicator is redrawn (LVGL 9.6.0 compatibility)
-    lv_obj_invalidate(target);
 }
 
 void TFTView_320x240::nodePositionClicked(NodeId id)
