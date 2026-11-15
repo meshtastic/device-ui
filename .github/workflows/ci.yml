@@ -15,7 +15,7 @@ jobs:
   # Single source of truth for the required "build-and-test" check: always triggered,
   # decides internally whether to skip (docs-only PRs skip the real build and auto-pass).
   detect-changes:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       code-changed: ${{ steps.filter.outputs.code }}
     steps:
@@ -41,7 +41,7 @@ jobs:
   build-and-test:
     needs: detect-changes
     if: needs.detect-changes.outputs.code-changed == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     env:
       CTEST_OUTPUT_ON_FAILURE: 1
