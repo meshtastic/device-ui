@@ -199,6 +199,20 @@ static bool isInside(const lv_obj_t *obj, const lv_obj_t *ancestor)
     return false;
 }
 
+static bool isFocusableInside(const lv_obj_t *obj, const lv_obj_t *ancestor, const lv_group_t *group)
+{
+    if (!obj || !ancestor || !group || lv_obj_get_group(obj) != group)
+        return false;
+    bool seenAncestor = false;
+    for (const lv_obj_t *cur = obj; cur; cur = lv_obj_get_parent(cur)) {
+        if (lv_obj_has_flag(cur, LV_OBJ_FLAG_HIDDEN) || lv_obj_has_state(cur, LV_STATE_DISABLED))
+            return false;
+        if (cur == ancestor)
+            seenAncestor = true;
+    }
+    return seenAncestor;
+}
+
 // Bubbled scroll events toggle LV_STATE_SCROLLED on every ancestor up to the screen, and LVGL answers
 // each toggle with a style refresh of the whole object tree, so keep them local. Text areas also jump
 // to the cursor instead of animating the scroll.
@@ -779,16 +793,83 @@ void TFTView_320x240::focusActivePanel(void)
     setGroupFocus(activePanel);
 }
 
+lv_obj_t *TFTView_320x240::activeSettingsPanel(void) const
+{
+    switch (activeSettings) {
+    case eSetup:
+        return objects.initial_setup_panel;
+    case eUsername:
+        return objects.settings_username_panel;
+    case eDeviceRole:
+        return objects.settings_device_role_panel;
+    case eRegion:
+        return objects.settings_region_panel;
+    case eModemPreset:
+        return objects.settings_modem_preset_panel;
+    case eChannel:
+        return objects.settings_channel_panel;
+    case eWifi:
+        return objects.settings_wifi_panel;
+    case eLanguage:
+        return objects.settings_language_panel;
+    case eScreenTimeout:
+        return objects.settings_screen_timeout_panel;
+    case eScreenLock:
+        return objects.settings_screen_lock_panel;
+    case eScreenBrightness:
+        return objects.settings_brightness_panel;
+    case eTheme:
+        return objects.settings_theme_panel;
+    case eInputControl:
+        return objects.settings_input_control_panel;
+    case eAlertBuzzer:
+        return objects.settings_alert_buzzer_panel;
+    case eBackupRestore:
+        return objects.settings_backup_restore_panel;
+    case eReset:
+        return objects.settings_reset_panel;
+    case eReboot:
+        return objects.reboot_panel;
+    case eDisplayMode:
+        return objects.settings_reboot_panel;
+    case eModifyChannel:
+        return objects.settings_modify_channel_panel;
+    case eFtpPassword:
+        return objects.home_ftp_password_panel;
+    case eNone:
+    default:
+        return nullptr;
+    }
+}
+
 /**
  * @brief restore input group and last focused widget inside the active panel
  */
 void TFTView_320x240::restoreActivePanelFocus(void)
 {
-    if (!activePanel)
+    lv_obj_t *dialogPanel = activeSettingsPanel();
+    if (dialogPanel && lv_obj_get_screen(dialogPanel) != lv_scr_act())
+        dialogPanel = nullptr;
+
+    lv_obj_t *focusContainer = dialogPanel ? dialogPanel : activePanel;
+    if (!focusContainer)
         return;
 
+    // Keep focus out of PIN-locked basic settings while still hidden.
+    if (!dialogPanel && activePanel == objects.controller_panel && objects.tab_page_basic_settings &&
+        lv_obj_has_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN)) {
+        const bool onToolsTab = objects.controller_tab_view && lv_tabview_get_tab_active(objects.controller_tab_view) != 0;
+        if (!onToolsTab) {
+            setInputGroup(groups.mainButtons);
+            setPanelInputContext();
+            lv_group_focus_obj(activeButton ? activeButton : objects.settings_button);
+            return;
+        }
+        focusContainer = objects.tab_page_tools;
+    }
+
     lv_obj_t *lastFocused = lv_group_get_focused(defaultPanelGroup);
-    if (activePanel == objects.nodes_panel && virtualNodeList && !visibleNodes.empty()) {
+    if (!dialogPanel && activePanel == objects.nodes_panel && virtualNodeList && !visibleNodes.empty()) {
         setPanelInputContext();
         const NodeId lastNode = virtualNodeList->lastFocusedNode();
         if (lastNode && visibleNodes.contains(lastNode)) {
@@ -797,16 +878,33 @@ void TFTView_320x240::restoreActivePanelFocus(void)
         } else {
             setGroupFocus(objects.nodes_panel);
         }
-    } else if (activePanel == objects.messages_panel && objects.keyboard &&
-               !lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
-        setInputGroup(defaultPanelGroup);
-        setPanelInputContext();
-        lv_group_focus_obj(objects.keyboard);
-        input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Keyboard);
-    } else if (activePanel != objects.map_panel && isInside(lastFocused, activePanel)) {
+        return;
+    }
+
+    if (objects.keyboard && !lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
+        lv_obj_t *kbTarget = lv_keyboard_get_textarea(objects.keyboard);
+        if (isFocusableInside(kbTarget, focusContainer, defaultPanelGroup)) {
+            setInputGroup(defaultPanelGroup);
+            setPanelInputContext();
+            lv_group_focus_obj(objects.keyboard);
+            input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Keyboard);
+            return;
+        }
+        if (kbdSlideState != eKbdHidden)
+            resetKeyboardSlide();
+        else
+            lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    if ((dialogPanel || activePanel != objects.map_panel) && isFocusableInside(lastFocused, focusContainer, defaultPanelGroup)) {
         setInputGroup(defaultPanelGroup);
         setPanelInputContext();
         lv_group_focus_obj(lastFocused);
+    } else if (dialogPanel || focusContainer == objects.tab_page_tools) {
+        setInputGroup(defaultPanelGroup);
+        setPanelInputContext();
+        if (lv_obj_t *first = firstFocusable(focusContainer, defaultPanelGroup))
+            lv_group_focus_obj(first);
     } else {
         focusActivePanel();
     }
@@ -7141,10 +7239,15 @@ void TFTView_320x240::blankScreen(bool enable)
 {
     ILOG_DEBUG("%s screen (%s)", enable ? "blank" : "unblank", screenLocked ? "locked" : "timeout");
     if (enable) {
+        blankedFromLockScreen = objects.lock_screen && lv_scr_act() == objects.lock_screen;
         setInputGroup(groups.mainButtons);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
     } else {
-        if (objects.main_screen) {
+        const bool returnToLockScreen = blankedFromLockScreen || (screenLocked && db.uiConfig.screen_lock);
+        blankedFromLockScreen = false;
+        if (returnToLockScreen && objects.lock_screen) {
+            lv_screen_load_anim(objects.lock_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        } else if (objects.main_screen) {
             lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
             restoreActivePanelFocus();
         } else {
@@ -8241,6 +8344,8 @@ void TFTView_320x240::hideKeyboard(lv_obj_t *panel)
         lv_anim_set_path_cb(&a2, lv_anim_path_linear);
         lv_anim_set_deleted_cb(&a2, deleted_cb);
         lv_anim_start(&a2);
+    } else if (objects.keyboard) {
+        lv_obj_add_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -8387,7 +8492,12 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
         lv_group_focus_obj(objects.screen_lock_button_matrix);
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::ButtonMatrix);
     } else if (panel == objects.controller_panel) {
-        lv_group_focus_obj(objects.basic_settings_user_button);
+        if (objects.tab_page_basic_settings && !lv_obj_has_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN)) {
+            lv_group_focus_obj(objects.basic_settings_user_button);
+        } else if (objects.controller_tab_view && lv_tabview_get_tab_active(objects.controller_tab_view) != 0) {
+            if (lv_obj_t *first = firstFocusable(objects.tab_page_tools, defaultPanelGroup))
+                lv_group_focus_obj(first);
+        }
     } else if (panel == objects.node_options_panel) {
         lv_obj_t *pages = lv_tabview_get_content(objects.node_options_tab_view);
         lv_obj_t *page = lv_obj_get_child(pages, (int32_t)lv_tabview_get_tab_active(objects.node_options_tab_view));

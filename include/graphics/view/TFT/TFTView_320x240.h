@@ -300,6 +300,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void focusActivePanel(void);
     void restoreActivePanelFocus(void);
+    lv_obj_t *activeSettingsPanel(void) const;
     void setPanelInputContext(void);
     void previewMainButton(lv_obj_t *button);
     void setMapInputState(input_policy::FocusSemantic semantic);
@@ -544,6 +545,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     std::unordered_map<lv_obj_t *, ChatHistory> chatHistories;
     bool updatingChat = false;
     bool evacuatingChatFocus = false;
+    bool blankedFromLockScreen = false;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets
