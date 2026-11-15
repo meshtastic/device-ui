@@ -3,7 +3,7 @@
   rebaseWhen: 'conflicted',
   extends: [
     ':dependencyDashboard',
-    ':semanticCommitTypeAll(chore)',
+    ':semanticCommits',
     ':ignoreModulesAndTests',
     ':noUnscheduledUpdates',
     'schedule:daily',
