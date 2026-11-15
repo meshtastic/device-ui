@@ -13,6 +13,8 @@ struct PNGDrawContext {
 
 PNG *png = nullptr;
 static std::mutex pngMutex;
+// draw-unit texture caches (e.g. SDL) key on src pointer + header; reused addresses must not match
+static uint16_t imgSerial = 0;
 
 #ifdef PNGDEC_SRAM_ALLOC
 void initPNGDecoder(void)
@@ -136,6 +138,7 @@ bool decodeImgColor(const void *data, size_t size, lv_image_dsc_t **img)
     (*img)->header.h = height;
     (*img)->header.cf = LV_COLOR_FORMAT_RGB565;
     (*img)->header.flags = LV_IMAGE_FLAGS_MODIFIABLE | LV_IMAGE_FLAGS_USER1;
+    (*img)->header.reserved_2 = ++imgSerial;
     (*img)->data = (uint8_t *)rgb565Data;
     (*img)->data_size = width * height * sizeof(uint16_t);
 
@@ -226,6 +229,7 @@ bool decodeImgGrey(const void *data, size_t size, lv_image_dsc_t **img)
     (*img)->header.h = height;
     (*img)->header.cf = LV_COLOR_FORMAT_L8;
     (*img)->header.flags = LV_IMAGE_FLAGS_MODIFIABLE | LV_IMAGE_FLAGS_USER1;
+    (*img)->header.reserved_2 = ++imgSerial;
     (*img)->data = l8Data;
     (*img)->data_size = width * height * sizeof(uint8_t);
 
