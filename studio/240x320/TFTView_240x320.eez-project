@@ -8666,6 +8666,109 @@
                           "groupIndex": 0
                         },
                         {
+                          "objID": "1256df79-523c-4a1c-9dfc-775bc13d5e59",
+                          "type": "LVGLButtonWidget",
+                          "left": 0,
+                          "top": 0,
+                          "width": 95,
+                          "height": 30,
+                          "customInputs": [],
+                          "customOutputs": [],
+                          "style": {
+                            "objID": "c5ff5e52-7cfd-4e93-9ab0-11415476b455",
+                            "useStyle": "default",
+                            "conditionalStyles": [],
+                            "childStyles": []
+                          },
+                          "hiddenInEditor": true,
+                          "timeline": [],
+                          "eventHandlers": [],
+                          "identifier": "BasicSettingsClockButton",
+                          "leftUnit": "px",
+                          "topUnit": "px",
+                          "widthUnit": "%",
+                          "heightUnit": "px",
+                          "children": [
+                            {
+                              "objID": "6ce5302d-ab06-461b-80af-51309614e130",
+                              "type": "LVGLLabelWidget",
+                              "left": 0,
+                              "top": 0,
+                              "width": 100,
+                              "height": 16,
+                              "customInputs": [],
+                              "customOutputs": [],
+                              "style": {
+                                "objID": "aa6622fe-904c-41ec-a494-baaacf45daa4",
+                                "useStyle": "default",
+                                "conditionalStyles": [],
+                                "childStyles": []
+                              },
+                              "hiddenInEditor": true,
+                              "timeline": [],
+                              "eventHandlers": [],
+                              "identifier": "BasicSettingsClockLabel",
+                              "leftUnit": "px",
+                              "topUnit": "px",
+                              "widthUnit": "%",
+                              "heightUnit": "content",
+                              "children": [],
+                              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                              "hiddenFlag": false,
+                              "hiddenFlagType": "literal",
+                              "clickableFlagType": "literal",
+                              "checkedStateType": "literal",
+                              "disabledStateType": "literal",
+                              "states": "",
+                              "localStyles": {
+                                "objID": "6e7e3ea0-f0cd-4e47-8e5c-04e9531f7d70",
+                                "definition": {
+                                  "MAIN": {
+                                    "DISABLED": {
+                                      "text_color": "#606060"
+                                    },
+                                    "DEFAULT": {
+                                      "align": "CENTER"
+                                    }
+                                  }
+                                }
+                              },
+                              "groupIndex": 0,
+                              "text": "Clock: 24h",
+                              "textType": "translated-literal",
+                              "longMode": "DOT",
+                              "recolor": false,
+                              "useStaticText": true
+                            }
+                          ],
+                          "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+                          "hiddenFlag": false,
+                          "hiddenFlagType": "literal",
+                          "clickableFlag": true,
+                          "clickableFlagType": "literal",
+                          "checkedStateType": "literal",
+                          "disabledState": false,
+                          "disabledStateType": "literal",
+                          "states": "",
+                          "useStyle": "SettingsButtonStyle",
+                          "localStyles": {
+                            "objID": "1a2dae34-be7c-4750-bc0d-aa698ee84742",
+                            "definition": {
+                              "MAIN": {
+                                "DEFAULT": {
+                                  "align": "TOP_MID",
+                                  "shadow_width": 0
+                                },
+                                "PRESSED": {
+                                  "bg_color": "#4DB270",
+                                  "text_color": "#015114"
+                                }
+                              }
+                            }
+                          },
+                          "groupIndex": 0
+                        },
+                        {
                           "objID": "58326866-b13a-4ae6-cdd2-cd206b3db091",
                           "type": "LVGLButtonWidget",
                           "left": 0,
@@ -16441,6 +16544,157 @@
               "useStyle": "SettingsPanelStyle",
               "localStyles": {
                 "objID": "ae1ce57a-39a3-46e6-a1e7-17ed589c5768",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "border_width": 2,
+                      "radius": 12,
+                      "border_color": "#216ad8",
+                      "align": "TOP_MID",
+                      "border_opa": 255,
+                      "layout": "NONE"
+                    }
+                  }
+                }
+              },
+              "groupIndex": 0
+            },
+            {
+              "objID": "ad6548f7-5825-4160-8b63-690749f38653",
+              "type": "LVGLPanelWidget",
+              "left": 0,
+              "top": 25,
+              "width": 220,
+              "height": 120,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "c5b244e4-ea4a-4de6-a4f0-eaddecb0569e",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "hiddenInEditor": true,
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "SettingsClockPanel",
+              "leftUnit": "%",
+              "topUnit": "%",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "87ac3670-c5cc-409e-b327-9ecd48c46e14",
+                  "type": "LVGLDropdownWidget",
+                  "left": 0,
+                  "top": 0,
+                  "width": 150,
+                  "height": 30,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "ee6ee683-2134-438c-b317-b71b55c99918",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "hiddenInEditor": true,
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "identifier": "SettingsClockDropdown",
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlag": true,
+                  "clickableFlagType": "literal",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "useStyle": "DropDownStyle",
+                  "localStyles": {
+                    "objID": "6a439f2c-976a-48db-9fca-77a0df0c6d6e",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "TOP_MID",
+                          "border_color": "#e0e0e0",
+                          "pad_top": 5
+                        }
+                      }
+                    }
+                  },
+                  "groupIndex": 0,
+                  "options": "24h\n12h",
+                  "optionsType": "translated-literal",
+                  "selected": 0,
+                  "selectedType": "literal",
+                  "direction": "bottom",
+                  "useStaticText": true
+                },
+                {
+                  "objID": "c64bbbd5-add1-494b-98ed-477b96784cd3",
+                  "type": "LVGLUserWidgetWidget",
+                  "left": 0,
+                  "top": 0,
+                  "width": 160,
+                  "height": 50,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "d3d257c7-b4a1-4694-ba95-1c699c69aec8",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "hiddenInEditor": true,
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlag": true,
+                  "clickableFlagType": "literal",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "0ae1f5de-de85-4cf0-b0ce-122a8a282bc9",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "BOTTOM_MID"
+                        }
+                      }
+                    }
+                  },
+                  "groupIndex": 0,
+                  "userWidgetPageName": "OkCancelWidget",
+                  "userPropertyValues": {
+                    "objID": "55c1b6f6-2ae4-4f0e-9300-42dea7a20986",
+                    "values": {}
+                  },
+                  "identifier": "SettingsClockOkCancel"
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlag": true,
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "useStyle": "SettingsPanelStyle",
+              "localStyles": {
+                "objID": "de12cb18-7d54-4868-bc44-ec414a746cbe",
                 "definition": {
                   "MAIN": {
                     "DEFAULT": {

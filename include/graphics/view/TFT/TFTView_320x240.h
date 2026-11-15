@@ -140,6 +140,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
         eScreenLock,
         eScreenBrightness,
         eTheme,
+        eClockFormat,
         eInputControl,
         eAlertBuzzer,
         eBackupRestore,
@@ -373,6 +374,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void setTimeout(uint32_t timeout);
     void setBrightness(uint32_t brightness);
     void setTheme(uint32_t theme);
+    void setClockFormatLabel(bool use12h);
     void storeNodeOptions(void);
     void eraseChat(uint32_t channelOrNode);
     void clearChatHistory(void);
@@ -463,6 +465,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     static void ui_event_channel_button(lv_event_t *e);
     static void ui_event_brightness_button(lv_event_t *e);
     static void ui_event_theme_button(lv_event_t *e);
+    static void ui_event_clock_button(lv_event_t *e);
     static void ui_event_calibration_button(lv_event_t *e);
     static void ui_event_timeout_button(lv_event_t *e);
     static void ui_event_screen_lock_button(lv_event_t *e);
