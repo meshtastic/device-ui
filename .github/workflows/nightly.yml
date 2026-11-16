@@ -16,7 +16,7 @@ jobs:
       pull-requests: write # For trunk to create PRs
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Trunk Upgrade
         uses: trunk-io/trunk-action/upgrade@v2.0.0
