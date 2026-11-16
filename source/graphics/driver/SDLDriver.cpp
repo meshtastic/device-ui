@@ -26,10 +26,7 @@ void SDLDriver::init(DeviceGUI *gui)
     // Initialize LVGL
     DisplayDriver::init(gui);
 
-    // LVGL scales the zoomed canvas with the SDL renderer, which snapshots this hint when
-    // it creates the renderer and its textures inside lv_sdl_window_create(). Integer zoom
-    // factors stay sharpest with the default nearest sampling, so filter only fractional ones.
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, (zoom == (float)(int)zoom) ? "0" : "1");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
     display = lv_sdl_window_create(screenWidth, screenHeight);
     char title[48];
