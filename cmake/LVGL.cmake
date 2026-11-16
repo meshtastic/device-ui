@@ -9,7 +9,7 @@ add_compile_definitions(LV_LIBINPUT_XKB=1)
 FetchContent_Declare(lvgl 
                      GIT_REPOSITORY https://github.com/lvgl/lvgl.git
                      # renovate: datasource=github-tags packageName=lvgl/lvgl
-                     GIT_TAG  v9.3.0
+                     GIT_TAG  v9.6.0
 )
 FetchContent_MakeAvailable(lvgl)
 target_include_directories(lvgl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
