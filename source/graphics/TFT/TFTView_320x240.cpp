@@ -395,6 +395,7 @@ void TFTView_320x240::init(IClientBase *client)
 
     MeshtasticView::init(client);
 
+    ui_create_groups();
     ui_init_boot();
     FileLoader::init(&fileSystem);
     if (!FileLoader::loadBootImage(objects.boot_logo))
