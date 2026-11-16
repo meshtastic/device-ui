@@ -72,6 +72,8 @@ class MapPanel
 
     void center(void);
     void redraw(void);
+    // lvgl callback of the panel's LV_EVENT_SIZE_CHANGED (resized window or display)
+    static void lv_event_PanelResize(lv_event_t *e);
     // create or reload one tile at (tx,ty); handles async enqueue and retry scheduling
     void loadTile(uint32_t hash, int tx, int ty);
     void drawLocation(void);
