@@ -414,7 +414,10 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
     lv_indev_gesture_recognizers_update(indev_driver, events, n);
     lv_indev_gesture_recognizers_set_data(indev_driver, data);
 
-    if (count == 0)
+    // LVGL 9.6 gesture processing no longer supplies the primary pointer coordinates.
+    if (count == 1)
+        data->point = {tp[0].x, tp[0].y};
+    else if (count == 0)
         data->point = lastPoint;
     // while two fingers are down the pointer follows their centroid from where it was, so a pinch can also pan
     // without a jump; once a finger lifts it holds still and stays released until all fingers are up
@@ -443,8 +446,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
                    "swipe st=%d dx=%.0f dy=%.0f | out %s %d/%d",
                    count, n, count > 0 ? tp[0].id : 0, count > 0 ? tp[0].x : -1, count > 0 ? tp[0].y : -1,
                    count > 1 ? tp[1].id : 0, count > 1 ? tp[1].x : -1, count > 1 ? tp[1].y : -1, p.state,
-                   p.info ? p.info->finger_cnt : 0, p.info ? p.info->scale : 0.0f, r.state,
-                   r.info ? r.info->rotation - r.info->p_rotation : 0.0f, s.state, s.info ? s.info->delta_x : 0.0f,
+                   p.info ? p.info->finger_cnt : 0, p.scale, r.state, r.rotation, s.state, s.info ? s.info->delta_x : 0.0f,
                    s.info ? s.info->delta_y : 0.0f, data->state == LV_INDEV_STATE_PRESSED ? "PR" : "REL", data->point.x,
                    data->point.y);
     }
@@ -471,7 +473,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         data->point.x = touchX;
         data->point.y = touchY;
 
-        // ILOG_DEBUG("Touch(%hd/%hd)", touchX, touchY);
+        ILOG_DEBUG("Touch(%hd/%hd)", touchX, touchY);
     }
 }
 #endif

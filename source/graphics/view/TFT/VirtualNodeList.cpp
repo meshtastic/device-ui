@@ -216,16 +216,16 @@ void VirtualNodeList::createRowPool()
     }
 
     // Disable flex layout on parent so rows use absolute virtual coordinates
-    lv_obj_set_style_layout(parentPanel, LV_LAYOUT_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_layout(parentPanel, LV_LAYOUT_NONE, LV_PART_MAIN);
 
     // Create spacer for virtual scroll height
     spacer = lv_obj_create(parentPanel);
     lv_obj_set_size(spacer, 1, 1);
     lv_obj_set_pos(spacer, 0, 0);
     lv_obj_remove_flag(spacer, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE));
-    lv_obj_set_style_opa(spacer, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(spacer, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_all(spacer, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_opa(spacer, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_width(spacer, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(spacer, 0, LV_PART_MAIN);
 
     rowPool.resize(rowPoolSizeForViewport(parentPanel));
 
@@ -236,8 +236,8 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_pos(row.panel, 0, 0);
         lv_obj_set_size(row.panel, lv_pct(100), COLLAPSED_ROW_HEIGHT);
         lv_obj_set_align(row.panel, LV_ALIGN_TOP_LEFT);
-        lv_obj_set_style_pad_top(row.panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_bottom(row.panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_top(row.panel, 0, LV_PART_MAIN);
+        lv_obj_set_style_pad_bottom(row.panel, 0, LV_PART_MAIN);
         lv_obj_remove_flag(row.panel, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
                                                                  LV_OBJ_FLAG_SCROLL_CHAIN_HOR));
         lv_obj_add_flag(row.panel, LV_OBJ_FLAG_EVENT_BUBBLE);
@@ -249,14 +249,14 @@ void VirtualNodeList::createRowPool()
         lv_image_set_src(row.img, &img_node_client_image);
         lv_image_set_pivot(row.img, 0, 0);
         lv_obj_clear_flag(row.img, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.img, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_radius(row.img, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_image_recolor_opa(row.img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_color(row.img, lv_color_hex(0x5d9388), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_opa(row.img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_border_color(row.img, lv_color_hex(0xff5555), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_border_opa(row.img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_border_width(row.img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.img, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
+        lv_obj_set_style_radius(row.img, 6, LV_PART_MAIN);
+        lv_obj_set_style_image_recolor_opa(row.img, 255, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(row.img, lv_color_hex(0x5d9388), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(row.img, 255, LV_PART_MAIN);
+        lv_obj_set_style_border_color(row.img, lv_color_hex(0xff5555), LV_PART_MAIN);
+        lv_obj_set_style_border_opa(row.img, 255, LV_PART_MAIN);
+        lv_obj_set_style_border_width(row.img, 2, LV_PART_MAIN);
 
         row.btn = lv_button_create(row.panel);
         // rows join the navigation group only while bound; keep hidden pool buttons out of the default group
@@ -265,9 +265,9 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_size(row.btn, lv_pct(106), lv_pct(100));
         lv_obj_set_align(row.btn, LV_ALIGN_CENTER);
         add_style_node_button_style(row.btn);
-        lv_obj_set_style_shadow_width(row.btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_max_height(row.btn, 132, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_min_height(row.btn, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_shadow_width(row.btn, 0, LV_PART_MAIN);
+        lv_obj_set_style_max_height(row.btn, 132, LV_PART_MAIN);
+        lv_obj_set_style_min_height(row.btn, 50, LV_PART_MAIN);
         lv_obj_add_flag(row.btn, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLL_ON_FOCUS | LV_OBJ_FLAG_EVENT_BUBBLE));
         lv_obj_add_event_cb(row.btn, rowClickCallback, LV_EVENT_ALL, this);
 
@@ -275,47 +275,47 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_pos(row.lblLong, -5, 35);
         lv_obj_set_size(row.lblLong, lv_pct(80), LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblLong, LV_LABEL_LONG_SCROLL);
-        lv_obj_set_style_align(row.lblLong, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblLong, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
 
         row.lblShort = lv_label_create(row.panel);
         lv_obj_set_pos(row.lblShort, 30, 10);
         lv_obj_set_size(row.lblShort, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblShort, LV_LABEL_LONG_WRAP);
         lv_obj_remove_flag(row.lblShort, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.lblShort, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_font(row.lblShort, &ui_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblShort, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
+        lv_obj_set_style_text_font(row.lblShort, &ui_font_montserrat_14, LV_PART_MAIN);
 
         row.lblBat = lv_label_create(row.panel);
         lv_obj_set_pos(row.lblBat, 8, 17);
         lv_obj_set_size(row.lblBat, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblBat, LV_LABEL_LONG_CLIP);
         lv_obj_remove_flag(row.lblBat, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.lblBat, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_align(row.lblBat, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblBat, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
+        lv_obj_set_style_text_align(row.lblBat, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
 
         row.lblLh = lv_label_create(row.panel);
         lv_obj_set_pos(row.lblLh, 8, 33);
         lv_obj_set_size(row.lblLh, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblLh, LV_LABEL_LONG_CLIP);
         lv_obj_remove_flag(row.lblLh, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.lblLh, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_align(row.lblLh, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblLh, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
+        lv_obj_set_style_text_align(row.lblLh, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
 
         row.lblSig = lv_label_create(row.panel);
         lv_obj_set_width(row.lblSig, LV_SIZE_CONTENT);
         lv_obj_set_height(row.lblSig, LV_SIZE_CONTENT);
         lv_obj_set_pos(row.lblSig, 8, 1);
         lv_obj_remove_flag(row.lblSig, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.lblSig, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_align(row.lblSig, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblSig, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
+        lv_obj_set_style_text_align(row.lblSig, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
 
         row.lblPos1 = lv_label_create(row.panel);
         lv_obj_set_pos(row.lblPos1, -5, 49);
         lv_obj_set_size(row.lblPos1, 120, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblPos1, LV_LABEL_LONG_CLIP);
         lv_obj_remove_flag(row.lblPos1, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.lblPos1, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_color(row.lblPos1, lv_color_hex(0x05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblPos1, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
+        lv_obj_set_style_text_color(row.lblPos1, lv_color_hex(0x05f6cb), LV_PART_MAIN);
         lv_obj_add_event_cb(row.lblPos1, rowPositionCallback, LV_EVENT_CLICKED, this);
         lv_obj_add_flag(row.lblPos1, LV_OBJ_FLAG_HIDDEN);
 
@@ -324,7 +324,7 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_size(row.lblPos2, 108, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblPos2, LV_LABEL_LONG_SCROLL);
         lv_obj_remove_flag(row.lblPos2, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.lblPos2, LV_ALIGN_TOP_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblPos2, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
         lv_obj_add_flag(row.lblPos2, LV_OBJ_FLAG_HIDDEN);
 
         row.lblTm1 = lv_label_create(row.panel);
@@ -332,8 +332,8 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_size(row.lblTm1, 130, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblTm1, LV_LABEL_LONG_CLIP);
         lv_obj_remove_flag(row.lblTm1, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.lblTm1, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_align(row.lblTm1, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblTm1, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
+        lv_obj_set_style_text_align(row.lblTm1, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
         lv_obj_add_flag(row.lblTm1, LV_OBJ_FLAG_HIDDEN);
 
         row.lblTm2 = lv_label_create(row.panel);
@@ -341,8 +341,8 @@ void VirtualNodeList::createRowPool()
         lv_obj_set_size(row.lblTm2, 130, LV_SIZE_CONTENT);
         lv_label_set_long_mode(row.lblTm2, LV_LABEL_LONG_CLIP);
         lv_obj_remove_flag(row.lblTm2, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_align(row.lblTm2, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_align(row.lblTm2, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_align(row.lblTm2, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
+        lv_obj_set_style_text_align(row.lblTm2, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
         lv_obj_add_flag(row.lblTm2, LV_OBJ_FLAG_HIDDEN);
 
         lv_label_set_text_static(row.lblShort, row.shortText);
@@ -834,9 +834,9 @@ void VirtualNodeList::bindRow(ReusableRow &row, const NodeRecord &record, bool i
 
     setRoleImage(record, row.img);
     if (!record.hasKey || record.hasBadKey) {
-        lv_obj_set_style_border_color(row.img, lv_color_hex(0xff5555), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(row.img, lv_color_hex(0xff5555), LV_PART_MAIN);
     } else if (!record.unmessagable) {
-        lv_obj_set_style_border_color(row.img, lv_obj_get_style_bg_color(row.img, LV_PART_MAIN), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(row.img, lv_obj_get_style_bg_color(row.img, LV_PART_MAIN), LV_PART_MAIN);
     }
 
     const bool shortTextChanged =
@@ -963,47 +963,47 @@ void VirtualNodeList::bindRow(ReusableRow &row, const NodeRecord &record, bool i
 
 void VirtualNodeList::applyHighlight(ReusableRow &row, const NodeRecord &record)
 {
-    lv_obj_set_style_border_width(row.panel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(row.panel, 1, LV_PART_MAIN);
     bool highlighted = false;
     if (renderContext.highlightActiveChat && record.hasActiveChat) {
-        lv_obj_set_style_border_color(row.panel, highlightOrange, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(row.panel, highlightOrange, LV_PART_MAIN);
         highlighted = true;
     }
     if (renderContext.highlightPosition && record.position.hasCoordinates()) {
-        lv_obj_set_style_border_color(row.panel, highlightBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(row.panel, highlightBlueGreen, LV_PART_MAIN);
         highlighted = true;
     }
     if (renderContext.highlightTelemetry && record.hasEnvironmentMetrics) {
-        lv_obj_set_style_border_color(row.panel, highlightBlue, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_border_width(row.panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(row.panel, highlightBlue, LV_PART_MAIN);
+        lv_obj_set_style_border_width(row.panel, 2, LV_PART_MAIN);
         highlighted = true;
     }
     if (renderContext.highlightIaq && record.hasEnvironmentMetrics && record.environmentMetrics.iaq > 0 &&
         record.environmentMetrics.iaq < 1000) {
         const uint32_t iaq = record.environmentMetrics.iaq;
         const auto [iaqTextColor, iaqBgColor] = NodeListRowPresentation::iaqColors(iaq);
-        lv_obj_set_style_border_color(row.panel, iaqBgColor, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_border_width(row.panel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_text_color(row.lblTm2, iaqTextColor, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_color(row.lblTm2, iaqBgColor, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_opa(row.lblTm2, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(row.panel, iaqBgColor, LV_PART_MAIN);
+        lv_obj_set_style_border_width(row.panel, 2, LV_PART_MAIN);
+        lv_obj_set_style_text_color(row.lblTm2, iaqTextColor, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(row.lblTm2, iaqBgColor, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(row.lblTm2, LV_OPA_COVER, LV_PART_MAIN);
         highlighted = true;
     } else {
-        lv_obj_set_style_bg_opa(row.lblTm2, LV_OPA_TRANSP, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_remove_local_style_prop(row.lblTm2, LV_STYLE_TEXT_COLOR, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_remove_local_style_prop(row.lblTm2, LV_STYLE_BG_COLOR, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_opa(row.lblTm2, LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_remove_local_style_prop(row.lblTm2, LV_STYLE_TEXT_COLOR, LV_PART_MAIN);
+        lv_obj_remove_local_style_prop(row.lblTm2, LV_STYLE_BG_COLOR, LV_PART_MAIN);
     }
     // Name highlight matches the rendered short-name text, including the id
     // fallback and the distance line.
     const char *name = renderContext.highlightName;
     if (name[0] != '\0' && (NodeListRowPresentation::containsCaseInsensitive(record.user.long_name, name) ||
                             NodeListRowPresentation::containsCaseInsensitive(row.shortText, name))) {
-        lv_obj_set_style_border_color(row.panel, highlightMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(row.panel, highlightMesh, LV_PART_MAIN);
         highlighted = true;
     }
     if (!highlighted) {
-        lv_obj_set_style_border_color(row.panel, highlightMidGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_border_width(row.panel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_border_color(row.panel, highlightMidGray, LV_PART_MAIN);
+        lv_obj_set_style_border_width(row.panel, 1, LV_PART_MAIN);
     }
 }
 
