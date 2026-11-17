@@ -4,6 +4,7 @@
 #include "util/ILog.h"
 #include "util/LogMessage.h"
 #include <algorithm>
+#include <utility>
 
 #if defined(ARCH_PORTDUINO)
 #include "PortduinoFS.h"
@@ -21,8 +22,14 @@ constexpr const char *logDir = "/messages";
  *
  */
 ViewController::ViewController()
-    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), messageLog(log), client(nullptr), sendId(1), myNodeNum(0),
-      setupDone(false), configCompleted(false), messagesRestored(false), requestConfigRequired(true)
+    : ViewController([this](const LogMessageEnv &entry) { return log.write(entry); }, [this] { return log.clear(); })
+{
+}
+
+ViewController::ViewController(AsyncMessageLog::Writer writer, AsyncMessageLog::Clear clear)
+    : view(nullptr), log(persistentFS, logDir, sizeof(LogMessage)), messageLog(std::move(writer), std::move(clear)),
+      client(nullptr), sendId(1), myNodeNum(0), setupDone(false), configCompleted(false), messagesRestored(false),
+      requestConfigRequired(true)
 {
 }
 
@@ -91,12 +98,24 @@ void ViewController::runOnce(void)
 
 bool ViewController::sleep(int16_t pin)
 {
-    if (!prepareShutdown(1000))
+    if (!client)
         return false;
-    if (client)
+    if (!client->isStandalone())
         return client->sleep(pin);
-    else
-        return false;
+    prepareSleep();
+    const bool wakeByPin = client->sleep(pin);
+    wakeUp();
+    return wakeByPin;
+}
+
+void ViewController::prepareSleep(void)
+{
+    messageLog.suspend();
+}
+
+void ViewController::wakeUp(void)
+{
+    messageLog.resume();
 }
 
 bool ViewController::isStandalone(void)
@@ -721,6 +740,7 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
         return false;
 
     ILOG_DEBUG("handleFromRadio variant %u, id=%d", from.which_payload_variant, from.id);
+    delay(5);
     if (from.which_payload_variant == meshtastic_FromRadio_deviceuiConfig_tag) {
         setupDone = view->setupUIConfig(from.deviceuiConfig);
     } else if (from.which_payload_variant == meshtastic_FromRadio_my_info_tag) {
@@ -760,6 +780,8 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
             }
             case meshtastic_FromRadio_config_tag: {
                 const meshtastic_Config &config = from.config;
+                ILOG_DEBUG("handleFromRadio config subtype=%u", config.which_payload_variant);
+                delay(5);
                 switch (config.which_payload_variant) {
                 case meshtastic_Config_device_tag: {
                     const meshtastic_Config_DeviceConfig &cfg = config.payload_variant.device;
@@ -818,6 +840,8 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
             }
             case meshtastic_FromRadio_moduleConfig_tag: {
                 const meshtastic_ModuleConfig &module = from.moduleConfig;
+                ILOG_DEBUG("handleFromRadio module subtype=%u", module.which_payload_variant);
+                delay(5);
                 switch (module.which_payload_variant) {
                 case meshtastic_ModuleConfig_mqtt_tag: {
                     const meshtastic_ModuleConfig_MQTTConfig &cfg = module.payload_variant.mqtt;
@@ -897,6 +921,15 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
             }
             case meshtastic_FromRadio_channel_tag: {
                 const meshtastic_Channel &ch = from.channel;
+                const size_t channelNameLen = strnlen(ch.settings.name, sizeof(ch.settings.name));
+                ILOG_DEBUG("handleFromRadio channel idx=%u role=%u has_settings=%u name_len=%u psk_size=%u", ch.index, ch.role,
+                           ch.has_settings, (unsigned)channelNameLen, (unsigned)ch.settings.psk.size);
+                delay(5);
+                if (ch.index >= c_max_channels) {
+                    ILOG_ERROR("dropping channel update with invalid index=%u (max=%u)", ch.index, c_max_channels - 1);
+                    delay(5);
+                    break;
+                }
                 if (ch.has_settings) {
                     view->updateChannelConfig(ch);
                 }
@@ -942,7 +975,12 @@ bool ViewController::handleFromRadio(const meshtastic_FromRadio &from)
 
 bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 {
-    ILOG_DEBUG("received packet from 0x%08x, id=0x%08x, portnum=%u", p.from, p.id, p.decoded.portnum);
+    ILOG_DEBUG("received packet from 0x%08x to=0x%08x id=0x%08x ch=%u port=%u payload=%u hop=%u/%u", p.from, p.to, p.id,
+               p.channel, p.decoded.portnum, (unsigned)p.decoded.payload.size, p.hop_limit, p.hop_start);
+    if (p.channel >= c_max_channels) {
+        ILOG_ERROR("packet has invalid channel=%u (max=%u), dropping", p.channel, c_max_channels - 1);
+        return false;
+    }
     view->packetReceived(p);
 
     // only for direct neighbors print rssi/snr

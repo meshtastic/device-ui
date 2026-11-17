@@ -4,7 +4,8 @@ if(ENABLE_DOCTESTS)
     FetchContent_Declare(
         DocTest
         GIT_REPOSITORY "https://github.com/onqtam/doctest"
-        GIT_TAG v2.5.2
+        # renovate: datasource=github-tags packageName=onqtam/doctest
+        GIT_TAG v2.5.3
     )
 
     FetchContent_MakeAvailable(DocTest)
