@@ -300,6 +300,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void focusActivePanel(void);
     void restoreActivePanelFocus(void);
+    void restoreGroupFocus(lv_group_t *group, lv_obj_t *obj);
     lv_obj_t *activeSettingsPanel(void) const;
     void setPanelInputContext(void);
     void previewMainButton(lv_obj_t *button);

@@ -883,6 +883,23 @@ lv_obj_t *TFTView_320x240::activeSettingsPanel(void) const
     }
 }
 
+void TFTView_320x240::restoreGroupFocus(lv_group_t *group, lv_obj_t *obj)
+{
+    setPanelInputContext();
+    setInputGroup(group);
+    if (!obj)
+        return;
+
+    lv_group_focus_obj(obj);
+    if (lv_group_get_focused(group) != obj || lv_obj_has_state(obj, LV_STATE_FOCUSED))
+        return;
+
+    lv_indev_t *indev = inputdriver->hasKeyboardDevice()
+                            ? inputdriver->getKeyboard()
+                            : (inputdriver->hasEncoderDevice() ? inputdriver->getEncoder() : nullptr);
+    lv_obj_send_event(obj, LV_EVENT_FOCUSED, indev);
+}
+
 /**
  * @brief restore input group and last focused widget inside the active panel
  */
@@ -902,9 +919,7 @@ void TFTView_320x240::restoreActivePanelFocus(void)
         lv_obj_has_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN)) {
         const bool onToolsTab = objects.controller_tab_view && lv_tabview_get_tab_active(objects.controller_tab_view) != 0;
         if (!onToolsTab) {
-            setInputGroup(groups.mainButtons);
-            setPanelInputContext();
-            lv_group_focus_obj(activeButton ? activeButton : objects.settings_button);
+            restoreGroupFocus(groups.mainButtons, activeButton ? activeButton : objects.settings_button);
             return;
         }
         focusContainer = objects.tab_page_tools;
@@ -926,9 +941,7 @@ void TFTView_320x240::restoreActivePanelFocus(void)
     if (objects.keyboard && !lv_obj_has_flag(objects.keyboard, LV_OBJ_FLAG_HIDDEN)) {
         lv_obj_t *kbTarget = lv_keyboard_get_textarea(objects.keyboard);
         if (isFocusableInside(kbTarget, focusContainer, defaultPanelGroup)) {
-            setInputGroup(defaultPanelGroup);
-            setPanelInputContext();
-            lv_group_focus_obj(objects.keyboard);
+            restoreGroupFocus(defaultPanelGroup, objects.keyboard);
             input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Keyboard);
             return;
         }
@@ -939,22 +952,9 @@ void TFTView_320x240::restoreActivePanelFocus(void)
     }
 
     if ((dialogPanel || activePanel != objects.map_panel) && isFocusableInside(lastFocused, focusContainer, defaultPanelGroup)) {
-        const bool willSkipFocusEvent = (isDefaultPanelGroupActive() || lv_obj_has_state(lastFocused, LV_STATE_FOCUSED)) &&
-                                        lv_group_get_focused(defaultPanelGroup) == lastFocused;
-        setPanelInputContext();
-        setInputGroup(defaultPanelGroup);
-        lv_group_focus_obj(lastFocused);
-        if (willSkipFocusEvent) {
-            lv_indev_t *indev = inputdriver->hasKeyboardDevice()
-                                    ? inputdriver->getKeyboard()
-                                    : (inputdriver->hasEncoderDevice() ? inputdriver->getEncoder() : nullptr);
-            lv_obj_send_event(lastFocused, LV_EVENT_FOCUSED, indev);
-        }
+        restoreGroupFocus(defaultPanelGroup, lastFocused);
     } else if (dialogPanel || focusContainer == objects.tab_page_tools) {
-        setInputGroup(defaultPanelGroup);
-        setPanelInputContext();
-        if (lv_obj_t *first = firstFocusable(focusContainer, defaultPanelGroup))
-            lv_group_focus_obj(first);
+        restoreGroupFocus(defaultPanelGroup, firstFocusable(focusContainer, defaultPanelGroup));
     } else {
         focusActivePanel();
     }
