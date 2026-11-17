@@ -177,11 +177,10 @@ TEST_CASE("screen blank and wake restoration re-establishes textarea edit contex
     TextareaFixture f;
     lv_group_t *group = lv_group_create();
     lv_textarea_set_one_line(f.textarea, true);
-    lv_obj_add_event_cb(f.textarea, TextareaEditContext::handleEvent, LV_EVENT_ALL, nullptr);
-    lv_group_add_obj(group, f.textarea);
-
     auto &context = input_policy::InputContextState::instance();
     context.setActivePanelId(1);
+    lv_obj_add_event_cb(f.textarea, TextareaEditContext::handleEvent, LV_EVENT_ALL, nullptr);
+    lv_group_add_obj(group, f.textarea);
     lv_group_focus_obj(f.textarea);
 
     CHECK(lv_group_get_focused(group) == f.textarea);
