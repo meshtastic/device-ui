@@ -886,12 +886,15 @@ lv_obj_t *TFTView_320x240::activeSettingsPanel(void) const
 void TFTView_320x240::restoreGroupFocus(lv_group_t *group, lv_obj_t *obj)
 {
     setPanelInputContext();
-    setInputGroup(group);
-    if (!obj)
+    if (!obj) {
+        setInputGroup(group);
         return;
+    }
 
+    const bool alreadyFocused = group && lv_group_get_focused(group) == obj;
+    setInputGroup(group, false);
     lv_group_focus_obj(obj);
-    if (lv_group_get_focused(group) != obj || lv_obj_has_state(obj, LV_STATE_FOCUSED))
+    if (!alreadyFocused || lv_group_get_focused(group) != obj)
         return;
 
     lv_indev_t *indev = inputdriver->hasKeyboardDevice()
@@ -8551,7 +8554,7 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
 /**
  * input group used by keyboard and/or pointer for dynamic assignment
  */
-void TFTView_320x240::setInputGroup(lv_group_t *group)
+void TFTView_320x240::setInputGroup(lv_group_t *group, bool restoreFocusState)
 {
     // defocus old object in current group if it changed
     if (inputdriver->hasKeyboardDevice()) {
@@ -8601,7 +8604,7 @@ void TFTView_320x240::setInputGroup(lv_group_t *group)
     if (inputGroup && inputdriver->hasEncoderDevice())
         lv_indev_set_group(inputdriver->getEncoder(), inputGroup);
 
-    if (inputGroup && (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice())) {
+    if (restoreFocusState && inputGroup && (inputdriver->hasKeyboardDevice() || inputdriver->hasEncoderDevice())) {
         lv_obj_t *focused = lv_group_get_focused(inputGroup);
         // LVGL 9.6 skips refocusing the same object; inactive groups retain their selection but not its focus state.
         if (focused && !lv_obj_has_state(focused, LV_STATE_FOCUSED)) {

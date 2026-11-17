@@ -315,7 +315,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void enablePanel(lv_obj_t *panel);
     void disablePanel(lv_obj_t *panel);
     void setGroupFocus(lv_obj_t *panel);
-    void setInputGroup(lv_group_t *group = nullptr);
+    void setInputGroup(lv_group_t *group = nullptr, bool restoreFocusState = true);
     void cleanupAllOverlays(void);
     void setInputButtonLabel(void);
     NodeListFilter currentNodeListFilter(void) const;

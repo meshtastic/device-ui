@@ -216,3 +216,32 @@ TEST_CASE("screen blank and wake restoration re-establishes textarea edit contex
 
     lv_group_delete(group);
 }
+
+TEST_CASE("screen wake restores textarea edit context when encoder focus state is retained")
+{
+    TextareaFixture f;
+    lv_group_t *group = lv_group_create();
+    lv_textarea_set_one_line(f.textarea, true);
+    auto &context = input_policy::InputContextState::instance();
+    context.setActivePanelId(1);
+    lv_obj_add_event_cb(f.textarea, TextareaEditContext::handleEvent, LV_EVENT_ALL, nullptr);
+    lv_group_add_obj(group, f.textarea);
+    lv_group_focus_obj(f.textarea);
+
+    context.setFocusSemantic(input_policy::FocusSemantic::Unknown);
+    context.setEditMode(false);
+    context.setCanLeaveEditMode(false);
+    CHECK(lv_obj_has_state(f.textarea, LV_STATE_FOCUSED));
+    CHECK_FALSE(context.getSnapshot().isEditMode);
+
+    lv_group_focus_obj(f.textarea);
+    CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::Unknown);
+
+    lv_obj_send_event(f.textarea, LV_EVENT_FOCUSED, nullptr);
+    CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::TextEdit);
+    CHECK(context.getSnapshot().isEditMode);
+    CHECK(context.getSnapshot().canLeaveEditMode);
+    CHECK(f.processedKey(LV_KEY_UP) == LV_KEY_PREV);
+
+    lv_group_delete(group);
+}
