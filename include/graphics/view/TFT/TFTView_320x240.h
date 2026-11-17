@@ -546,6 +546,7 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     bool updatingChat = false;
     bool evacuatingChatFocus = false;
     bool blankedFromLockScreen = false;
+    bool pendingFocusRestoreOnMainLoad = false;
     lv_obj_t *activeWidget = nullptr;
     lv_obj_t *activeTextInput = nullptr;
     lv_group_t *defaultPanelGroup = nullptr; // The default LVGL group for panel content widgets

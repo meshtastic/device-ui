@@ -191,15 +191,17 @@ TEST_CASE("screen blank and wake restoration re-establishes textarea edit contex
     // Simulate screen unload during blankScreen(true) / screenSaving(true):
     // LVGL clears focus state on the unloaded screen's widgets and sends LV_EVENT_DEFOCUSED
     // while leaving the group's focused object pointer intact.
-    lv_obj_remove_state(f.textarea, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY | LV_STATE_EDITED);
+    lv_obj_remove_state(f.textarea, static_cast<lv_state_t>(LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY | LV_STATE_EDITED));
     lv_obj_send_event(f.textarea, LV_EVENT_DEFOCUSED, nullptr);
     CHECK(lv_group_get_focused(group) == f.textarea);
     CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::Unknown);
     CHECK_FALSE(context.getSnapshot().isEditMode);
 
-    // Simulate restoreActivePanelFocus(): reset panel context first, then re-focus the group's last focused object.
+    // Simulate restoreActivePanelFocus() + setInputGroup(): reset panel context first, then refocus.
     context.setFocusSemantic(input_policy::FocusSemantic::Unknown);
     lv_group_focus_obj(lv_group_get_focused(group));
+    if (!lv_obj_has_state(f.textarea, LV_STATE_FOCUSED))
+        lv_obj_send_event(f.textarea, LV_EVENT_FOCUSED, nullptr);
 
     CHECK(lv_obj_has_state(f.textarea, LV_STATE_FOCUSED));
     CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::TextEdit);

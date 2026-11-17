@@ -888,8 +888,9 @@ lv_obj_t *TFTView_320x240::activeSettingsPanel(void) const
  */
 void TFTView_320x240::restoreActivePanelFocus(void)
 {
+    pendingFocusRestoreOnMainLoad = false;
     lv_obj_t *dialogPanel = activeSettingsPanel();
-    if (dialogPanel && lv_obj_get_screen(dialogPanel) != lv_scr_act())
+    if (dialogPanel && lv_obj_get_screen(dialogPanel) != lv_screen_active())
         dialogPanel = nullptr;
 
     lv_obj_t *focusContainer = dialogPanel ? dialogPanel : activePanel;
@@ -938,9 +939,17 @@ void TFTView_320x240::restoreActivePanelFocus(void)
     }
 
     if ((dialogPanel || activePanel != objects.map_panel) && isFocusableInside(lastFocused, focusContainer, defaultPanelGroup)) {
-        setInputGroup(defaultPanelGroup);
+        const bool willSkipFocusEvent = (isDefaultPanelGroupActive() || lv_obj_has_state(lastFocused, LV_STATE_FOCUSED)) &&
+                                        lv_group_get_focused(defaultPanelGroup) == lastFocused;
         setPanelInputContext();
+        setInputGroup(defaultPanelGroup);
         lv_group_focus_obj(lastFocused);
+        if (willSkipFocusEvent) {
+            lv_indev_t *indev = inputdriver->hasKeyboardDevice()
+                                    ? inputdriver->getKeyboard()
+                                    : (inputdriver->hasEncoderDevice() ? inputdriver->getEncoder() : nullptr);
+            lv_obj_send_event(lastFocused, LV_EVENT_FOCUSED, indev);
+        }
     } else if (dialogPanel || focusContainer == objects.tab_page_tools) {
         setInputGroup(defaultPanelGroup);
         setPanelInputContext();
@@ -1703,21 +1712,25 @@ void TFTView_320x240::ui_events_init(void)
     // The generated screens.c SCREEN_LOAD_START handler calls lv_group_remove_all_objs(groups.mainButtons),
     // stripping all nav buttons from the group on every screen load. Register a second handler here
     // (called after the generated one, in registration order) to re-populate the group.
-    lv_obj_add_event_cb(
-        objects.main_screen,
-        [](lv_event_t *e) {
-            if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOAD_START) {
-                lv_group_add_obj(groups.mainButtons, objects.home_button);
-                lv_group_add_obj(groups.mainButtons, objects.nodes_button);
-                lv_group_add_obj(groups.mainButtons, objects.groups_button);
-                lv_group_add_obj(groups.mainButtons, objects.messages_button);
-                lv_group_add_obj(groups.mainButtons, objects.map_button);
-                lv_group_add_obj(groups.mainButtons, objects.settings_button);
-                lv_obj_t *btn = THIS->lastMainButton ? THIS->lastMainButton : objects.home_button;
-                lv_group_focus_obj(btn);
-            }
-        },
-        LV_EVENT_SCREEN_LOAD_START, NULL);
+    auto mainScreenLoadHandler = [](lv_event_t *e) {
+        const lv_event_code_t code = lv_event_get_code(e);
+        if (code == LV_EVENT_SCREEN_LOAD_START) {
+            lv_group_add_obj(groups.mainButtons, objects.home_button);
+            lv_group_add_obj(groups.mainButtons, objects.nodes_button);
+            lv_group_add_obj(groups.mainButtons, objects.groups_button);
+            lv_group_add_obj(groups.mainButtons, objects.messages_button);
+            lv_group_add_obj(groups.mainButtons, objects.map_button);
+            lv_group_add_obj(groups.mainButtons, objects.settings_button);
+            lv_obj_t *btn = THIS->lastMainButton ? THIS->lastMainButton : objects.home_button;
+            lv_group_focus_obj(btn);
+        }
+        if ((code == LV_EVENT_SCREEN_LOAD_START || code == LV_EVENT_SCREEN_LOADED) && THIS->pendingFocusRestoreOnMainLoad &&
+            lv_screen_active() == objects.main_screen) {
+            THIS->restoreActivePanelFocus();
+        }
+    };
+    lv_obj_add_event_cb(objects.main_screen, mainScreenLoadHandler, LV_EVENT_SCREEN_LOAD_START, NULL);
+    lv_obj_add_event_cb(objects.main_screen, mainScreenLoadHandler, LV_EVENT_SCREEN_LOADED, NULL);
 }
 
 #if 0 // defined above as lambda function for tests
@@ -3494,13 +3507,21 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
                                     "* * * * o o", "* * * * * o", "* * * * * *"};
     static char pinEntered[7]{};
 
-    auto unlockScreen = []() {
+    auto restoreAfterMainScreenLoad = []() {
+        if (lv_screen_active() == objects.main_screen) {
+            THIS->restoreActivePanelFocus();
+        } else {
+            THIS->pendingFocusRestoreOnMainLoad = true;
+        }
+    };
+
+    auto unlockScreen = [&restoreAfterMainScreenLoad]() {
         pinKeys = 0;
         screenLocked = false;
         lv_obj_remove_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN);
         lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
         lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
-        THIS->restoreActivePanelFocus();
+        restoreAfterMainScreenLoad();
     };
 
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -3514,7 +3535,7 @@ void TFTView_320x240::ui_event_pin_screen_button(lv_event_t *e)
             lv_label_set_text(objects.lock_screen_digits_label, hidden[pinKeys]);
             if (!screenLocked) {
                 lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_FADE_IN, 100, 0, false);
-                THIS->restoreActivePanelFocus();
+                restoreAfterMainScreenLoad();
             } else {
                 // TODO: init screen saver
             }
@@ -6209,7 +6230,8 @@ void TFTView_320x240::evacuateChatFocus(lv_obj_t *target, bool suppressFocusEffe
     lv_group_focus_obj(objects.message_input_area);
     evacuatingChatFocus = previousSuppress;
     if (suppressFocusEffects) {
-        lv_obj_remove_state(objects.message_input_area, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY | LV_STATE_EDITED);
+        lv_obj_remove_state(objects.message_input_area,
+                            static_cast<lv_state_t>(LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY | LV_STATE_EDITED));
         lv_obj_invalidate(objects.message_input_area);
     }
 }
@@ -6293,7 +6315,7 @@ void TFTView_320x240::renderChat(lv_obj_t *container, bool follow, size_t previo
         if (lv_obj_t *target = lv_obj_get_child(panel, 0)) {
             lv_group_focus_obj(target);
             if (!panelGroupActive) {
-                lv_obj_remove_state(target, LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY);
+                lv_obj_remove_state(target, static_cast<lv_state_t>(LV_STATE_FOCUSED | LV_STATE_FOCUS_KEY));
                 lv_obj_invalidate(target);
             }
         }
@@ -7235,7 +7257,8 @@ void TFTView_320x240::blankScreen(bool enable)
 {
     ILOG_DEBUG("%s screen (%s)", enable ? "blank" : "unblank", screenLocked ? "locked" : "timeout");
     if (enable) {
-        blankedFromLockScreen = objects.lock_screen && lv_scr_act() == objects.lock_screen;
+        pendingFocusRestoreOnMainLoad = false;
+        blankedFromLockScreen = objects.lock_screen && lv_screen_active() == objects.lock_screen;
         setInputGroup(groups.mainButtons);
         lv_screen_load_anim(objects.blank_screen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
     } else {
@@ -7255,6 +7278,7 @@ void TFTView_320x240::blankScreen(bool enable)
 void TFTView_320x240::screenSaving(bool enabled)
 {
     if (enabled) {
+        pendingFocusRestoreOnMainLoad = false;
         ILOG_DEBUG("showing blank screen");
         // switch the keyboard indev to mainButtons now; the SCREEN_LOAD_START handler will
         // add blank_screen_button to the group and focus it once the screen starts loading
