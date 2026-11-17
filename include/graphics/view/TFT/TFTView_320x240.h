@@ -300,7 +300,9 @@ class TFTView_320x240 : public MeshtasticView, private NodeListActionSink
     void showActivePanel(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
     void focusActivePanel(void);
     void restoreActivePanelFocus(void);
+    void focusGroupObject(lv_group_t *group, lv_obj_t *obj);
     void restoreGroupFocus(lv_group_t *group, lv_obj_t *obj);
+    static void activateTextareaIfUnfocused(TFTView_320x240 *view, lv_obj_t *target);
     lv_obj_t *activeSettingsPanel(void) const;
     void setPanelInputContext(void);
     void previewMainButton(lv_obj_t *button);

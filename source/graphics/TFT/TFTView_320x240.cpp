@@ -611,11 +611,11 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
                         if (channelOrNode < c_max_channels) {
                             uint8_t ch = (uint8_t)channelOrNode;
                             THIS->showMessages(ch);
-                            THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_group_chat_panel);
                         } else {
                             uint32_t nodeNum = channelOrNode;
                             THIS->showMessages(nodeNum);
-                            THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
+                            if (THIS->activePanel != objects.messages_panel)
+                                THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
                         }
                         lv_obj_set_style_border_color(chats[channelOrNode], colorGray,
                                                       (lv_style_selector_t)LV_PART_MAIN | (lv_style_selector_t)LV_STATE_DEFAULT);
@@ -829,8 +829,8 @@ void TFTView_320x240::setPanelInputContext(void)
  */
 void TFTView_320x240::focusActivePanel(void)
 {
-    setInputGroup(defaultPanelGroup);
     setPanelInputContext();
+    setInputGroup(defaultPanelGroup, false);
     setGroupFocus(activePanel);
 }
 
@@ -883,24 +883,30 @@ lv_obj_t *TFTView_320x240::activeSettingsPanel(void) const
     }
 }
 
-void TFTView_320x240::restoreGroupFocus(lv_group_t *group, lv_obj_t *obj)
+void TFTView_320x240::focusGroupObject(lv_group_t *group, lv_obj_t *obj)
 {
-    setPanelInputContext();
-    if (!obj) {
-        setInputGroup(group);
+    if (!group || !obj)
         return;
-    }
 
-    const bool alreadyFocused = group && lv_group_get_focused(group) == obj;
-    setInputGroup(group, false);
+    const bool alreadyFocused = lv_group_get_focused(group) == obj;
     lv_group_focus_obj(obj);
+    // LVGL 9.6 skips refocusing the same object, leaving removed LV_STATE_FOCUSED or reset edit context unrestored.
     if (!alreadyFocused || lv_group_get_focused(group) != obj)
         return;
 
-    lv_indev_t *indev = inputdriver->hasKeyboardDevice()
-                            ? inputdriver->getKeyboard()
-                            : (inputdriver->hasEncoderDevice() ? inputdriver->getEncoder() : nullptr);
+    lv_indev_t *indev = lv_indev_active();
+    if (!indev) {
+        indev = inputdriver->hasKeyboardDevice() ? inputdriver->getKeyboard()
+                                                 : (inputdriver->hasEncoderDevice() ? inputdriver->getEncoder() : nullptr);
+    }
     lv_obj_send_event(obj, LV_EVENT_FOCUSED, indev);
+}
+
+void TFTView_320x240::restoreGroupFocus(lv_group_t *group, lv_obj_t *obj)
+{
+    setPanelInputContext();
+    setInputGroup(group, !obj);
+    focusGroupObject(group, obj);
 }
 
 /**
@@ -1521,6 +1527,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_DEFOCUSED, NULL);
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_LEAVE, NULL);
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_CANCEL, NULL);
+    lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(objects.message_input_area, ui_event_message_ready, LV_EVENT_READY, NULL);
 
@@ -2349,11 +2356,11 @@ void TFTView_320x240::ui_event_ChatButton(lv_event_t *e)
         if (channelOrNode < c_max_channels) {
             uint8_t ch = (uint8_t)channelOrNode;
             THIS->showMessages(ch);
-            THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_group_chat_panel);
         } else {
             uint32_t nodeNum = channelOrNode;
             THIS->showMessages(nodeNum);
-            THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
+            if (THIS->activePanel != objects.messages_panel)
+                THIS->ui_set_active(objects.messages_button, objects.messages_panel, objects.top_messages_panel);
         }
     }
 }
@@ -2859,10 +2866,11 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
         case 39: { // checkmark
             if (THIS->activePanel == objects.messages_panel) {
                 THIS->hideKeyboard(objects.messages_panel);
+                THIS->focusGroupObject(THIS->defaultPanelGroup, objects.message_input_area);
             } else {
                 lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+                lv_group_focus_obj(objects.message_input_area);
             }
-            lv_group_focus_obj(objects.message_input_area);
             break;
         }
         default:
@@ -2883,6 +2891,17 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
     }
 }
 
+void TFTView_320x240::activateTextareaIfUnfocused(TFTView_320x240 *view, lv_obj_t *target)
+{
+    const auto snapshot = input_policy::InputContextState::instance().getSnapshot();
+    if (!lv_obj_has_state(target, LV_STATE_FOCUSED) || snapshot.focusSemantic == input_policy::FocusSemantic::Unknown) {
+        if (view && view->defaultPanelGroup)
+            view->focusGroupObject(view->defaultPanelGroup, target);
+        else
+            TextareaEditContext::focus(target);
+    }
+}
+
 void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -2899,6 +2918,10 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
 
     if (event_code == LV_EVENT_DEFOCUSED || event_code == LV_EVENT_LEAVE || event_code == LV_EVENT_CANCEL) {
         TextareaEditContext::release(lv_event_get_target_obj(e));
+        return;
+    }
+    if (event_code == LV_EVENT_CLICKED) {
+        activateTextareaIfUnfocused(THIS, lv_event_get_target_obj(e));
         return;
     }
 #ifdef ARCH_PORTDUINO
@@ -2933,7 +2956,7 @@ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
                 THIS->handleAddMessage(txt);
                 lv_textarea_set_text(objects.message_input_area, "");
                 THIS->hideKeyboard(objects.messages_panel);
-                lv_group_focus_obj(objects.message_input_area);
+                THIS->focusGroupObject(THIS->defaultPanelGroup, objects.message_input_area);
             }
         }
     }
@@ -2953,14 +2976,19 @@ void TFTView_320x240::ui_event_quick_chat_button(lv_event_t *e)
             lv_obj_send_event(objects.message_input_area, LV_EVENT_READY, nullptr);
             lv_event_stop_processing(e);
         }
-        lv_group_focus_obj(objects.message_input_area);
+        THIS->focusGroupObject(THIS->defaultPanelGroup, objects.message_input_area);
     }
 }
 
 void TFTView_320x240::ui_event_textarea_edit_mode(lv_event_t *e)
 {
-    if (lv_event_get_code(e) == LV_EVENT_FOCUSED && THIS && THIS->defaultPanelGroup)
+    const lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_FOCUSED && THIS && THIS->defaultPanelGroup) {
         THIS->setInputGroup(THIS->defaultPanelGroup);
+    } else if (code == LV_EVENT_CLICKED) {
+        activateTextareaIfUnfocused(THIS, lv_event_get_target_obj(e));
+        return;
+    }
     TextareaEditContext::handleEvent(e);
 }
 
@@ -8487,7 +8515,7 @@ void TFTView_320x240::disablePanel(lv_obj_t *panel)
 void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
 {
     if (panel == objects.home_panel) {
-        lv_group_focus_obj(objects.home_mail_button);
+        focusGroupObject(defaultPanelGroup, objects.home_mail_button);
     } else if (panel == objects.nodes_panel) {
         reconcileVirtualNodeListInputGroup(true);
         if (virtualNodeList) {
@@ -8500,51 +8528,52 @@ void TFTView_320x240::setGroupFocus(lv_obj_t *panel)
             }
         }
     } else if (panel == objects.groups_panel) {
-        lv_group_focus_obj(objects.channel_button0);
+        focusGroupObject(defaultPanelGroup, objects.channel_button0);
     } else if (panel == objects.messages_panel) {
-        lv_group_focus_obj(objects.message_input_area);
+        focusGroupObject(defaultPanelGroup, objects.message_input_area);
     } else if (panel == objects.chats_panel) {
         if (chats.size() > 0) {
-            lv_group_focus_obj(panel->spec_attr->children[1]); // TODO: does not work
+            if (lv_obj_t *first = firstFocusable(panel, defaultPanelGroup))
+                focusGroupObject(defaultPanelGroup, first);
         }
     } else if (panel == objects.map_panel) {
         setMapInputState(input_policy::FocusSemantic::Map);
     } else if (panel == objects.settings_about_panel) {
-        lv_group_focus_obj(objects.settings_about_panel);
+        focusGroupObject(defaultPanelGroup, objects.settings_about_panel);
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
     } else if (panel == objects.tools_statistics_panel) {
-        lv_group_focus_obj(objects.tools_statistics_panel);
+        focusGroupObject(defaultPanelGroup, objects.tools_statistics_panel);
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
     } else if (panel == objects.tools_packet_log_panel) {
-        lv_group_focus_obj(objects.tools_packet_log_panel);
+        focusGroupObject(defaultPanelGroup, objects.tools_packet_log_panel);
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::Scrollable);
     } else if (panel == objects.settings_screen_lock_panel) {
         lv_buttonmatrix_set_selected_button(objects.screen_lock_button_matrix, 0);
-        lv_group_focus_obj(objects.screen_lock_button_matrix);
+        focusGroupObject(defaultPanelGroup, objects.screen_lock_button_matrix);
         input_policy::InputContextState::instance().setFocusSemantic(input_policy::FocusSemantic::ButtonMatrix);
     } else if (panel == objects.controller_panel) {
         if (objects.tab_page_basic_settings && !lv_obj_has_flag(objects.tab_page_basic_settings, LV_OBJ_FLAG_HIDDEN)) {
-            lv_group_focus_obj(objects.basic_settings_user_button);
+            focusGroupObject(defaultPanelGroup, objects.basic_settings_user_button);
         } else if (objects.controller_tab_view && lv_tabview_get_tab_active(objects.controller_tab_view) != 0) {
             if (lv_obj_t *first = firstFocusable(objects.tab_page_tools, defaultPanelGroup))
-                lv_group_focus_obj(first);
+                focusGroupObject(defaultPanelGroup, first);
         }
     } else if (panel == objects.node_options_panel) {
         lv_obj_t *pages = lv_tabview_get_content(objects.node_options_tab_view);
         lv_obj_t *page = lv_obj_get_child(pages, (int32_t)lv_tabview_get_tab_active(objects.node_options_tab_view));
         if (lv_obj_t *first = firstFocusable(page, defaultPanelGroup))
-            lv_group_focus_obj(first);
+            focusGroupObject(defaultPanelGroup, first);
     } else {
         ILOG_DEBUG("focus: children count: %d", lv_obj_get_child_count(panel));
         for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
             if (panel->spec_attr->children[i]->class_p == &lv_button_class) {
-                lv_group_focus_obj(panel->spec_attr->children[i]);
+                focusGroupObject(defaultPanelGroup, panel->spec_attr->children[i]);
                 break;
             }
         }
         for (int i = 0; i < lv_obj_get_child_count(panel); i++) {
             if (panel->spec_attr->children[i]->class_p == &lv_label_class) {
-                lv_group_focus_obj(panel->spec_attr->children[i]);
+                focusGroupObject(defaultPanelGroup, panel->spec_attr->children[i]);
                 break;
             }
         }

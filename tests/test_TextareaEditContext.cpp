@@ -245,3 +245,41 @@ TEST_CASE("screen wake restores textarea edit context when encoder focus state i
 
     lv_group_delete(group);
 }
+
+TEST_CASE("re-focusing already-focused chat textarea after state strip or READY re-activates edit mode")
+{
+    TextareaFixture f;
+    lv_group_t *group = lv_group_create();
+    lv_textarea_set_one_line(f.textarea, true);
+    auto &context = input_policy::InputContextState::instance();
+    context.setActivePanelId(1);
+    lv_obj_add_event_cb(f.textarea, TextareaEditContext::handleEvent, LV_EVENT_ALL, nullptr);
+    lv_group_add_obj(group, f.textarea);
+    lv_group_focus_obj(f.textarea);
+
+    // Duplicate panel activation strips LV_STATE_FOCUSED and resets panel input context while keeping obj_focus.
+    lv_obj_remove_state(f.textarea, LV_STATE_FOCUSED);
+    context.setFocusSemantic(input_policy::FocusSemantic::Unknown);
+    context.setEditMode(false);
+    context.setCanLeaveEditMode(false);
+
+    // Sending LV_EVENT_FOCUSED when obj is already the group's focused object must restore both LV_STATE_FOCUSED and
+    // TextEdit.
+    if (lv_group_get_focused(group) == f.textarea)
+        lv_obj_send_event(f.textarea, LV_EVENT_FOCUSED, nullptr);
+    CHECK(lv_obj_has_state(f.textarea, LV_STATE_FOCUSED));
+    CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::TextEdit);
+    CHECK(context.getSnapshot().isEditMode);
+
+    // Submitting a message fires LV_EVENT_READY (which releases context) while obj stays focused in the group.
+    lv_obj_send_event(f.textarea, LV_EVENT_READY, nullptr);
+    CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::Unknown);
+    CHECK_FALSE(context.getSnapshot().isEditMode);
+
+    if (lv_group_get_focused(group) == f.textarea)
+        lv_obj_send_event(f.textarea, LV_EVENT_FOCUSED, nullptr);
+    CHECK(context.getSnapshot().focusSemantic == input_policy::FocusSemantic::TextEdit);
+    CHECK(context.getSnapshot().isEditMode);
+
+    lv_group_delete(group);
+}
