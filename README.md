@@ -79,6 +79,35 @@ Graphics using <a href="https://lvgl.io/" target="_blank">LVGL</a> library
 - [x] Makerfabs 480x480
 - [x] ESP32 4848S040
 
+## Native input and navigation configuration
+
+Linux clients can select explicitly configured libinput devices and framebuffer interaction preferences through `DisplayDriverConfig`:
+
+```cpp
+DisplayDriverConfig displayConfig(DisplayDriverConfig::device_t::FB, width, height);
+displayConfig.input(DisplayDriverConfig::input_config_t{
+                    .keyboardDevice = keyboardPath,
+                    .pointerDevice = pointerPath,
+                    .keyboardNavigation = true,
+                    .cursorMode = DisplayDriverConfig::cursor_mode_t::AUTO})
+             .navigation(DisplayDriverConfig::navigation_config_t{
+                    .scrollbarMode = DisplayDriverConfig::scrollbar_mode_t::OFF});
+```
+
+`keyboardNavigation` defaults to `true`: arrows use the shared context-aware input policy for menu focus while preserving text,
+map, virtual-keyboard and open-dropdown controls. Set it to `false` to forward raw LVGL keyboard events.
+This option applies to the configured Linux keyboard, not to an X11 window's built-in keyboard input.
+
+`cursorMode` accepts `AUTO` (default), `ALWAYS`, or `NEVER`. For discovered relative-pointer devices, `AUTO` checks for a primary
+mouse button when LVGL provides `LV_EVDEV_HAS_FD_GETTER`. Older LVGL versions retain their relative-pointer cursor behavior;
+`NEVER` still disables the cursor. `ALWAYS` shows cursors for all relative pointers. Absolute touch devices do not receive a
+cursor. An explicitly configured libinput pointer shows a cursor unless `NEVER` is selected.
+The X11 window driver's own input devices and cursor are unchanged by these options.
+The capability accessor and permission-change hotplug retry are proposed in [LVGL #10990](https://github.com/lvgl/lvgl/pull/10990).
+
+The main navigation panel scrolls when its buttons exceed the available space, using the actual button sizes, spacing and row/column layout.
+`scrollbarMode` accepts `AUTO` (default), `ON`, or `OFF`. Hiding the scrollbar keeps keyboard focus scrolling enabled.
+
 ## :pencil: TODOs
 
 ### General Architecture

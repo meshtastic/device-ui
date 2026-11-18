@@ -3,13 +3,13 @@ pl:
   1 of 1 nodes online: 1 z 1 węzłów online
   DEL: ~
   'User name: ': Nazwa
-  'Modem Preset: LONG FAST': ''
+  'Modem Preset: LONG FAST': 'Preset: LONG FAST'
   'Channel: LongFast': 'Kanał: LongFast'
-  'Role: Client': 'Tryb: Client'
-  'Screen Timeout: 60s': ''
+  'Role: Client': 'Rola: Client'
+  'Screen Timeout: 60s': 'Wygaszanie ekranu: 60s'
   'Screen Brightness: 60%': 'Jasność ekranu: 60%'
   'Screen Calibration: default': 'Kalibracja ekranu: domyślna'
-  'Input Control: none/none': ''
+  'Input Control: none/none': 'Kontrola wprowadzania: brak/brak'
   'Language: English': 'Język: Angielski'
   Configuration  Reset: Zresetuj konfigurację
   Reboot / Shutdown: Zrestartuj / Wyłącz
@@ -26,7 +26,7 @@ pl:
   <unset>: Nieustawione
   'FrequencySlot: 1 (902.0MHz)': 'Kanał częstotliwości: 1 (902.0MHz)'
   'Brightness: 60%': 'Jasność: 60%'
-  'Timeout: 60s': ~
+  'Timeout: 60s': 'Wygaszanie: 60s'
   Mouse: Kursor
   Keyboard: Klawiatura
   Message Alert: Alerty dźwiękowe
@@ -34,22 +34,22 @@ pl:
     Reset NodeDB
     Reset do ustawień domyślnych
   Channel Name: Nazwa kanału
-  Pre-shared Key: ~
+  Pre-shared Key: Klucz PSK
   "New Message from\n": |
     Nowa wiadomość od
-  Resync ...: Resyncronizacja...
+  Resync ...: Resynchronizacja...
   'User name: %s': 'Nazwa: %s'
-  'Device Role: %s': 'Typ urządzenia: %s'
+  'Device Role: %s': 'Rola: %s'
   'Screen Calibration: %s': 'Kalibracja ekranu: %s'
   done: wykonano
   default: domyślny
   'Region: %s': ~
-  'Modem Preset: %s': ~
+  'Modem Preset: %s': 'Preset: %s'
   'Channel: %s': 'Kanał: %s'
   'Language: %s': 'Język: %s'
   'Screen Lock: off': 'Blokada ekranu: wyłączona'
   'Theme: Dark': 'Skórka: Ciemny'
-  Mesh Detector: Wykrywanie siatki
+  Mesh Detector: Wykrywanie sieci
   Signal Scanner: Skaner sygnału
   Trace Route: Śledzenie trasy
   Neighbors: Sąsiedzi
@@ -66,7 +66,7 @@ pl:
   Unknown: Nieznany
   Offline: ~
   Public Key: Klucz publiczny
-  Hops away: ~
+  Hops away: Skoki
   MQTT: ~
   Position: Pozycja
   Name: Nazwa
@@ -90,8 +90,8 @@ pl:
   Cancel: Anuluj
   'FrequencySlot: %d (%g MHz)': 'Kanał: %d (%g MHz)'
   'Brightness: %d%%': 'Jasność: %d%%'
-  'Timeout: off': ~
-  'Timeout: %ds': ~
+  'Timeout: off': 'Wygaszanie: wył.'
+  'Timeout: %ds': 'Wygaszanie: %ds'
   Stop: ~
   "choose\nnode": |-
     wybierz
@@ -99,8 +99,8 @@ pl:
   choose target node: Wybierz adresata
   'heard: !%08x': Widziano !%08x
   'Packet Log: %d': 'Dziennik pakietów: %d'
-  'Screen Timeout: off': ~
-  'Screen Timeout: %ds': ~
+  'Screen Timeout: off': 'Wygaszanie ekranu: wył.'
+  'Screen Timeout: %ds': 'Wygaszanie ekranu: %ds'
   'Screen Brightness: %d%%': 'Jasność ekranu: %d%%'
   'Screen Lock: %s': 'Blokada ekranu: %s'
   'on': włączony
@@ -110,7 +110,7 @@ pl:
   'hops: %d': 'Skoki: %d'
   unknown: nieznany
   <no name>: <brak nazwy>
-  '%d active chat(s)': '%d brak aktywnych czatów'
+  '%d active chat(s)': 'Aktywne czaty: %d'
   "New message from \n%s": |-
     Nowa wiadomość od 
     %s
@@ -132,23 +132,53 @@ pl:
   Rebooting ...: Uruchamiam ponownie ...
   Shutting down ...: Wyłączam ...
   LoRa 0.0 MHz: ~
-  silent: ~
-  'WiFi: <not setup>': ~
-  'Lock: off/off': ~
-  'Message Alert Buzzer: on': ~
-  LoRa TX off!: ~
+  silent: cichy
+  'WiFi: <not setup>': 'WiFi: <nieskonfigurowane>'
+  'Lock: off/off': 'Blokada: wyłączony/wyłączony'
+  'Message Alert Buzzer: on': 'Dzwonek alertu: włączony'
+  LoRa TX off!: LoRa TX wyłączone!
   WiFi SSID: ~
-  WiFi pre-shared Key: ~
-  Settings Lock: ~
-  'Lock: %s/%s': ~
-  Enter Text ...: ~
-  '!Enter Filter ...': ~
-  Enter Filter ...: ~
+  WiFi pre-shared Key: Hasło WiFi
+  Settings Lock: Blokada ustawień
+  'Lock: %s/%s': 'Blokada: %s/%s'
+  Enter Text ...: Wpisz tekst...
+  '!Enter Filter ...': '!Wpisz filtr...'
+  Enter Filter ...: Wpisz filtr...
   'WiFi: %s': ~
-  <not set>: ~
-  region unset: ~
-  Banner & Sound: ~
-  Banner only: ~
-  Sound only: ~
-  no signal: ~
-  Restoring messages ...: ~
+  Share my node: Udostępnij mój węzeł
+  'Public key: %s': 'Klucz publiczny: %s'
+  <not set>: <nieustawione>
+  region unset: brak regionu
+  Banner & Sound: Baner i dźwięk
+  Banner only: Tylko baner
+  Sound only: Tylko dźwięk
+  no signal: brak sygnału
+  Restoring messages ...: Przywracanie wiadomości...
+  Reboot into BaseUI?: Uruchomić ponownie w BaseUI?
+  no SD card detected: nie wykryto karty SD
+  no public key: brak klucza publicznego
+  map tiles not found!: nie znaleziono kafelków mapy!
+  Backup & Restore: Kopia i przywracanie
+  Backup: Kopia zapasowa
+  Restore: Przywróć
+  Public/Private Key: Klucz publiczny/prywatny
+  "NodeDB Reset\nFactory Reset\nClear Chat History": "Reset NodeDB\nReset fabryczny\nWyczyść historię czatu"
+  Channel: Kanał
+  Please set region and name: Ustaw region i nazwę
+  '>> Programming mode <<': '>> Tryb programowania <<'
+  No map tiles found on SDCard!: Brak kafelków mapy na karcie SD!
+  'Modem Preset: custom': 'Preset: własny'
+  Connected!: Połączono!
+  Disconnected!: Rozłączono!
+  Failed to write keys!: Nie udało się zapisać kluczy!
+  Failed to restore keys!: Nie udało się przywrócić kluczy!
+  Failed to parse keys!: Nie udało się odczytać kluczy!
+  Failed to retrieve keys!: Nie udało się pobrać kluczy!
+  "%s: %d GB (%s)\nUsed: %0.2f GB (%d%%)": "%s: %d GB (%s)\nZajęte: %0.2f GB (%d%%)"
+  'Used: ...': 'Zajęte: ...'
+  SD slot empty: Brak karty SD
+  SD ejected: Karta SD wyjęta
+  SD invalid format: Zły format karty SD
+  SD mbr not found: Brak MBR na karcie SD
+  SD card error: Błąd karty SD
+  SD unknown error: Nieznany błąd karty SD

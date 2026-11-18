@@ -52,16 +52,45 @@ void DisplayDriver::init(DeviceGUI *gui)
 
 void DisplayDriver::toggleDisplay(void)
 {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+    toggleRequested.store(true);
+#else
     // run in lv thread
     lv_async_call(displayToggleCb, this);
+#endif
 }
 
 void DisplayDriver::displayToggleCb(void *displayDriver)
 {
     DisplayDriver *driver = (DisplayDriver *)displayDriver;
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+    if (driver->isPowersaving() || driver->manuallyBlanked) {
+        driver->manuallyBlanked = false;
+        driver->forceWakeup();
+        lv_display_trigger_activity(driver->display);
+    } else {
+        driver->manuallyBlanked = true;
+    }
+#else
     if (driver->isPowersaving()) {
         driver->forceWakeup();
     } else {
         driver->display->last_activity_time -= 60 * 60 * 24 * 365;
     }
+#endif
+}
+
+void DisplayDriver::flush(lv_display_t *disp, const lv_area_t *area, const uint8_t *px_map)
+{
+    if (!flushCB)
+        return;
+    const uint32_t stride = lv_display_get_buf_active(disp)->header.stride / sizeof(uint16_t);
+    const uint16_t *pixels = reinterpret_cast<const uint16_t *>(px_map);
+    // LVGL hands flush the area shifted by the display offset; the frame and the buffer are unshifted
+    const int32_t x = area->x1 - lv_display_get_offset_x(disp);
+    const int32_t y = area->y1 - lv_display_get_offset_y(disp);
+    // outside partial mode the buffer is the whole frame, not just the area
+    if (disp->render_mode != LV_DISPLAY_RENDER_MODE_PARTIAL)
+        pixels += (uint32_t)y * stride + x;
+    flushCB(x, y, lv_area_get_width(area), lv_area_get_height(area), pixels, (uint16_t)stride);
 }

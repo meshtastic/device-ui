@@ -17,7 +17,28 @@ MapPanel::MapPanel(lv_obj_t *p, ITileService *s)
 {
     // loadcb only uses non-async (fast) services; async tiles go through AsyncTileService
     osm = OSMTiles<lv_obj_t>::create([this](const char *name, void *img) -> bool { return service->loadSyncOnly(name, img); });
+    if (panel) {
+        lv_obj_add_event_cb(panel, lv_event_PanelResize, LV_EVENT_SIZE_CHANGED, this);
+    }
     center();
+}
+
+/**
+ * Re-center the map when the panel got a new size, e.g. the SDL window was resized.
+ * The tile grid (offset, number of tiles and first tile) is derived from the panel
+ * size, so it has to be recalculated. center() also requests the redraw.
+ */
+void MapPanel::lv_event_PanelResize(lv_event_t *e)
+{
+    MapPanel *mapPanel = static_cast<MapPanel *>(lv_event_get_user_data(e));
+    if (!mapPanel || !mapPanel->panel)
+        return;
+
+    // the panel has LV_OBJ_FLAG_EVENT_BUBBLE, ignore the size changes of its tiles
+    if (static_cast<lv_obj_t *>(lv_event_get_target(e)) != mapPanel->panel)
+        return;
+
+    mapPanel->center();
 }
 
 /**
@@ -588,6 +609,9 @@ void MapPanel::task_handler(void)
 
 MapPanel::~MapPanel(void)
 {
+    if (panel) {
+        lv_obj_remove_event_cb(panel, lv_event_PanelResize);
+    }
     delete service;
 }
 

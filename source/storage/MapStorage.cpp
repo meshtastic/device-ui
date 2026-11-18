@@ -30,7 +30,7 @@ std::set<std::string> loadMapStyles(IStorage &storage, const char *folder)
         storage.list(folder, [&styles](const char *name, bool isDir) {
             if (!isDir || name[0] == '.')
                 return;
-            if (strlen(name) < MapTileSettings::TILE_STYLE_SIZE - 1) {
+            if (MapTileSettings::isValidStyleName(name)) {
                 ILOG_DEBUG("SD: found map style: %s", name);
                 styles.insert(name);
             } else {

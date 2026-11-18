@@ -173,6 +173,14 @@ TEST_CASE("MapStorage")
         CHECK(MapStorage::getUrlProvider(storage, "/maps", "topo") == "https://t/{z}/{x}/{y}.png");
     }
 
+    SUBCASE("long style names are accepted up to the saved config limit")
+    {
+        // 19 chars: longest name that fits meshtastic_Map.style (#410)
+        CHECK(storage.mkdir("/maps/OpenTopoMapOutdoors"));
+        CHECK(storage.mkdir("/maps/OpenTopoMapOutdoors1"));
+        CHECK(MapStorage::loadMapStyles(storage, "/maps") == std::set<std::string>{"OpenTopoMapOutdoors"});
+    }
+
     SUBCASE("plain /map directory as fallback")
     {
         CHECK(storage.mkdir("/map/1"));

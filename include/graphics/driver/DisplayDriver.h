@@ -2,7 +2,9 @@
 
 #include "graphics/DeviceGUI.h"
 #include "graphics/LVGL/LVGLGraphics.h"
+#include <atomic>
 #include <cstdint>
+#include <functional>
 
 #define H_NORM_PX(h_scr_percent) ((int16_t)((screenWidth / 100.0) * (h_scr_percent)))
 #define V_NORM_PX(v_scr_percent) ((int16_t)((screenHeight / 100.0) * (v_scr_percent)))
@@ -24,7 +26,12 @@ class DisplayDriver
     virtual bool hasTouch(void) { return false; }
     virtual bool hasButton(void) { return false; }
     virtual bool hasLight(void) { return false; }
-    virtual void task_handler(void) { lv_timer_periodic_handler(); }
+    virtual void task_handler(void)
+    {
+        if (toggleRequested.exchange(false))
+            displayToggleCb(this);
+        lv_timer_periodic_handler();
+    }
     virtual void forceWakeup(void) {}
     virtual bool isPowersaving() { return false; }
     virtual void toggleDisplay(void);
@@ -42,14 +49,27 @@ class DisplayDriver
 
     lv_display_t *getDisplay(void) { return display; }
 
+    // pixels: top-left of the flushed area, rows stride pixels apart; LVGL thread
+    using FlushCallback =
+        std::function<void(int16_t x, int16_t y, uint16_t width, uint16_t height, const uint16_t *pixels, uint16_t stride)>;
+
+    // set once, before the UI task starts
+    void setFlushCB(FlushCallback cb) { flushCB = std::move(cb); }
+
   protected:
+    // subclasses call this from their LVGL flush callback
+    void flush(lv_display_t *disp, const lv_area_t *area, const uint8_t *px_map);
+
     LVGLGraphics lvgl;
     LVGLDisplay *display;
     LVGLTouch *touch;
     DeviceGUI *view;
     uint16_t screenWidth;
     uint16_t screenHeight;
+    bool manuallyBlanked = false;
 
   private:
+    std::atomic<bool> toggleRequested{false};
     static void displayToggleCb(void *displayDriver);
+    FlushCallback flushCB;
 };

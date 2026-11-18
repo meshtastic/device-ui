@@ -17,13 +17,15 @@ class FBDriver : public DisplayDriver
     virtual ~FBDriver() {}
 
   private:
-    FBDriver(uint16_t width, uint16_t height, lv_display_rotation_t rotation = LV_DISPLAY_ROTATION_0);
+    FBDriver(uint16_t width, uint16_t height, lv_display_rotation_t rotation = LV_DISPLAY_ROTATION_0,
+             DisplayDriverConfig::cursor_mode_t cursorMode = DisplayDriverConfig::cursor_mode_t::AUTO);
 
     // maps the panel offset_rotation of the config (0/1/2/3) to the lvgl rotation (0/90/180/270 deg)
     static lv_display_rotation_t toRotation(uint8_t offsetRotation);
 
 #if LV_USE_EVDEV
     static void discovery_cb(lv_indev_t *indev, lv_evdev_type_t type, void *user_data);
+    static bool is_mouse(lv_indev_t *indev);
     static void set_mouse_cursor_icon(lv_indev_t *indev, lv_display_t *display);
     static void indev_deleted_cb(lv_event_t *e);
 #endif
@@ -31,4 +33,5 @@ class FBDriver : public DisplayDriver
     static FBDriver *fbDriver;
     static lv_display_t *display;
     const lv_display_rotation_t rotation;
+    const DisplayDriverConfig::cursor_mode_t cursorMode;
 };

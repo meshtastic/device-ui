@@ -5,6 +5,10 @@
 #include "util/ILog.h"
 #include <cstdlib>
 #include <cstring>
+#if LV_USE_EVDEV
+#include <linux/input.h>
+#include <sys/ioctl.h>
+#endif
 
 LV_IMG_DECLARE(mouse_cursor_icon);
 
@@ -21,12 +25,12 @@ FBDriver &FBDriver::create(uint16_t width, uint16_t height)
 FBDriver &FBDriver::create(const DisplayDriverConfig &cfg)
 {
     if (!fbDriver)
-        fbDriver = new FBDriver(cfg.width(), cfg.height(), toRotation(cfg._panel.offset_rotation));
+        fbDriver = new FBDriver(cfg.width(), cfg.height(), toRotation(cfg._panel.offset_rotation), cfg.cursorMode());
     return *fbDriver;
 }
 
-FBDriver::FBDriver(uint16_t width, uint16_t height, lv_display_rotation_t rotation)
-    : DisplayDriver(width, height), rotation(rotation)
+FBDriver::FBDriver(uint16_t width, uint16_t height, lv_display_rotation_t rotation, DisplayDriverConfig::cursor_mode_t cursorMode)
+    : DisplayDriver(width, height), rotation(rotation), cursorMode(cursorMode)
 {
 }
 
@@ -84,9 +88,31 @@ void FBDriver::discovery_cb(lv_indev_t *indev, lv_evdev_type_t type, void *user_
     lv_display_t *disp = (lv_display_t *)user_data;
     lv_indev_set_display(indev, disp);
 
-    if (type == LV_EVDEV_TYPE_REL) {
+    const auto mode = fbDriver->cursorMode;
+    if (type == LV_EVDEV_TYPE_REL && mode != DisplayDriverConfig::cursor_mode_t::NEVER &&
+        (mode == DisplayDriverConfig::cursor_mode_t::ALWAYS || is_mouse(indev))) {
         set_mouse_cursor_icon(indev, disp);
+        ILOG_INFO("Mouse cursor enabled for relative pointing device");
+    } else if (type == LV_EVDEV_TYPE_REL) {
+        ILOG_DEBUG("Cursor hidden for relative input device");
     }
+}
+
+bool FBDriver::is_mouse(lv_indev_t *indev)
+{
+#if defined(LV_EVDEV_HAS_FD_GETTER) && LV_EVDEV_HAS_FD_GETTER
+    if (lv_indev_get_type(indev) != LV_INDEV_TYPE_POINTER)
+        return false;
+    const int fd = lv_evdev_get_fd(indev);
+    constexpr unsigned bitsPerWord = sizeof(unsigned long) * 8;
+    unsigned long keys[BTN_LEFT / bitsPerWord + 1] = {};
+    // HDMI CEC and IR devices can advertise relative axes without being mice.
+    return fd >= 0 && ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(keys)), keys) >= 0 &&
+           (keys[BTN_LEFT / bitsPerWord] & (1ul << (BTN_LEFT % bitsPerWord))) != 0;
+#else
+    // Older LVGL releases do not expose evdev capabilities; retain their cursor behavior.
+    return lv_indev_get_type(indev) == LV_INDEV_TYPE_POINTER;
+#endif
 }
 
 void FBDriver::set_mouse_cursor_icon(lv_indev_t *indev, lv_display_t *display)

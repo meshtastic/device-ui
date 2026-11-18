@@ -60,7 +60,7 @@ template <class LGFX> class LGFXDriver : public TFTDriver<LGFX>
     uint32_t screenTimeout;
     uint32_t lastBrightness;
     bool powerSaving;
-    bool forcedWakeup;
+    std::atomic<bool> forcedWakeup;
 
   private:
     void init_lgfx(void);
@@ -109,9 +109,15 @@ template <class LGFX> bool LGFXDriver<LGFX>::hasTouch(void)
 
 template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
 {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+    if (!powerSaving && forcedWakeup.exchange(false)) {
+        this->manuallyBlanked = false;
+        lv_display_trigger_activity(this->display);
+    }
+#endif
     // handle display timeout
-    if ((screenTimeout > 0 && lv_display_get_inactive_time(lv_display_get_default()) > screenTimeout) || powerSaving ||
-        (DisplayDriver::view->isScreenLocked())) {
+    if (this->manuallyBlanked || (screenTimeout > 0 && lv_display_get_inactive_time(lv_display_get_default()) > screenTimeout) ||
+        powerSaving || (DisplayDriver::view->isScreenLocked())) {
         // sleep screen only if there are means for wakeup
         if (DisplayDriver::view->getInputDriver()->hasPointerDevice() || hasTouch() ||
             DisplayDriver::view->getInputDriver()->hasKeyboardDevice() || hasButton()) {
@@ -124,6 +130,11 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     } else {
                         ILOG_INFO("enter powersave");
                         DisplayDriver::view->screenSaving(true);
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+                        DisplayDriver::view->getInputDriver()->prepareSleep();
+                        if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard())
+                            lv_indev_enable(keyboard, false);
+#endif
                         if (hasTouch() && hasButton()) {
                             ILOG_DEBUG("disable touch, enable button input");
                             lv_indev_enable(DisplayDriver::touch, false);
@@ -152,13 +163,18 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                         pin_int = BUTTON_PIN;
 #endif
                     }
-                    if (forcedWakeup || (pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
+                    if (forcedWakeup
+#ifndef DISPLAY_POWER_BUTTON_ONLY
+                        || (pin_int >= 0 && DisplayDriver::view->sleep(pin_int)) ||
                         (screenTimeout + 50 > lv_display_get_inactive_time(lv_display_get_default()) &&
-                         !DisplayDriver::view->isScreenLocked())) {
+                         !DisplayDriver::view->isScreenLocked())
+#endif
+                    ) {
                         delay(2); // let the CPU finish to restore all register in case of light sleep
                         // woke up by touch or button
                         ILOG_INFO("leaving powersave");
                         powerSaving = false;
+                        this->manuallyBlanked = false;
                         forcedWakeup = false;
                         DisplayDriver::view->triggerHeartbeat();
                         {
@@ -170,6 +186,14 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                             lgfx->setBrightness(lastBrightness);
                         }
                         DisplayDriver::view->screenSaving(false);
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+                        DisplayDriver::view->getInputDriver()->wakeUp();
+                        if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard()) {
+                            lv_indev_reset(keyboard, nullptr);
+                            lv_indev_enable(keyboard, true);
+                            lv_indev_wait_release(keyboard);
+                        }
+#endif
                         if (hasTouch() && hasButton()) {
                             ILOG_DEBUG("enable touch, disable button input");
                             lv_indev_enable(DisplayDriver::touch, true);
@@ -185,7 +209,14 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
             // no BL pin defined to control brightness, so show blank screen instead
             else {
                 if (!powerSaving) {
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+                    DisplayDriver::view->screenSaving(true);
+                    DisplayDriver::view->getInputDriver()->prepareSleep();
+                    if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard())
+                        lv_indev_enable(keyboard, false);
+#else
                     DisplayDriver::view->blankScreen(true);
+#endif
                     {
                         ISpiLock::Guard bus;
                         lgfx->sleep();
@@ -193,8 +224,25 @@ template <class LGFX> void LGFXDriver<LGFX>::task_handler(void)
                     }
                     powerSaving = true;
                 }
-                if (screenTimeout > lv_display_get_inactive_time(lv_display_get_default())) {
+                const bool forced = forcedWakeup.exchange(false);
+                if (forced
+#ifndef DISPLAY_POWER_BUTTON_ONLY
+                    || screenTimeout > lv_display_get_inactive_time(lv_display_get_default())
+#endif
+                ) {
+                    if (forced)
+                        this->manuallyBlanked = false;
+#ifdef DISPLAY_POWER_BUTTON_ONLY
+                    DisplayDriver::view->screenSaving(false);
+                    DisplayDriver::view->getInputDriver()->wakeUp();
+                    if (auto *keyboard = DisplayDriver::view->getInputDriver()->getKeyboard()) {
+                        lv_indev_reset(keyboard, nullptr);
+                        lv_indev_enable(keyboard, true);
+                        lv_indev_wait_release(keyboard);
+                    }
+#else
                     DisplayDriver::view->blankScreen(false);
+#endif
                     {
                         ISpiLock::Guard bus;
                         lgfx->powerSaveOff();
@@ -226,6 +274,7 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     {
         ISpiLock::Guard bus;
         lgfx->startWrite();
@@ -248,12 +297,14 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
     uint32_t h = lv_area_get_height(area);
     lgfx->setAddrWindow(area->x1, area->y1, w, h);
     lgfx->pushPixelsDMA((uint16_t *)px_map, w * h);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     lv_display_flush_ready(disp);
 }
 #elif defined(USE_FULL_DOUBLE_BUFFER)
 template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
     auto driver = static_cast<LGFXDriver *>(lv_display_get_driver_data(disp));
+    driver->flush(disp, area, px_map);
     if (!driver->flushAreaValid) {
         driver->flushArea = *area;
         driver->flushAreaValid = true;
@@ -290,6 +341,7 @@ template <class LGFX> void LGFXDriver<LGFX>::display_flush(lv_display_t *disp, c
 {
     uint32_t w = lv_area_get_width(area);
     uint32_t h = lv_area_get_height(area);
+    static_cast<LGFXDriver *>(lv_display_get_driver_data(disp))->flush(disp, area, px_map);
     {
         ISpiLock::Guard bus;
         lgfx->pushImage(area->x1, area->y1, w, h, (uint16_t *)px_map);
@@ -362,7 +414,10 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
     lv_indev_gesture_recognizers_update(indev_driver, events, n);
     lv_indev_gesture_recognizers_set_data(indev_driver, data);
 
-    if (count == 0)
+    // LVGL 9.6 gesture processing no longer supplies the primary pointer coordinates.
+    if (count == 1)
+        data->point = {tp[0].x, tp[0].y};
+    else if (count == 0)
         data->point = lastPoint;
     // while two fingers are down the pointer follows their centroid from where it was, so a pinch can also pan
     // without a jump; once a finger lifts it holds still and stays released until all fingers are up
@@ -391,8 +446,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
                    "swipe st=%d dx=%.0f dy=%.0f | out %s %d/%d",
                    count, n, count > 0 ? tp[0].id : 0, count > 0 ? tp[0].x : -1, count > 0 ? tp[0].y : -1,
                    count > 1 ? tp[1].id : 0, count > 1 ? tp[1].x : -1, count > 1 ? tp[1].y : -1, p.state,
-                   p.info ? p.info->finger_cnt : 0, p.info ? p.info->scale : 0.0f, r.state,
-                   r.info ? r.info->rotation - r.info->p_rotation : 0.0f, s.state, s.info ? s.info->delta_x : 0.0f,
+                   p.info ? p.info->finger_cnt : 0, p.scale, r.state, r.rotation, s.state, s.info ? s.info->delta_x : 0.0f,
                    s.info ? s.info->delta_y : 0.0f, data->state == LV_INDEV_STATE_PRESSED ? "PR" : "REL", data->point.x,
                    data->point.y);
     }
@@ -419,7 +473,7 @@ template <class LGFX> void LGFXDriver<LGFX>::touchpad_read(lv_indev_t *indev_dri
         data->point.x = touchX;
         data->point.y = touchY;
 
-        // ILOG_DEBUG("Touch(%hd/%hd)", touchX, touchY);
+        ILOG_DEBUG("Touch(%hd/%hd)", touchX, touchY);
     }
 }
 #endif
