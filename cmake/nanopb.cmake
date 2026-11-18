@@ -5,7 +5,7 @@ FetchContent_Declare(
     nanopb
     GIT_REPOSITORY https://github.com/nanopb/nanopb.git
     # renovate: datasource=github-tags packageName=nanopb/nanopb
-    GIT_TAG nanopb-0.4.9.1
+    GIT_TAG nanopb-0.4.9.3
 )
 FetchContent_MakeAvailable(nanopb)
 
