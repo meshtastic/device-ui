@@ -34,6 +34,7 @@
 #include "styles.h"
 #include "ui.h"
 #include "util/About.h"
+#include "util/ClockFormat.h"
 #include "util/FileLoader.h"
 #include "util/ILog.h"
 #include "util/ISpiLock.h"
@@ -9028,11 +9029,7 @@ void TFTView_320x240::updateTime(void)
 
     int len = 0;
     if (VALID_TIME(curr_time) && (uintptr_t)objects.home_time_button->user_data == 0) {
-        if (db.config.display.use_12h_clock) {
-            len = strftime(buf, 40, "%I:%M:%S %p\n%a %d-%b-%g", curr_tm);
-        } else {
-            len = strftime(buf, 40, "%T %Z%z\n%a %d-%b-%g", curr_tm);
-        }
+        len = formatHomeClock(*curr_tm, db.config.display.use_12h_clock, buf, sizeof(buf));
     } else {
         uint32_t uptime = millis() / 1000;
         int hours = uptime / 3600;
