@@ -8,13 +8,18 @@ namespace
 {
 std::string clockAt(const char *tz, time_t utc, bool use12h)
 {
+    const char *prev = std::getenv("TZ");
+    const std::string saved = prev ? prev : "";
     setenv("TZ", tz, 1);
     tzset();
     std::tm local{};
     localtime_r(&utc, &local);
     char buf[48];
     formatHomeClock(local, use12h, buf, sizeof(buf));
-    unsetenv("TZ");
+    if (prev)
+        setenv("TZ", saved.c_str(), 1);
+    else
+        unsetenv("TZ");
     tzset();
     return buf;
 }
