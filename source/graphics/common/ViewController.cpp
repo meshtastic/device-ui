@@ -197,6 +197,16 @@ uint32_t ViewController::requestRingtone(uint32_t nodeId)
 }
 
 /**
+ * Ask the node to play its configured ringtone once (requires protobufs with play_ringtone_request)
+ */
+bool ViewController::playRingtone(uint32_t nodeId)
+{
+    return sendAdminMessage(meshtastic_AdminMessage{.which_payload_variant = meshtastic_AdminMessage_play_ringtone_request_tag,
+                                                    .play_ringtone_request = true},
+                            nodeId ? nodeId : myNodeNum);
+}
+
+/**
  * Request specific device config block
  */
 uint32_t ViewController::requestConfig(meshtastic_AdminMessage_ConfigType type, uint32_t nodeId)

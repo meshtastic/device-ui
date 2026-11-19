@@ -32,6 +32,7 @@ class ViewController
     virtual uint32_t requestLoRaConfig(uint32_t nodeId = 0);
     virtual uint32_t requestBluetoothConfig(uint32_t nodeId = 0);
     virtual uint32_t requestRingtone(uint32_t nodeId = 0);
+    virtual bool playRingtone(uint32_t nodeId = 0);
     // request WLAN/BT/MQTT connection status
     virtual bool requestDeviceConnectionStatus(void);
 

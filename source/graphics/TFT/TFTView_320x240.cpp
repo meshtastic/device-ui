@@ -5771,7 +5771,10 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             // the banner setting is not part of this dialog and stays untouched
             THIS->db.uiConfig.alert_enabled = alert_message;
             THIS->db.uiConfig.ring_tone_id = tone;
-            THIS->controller->sendConfig(ringtone[alert_message ? tone : 0].rtttl, THIS->ownNode);
+            bool ringtone_sent = THIS->controller->sendConfig(ringtone[alert_message ? tone : 0].rtttl, THIS->ownNode);
+            if (alert_message && ringtone_sent) {
+                THIS->controller->playRingtone(THIS->ownNode);
+            }
             THIS->setBellText(THIS->db.uiConfig.banner_enabled, THIS->db.uiConfig.alert_enabled);
             THIS->controller->storeUIConfig(THIS->db.uiConfig);
 
