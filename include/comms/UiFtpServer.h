@@ -1,11 +1,18 @@
 #pragma once
 
 #include <FS.h>
-#include <WiFi.h>
 #include <atomic>
 #include <functional>
 #include <mutex>
 #include <string>
+
+#if !defined(CONFIG_IDF_TARGET_ESP32P4)
+#include <WiFi.h>
+#else // replace with stubbed version
+using WiFiServer = int;
+using WiFiEvent_t = int;
+using WiFiEventInfo_t = int;
+#endif
 
 #ifndef FTP_HOSTNAME
 #define FTP_HOSTNAME "meshtastic"
