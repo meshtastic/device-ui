@@ -1549,6 +1549,7 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.basic_settings_screen_lock_button, ui_event_screen_lock_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_brightness_button, ui_event_brightness_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_theme_button, ui_event_theme_button, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(objects.basic_settings_clock_button, ui_event_clock_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_calibration_button, ui_event_calibration_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_input_button, ui_event_input_button, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(objects.basic_settings_alert_button, ui_event_alert_button, LV_EVENT_CLICKED, NULL);
@@ -1612,6 +1613,8 @@ void TFTView_320x240::ui_events_init(void)
     lv_obj_add_event_cb(objects.obj22__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj28__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
     lv_obj_add_event_cb(objects.obj28__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.settings_clock_ok_cancel__ok_button_w, ui_event_ok, LV_EVENT_CLICKED, 0);
+    lv_obj_add_event_cb(objects.settings_clock_ok_cancel__cancel_button_w, ui_event_cancel, LV_EVENT_CLICKED, 0);
 
     // modify channel buttons
     lv_obj_add_event_cb(objects.settings_channel0_button, ui_event_modify_channel, LV_EVENT_ALL, (void *)0);
@@ -3129,6 +3132,19 @@ void TFTView_320x240::ui_event_theme_button(lv_event_t *e)
         THIS->disablePanel(objects.controller_panel);
         THIS->disablePanel(objects.tab_page_basic_settings);
         THIS->activeSettings = eTheme;
+    }
+}
+
+void TFTView_320x240::ui_event_clock_button(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
+        lv_dropdown_set_selected(objects.settings_clock_dropdown, THIS->db.config.display.use_12h_clock ? 1 : 0);
+        lv_obj_clear_flag(objects.settings_clock_panel, LV_OBJ_FLAG_HIDDEN);
+        lv_group_focus_obj(objects.settings_clock_dropdown);
+        THIS->disablePanel(objects.controller_panel);
+        THIS->disablePanel(objects.tab_page_basic_settings);
+        THIS->activeSettings = eClockFormat;
     }
 }
 
@@ -5352,6 +5368,13 @@ void TFTView_320x240::setBrightness(uint32_t brightness)
     THIS->displaydriver->setBrightness((uint8_t)brightness);
 }
 
+void TFTView_320x240::setClockFormatLabel(bool use12h)
+{
+    char buf[30];
+    lv_snprintf(buf, sizeof(buf), _("Clock: %s"), use12h ? "12h" : "24h");
+    lv_label_set_text(objects.basic_settings_clock_label, buf);
+}
+
 /**
  * @brief Set theme to new value
  */
@@ -5706,6 +5729,19 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
             lv_obj_invalidate(objects.main_screen);
             break;
         }
+        case eClockFormat: {
+            bool use12h = lv_dropdown_get_selected(objects.settings_clock_dropdown) == 1;
+            if (use12h != THIS->db.config.display.use_12h_clock) {
+                meshtastic_Config_DisplayConfig &display = THIS->db.config.display;
+                display.use_12h_clock = use12h;
+                THIS->controller->sendConfig(meshtastic_Config_DisplayConfig{display}, THIS->ownNode);
+                THIS->setClockFormatLabel(use12h);
+                THIS->updateTime();
+            }
+            lv_obj_add_flag(objects.settings_clock_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_clock_button);
+            break;
+        }
         case eInputControl: {
             char new_val_kbd[10], new_val_ptr[10];
             lv_dropdown_get_selected_str(objects.settings_keyboard_input_dropdown, new_val_kbd, sizeof(new_val_kbd));
@@ -5949,6 +5985,11 @@ void TFTView_320x240::ui_event_cancel(lv_event_t *e)
         case TFTView_320x240::eTheme: {
             lv_obj_add_flag(objects.settings_theme_panel, LV_OBJ_FLAG_HIDDEN);
             lv_group_focus_obj(objects.basic_settings_theme_button);
+            break;
+        }
+        case TFTView_320x240::eClockFormat: {
+            lv_obj_add_flag(objects.settings_clock_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_group_focus_obj(objects.basic_settings_clock_button);
             break;
         }
         case TFTView_320x240::eInputControl: {
@@ -7452,6 +7493,7 @@ void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig 
 {
     db.config.display = cfg;
     db.config.has_display = true;
+    setClockFormatLabel(cfg.use_12h_clock);
     if (!controller->isStandalone() && cfg.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
         meshtastic_Config_DisplayConfig &display = db.config.display;
         display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_COLOR;

@@ -49,6 +49,7 @@ pl:
   'Language: %s': 'Język: %s'
   'Screen Lock: off': 'Blokada ekranu: wyłączona'
   'Theme: Dark': 'Skórka: Ciemny'
+  'Clock: 24h': 'Zegar: 24h'
   Mesh Detector: Wykrywanie sieci
   Signal Scanner: Skaner sygnału
   Trace Route: Śledzenie trasy
@@ -75,6 +76,7 @@ pl:
   IAQ: ~
   Start: ~
   'Theme: %s': 'Skórka: %s'
+  'Clock: %s': 'Zegar: %s'
   'uptime 00:00:00': 'Aktywny: 00:00:00'
   'Heap: 0\nLVGL: 0': ~
   Meshtastic: ~

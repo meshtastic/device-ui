@@ -232,6 +232,8 @@ typedef struct _objects_t {
     lv_obj_t *basic_settings_brightness_label;
     lv_obj_t *basic_settings_theme_button;
     lv_obj_t *basic_settings_theme_label;
+    lv_obj_t *basic_settings_clock_button;
+    lv_obj_t *basic_settings_clock_label;
     lv_obj_t *basic_settings_calibration_button;
     lv_obj_t *basic_settings_calibration_label;
     lv_obj_t *basic_settings_input_button;
@@ -404,6 +406,12 @@ typedef struct _objects_t {
     lv_obj_t *obj11__ok_cancel_panel_w;
     lv_obj_t *obj11__ok_button_w;
     lv_obj_t *obj11__cancel_button_w;
+    lv_obj_t *settings_clock_panel;
+    lv_obj_t *settings_clock_dropdown;
+    lv_obj_t *settings_clock_ok_cancel;
+    lv_obj_t *settings_clock_ok_cancel__ok_cancel_panel_w;
+    lv_obj_t *settings_clock_ok_cancel__ok_button_w;
+    lv_obj_t *settings_clock_ok_cancel__cancel_button_w;
     lv_obj_t *settings_screen_timeout_panel;
     lv_obj_t *settings_screen_timeout_label;
     lv_obj_t *screen_timeout_slider;
