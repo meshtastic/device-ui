@@ -1,13 +1,20 @@
 #pragma once
 
 #include <FS.h>
-#include <WiFi.h>
 #include <atomic>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <functional>
 #include <memory>
 #include <mutex>
+
+#if !defined(CONFIG_IDF_TARGET_ESP32P4)
+#include <WiFi.h>
+#else
+using WiFiServer = int;
+using WiFiEvent_t = int;
+using WiFiEventInfo_t = int;
+#endif
 
 #ifndef WEBDAV_HOSTNAME
 #define WEBDAV_HOSTNAME "meshtastic"

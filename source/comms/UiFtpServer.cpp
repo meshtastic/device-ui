@@ -4,7 +4,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#if !__has_include(<MultiFTPServer.h>) || !defined(HAS_SDCARD)
+#if !__has_include(<MultiFTPServer.h>) || !defined(HAS_SDCARD) || defined(CONFIG_IDF_TARGET_ESP32P4)
 
 UiFtpServer *UiFtpServer::instance()
 {
