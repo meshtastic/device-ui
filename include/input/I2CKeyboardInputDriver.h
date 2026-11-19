@@ -40,6 +40,10 @@ class TDeckKeyboardInputDriver : public I2CKeyboardInputDriver
   public:
     TDeckKeyboardInputDriver(uint8_t address);
     void readKeyboard(uint8_t address, lv_indev_t *indev, lv_indev_data_t *data) override;
+
+    /** Returns true when the T-Deck Greek keyboard layout is active. */
+    static bool isGreekLayoutEnabled();
+
     virtual ~TDeckKeyboardInputDriver(void) {}
 };
 
