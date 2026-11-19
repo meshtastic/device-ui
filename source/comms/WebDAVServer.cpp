@@ -2,7 +2,7 @@
 
 #include "comms/WebDAVServer.h"
 
-#if !__has_include(<ESPWebDAV.h>) || !defined(HAS_SDCARD)
+#if !__has_include(<ESPWebDAV.h>) || !defined(HAS_SDCARD) || defined(CONFIG_IDF_TARGET_ESP32P4)
 
 class ESPWebDAV
 {
