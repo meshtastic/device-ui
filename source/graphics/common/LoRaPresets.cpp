@@ -6,7 +6,7 @@
 /**
  * LoRa Presets
  * Note: keep order the same as in meshtastic_Config_LoRaConfig_RegionCode and as in settings_region_dropdown
- * Fields: region, freqStart, freqEnd, defaultPreset, spacing, padding, unitChannelMHz, overrideSlot, wideLora
+ * Fields: region, freqStart, freqEnd, defaultPreset, spacing, padding, unitChannelMHz, overrideSlot, wideLora, bandSplitMHz
  */
 LoRaPresets::RegionInfo LoRaPresets::regionInfo[] = {
     {"UNSET", 902.0f, 928.0f},
@@ -14,7 +14,7 @@ LoRaPresets::RegionInfo LoRaPresets::regionInfo[] = {
     {"EU_433", 433.0f, 434.0f},
     {"EU_868", 869.4f, 869.65f},
     {"CN", 470.0f, 510.0f},
-    {"JP", 920.5f, 923.5f, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST, 0.0f, 0.0f, 0.2f},
+    {"JP", 920.5f, 923.5f, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST, 0.0f, 0.0f, 0.2f, 0, false, 922.3f},
     {"ANZ", 915.0f, 928.0f},
     {"KR", 920.0f, 923.0f},
     {"TW", 920.0f, 925.0f},
@@ -214,13 +214,13 @@ LoRaPresets::SlotPlan LoRaPresets::getSlotPlan(meshtastic_Config_LoRaConfig_Regi
 {
     if (region == meshtastic_Config_LoRaConfig_RegionCode_UNSET || !isValidRegionIndex(region, std::size(regionInfo)) ||
         !isValidPresetIndex(preset, std::size(modemPreset))) {
-        return {0.0f, 0, 0.0f};
+        return {0.0f, 0, 0.0f, 0, 0.0f};
     }
 
     const RegionInfo &info = regionInfo[region];
     const float bwMHz = getBandwidth(region, preset);
     if (bwMHz <= 0.0f || info.freqEnd <= info.freqStart) {
-        return {0.0f, 0, 0.0f};
+        return {0.0f, 0, 0.0f, 0, 0.0f};
     }
 
     const float spacing = info.spacing;
@@ -233,14 +233,35 @@ LoRaPresets::SlotPlan LoRaPresets::getSlotPlan(meshtastic_Config_LoRaConfig_Regi
     }
 
     const float width = spacing + (padding * 2.0f) + bwMHz;
-    const float firstCenter = info.freqStart + (bwMHz * 0.5f) + padding;
-    const float span = info.freqEnd - info.freqStart;
-    if (width <= 0.0f || (span + spacing) <= 0.0f) {
-        return {width, 0, firstCenter};
+    const float centerOffset = (bwMHz * 0.5f) + padding;
+    const float lowerFirst = info.freqStart + centerOffset;
+    if (width <= 0.0f) {
+        return {width, 0, lowerFirst, 0, lowerFirst};
     }
 
-    const uint32_t count = static_cast<uint32_t>(((span + spacing) / width) * (1.0f + 1e-6f));
-    return {width, count, firstCenter};
+    auto countSubBand = [&](float subStart, float subEnd) -> uint32_t {
+        const float span = subEnd - subStart;
+        if ((span + spacing) <= 0.0f) {
+            return 0;
+        }
+        // Absorb ~1 ULP of float32 endpoint cancellation (e.g. 922.3f - 920.5f) without inflating narrow slots.
+        const float endpointEps = subEnd * 1.5e-7f;
+        const float maxEps = width * 0.25f;
+        const float tol = endpointEps < maxEps ? endpointEps : maxEps;
+        return static_cast<uint32_t>((((span + spacing) + tol) / width) * (1.0f + 1e-6f));
+    };
+
+    if (info.bandSplitMHz > info.freqStart && info.bandSplitMHz < info.freqEnd) {
+        const uint32_t lowerCount = countSubBand(info.freqStart, info.bandSplitMHz);
+        const uint32_t upperCount = countSubBand(info.bandSplitMHz, info.freqEnd);
+        const uint32_t total = lowerCount + upperCount;
+        const float upperFirst = info.bandSplitMHz + centerOffset;
+        const float firstCenter = (lowerCount > 0 || upperCount == 0) ? lowerFirst : upperFirst;
+        return {width, total, firstCenter, lowerCount, upperFirst};
+    }
+
+    const uint32_t count = countSubBand(info.freqStart, info.freqEnd);
+    return {width, count, lowerFirst, count, lowerFirst};
 }
 
 uint32_t LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode region,
@@ -257,5 +278,5 @@ float LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode region, 
         return 0.0f;
     }
     const uint32_t slot = channel > 0 ? channel : 1;
-    return plan.firstCenter + static_cast<float>(slot - 1) * plan.width;
+    return plan.centerFreq(slot - 1);
 }

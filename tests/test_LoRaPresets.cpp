@@ -6,43 +6,52 @@ TEST_CASE("LoRaPresets aligns JP to the ARIB STD-T108 200 kHz unit-channel grid"
 {
     constexpr auto jp = meshtastic_Config_LoRaConfig_RegionCode_JP;
 
-    SUBCASE("250 kHz presets bond 2 unit channels (400 kHz slots, 7 slots)")
+    SUBCASE("250 kHz presets bond 2 unit channels without crossing 922.3 MHz (4 lower + 3 upper = 7 slots)")
     {
         constexpr auto preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
         const auto plan = LoRaPresets::getSlotPlan(jp, preset);
 
         CHECK(plan.width == doctest::Approx(0.400f).epsilon(0.001f));
         CHECK(plan.count == 7);
+        CHECK(plan.lowerCount == 4);
         CHECK(plan.firstCenter == doctest::Approx(920.700f).epsilon(0.001f));
         CHECK(LoRaPresets::getNumChannels(jp, preset) == 7);
-        CHECK(LoRaPresets::getRadioFreq(jp, preset, 1) == doctest::Approx(920.700f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(jp, preset, 6) == doctest::Approx(922.700f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(jp, preset, 7) == doctest::Approx(923.100f).epsilon(0.001f));
+
+        const float expected[7] = {920.700f, 921.100f, 921.500f, 921.900f, 922.500f, 922.900f, 923.300f};
+        for (uint32_t slot = 1; slot <= 7; slot++) {
+            CHECK(LoRaPresets::getRadioFreq(jp, preset, slot) == doctest::Approx(expected[slot - 1]).epsilon(0.001f));
+        }
         CHECK(LoRaPresets::getDefaultSlot(jp, preset) == 6);
     }
 
-    SUBCASE("500 kHz turbo presets bond 3 unit channels (600 kHz slots, 5 slots)")
+    SUBCASE("500 kHz turbo presets bond 3 unit channels (3 lower + 2 upper = 5 slots)")
     {
         constexpr auto preset = meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO;
         const auto plan = LoRaPresets::getSlotPlan(jp, preset);
 
         CHECK(plan.width == doctest::Approx(0.600f).epsilon(0.001f));
         CHECK(plan.count == 5);
+        CHECK(plan.lowerCount == 3);
         CHECK(plan.firstCenter == doctest::Approx(920.800f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(jp, preset, 1) == doctest::Approx(920.800f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(jp, preset, 5) == doctest::Approx(923.200f).epsilon(0.001f));
+        const float expected[5] = {920.800f, 921.400f, 922.000f, 922.600f, 923.200f};
+        for (uint32_t slot = 1; slot <= 5; slot++) {
+            CHECK(LoRaPresets::getRadioFreq(jp, preset, slot) == doctest::Approx(expected[slot - 1]).epsilon(0.001f));
+        }
         CHECK(LoRaPresets::getDefaultSlot(jp, preset) == 1);
     }
 
-    SUBCASE("125 kHz and 62.5 kHz presets occupy 1 unit channel (200 kHz slots, 15 slots)")
+    SUBCASE("125 kHz and 62.5 kHz presets occupy 1 unit channel (9 lower + 6 upper = 15 slots)")
     {
         for (auto preset :
              {meshtastic_Config_LoRaConfig_ModemPreset_LITE_FAST, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW}) {
             const auto plan = LoRaPresets::getSlotPlan(jp, preset);
             CHECK(plan.width == doctest::Approx(0.200f).epsilon(0.001f));
             CHECK(plan.count == 15);
+            CHECK(plan.lowerCount == 9);
             CHECK(plan.firstCenter == doctest::Approx(920.600f).epsilon(0.001f));
             CHECK(LoRaPresets::getRadioFreq(jp, preset, 1) == doctest::Approx(920.600f).epsilon(0.001f));
+            CHECK(LoRaPresets::getRadioFreq(jp, preset, 9) == doctest::Approx(922.200f).epsilon(0.001f));
+            CHECK(LoRaPresets::getRadioFreq(jp, preset, 10) == doctest::Approx(922.400f).epsilon(0.001f));
             CHECK(LoRaPresets::getRadioFreq(jp, preset, 15) == doctest::Approx(923.400f).epsilon(0.001f));
         }
     }
@@ -176,7 +185,20 @@ TEST_CASE("LoRaPresets keeps every region's default-preset slots inside [freqSta
         CAPTURE(code);
         CAPTURE(LoRaPresets::loRaRegionToString(region));
         REQUIRE(plan.count >= 1);
-        CHECK(plan.firstCenter - halfBw >= freqStart - 1e-4f);
-        CHECK(plan.firstCenter + static_cast<float>(plan.count - 1) * plan.width + halfBw <= freqEnd + 1e-4f);
+        float prevUpper = 0.0f;
+        for (uint32_t s = 0; s < plan.count; s++) {
+            const float center = plan.centerFreq(s);
+            const float lo = center - halfBw;
+            const float hi = center + halfBw;
+            CHECK(lo >= freqStart - 1e-4f);
+            CHECK(hi <= freqEnd + 1e-4f);
+            if (s > 0) {
+                CHECK(lo >= prevUpper - 1e-4f);
+            }
+            if (region == meshtastic_Config_LoRaConfig_RegionCode_JP) {
+                CHECK((hi <= 922.3f + 1e-4f || lo >= 922.3f - 1e-4f));
+            }
+            prevUpper = hi;
+        }
     }
 }
