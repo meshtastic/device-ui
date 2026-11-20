@@ -3013,15 +3013,20 @@ void TFTView_320x240::ui_event_preset_button(lv_event_t *e)
         THIS->activeSettings = eModemPreset;
         lv_dropdown_set_selected(objects.settings_modem_preset_dropdown, THIS->preset2val(THIS->db.config.lora.modem_preset));
 
+        uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset);
+        uint32_t channel = THIS->db.config.lora.channel_num;
+        if (channel == 0 || (numChannels > 0 && channel > numChannels)) {
+            channel = LoRaPresets::getDefaultSlot(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset,
+                                                  THIS->db.channel[0].settings.name);
+        }
+
         char buf[60];
-        sprintf(buf, _("FrequencySlot: %d (%g MHz)"), THIS->db.config.lora.channel_num,
-                LoRaPresets::getRadioFreq(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset,
-                                          THIS->db.config.lora.channel_num));
+        sprintf(buf, _("FrequencySlot: %d (%g MHz)"), static_cast<int>(channel),
+                LoRaPresets::getRadioFreq(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset, channel));
         lv_label_set_text(objects.frequency_slot_label, buf);
 
-        uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset);
-        lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
-        lv_slider_set_value(objects.frequency_slot_slider, THIS->db.config.lora.channel_num, LV_ANIM_OFF);
+        lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels > 0 ? numChannels : 1);
+        lv_slider_set_value(objects.frequency_slot_slider, channel, LV_ANIM_OFF);
 
         lv_obj_remove_flag(objects.settings_modem_preset_panel, LV_OBJ_FLAG_HIDDEN);
         lv_group_focus_obj(objects.settings_modem_preset_dropdown);
@@ -6045,8 +6050,7 @@ void TFTView_320x240::ui_event_modem_preset_dropdown(lv_event_t *e)
     uint32_t numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, preset);
     if (numChannels == 0) {
         // preset not possible for this region, revert
-        lv_dropdown_set_selected(dropdown, THIS->db.config.lora.modem_preset);
-        numChannels = LoRaPresets::getNumChannels(THIS->db.config.lora.region, THIS->db.config.lora.modem_preset);
+        lv_dropdown_set_selected(dropdown, THIS->preset2val(THIS->db.config.lora.modem_preset));
         return;
     }
 
@@ -7465,8 +7469,9 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
     db.config.has_lora = true;
 
     if (cfg.use_preset) {
-        // This must be run before displaying LoRa frequency as channel of 0 ("calculate from hash") leads to an integer underflow
-        if (!db.config.lora.channel_num) {
+        uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
+        // Resolve unset (0) or out-of-range channel_num before displaying frequency to prevent underflow/OOB display
+        if (!db.config.lora.channel_num || (numChannels > 0 && db.config.lora.channel_num > numChannels)) {
             db.config.lora.channel_num = LoRaPresets::getDefaultSlot(db.config.lora.region, THIS->db.config.lora.modem_preset,
                                                                      THIS->db.channel[0].settings.name);
         }
@@ -7476,8 +7481,7 @@ void TFTView_320x240::updateLoRaConfig(const meshtastic_Config_LoRaConfig &cfg)
         lv_snprintf(buf2, sizeof(buf2), _("Modem Preset: %s"), buf1);
         lv_label_set_text(objects.basic_settings_modem_preset_label, buf2);
 
-        uint32_t numChannels = LoRaPresets::getNumChannels(cfg.region, cfg.modem_preset);
-        lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels);
+        lv_slider_set_range(objects.frequency_slot_slider, 1, numChannels > 0 ? numChannels : 1);
         lv_slider_set_value(objects.frequency_slot_slider, db.config.lora.channel_num, LV_ANIM_OFF);
     } else {
         lv_label_set_text(objects.basic_settings_modem_preset_label, _("Modem Preset: custom"));
@@ -7507,8 +7511,11 @@ void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg)
     if (!cfg.region) {
         strcpy(loraFreq, _("region unset"));
     } else if (cfg.use_preset) {
-        float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
-        sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
+        float frequency =
+            (cfg.override_frequency > 0.0f ? cfg.override_frequency
+                                           : LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num)) +
+            cfg.frequency_offset;
+        sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.region, cfg.modem_preset));
         lv_obj_remove_state(objects.basic_settings_modem_preset_button, LV_STATE_DISABLED);
     } else {
         float frequency = cfg.override_frequency + cfg.frequency_offset;
