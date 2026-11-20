@@ -1,6 +1,15 @@
 #include "graphics/common/LoRaPresets.h"
+#include <cmath>
 #include <doctest/doctest.h>
 #include <string>
+
+namespace
+{
+// Absolute tolerance in MHz (1 kHz) for center frequencies and slot widths; doctest::Approx::epsilon()
+// is relative and would allow ~0.92 MHz of error at 920 MHz.
+constexpr float kFreqTolMHz = 0.001f;
+constexpr float kBwTolMHz = 0.0001f;
+} // namespace
 
 TEST_CASE("LoRaPresets aligns JP to the ARIB STD-T108 200 kHz unit-channel grid")
 {
@@ -11,15 +20,18 @@ TEST_CASE("LoRaPresets aligns JP to the ARIB STD-T108 200 kHz unit-channel grid"
         constexpr auto preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
         const auto plan = LoRaPresets::getSlotPlan(jp, preset);
 
-        CHECK(plan.width == doctest::Approx(0.400f).epsilon(0.001f));
+        CHECK(std::fabs(plan.width - 0.400f) <= kFreqTolMHz);
         CHECK(plan.count == 7);
         CHECK(plan.lowerCount == 4);
-        CHECK(plan.firstCenter == doctest::Approx(920.700f).epsilon(0.001f));
+        CHECK(std::fabs(plan.firstCenter - 920.700f) <= kFreqTolMHz);
         CHECK(LoRaPresets::getNumChannels(jp, preset) == 7);
 
         const float expected[7] = {920.700f, 921.100f, 921.500f, 921.900f, 922.500f, 922.900f, 923.300f};
         for (uint32_t slot = 1; slot <= 7; slot++) {
-            CHECK(LoRaPresets::getRadioFreq(jp, preset, slot) == doctest::Approx(expected[slot - 1]).epsilon(0.001f));
+            const float freq = LoRaPresets::getRadioFreq(jp, preset, slot);
+            CAPTURE(slot);
+            CAPTURE(freq);
+            CHECK(std::fabs(freq - expected[slot - 1]) <= kFreqTolMHz);
         }
         CHECK(LoRaPresets::getDefaultSlot(jp, preset) == 6);
     }
@@ -29,13 +41,16 @@ TEST_CASE("LoRaPresets aligns JP to the ARIB STD-T108 200 kHz unit-channel grid"
         constexpr auto preset = meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO;
         const auto plan = LoRaPresets::getSlotPlan(jp, preset);
 
-        CHECK(plan.width == doctest::Approx(0.600f).epsilon(0.001f));
+        CHECK(std::fabs(plan.width - 0.600f) <= kFreqTolMHz);
         CHECK(plan.count == 5);
         CHECK(plan.lowerCount == 3);
-        CHECK(plan.firstCenter == doctest::Approx(920.800f).epsilon(0.001f));
+        CHECK(std::fabs(plan.firstCenter - 920.800f) <= kFreqTolMHz);
         const float expected[5] = {920.800f, 921.400f, 922.000f, 922.600f, 923.200f};
         for (uint32_t slot = 1; slot <= 5; slot++) {
-            CHECK(LoRaPresets::getRadioFreq(jp, preset, slot) == doctest::Approx(expected[slot - 1]).epsilon(0.001f));
+            const float freq = LoRaPresets::getRadioFreq(jp, preset, slot);
+            CAPTURE(slot);
+            CAPTURE(freq);
+            CHECK(std::fabs(freq - expected[slot - 1]) <= kFreqTolMHz);
         }
         CHECK(LoRaPresets::getDefaultSlot(jp, preset) == 1);
     }
@@ -45,14 +60,14 @@ TEST_CASE("LoRaPresets aligns JP to the ARIB STD-T108 200 kHz unit-channel grid"
         for (auto preset :
              {meshtastic_Config_LoRaConfig_ModemPreset_LITE_FAST, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW}) {
             const auto plan = LoRaPresets::getSlotPlan(jp, preset);
-            CHECK(plan.width == doctest::Approx(0.200f).epsilon(0.001f));
+            CHECK(std::fabs(plan.width - 0.200f) <= kFreqTolMHz);
             CHECK(plan.count == 15);
             CHECK(plan.lowerCount == 9);
-            CHECK(plan.firstCenter == doctest::Approx(920.600f).epsilon(0.001f));
-            CHECK(LoRaPresets::getRadioFreq(jp, preset, 1) == doctest::Approx(920.600f).epsilon(0.001f));
-            CHECK(LoRaPresets::getRadioFreq(jp, preset, 9) == doctest::Approx(922.200f).epsilon(0.001f));
-            CHECK(LoRaPresets::getRadioFreq(jp, preset, 10) == doctest::Approx(922.400f).epsilon(0.001f));
-            CHECK(LoRaPresets::getRadioFreq(jp, preset, 15) == doctest::Approx(923.400f).epsilon(0.001f));
+            CHECK(std::fabs(plan.firstCenter - 920.600f) <= kFreqTolMHz);
+            CHECK(std::fabs(LoRaPresets::getRadioFreq(jp, preset, 1) - 920.600f) <= kFreqTolMHz);
+            CHECK(std::fabs(LoRaPresets::getRadioFreq(jp, preset, 9) - 922.200f) <= kFreqTolMHz);
+            CHECK(std::fabs(LoRaPresets::getRadioFreq(jp, preset, 10) - 922.400f) <= kFreqTolMHz);
+            CHECK(std::fabs(LoRaPresets::getRadioFreq(jp, preset, 15) - 923.400f) <= kFreqTolMHz);
         }
     }
 }
@@ -65,15 +80,15 @@ TEST_CASE("LoRaPresets matches firmware spacing, padding, override slots, and wi
                                           meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 104);
         CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_US,
                                           meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 20);
-        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_US,
-                                        meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,
-                                        20) == doctest::Approx(906.875f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_US,
+                                                  meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST, 20) -
+                        906.875f) <= kFreqTolMHz);
 
         CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_EU_868,
                                           meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 1);
-        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_EU_868,
-                                        meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,
-                                        1) == doctest::Approx(869.525f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_EU_868,
+                                                  meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST, 1) -
+                        869.525f) <= kFreqTolMHz);
     }
 
     SUBCASE("EU_866 spaced + padded LITE channels")
@@ -81,10 +96,10 @@ TEST_CASE("LoRaPresets matches firmware spacing, padding, override slots, and wi
         constexpr auto r = meshtastic_Config_LoRaConfig_RegionCode_EU_866;
         constexpr auto p = meshtastic_Config_LoRaConfig_ModemPreset_LITE_FAST;
         CHECK(LoRaPresets::getNumChannels(r, p) == 4);
-        CHECK(LoRaPresets::getRadioFreq(r, p, 1) == doctest::Approx(865.700f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(r, p, 2) == doctest::Approx(866.300f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(r, p, 3) == doctest::Approx(866.900f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(r, p, 4) == doctest::Approx(867.500f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(r, p, 1) - 865.700f) <= kFreqTolMHz);
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(r, p, 2) - 866.300f) <= kFreqTolMHz);
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(r, p, 3) - 866.900f) <= kFreqTolMHz);
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(r, p, 4) - 867.500f) <= kFreqTolMHz);
     }
 
     SUBCASE("EU_N_868 narrow channels and override slot")
@@ -94,9 +109,9 @@ TEST_CASE("LoRaPresets matches firmware spacing, padding, override slots, and wi
         CHECK(LoRaPresets::getDefaultPreset(r) == p);
         CHECK(LoRaPresets::getNumChannels(r, p) == 3);
         CHECK(LoRaPresets::getDefaultSlot(r, p) == 1);
-        CHECK(LoRaPresets::getRadioFreq(r, p, 1) == doctest::Approx(869.442f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(r, p, 2) == doctest::Approx(869.525f).epsilon(0.001f));
-        CHECK(LoRaPresets::getRadioFreq(r, p, 3) == doctest::Approx(869.608f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(r, p, 1) - 869.442f) <= kFreqTolMHz);
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(r, p, 2) - 869.525f) <= kFreqTolMHz);
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(r, p, 3) - 869.608f) <= kFreqTolMHz);
     }
 
     SUBCASE("ITU amateur 2m, 70cm, and 125cm bands")
@@ -104,45 +119,44 @@ TEST_CASE("LoRaPresets matches firmware spacing, padding, override slots, and wi
         constexpr auto tiny = meshtastic_Config_LoRaConfig_ModemPreset_TINY_FAST;
         CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU1_2M, tiny) == 100);
         CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU1_2M, tiny) == 26);
-        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU1_2M, tiny, 26) ==
-              doctest::Approx(144.510f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU1_2M, tiny, 26) - 144.510f) <=
+              kFreqTolMHz);
 
         CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU2_2M, tiny) == 200);
         CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU2_2M, tiny) == 51);
-        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_2M, tiny, 51) ==
-              doctest::Approx(145.010f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_2M, tiny, 51) - 145.010f) <=
+              kFreqTolMHz);
 
         CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU3_2M, tiny) == 200);
         CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU3_2M, tiny) == 33);
-        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU3_2M, tiny, 33) ==
-              doctest::Approx(144.650f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU3_2M, tiny, 33) - 144.650f) <=
+              kFreqTolMHz);
 
         constexpr auto narrow = meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW;
         CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU2_125CM, narrow) == 50);
         CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU2_125CM, narrow) == 37);
-        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_125CM, narrow, 37) ==
-              doctest::Approx(223.650f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_125CM, narrow, 37) - 223.650f) <=
+              kFreqTolMHz);
 
         CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU2_70CM, narrow) == 300);
         CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU2_70CM, narrow) == 137);
-        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_70CM, narrow, 137) ==
-              doctest::Approx(433.650f).epsilon(0.001f));
+        CHECK(std::fabs(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_70CM, narrow, 137) - 433.650f) <=
+              kFreqTolMHz);
     }
 
     SUBCASE("LORA_24 uses wideLoRa bandwidths")
     {
         constexpr auto r = meshtastic_Config_LoRaConfig_RegionCode_LORA_24;
-        CHECK(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) ==
-              doctest::Approx(0.8125f).epsilon(0.0001f));
+        CHECK(std::fabs(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) - 0.8125f) <= kBwTolMHz);
         CHECK(std::string(LoRaPresets::getBandwidthString(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST)) == "812.5");
         CHECK(LoRaPresets::getNumChannels(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 102);
 
-        CHECK(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_SLOW) ==
-              doctest::Approx(0.40625f).epsilon(0.0001f));
+        CHECK(std::fabs(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_SLOW) - 0.40625f) <=
+              kBwTolMHz);
         CHECK(LoRaPresets::getNumChannels(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_SLOW) == 205);
 
-        CHECK(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO) ==
-              doctest::Approx(1.625f).epsilon(0.0001f));
+        CHECK(std::fabs(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO) - 1.625f) <=
+              kBwTolMHz);
         CHECK(std::string(LoRaPresets::getBandwidthString(r, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO)) == "1625");
         CHECK(LoRaPresets::getNumChannels(r, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO) == 51);
     }
@@ -158,9 +172,9 @@ TEST_CASE("LoRaPresets handles UNSET, channel 0, and out-of-range inputs safely"
                                       meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 0);
 
     // Channel 0 must not underflow (channel - 1) in unsigned arithmetic
-    CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_JP,
-                                    meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,
-                                    0) == doctest::Approx(920.700f).epsilon(0.001f));
+    CHECK(std::fabs(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_JP,
+                                              meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST, 0) -
+                    920.700f) <= kFreqTolMHz);
 
     // Out-of-range region and preset enums must fail safely
     const auto bogusRegion = static_cast<meshtastic_Config_LoRaConfig_RegionCode>(999);
