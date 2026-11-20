@@ -1,0 +1,182 @@
+#include "graphics/common/LoRaPresets.h"
+#include <doctest/doctest.h>
+#include <string>
+
+TEST_CASE("LoRaPresets aligns JP to the ARIB STD-T108 200 kHz unit-channel grid")
+{
+    constexpr auto jp = meshtastic_Config_LoRaConfig_RegionCode_JP;
+
+    SUBCASE("250 kHz presets bond 2 unit channels (400 kHz slots, 7 slots)")
+    {
+        constexpr auto preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
+        const auto plan = LoRaPresets::getSlotPlan(jp, preset);
+
+        CHECK(plan.width == doctest::Approx(0.400f).epsilon(0.001f));
+        CHECK(plan.count == 7);
+        CHECK(plan.firstCenter == doctest::Approx(920.700f).epsilon(0.001f));
+        CHECK(LoRaPresets::getNumChannels(jp, preset) == 7);
+        CHECK(LoRaPresets::getRadioFreq(jp, preset, 1) == doctest::Approx(920.700f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(jp, preset, 6) == doctest::Approx(922.700f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(jp, preset, 7) == doctest::Approx(923.100f).epsilon(0.001f));
+        CHECK(LoRaPresets::getDefaultSlot(jp, preset) == 6);
+    }
+
+    SUBCASE("500 kHz turbo presets bond 3 unit channels (600 kHz slots, 5 slots)")
+    {
+        constexpr auto preset = meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO;
+        const auto plan = LoRaPresets::getSlotPlan(jp, preset);
+
+        CHECK(plan.width == doctest::Approx(0.600f).epsilon(0.001f));
+        CHECK(plan.count == 5);
+        CHECK(plan.firstCenter == doctest::Approx(920.800f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(jp, preset, 1) == doctest::Approx(920.800f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(jp, preset, 5) == doctest::Approx(923.200f).epsilon(0.001f));
+        CHECK(LoRaPresets::getDefaultSlot(jp, preset) == 1);
+    }
+
+    SUBCASE("125 kHz and 62.5 kHz presets occupy 1 unit channel (200 kHz slots, 15 slots)")
+    {
+        for (auto preset :
+             {meshtastic_Config_LoRaConfig_ModemPreset_LITE_FAST, meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW}) {
+            const auto plan = LoRaPresets::getSlotPlan(jp, preset);
+            CHECK(plan.width == doctest::Approx(0.200f).epsilon(0.001f));
+            CHECK(plan.count == 15);
+            CHECK(plan.firstCenter == doctest::Approx(920.600f).epsilon(0.001f));
+            CHECK(LoRaPresets::getRadioFreq(jp, preset, 1) == doctest::Approx(920.600f).epsilon(0.001f));
+            CHECK(LoRaPresets::getRadioFreq(jp, preset, 15) == doctest::Approx(923.400f).epsilon(0.001f));
+        }
+    }
+}
+
+TEST_CASE("LoRaPresets matches firmware spacing, padding, override slots, and wideLoRa")
+{
+    SUBCASE("US and EU_868 standard slots")
+    {
+        CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_US,
+                                          meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 104);
+        CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_US,
+                                          meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 20);
+        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_US,
+                                        meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,
+                                        20) == doctest::Approx(906.875f).epsilon(0.001f));
+
+        CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_EU_868,
+                                          meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 1);
+        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_EU_868,
+                                        meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,
+                                        1) == doctest::Approx(869.525f).epsilon(0.001f));
+    }
+
+    SUBCASE("EU_866 spaced + padded LITE channels")
+    {
+        constexpr auto r = meshtastic_Config_LoRaConfig_RegionCode_EU_866;
+        constexpr auto p = meshtastic_Config_LoRaConfig_ModemPreset_LITE_FAST;
+        CHECK(LoRaPresets::getNumChannels(r, p) == 4);
+        CHECK(LoRaPresets::getRadioFreq(r, p, 1) == doctest::Approx(865.700f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(r, p, 2) == doctest::Approx(866.300f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(r, p, 3) == doctest::Approx(866.900f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(r, p, 4) == doctest::Approx(867.500f).epsilon(0.001f));
+    }
+
+    SUBCASE("EU_N_868 narrow channels and override slot")
+    {
+        constexpr auto r = meshtastic_Config_LoRaConfig_RegionCode_EU_N_868;
+        constexpr auto p = meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW;
+        CHECK(LoRaPresets::getDefaultPreset(r) == p);
+        CHECK(LoRaPresets::getNumChannels(r, p) == 3);
+        CHECK(LoRaPresets::getDefaultSlot(r, p) == 1);
+        CHECK(LoRaPresets::getRadioFreq(r, p, 1) == doctest::Approx(869.442f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(r, p, 2) == doctest::Approx(869.525f).epsilon(0.001f));
+        CHECK(LoRaPresets::getRadioFreq(r, p, 3) == doctest::Approx(869.608f).epsilon(0.001f));
+    }
+
+    SUBCASE("ITU amateur 2m, 70cm, and 125cm bands")
+    {
+        constexpr auto tiny = meshtastic_Config_LoRaConfig_ModemPreset_TINY_FAST;
+        CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU1_2M, tiny) == 100);
+        CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU1_2M, tiny) == 26);
+        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU1_2M, tiny, 26) ==
+              doctest::Approx(144.510f).epsilon(0.001f));
+
+        CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU2_2M, tiny) == 200);
+        CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU2_2M, tiny) == 51);
+        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_2M, tiny, 51) ==
+              doctest::Approx(145.010f).epsilon(0.001f));
+
+        CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU3_2M, tiny) == 200);
+        CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU3_2M, tiny) == 33);
+        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU3_2M, tiny, 33) ==
+              doctest::Approx(144.650f).epsilon(0.001f));
+
+        constexpr auto narrow = meshtastic_Config_LoRaConfig_ModemPreset_NARROW_SLOW;
+        CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU2_125CM, narrow) == 50);
+        CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU2_125CM, narrow) == 37);
+        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_125CM, narrow, 37) ==
+              doctest::Approx(223.650f).epsilon(0.001f));
+
+        CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_ITU2_70CM, narrow) == 300);
+        CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_ITU2_70CM, narrow) == 137);
+        CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_ITU2_70CM, narrow, 137) ==
+              doctest::Approx(433.650f).epsilon(0.001f));
+    }
+
+    SUBCASE("LORA_24 uses wideLoRa bandwidths")
+    {
+        constexpr auto r = meshtastic_Config_LoRaConfig_RegionCode_LORA_24;
+        CHECK(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) ==
+              doctest::Approx(0.8125f).epsilon(0.0001f));
+        CHECK(std::string(LoRaPresets::getBandwidthString(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST)) == "812.5");
+        CHECK(LoRaPresets::getNumChannels(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 102);
+
+        CHECK(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_SLOW) ==
+              doctest::Approx(0.40625f).epsilon(0.0001f));
+        CHECK(LoRaPresets::getNumChannels(r, meshtastic_Config_LoRaConfig_ModemPreset_LONG_SLOW) == 205);
+
+        CHECK(LoRaPresets::getBandwidth(r, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO) ==
+              doctest::Approx(1.625f).epsilon(0.0001f));
+        CHECK(std::string(LoRaPresets::getBandwidthString(r, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO)) == "1625");
+        CHECK(LoRaPresets::getNumChannels(r, meshtastic_Config_LoRaConfig_ModemPreset_SHORT_TURBO) == 51);
+    }
+}
+
+TEST_CASE("LoRaPresets handles UNSET, channel 0, and out-of-range inputs safely")
+{
+    CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_UNSET,
+                                      meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 0);
+    CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_UNSET,
+                                    meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST, 1) == 0.0f);
+    CHECK(LoRaPresets::getDefaultSlot(meshtastic_Config_LoRaConfig_RegionCode_UNSET,
+                                      meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 0);
+
+    // Channel 0 must not underflow (channel - 1) in unsigned arithmetic
+    CHECK(LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode_JP,
+                                    meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST,
+                                    0) == doctest::Approx(920.700f).epsilon(0.001f));
+
+    // Out-of-range region and preset enums must fail safely
+    const auto bogusRegion = static_cast<meshtastic_Config_LoRaConfig_RegionCode>(999);
+    const auto bogusPreset = static_cast<meshtastic_Config_LoRaConfig_ModemPreset>(999);
+    CHECK(LoRaPresets::getNumChannels(bogusRegion, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 0);
+    CHECK(LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode_JP, bogusPreset) == 0);
+    CHECK(LoRaPresets::getRadioFreq(bogusRegion, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST, 1) == 0.0f);
+    CHECK(LoRaPresets::getDefaultSlot(bogusRegion, meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST) == 0);
+}
+
+TEST_CASE("LoRaPresets keeps every region's default-preset slots inside [freqStart, freqEnd]")
+{
+    for (int code = meshtastic_Config_LoRaConfig_RegionCode_US; code <= meshtastic_Config_LoRaConfig_RegionCode_ITU2_125CM;
+         code++) {
+        const auto region = static_cast<meshtastic_Config_LoRaConfig_RegionCode>(code);
+        const auto preset = LoRaPresets::getDefaultPreset(region);
+        const float freqStart = LoRaPresets::getFrequencyStart(region);
+        const float freqEnd = LoRaPresets::getFrequencyEnd(region);
+        const float halfBw = LoRaPresets::getBandwidth(region, preset) * 0.5f;
+        const auto plan = LoRaPresets::getSlotPlan(region, preset);
+
+        CAPTURE(code);
+        CAPTURE(LoRaPresets::loRaRegionToString(region));
+        REQUIRE(plan.count >= 1);
+        CHECK(plan.firstCenter - halfBw >= freqStart - 1e-4f);
+        CHECK(plan.firstCenter + static_cast<float>(plan.count - 1) * plan.width + halfBw <= freqEnd + 1e-4f);
+    }
+}
