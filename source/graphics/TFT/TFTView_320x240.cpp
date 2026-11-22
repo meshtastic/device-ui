@@ -284,6 +284,18 @@ static void keepScrollEventsLocal(lv_obj_t *obj, lv_event_cb_t cb)
     lv_obj_add_event_cb(obj, cb, LV_EVENT_SCROLL_END, NULL);
 }
 
+// Map markers exist for every positioned node, map open or not; leave LVGL pool headroom for the rest of the UI.
+static bool lvglHasRoomForMapMarker(void)
+{
+#if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN
+    lv_mem_monitor_t mon;
+    lv_mem_monitor(&mon);
+    return mon.used_pct < 90 && mon.free_biggest_size >= 4096;
+#else
+    return true;
+#endif
+}
+
 #if LV_USE_GESTURE_RECOGNITION
 static bool mapDragged = false; // suppresses the node click at the end of a drag
 #endif
@@ -4247,9 +4259,19 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
 
     auto it = nodeObjects.find(nodeNum);
     if (it == nodeObjects.end()) {
+        if (!lvglHasRoomForMapMarker()) {
+            static bool warned = false;
+            if (!warned) {
+                ILOG_WARN("LVGL memory low, not adding further nodes to the map");
+                warned = true;
+            }
+            return;
+        }
         uint32_t bgColor, fgColor;
         std::tie(bgColor, fgColor) = nodeColor(nodeNum);
         lv_obj_t *img = lv_image_create(objects.raw_map_panel);
+        if (!img)
+            return;
 #if LV_USE_GESTURE_RECOGNITION
         lv_obj_add_flag(img, LV_OBJ_FLAG_EVENT_BUBBLE);
 #endif
@@ -4265,6 +4287,10 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
         lv_obj_set_style_pad_right(img, 0, LV_PART_MAIN);
 
         lv_obj_t *lbl = lv_label_create(img);
+        if (!lbl) {
+            lv_obj_delete(img);
+            return;
+        }
         lv_obj_set_pos(lbl, 0, 0);
         lv_obj_set_size(lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         lv_obj_set_style_text_color(lbl, lv_color_black(), LV_PART_MAIN);
