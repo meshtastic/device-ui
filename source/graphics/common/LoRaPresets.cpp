@@ -137,6 +137,10 @@ uint32_t LoRaPresets::getNumChannels(meshtastic_Config_LoRaConfig_RegionCode reg
 float LoRaPresets::getRadioFreq(meshtastic_Config_LoRaConfig_RegionCode region, meshtastic_Config_LoRaConfig_ModemPreset preset,
                                 uint32_t channel)
 {
+    if (region == meshtastic_Config_LoRaConfig_RegionCode_UNSET || channel == 0) {
+        return 0.0f;
+    }
+
     return (regionInfo[region].freqStart + modemPreset[preset].bandwidth_MHz / 2) +
            (channel - 1) * modemPreset[preset].bandwidth_MHz;
 }
